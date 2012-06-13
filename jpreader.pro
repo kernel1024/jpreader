@@ -73,7 +73,7 @@ DEFINES += BUILD_VERSION=\\\"$$VERSION\\\"
 sources.files = $$SOURCES \
     $$HEADERS \
     $$FORMS \
-    qbeagle.pro
+    jpreader.pro
 target.path = /usr/local/bin
 INSTALLS += target
 
