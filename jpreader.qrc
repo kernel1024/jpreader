@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="google">img/google.png</file>
+        <file alias="globe16">img/globe_16.png</file>
+        <file alias="globe32">img/globe_32.png</file>
+        <file alias="globe48">img/globe_48.png</file>
+        <file alias="globe128">img/globe_128.png</file>
+        <file alias="startpage">img/startpage.html</file>
+        <file alias="jisho">img/jisho.png</file>
+    </qresource>
+</RCC>
