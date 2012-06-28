@@ -273,6 +273,7 @@ void CSnippetViewer::bindToTab(QSpecTabWidget* tabs, bool setFocused)
 
 void CSnippetViewer::closeTab(bool nowait)
 {
+    if (waitDlg->isVisible()) return; // prevent closing while translation thread active
     if (!nowait) {
         if (gSet->blockTabCloseActive) return;
         gSet->blockTabClose();
