@@ -38,7 +38,7 @@ void CSnMsgHandler::urlEdited(const QString &url)
 
 void CSnMsgHandler::navByClick()
 {
-    snv->navByUrl(snv->urlEdit->text());
+    snv->navByUrl(snv->urlEdit->currentText());
 }
 
 void CSnMsgHandler::navBack()
@@ -83,6 +83,5 @@ void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url)
 
 void CSnMsgHandler::linkHovered(const QString &link, const QString &, const QString &)
 {
-    QUrl url(link);
-    snv->statusBarMsg(QString::fromUtf8(url.toEncoded()));
+    snv->statusBarMsg(link);
 }

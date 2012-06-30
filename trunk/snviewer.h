@@ -62,6 +62,7 @@ public:
     void keyPressEvent(QKeyEvent* event);
     void updateButtonsState();
     void updateWebViewAttributes();
+    void updateHistorySuggestion(const QStringList &suggestionList);
 public slots:
     void closeTab(bool nowait = false);
     void recycleTab();

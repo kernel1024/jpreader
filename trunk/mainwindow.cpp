@@ -312,7 +312,6 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
     if (!okconv) return;
     int t = current->data(Qt::UserRole).toInt(&okconv);
     if (!okconv) return;
-    QString su = "";
     QUrl u;
     switch (t) {
         case 0: // Tabs
@@ -323,8 +322,7 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
             if (idx<0 || idx>=gSet->recycleBin.count()) return;
             u = gSet->recycleBin.at(idx).url;
             if (!u.isValid()) return;
-            su.append(u.toEncoded());
-            new CSnippetViewer(this, su);
+            new CSnippetViewer(this, u);
 
             gSet->recycleBin.removeAt(idx);
             updateRecycled();
@@ -349,6 +347,24 @@ void CMainWindow::updateHistoryList()
         it->setData(Qt::UserRole+2,t.uuid.toString());
         helperList->addItem(it);
     }
+    updateSuggestionLists(NULL);
+}
+
+void CMainWindow::updateSuggestionLists(CSnippetViewer* snviewer)
+{
+    QStringList sg;
+    for (int i=0;i<200;i++) {
+        if (i>=gSet->mainHistory.count()) break;
+        sg << gSet->mainHistory.at(i).url.toString();
+    }
+    if (snviewer==NULL) {
+        for (int i=0;i<tabMain->count();i++) {
+            CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->widget(i));
+            if (sn!=NULL)
+                sn->updateHistorySuggestion(sg);
+        }
+    } else
+        snviewer->updateHistorySuggestion(sg);
 }
 
 void CMainWindow::updateTitle()
@@ -374,9 +390,7 @@ void CMainWindow::goHistory(QUuid idx)
     if (i.uuid!=idx) return;
     QUrl u = i.url;
     if (!u.isValid()) return;
-    QString su = "";
-    su.append(u.toEncoded());
-    new CSnippetViewer(this, su);
+    new CSnippetViewer(this, u);
 }
 
 void CMainWindow::createSearch()
@@ -532,9 +546,7 @@ void CMainWindow::openBookmark()
 
 	QUrl u = a->data().toUrl();
 	if (!u.isValid()) return;
-	QString su = "";
-	su.append(u.toEncoded());
-    new CSnippetViewer(this, su);
+    new CSnippetViewer(this, u);
 }
 
 void CMainWindow::openRecycled()
@@ -548,9 +560,7 @@ void CMainWindow::openRecycled()
     if (idx<0 || idx>=gSet->recycleBin.count()) return;
     QUrl u = gSet->recycleBin.at(idx).url;
     if (!u.isValid()) return;
-    QString su = "";
-    su.append(u.toEncoded());
-    new CSnippetViewer(this, su);
+    new CSnippetViewer(this, u);
 
     gSet->recycleBin.removeAt(idx);
     updateRecycled();
@@ -561,6 +571,7 @@ void CMainWindow::updateRecycled()
     recycledMenu->clear();
     for (int i=0;i<gSet->recycleBin.count();i++) {
         QAction* a = recycledMenu->addAction(gSet->recycleBin[i].title,this,SLOT(openRecycled()));
+        a->setStatusTip(gSet->recycleBin[i].url.toString());
         a->setData(i);
     }
     updateHelperList();

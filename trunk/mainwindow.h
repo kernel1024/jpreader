@@ -6,6 +6,8 @@
 #include <QtNetwork>
 #include "ui_main.h"
 
+class CSnippetViewer;
+
 class CMainWindow : public QMainWindow, public Ui::MainWindow
 {
 	Q_OBJECT
@@ -30,6 +32,7 @@ public:
     void updateRecycled();
     void updateTabs();
     void updateHistoryList();
+    void updateSuggestionLists(CSnippetViewer *snviewer);
 
 private:
     QMenu* recycledMenu;

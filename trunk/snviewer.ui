@@ -100,15 +100,27 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="KLineEdit" name="urlEdit">
+           <widget class="KComboBox" name="urlEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>150</width>
               <height>0</height>
              </size>
             </property>
-            <property name="showClearButton" stdset="0">
+            <property name="editable">
              <bool>true</bool>
+            </property>
+            <property name="maxVisibleItems">
+             <number>20</number>
+            </property>
+            <property name="autoCompletion">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -330,11 +342,6 @@
    <header>kcombobox.h</header>
   </customwidget>
   <customwidget>
-   <class>KLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>klineedit.h</header>
-  </customwidget>
-  <customwidget>
    <class>KHistoryComboBox</class>
    <extends>KComboBox</extends>
    <header>khistorycombobox.h</header>
@@ -346,7 +353,6 @@
   <tabstop>fwdNavButton</tabstop>
   <tabstop>homeButton</tabstop>
   <tabstop>stopButton</tabstop>
-  <tabstop>urlEdit</tabstop>
   <tabstop>searchEdit</tabstop>
   <tabstop>backButton</tabstop>
   <tabstop>fwdButton</tabstop>
