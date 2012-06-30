@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
+#include <kurlcompletion.h>
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
@@ -68,8 +69,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(stopButton, SIGNAL(clicked()), netHandler, SLOT(netStop()));
     connect(reloadButton, SIGNAL(clicked()), netHandler, SLOT(reloadMedia()));
     connect(searchEdit->lineEdit(), SIGNAL(returnPressed()), fwdButton, SLOT(click()));
-    connect(urlEdit, SIGNAL(returnPressed(QString)), this, SLOT(navByUrl(QString)));
-    connect(urlEdit, SIGNAL(textEdited(QString)),msgHandler,SLOT(urlEdited(QString)));
+    connect(urlEdit->lineEdit(), SIGNAL(returnPressed(QString)), this, SLOT(navByUrl(QString)));
+    connect(urlEdit->lineEdit(), SIGNAL(textEdited(QString)),msgHandler,SLOT(urlEdited(QString)));
     connect(navButton, SIGNAL(clicked()), msgHandler, SLOT(navByClick()));
     connect(fwdNavButton, SIGNAL(clicked()), msgHandler, SLOT(navForward()));
     connect(backNavButton, SIGNAL(clicked()), msgHandler, SLOT(navBack()));
@@ -121,8 +122,14 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         comboZoom->addItem(zoom);
         comboZoom->setCurrentIndex(comboZoom->findText(zoom,Qt::MatchExactly));
     }
+
+    int mv = round((70*parentWnd->height()/100)/(urlEdit->fontMetrics().height()));
+    urlEdit->setMaxVisibleItems(mv);
+
     if (!startPage)
         parentWnd->closeStartPage();
+
+    parentWnd->updateSuggestionLists(this);
 }
 
 CSnippetViewer::~CSnippetViewer()
@@ -203,9 +210,9 @@ void CSnippetViewer::titleChanged(const QString & title)
 void CSnippetViewer::urlChanged(const QUrl & url)
 {
     if (url.toString().contains("about:blank",Qt::CaseInsensitive))
-        urlEdit->setText(Uri.toString());
+        urlEdit->setEditText(Uri.toString());
     else
-		urlEdit->setText(QString::fromUtf8(url.toEncoded()));
+        urlEdit->setEditText(url.toString());
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
         QPalette p = urlEdit->palette();
@@ -219,14 +226,15 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 
 void CSnippetViewer::recycleTab()
 {
-	if (tabTitle.isEmpty() || urlEdit->text().isEmpty()) return;
-    gSet->appendRecycled(tabTitle,QUrl(urlEdit->text()));
+    if (tabTitle.isEmpty() || !txtBrowser->page()->mainFrame()->baseUrl().isValid() ||
+            txtBrowser->page()->mainFrame()->baseUrl().toString().
+            contains("about:blank",Qt::CaseInsensitive)) return;
+    gSet->appendRecycled(tabTitle,txtBrowser->page()->mainFrame()->baseUrl());
 }
 
 void CSnippetViewer::statusBarMsg(const QString &msg)
 {
     parentWnd->statusBar()->showMessage(msg);
-                //statusBar->fontMetrics().elidedText(msg,Qt::ElideRight,statusBar->width()));
 }
 
 QString CSnippetViewer::getDocTitle()
@@ -300,4 +308,14 @@ void CSnippetViewer::updateWebViewAttributes()
         txtBrowser->settings()->setFontFamily(QWebSettings::SerifFont,gSet->fontSerif);
         txtBrowser->settings()->setFontFamily(QWebSettings::SansSerifFont,gSet->fontSansSerif);
     }
+}
+
+void CSnippetViewer::updateHistorySuggestion(const QStringList& suggestionList)
+{
+    QString s = urlEdit->currentText();
+    urlEdit->clear();
+    urlEdit->addItems(suggestionList);
+    urlEdit->setEditText(s);
+    KCompletion* kc = urlEdit->completionObject();
+    kc->insertItems(suggestionList);
 }

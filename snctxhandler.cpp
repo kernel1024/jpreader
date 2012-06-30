@@ -182,7 +182,7 @@ void CSnCtxHandler::copyImgUrl()
 void CSnCtxHandler::duplicateTab()
 {
     QString url = "about:blank";
-    if (!snv->fileChanged) url=snv->urlEdit->text();
+    if (!snv->fileChanged) url=snv->urlEdit->currentText();
 
     CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
 

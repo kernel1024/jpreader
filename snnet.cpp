@@ -173,7 +173,7 @@ void CSnNet::reloadMedia(bool fromNew)
             snv->loadingBkgdFinished=false;
             snv->txtBrowser->settings()->setAttribute(QWebSettings::AutoLoadImages,true);
             snv->txtBrowser->setHtml(makeSimpleHtml(fi.fileName(),cn));
-            snv->urlEdit->setText(snv->Uri.toString());
+            snv->urlEdit->setEditText(snv->Uri.toString());
         } else if (supportedTxt.contains(MIME, Qt::CaseInsensitive)) { // for local txt files
             QFile data(fname);
             QFileInfo fi(fname);
@@ -186,7 +186,7 @@ void CSnNet::reloadMedia(bool fromNew)
                 snv->loadingBkgdFinished=false;
                 snv->txtBrowser->setHtml(cn);
                 data.close();
-                snv->urlEdit->setText(snv->Uri.toString());
+                snv->urlEdit->setEditText(snv->Uri.toString());
             }
         } else { // for local html files
             snv->fileChanged = false;
