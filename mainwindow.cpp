@@ -435,12 +435,11 @@ void CMainWindow::openEmptyBrowser()
 void CMainWindow::openAuxFileInDir()
 {
     QWidget* t = tabMain->currentWidget();
-    if (strcmp(t->metaObject()->className(),"QSnippetViewer")!=0) {
+    CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(t);
+    if (sv==NULL) {
         QMessageBox::warning(this,tr("JPReader error"),tr("Active document viewer tab not found."));
         return;
     }
-    CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(t);
-    if (sv==NULL) return;
     QString auxDir = sv->Uri.toLocalFile();
     if (auxDir.isEmpty()) {
         QMessageBox::warning(this,tr("JPReader error"),tr("Remote document opened. Cannot define local directory."));
