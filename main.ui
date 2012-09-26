@@ -252,6 +252,14 @@
     <string>F2</string>
    </property>
   </action>
+  <action name="actionGlobalContextTranslator">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Global context translator</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
