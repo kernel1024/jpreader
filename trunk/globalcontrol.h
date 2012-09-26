@@ -49,6 +49,8 @@ public:
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
 
+    QAction* actionGlobalTranslator;
+
     QList<QColor> snippetColors;
 
     QMutex sortMutex;
@@ -89,6 +91,7 @@ public:
     QString lastClipboardContentsUnformatted;
     bool lastClipboardIsHtml;
 
+    bool globalContextTranslate;
     bool autoTranslate;
     bool blockTabCloseActive;
 
@@ -117,8 +120,10 @@ public:
 protected:
     CSettingsDlg* dlg;
     void cleanTmpFiles();
+    void startGlobalContextTranslate(const QString& text);
 
 signals:
+    void startAuxTranslation();
 
 public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
@@ -131,6 +136,7 @@ public slots:
     void blockTabClose();
     void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
     void clipboardChanged(QClipboard::Mode mode);
+    void globalContextTranslateReady(const QString& text);
 
     // Settings management
     void writeSettings();

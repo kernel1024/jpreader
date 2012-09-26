@@ -2,6 +2,8 @@
 #include "calcthread.h"
 #include "authdlg.h"
 #include "lighttranslator.h"
+#include "auxtranslator.h"
+#include <QxtToolTip>
 
 CGlobalControl::CGlobalControl(QApplication *parent) :
     QObject(parent)
@@ -14,6 +16,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     maxTranThreads=4;
     maxLimit=1000;
     useAdblock=false;
+    globalContextTranslate=false;
     blockTabCloseActive=false;
     adblock.clear();
     forcedCharset=""; // autodetect
@@ -48,6 +51,10 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     activeWindow = NULL;
     lightTranslator = NULL;
     autoTranslate = false;
+
+    actionGlobalTranslator = new QAction(tr("Global context translator"),this);
+    actionGlobalTranslator->setCheckable(true);
+    actionGlobalTranslator->setChecked(false);
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
@@ -399,6 +406,32 @@ void CGlobalControl::clipboardChanged(QClipboard::Mode mode)
             lastClipboardIsHtml = false;
         }
     }
+
+    if (!lastClipboardContentsUnformatted.isEmpty() && actionGlobalTranslator->isChecked())
+        startGlobalContextTranslate(lastClipboardContentsUnformatted);
+}
+
+void CGlobalControl::startGlobalContextTranslate(const QString &text)
+{
+    if (text.isEmpty()) return;
+    QThread *th = new QThread();
+    CAuxTranslator *at = new CAuxTranslator();
+    at->setParams(text);
+    connect(this,SIGNAL(startAuxTranslation()),
+            at,SLOT(startTranslation()),Qt::QueuedConnection);
+    connect(at,SIGNAL(gotTranslation(QString)),
+            this,SLOT(globalContextTranslateReady(QString)),Qt::QueuedConnection);
+    at->moveToThread(th);
+    th->start();
+
+    emit startAuxTranslation();
+}
+
+void CGlobalControl::globalContextTranslateReady(const QString &text)
+{
+    QSpecToolTipLabel* t = new QSpecToolTipLabel(text);
+    QPoint p = QCursor::pos();
+    QxtToolTip::show(p,t,NULL);
 }
 
 void CGlobalControl::preShutdown()
@@ -471,6 +504,9 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindows.append(mainWindow);
 
     mainWindow->show();
+
+    mainWindow->menuTools->addAction(actionGlobalTranslator);
+
     return mainWindow;
 }
 
