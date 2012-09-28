@@ -7,6 +7,7 @@
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "specwidgets.h"
+#include "qtsingleapplication.h"
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
@@ -43,13 +44,15 @@ class CGlobalControl : public QObject
 {
     Q_OBJECT
 public:
-    explicit CGlobalControl(QApplication *parent);
+    explicit CGlobalControl(QtSingleApplication *parent);
 
     CMainWindow* activeWindow;
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
 
     QAction* actionGlobalTranslator;
+    QSystemTrayIcon trayIcon;
+    QIcon appIcon;
 
     QList<QColor> snippetColors;
 
@@ -119,6 +122,7 @@ public:
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
 protected:
     CSettingsDlg* dlg;
+    bool cleaningState;
     void cleanTmpFiles();
     void startGlobalContextTranslate(const QString& text);
 
@@ -129,6 +133,9 @@ public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
     void settingsDlg();
     void windowDestroyed(CMainWindow* obj);
+    void cleanupAndExit();
+    void trayClicked(QSystemTrayIcon::ActivationReason reason);
+    void updateTrayIconState();
     void focusChanged(QWidget* old, QWidget* now);
     void preShutdown();
     void tranFinished();
@@ -136,6 +143,7 @@ public slots:
     void blockTabClose();
     void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
     void clipboardChanged(QClipboard::Mode mode);
+    void ipcMessageReceived(const QString& msg);
     void globalContextTranslateReady(const QString& text);
 
     // Settings management

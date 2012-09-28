@@ -1,3 +1,5 @@
+SUBDIRS += qtsingleapplication
+
 HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
@@ -37,8 +39,10 @@ SOURCES = main.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp
+
 RESOURCES = \
     jpreader.qrc
+
 FORMS = main.ui \
     settingsdlg.ui \
     waitdlg.ui \
@@ -58,7 +62,7 @@ LIBS += -lkio -lkdecore -lkdeui -lmagic -lsoprano -lnepomuk -lnepomukquery -lnep
 
 PKGCONFIG += glib-2.0 gobject-2.0 arabica icu-uc icu-io icu-i18n
 
-VERSION = 3.0.0
+VERSION = 3.1.0
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
@@ -68,6 +72,8 @@ DEFINES += BUILD_REV=\\\"$$SVNREV\\\"
 DEFINES += BUILD_PLATFORM=\\\"$$PLATFORM\\\"
 DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 DEFINES += BUILD_VERSION=\\\"$$VERSION\\\"
+
+include( qtsingleapplication/src/qtsingleapplication.pri)
 
 # install
 sources.files = $$SOURCES \

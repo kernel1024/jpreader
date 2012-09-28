@@ -5,7 +5,7 @@
 #include "auxtranslator.h"
 #include <QxtToolTip>
 
-CGlobalControl::CGlobalControl(QApplication *parent) :
+CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     QObject(parent)
 {
     snippetColors << QColor(Qt::red) << QColor(Qt::green) << QColor(Qt::blue) << QColor(Qt::cyan) <<
@@ -19,11 +19,17 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     globalContextTranslate=false;
     blockTabCloseActive=false;
     adblock.clear();
+    cleaningState=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
     mainHistory.clear();
     searchHistory.clear();
+
+    appIcon.addFile(":/globe16");
+    appIcon.addFile(":/globe32");
+    appIcon.addFile(":/globe48");
+    appIcon.addFile(":/globe128");
 
     useOverrideFont=false;
     overrideStdFonts=false;
@@ -55,12 +61,27 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
     actionGlobalTranslator->setCheckable(true);
     actionGlobalTranslator->setChecked(false);
+    connect(actionGlobalTranslator,SIGNAL(triggered()),this,SLOT(updateTrayIconState()));
+
+    QMenu* tiMenu = new QMenu();
+    tiMenu->addAction(QIcon::fromTheme("window-new"),tr("Create new window"),this,SLOT(addMainWindow()));
+    tiMenu->addAction(actionGlobalTranslator);
+    tiMenu->addSeparator();
+    tiMenu->addAction(QIcon::fromTheme("application-exit"),tr("Exit"),this,SLOT(cleanupAndExit()));
+    trayIcon.setIcon(appIcon);
+    trayIcon.setContextMenu(tiMenu);
+    trayIcon.show();
+    connect(&trayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            this,SLOT(trayClicked(QSystemTrayIcon::ActivationReason)));
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
     connect(&netAccess,SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
             this,SLOT(authentication(QNetworkReply*,QAuthenticator*)));
-    connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),this,SLOT(clipboardChanged(QClipboard::Mode)));
+    connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
+            this,SLOT(clipboardChanged(QClipboard::Mode)));
+    connect(parent,SIGNAL(messageReceived(QString)),
+            this,SLOT(ipcMessageReceived(QString)));
 
     readSettings();
 }
@@ -496,6 +517,12 @@ void CGlobalControl::updateAllRecycleBins()
     foreach (CMainWindow* w, mainWindows) w->updateRecycled();
 }
 
+void CGlobalControl::ipcMessageReceived(const QString &msg)
+{
+    if (msg==QString("newWindow"))
+        addMainWindow();
+}
+
 CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 {
     CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer);
@@ -508,6 +535,39 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addAction(actionGlobalTranslator);
 
     return mainWindow;
+}
+
+void CGlobalControl::trayClicked(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason!=QSystemTrayIcon::Trigger) return;
+    if (activeWindow!=NULL) {
+        CMainWindow* w = activeWindow;
+        w->activateWindow();
+        w->raise();
+    }
+}
+
+void CGlobalControl::updateTrayIconState()
+{
+    QIcon icn = appIcon;
+    QIcon icnOut;
+    foreach (const QSize& sz, icn.availableSizes()) {
+        QPixmap px = icn.pixmap(sz);
+        if (actionGlobalTranslator->isChecked()) {
+            QPainter p(&px);
+
+            QPen pen = p.pen();
+            pen.setColor(QColor(Qt::red));
+            p.setPen(pen);
+            QBrush brush = p.brush();
+            brush.setColor(QColor(Qt::red));
+            brush.setStyle(Qt::SolidPattern);
+            p.setBrush(brush);
+            p.drawEllipse(2*sz.width()/3,0,sz.width()/3,sz.height()/3);
+        }
+        icnOut.addPixmap(px);
+    }
+    trayIcon.setIcon(icnOut);
 }
 
 void CGlobalControl::focusChanged(QWidget *, QWidget *now)
@@ -529,17 +589,36 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
         } else
             activeWindow=NULL;
     }
-    if (mainWindows.count()==0) {
-        foreach (QThread* th, tranThreads) {
-            if (th->isRunning()) {
-                th->terminate();
-                th->wait(5000);
-                th->deleteLater();
-            }
+//    if (mainWindows.count()==0)
+//        cleanupAndExit();
+}
+
+void CGlobalControl::cleanupAndExit()
+{
+    if (cleaningState) return;
+    cleaningState = true;
+
+    trayIcon.hide();
+    trayIcon.setIcon(QIcon());
+
+    if (mainWindows.count()>0) {
+        foreach (CMainWindow* w, mainWindows) {
+            if (w!=NULL)
+                w->close();
+            QApplication::processEvents();
         }
-        tranThreads.clear();
-        QApplication::quit();
+        QApplication::processEvents();
     }
+
+    foreach (QThread* th, tranThreads) {
+        if (th->isRunning()) {
+            th->terminate();
+            th->wait(5000);
+            th->deleteLater();
+        }
+    }
+    tranThreads.clear();
+    QApplication::quit();
 }
 
 bool CGlobalControl::isUrlBlocked(QUrl url)
