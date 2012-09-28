@@ -539,11 +539,20 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 
 void CGlobalControl::trayClicked(QSystemTrayIcon::ActivationReason reason)
 {
-    if (reason!=QSystemTrayIcon::Trigger) return;
-    if (activeWindow!=NULL) {
-        CMainWindow* w = activeWindow;
-        w->activateWindow();
-        w->raise();
+    switch (reason) {
+        case QSystemTrayIcon::Trigger:
+            if (activeWindow!=NULL) {
+                CMainWindow* w = activeWindow;
+                w->activateWindow();
+                w->raise();
+            } else
+                addMainWindow();
+            break;
+        case QSystemTrayIcon::DoubleClick:
+            addMainWindow();
+            break;
+        default:
+            break;
     }
 }
 
