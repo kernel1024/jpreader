@@ -5,6 +5,8 @@
 
 #include <sys/resource.h>
 
+#include "qtsingleapplication.h"
+
 CGlobalControl* gSet;
 
 int main(int argc, char *argv[])
@@ -23,10 +25,13 @@ int main(int argc, char *argv[])
     qRegisterMetaType<UrlHolder>("UrlHolder");
     qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
 
+    QtSingleApplication app(argc, argv);
+    if (app.isRunning())
+        return !app.sendMessage("newWindow");
 
-	QApplication app(argc, argv);
     gSet = new CGlobalControl(&app);
     app.setStyle(new QSpecMenuStyle);
+    QApplication::setQuitOnLastWindowClosed(false);
 
     gSet->addMainWindow();
 

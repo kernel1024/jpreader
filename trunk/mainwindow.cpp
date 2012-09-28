@@ -21,12 +21,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 	lastTabIdx=0;
 	savedTabIdx=0;
     savedHelperWidth=0;
-    QIcon appicon;
-    appicon.addFile(":/globe16");
-    appicon.addFile(":/globe32");
-    appicon.addFile(":/globe48");
-    appicon.addFile(":/globe128");
-    setWindowIcon(appicon);
+    setWindowIcon(gSet->appIcon);
 
     stSearchStatus.setText(tr("Ready"));
     stSearchStatus.setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
