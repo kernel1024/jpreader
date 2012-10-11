@@ -41,6 +41,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     fontSansSerif=ui->fontSansSerif;
     overrideFontColor=ui->checkFontColorOverride;
     overridedFontColor=Qt::black;
+    gctxHotkey=ui->gctxHotkey;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

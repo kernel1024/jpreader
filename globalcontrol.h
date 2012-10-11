@@ -8,6 +8,7 @@
 #include "settingsdlg.h"
 #include "specwidgets.h"
 #include "qtsingleapplication.h"
+#include <QxtGlobalShortcut>
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
@@ -95,6 +96,7 @@ public:
     bool lastClipboardIsHtml;
 
     bool globalContextTranslate;
+    QxtGlobalShortcut* gctxTranHotkey;
     bool autoTranslate;
     bool blockTabCloseActive;
 
@@ -135,7 +137,7 @@ public slots:
     void windowDestroyed(CMainWindow* obj);
     void cleanupAndExit();
     void trayClicked(QSystemTrayIcon::ActivationReason reason);
-    void updateTrayIconState();
+    void updateTrayIconState(bool state = false);
     void focusChanged(QWidget* old, QWidget* now);
     void preShutdown();
     void tranFinished();

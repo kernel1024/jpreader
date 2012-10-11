@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <kkeysequencewidget.h>
 
 namespace Ui {
     class SettingsDlg;
@@ -40,6 +41,7 @@ public:
     QCheckBox* overrideStdFonts;
     QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
     QCheckBox *overrideFontColor;
+    KKeySequenceWidget *gctxHotkey;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

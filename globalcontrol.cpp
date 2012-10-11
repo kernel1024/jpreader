@@ -3,7 +3,9 @@
 #include "authdlg.h"
 #include "lighttranslator.h"
 #include "auxtranslator.h"
+#include "genericfuncs.h"
 #include <QxtToolTip>
+
 
 CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     QObject(parent)
@@ -62,6 +64,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionGlobalTranslator->setCheckable(true);
     actionGlobalTranslator->setChecked(false);
     connect(actionGlobalTranslator,SIGNAL(triggered()),this,SLOT(updateTrayIconState()));
+    connect(actionGlobalTranslator,SIGNAL(toggled(bool)),this,SLOT(updateTrayIconState(bool)));
 
     QMenu* tiMenu = new QMenu();
     tiMenu->addAction(QIcon::fromTheme("window-new"),tr("Create new window"),this,SLOT(addMainWindow()));
@@ -82,6 +85,10 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
             this,SLOT(clipboardChanged(QClipboard::Mode)));
     connect(parent,SIGNAL(messageReceived(QString)),
             this,SLOT(ipcMessageReceived(QString)));
+
+    gctxTranHotkey = new QxtGlobalShortcut(this);
+    gctxTranHotkey->setDisabled();
+    connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
 
     readSettings();
 }
@@ -139,6 +146,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("sansSerifFont",fontSansSerif);
     settings.setValue("forceFontColor",forceFontColor);
     settings.setValue("forcedFontColor",forcedFontColor.name());
+    settings.setValue("gctxHotkey",gctxTranHotkey->shortcut().toString());
 
     settings.endGroup();
 }
@@ -213,6 +221,12 @@ void CGlobalControl::readSettings()
     fontSansSerif=settings.value("sansSerifFont","Verdana").toString();
     forceFontColor=settings.value("forceFontColor",false).toBool();
     forcedFontColor=QColor(settings.value("forcedFontColor","#000000").toString());
+    QString hk = settings.value("gctxHotkey",QString()).toString();
+    if (!hk.isEmpty()) {
+        gctxTranHotkey->setShortcut(QKeySequence::fromString(hk));
+        if (!gctxTranHotkey->shortcut().isEmpty())
+            gctxTranHotkey->setEnabled();
+    }
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -285,6 +299,7 @@ void CGlobalControl::settingsDlg()
     dlg->fontSansSerif->setEnabled(overrideStdFonts);
     dlg->overrideFontColor->setChecked(forceFontColor);
     dlg->updateFontColorPreview(forcedFontColor);
+    dlg->gctxHotkey->setKeySequence(gctxTranHotkey->shortcut());
 
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
@@ -333,6 +348,9 @@ void CGlobalControl::settingsDlg()
         adblock.clear();
         adblock.append(sl);
         useAdblock=dlg->useAd->isChecked();
+        gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
+        if (!gctxTranHotkey->shortcut().isEmpty())
+            gctxTranHotkey->setEnabled();
     }
     dlg->setParent(NULL);
     delete dlg;
@@ -450,7 +468,7 @@ void CGlobalControl::startGlobalContextTranslate(const QString &text)
 
 void CGlobalControl::globalContextTranslateReady(const QString &text)
 {
-    QSpecToolTipLabel* t = new QSpecToolTipLabel(text);
+    QSpecToolTipLabel* t = new QSpecToolTipLabel(wordWrap(text,80));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,NULL);
 }
@@ -556,7 +574,7 @@ void CGlobalControl::trayClicked(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void CGlobalControl::updateTrayIconState()
+void CGlobalControl::updateTrayIconState(bool)
 {
     QIcon icn = appIcon;
     QIcon icnOut;
@@ -618,6 +636,10 @@ void CGlobalControl::cleanupAndExit()
         }
         QApplication::processEvents();
     }
+    gctxTranHotkey->setDisabled();
+    QApplication::processEvents();
+    gctxTranHotkey->deleteLater();
+    QApplication::processEvents();
 
     foreach (QThread* th, tranThreads) {
         if (th->isRunning()) {
