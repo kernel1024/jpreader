@@ -2,10 +2,12 @@
 #define NEPOMUKSEARCH_H
 
 #include <QtCore>
-#include <nepomuk/filequery.h>
-#include <nepomuk/literalterm.h>
 #include <kdirmodel.h>
 #include <kdirlister.h>
+#ifdef WITH_NEPOMUK
+#include <nepomuk/filequery.h>
+#include <nepomuk/literalterm.h>
+#endif
 
 typedef QHash<QString, QString> QStrHash;
 
