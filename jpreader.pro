@@ -58,11 +58,17 @@ CONFIG += qxt warn_on link_pkgconfig
 QXT += core gui
 
 #DEFINES += QB_KDEDIALOGS=1
-LIBS += -lkio -lkdecore -lkdeui -lmagic -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+LIBS += -lkio -lkdecore -lkdeui -lmagic
+
+#CONFIG += use_indexer
+use_indexer {
+    DEFINES += WITH_NEPOMUK=1
+    LIBS += -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+}
 
 PKGCONFIG += glib-2.0 gobject-2.0 arabica icu-uc icu-io icu-i18n
 
-VERSION = 3.1.0
+VERSION = 3.2.0
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)

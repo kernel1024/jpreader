@@ -27,11 +27,15 @@ void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         searchInDir(searchDir,query);
         nepomukFinished();
     } else {
+#ifdef WITH_NEPOMUK
         Nepomuk::Query::LiteralTerm term(query);
         Nepomuk::Query::FileQuery qr(term);
 
         KUrl ndir = qr.toSearchUrl();
         engine.dirLister()->openUrl(ndir);
+#else
+        nepomukFinished();
+#endif
     }
 }
 
