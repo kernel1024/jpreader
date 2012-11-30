@@ -477,6 +477,7 @@ void CGlobalControl::preShutdown()
 {
     writeSettings();
     cleanTmpFiles();
+    cleanupAndExit(false);
 }
 
 void CGlobalControl::appendSearchHistory(QStringList req)
@@ -616,11 +617,9 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
         } else
             activeWindow=NULL;
     }
-//    if (mainWindows.count()==0)
-//        cleanupAndExit();
 }
 
-void CGlobalControl::cleanupAndExit()
+void CGlobalControl::cleanupAndExit(bool appQuit)
 {
     if (cleaningState) return;
     cleaningState = true;
@@ -649,7 +648,8 @@ void CGlobalControl::cleanupAndExit()
         }
     }
     tranThreads.clear();
-    QApplication::quit();
+    if (appQuit)
+        QApplication::quit();
 }
 
 bool CGlobalControl::isUrlBlocked(QUrl url)
