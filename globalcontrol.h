@@ -135,7 +135,7 @@ public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
     void settingsDlg();
     void windowDestroyed(CMainWindow* obj);
-    void cleanupAndExit();
+    void cleanupAndExit(bool appQuit = true);
     void trayClicked(QSystemTrayIcon::ActivationReason reason);
     void updateTrayIconState(bool state = false);
     void focusChanged(QWidget* old, QWidget* now);
