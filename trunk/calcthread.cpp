@@ -125,7 +125,7 @@ void CCalcThread::examineXMLNode(QDomNode node)
         QStringList containerTags;
         containerTags << "b" << "center" << "cite" << "code" <<
                          "dd" << "del" << "dir" << "div" << "dl" << "dt" << "em" << "font" << "form" <<
-                         "h1" << "h2" << "h3" << "h4" << "h5" << "h6" << "ins" << "label" << " legend" <<
+                         "h1" << "h2" << "h3" << "h4" << "h5" << "h6" << "i" << "ins" << "label" << " legend" <<
                          "li" << "map" << "menu" << "p" << "pre" << "q" << "s" << "select" <<
                          "small" << "span" << "strike" << "strong" << "style" << "table" << "tbody" <<
                          "textarea" << "title" <<"tr" << "tt" << "u" << "ul";
