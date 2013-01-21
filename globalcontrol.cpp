@@ -69,7 +69,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    dbus.registerObject("/auxtranslator",auxTranslatorDBus);
+    dbus.registerObject("/",auxTranslatorDBus);
     dbus.registerService("org.jpreader.auxtranslator");
 
     connect(actionGlobalTranslator,SIGNAL(triggered()),this,SLOT(updateTrayIconState()));
