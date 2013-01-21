@@ -52,7 +52,7 @@ FORMS = main.ui \
     searchtab.ui \
     lighttranslator.ui
 
-QT += webkit network xml
+QT += webkit network xml dbus
 DEFINES += WITHWEBKIT
 CONFIG += qxt warn_on link_pkgconfig
 QXT += core gui
@@ -90,13 +90,7 @@ target.path = /usr/local/bin
 INSTALLS += target
 
 OTHER_FILES += \
-    img/startpage.html
+    img/startpage.html \
+    org.jpreader.auxtranslator.xml
 
-
-
-
-
-
-
-
-
+DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
