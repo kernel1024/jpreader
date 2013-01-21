@@ -4,6 +4,7 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtNetwork>
+#include <QtDBus>
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "specwidgets.h"
@@ -17,6 +18,7 @@
 class CMainWindow;
 class QSpecCookieJar;
 class CLightTranslator;
+class CAuxTranslator;
 
 class UrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
@@ -50,6 +52,7 @@ public:
     CMainWindow* activeWindow;
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
+    CAuxTranslator* auxTranslatorDBus;
 
     QAction* actionGlobalTranslator;
     QSystemTrayIcon trayIcon;

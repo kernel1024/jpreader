@@ -4,6 +4,7 @@
 #include "lighttranslator.h"
 #include "auxtranslator.h"
 #include "genericfuncs.h"
+#include "auxtranslator_adaptor.h"
 #include <QxtToolTip>
 
 
@@ -63,6 +64,14 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
     actionGlobalTranslator->setCheckable(true);
     actionGlobalTranslator->setChecked(false);
+
+
+    auxTranslatorDBus = new CAuxTranslator(this);
+    new AuxtranslatorAdaptor(auxTranslatorDBus);
+    QDBusConnection dbus = QDBusConnection::sessionBus();
+    dbus.registerObject("/auxtranslator",auxTranslatorDBus);
+    dbus.registerService("org.jpreader.auxtranslator");
+
     connect(actionGlobalTranslator,SIGNAL(triggered()),this,SLOT(updateTrayIconState()));
     connect(actionGlobalTranslator,SIGNAL(toggled(bool)),this,SLOT(updateTrayIconState(bool)));
 
