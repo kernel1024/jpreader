@@ -18,8 +18,9 @@ public:
 
 signals:
     Q_SCRIPTABLE void gotTranslation(const QString& text);
-    
+
 public slots:
+    void startTranslationOnce();
     void startTranslation();
     void setText(const QString& Text);
 

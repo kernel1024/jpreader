@@ -466,7 +466,7 @@ void CGlobalControl::startGlobalContextTranslate(const QString &text)
     CAuxTranslator *at = new CAuxTranslator();
     at->setParams(text);
     connect(this,SIGNAL(startAuxTranslation()),
-            at,SLOT(startTranslation()),Qt::QueuedConnection);
+            at,SLOT(startTranslationOnce()),Qt::QueuedConnection);
     connect(at,SIGNAL(gotTranslation(QString)),
             this,SLOT(globalContextTranslateReady(QString)),Qt::QueuedConnection);
     at->moveToThread(th);

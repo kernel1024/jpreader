@@ -19,6 +19,12 @@ void CAuxTranslator::setText(const QString &Text)
     setParams(Text, CAtlasTranslator::AutoTran);
 }
 
+void CAuxTranslator::startTranslationOnce()
+{
+    startTranslation();
+    deleteLater();
+}
+
 void CAuxTranslator::startTranslation()
 {
     if (!text.isEmpty()) {
@@ -32,5 +38,4 @@ void CAuxTranslator::startTranslation()
         }
     }
     emit gotTranslation(text);
-    deleteLater();
 }
