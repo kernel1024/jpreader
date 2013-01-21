@@ -18,11 +18,12 @@ public:
 
 signals:
     Q_SCRIPTABLE void gotTranslation(const QString& text);
+    
+protected slots:
+    void startTranslation(bool deleteAfter = true);
 
 public slots:
-    void startTranslationOnce();
-    void startTranslation();
-    void setText(const QString& Text);
+    void startAuxTranslation(const QString& text);
 
 };
 

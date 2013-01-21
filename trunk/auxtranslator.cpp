@@ -16,16 +16,9 @@ void CAuxTranslator::setParams(const QString &Text, const CAtlasTranslator::ATTr
 
 void CAuxTranslator::setText(const QString &Text)
 {
-    setParams(Text, CAtlasTranslator::AutoTran);
 }
 
-void CAuxTranslator::startTranslationOnce()
-{
-    startTranslation();
-    deleteLater();
-}
-
-void CAuxTranslator::startTranslation()
+void CAuxTranslator::startTranslation(bool deleteAfter)
 {
     if (!text.isEmpty()) {
         CAtlasTranslator atlas;
@@ -38,4 +31,13 @@ void CAuxTranslator::startTranslation()
         }
     }
     emit gotTranslation(text);
+    if (deleteAfter)
+        deleteLater();
 }
+
+void CAuxTranslator::startAuxTranslation(const QString &text)
+{
+    setParams(text, CAtlasTranslator::AutoTran);
+    startTranslation(false);
+}
+
