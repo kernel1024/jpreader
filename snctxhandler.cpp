@@ -133,7 +133,7 @@ void CSnCtxHandler::translateFragment()
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
     at->setParams(s);
-    connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslationOnce()),Qt::QueuedConnection);
+    connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
     connect(at,SIGNAL(gotTranslation(QString)),this,SLOT(gotTranslation(QString)),Qt::QueuedConnection);
     at->moveToThread(th);
     th->start();
