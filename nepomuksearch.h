@@ -8,6 +8,7 @@
 #include <nepomuk/filequery.h>
 #include <nepomuk/literalterm.h>
 #endif
+#include "recollsearch.h"
 
 typedef QHash<QString, QString> QStrHash;
 
@@ -51,6 +52,7 @@ public:
     
 private:
     KDirModel engine;
+    CRecollSearch *recollEngine;
     QTime searchTimer;
     void addHit(const KFileItem &hit);
     void addHitFS(const QFileInfo &hit);
@@ -59,10 +61,12 @@ private:
 
 signals:
     void searchFinished();
+    void recollStartSearch(const QString &qr, int maxLimit);
     
 public slots:
-    void nepomukFinished();
+    void engineFinished();
     void nepomukNewItems(const KFileItemList &items);
+    void auxAddHit(const QString &fileName);
 
 };
 

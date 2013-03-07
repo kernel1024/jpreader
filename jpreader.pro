@@ -18,7 +18,8 @@ HEADERS = mainwindow.h \
     nepomuksearch.h \
     searchtab.h \
     lighttranslator.h \
-    auxtranslator.h
+    auxtranslator.h \
+    recollsearch.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
@@ -38,7 +39,8 @@ SOURCES = main.cpp \
     nepomuksearch.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
-    auxtranslator.cpp
+    auxtranslator.cpp \
+    recollsearch.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -60,15 +62,20 @@ QXT += core gui
 #DEFINES += QB_KDEDIALOGS=1
 LIBS += -lkio -lkdecore -lkdeui -lmagic
 
-#CONFIG += use_indexer
-use_indexer {
+#CONFIG += use_nepomuk
+use_nepomuk {
     DEFINES += WITH_NEPOMUK=1
     LIBS += -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
 }
 
+CONFIG += use_recoll
+use_recoll {
+    DEFINES += WITH_RECOLL=1
+}
+
 PKGCONFIG += glib-2.0 gobject-2.0 arabica icu-uc icu-io icu-i18n
 
-VERSION = 3.2.0
+VERSION = 3.3.0
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
