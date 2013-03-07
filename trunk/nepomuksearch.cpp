@@ -8,8 +8,17 @@ CNepomukSearch::CNepomukSearch(QObject *parent) :
     working = false;
     result = QBResult();
     query = QString();
-    connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(nepomukFinished()));
+    connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
     connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
+
+    QThread* th = new QThread();
+    recollEngine = new CRecollSearch();
+    connect(recollEngine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
+    connect(recollEngine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
+    connect(this,SIGNAL(recollStartSearch(QString,int)),
+            recollEngine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
+    recollEngine->moveToThread(th);
+    th->start();
 }
 
 void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
@@ -25,7 +34,7 @@ void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
     searchTimer.start();
     if (useFSSearch) {
         searchInDir(searchDir,query);
-        nepomukFinished();
+        engineFinished();
     } else {
 #ifdef WITH_NEPOMUK
         Nepomuk::Query::LiteralTerm term(query);
@@ -33,6 +42,8 @@ void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 
         KUrl ndir = qr.toSearchUrl();
         engine.dirLister()->openUrl(ndir);
+#elif WITH_RECOLL
+        emit recollStartSearch(query,gSet->maxLimit);
 #else
         nepomukFinished();
 #endif
@@ -180,7 +191,13 @@ void CNepomukSearch::nepomukNewItems(const KFileItemList &items)
         addHit(items.at(i));
 }
 
-void CNepomukSearch::nepomukFinished()
+void CNepomukSearch::auxAddHit(const QString &fileName)
+{
+    QFileInfo fi(fileName);
+    addHitFS(fi);
+}
+
+void CNepomukSearch::engineFinished()
 {
     if (!working) return;
     working = false;

@@ -654,7 +654,18 @@ void CMainWindow::helpAbout()
 {
     QString rev(BUILD_REV);
     if (rev.contains(':')) rev=rev.remove(QRegExp("^.*:"));
-    QMessageBox::about(this, tr("JPReader"),
-                       tr("JPReader for searching, translating and reading text files in Japanese\n\nVersion: %1-r%2\nPlatform: %3\nBuild date: %4")
-                       .arg(BUILD_VERSION).arg(rev).arg(BUILD_PLATFORM).arg(BUILD_DATE));
+    QString nepomuk = tr("no");
+    QString recoll = tr("no");
+#ifdef WITH_NEPOMUK
+    nepomuk = tr("yes");
+#endif
+#ifdef WITH_RECOLL
+    recoll = tr("yes");
+#endif
+    QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
+                     "Version: %1-r%2\nPlatform: %3\nBuild date: %4\n\n"
+                     "Nepomuk backend compiled: %5\nRecoll backend compiled: %6")
+                  .arg(BUILD_VERSION).arg(rev).arg(BUILD_PLATFORM).arg(BUILD_DATE).arg(nepomuk).arg(recoll);
+
+    QMessageBox::about(this, tr("JPReader"),msg);
 }
