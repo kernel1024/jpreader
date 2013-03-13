@@ -2,7 +2,6 @@
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
-#include <kurlcompletion.h>
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
@@ -44,7 +43,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     searchEdit->show();
     if (!aSearchText.isEmpty()) slist.append(aSearchText);
 	if (slist.count()>0) {
-        searchEdit->setHistoryItems(aSearchText);
+        searchEdit->addItems(aSearchText);
         searchEdit->setCurrentIndex(0);
 	}
     bindToTab(parent->tabMain, setFocused);
@@ -317,6 +316,4 @@ void CSnippetViewer::updateHistorySuggestion(const QStringList& suggestionList)
     urlEdit->clear();
     urlEdit->addItems(suggestionList);
     urlEdit->setEditText(s);
-    KCompletion* kc = urlEdit->completionObject();
-    kc->insertItems(suggestionList);
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>731</width>
-    <height>381</height>
+    <width>734</width>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="widget">
       <attribute name="title">
@@ -321,7 +321,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
-            <widget class="KKeySequenceWidget" name="gctxHotkey"/>
+            <widget class="QHotkeyEdit" name="gctxHotkey"/>
            </item>
           </layout>
          </item>
@@ -894,9 +894,9 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>KKeySequenceWidget</class>
-   <extends>QWidget</extends>
-   <header>kkeysequencewidget.h</header>
+   <class>QHotkeyEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">specwidgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

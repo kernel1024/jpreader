@@ -1,6 +1,3 @@
-#include <kcombobox.h>
-#include <kglobal.h>
-#include <kcharsets.h>
 #include "qxttooltip.h"
 #include "mainwindow.h"
 #include "snviewer.h"
@@ -597,8 +594,8 @@ void CMainWindow::forceCharset()
     QAction* act = qobject_cast<QAction*>(sender());
     if (act==NULL) return;
     QString cs = act->data().toString();
-    if (KGlobal::charsets()->codecForName(cs)!=NULL)
-        cs = KGlobal::charsets()->codecForName(cs)->name();
+    if (QTextCodec::codecForName(cs.toLatin1().data())!=NULL)
+        cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
     gSet->forcedCharset = cs;
     gSet->updateAllCharsetLists();
 }
@@ -621,15 +618,15 @@ void CMainWindow::reloadCharsetList()
     menuCharset->addSeparator();
 
     QMenu* midx = menuCharset;
-    KCharsets * cManager = KGlobal::charsets();
-    QList<QStringList> cList = cManager->encodingsByScript();
+    QList<QStringList> cList = encodingsByScript();
     for(int i=0;i<cList.count();i++) {
         midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
             act = midx->addAction(cList.at(i).at(j),this,SLOT(forceCharset()));
             act->setData(cList.at(i).at(j));
-            if (cManager->codecForName(cList.at(i).at(j))!=NULL) {
-                if (cManager->codecForName(cList.at(i).at(j))->name()==gSet->forcedCharset) {
+            QString cname = cList.at(i).at(j);
+            if (QTextCodec::codecForName(cname.toLatin1().data())!=NULL) {
+                if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->forcedCharset) {
                     act->setCheckable(true);
                     act->setChecked(true);
                 }

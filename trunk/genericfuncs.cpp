@@ -11,11 +11,6 @@
 #include "SAX/helpers/CatchErrorHandler.hpp"
 #include "taggle/Taggle.hpp"
 
-#ifdef QB_KDEDIALOGS
-#include <kfiledialog.h>
-#include <kurl.h>
-#endif
-
 using namespace std;
 
 QString detectMIME(QString filename)
@@ -206,81 +201,46 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
-#ifdef QB_KDEDIALOGS
-QString getKDEFilters(const QString & qfilter)
-{
-    QStringList f = qfilter.split(";;",QString::SkipEmptyParts);
-    QStringList r;
-    r.clear();
-    for (int i=0;i<f.count();i++) {
-        QString s = f.at(i);
-        if (s.indexOf('(')<0) continue;
-        QString ftitle = s.left(s.indexOf('(')).trimmed();
-        s.remove(0,s.indexOf('(')+1);
-        if (s.indexOf(')')<0) continue;
-        s = s.left(s.indexOf(')'));
-        if (s.isEmpty()) continue;
-        QStringList e = s.split(' ');
-        for (int j=0;j<e.count();j++) {
-            if (r.contains(e.at(j),Qt::CaseInsensitive)) continue;
-            if (ftitle.isEmpty())
-                r << QString("%1").arg(e.at(j));
-            else
-                r << QString("%1|%2").arg(e.at(j)).arg(ftitle);
-        }
-    }
-
-    int idx;
-    r.sort();
-    idx=r.indexOf(QRegExp("^\\*\\.jpg.*",Qt::CaseInsensitive));
-    if (idx>=0) { r.swap(0,idx); }
-    idx=r.indexOf(QRegExp("^\\*\\.png.*",Qt::CaseInsensitive));
-    if (idx>=0) { r.swap(1,0); r.swap(0,idx); }
-
-    QString sf = r.join("\n");
-    return sf;
-}
-#endif
-
 QString getOpenFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
 {
-#ifdef QB_KDEDIALOGS
-    UNUSED(selectedFilter);
-    UNUSED(options);
-    return KFileDialog::getOpenFileName(KUrl(dir),getKDEFilters(filter),parent,caption);
-#else
     return QFileDialog::getOpenFileName(parent,caption,dir,filter,selectedFilter,options);
-#endif
 }
 
 QStringList getOpenFileNamesD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
 {
-#ifdef QB_KDEDIALOGS
-    UNUSED(selectedFilter);
-    UNUSED(options);
-    return KFileDialog::getOpenFileNames(KUrl(dir),getKDEFilters(filter),parent,caption);
-#else
     return QFileDialog::getOpenFileNames(parent,caption,dir,filter,selectedFilter,options);
-#endif
 }
 
 QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
 {
-#ifdef QB_KDEDIALOGS
-    UNUSED(selectedFilter);
-    UNUSED(options);
-    return KFileDialog::getSaveFileName(KUrl(dir),getKDEFilters(filter),parent,caption);
-#else
     return QFileDialog::getSaveFileName(parent,caption,dir,filter,selectedFilter,options);
-#endif
 }
 
 QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
 {
-#ifdef QB_KDEDIALOGS
-    UNUSED(options);
-    return KFileDialog::getExistingDirectory(KUrl(dir),parent,caption);
-#else
     return QFileDialog::getExistingDirectory(parent,caption,dir,options);
-#endif
+}
+
+QList<QStringList> encodingsByScript()
+{
+    QList<QStringList> enc;
+    enc << (QStringList() << "Western European" << "ISO 8859-1" << "ISO 8859-15" <<
+            "ISO 8859-14" << "cp 1252" << "IBM850");
+    enc << (QStringList() << "Central European" << "ISO 8859-2" << "ISO 8859-3" << "cp 1250");
+    enc << (QStringList() << "Baltic" << "ISO 8859-4" << "ISO 8859-13" << "cp 1257");
+    enc << (QStringList() << "South-Eastern Europe" << "ISO 8859-16");
+    enc << (QStringList() << "Turkish" << "cp 1254" << "ISO 8859-9");
+    enc << (QStringList() << "Cyrillic" << "KOI8-R" << "ISO 8859-5" << "cp 1251" << "KOI8-U" << "IBM866");
+    enc << (QStringList() << "Chinese Traditional" << "Big5" << "Big5-HKSCS");
+    enc << (QStringList() << "Chinese Simplified" << "GB18030" << "GBK" << "GB2312");
+    enc << (QStringList() << "Korean" << "EUC-KR");
+    enc << (QStringList() << "Japanese" << "sjis" << "jis7" << "EUC-JP");
+    enc << (QStringList() << "Greek" << "ISO 8859-7" << "cp 1253");
+    enc << (QStringList() << "Arabic" << "ISO 8859-6" << "cp 1256");
+    enc << (QStringList() << "Hebrew" << "ISO 8859-8" << "ISO 8859-8-I" << "cp 1255");
+    enc << (QStringList() << "Thai" << "TIS620" << "ISO 8859-11");
+    enc << (QStringList() << "Unicode" << "UTF-8" << "UTF-16" << "utf7" << "ucs2" << "ISO 10646-UCS-2");
+    enc << (QStringList() << "Northern Saami" << "winsami2");
+    enc << (QStringList() << "Other" << "windows-1258" << "IBM874" << "TSCII");
+    return enc;
 }
