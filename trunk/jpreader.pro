@@ -1,7 +1,5 @@
 SUBDIRS += qtsingleapplication
 
-INCLUDEPATH += miniqxt
-
 HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
@@ -21,12 +19,8 @@ HEADERS = mainwindow.h \
     searchtab.h \
     lighttranslator.h \
     auxtranslator.h \
-    recollsearch.h \
-    miniqxt/qxttooltip.h \
-    miniqxt/qxttooltip_p.h \
-    miniqxt/qxtglobalshortcut.h \
-    miniqxt/qxtglobalshortcut_p.h \
-    miniqxt/qxtglobal.h
+    recollsearch.h
+
 SOURCES = main.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
@@ -47,11 +41,7 @@ SOURCES = main.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp \
-    recollsearch.cpp \
-    miniqxt/qxttooltip.cpp \
-    miniqxt/qxtglobalshortcut.cpp \
-    miniqxt/qxtglobalshortcut_x11.cpp \
-    miniqxt/qxtglobal.cpp
+    recollsearch.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -83,9 +73,9 @@ use_recoll {
     DEFINES += WITH_RECOLL=1
 }
 
-PKGCONFIG += glib-2.0 gobject-2.0 arabica icu-uc icu-io icu-i18n
+PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
 
-VERSION = 3.4.0
+VERSION = 3.5.0
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
@@ -96,7 +86,9 @@ DEFINES += BUILD_PLATFORM=\\\"$$PLATFORM\\\"
 DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 DEFINES += BUILD_VERSION=\\\"$$VERSION\\\"
 
-include( qtsingleapplication/src/qtsingleapplication.pri)
+include( qtsingleapplication/src/qtsingleapplication.pri )
+include( arabica/arabica.pri )
+include( miniqxt/miniqxt.pri )
 
 # install
 sources.files = $$SOURCES \
@@ -108,6 +100,7 @@ INSTALLS += target
 
 OTHER_FILES += \
     img/startpage.html \
-    org.jpreader.auxtranslator.xml
+    org.jpreader.auxtranslator.xml \
+    miniqxt/miniqxt.pri
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml

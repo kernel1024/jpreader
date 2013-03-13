@@ -1,15 +1,15 @@
 #include <iostream>
 #include <unistd.h>
 #include <magic.h>
-#include <SAX/filter/Writer.hpp>
-#include <SAX/helpers/CatchErrorHandler.hpp>
-#include <Taggle/Taggle.hpp>
 #include <unicode/utypes.h>
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
 #include "genericfuncs.h"
 #include "globalcontrol.h"
+#include "SAX/filter/Writer.hpp"
+#include "SAX/helpers/CatchErrorHandler.hpp"
+#include "taggle/Taggle.hpp"
 
 #ifdef QB_KDEDIALOGS
 #include <kfiledialog.h>
