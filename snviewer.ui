@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>2</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
     <number>2</number>
    </property>
    <item>
@@ -32,7 +41,16 @@
       <property name="spacing">
        <number>2</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
        <number>2</number>
       </property>
       <item>
@@ -100,7 +118,7 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="KComboBox" name="urlEdit">
+           <widget class="QComboBox" name="urlEdit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -118,9 +136,6 @@
             </property>
             <property name="maxVisibleItems">
              <number>20</number>
-            </property>
-            <property name="autoCompletion">
-             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -154,14 +169,14 @@
            </widget>
           </item>
           <item>
-           <widget class="KHistoryComboBox" name="searchEdit">
+           <widget class="QComboBox" name="searchEdit">
             <property name="minimumSize">
              <size>
               <width>150</width>
               <height>0</height>
              </size>
             </property>
-            <property name="autoCompletion">
+            <property name="editable">
              <bool>true</bool>
             </property>
            </widget>
@@ -334,17 +349,7 @@
   <customwidget>
    <class>QWebView</class>
    <extends>QWidget</extends>
-   <header>QtWebKit/QWebView</header>
-  </customwidget>
-  <customwidget>
-   <class>KComboBox</class>
-   <extends>QComboBox</extends>
-   <header>kcombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>KHistoryComboBox</class>
-   <extends>KComboBox</extends>
-   <header>khistorycombobox.h</header>
+   <header>QtWebKitWidgets/QWebView</header>
   </customwidget>
  </customwidgets>
  <tabstops>

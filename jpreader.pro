@@ -15,11 +15,11 @@ HEADERS = mainwindow.h \
     snnet.h \
     authdlg.h \
     bookmarkdlg.h \
-    nepomuksearch.h \
     searchtab.h \
     lighttranslator.h \
     auxtranslator.h \
-    recollsearch.h
+    recollsearch.h \
+    indexersearch.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -37,11 +37,11 @@ SOURCES = main.cpp \
     snnet.cpp \
     authdlg.cpp \
     bookmarkdlg.cpp \
-    nepomuksearch.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp \
-    recollsearch.cpp
+    recollsearch.cpp \
+    indexersearch.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -59,13 +59,12 @@ QT += webkit network xml dbus
 DEFINES += WITHWEBKIT
 CONFIG += warn_on link_pkgconfig
 
-#DEFINES += QB_KDEDIALOGS=1
-LIBS += -lX11 -lkio -lkdecore -lkdeui -lmagic
+LIBS += -lX11 -lmagic
 
 #CONFIG += use_nepomuk
 use_nepomuk {
     DEFINES += WITH_NEPOMUK=1
-    LIBS += -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+    LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
 }
 
 CONFIG += use_recoll
@@ -100,7 +99,6 @@ INSTALLS += target
 
 OTHER_FILES += \
     img/startpage.html \
-    org.jpreader.auxtranslator.xml \
-    miniqxt/miniqxt.pri
+    org.jpreader.auxtranslator.xml
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml

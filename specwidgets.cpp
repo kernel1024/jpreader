@@ -232,3 +232,42 @@ QSpecToolTipLabel::QSpecToolTipLabel(const QString &text)
 {
     setText(text);
 }
+
+
+QHotkeyEdit::QHotkeyEdit(QWidget *parent) :
+    QLineEdit(parent)
+{
+    p_shortcut = QKeySequence();
+    setReadOnly(true);
+}
+
+QKeySequence QHotkeyEdit::keySequence() const
+{
+    return p_shortcut;
+}
+
+void QHotkeyEdit::setKeySequence(const QKeySequence &sequence)
+{
+    p_shortcut = sequence;
+    updateSequenceView();
+}
+
+void QHotkeyEdit::keyPressEvent(QKeyEvent *event)
+{
+    int seq = 0;
+    switch ( event->modifiers())
+    {
+        case Qt::ShiftModifier : seq = Qt::SHIFT; break;
+        case Qt::ControlModifier : seq = Qt::CTRL; break;
+        case Qt::AltModifier : seq = Qt::ALT; break;
+        case Qt::MetaModifier : seq = Qt::META; break;
+    }
+    if ((event->key()!=0) && (event->key()!=Qt::Key_unknown))
+        setKeySequence(seq+event->key());
+    event->accept();
+}
+
+void QHotkeyEdit::updateSequenceView()
+{
+    setText(p_shortcut.toString());
+}

@@ -2,9 +2,9 @@
 #define NEPOMUKSEARCH_H
 
 #include <QtCore>
+#ifdef WITH_NEPOMUK
 #include <kdirmodel.h>
 #include <kdirlister.h>
-#ifdef WITH_NEPOMUK
 #include <nepomuk/filequery.h>
 #include <nepomuk/literalterm.h>
 #endif
@@ -40,32 +40,40 @@ public:
     }
 };
 
-class CNepomukSearch : public QObject
+class CIndexerSearch : public QObject
 {
     Q_OBJECT
 public:
     QBResult result;
     QString query;
     bool working;
-    explicit CNepomukSearch(QObject *parent = 0);
+    explicit CIndexerSearch(QObject *parent = 0);
     void doSearch(const QString &searchTerm, const QDir &searchDir = QDir("/"));
     
 private:
+#ifdef WITH_NEPOMUK
     KDirModel engine;
-    CRecollSearch *recollEngine;
-    QTime searchTimer;
     void addHit(const KFileItem &hit);
+#endif
+#ifdef WITH_RECOLL
+    CRecollSearch *recollEngine;
+#endif
+    QTime searchTimer;
     void addHitFS(const QFileInfo &hit);
     double calculateHitRate(const QString &filename);
     void searchInDir(const QDir &dir, const QString &qr);
 
 signals:
     void searchFinished();
+#ifdef WITH_RECOLL
     void recollStartSearch(const QString &qr, int maxLimit);
-    
+#endif
+
 public slots:
     void engineFinished();
+#ifdef WITH_NEPOMUK
     void nepomukNewItems(const KFileItemList &items);
+#endif
     void auxAddHit(const QString &fileName);
 
 };

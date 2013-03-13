@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>2</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
     <number>2</number>
    </property>
    <item>
@@ -36,7 +45,7 @@
       </widget>
      </item>
      <item>
-      <widget class="KComboBox" name="editSearch">
+      <widget class="QComboBox" name="editSearch">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -50,12 +59,6 @@
        </property>
        <property name="editable">
         <bool>true</bool>
-       </property>
-       <property name="duplicatesEnabled">
-        <bool>false</bool>
-       </property>
-       <property name="autoCompletion">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -131,7 +134,16 @@
        <property name="spacing">
         <number>6</number>
        </property>
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item>
@@ -211,14 +223,7 @@
       </widget>
      </item>
      <item>
-      <widget class="KLineEdit" name="editDir">
-       <property name="urlDropsEnabled">
-        <bool>false</bool>
-       </property>
-       <property name="showClearButton" stdset="0">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <widget class="QLineEdit" name="editDir"/>
      </item>
      <item>
       <widget class="QPushButton" name="buttonDir">
@@ -255,20 +260,7 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>KComboBox</class>
-   <extends>QComboBox</extends>
-   <header>kcombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>KLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>klineedit.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
-  <tabstop>editSearch</tabstop>
   <tabstop>buttonSearch</tabstop>
   <tabstop>listResults</tabstop>
   <tabstop>snippetBrowser</tabstop>

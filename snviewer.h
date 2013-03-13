@@ -5,8 +5,6 @@
 #include <QtGui>
 
 #include <QtWebKit>
-#include <klineedit.h>
-#include <khistorycombobox.h>
 #include "ui_snviewer.h"
 #include "waitdlg.h"
 #include "calcthread.h"

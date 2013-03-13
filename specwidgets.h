@@ -99,4 +99,16 @@ signals:
     void labelHide();
 };
 
+class QHotkeyEdit : public QLineEdit {
+    Q_OBJECT
+public:
+    QHotkeyEdit(QWidget *parent);
+    QKeySequence keySequence() const;
+    void setKeySequence(const QKeySequence &sequence);
+protected:
+    QKeySequence p_shortcut;
+    void keyPressEvent(QKeyEvent *event);
+    void updateSequenceView();
+};
+
 #endif // SPECTABWIDGET_H

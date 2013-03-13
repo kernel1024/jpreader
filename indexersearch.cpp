@@ -1,16 +1,18 @@
-#include "nepomuksearch.h"
+#include "indexersearch.h"
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 
-CNepomukSearch::CNepomukSearch(QObject *parent) :
+CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
     working = false;
     result = QBResult();
     query = QString();
+#ifdef WITH_NEPOMUK
     connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
     connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
-
+#endif
+#ifdef WITH_RECOLL
     QThread* th = new QThread();
     recollEngine = new CRecollSearch();
     connect(recollEngine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
@@ -19,9 +21,10 @@ CNepomukSearch::CNepomukSearch(QObject *parent) :
             recollEngine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
     recollEngine->moveToThread(th);
     th->start();
+#endif
 }
 
-void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
+void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 {
     if (working) return;
     bool useFSSearch = (!searchDir.isRoot() && searchDir.isReadable());
@@ -45,12 +48,13 @@ void CNepomukSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 #elif WITH_RECOLL
         emit recollStartSearch(query,gSet->maxLimit);
 #else
-        nepomukFinished();
+        engineFinished();
 #endif
     }
 }
 
-void CNepomukSearch::addHit(const KFileItem &hit)
+#ifdef WITH_NEPOMUK
+void CIndexerSearch::addHit(const KFileItem &hit)
 {
     if (result.snippets.count()>gSet->maxLimit) return;
     // Add only files (no feeds, cached pages etc...)
@@ -107,7 +111,15 @@ void CNepomukSearch::addHit(const KFileItem &hit)
     result.snippets.last()["FileTitle"] = wf.fileName();
 }
 
-void CNepomukSearch::addHitFS(const QFileInfo &hit)
+void CIndexerSearch::nepomukNewItems(const KFileItemList &items)
+{
+    if (!working) return;
+    for (int i=0;i<items.count();i++)
+        addHit(items.at(i));
+}
+#endif
+
+void CIndexerSearch::addHitFS(const QFileInfo &hit)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
@@ -152,7 +164,7 @@ void CNepomukSearch::addHitFS(const QFileInfo &hit)
     result.snippets.last()["FileTitle"] = hit.fileName();
 }
 
-double CNepomukSearch::calculateHitRate(const QString &filename)
+double CIndexerSearch::calculateHitRate(const QString &filename)
 {
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) return 0.0;
@@ -170,7 +182,7 @@ double CNepomukSearch::calculateHitRate(const QString &filename)
     return hits;
 }
 
-void CNepomukSearch::searchInDir(const QDir &dir, const QString &qr)
+void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
 {
     QFileInfoList fl = dir.entryInfoList(QStringList() << "*",QDir::Dirs | QDir::NoDotAndDotDot);
     for (int i=0;i<fl.count();i++)
@@ -184,20 +196,13 @@ void CNepomukSearch::searchInDir(const QDir &dir, const QString &qr)
     }
 }
 
-void CNepomukSearch::nepomukNewItems(const KFileItemList &items)
-{
-    if (!working) return;
-    for (int i=0;i<items.count();i++)
-        addHit(items.at(i));
-}
-
-void CNepomukSearch::auxAddHit(const QString &fileName)
+void CIndexerSearch::auxAddHit(const QString &fileName)
 {
     QFileInfo fi(fileName);
     addHitFS(fi);
 }
 
-void CNepomukSearch::engineFinished()
+void CIndexerSearch::engineFinished()
 {
     if (!working) return;
     working = false;

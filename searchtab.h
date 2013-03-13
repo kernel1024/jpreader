@@ -4,7 +4,7 @@
 #include <QtCore>
 #include <QtGui>
 #include "mainwindow.h"
-#include "nepomuksearch.h"
+#include "indexersearch.h"
 
 namespace Ui {
     class SearchTab;
@@ -33,7 +33,7 @@ private:
     QString lastQuery;
     int sortMode;
 
-    CNepomukSearch nepomuk;
+    CIndexerSearch nepomuk;
 
 protected:
     void doSearch();
