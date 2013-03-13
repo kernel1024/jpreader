@@ -5,7 +5,7 @@
 #include "auxtranslator.h"
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
-#include <QxtToolTip>
+#include "qxttooltip.h"
 
 
 CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
