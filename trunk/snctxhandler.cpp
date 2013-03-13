@@ -1,4 +1,4 @@
-#include <QxtToolTip>
+#include "qxttooltip.h"
 #include "snctxhandler.h"
 #include "genericfuncs.h"
 #include "bookmarkdlg.h"

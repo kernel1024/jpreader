@@ -1,7 +1,7 @@
 #include <kcombobox.h>
 #include <kglobal.h>
 #include <kcharsets.h>
-#include <QxtToolTip>
+#include "qxttooltip.h"
 #include "mainwindow.h"
 #include "snviewer.h"
 #include "settingsdlg.h"

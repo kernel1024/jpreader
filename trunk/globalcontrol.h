@@ -9,7 +9,7 @@
 #include "settingsdlg.h"
 #include "specwidgets.h"
 #include "qtsingleapplication.h"
-#include <QxtGlobalShortcut>
+#include "qxtglobalshortcut.h"
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1

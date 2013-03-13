@@ -1,5 +1,7 @@
 SUBDIRS += qtsingleapplication
 
+INCLUDEPATH += miniqxt
+
 HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
@@ -19,7 +21,12 @@ HEADERS = mainwindow.h \
     searchtab.h \
     lighttranslator.h \
     auxtranslator.h \
-    recollsearch.h
+    recollsearch.h \
+    miniqxt/qxttooltip.h \
+    miniqxt/qxttooltip_p.h \
+    miniqxt/qxtglobalshortcut.h \
+    miniqxt/qxtglobalshortcut_p.h \
+    miniqxt/qxtglobal.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
@@ -40,7 +47,11 @@ SOURCES = main.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp \
-    recollsearch.cpp
+    recollsearch.cpp \
+    miniqxt/qxttooltip.cpp \
+    miniqxt/qxtglobalshortcut.cpp \
+    miniqxt/qxtglobalshortcut_x11.cpp \
+    miniqxt/qxtglobal.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -56,11 +67,10 @@ FORMS = main.ui \
 
 QT += webkit network xml dbus
 DEFINES += WITHWEBKIT
-CONFIG += qxt warn_on link_pkgconfig
-QXT += core gui
+CONFIG += warn_on link_pkgconfig
 
 #DEFINES += QB_KDEDIALOGS=1
-LIBS += -lkio -lkdecore -lkdeui -lmagic
+LIBS += -lX11 -lkio -lkdecore -lkdeui -lmagic
 
 #CONFIG += use_nepomuk
 use_nepomuk {
@@ -75,7 +85,7 @@ use_recoll {
 
 PKGCONFIG += glib-2.0 gobject-2.0 arabica icu-uc icu-io icu-i18n
 
-VERSION = 3.3.0
+VERSION = 3.4.0
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
