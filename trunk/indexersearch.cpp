@@ -179,7 +179,10 @@ double CIndexerSearch::calculateHitRate(const QString &filename)
     QTextCodec *cd = detectEncoding(fb);
     QString fc = cd->toUnicode(fb.constData());
 
-    double hits = fc.count(query,Qt::CaseInsensitive);
+    QStringList ql = query.split(' ');
+    double hits = 0.0;
+    for(int i=0;i<ql.count();i++)
+        hits += fc.count(ql.at(i),Qt::CaseInsensitive);
     return hits;
 }
 
@@ -199,6 +202,7 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
 
 void CIndexerSearch::auxAddHit(const QString &fileName)
 {
+    qDebug() << fileName;
     QFileInfo fi(fileName);
     addHitFS(fi);
 }
