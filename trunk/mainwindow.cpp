@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QTextCodec>
 #include <QAbstractNetworkCache>
+#include <QTextDocument>
 
 #include "qxttooltip.h"
 #include "mainwindow.h"
@@ -374,9 +375,16 @@ void CMainWindow::updateTitle()
     QString t = tr("JPReader");
     if (tabMain->currentWidget()!=NULL) {
         CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
-        if (sv!=NULL && !sv->tabTitle.isEmpty()) t = sv->tabTitle + " - " + t;
+        if (sv!=NULL && !sv->tabTitle.isEmpty()) {
+            QTextDocument doc;
+            doc.setHtml(sv->tabTitle);
+            t = doc.toPlainText() + " - " + t;
+            t.remove("\r");
+            t.remove("\n");
+        }
         CSearchTab* bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
-        if (bv!=NULL && !bv->getLastQuery().isEmpty()) t = tr("[%1] search - %2").arg(bv->getLastQuery()).arg(t);
+        if (bv!=NULL && !bv->getLastQuery().isEmpty()) t =
+                tr("[%1] search - %2").arg(bv->getLastQuery()).arg(t);
     }
     setWindowTitle(t);
 }
