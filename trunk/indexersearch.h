@@ -1,7 +1,13 @@
-#ifndef NEPOMUKSEARCH_H
-#define NEPOMUKSEARCH_H
+#ifndef INDEXERSEARCH_H
+#define INDEXERSEARCH_H
 
-#include <QtCore>
+#include <QObject>
+#include <QHash>
+#include <QList>
+#include <QString>
+#include <QTime>
+#include <QDir>
+#include <QFileInfo>
 #ifdef WITH_NEPOMUK
 #include <kdirmodel.h>
 #include <kdirlister.h>
@@ -78,4 +84,4 @@ public slots:
 
 };
 
-#endif // NEPOMUKSEARCH_H
+#endif // INDEXERSEARCH_H

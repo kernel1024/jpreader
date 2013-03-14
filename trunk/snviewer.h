@@ -1,10 +1,15 @@
 #ifndef SNVIEWER_H
 #define SNVIEWER_H 1
 
-#include <QtCore>
-#include <QtGui>
+#include <QWidget>
+#include <QString>
+#include <QStringList>
+#include <QPointer>
+#include <QWebFrame>
+#include <QList>
+#include <QUrl>
+#include <QKeyEvent>
 
-#include <QtWebKit>
 #include "ui_snviewer.h"
 #include "waitdlg.h"
 #include "calcthread.h"
@@ -65,6 +70,7 @@ public slots:
     void closeTab(bool nowait = false);
     void recycleTab();
     void navByUrl(QString url);
+    void navByUrl();
     void titleChanged(const QString & title);
     void urlChanged(const QUrl & url);
     void statusBarMsg(const QString & msg);

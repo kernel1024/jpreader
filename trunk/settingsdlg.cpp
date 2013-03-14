@@ -1,3 +1,7 @@
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QColorDialog>
+
 #include "settingsdlg.h"
 #include "ui_settingsdlg.h"
 #include "mainwindow.h"

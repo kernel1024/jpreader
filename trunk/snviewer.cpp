@@ -1,3 +1,12 @@
+#include <QShortcut>
+#include <QUrl>
+#include <QFileInfo>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+#include <QUrlQuery>
+#endif
+
+#include <math.h>
 #include "snviewer.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
@@ -68,7 +77,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(stopButton, SIGNAL(clicked()), netHandler, SLOT(netStop()));
     connect(reloadButton, SIGNAL(clicked()), netHandler, SLOT(reloadMedia()));
     connect(searchEdit->lineEdit(), SIGNAL(returnPressed()), fwdButton, SLOT(click()));
-    connect(urlEdit->lineEdit(), SIGNAL(returnPressed(QString)), this, SLOT(navByUrl(QString)));
+    connect(urlEdit->lineEdit(), SIGNAL(returnPressed()), this, SLOT(navByUrl()));
     connect(urlEdit->lineEdit(), SIGNAL(textEdited(QString)),msgHandler,SLOT(urlEdited(QString)));
     connect(navButton, SIGNAL(clicked()), msgHandler, SLOT(navByClick()));
     connect(fwdNavButton, SIGNAL(clicked()), msgHandler, SLOT(navForward()));
@@ -144,6 +153,11 @@ void CSnippetViewer::updateButtonsState()
     backNavButton->setEnabled(backHistory.count()>1);
 }
 
+void CSnippetViewer::navByUrl()
+{
+    navByUrl(urlEdit->lineEdit()->text());
+}
+
 void CSnippetViewer::navByUrl(QString url)
 {
     navButton->hide();
@@ -153,7 +167,13 @@ void CSnippetViewer::navByUrl(QString url)
 
     if (!u.isValid() || !url.contains('.')) {
         u = QUrl("http://google.com/search");
-        u.addQueryItem("q",url);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+        u.addQueryItem("q", url);
+#else
+        QUrlQuery qu;
+        qu.addQueryItem("q", url);
+        u.setQuery(qu);
+#endif
     }
 
     urlEdit->setPalette(QApplication::palette(urlEdit));

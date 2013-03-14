@@ -1,10 +1,28 @@
 #ifndef SPECTABWIDGET_H
 #define SPECTABWIDGET_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtWebKit>
-#include <QtNetwork>
+#include <QWidget>
+#include <QTabBar>
+#include <QMouseEvent>
+#include <QTabWidget>
+#include <QEvent>
+#include <QPoint>
+#include <QWebView>
+#include <QWebPage>
+#include <QNetworkCookieJar>
+#include <QNetworkAccessManager>
+#include <QProxyStyle>
+#include <QStyleOption>
+#include <QUrl>
+#include <QMap>
+#include <QVariant>
+#include <QIODevice>
+#include <QString>
+#include <QLabel>
+#include <QHideEvent>
+#include <QLineEdit>
+#include <QKeySequence>
+#include <QKeyEvent>
 
 class CMainWindow;
 

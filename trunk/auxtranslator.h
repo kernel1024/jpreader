@@ -1,7 +1,8 @@
 #ifndef AUXTRANSLATOR_H
 #define AUXTRANSLATOR_H
 
-#include <QtCore>
+#include <QObject>
+#include <QString>
 #include "atlastranslator.h"
 
 class CAuxTranslator : public QObject

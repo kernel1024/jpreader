@@ -1,9 +1,10 @@
 #ifndef SNNET_H
 #define SNNET_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtWebKit>
+#include <QObject>
+#include <QUrl>
+#include <QWebFrame>
+#include <QNetworkRequest>
 #include "snviewer.h"
 
 class CSnNet : public QObject

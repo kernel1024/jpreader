@@ -1,3 +1,6 @@
+#include <QTextCodec>
+#include <QMimeData>
+
 #include <iostream>
 #include <unistd.h>
 #include <magic.h>
@@ -46,7 +49,8 @@ QString detectMIME(QByteArray buf)
 QString detectEncodingName(QByteArray content) {
     QString codepage = "";
 
-	if (!gSet->forcedCharset.isEmpty() && QTextCodec::availableCodecs().contains(gSet->forcedCharset.toAscii()))
+    if (!gSet->forcedCharset.isEmpty() &&
+            QTextCodec::availableCodecs().contains(gSet->forcedCharset.toLatin1()))
 		return gSet->forcedCharset;
 
 	QTextCodec* enc = QTextCodec::codecForLocale();
@@ -73,7 +77,7 @@ QTextCodec* detectEncoding(QByteArray content) {
     QString codepage = detectEncodingName(content);
 
     if (!codepage.isEmpty())
-        return QTextCodec::codecForName(codepage.toAscii());
+        return QTextCodec::codecForName(codepage.toLatin1());
     else {
         if (!QTextCodec::codecForLocale())
             return QTextCodec::codecForName("UTF-8");
@@ -105,7 +109,7 @@ QByteArray XMLizeHTML(QByteArray html, QString encoding)
     std::istringstream iss(html.data(),std::istringstream::in);
     Arabica::SAX::InputSource<std::string> is;
 
-    std::string enc = encoding.toAscii().constData();
+    std::string enc = encoding.toLatin1().constData();
     is.setByteStream(iss);
     is.setEncoding(enc);
 
@@ -228,7 +232,6 @@ QList<QStringList> encodingsByScript()
             "ISO 8859-14" << "cp 1252" << "IBM850");
     enc << (QStringList() << "Central European" << "ISO 8859-2" << "ISO 8859-3" << "cp 1250");
     enc << (QStringList() << "Baltic" << "ISO 8859-4" << "ISO 8859-13" << "cp 1257");
-    enc << (QStringList() << "South-Eastern Europe" << "ISO 8859-16");
     enc << (QStringList() << "Turkish" << "cp 1254" << "ISO 8859-9");
     enc << (QStringList() << "Cyrillic" << "KOI8-R" << "ISO 8859-5" << "cp 1251" << "KOI8-U" << "IBM866");
     enc << (QStringList() << "Chinese Traditional" << "Big5" << "Big5-HKSCS");

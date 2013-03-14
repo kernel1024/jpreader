@@ -1,10 +1,23 @@
 #ifndef QGLOBALSETTINGS_H
 #define QGLOBALSETTINGS_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtNetwork>
-#include <QtDBus>
+#include <QObject>
+#include <QWidget>
+#include <QDataStream>
+#include <QString>
+#include <QUrl>
+#include <QUuid>
+#include <QList>
+#include <QAction>
+#include <QSystemTrayIcon>
+#include <QFont>
+#include <QThread>
+#include <QNetworkReply>
+#include <QAuthenticator>
+#include <QClipboard>
+#include <QMutex>
+#include <QDebug>
+
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "specwidgets.h"

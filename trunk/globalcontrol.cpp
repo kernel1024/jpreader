@@ -1,3 +1,11 @@
+#include <QNetworkDiskCache>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+#include <QStandardPaths>
+#else
+#include <QDesktopServices>
+#endif
+
 #include "globalcontrol.h"
 #include "calcthread.h"
 #include "authdlg.h"
@@ -48,7 +56,13 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
 
     netAccess.setCookieJar(&cookieJar);
 
-    QString fs = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
+    QString fs = QString();
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    fs = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
+#else
+    fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+#endif
+
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
     fs += tr("jpreader_cache") + QDir::separator();
@@ -678,7 +692,7 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
     if (!origin.isValid()) return;
     QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("passwords");
-    QString key = QString::fromAscii(origin.toEncoded().toBase64());
+    QString key = QString::fromLatin1(origin.toEncoded().toBase64());
 
     QString u = settings.value(QString("%1-user").arg(key),QString()).toString();
     QByteArray ba = settings.value(QString("%1-pass").arg(key),QByteArray()).toByteArray();
@@ -701,7 +715,7 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     if (!origin.isValid()) return;
     QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("passwords");
-    QString key = QString::fromAscii(origin.toEncoded().toBase64());
+    QString key = QString::fromLatin1(origin.toEncoded().toBase64());
     settings.setValue(QString("%1-user").arg(key),user);
     settings.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
     settings.endGroup();

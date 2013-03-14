@@ -1,3 +1,12 @@
+#include <QImageWriter>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QProcess>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+#include <QUrlQuery>
+#endif
+
 #include "qxttooltip.h"
 #include "snctxhandler.h"
 #include "genericfuncs.h"
@@ -215,7 +224,13 @@ void CSnCtxHandler::searchInGoogle()
     if (nt==NULL) return;
     QString s = nt->data().toString();
     QUrl u("http://google.com/search");
-    u.addQueryItem("q",s);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    u.addQueryItem("q", s);
+#else
+    QUrlQuery qu;
+    qu.addQueryItem("q", s);
+    u.setQuery(qu);
+#endif
 
     new CSnippetViewer(snv->parentWnd, u);
 }
@@ -236,9 +251,17 @@ void CSnCtxHandler::searchInJisho()
     if (nt==NULL) return;
     QString s = nt->data().toString();
     QUrl u("http://jisho.org/words");
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     u.addQueryItem("jap",s);
     u.addQueryItem("eng=","");
     u.addQueryItem("dict","edict");
+#else
+    QUrlQuery qu;
+    qu.addQueryItem("jap",s);
+    qu.addQueryItem("eng=","");
+    qu.addQueryItem("dict","edict");
+    u.setQuery(qu);
+#endif
 
     new CSnippetViewer(snv->parentWnd, u);
 }
@@ -271,7 +294,7 @@ void CSnCtxHandler::saveImgToFile()
         QString fltr = "";
         QStringList fmtss;
         for (int i=0;i<fmts.count();i++) {
-            QString tmp = QString::fromAscii(fmts.at(i));
+            QString tmp = QString::fromLatin1(fmts.at(i));
             fmtss << tmp;
             if (fltr.isEmpty())
                 fltr = QString(tr("%1 image (*.%1)")).arg(tmp);
@@ -289,7 +312,7 @@ void CSnCtxHandler::saveImgToFile()
         if (!fname.isEmpty()) {
             QFileInfo fi(fname);
             if (fmtss.contains(fi.suffix(),Qt::CaseInsensitive))
-                px.save(fname,fi.suffix().toAscii().data(),100);
+                px.save(fname,fi.suffix().toUtf8().data(),100);
             else
                 QMessageBox::warning(snv,tr("JPReader"),tr("Wrong format selected (%1)").arg(fi.suffix()));
         }

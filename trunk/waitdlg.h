@@ -1,7 +1,9 @@
 #ifndef WAITDLG_H
 #define WAITDLG_H
 
-#include <QtGui>
+#include <QWidget>
+#include <QPushButton>
+#include <QString>
 
 namespace Ui {
     class WaitDlg;

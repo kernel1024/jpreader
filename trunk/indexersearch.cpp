@@ -1,3 +1,4 @@
+#include <QTextCodec>
 #include "indexersearch.h"
 #include "globalcontrol.h"
 #include "genericfuncs.h"

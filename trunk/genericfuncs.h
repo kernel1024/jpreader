@@ -1,9 +1,12 @@
 #ifndef GENERICFUNCS_H
 #define GENERICFUNCS_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtXml>
+#include <QString>
+#include <QByteArray>
+#include <QList>
+#include <QStringList>
+#include <QWidget>
+#include <QFileDialog>
 
 #define UNUSED(x) (void)(x)
 

@@ -1,9 +1,8 @@
 #ifndef SNTRANS_H
 #define SNTRANS_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtWebKit>
+#include <QObject>
+#include <QString>
 #include "snviewer.h"
 
 class CSnTrans : public QObject

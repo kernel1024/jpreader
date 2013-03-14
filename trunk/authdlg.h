@@ -1,8 +1,9 @@
 #ifndef AUTHDLG_H
 #define AUTHDLG_H
 
-#include <QtCore>
-#include <QtGui>
+#include <QDialog>
+#include <QUrl>
+#include <QString>
 
 namespace Ui {
     class AuthDlg;

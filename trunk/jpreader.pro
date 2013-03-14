@@ -56,6 +56,8 @@ FORMS = main.ui \
     lighttranslator.ui
 
 QT += webkit network xml dbus
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
+
 DEFINES += WITHWEBKIT
 CONFIG += warn_on link_pkgconfig
 
