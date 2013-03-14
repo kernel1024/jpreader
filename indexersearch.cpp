@@ -141,7 +141,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit)
     }
     result.snippets.append(QStrHash());
 
-    result.snippets.last()["Uri"] = w;
+    result.snippets.last()["Uri"] = QString("file://%1").arg(w);
     result.snippets.last()["FullFilename"] = w;
     result.snippets.last()["DisplayFilename"] = w;
     result.snippets.last()["FilePath"] = hit.filePath();
