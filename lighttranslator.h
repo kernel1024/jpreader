@@ -1,8 +1,8 @@
 #ifndef LIGHTTRANSLATOR_H
 #define LIGHTTRANSLATOR_H
 
-#include <QtCore>
-#include <QtGui>
+#include <QDialog>
+#include <QString>
 #include "atlastranslator.h"
 
 namespace Ui {

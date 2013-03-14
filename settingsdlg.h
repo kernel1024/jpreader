@@ -1,8 +1,14 @@
 #ifndef SETTINGSDLG_H
 #define SETTINGSDLG_H
 
-#include <QtCore>
-#include <QtGui>
+#include <QDialog>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QListWidget>
+#include <QRadioButton>
+#include <QCheckBox>
+#include <QFontComboBox>
+#include <QColor>
 #include "specwidgets.h"
 
 namespace Ui {

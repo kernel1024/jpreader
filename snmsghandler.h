@@ -1,9 +1,10 @@
 #ifndef SNMSGHANDLER_H
 #define SNMSGHANDLER_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtWebKit>
+#include <QObject>
+#include <QUrl>
+#include <QWebFrame>
+#include <QString>
 #include "snviewer.h"
 
 class CSnippetViewer;

@@ -1,9 +1,10 @@
 #ifndef CALCTHREAD_H
 #define CALCTHREAD_H
 
-#include <QtCore>
-#include <QtWebKit>
-#include <QtXml>
+#include <QThread>
+#include <QString>
+#include <QMutex>
+#include <QDomNode>
 #include <netdb.h>
 #include "waitdlg.h"
 #include "mainwindow.h"

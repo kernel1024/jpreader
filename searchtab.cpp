@@ -1,3 +1,6 @@
+#include <QMessageBox>
+#include <QTextCodec>
+#include <math.h>
 #include "searchtab.h"
 #include "ui_searchtab.h"
 #include "globalcontrol.h"

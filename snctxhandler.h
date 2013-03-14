@@ -1,9 +1,9 @@
 #ifndef SNCTXHANDLER_H
 #define SNCTXHANDLER_H
 
-#include <QtCore>
-#include <QtGui>
-#include <QtWebKit>
+#include <QObject>
+#include <QPoint>
+#include <QString>
 #include "snviewer.h"
 
 class CSnippetViewer;

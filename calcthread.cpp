@@ -1,3 +1,4 @@
+#include <QProcess>
 #include "calcthread.h"
 #include "snviewer.h"
 #include "genericfuncs.h"

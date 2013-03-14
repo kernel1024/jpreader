@@ -1,3 +1,9 @@
+#include <QMessageBox>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+#include <QUrlQuery>
+#endif
+
 #include "sntrans.h"
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
@@ -62,6 +68,9 @@ void CSnTrans::postTranslate()
     QByteArray postBody;
     QUrl url;
     QString cn;
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    QUrlQuery qu;
+#endif
     switch (gSet->translatorEngine) {
     case TE_NIFTY:
         // POST requester
@@ -75,11 +84,18 @@ void CSnTrans::postTranslate()
         break;
     case TE_GOOGLE:
         url = QUrl("http://translate.google.com/translate");
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
         url.addQueryItem("sl","ja");
         url.addQueryItem("tl","en");
         url.addQueryItem("u",snv->calculatedUrl);
+#else
+        qu.addQueryItem("sl","ja");
+        qu.addQueryItem("tl","en");
+        qu.addQueryItem("u",snv->calculatedUrl);
+        url.setQuery(qu);
+#endif
         rqst.setUrl(url);
-        rqst.setRawHeader("Referer",url.toString().toAscii());
+        rqst.setRawHeader("Referer",url.toString().toUtf8());
         snv->onceLoaded=true;
         snv->txtBrowser->load(rqst,QNetworkAccessManager::GetOperation);
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();

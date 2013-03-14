@@ -1,3 +1,9 @@
+#include <QShortcut>
+#include <QDesktopWidget>
+#include <QMessageBox>
+#include <QTextCodec>
+#include <QAbstractNetworkCache>
+
 #include "qxttooltip.h"
 #include "mainwindow.h"
 #include "snviewer.h"
@@ -149,7 +155,11 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv!=NULL) {
         t = new QSpecToolTipLabel(sv->tabTitle);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
         t->setPixmap(QPixmap::grabWidget(sv->txtBrowser).scaledToWidth(250,Qt::SmoothTransformation));
+#else
+        t->setPixmap(sv->txtBrowser->grab().scaledToWidth(250,Qt::SmoothTransformation));
+#endif
     } else {
         CSearchTab* bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt!=NULL) {

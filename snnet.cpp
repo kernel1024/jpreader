@@ -1,3 +1,4 @@
+#include <QTextCodec>
 #include "snnet.h"
 #include "genericfuncs.h"
 
@@ -15,7 +16,7 @@ QUrl CSnNet::fixUrl(QUrl aUrl)
     // some common URL bug fixes
     u = u.replace("%E2%80%BE","~");  // ~
     u = u.replace("%C2%A5","/"); // backslash to slash
-    return QUrl::fromUserInput(QString::fromAscii(u));
+    return QUrl::fromUserInput(QString::fromUtf8(u));
 }
 
 void CSnNet::loadStarted()

@@ -1,8 +1,10 @@
 #ifndef SEARCHTAB_H
 #define SEARCHTAB_H
 
-#include <QtCore>
-#include <QtGui>
+#include <QWidget>
+#include <QString>
+#include <QStringList>
+#include <QKeyEvent>
 #include "mainwindow.h"
 #include "indexersearch.h"
 

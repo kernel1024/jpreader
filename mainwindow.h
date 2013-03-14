@@ -1,9 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H 1
 
-#include <QtCore>
-#include <QtGui>
-#include <QtNetwork>
+#include <QMainWindow>
+#include <QLabel>
+#include <QUuid>
+#include <QMenu>
+#include <QListWidgetItem>
+#include <QPoint>
+#include <QCloseEvent>
 #include "ui_main.h"
 
 class CSnippetViewer;

@@ -1,8 +1,9 @@
 #ifndef ATLASTRANSLATOR_H
 #define ATLASTRANSLATOR_H
 
-#include <QtCore>
-#include <QtNetwork>
+#include <QObject>
+#include <QTcpSocket>
+#include <QString>
 
 class CAtlasTranslator : public QObject
 {

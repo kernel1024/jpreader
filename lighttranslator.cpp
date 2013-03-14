@@ -1,3 +1,4 @@
+#include <QMessageBox>
 #include "lighttranslator.h"
 #include "ui_lighttranslator.h"
 #include "globalcontrol.h"

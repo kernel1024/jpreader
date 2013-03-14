@@ -1,3 +1,5 @@
+#include <QNetworkCookie>
+
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
