@@ -47,7 +47,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     updateSplitters();
 
 	actionExit->setIcon(QIcon::fromTheme("application-exit"));
-	actionSettings->setIcon(QIcon::fromTheme("configure"));
+    actionExitAll->setIcon(QIcon::fromTheme("application-exit"));
+    actionSettings->setIcon(QIcon::fromTheme("configure"));
 	actionAbout->setIcon(QIcon::fromTheme("help-about"));
     actionOpen->setIcon(QIcon::fromTheme("document-open"));
     actionOpenInDir->setIcon(QIcon::fromTheme("document-open-folder"));
@@ -65,6 +66,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
     connect(actionSettings, SIGNAL(triggered()), gSet, SLOT(settingsDlg()));
 	connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(actionExitAll, SIGNAL(triggered()), gSet, SLOT(cleanupAndExit()));
     connect(actionOpen, SIGNAL(triggered()), this, SLOT(openAuxFile()));
     connect(actionNew, SIGNAL(triggered()), this, SLOT(openEmptyBrowser()));
     connect(actionOpenInDir, SIGNAL(triggered()), this, SLOT(openAuxFileInDir()));

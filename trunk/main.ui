@@ -18,7 +18,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
      <number>2</number>
     </property>
     <item>
@@ -43,7 +52,16 @@
            <enum>QFrame::Plain</enum>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -79,7 +97,7 @@
      <x>0</x>
      <y>0</y>
      <width>883</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -98,6 +116,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionSaveSettings"/>
     <addaction name="separator"/>
+    <addaction name="actionExitAll"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuBookmarks">
@@ -258,6 +277,11 @@
    </property>
    <property name="text">
     <string>Global context translator</string>
+   </property>
+  </action>
+  <action name="actionExitAll">
+   <property name="text">
+    <string>Exit and close all</string>
    </property>
   </action>
  </widget>
