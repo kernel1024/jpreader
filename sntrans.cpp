@@ -20,6 +20,8 @@ void CSnTrans::translate()
     if (gSet->translatorEngine==TE_ATLAS) {
         aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
         snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
+        if (snv->savedBaseUrl.hasFragment())
+            snv->savedBaseUrl.setFragment(QString());
     } else {
         if (snv->txtBrowser->page()!=NULL && snv->txtBrowser->page()->mainFrame()!=NULL)
             aUri = snv->txtBrowser->page()->mainFrame()->baseUrl().toString();
