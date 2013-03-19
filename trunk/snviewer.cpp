@@ -11,8 +11,6 @@
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
-#include "specwidgets.h"
-#include "qxttooltip.h"
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
@@ -31,12 +29,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtPanel->layout()->addWidget(txtBrowser);
     txtBrowser->setPage(new QSpecWebPage());
 
-    dbusDict = new OrgQjradDictionaryInterface("org.qjrad.dictionary","/",
-                                               QDBusConnection::sessionBus(),this);
-
-    selectionTimer = new QTimer(this);
-    selectionTimer->setInterval(1000);
-    selectionTimer->setSingleShot(true);
 	tabWidget=NULL;
     tabTitle="";
     isStartPage = startPage;
@@ -103,10 +95,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString,QString,QString)), msgHandler,
             SLOT(linkHovered(QString,QString,QString)));
     connect(txtBrowser->page(), SIGNAL(statusBarMessage(QString)),this,SLOT(statusBarMsg(QString)));
-    connect(txtBrowser->page(), SIGNAL(selectionChanged()),this,SLOT(selectionChanged()));
-
-    connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
-    connect(dbusDict, SIGNAL(gotWordTranslation(QString)),this,SLOT(showWordTranslation(QString)));
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
     fwdNavButton->setIcon(QIcon::fromTheme("go-next"));
@@ -253,32 +241,6 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         urlEdit->setToolTip(tr("Displayed URL"));
         urlEdit->setPalette(QApplication::palette(urlEdit));
     }
-}
-
-void CSnippetViewer::selectionChanged()
-{
-    storedSelection = txtBrowser->page()->selectedText();
-    if (!storedSelection.isEmpty())
-        selectionTimer->start();
-}
-
-void CSnippetViewer::selectionShow()
-{
-    if (storedSelection.isEmpty()) return;
-    if (dbusDict->isValid())
-        dbusDict->findWordTranslation(storedSelection);
-}
-
-void CSnippetViewer::hideTooltip()
-{
-    QxtToolTip::setToolTip(this,NULL);
-}
-
-void CSnippetViewer::showWordTranslation(const QString &html)
-{
-    QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
-    connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
-    QxtToolTip::show(QCursor::pos(),t,this);
 }
 
 void CSnippetViewer::recycleTab()

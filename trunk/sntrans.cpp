@@ -5,11 +5,25 @@
 #endif
 
 #include "sntrans.h"
+#include "globalcontrol.h"
+#include "specwidgets.h"
+#include "qxttooltip.h"
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+
+    dbusDict = new OrgQjradDictionaryInterface("org.qjrad.dictionary","/",
+                                               QDBusConnection::sessionBus(),this);
+
+    selectionTimer = new QTimer(this);
+    selectionTimer->setInterval(1000);
+    selectionTimer->setSingleShot(true);
+
+    connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()),this,SLOT(selectionChanged()));
+    connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
+    connect(dbusDict, SIGNAL(gotWordTranslation(QString)),this,SLOT(showWordTranslation(QString)));
 }
 
 void CSnTrans::translate()
@@ -143,4 +157,30 @@ void CSnTrans::progressLoad(int progress)
             }
         }
     }
+}
+
+void CSnTrans::selectionChanged()
+{
+    storedSelection = snv->txtBrowser->page()->selectedText();
+    if (!storedSelection.isEmpty() && gSet->actionSelectionDictionary->isChecked())
+        selectionTimer->start();
+}
+
+void CSnTrans::selectionShow()
+{
+    if (storedSelection.isEmpty()) return;
+    if (dbusDict->isValid())
+        dbusDict->findWordTranslation(storedSelection);
+}
+
+void CSnTrans::hideTooltip()
+{
+    QxtToolTip::setToolTip(snv,NULL);
+}
+
+void CSnTrans::showWordTranslation(const QString &html)
+{
+    QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
+    connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
+    QxtToolTip::show(QCursor::pos(),t,snv);
 }

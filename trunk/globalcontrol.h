@@ -67,6 +67,7 @@ public:
     CLightTranslator* lightTranslator;
     CAuxTranslator* auxTranslatorDBus;
 
+    QAction* actionSelectionDictionary;
     QAction* actionGlobalTranslator;
     QSystemTrayIcon trayIcon;
     QIcon appIcon;

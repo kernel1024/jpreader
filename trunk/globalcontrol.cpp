@@ -79,6 +79,10 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionGlobalTranslator->setCheckable(true);
     actionGlobalTranslator->setChecked(false);
 
+    actionSelectionDictionary = new QAction(tr("Dictionary search"),this);
+    actionSelectionDictionary->setCheckable(true);
+    actionSelectionDictionary->setChecked(false);
+
 
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
@@ -575,6 +579,7 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->show();
 
     mainWindow->menuTools->addAction(actionGlobalTranslator);
+    mainWindow->menuTools->addAction(actionSelectionDictionary);
 
     return mainWindow;
 }
