@@ -101,6 +101,8 @@ INSTALLS += target
 
 OTHER_FILES += \
     img/startpage.html \
-    org.jpreader.auxtranslator.xml
+    org.jpreader.auxtranslator.xml \
+    org.qjrad.dictionary.xml
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
+DBUS_INTERFACES = org.qjrad.dictionary.xml
