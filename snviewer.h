@@ -21,7 +21,6 @@
 #include "snmsghandler.h"
 #include "snnet.h"
 #include "sntrans.h"
-#include "dictionary_interface.h"
 
 class CSnCtxHandler;
 class CSnMsgHandler;
@@ -40,7 +39,6 @@ public:
 
     QStringList slist;
     CWaitDlg* waitDlg;
-    OrgQjradDictionaryInterface* dbusDict;
 	QString calculatedUrl;
 	QSpecTabWidget* tabWidget;
 	QPointer<QWebFrame> lastFrame;
@@ -55,8 +53,6 @@ public:
     bool isStartPage;
     QList<QUrl> backHistory;
     QList<QUrl> forwardStack;
-    QTimer *selectionTimer;
-    QString storedSelection;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
                    bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),
@@ -78,11 +74,7 @@ public slots:
     void navByUrl();
     void titleChanged(const QString & title);
     void urlChanged(const QUrl & url);
-    void selectionChanged();
-    void selectionShow();
-    void hideTooltip();
     void statusBarMsg(const QString & msg);
-    void showWordTranslation(const QString & html);
 };
 
 #endif
