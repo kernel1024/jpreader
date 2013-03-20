@@ -182,5 +182,6 @@ void CSnTrans::showWordTranslation(const QString &html)
 {
     QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
     connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
+    t->setMaximumSize(350,350);
     QxtToolTip::show(QCursor::pos(),t,snv);
 }
