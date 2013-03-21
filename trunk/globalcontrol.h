@@ -16,6 +16,7 @@
 #include <QAuthenticator>
 #include <QClipboard>
 #include <QMutex>
+#include <QTimer>
 #include <QDebug>
 
 #include "mainwindow.h"
@@ -101,6 +102,10 @@ public:
     QString sysBrowser;
     QString sysEditor;
     int maxRecycled;
+    QStringList atlHostHistory;
+    QStringList scpHostHistory;
+    QTimer settingsSaveTimer;
+    QMutex settingsSaveMutex;
 
     QString savedAuxDir;
     QSpecNetworkAccessManager netAccess;
