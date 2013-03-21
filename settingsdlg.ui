@@ -269,7 +269,7 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <layout class="QFormLayout" name="formLayout">
-           <item row="0" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="label_10">
              <property name="text">
               <string>ATLAS host</string>
@@ -279,10 +279,7 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="atlHost"/>
-           </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="label_11">
              <property name="text">
               <string>ATLAS port</string>
@@ -292,13 +289,20 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="QSpinBox" name="atlPort">
              <property name="maximum">
               <number>65535</number>
              </property>
              <property name="value">
               <number>18000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="atlHost">
+             <property name="editable">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -637,7 +641,20 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QLineEdit" name="editScpHost"/>
+          <widget class="QComboBox" name="editScpHost">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="editScpParams"/>
          </item>
          <item row="4" column="0">
           <widget class="QLabel" name="label_7">
@@ -648,9 +665,6 @@ p, li { white-space: pre-wrap; }
             <cstring>editScpParams</cstring>
            </property>
           </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="editScpParams"/>
          </item>
         </layout>
        </item>
@@ -1003,8 +1017,8 @@ p, li { white-space: pre-wrap; }
      <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>99</x>
-     <y>95</y>
+     <x>111</x>
+     <y>122</y>
     </hint>
    </hints>
   </connection>
@@ -1035,8 +1049,8 @@ p, li { white-space: pre-wrap; }
      <y>165</y>
     </hint>
     <hint type="destinationlabel">
-     <x>125</x>
-     <y>187</y>
+     <x>219</x>
+     <y>211</y>
     </hint>
    </hints>
   </connection>
@@ -1051,8 +1065,8 @@ p, li { white-space: pre-wrap; }
      <y>163</y>
     </hint>
     <hint type="destinationlabel">
-     <x>148</x>
-     <y>211</y>
+     <x>242</x>
+     <y>240</y>
     </hint>
    </hints>
   </connection>
@@ -1067,8 +1081,8 @@ p, li { white-space: pre-wrap; }
      <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>170</x>
-     <y>242</y>
+     <x>264</x>
+     <y>269</y>
     </hint>
    </hints>
   </connection>
@@ -1083,8 +1097,8 @@ p, li { white-space: pre-wrap; }
      <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>193</x>
-     <y>269</y>
+     <x>287</x>
+     <y>298</y>
     </hint>
    </hints>
   </connection>

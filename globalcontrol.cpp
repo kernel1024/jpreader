@@ -36,6 +36,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     recycleBin.clear();
     mainHistory.clear();
     searchHistory.clear();
+    scpHostHistory.clear();
+    atlHostHistory.clear();
 
     appIcon.addFile(":/globe16");
     appIcon.addFile(":/globe32");
@@ -118,10 +120,15 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
 
     readSettings();
+
+    settingsSaveTimer.setInterval(60000);
+    connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
+    settingsSaveTimer.start();
 }
 
 void CGlobalControl::writeSettings()
 {
+    if (!settingsSaveMutex.tryLock(1000)) return;
     QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("MainWindow");
     settings.setValue("searchCnt", searchHistory.count());
@@ -139,8 +146,10 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlasHost",atlHost);
     settings.setValue("atlasPort",atlPort);
     settings.setValue("auxDir",savedAuxDir);
-    settings.setValue("javascript",QWebSettings::globalSettings()->testAttribute(QWebSettings::JavascriptEnabled));
-    settings.setValue("autoloadimages",QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
+    settings.setValue("javascript",QWebSettings::globalSettings()->
+                      testAttribute(QWebSettings::JavascriptEnabled));
+    settings.setValue("autoloadimages",QWebSettings::globalSettings()->
+                      testAttribute(QWebSettings::AutoLoadImages));
     settings.setValue("cookies",cookieJar.saveCookies());
     settings.setValue("recycledCount",maxRecycled);
     settings.beginWriteArray("bookmarks");
@@ -174,8 +183,15 @@ void CGlobalControl::writeSettings()
     settings.setValue("forceFontColor",forceFontColor);
     settings.setValue("forcedFontColor",forcedFontColor.name());
     settings.setValue("gctxHotkey",gctxTranHotkey->shortcut().toString());
+    settings.setValue("atlHost_count",atlHostHistory.count());
+    for (int i=0;i<atlHostHistory.count();i++)
+        settings.setValue(QString("atlHost%1").arg(i),atlHostHistory.at(i));
+    settings.setValue("scpHost_count",scpHostHistory.count());
+    for (int i=0;i<scpHostHistory.count();i++)
+        settings.setValue(QString("scpHost%1").arg(i),scpHostHistory.at(i));
 
     settings.endGroup();
+    settingsSaveMutex.unlock();
 }
 
 void CGlobalControl::readSettings()
@@ -203,6 +219,22 @@ void CGlobalControl::readSettings()
     scpParams = settings.value("scpparams","").toString();
     atlHost = settings.value("atlasHost","localhost").toString();
     atlPort = settings.value("atlasPort",18000).toInt();
+    cnt = settings.value("atlHost_count",0).toInt();
+    qs.clear();
+    atlHostHistory.clear();
+    for (int i=0;i<cnt;i++) {
+        QString s=settings.value(QString("atlHost%1").arg(i),"").toString();
+        if (!s.isEmpty()) qs << s;
+    }
+    atlHostHistory.append(qs);
+    cnt = settings.value("scpHost_count",0).toInt();
+    qs.clear();
+    scpHostHistory.clear();
+    for (int i=0;i<cnt;i++) {
+        QString s=settings.value(QString("scpHost%1").arg(i),"").toString();
+        if (!s.isEmpty()) qs << s;
+    }
+    scpHostHistory.append(qs);
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     maxRecycled = settings.value("recycledCount",20).toInt();
     QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,
@@ -274,13 +306,17 @@ void CGlobalControl::settingsDlg()
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
-    dlg->useJS->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::JavascriptEnabled));
-    dlg->autoloadImages->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
+    dlg->useJS->setChecked(QWebSettings::globalSettings()->
+                           testAttribute(QWebSettings::JavascriptEnabled));
+    dlg->autoloadImages->setChecked(QWebSettings::globalSettings()->
+                                    testAttribute(QWebSettings::AutoLoadImages));
     dlg->qrList->clear();
     for (int i=0;i<searchHistory.count();i++)
         dlg->qrList->addItem(searchHistory.at(i));
     foreach (const QString &t, bookmarks.keys()) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t).arg(bookmarks.value(t).toString()));
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
+                                                  arg(t).
+                                                  arg(bookmarks.value(t).toString()));
         li->setData(Qt::UserRole,t);
         li->setData(Qt::UserRole+1,bookmarks.value(t));
         dlg->bmList->addItem(li);
@@ -297,10 +333,18 @@ void CGlobalControl::settingsDlg()
     case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
     default: dlg->rbNifty->setChecked(true); break;
     }
-    dlg->scpHost->setText(scpHost);
+    dlg->scpHost->clear();
+    if (!scpHostHistory.contains(scpHost))
+        scpHostHistory.append(scpHost);
+    dlg->scpHost->addItems(scpHostHistory);
+    dlg->scpHost->setEditText(scpHost);
     dlg->scpParams->setText(scpParams);
     dlg->cbSCP->setChecked(useScp);
-    dlg->atlHost->setText(atlHost);
+    dlg->atlHost->clear();
+    if (!atlHostHistory.contains(atlHost))
+        atlHostHistory.append(atlHost);
+    dlg->atlHost->addItems(atlHostHistory);
+    dlg->atlHost->setEditText(atlHost);
     dlg->atlPort->setValue(atlPort);
     dlg->adList->clear();
     dlg->adList->addItems(adblock);
@@ -345,19 +389,30 @@ void CGlobalControl::settingsDlg()
         if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
         bookmarks.clear();
         for (int i=0; i<dlg->bmList->count(); i++)
-            bookmarks[dlg->bmList->item(i)->data(Qt::UserRole).toString()]=dlg->bmList->item(i)->data(Qt::UserRole+1).toUrl();
+            bookmarks[dlg->bmList->item(i)->data(Qt::UserRole).toString()] =
+                    dlg->bmList->item(i)->data(Qt::UserRole+1).toUrl();
         updateAllBookmarks();
-        QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,dlg->useJS->isChecked());
-        QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,dlg->autoloadImages->isChecked());
+        QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,
+                                                     dlg->useJS->isChecked());
+        QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
+                                                     dlg->autoloadImages->isChecked());
         if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
         else if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else translatorEngine=TE_NIFTY;
         useScp=dlg->cbSCP->isChecked();
-        scpHost=dlg->scpHost->text();
+        scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();
-        atlHost=dlg->atlHost->text();
+        atlHost=dlg->atlHost->lineEdit()->text();
         atlPort=dlg->atlPort->value();
+        if (scpHostHistory.contains(scpHost))
+            scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
+        else
+            scpHostHistory.prepend(scpHost);
+        if (atlHostHistory.contains(atlHost))
+            atlHostHistory.move(atlHostHistory.indexOf(atlHost),0);
+        else
+            atlHostHistory.prepend(atlHost);
         useOverrideFont=dlg->useOverrideFont->isChecked();
         overrideStdFonts=dlg->overrideStdFonts->isChecked();
         overrideFont=dlg->fontOverride->currentFont();

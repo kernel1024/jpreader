@@ -32,8 +32,8 @@ public:
     QRadioButton* rbAtlas;
     QCheckBox* cbSCP;
     QLineEdit* scpParams;
-    QLineEdit* scpHost;
-    QLineEdit* atlHost;
+    QComboBox* scpHost;
+    QComboBox* atlHost;
     QSpinBox* atlPort;
     QSpinBox* maxRecycled;
     QListWidget* hsList;
