@@ -24,7 +24,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
                      QColor(Qt::darkBlue) << QColor(Qt::darkCyan) << QColor(Qt::darkMagenta) <<
                      QColor(Qt::darkYellow) << QColor(Qt::gray);
 
-    maxTranThreads=3;
+    maxTranThreads=10;
     maxLimit=1000;
     useAdblock=false;
     globalContextTranslate=false;
