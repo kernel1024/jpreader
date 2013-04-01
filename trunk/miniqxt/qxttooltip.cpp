@@ -73,7 +73,7 @@ QxtToolTipPrivate::~QxtToolTipPrivate()
 
 void QxtToolTipPrivate::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect)
 {
-    Q_ASSERT(tooltip && parent);
+//    Q_ASSERT(tooltip && parent);
     if (!isVisible())
     {
         int scr = 0;
