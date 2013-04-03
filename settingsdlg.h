@@ -48,6 +48,9 @@ public:
     QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
     QCheckBox *overrideFontColor;
     QHotkeyEdit *gctxHotkey;
+    QRadioButton* searchNepomuk;
+    QRadioButton* searchRecoll;
+    QRadioButton* searchNone;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

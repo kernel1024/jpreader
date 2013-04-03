@@ -32,7 +32,7 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     connect(ui->listResults->horizontalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(columnClicked(int)));
     connect(ui->listResults->verticalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(rowIdxClicked(int)));
     connect(ui->buttonDir, SIGNAL(clicked()), this, SLOT(selectDir()));
-    connect(&nepomuk,SIGNAL(searchFinished()),this,SLOT(searchFinished()));
+    connect(&engine,SIGNAL(searchFinished()),this,SLOT(searchFinished()));
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -43,6 +43,20 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     updateQueryHistory();
 
     bindToTab(parentWnd->tabMain);
+
+    if (engine.getCurrentIndexerService()==SE_NEPOMUK)
+        ui->labelMode->setText("Nepomuk search");
+    else if (engine.getCurrentIndexerService()==SE_RECOLL)
+        ui->labelMode->setText("Recoll search");
+    else
+        ui->labelMode->setText("Local file search");
+
+    if (!engine.isValidConfig())
+        QMessageBox::warning(parentWnd,tr("JPReader warning"),
+                             tr("Configuration error. \n"
+                                "You have enabled Nepomuk or Recoll search engine in settings, \n"
+                                "but program compiled without its support. Fallback to local file search.\n"
+                                "Please, check program settings and reopen new search tab."));
 }
 
 CSearchTab::~CSearchTab()
@@ -77,14 +91,14 @@ void CSearchTab::searchFinished()
     ui->buttonSearch->setEnabled(true);
     ui->snippetBrowser->clear();
 
-    if (nepomuk.result.snippets.count() == 0) {
+    if (engine.result.snippets.count() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
         mainWnd->stSearchStatus.setText(tr("Ready"));
         return;
     }
 
-    lastQuery = nepomuk.query;
-    result = nepomuk.result;
+    lastQuery = engine.query;
+    result = engine.result;
 
     ui->comboFilter->clear();
     ui->comboFilter->addItem(tr("show all"));
@@ -126,7 +140,7 @@ void CSearchTab::searchFinished()
 
 void CSearchTab::doSearch()
 {
-    if (nepomuk.working) {
+    if (engine.working) {
         QMessageBox::information(window(),tr("JPReader"),tr("Nepomuk engine busy. Try later."));
         return;
     }
@@ -147,12 +161,12 @@ void CSearchTab::doSearch()
     QDir fsdir = QDir("/");
     if (!ui->editDir->text().isEmpty())
         fsdir = QDir(ui->editDir->text());
-    nepomuk.doSearch(searchTerm,fsdir);
+    engine.doSearch(searchTerm,fsdir);
 }
 
 void CSearchTab::searchTerm(const QString &term)
 {
-    if (nepomuk.working) {
+    if (engine.working) {
         QMessageBox::warning(this,tr("JPReader"),tr("Nepomuk engine busy, try later."));
         return;
     }

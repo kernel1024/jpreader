@@ -13,7 +13,7 @@
 #include "auxtranslator.h"
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
-#include "qxttooltip.h"
+#include "miniqxt/qxttooltip.h"
 
 
 CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
@@ -57,6 +57,14 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     lastClipboardIsHtml = false;
 
     netAccess.setCookieJar(&cookieJar);
+
+#ifdef WITH_NEPOMUK
+    searchEngine = SE_NEPOMUK;
+#elif WITH_RECOLL
+    searchEngine = SE_RECOLL;
+#else
+    searchEngine = SE_NONE;
+#endif
 
     QString fs = QString();
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
@@ -190,6 +198,7 @@ void CGlobalControl::writeSettings()
     for (int i=0;i<scpHostHistory.count();i++)
         settings.setValue(QString("scpHost%1").arg(i),scpHostHistory.at(i));
 
+    settings.setValue("searchEngine",searchEngine);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -286,6 +295,7 @@ void CGlobalControl::readSettings()
         if (!gctxTranHotkey->shortcut().isEmpty())
             gctxTranHotkey->setEnabled();
     }
+    searchEngine = settings.value("searchEngine",SE_NONE).toInt();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -371,6 +381,18 @@ void CGlobalControl::settingsDlg()
     dlg->overrideFontColor->setChecked(forceFontColor);
     dlg->updateFontColorPreview(forcedFontColor);
     dlg->gctxHotkey->setKeySequence(gctxTranHotkey->shortcut());
+#ifndef WITH_NEPOMUK
+    dlg->searchNepomuk->setEnabled(false);
+#endif
+#ifndef WITH_RECOLL
+    dlg->searchRecoll->setEnabled(false);
+#endif
+    if ((searchEngine==SE_NEPOMUK) && (dlg->searchNepomuk->isEnabled()))
+        dlg->searchNepomuk->setChecked(true);
+    else if ((searchEngine==SE_RECOLL) && (dlg->searchRecoll->isEnabled()))
+        dlg->searchRecoll->setChecked(true);
+    else
+        dlg->searchNone->setChecked(true);
 
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
@@ -433,6 +455,12 @@ void CGlobalControl::settingsDlg()
         gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
         if (!gctxTranHotkey->shortcut().isEmpty())
             gctxTranHotkey->setEnabled();
+        if (dlg->searchNepomuk->isChecked())
+            searchEngine = SE_NEPOMUK;
+        else if (dlg->searchRecoll->isChecked())
+            searchEngine = SE_RECOLL;
+        else
+            searchEngine = SE_NONE;
     }
     dlg->setParent(NULL);
     delete dlg;

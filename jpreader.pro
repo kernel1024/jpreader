@@ -61,22 +61,50 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
 DEFINES += WITHWEBKIT
 CONFIG += warn_on link_pkgconfig
 
-LIBS += -lX11 -lmagic
-
-#CONFIG += use_nepomuk
-use_nepomuk {
-    DEFINES += WITH_NEPOMUK=1
-    LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+exists( /usr/include/X11/Xlib.h ) {
+    LIBS += -lX11
+} else {
+    error("libX11 not found.")
 }
 
-CONFIG += use_recoll
-use_recoll {
-    DEFINES += WITH_RECOLL=1
+exists( /usr/include/magic.h ) {
+    LIBS += -lmagic
+} else {
+    error("libmagic not found.");
+}
+
+!packagesExist(glib-2.0 gobject-2.0) {
+    error("Glib not found.");
+}
+
+!packagesExist(icu-uc icu-io icu-i18n) {
+    error("icu not found.");
 }
 
 PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
 
-VERSION = 3.5.0
+exists( /usr/include/nepomuk/filequery.h ) {
+    lessThan(QT_MAJOR_VERSION, 5) {
+        CONFIG += use_nepomuk
+        DEFINES += WITH_NEPOMUK=1
+        LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+        message("Nepomuk support: YES")
+    }
+}
+
+!use_nepomuk {
+    message("Nepomuk support: NO")
+}
+
+system( recoll -h > /dev/null ) {
+    CONFIG += use_recoll
+    DEFINES += WITH_RECOLL=1
+    message("Recoll support: YES")
+} else {
+    message("Recoll support: NO")
+}
+
+VERSION = 3.5.1
 
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
