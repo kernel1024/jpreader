@@ -46,6 +46,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     overrideFontColor=ui->checkFontColorOverride;
     overridedFontColor=Qt::black;
     gctxHotkey=ui->gctxHotkey;
+    searchNepomuk=ui->radioSearchNepomuk;
+    searchRecoll=ui->radioSearchRecoll;
+    searchNone=ui->radioSearchNone;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

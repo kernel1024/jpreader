@@ -669,6 +669,36 @@ p, li { white-space: pre-wrap; }
         </layout>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Local search engine</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <widget class="QRadioButton" name="radioSearchNone">
+            <property name="text">
+             <string>Local file search</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchNepomuk">
+            <property name="text">
+             <string>Nepomuk</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchRecoll">
+            <property name="text">
+             <string>Recoll</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -957,6 +987,9 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonEditor</tabstop>
   <tabstop>editScpHost</tabstop>
   <tabstop>editScpParams</tabstop>
+  <tabstop>radioSearchNone</tabstop>
+  <tabstop>radioSearchNepomuk</tabstop>
+  <tabstop>radioSearchRecoll</tabstop>
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
   <tabstop>buttonClearCookies</tabstop>

@@ -55,6 +55,8 @@ public:
     bool working;
     explicit CIndexerSearch(QObject *parent = 0);
     void doSearch(const QString &searchTerm, const QDir &searchDir = QDir("/"));
+    bool isValidConfig();
+    int getCurrentIndexerService();
     
 private:
 #ifdef WITH_NEPOMUK
@@ -65,6 +67,7 @@ private:
     CRecollSearch *recollEngine;
 #endif
     QTime searchTimer;
+    int indexerSerivce;
     void addHitFS(const QFileInfo &hit);
     double calculateHitRate(const QString &filename);
     void searchInDir(const QDir &dir, const QString &qr);

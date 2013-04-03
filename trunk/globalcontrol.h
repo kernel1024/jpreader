@@ -22,12 +22,16 @@
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "specwidgets.h"
-#include "qtsingleapplication.h"
-#include "qxtglobalshortcut.h"
+#include "qtsingleapplication/src/qtsingleapplication.h"
+#include "miniqxt/qxtglobalshortcut.h"
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
 #define TE_ATLAS 2
+
+#define SE_NONE 0
+#define SE_NEPOMUK 1
+#define SE_RECOLL 2
 
 class CMainWindow;
 class QSpecCookieJar;
@@ -87,6 +91,7 @@ public:
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
 
+    int searchEngine;
     bool useAdblock;
     int maxTranThreads;
     QString scpHost;

@@ -9,20 +9,24 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     working = false;
     result = QBResult();
     query = QString();
+    indexerSerivce = gSet->searchEngine;
+    if (indexerSerivce == SE_NEPOMUK) {
 #ifdef WITH_NEPOMUK
-    connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
-    connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
+        connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
+        connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
 #endif
+    } else if (indexerSerivce == SE_RECOLL) {
 #ifdef WITH_RECOLL
-    QThread* th = new QThread();
-    recollEngine = new CRecollSearch();
-    connect(recollEngine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
-    connect(recollEngine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
-    connect(this,SIGNAL(recollStartSearch(QString,int)),
-            recollEngine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
-    recollEngine->moveToThread(th);
-    th->start();
+        QThread* th = new QThread();
+        recollEngine = new CRecollSearch();
+        connect(recollEngine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
+        connect(recollEngine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
+        connect(this,SIGNAL(recollStartSearch(QString,int)),
+                recollEngine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
+        recollEngine->moveToThread(th);
+        th->start();
 #endif
+    }
 }
 
 void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
@@ -40,18 +44,41 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         searchInDir(searchDir,query);
         engineFinished();
     } else {
+        if (indexerSerivce == SE_NEPOMUK) {
 #ifdef WITH_NEPOMUK
-        Nepomuk::Query::LiteralTerm term(query);
-        Nepomuk::Query::FileQuery qr(term);
+            Nepomuk::Query::LiteralTerm term(query);
+            Nepomuk::Query::FileQuery qr(term);
 
-        KUrl ndir = qr.toSearchUrl();
-        engine.dirLister()->openUrl(ndir);
-#elif WITH_RECOLL
-        emit recollStartSearch(query,gSet->maxLimit);
+            KUrl ndir = qr.toSearchUrl();
+            engine.dirLister()->openUrl(ndir);
 #else
-        engineFinished();
+            engineFinished();
 #endif
+        } else if (indexerSerivce == SE_RECOLL) {
+#ifdef WITH_RECOLL
+            emit recollStartSearch(query,gSet->maxLimit);
+#else
+            engineFinished();
+#endif
+        } else
+            engineFinished();
     }
+}
+
+bool CIndexerSearch::isValidConfig()
+{
+#ifndef WITH_NEPOMUK
+    if (indexerSerivce == SE_NEPOMUK) return false;
+#endif
+#ifndef WITH_RECOLL
+    if (indexerSerivce == SE_RECOLL) return false;
+#endif
+    return true;
+}
+
+int CIndexerSearch::getCurrentIndexerService()
+{
+    return indexerSerivce;
 }
 
 #ifdef WITH_NEPOMUK
@@ -202,7 +229,6 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
 
 void CIndexerSearch::auxAddHit(const QString &fileName)
 {
-    qDebug() << fileName;
     QFileInfo fi(fileName);
     addHitFS(fi);
 }

@@ -35,7 +35,7 @@ private:
     QString lastQuery;
     int sortMode;
 
-    CIndexerSearch nepomuk;
+    CIndexerSearch engine;
 
 protected:
     void doSearch();

@@ -9,7 +9,6 @@ CRecollSearch::CRecollSearch(QObject *parent) :
     working = false;
 }
 
-
 void CRecollSearch::doSearch(const QString &qr, int maxLimit)
 {
     if (working) return;
