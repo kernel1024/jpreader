@@ -26,7 +26,7 @@ public:
 
     bool initTran(QString host, int port, ATTranslateMode TranMode = AutoTran);
     QString tranString(QString src);
-    void doneTran();
+    void doneTran(bool lazyClose = false);
 
 signals:
 
