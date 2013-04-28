@@ -118,26 +118,28 @@ QString CAtlasTranslator::tranString(QString src)
     return QUrl::fromPercentEncoding(s.toLatin1());
 }
 
-void CAtlasTranslator::doneTran()
+void CAtlasTranslator::doneTran(bool lazyClose)
 {
     if (!sock.isOpen()) return;
 
-    // FIN command and response
-    QByteArray buf = QString("FIN\r\n").toLatin1();
-    sock.write(buf);
-    sock.flush();
-    if (!sock.canReadLine()) {
-        if (!sock.waitForReadyRead()) {
-            qDebug() << "ATLAS: finalization timeout error";
+    if (!lazyClose) {
+        // FIN command and response
+        QByteArray buf = QString("FIN\r\n").toLatin1();
+        sock.write(buf);
+        sock.flush();
+        if (!sock.canReadLine()) {
+            if (!sock.waitForReadyRead()) {
+                qDebug() << "ATLAS: finalization timeout error";
+                sock.close();
+                return;
+            }
+        }
+        buf = sock.readLine().simplified();
+        if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+            qDebug() << "ATLAS: finalization error";
             sock.close();
             return;
         }
-    }
-    buf = sock.readLine().simplified();
-    if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
-        qDebug() << "ATLAS: finalization error";
-        sock.close();
-        return;
     }
     sock.close();
 }

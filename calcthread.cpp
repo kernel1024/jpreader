@@ -320,7 +320,16 @@ void CCalcThread::run()
 {
     QString aUrl;
     if (translationEngine==TE_ATLAS) {
-        if (!translateWithAtlas(Uri,aUrl)) {
+        bool oktrans = false;
+        for (int i=0;i<3;i++) {
+            if (translateWithAtlas(Uri,aUrl)) {
+                oktrans = true;
+                break;
+            }
+            QThread::sleep(2);
+            atlas.doneTran(true);
+        }
+        if (!oktrans) {
             emit calcFinished(false,"");
             return;
         }
