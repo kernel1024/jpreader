@@ -35,6 +35,8 @@ public:
     QComboBox* scpHost;
     QComboBox* atlHost;
     QSpinBox* atlPort;
+    QSpinBox* atlRetryCount;
+    QSpinBox* atlRetryTimeout;
     QSpinBox* maxRecycled;
     QListWidget* hsList;
     QCheckBox* useJS;

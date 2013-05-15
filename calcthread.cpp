@@ -321,12 +321,12 @@ void CCalcThread::run()
     QString aUrl;
     if (translationEngine==TE_ATLAS) {
         bool oktrans = false;
-        for (int i=0;i<3;i++) {
+        for (int i=0;i<gSet->atlTcpRetryCount;i++) {
             if (translateWithAtlas(Uri,aUrl)) {
                 oktrans = true;
                 break;
             }
-            QThread::sleep(2);
+            QThread::sleep(gSet->atlTcpTimeout);
             atlas.doneTran(true);
         }
         if (!oktrans) {
