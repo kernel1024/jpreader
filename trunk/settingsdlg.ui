@@ -269,7 +269,7 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <layout class="QFormLayout" name="formLayout">
-           <item row="1" column="0">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_10">
              <property name="text">
               <string>ATLAS host</string>
@@ -279,7 +279,14 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="0" column="1">
+            <widget class="QComboBox" name="atlHost">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
             <widget class="QLabel" name="label_11">
              <property name="text">
               <string>ATLAS port</string>
@@ -289,7 +296,7 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="1" column="1">
             <widget class="QSpinBox" name="atlPort">
              <property name="maximum">
               <number>65535</number>
@@ -299,12 +306,35 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="atlHost">
-             <property name="editable">
-              <bool>true</bool>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>TCP retry count</string>
+             </property>
+             <property name="buddy">
+              <cstring>atlRetryCnt</cstring>
              </property>
             </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QSpinBox" name="atlRetryCnt">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>TCP retry delay</string>
+             </property>
+             <property name="buddy">
+              <cstring>atlRetryTimeout</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="atlRetryTimeout"/>
            </item>
           </layout>
          </item>
@@ -316,7 +346,7 @@ p, li { white-space: pre-wrap; }
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>40</height>
+             <height>18</height>
             </size>
            </property>
           </spacer>
@@ -970,6 +1000,8 @@ p, li { white-space: pre-wrap; }
   <tabstop>radioAtlas</tabstop>
   <tabstop>atlHost</tabstop>
   <tabstop>atlPort</tabstop>
+  <tabstop>atlRetryCnt</tabstop>
+  <tabstop>atlRetryTimeout</tabstop>
   <tabstop>gctxHotkey</tabstop>
   <tabstop>checkTransFont</tabstop>
   <tabstop>transFont</tabstop>

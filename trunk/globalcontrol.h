@@ -130,6 +130,9 @@ public:
     bool forceFontColor;
     QColor forcedFontColor;
 
+    int atlTcpRetryCount;
+    int atlTcpTimeout;
+
     // History lists append
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);

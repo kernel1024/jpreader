@@ -28,6 +28,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     scpHost=ui->editScpHost;
     atlHost=ui->atlHost;
     atlPort=ui->atlPort;
+    atlRetryCount=ui->atlRetryCnt;
+    atlRetryTimeout=ui->atlRetryTimeout;
     rbAtlas=ui->radioAtlas;
     maxRecycled=ui->spinMaxRecycled;
     hsList=ui->listHistory;

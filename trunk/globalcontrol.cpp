@@ -56,6 +56,9 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     lastClipboardContentsUnformatted = "";
     lastClipboardIsHtml = false;
 
+    atlTcpRetryCount = 3;
+    atlTcpTimeout = 2;
+
     netAccess.setCookieJar(&cookieJar);
 
 #ifdef WITH_NEPOMUK
@@ -199,6 +202,8 @@ void CGlobalControl::writeSettings()
         settings.setValue(QString("scpHost%1").arg(i),scpHostHistory.at(i));
 
     settings.setValue("searchEngine",searchEngine);
+    settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
+    settings.setValue("atlTcpTimeout",atlTcpTimeout);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -296,6 +301,8 @@ void CGlobalControl::readSettings()
             gctxTranHotkey->setEnabled();
     }
     searchEngine = settings.value("searchEngine",SE_NONE).toInt();
+    atlTcpRetryCount = settings.value("atlTcpRetryCount",3).toInt();
+    atlTcpTimeout = settings.value("atlTcpTimeout",2).toInt();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -356,6 +363,8 @@ void CGlobalControl::settingsDlg()
     dlg->atlHost->addItems(atlHostHistory);
     dlg->atlHost->setEditText(atlHost);
     dlg->atlPort->setValue(atlPort);
+    dlg->atlRetryCount->setValue(atlTcpRetryCount);
+    dlg->atlRetryTimeout->setValue(atlTcpTimeout);
     dlg->adList->clear();
     dlg->adList->addItems(adblock);
     dlg->useAd->setChecked(useAdblock);
@@ -427,6 +436,8 @@ void CGlobalControl::settingsDlg()
         scpParams=dlg->scpParams->text();
         atlHost=dlg->atlHost->lineEdit()->text();
         atlPort=dlg->atlPort->value();
+        atlTcpRetryCount=dlg->atlRetryCount->value();
+        atlTcpTimeout=dlg->atlRetryTimeout->value();
         if (scpHostHistory.contains(scpHost))
             scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
         else
