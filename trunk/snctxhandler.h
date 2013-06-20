@@ -39,6 +39,7 @@ public slots:
     void searchInJisho();
     void toolTipHide();
     void gotTranslation(const QString& text);
+    void createPlainTextTab();
 signals:
     void startTranslation();
 };

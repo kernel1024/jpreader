@@ -41,6 +41,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         nt->setData(snv->txtBrowser->selectedText());
         connect(nt,SIGNAL(triggered()),this,SLOT(translateFragment()));
         cm.addAction(nt);
+        nt = new QAction(QIcon::fromTheme("tab-new-background"),tr("Create plain text in separate tab"),NULL);
+        nt->setData(snv->txtBrowser->selectedText());
+        connect(nt,SIGNAL(triggered()),this,SLOT(createPlainTextTab()));
+        cm.addAction(nt);
     }
 
     if (!wh.imageUrl().isEmpty()) {
@@ -157,6 +161,17 @@ void CSnCtxHandler::gotTranslation(const QString &text)
         connect(lbl,SIGNAL(labelHide()),this,SLOT(toolTipHide()));
         QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd);
     }
+}
+
+void CSnCtxHandler::createPlainTextTab()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QString s = nt->data().toString();
+    if (s.isEmpty()) return;
+    s = s.replace('\n',"<br/>");
+
+    new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
 }
 
 void CSnCtxHandler::autoTranslateMenu()
