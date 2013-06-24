@@ -203,6 +203,9 @@ bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkReque
 QNetworkReply* QSpecNetworkAccessManager::createRequest(Operation op, const QNetworkRequest &req,
                                               QIODevice *outgoingData)
 {
+    if (gSet->debugNetReqLogging)
+        qDebug() << req.url();
+
     if (gSet->isUrlBlocked(req.url())) {
         qDebug() << "adblock - skipping" << req.url();
         return QNetworkAccessManager::createRequest(QNetworkAccessManager::GetOperation,

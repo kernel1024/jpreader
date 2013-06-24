@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>734</width>
-    <height>389</height>
+    <width>792</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
       <attribute name="title">
        <string>Network</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="verticalLayout_13">
        <item>
         <spacer name="verticalSpacer_5">
          <property name="orientation">
@@ -109,18 +109,46 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkJS">
-         <property name="text">
-          <string>Enable JavaScript</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkAutoloadImages">
-         <property name="text">
-          <string>Autoload images</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QCheckBox" name="checkJS">
+             <property name="text">
+              <string>Enable JavaScript</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkAutoloadImages">
+             <property name="text">
+              <string>Autoload images</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonClearCookies">
+           <property name="text">
+            <string>Clear all cookies</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer_8">
@@ -745,7 +773,7 @@ p, li { white-space: pre-wrap; }
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Cleanup history</string>
+       <string>Query history</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -776,13 +804,6 @@ p, li { white-space: pre-wrap; }
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonClearCookies">
-           <property name="text">
-            <string>Clear all cookies</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </item>
@@ -937,6 +958,42 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_8">
+      <attribute name="title">
+       <string>Debug</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_15">
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Logging to console</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_14">
+          <item>
+           <widget class="QCheckBox" name="checkLogNetworkRequests">
+            <property name="text">
+             <string>Log network requests</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>225</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -988,6 +1045,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxHistory</tabstop>
   <tabstop>checkJS</tabstop>
   <tabstop>checkAutoloadImages</tabstop>
+  <tabstop>buttonClearCookies</tabstop>
   <tabstop>editHostingDir</tabstop>
   <tabstop>buttonHostingDir</tabstop>
   <tabstop>checkSCP</tabstop>
@@ -1024,7 +1082,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>radioSearchRecoll</tabstop>
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
-  <tabstop>buttonClearCookies</tabstop>
   <tabstop>listBookmarks</tabstop>
   <tabstop>buttonDelBookmark</tabstop>
   <tabstop>listHistory</tabstop>
@@ -1036,6 +1093,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdImport</tabstop>
   <tabstop>buttonAdImportOpera</tabstop>
   <tabstop>checkUseAd</tabstop>
+  <tabstop>checkLogNetworkRequests</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -1098,8 +1156,8 @@ p, li { white-space: pre-wrap; }
      <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>678</x>
-     <y>101</y>
+     <x>770</x>
+     <y>125</y>
     </hint>
    </hints>
   </connection>
@@ -1126,8 +1184,8 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>146</x>
-     <y>163</y>
+     <x>240</x>
+     <y>184</y>
     </hint>
     <hint type="destinationlabel">
      <x>242</x>

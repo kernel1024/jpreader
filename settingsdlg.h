@@ -53,6 +53,7 @@ public:
     QRadioButton* searchNepomuk;
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
+    QCheckBox* debugLogNetReq;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

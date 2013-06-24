@@ -111,6 +111,7 @@ public:
     QStringList scpHostHistory;
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
+    bool debugNetReqLogging;
 
     QString savedAuxDir;
     QSpecNetworkAccessManager netAccess;
