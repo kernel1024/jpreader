@@ -31,6 +31,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     blockTabCloseActive=false;
     adblock.clear();
     cleaningState=false;
+    debugNetReqLogging=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -403,6 +404,8 @@ void CGlobalControl::settingsDlg()
     else
         dlg->searchNone->setChecked(true);
 
+    dlg->debugLogNetReq->setChecked(debugNetReqLogging);
+
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
         hostingUrl=dlg->hostingUrl->text();
@@ -472,6 +475,8 @@ void CGlobalControl::settingsDlg()
             searchEngine = SE_RECOLL;
         else
             searchEngine = SE_NONE;
+
+        debugNetReqLogging = dlg->debugLogNetReq->isChecked();
     }
     dlg->setParent(NULL);
     delete dlg;

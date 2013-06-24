@@ -51,6 +51,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     searchNepomuk=ui->radioSearchNepomuk;
     searchRecoll=ui->radioSearchRecoll;
     searchNone=ui->radioSearchNone;
+    debugLogNetReq=ui->checkLogNetworkRequests;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
