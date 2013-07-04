@@ -76,6 +76,11 @@ bool CIndexerSearch::isValidConfig()
     return true;
 }
 
+bool CIndexerSearch::isWorking()
+{
+    return working;
+}
+
 int CIndexerSearch::getCurrentIndexerService()
 {
     return indexerSerivce;
@@ -91,7 +96,9 @@ void CIndexerSearch::addHit(const KFileItem &hit)
 
     // get URI and file info
     QString fname = hit.localPath();
-    double nhits = calculateHitRate(fname);
+    double nhits = 0.0;
+    QString title;
+    processFile(w,nhits,title);
 
     // scan existing snippets and add new empty snippet
     for(int i=0;i<result.snippets.count();i++) {
@@ -134,7 +141,7 @@ void CIndexerSearch::addHit(const KFileItem &hit)
 
     result.snippets.last()["Time"]=hit.time(KFileItem::ModificationTime).toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
 
-    result.snippets.last()["dc:title"]=wf.fileName();
+    result.snippets.last()["dc:title"]=title;
     result.snippets.last()["Filename"]=fname;
     result.snippets.last()["FileTitle"] = wf.fileName();
 }
@@ -151,7 +158,9 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
-    double nhits=calculateHitRate(w);
+    double nhits = 0.0;
+    QString title;
+    processFile(w,nhits,title);
     if (nhits<1.0) return;
 
     // scan existing snippets and add new empty snippet
@@ -187,15 +196,20 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit)
     QDateTime dtm=hit.lastModified();
     result.snippets.last()["Time"]=dtm.toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
 
-    result.snippets.last()["dc:title"]=hit.fileName();
+    result.snippets.last()["dc:title"]=title;
     result.snippets.last()["Filename"]=hit.fileName();
     result.snippets.last()["FileTitle"] = hit.fileName();
 }
 
-double CIndexerSearch::calculateHitRate(const QString &filename)
+void CIndexerSearch::processFile(const QString &filename, double &hitRate, QString &title)
 {
+    QFileInfo fi(filename);
     QFile f(filename);
-    if (!f.open(QIODevice::ReadOnly)) return 0.0;
+    if (!f.open(QIODevice::ReadOnly)) {
+        hitRate = 0.0;
+        title = fi.fileName();
+        return;
+    }
     QByteArray fb;
     if (f.size()<50*1024*1024)
         fb = f.readAll();
@@ -205,6 +219,47 @@ double CIndexerSearch::calculateHitRate(const QString &filename)
 
     QTextCodec *cd = detectEncoding(fb);
     QString fc = cd->toUnicode(fb.constData());
+
+    hitRate = calculateHitRate(fc);
+
+    QString mime = detectMIME(fb);
+    if (mime.contains("html",Qt::CaseInsensitive)) {
+        title = extractFileTitle(fc);
+        if (title.isEmpty())
+            title = fi.fileName();
+    } else {
+        title = fi.fileName();
+    }
+
+    fb.clear();
+    fc.clear();
+}
+
+QString CIndexerSearch::extractFileTitle(const QString& fc)
+{
+    int pos;
+    int start = -1;
+    int stop = -1;
+    if ((pos = fc.indexOf(QRegExp("<title {0,}>",Qt::CaseInsensitive))) != -1) {
+        start = pos;
+        if ((pos = fc.indexOf(QRegExp("</title {0,}>", Qt::CaseInsensitive))) != -1) {
+            stop = pos;
+            if (stop>start) {
+                if ((stop-start)>255)
+                    stop = start + 255;
+                QString s = fc.mid(start,stop-start);
+                s.remove(QRegExp("^<title {0,}>",Qt::CaseInsensitive));
+                s.remove("\r");
+                s.remove("\n");
+                return s;
+            }
+        }
+    }
+    return QString();
+}
+
+double CIndexerSearch::calculateHitRate(const QString &fc)
+{
 
     QStringList ql = query.split(' ');
     double hits = 0.0;
@@ -242,5 +297,5 @@ void CIndexerSearch::engineFinished()
         result.stats["Total hits"] = QString("%1").arg(result.snippets.count());
         result.presented = true;
     }
-    emit searchFinished();
+    emit searchFinished(result,query);
 }

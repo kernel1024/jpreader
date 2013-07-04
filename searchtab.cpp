@@ -16,6 +16,9 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
+    QThread *th = new QThread();
+    engine = new CIndexerSearch();
+
     mainWnd = parentWnd;
     sortMode = -3;
     lastQuery = "";
@@ -32,7 +35,11 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     connect(ui->listResults->horizontalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(columnClicked(int)));
     connect(ui->listResults->verticalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(rowIdxClicked(int)));
     connect(ui->buttonDir, SIGNAL(clicked()), this, SLOT(selectDir()));
-    connect(&engine,SIGNAL(searchFinished()),this,SLOT(searchFinished()));
+
+    connect(engine,SIGNAL(searchFinished(QBResult,QString)),
+            this,SLOT(searchFinished(QBResult,QString)),Qt::QueuedConnection);
+    connect(this,SIGNAL(startSearch(QString,QDir)),
+            engine,SLOT(doSearch(QString,QDir)),Qt::QueuedConnection);
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -44,19 +51,23 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
 
     bindToTab(parentWnd->tabMain);
 
-    if (engine.getCurrentIndexerService()==SE_NEPOMUK)
+    if (engine->getCurrentIndexerService()==SE_NEPOMUK)
         ui->labelMode->setText("Nepomuk search");
-    else if (engine.getCurrentIndexerService()==SE_RECOLL)
+    else if (engine->getCurrentIndexerService()==SE_RECOLL)
         ui->labelMode->setText("Recoll search");
     else
         ui->labelMode->setText("Local file search");
 
-    if (!engine.isValidConfig())
+    if (!engine->isValidConfig())
         QMessageBox::warning(parentWnd,tr("JPReader warning"),
                              tr("Configuration error. \n"
                                 "You have enabled Nepomuk or Recoll search engine in settings, \n"
-                                "but program compiled without its support. Fallback to local file search.\n"
+                                "but jpreader compiled without support for selected engine.\n"
+                                "Fallback to local file search.\n"
                                 "Please, check program settings and reopen new search tab."));
+
+    engine->moveToThread(th);
+    th->start();
 }
 
 CSearchTab::~CSearchTab()
@@ -86,19 +97,19 @@ bool dirsGreaterThan(const DirStruct& f1, const DirStruct& f2)
         return (f1.count > f2.count);
 }
 
-void CSearchTab::searchFinished()
+void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 {
     ui->buttonSearch->setEnabled(true);
     ui->snippetBrowser->clear();
 
-    if (engine.result.snippets.count() == 0) {
+    if (aResult.snippets.count() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
         mainWnd->stSearchStatus.setText(tr("Ready"));
         return;
     }
 
-    lastQuery = engine.query;
-    result = engine.result;
+    lastQuery = aQuery;
+    result = aResult;
 
     ui->comboFilter->clear();
     ui->comboFilter->addItem(tr("show all"));
@@ -140,8 +151,8 @@ void CSearchTab::searchFinished()
 
 void CSearchTab::doSearch()
 {
-    if (engine.working) {
-        QMessageBox::information(window(),tr("JPReader"),tr("Nepomuk engine busy. Try later."));
+    if (engine->isWorking()) {
+        QMessageBox::information(window(),tr("JPReader"),tr("Indexed search engine busy. Try later."));
         return;
     }
 
@@ -161,13 +172,13 @@ void CSearchTab::doSearch()
     QDir fsdir = QDir("/");
     if (!ui->editDir->text().isEmpty())
         fsdir = QDir(ui->editDir->text());
-    engine.doSearch(searchTerm,fsdir);
+    emit startSearch(searchTerm,fsdir);
 }
 
 void CSearchTab::searchTerm(const QString &term)
 {
-    if (engine.working) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Nepomuk engine busy, try later."));
+    if (engine->isWorking()) {
+        QMessageBox::warning(this,tr("JPReader"),tr("Indexed search engine busy, try later."));
         return;
     }
     ui->editSearch->setEditText(term);
@@ -211,7 +222,7 @@ void CSearchTab::applyFilter(int idx)
     for (int i = 0;i < result.snippets.count();i++) {
         if ((idx == 0) || ((idx > 0) && (result.snippets[i]["Dir"] == flt))) {
 
-            QString s = result.snippets[i]["FileTitle"];
+            QString s = result.snippets[i]["dc:title"];
             QTableWidgetItem* title = new QTableWidgetItem(s);
             if (ui->listResults->fontMetrics().width(s) > titleLen) titleLen = ui->listResults->fontMetrics().width(s);
             title->setData(Qt::UserRole, QVariant(i));

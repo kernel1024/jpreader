@@ -1,7 +1,9 @@
 #include <QApplication>
+#include <QDir>
 
 #include "specwidgets.h"
 #include "globalcontrol.h"
+#include "indexersearch.h"
 
 #include <sys/resource.h>
 
@@ -24,6 +26,8 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<UrlHolder>("UrlHolder");
     qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
+    qRegisterMetaType<QBResult>("QBResult");
+    qRegisterMetaType<QDir>("QDir");
 
     QtSingleApplication app(argc, argv);
     if (app.isRunning())
