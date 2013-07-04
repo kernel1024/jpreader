@@ -50,12 +50,9 @@ class CIndexerSearch : public QObject
 {
     Q_OBJECT
 public:
-    QBResult result;
-    QString query;
-    bool working;
     explicit CIndexerSearch(QObject *parent = 0);
-    void doSearch(const QString &searchTerm, const QDir &searchDir = QDir("/"));
     bool isValidConfig();
+    bool isWorking();
     int getCurrentIndexerService();
     
 private:
@@ -66,20 +63,26 @@ private:
 #ifdef WITH_RECOLL
     CRecollSearch *recollEngine;
 #endif
+    bool working;
+    QBResult result;
+    QString query;
     QTime searchTimer;
     int indexerSerivce;
     void addHitFS(const QFileInfo &hit);
-    double calculateHitRate(const QString &filename);
+    void processFile(const QString &filename, double &hitRate, QString &title);
+    QString extractFileTitle(const QString& fc);
+    double calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);
 
 signals:
-    void searchFinished();
+    void searchFinished(const QBResult &result, const QString &aQuery);
 #ifdef WITH_RECOLL
     void recollStartSearch(const QString &qr, int maxLimit);
 #endif
 
 public slots:
     void engineFinished();
+    void doSearch(const QString &searchTerm, const QDir &searchDir);
 #ifdef WITH_NEPOMUK
     void nepomukNewItems(const KFileItemList &items);
 #endif

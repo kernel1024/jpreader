@@ -35,12 +35,15 @@ private:
     QString lastQuery;
     int sortMode;
 
-    CIndexerSearch engine;
+    CIndexerSearch *engine;
 
 protected:
     void doSearch();
     QString createSpecSnippet(QString aFilename);
     QStringList splitQuery(QString aQuery);
+
+signals:
+    void startSearch(const QString &searchTerm, const QDir &searchDir);
 
 public slots:
     void doNewSearch();
@@ -53,7 +56,7 @@ public slots:
     void rowIdxClicked(int row);
     void closeTab(bool nowait = false);
     void selectDir();
-    void searchFinished();
+    void searchFinished(const QBResult &aResult, const QString &aQuery);
 
 };
 
