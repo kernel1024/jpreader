@@ -90,6 +90,7 @@ public:
     QFont overrideFont;
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
+    bool showTabCloseButtons;
 
     int searchEngine;
     bool useAdblock;

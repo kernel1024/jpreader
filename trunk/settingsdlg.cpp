@@ -52,6 +52,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     searchRecoll=ui->radioSearchRecoll;
     searchNone=ui->radioSearchNone;
     debugLogNetReq=ui->checkLogNetworkRequests;
+    visualShowTabCloseButtons=ui->checkTabCloseBtn;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

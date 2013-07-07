@@ -960,9 +960,9 @@ p, li { white-space: pre-wrap; }
      </widget>
      <widget class="QWidget" name="tab_8">
       <attribute name="title">
-       <string>Debug</string>
+       <string>Misc</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_15">
+      <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
@@ -973,6 +973,22 @@ p, li { white-space: pre-wrap; }
            <widget class="QCheckBox" name="checkLogNetworkRequests">
             <property name="text">
              <string>Log network requests</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>Visual features</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_15">
+          <item>
+           <widget class="QCheckBox" name="checkTabCloseBtn">
+            <property name="text">
+             <string>Show tab close button on each tab</string>
             </property>
            </widget>
           </item>

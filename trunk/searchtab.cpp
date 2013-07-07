@@ -549,13 +549,15 @@ void CSearchTab::bindToTab(QSpecTabWidget* tabs)
 {
     tabWidget = tabs;
     if (tabWidget==NULL) return;
-    QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
-    b->setFlat(true);
-    int sz = tabWidget->tabBar()->fontMetrics().height();
-    b->resize(QSize(sz,sz));
-    connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
     int i = tabWidget->addTab(this,tr("Search"));
-    tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
+    if (gSet->showTabCloseButtons) {
+        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
+        b->setFlat(true);
+        int sz = tabWidget->tabBar()->fontMetrics().height();
+        b->resize(QSize(sz,sz));
+        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
+        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
+    }
     tabWidget->setCurrentWidget(this);
     mainWnd->updateTitle();
     mainWnd->updateTabs();
