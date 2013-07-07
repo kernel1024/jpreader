@@ -285,14 +285,16 @@ void CSnippetViewer::bindToTab(QSpecTabWidget* tabs, bool setFocused)
 {
 	tabWidget=tabs;
 	if (tabWidget==NULL) return;
-	QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
-	b->setFlat(true);
-	int sz = tabWidget->tabBar()->fontMetrics().height();
-	b->resize(QSize(sz,sz));
-	connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
     int i = tabWidget->addTab(this,getDocTitle());
+    if (gSet->showTabCloseButtons) {
+        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
+        b->setFlat(true);
+        int sz = tabWidget->tabBar()->fontMetrics().height();
+        b->resize(QSize(sz,sz));
+        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
+        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
+    }
     tabTitle = getDocTitle();
-	tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
     if (setFocused) tabWidget->setCurrentWidget(this);
     parentWnd->updateTitle();
     parentWnd->updateTabs();

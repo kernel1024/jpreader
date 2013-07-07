@@ -54,6 +54,7 @@ public:
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
     QCheckBox* debugLogNetReq;
+    QCheckBox* visualShowTabCloseButtons;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

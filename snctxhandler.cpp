@@ -132,6 +132,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     atc->setCheckable(true);
     atc->setChecked(gSet->forceFontColor);
     cm.addSeparator();
+    cm.addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),snv,SLOT(closeTab()));
+    cm.addSeparator();
     cm.addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),this,SLOT(saveToFile()));
     cm.exec(snv->txtBrowser->mapToGlobal(pos));
 }

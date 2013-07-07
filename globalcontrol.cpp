@@ -205,6 +205,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("searchEngine",searchEngine);
     settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
     settings.setValue("atlTcpTimeout",atlTcpTimeout);
+    settings.setValue("showTabCloseButtons",showTabCloseButtons);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -304,6 +305,7 @@ void CGlobalControl::readSettings()
     searchEngine = settings.value("searchEngine",SE_NONE).toInt();
     atlTcpRetryCount = settings.value("atlTcpRetryCount",3).toInt();
     atlTcpTimeout = settings.value("atlTcpTimeout",2).toInt();
+    showTabCloseButtons = settings.value("showTabCloseButtons",true).toBool();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -404,6 +406,8 @@ void CGlobalControl::settingsDlg()
     else
         dlg->searchNone->setChecked(true);
 
+    dlg->visualShowTabCloseButtons->setChecked(showTabCloseButtons);
+
     dlg->debugLogNetReq->setChecked(debugNetReqLogging);
 
     if (dlg->exec()==QDialog::Accepted) {
@@ -475,6 +479,8 @@ void CGlobalControl::settingsDlg()
             searchEngine = SE_RECOLL;
         else
             searchEngine = SE_NONE;
+
+        showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
         debugNetReqLogging = dlg->debugLogNetReq->isChecked();
     }
