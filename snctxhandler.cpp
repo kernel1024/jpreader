@@ -79,62 +79,84 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     cm.addAction(QIcon::fromTheme("view-refresh"),tr("Reload"),snv->netHandler,SLOT(reloadMedia()),QKeySequence(Qt::CTRL + Qt::Key_R));
     if (!snv->txtBrowser->selectedText().isEmpty()) {
         cm.addSeparator();
-        QAction *ac = cm.addAction(QIcon(":/google"),tr("Search in Google"),this,SLOT(searchInGoogle()));
+        QAction *ac = cm.addAction(QIcon(":/google"),tr("Search in Google"),
+                                   this,SLOT(searchInGoogle()));
         ac->setData(snv->txtBrowser->selectedText());
-        ac = cm.addAction(QIcon::fromTheme("nepomuk"),tr("Local search"),this,SLOT(searchLocal()));
+        ac = cm.addAction(QIcon::fromTheme("nepomuk"),tr("Local search"),
+                          this,SLOT(searchLocal()));
         ac->setData(snv->txtBrowser->selectedText());
-        ac = cm.addAction(QIcon(":/jisho"),tr("Jisho word translation"),this,SLOT(searchInJisho()));
+        ac = cm.addAction(QIcon(":/jisho"),tr("Jisho word translation"),
+                          this,SLOT(searchInJisho()));
+        ac->setData(snv->txtBrowser->selectedText());
+        ac = cm.addAction(QIcon::fromTheme("accessories-dictionary"),tr("GoldenDict/qjrad dictionary"),
+                          snv->transHandler,SLOT(showDictionaryWindow()));
         ac->setData(snv->txtBrowser->selectedText());
     }
 
     cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),this,SLOT(duplicateTab()));
-    cm.addAction(QIcon::fromTheme("tab-detach"),tr("Detach tab"),this,SLOT(detachTab()));
+    cm.addAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),
+                 this,SLOT(duplicateTab()));
+    cm.addAction(QIcon::fromTheme("tab-detach"),tr("Detach tab"),
+                 this,SLOT(detachTab()));
     if (snv->lastFrame->parentFrame()) {
         cm.addSeparator();
-        cm.addAction(QIcon::fromTheme("document-import"),tr("Open current frame in tab"), this, SLOT(openFrame()));
-        QAction* ac = cm.addAction(QIcon::fromTheme("document-export"),tr("Open current frame in tab background"), this, SLOT(openFrame()));
+        cm.addAction(QIcon::fromTheme("document-import"),tr("Open current frame in tab"),
+                     this, SLOT(openFrame()));
+        QAction* ac = cm.addAction(QIcon::fromTheme("document-export"),tr("Open current frame in tab background"),
+                                   this, SLOT(openFrame()));
         ac->setData(QVariant(1234));
     }
     cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("bookmark-new"),tr("Add current frame to bookmarks"), this, SLOT(bookmarkFrame()));
+    cm.addAction(QIcon::fromTheme("bookmark-new"),tr("Add current frame to bookmarks"),
+                 this, SLOT(bookmarkFrame()));
     if (snv->lastFrame->parentFrame()) {
-        QAction* ac = cm.addAction(QIcon::fromTheme("bookmark-new-list"),tr("Add parent frame to bookmarks"), this, SLOT(bookmarkFrame()));
+        QAction* ac = cm.addAction(QIcon::fromTheme("bookmark-new-list"),tr("Add parent frame to bookmarks"),
+                                   this, SLOT(bookmarkFrame()));
         ac->setData(QVariant(1234));
     }
     cm.addSeparator();
     if ((!wh.imageUrl().isEmpty()) || (!wh.linkUrl().isEmpty())) {
         QMenu* acm = cm.addMenu(QIcon::fromTheme("emblem-important"),tr("AdBlock"));
         if (!wh.imageUrl().isEmpty()) {
-            QAction* act = acm->addAction(tr("Add Block by Image Url..."),this,SLOT(addContextBlock()));
+            QAction* act = acm->addAction(tr("Add Block by Image Url..."),
+                                          this,SLOT(addContextBlock()));
             act->setData(wh.imageUrl());
         }
         if (!wh.linkUrl().isEmpty()) {
-            QAction* act = acm->addAction(tr("Add Block by Link Url..."),this,SLOT(addContextBlock()));
+            QAction* act = acm->addAction(tr("Add Block by Link Url..."),
+                                          this,SLOT(addContextBlock()));
             act->setData(wh.linkUrl());
         }
         cm.addSeparator();
     }
-    cm.addAction(QIcon::fromTheme("documentation"),tr("Show source"),this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
-    cm.addAction(QIcon::fromTheme("download"),tr("Open in browser"),this,SLOT(execKonq()),QKeySequence(Qt::CTRL + Qt::Key_W));
+    cm.addAction(QIcon::fromTheme("documentation"),tr("Show source"),
+                 this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
+    cm.addAction(QIcon::fromTheme("download"),tr("Open in browser"),
+                 this,SLOT(execKonq()),QKeySequence(Qt::CTRL + Qt::Key_W));
     cm.addAction(snv->txtBrowser->pageAction(QWebPage::SelectAll));
     cm.addSeparator();
-    QAction* atc = cm.addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),this,SLOT(autoTranslateMenu()));
+    QAction* atc = cm.addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),
+                                this,SLOT(autoTranslateMenu()));
     atc->setCheckable(true);
     atc->setChecked(gSet->autoTranslate);
-    atc = cm.addAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),this,SLOT(overrideFontMenu()));
+    atc = cm.addAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),
+                       this,SLOT(overrideFontMenu()));
     atc->setCheckable(true);
     atc->setChecked(gSet->useOverrideFont);
-    atc = cm.addAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),this,SLOT(autoloadImagesMenu()));
+    atc = cm.addAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),
+                       this,SLOT(autoloadImagesMenu()));
     atc->setCheckable(true);
     atc->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
-    atc = cm.addAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),this,SLOT(overrideFontColorMenu()));
+    atc = cm.addAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),
+                       this,SLOT(overrideFontColorMenu()));
     atc->setCheckable(true);
     atc->setChecked(gSet->forceFontColor);
     cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),snv,SLOT(closeTab()));
+    cm.addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
+                 snv,SLOT(closeTab()));
     cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),this,SLOT(saveToFile()));
+    cm.addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
+                 this,SLOT(saveToFile()));
     cm.exec(snv->txtBrowser->mapToGlobal(pos));
 }
 

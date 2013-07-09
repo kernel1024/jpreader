@@ -7,5 +7,8 @@
     <method name="findWordTranslation">
       <arg name="text" type="s" direction="in"/>
     </method>
+    <method name="showDictionaryWindow">
+      <arg name="text" type="s" direction="in"/>
+    </method>
   </interface>
 </node>
