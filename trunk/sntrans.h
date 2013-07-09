@@ -25,6 +25,7 @@ public slots:
     void selectionShow();
     void hideTooltip();
     void showWordTranslation(const QString & html);
+    void showDictionaryWindow();
 };
 
 #endif // SNTRANS_H

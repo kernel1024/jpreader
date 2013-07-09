@@ -185,3 +185,13 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setMaximumSize(350,350);
     QxtToolTip::show(QCursor::pos(),t,snv);
 }
+
+void CSnTrans::showDictionaryWindow()
+{
+    if (!dbusDict->isValid()) return;
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QString s = nt->data().toString();
+    if (s.isEmpty()) return;
+    dbusDict->showDictionaryWindow(s);
+}
