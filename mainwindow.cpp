@@ -680,9 +680,9 @@ void CMainWindow::helpAbout()
     recoll = tr("yes");
 #endif
     QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
-                     "Version: %1-r%2\nPlatform: %3\nBuild date: %4\n\n"
-                     "Nepomuk backend compiled: %5\nRecoll backend compiled: %6")
-                  .arg(BUILD_VERSION).arg(rev).arg(BUILD_PLATFORM).arg(BUILD_DATE).arg(nepomuk).arg(recoll);
+                     "Build: %1\nPlatform: %2\nBuild date: %3\n\n"
+                     "Nepomuk backend compiled: %4\nRecoll backend compiled: %5")
+                  .arg(rev).arg(BUILD_PLATFORM).arg(BUILD_DATE).arg(nepomuk).arg(recoll);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }

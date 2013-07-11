@@ -104,8 +104,6 @@ system( recoll -h > /dev/null ) {
     message("Recoll support: NO")
 }
 
-VERSION = 3.5.1
-
 SVNREV = $$system(svnversion .)
 PLATFORM = $$system(uname -s)
 BDATE = $$system(date +%F)
@@ -113,7 +111,6 @@ BDATE = $$system(date +%F)
 DEFINES += BUILD_REV=\\\"$$SVNREV\\\"
 DEFINES += BUILD_PLATFORM=\\\"$$PLATFORM\\\"
 DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
-DEFINES += BUILD_VERSION=\\\"$$VERSION\\\"
 
 include( qtsingleapplication/src/qtsingleapplication.pri )
 include( arabica/arabica.pri )

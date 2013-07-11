@@ -9,7 +9,6 @@
 #include <QUuid>
 #include <QList>
 #include <QAction>
-#include <QSystemTrayIcon>
 #include <QFont>
 #include <QThread>
 #include <QNetworkReply>
@@ -74,7 +73,6 @@ public:
 
     QAction* actionSelectionDictionary;
     QAction* actionGlobalTranslator;
-    QSystemTrayIcon trayIcon;
     QIcon appIcon;
 
     QList<QColor> snippetColors;
@@ -168,8 +166,6 @@ public slots:
     void settingsDlg();
     void windowDestroyed(CMainWindow* obj);
     void cleanupAndExit(bool appQuit = true);
-    void trayClicked(QSystemTrayIcon::ActivationReason reason);
-    void updateTrayIconState(bool state = false);
     void focusChanged(QWidget* old, QWidget* now);
     void preShutdown();
     void tranFinished();
