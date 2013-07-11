@@ -4,7 +4,6 @@ HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
     waitdlg.h \
-    calcthread.h \
     specwidgets.h \
     atlastranslator.h \
     genericfuncs.h \
@@ -19,14 +18,14 @@ HEADERS = mainwindow.h \
     lighttranslator.h \
     auxtranslator.h \
     recollsearch.h \
-    indexersearch.h
+    indexersearch.h \
+    translator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
     snviewer.cpp \
     waitdlg.cpp \
-    calcthread.cpp \
     atlastranslator.cpp \
     specwidgets.cpp \
     genericfuncs.cpp \
@@ -41,7 +40,8 @@ SOURCES = main.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp \
     recollsearch.cpp \
-    indexersearch.cpp
+    indexersearch.cpp \
+    translator.cpp
 
 RESOURCES = \
     jpreader.qrc
