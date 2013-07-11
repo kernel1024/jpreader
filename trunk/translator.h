@@ -1,17 +1,19 @@
-#ifndef CALCTHREAD_H
-#define CALCTHREAD_H
+#ifndef TRANSLATOR_H
+#define TRANSLATOR_H
 
-#include <QThread>
+#include <QObject>
 #include <QString>
 #include <QMutex>
 #include <QDomNode>
+#include <QColor>
+#include <QFont>
 #include <netdb.h>
 #include "waitdlg.h"
 #include "mainwindow.h"
 #include "atlastranslator.h"
 #include "globalcontrol.h"
 
-class CCalcThread : public QThread
+class CTranslator : public QObject
 {
     Q_OBJECT
 private:
@@ -34,6 +36,8 @@ private:
     CWaitDlg* waitDlg;
     QString atlHost;
     int atlPort;
+    int atlTcpRetryCount;
+    int atlTcpTimeout;
     bool atlasToAbort;
     bool atlasSlipped;
     int translationEngine;
@@ -42,6 +46,10 @@ private:
     int textNodesProgress;
     CAtlasTranslator atlas;
     XMLPassMode xmlPass;
+    bool useOverrideFont;
+    bool forceFontColor;
+    QColor forcedFontColor;
+    QFont overrideFont;
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateWithAtlas(const QString& srcUri, QString& dst);
@@ -49,15 +57,15 @@ private:
     bool translateParagraph(QDomNode src);
 
 public:
-    explicit CCalcThread(QObject* parent, QString aUri, CWaitDlg* aWaitDlg);
-    void run();
+    explicit CTranslator(QObject* parent, QString aUri, CWaitDlg* aWaitDlg);
 
 signals:
-    void calcFinished(bool success, QString aUrl);
+    void calcFinished(const bool success, const QString &aUrl);
 
 public slots:
     void abortAtlas();
+    void translate();
 
 };
 
-#endif // CALCTHREAD_H
+#endif // TRANSLATOR_H

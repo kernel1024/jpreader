@@ -18,7 +18,7 @@ public:
     CSnTrans(CSnippetViewer * parent);
 public slots:
     void translate();
-    void calcFinished(bool success, QString aUrl);
+    void calcFinished(const bool success, const QString &aUrl);
     void postTranslate();
     void progressLoad(int progress);
     void selectionChanged();

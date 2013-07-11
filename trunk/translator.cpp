@@ -1,10 +1,10 @@
 #include <QProcess>
-#include "calcthread.h"
+#include "translator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
 
-CCalcThread::CCalcThread(QObject* parent, QString aUri, CWaitDlg *aWaitDlg)
-    : QThread(parent)
+CTranslator::CTranslator(QObject* parent, QString aUri, CWaitDlg *aWaitDlg)
+    : QObject(parent)
 {
     waitDlg = aWaitDlg;
     hostingDir=gSet->hostingDir;
@@ -19,12 +19,20 @@ CCalcThread::CCalcThread(QObject* parent, QString aUri, CWaitDlg *aWaitDlg)
     translationEngine=gSet->translatorEngine;
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
+    atlTcpRetryCount=gSet->atlTcpRetryCount;
+    atlTcpTimeout=gSet->atlTcpTimeout;
+    forceFontColor=gSet->forceFontColor;
+    forcedFontColor=gSet->forcedFontColor;
+    useOverrideFont=gSet->useOverrideFont;
+    overrideFont=gSet->overrideFont;
 }
 
-bool CCalcThread::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
+bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 {
     QString wdir = hostingDir;
-    if (wdir.isEmpty() || hostingUrl.isEmpty() || hostingUrl.contains("about:blank",Qt::CaseInsensitive)) return false;
+    if (wdir.isEmpty()
+            || hostingUrl.isEmpty()
+            || hostingUrl.contains("about:blank",Qt::CaseInsensitive)) return false;
     QString filename = QUrl(aUri).toLocalFile();
     if (filename.isEmpty()) {
         calculatedUrl=aUri;
@@ -63,7 +71,7 @@ bool CCalcThread::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     }
 }
 
-void CCalcThread::examineXMLNode(QDomNode node)
+void CTranslator::examineXMLNode(QDomNode node)
 {
     if (atlasSlipped) return;
     abortMutex.lock();
@@ -72,6 +80,8 @@ void CCalcThread::examineXMLNode(QDomNode node)
         return;
     }
     abortMutex.unlock();
+
+    QApplication::processEvents();
 
     if (xmlPass==PXTranslate || xmlPass==PXCalculate) {
         if (node.isText() && node.parentNode().nodeName().toLower()=="title") return;
@@ -183,7 +193,7 @@ void CCalcThread::examineXMLNode(QDomNode node)
     }
 }
 
-bool CCalcThread::translateWithAtlas(const QString &srcUri, QString &dst)
+bool CTranslator::translateWithAtlas(const QString &srcUri, QString &dst)
 {
     abortMutex.lock();
     atlasToAbort=false;
@@ -194,7 +204,6 @@ bool CCalcThread::translateWithAtlas(const QString &srcUri, QString &dst)
         qDebug() << tr("Unable to initialize ATLAS.");
         return false;
     }
-    connect(waitDlg->abortBtn,SIGNAL(clicked()),this,SLOT(abortAtlas()));
 
     dst = "";
     if (srcUri.isEmpty()) return false;
@@ -245,17 +254,16 @@ bool CCalcThread::translateWithAtlas(const QString &srcUri, QString &dst)
     f.write(doc.toByteArray());
     f.close();*/
 
-    disconnect(waitDlg->abortBtn,0,this,0);
     return true;
 }
 
-bool CCalcThread::translateParagraph(QDomNode src)
+bool CTranslator::translateParagraph(QDomNode src)
 {
     int baseProgress = 0;
     if (textNodesCnt>0) {
         baseProgress = 100*textNodesProgress/textNodesCnt;
     }
-    QMetaObject::invokeMethod(waitDlg,"setProgressValue",Q_ARG(int, baseProgress));
+    QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, baseProgress));
 
     QString ssrc = src.firstChild().nodeValue();
     ssrc = ssrc.replace("\r\n","\n");
@@ -286,16 +294,16 @@ bool CCalcThread::translateParagraph(QDomNode src)
                 src.appendChild(src.ownerDocument().createTextNode(t));
                 return false;
             } else {
-                if (gSet->useOverrideFont || gSet->forceFontColor) {
+                if (useOverrideFont || forceFontColor) {
                     QDomNode dp = p.ownerDocument().createElement("div");
                     dp.attributes().setNamedItem(p.ownerDocument().createAttribute("style"));
                     QString dstyle;
-                    if (gSet->useOverrideFont)
+                    if (useOverrideFont)
                         dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
-                                    gSet->overrideFont.family()).arg(
-                                    gSet->overrideFont.pointSize());
-                    if (gSet->forceFontColor)
-                        dstyle+=tr("color: %1;").arg(gSet->forcedFontColor.name());
+                                    overrideFont.family()).arg(
+                                    overrideFont.pointSize());
+                    if (forceFontColor)
+                        dstyle+=tr("color: %1;").arg(forcedFontColor.name());
                     dp.attributes().namedItem("style").setNodeValue(dstyle);
                     dp.appendChild(p.ownerDocument().createTextNode(t));
                     p.appendChild(dp);
@@ -308,7 +316,7 @@ bool CCalcThread::translateParagraph(QDomNode src)
 
             if (textNodesCnt>0 && i%5==0) {
                 int pr = 100*textNodesProgress/textNodesCnt;
-                QMetaObject::invokeMethod(waitDlg,"setProgressValue",Q_ARG(int, pr));
+                QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, pr));
             }
             textNodesProgress++;
         }
@@ -316,33 +324,36 @@ bool CCalcThread::translateParagraph(QDomNode src)
     return true;
 }
 
-void CCalcThread::run()
+void CTranslator::translate()
 {
     QString aUrl;
     if (translationEngine==TE_ATLAS) {
         bool oktrans = false;
-        for (int i=0;i<gSet->atlTcpRetryCount;i++) {
+        for (int i=0;i<atlTcpRetryCount;i++) {
             if (translateWithAtlas(Uri,aUrl)) {
                 oktrans = true;
                 break;
             }
-            QThread::sleep(gSet->atlTcpTimeout);
+            QThread::sleep(atlTcpTimeout);
             atlas.doneTran(true);
         }
         if (!oktrans) {
             emit calcFinished(false,"");
+            deleteLater();
             return;
         }
     } else {
         if (!calcLocalUrl(Uri,aUrl)) {
             emit calcFinished(false,"");
+            deleteLater();
             return;
         }
     }
     emit calcFinished(true,aUrl);
+    deleteLater();
 }
 
-void CCalcThread::abortAtlas()
+void CTranslator::abortAtlas()
 {
     abortMutex.lock();
     atlasToAbort=true;

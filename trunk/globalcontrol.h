@@ -36,6 +36,7 @@ class CMainWindow;
 class QSpecCookieJar;
 class CLightTranslator;
 class CAuxTranslator;
+class CTranslator;
 
 class UrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
@@ -92,7 +93,6 @@ public:
 
     int searchEngine;
     bool useAdblock;
-    int maxTranThreads;
     QString scpHost;
     QString scpParams;
     bool useScp;
@@ -115,7 +115,6 @@ public:
     QString savedAuxDir;
     QSpecNetworkAccessManager netAccess;
     QSpecCookieJar cookieJar;
-    QList<QThread*> tranThreads;
     QString forcedCharset;
 
     QString lastClipboardContents;
@@ -136,7 +135,6 @@ public:
     // History lists append
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);
-    void appendTranThread(QThread* tran);
     void appendMainHistory(UrlHolder& item);
 
     // Lists updaters
@@ -160,6 +158,7 @@ protected:
 
 signals:
     void startAuxTranslation();
+    void stopTranslators();
 
 public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
@@ -168,7 +167,6 @@ public slots:
     void cleanupAndExit(bool appQuit = true);
     void focusChanged(QWidget* old, QWidget* now);
     void preShutdown();
-    void tranFinished();
     void closeLockTimer();
     void blockTabClose();
     void authentication(QNetworkReply *reply, QAuthenticator *authenticator);

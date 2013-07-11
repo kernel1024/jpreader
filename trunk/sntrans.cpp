@@ -7,6 +7,7 @@
 #include "sntrans.h"
 #include "globalcontrol.h"
 #include "specwidgets.h"
+#include "translator.h"
 #include "qxttooltip.h"
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
@@ -42,8 +43,10 @@ void CSnTrans::translate()
         if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive)) aUri=snv->auxContent;
     }
 
-    CCalcThread* ct = new CCalcThread(gSet,aUri,snv->waitDlg);
-    connect(ct,SIGNAL(calcFinished(bool,QString)),this,SLOT(calcFinished(bool,QString)));
+    CTranslator* ct = new CTranslator(NULL,aUri,snv->waitDlg);
+    QThread* th = new QThread();
+    connect(ct,SIGNAL(calcFinished(bool,QString)),
+            this,SLOT(calcFinished(bool,QString)),Qt::QueuedConnection);
     snv->waitDlg->setProgressEnabled(false);
     if (gSet->translatorEngine==TE_ATLAS) {
         snv->waitDlg->setText(tr("Translating text with ATLAS..."));
@@ -53,12 +56,20 @@ void CSnTrans::translate()
         snv->waitDlg->setText(tr("Copying file to hosting..."));
     snv->txtPanel->hide();
     snv->waitDlg->show();
-    gSet->appendTranThread(ct);
+
+    connect(gSet,SIGNAL(stopTranslators()),
+            ct,SLOT(abortAtlas()),Qt::QueuedConnection);
+    connect(snv->waitDlg->abortBtn,SIGNAL(clicked()),
+            ct,SLOT(abortAtlas()),Qt::QueuedConnection);
+
+    ct->moveToThread(th);
+    th->start();
+
+    QMetaObject::invokeMethod(ct,"translate",Qt::QueuedConnection);
 }
 
-void CSnTrans::calcFinished(bool success, QString aUrl)
+void CSnTrans::calcFinished(const bool success, const QString& aUrl)
 {
-//    QWidget* fw = QApplication::focusWidget();
     snv->waitDlg->hide();
     snv->txtPanel->show();
     if (success) {

@@ -7,10 +7,10 @@
 #endif
 
 #include "globalcontrol.h"
-#include "calcthread.h"
 #include "authdlg.h"
 #include "lighttranslator.h"
 #include "auxtranslator.h"
+#include "translator.h"
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
 #include "miniqxt/qxttooltip.h"
@@ -24,7 +24,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
                      QColor(Qt::darkBlue) << QColor(Qt::darkCyan) << QColor(Qt::darkMagenta) <<
                      QColor(Qt::darkYellow) << QColor(Qt::gray);
 
-    maxTranThreads=10;
     maxLimit=1000;
     useAdblock=false;
     globalContextTranslate=false;
@@ -483,32 +482,6 @@ void CGlobalControl::cleanTmpFiles()
     }
 }
 
-void CGlobalControl::appendTranThread(QThread *tran)
-{
-    if (tran==NULL) return;
-    connect(tran,SIGNAL(finished()),this,SLOT(tranFinished()));
-    tranThreads.append(tran);
-    int w = 0;
-    foreach (QThread* th, tranThreads) {
-        if (th->isRunning()) w++;
-    }
-    if (w<maxTranThreads) tran->start();
-}
-
-void CGlobalControl::tranFinished()
-{
-    CCalcThread* ct = qobject_cast<CCalcThread*>(sender());
-    if (ct==NULL) return;
-    tranThreads.removeOne(ct);
-    ct->deleteLater();
-
-    foreach (QThread* th, tranThreads)
-        if (!th->isRunning() && !th->isFinished()) {
-            th->start();
-            break;
-        }
-}
-
 void CGlobalControl::closeLockTimer()
 {
     blockTabCloseActive=false;
@@ -703,6 +676,9 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
     if (cleaningState) return;
     cleaningState = true;
 
+    if (receivers(SIGNAL(stopTranslators()))>0)
+        emit stopTranslators();
+
     if (mainWindows.count()>0) {
         foreach (CMainWindow* w, mainWindows) {
             if (w!=NULL)
@@ -716,14 +692,6 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
     gctxTranHotkey->deleteLater();
     QApplication::processEvents();
 
-    foreach (QThread* th, tranThreads) {
-        if (th->isRunning()) {
-            th->terminate();
-            th->wait(5000);
-            th->deleteLater();
-        }
-    }
-    tranThreads.clear();
     if (appQuit)
         QApplication::quit();
 }

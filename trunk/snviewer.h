@@ -13,7 +13,7 @@
 
 #include "ui_snviewer.h"
 #include "waitdlg.h"
-#include "calcthread.h"
+#include "translator.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
 
