@@ -104,20 +104,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     dbus.registerObject("/",auxTranslatorDBus);
     dbus.registerService("org.jpreader.auxtranslator");
 
-    connect(actionGlobalTranslator,SIGNAL(triggered()),this,SLOT(updateTrayIconState()));
-    connect(actionGlobalTranslator,SIGNAL(toggled(bool)),this,SLOT(updateTrayIconState(bool)));
-
-    QMenu* tiMenu = new QMenu();
-    tiMenu->addAction(QIcon::fromTheme("window-new"),tr("Create new window"),this,SLOT(addMainWindow()));
-    tiMenu->addAction(actionGlobalTranslator);
-    tiMenu->addSeparator();
-    tiMenu->addAction(QIcon::fromTheme("application-exit"),tr("Exit"),this,SLOT(cleanupAndExit()));
-    trayIcon.setIcon(appIcon);
-    trayIcon.setContextMenu(tiMenu);
-    trayIcon.show();
-    connect(&trayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-            this,SLOT(trayClicked(QSystemTrayIcon::ActivationReason)));
-
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
     connect(&netAccess,SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
@@ -689,48 +675,6 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     return mainWindow;
 }
 
-void CGlobalControl::trayClicked(QSystemTrayIcon::ActivationReason reason)
-{
-    switch (reason) {
-        case QSystemTrayIcon::Trigger:
-            if (activeWindow!=NULL) {
-                CMainWindow* w = activeWindow;
-                w->activateWindow();
-                w->raise();
-            } else
-                addMainWindow();
-            break;
-        case QSystemTrayIcon::DoubleClick:
-            addMainWindow();
-            break;
-        default:
-            break;
-    }
-}
-
-void CGlobalControl::updateTrayIconState(bool)
-{
-    QIcon icn = appIcon;
-    QIcon icnOut;
-    foreach (const QSize& sz, icn.availableSizes()) {
-        QPixmap px = icn.pixmap(sz);
-        if (actionGlobalTranslator->isChecked()) {
-            QPainter p(&px);
-
-            QPen pen = p.pen();
-            pen.setColor(QColor(Qt::red));
-            p.setPen(pen);
-            QBrush brush = p.brush();
-            brush.setColor(QColor(Qt::red));
-            brush.setStyle(Qt::SolidPattern);
-            p.setBrush(brush);
-            p.drawEllipse(2*sz.width()/3,0,sz.width()/3,sz.height()/3);
-        }
-        icnOut.addPixmap(px);
-    }
-    trayIcon.setIcon(icnOut);
-}
-
 void CGlobalControl::focusChanged(QWidget *, QWidget *now)
 {
     if (now==NULL) return;
@@ -747,8 +691,10 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
         if (mainWindows.count()>0) {
             activeWindow=mainWindows.first();
             activeWindow->activateWindow();
-        } else
+        } else {
             activeWindow=NULL;
+            cleanupAndExit(true);
+        }
     }
 }
 
@@ -756,9 +702,6 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 {
     if (cleaningState) return;
     cleaningState = true;
-
-    trayIcon.hide();
-    trayIcon.setIcon(QIcon());
 
     if (mainWindows.count()>0) {
         foreach (CMainWindow* w, mainWindows) {
