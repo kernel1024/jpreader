@@ -53,6 +53,11 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     searchNone=ui->radioSearchNone;
     debugLogNetReq=ui->checkLogNetworkRequests;
     visualShowTabCloseButtons=ui->checkTabCloseBtn;
+    proxyHost=ui->editProxyHost;
+    proxyLogin=ui->editProxyLogin;
+    proxyPassword=ui->editProxyPassword;
+    proxyPort=ui->spinProxyPort;
+    proxyUse=ui->checkUseProxy;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

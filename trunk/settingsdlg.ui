@@ -21,7 +21,7 @@
      </property>
      <widget class="QWidget" name="widget">
       <attribute name="title">
-       <string>Network</string>
+       <string>General</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_13">
        <item>
@@ -962,7 +962,84 @@ p, li { white-space: pre-wrap; }
       <attribute name="title">
        <string>Misc</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_16">
+      <layout class="QVBoxLayout" name="verticalLayout_17">
+       <item>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>Proxy</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_16">
+            <item>
+             <widget class="QCheckBox" name="checkUseProxy">
+              <property name="text">
+               <string>Use proxy</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_18">
+              <item>
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Proxy address</string>
+                </property>
+                <property name="buddy">
+                 <cstring>editProxyHost</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="editProxyHost"/>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinProxyPort">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>65535</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_5">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_21">
+              <property name="text">
+               <string>Login</string>
+              </property>
+              <property name="buddy">
+               <cstring>editProxyLogin</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="editProxyLogin"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_22">
+              <property name="text">
+               <string>Password</string>
+              </property>
+              <property name="buddy">
+               <cstring>editProxyPassword</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="editProxyPassword"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
@@ -1109,7 +1186,13 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdImport</tabstop>
   <tabstop>buttonAdImportOpera</tabstop>
   <tabstop>checkUseAd</tabstop>
+  <tabstop>checkUseProxy</tabstop>
+  <tabstop>editProxyHost</tabstop>
+  <tabstop>spinProxyPort</tabstop>
+  <tabstop>editProxyLogin</tabstop>
+  <tabstop>editProxyPassword</tabstop>
   <tabstop>checkLogNetworkRequests</tabstop>
+  <tabstop>checkTabCloseBtn</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -1173,7 +1256,7 @@ p, li { white-space: pre-wrap; }
     </hint>
     <hint type="destinationlabel">
      <x>770</x>
-     <y>125</y>
+     <y>122</y>
     </hint>
    </hints>
   </connection>
@@ -1188,8 +1271,8 @@ p, li { white-space: pre-wrap; }
      <y>165</y>
     </hint>
     <hint type="destinationlabel">
-     <x>219</x>
-     <y>211</y>
+     <x>311</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -1200,12 +1283,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>240</x>
-     <y>184</y>
+     <x>263</x>
+     <y>176</y>
     </hint>
     <hint type="destinationlabel">
-     <x>242</x>
-     <y>240</y>
+     <x>327</x>
+     <y>232</y>
     </hint>
    </hints>
   </connection>
@@ -1220,8 +1303,8 @@ p, li { white-space: pre-wrap; }
      <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>264</x>
-     <y>269</y>
+     <x>327</x>
+     <y>260</y>
     </hint>
    </hints>
   </connection>
@@ -1236,8 +1319,72 @@ p, li { white-space: pre-wrap; }
      <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>298</y>
+     <x>327</x>
+     <y>288</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUseProxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editProxyHost</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>223</x>
+     <y>101</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUseProxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinProxyPort</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>80</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>96</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUseProxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editProxyLogin</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>40</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>576</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUseProxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editProxyPassword</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>72</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>571</x>
+     <y>102</y>
     </hint>
    </hints>
   </connection>

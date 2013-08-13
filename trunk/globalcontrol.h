@@ -132,6 +132,13 @@ public:
     int atlTcpRetryCount;
     int atlTcpTimeout;
 
+    QString proxyHost;
+    QString proxyLogin;
+    QString proxyPassword;
+    int proxyPort;
+    bool proxyUse;
+    QAction *actionUseHTTPProxy;
+
     // History lists append
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);
@@ -177,6 +184,7 @@ public slots:
     // Settings management
     void writeSettings();
     void readSettings();
+    void updateProxy(bool useProxy, bool forceMenuUpdate = false);
 };
 
 extern CGlobalControl* gSet;
