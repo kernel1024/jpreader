@@ -55,6 +55,9 @@ public:
     QRadioButton* searchNone;
     QCheckBox* debugLogNetReq;
     QCheckBox* visualShowTabCloseButtons;
+    QLineEdit *proxyHost, *proxyLogin, *proxyPassword;
+    QSpinBox* proxyPort;
+    QCheckBox* proxyUse;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

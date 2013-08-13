@@ -1,4 +1,5 @@
 #include <QNetworkDiskCache>
+#include <QNetworkProxy>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QStandardPaths>
@@ -59,6 +60,12 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     atlTcpRetryCount = 3;
     atlTcpTimeout = 2;
 
+    proxyHost = QString();
+    proxyPort = 3128;
+    proxyLogin = QString();
+    proxyPassword = QString();
+    proxyUse = false;
+
     netAccess.setCookieJar(&cookieJar);
 
 #ifdef WITH_NEPOMUK
@@ -83,6 +90,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     cache->setCacheDirectory(fs);
     netAccess.setCache(cache);
 
+    netAccess.setProxy(QNetworkProxy());
+
     dlg = NULL;
     activeWindow = NULL;
     lightTranslator = NULL;
@@ -96,6 +105,9 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionSelectionDictionary->setCheckable(true);
     actionSelectionDictionary->setChecked(false);
 
+    actionUseHTTPProxy = new QAction(tr("Use HTTP proxy"),this);
+    actionUseHTTPProxy->setCheckable(true);
+    actionUseHTTPProxy->setChecked(false);
 
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
@@ -111,6 +123,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
             this,SLOT(clipboardChanged(QClipboard::Mode)));
     connect(parent,SIGNAL(messageReceived(QString)),
             this,SLOT(ipcMessageReceived(QString)));
+    connect(actionUseHTTPProxy,SIGNAL(toggled(bool)),
+            this,SLOT(updateProxy(bool)));
 
     gctxTranHotkey = new QxtGlobalShortcut(this);
     gctxTranHotkey->setDisabled();
@@ -191,6 +205,11 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
     settings.setValue("atlTcpTimeout",atlTcpTimeout);
     settings.setValue("showTabCloseButtons",showTabCloseButtons);
+    settings.setValue("proxyHost",proxyHost);
+    settings.setValue("proxyPort",proxyPort);
+    settings.setValue("proxyLogin",proxyLogin);
+    settings.setValue("proxyPassword",proxyPassword);
+    settings.setValue("proxyUse",proxyUse);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -291,11 +310,17 @@ void CGlobalControl::readSettings()
     atlTcpRetryCount = settings.value("atlTcpRetryCount",3).toInt();
     atlTcpTimeout = settings.value("atlTcpTimeout",2).toInt();
     showTabCloseButtons = settings.value("showTabCloseButtons",true).toBool();
+    proxyHost = settings.value("proxyHost",QString()).toString();
+    proxyPort = settings.value("proxyPort",3128).toInt();
+    proxyLogin = settings.value("proxyLogin",QString()).toString();
+    proxyPassword = settings.value("proxyPassword",QString()).toString();
+    proxyUse = settings.value("proxyUse",false).toBool();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     updateAllBookmarks();
+    updateProxy(proxyUse,true);
 }
 
 void CGlobalControl::settingsDlg()
@@ -395,6 +420,12 @@ void CGlobalControl::settingsDlg()
 
     dlg->debugLogNetReq->setChecked(debugNetReqLogging);
 
+    dlg->proxyHost->setText(proxyHost);
+    dlg->proxyPort->setValue(proxyPort);
+    dlg->proxyLogin->setText(proxyLogin);
+    dlg->proxyPassword->setText(proxyPassword);
+    dlg->proxyUse->setChecked(proxyUse);
+
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
         hostingUrl=dlg->hostingUrl->text();
@@ -468,10 +499,30 @@ void CGlobalControl::settingsDlg()
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
         debugNetReqLogging = dlg->debugLogNetReq->isChecked();
+
+        proxyHost = dlg->proxyHost->text();
+        proxyPort = dlg->proxyPort->value();
+        proxyLogin = dlg->proxyLogin->text();
+        proxyPassword = dlg->proxyPassword->text();
+        proxyUse = dlg->proxyUse->isChecked();
+
+        updateProxy(proxyUse,true);
     }
     dlg->setParent(NULL);
     delete dlg;
     dlg=NULL;
+}
+
+void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
+{
+    proxyUse = useProxy;
+    if (!proxyUse || proxyHost.isEmpty())
+        netAccess.setProxy(QNetworkProxy());
+    else
+        netAccess.setProxy(QNetworkProxy(QNetworkProxy::HttpCachingProxy,proxyHost,proxyPort,proxyLogin,proxyPassword));
+
+    if (forceMenuUpdate)
+        actionUseHTTPProxy->setChecked(proxyUse);
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -644,6 +695,7 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
+    mainWindow->menuTools->addAction(actionUseHTTPProxy);
 
     return mainWindow;
 }
