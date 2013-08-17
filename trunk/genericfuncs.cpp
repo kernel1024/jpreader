@@ -1,5 +1,6 @@
 #include <QTextCodec>
 #include <QMimeData>
+#include <QMutex>
 
 #include <iostream>
 #include <unistd.h>
@@ -96,8 +97,11 @@ QString makeSimpleHtml(QString title, QString content)
     return cn;
 }
 
+QMutex xmlizerMutex;
+
 QByteArray XMLizeHTML(QByteArray html, QString encoding)
 {
+    xmlizerMutex.lock();
 	Arabica::SAX::Taggle<std::string> parser;
     std::ostringstream sink;
     Arabica::SAX::Writer<std::string> writer(sink, 4);
@@ -123,6 +127,7 @@ QByteArray XMLizeHTML(QByteArray html, QString encoding)
     }
 
     QByteArray xmldoc(sink.str().c_str());
+    xmlizerMutex.unlock();
 	return xmldoc;
 }
 
