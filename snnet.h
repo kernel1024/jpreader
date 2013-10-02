@@ -5,6 +5,7 @@
 #include <QUrl>
 #include <QWebFrame>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 #include "snviewer.h"
 
 class CSnNet : public QObject
@@ -12,6 +13,7 @@ class CSnNet : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
+    void showErrorMsg(QNetworkReply* reply);
 public:
     CSnNet(CSnippetViewer * parent);
     QUrl fixUrl(QUrl aUrl);
@@ -23,6 +25,7 @@ public slots:
     void reloadMedia(bool fromNew = false);
     void loadStarted();
     void loadFinished(bool);
+    void loadError(QNetworkReply::NetworkError code);
     void netStop();
 signals:
     void closeAllSockets();

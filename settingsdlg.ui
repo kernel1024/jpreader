@@ -962,25 +962,25 @@ p, li { white-space: pre-wrap; }
       <attribute name="title">
        <string>Misc</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_17">
+      <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
         <widget class="QGroupBox" name="groupBox_8">
          <property name="title">
           <string>Proxy</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_19">
+         <layout class="QVBoxLayout" name="verticalLayout_14">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_16">
+           <widget class="QCheckBox" name="checkUseProxy">
+            <property name="text">
+             <string>Use proxy</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
             <item>
-             <widget class="QCheckBox" name="checkUseProxy">
-              <property name="text">
-               <string>Use proxy</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_18">
-              <item>
+             <layout class="QFormLayout" name="formLayout_6">
+              <item row="0" column="0">
                <widget class="QLabel" name="label_20">
                 <property name="text">
                  <string>Proxy address</string>
@@ -990,50 +990,89 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QLineEdit" name="editProxyHost"/>
+              <item row="0" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <item>
+                 <widget class="QLineEdit" name="editProxyHost"/>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="spinProxyPort">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>65535</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item>
-               <widget class="QSpinBox" name="spinProxyPort">
-                <property name="minimum">
-                 <number>1</number>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Proxy type</string>
                 </property>
-                <property name="maximum">
-                 <number>65535</number>
+                <property name="buddy">
+                 <cstring>listProxyType</cstring>
                 </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="listProxyType">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>HTTP proxy</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>HTTP transparent proxy</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>SOCKS5 proxy</string>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QFormLayout" name="formLayout_5">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_21">
-              <property name="text">
-               <string>Login</string>
-              </property>
-              <property name="buddy">
-               <cstring>editProxyLogin</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="editProxyLogin"/>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_22">
-              <property name="text">
-               <string>Password</string>
-              </property>
-              <property name="buddy">
-               <cstring>editProxyPassword</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="editProxyPassword"/>
+            <item>
+             <layout class="QFormLayout" name="formLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Login</string>
+                </property>
+                <property name="buddy">
+                 <cstring>editProxyLogin</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editProxyLogin"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Password</string>
+                </property>
+                <property name="buddy">
+                 <cstring>editProxyPassword</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editProxyPassword"/>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -1045,7 +1084,7 @@ p, li { white-space: pre-wrap; }
          <property name="title">
           <string>Logging to console</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_14">
+         <layout class="QVBoxLayout" name="verticalLayout_18">
           <item>
            <widget class="QCheckBox" name="checkLogNetworkRequests">
             <property name="text">
@@ -1189,6 +1228,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkUseProxy</tabstop>
   <tabstop>editProxyHost</tabstop>
   <tabstop>spinProxyPort</tabstop>
+  <tabstop>listProxyType</tabstop>
   <tabstop>editProxyLogin</tabstop>
   <tabstop>editProxyPassword</tabstop>
   <tabstop>checkLogNetworkRequests</tabstop>
@@ -1271,8 +1311,8 @@ p, li { white-space: pre-wrap; }
      <y>165</y>
     </hint>
     <hint type="destinationlabel">
-     <x>311</x>
-     <y>204</y>
+     <x>298</x>
+     <y>213</y>
     </hint>
    </hints>
   </connection>
@@ -1287,8 +1327,8 @@ p, li { white-space: pre-wrap; }
      <y>176</y>
     </hint>
     <hint type="destinationlabel">
-     <x>327</x>
-     <y>232</y>
+     <x>298</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -1303,8 +1343,8 @@ p, li { white-space: pre-wrap; }
      <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>327</x>
-     <y>260</y>
+     <x>298</x>
+     <y>271</y>
     </hint>
    </hints>
   </connection>
@@ -1319,8 +1359,8 @@ p, li { white-space: pre-wrap; }
      <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>327</x>
-     <y>288</y>
+     <x>298</x>
+     <y>300</y>
     </hint>
    </hints>
   </connection>
@@ -1331,12 +1371,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>98</x>
-     <y>69</y>
+     <x>121</x>
+     <y>95</y>
     </hint>
     <hint type="destinationlabel">
-     <x>223</x>
-     <y>101</y>
+     <x>312</x>
+     <y>127</y>
     </hint>
    </hints>
   </connection>
@@ -1351,8 +1391,8 @@ p, li { white-space: pre-wrap; }
      <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>296</x>
-     <y>96</y>
+     <x>390</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>
@@ -1367,8 +1407,8 @@ p, li { white-space: pre-wrap; }
      <y>77</y>
     </hint>
     <hint type="destinationlabel">
-     <x>576</x>
-     <y>76</y>
+     <x>757</x>
+     <y>126</y>
     </hint>
    </hints>
   </connection>
@@ -1379,12 +1419,28 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>90</x>
-     <y>72</y>
+     <x>113</x>
+     <y>95</y>
     </hint>
     <hint type="destinationlabel">
-     <x>571</x>
-     <y>102</y>
+     <x>757</x>
+     <y>155</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUseProxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>listProxyType</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>71</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>146</x>
+     <y>144</y>
     </hint>
    </hints>
   </connection>
