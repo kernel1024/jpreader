@@ -12,6 +12,7 @@
 #include <QFont>
 #include <QThread>
 #include <QNetworkReply>
+#include <QNetworkProxy>
 #include <QAuthenticator>
 #include <QClipboard>
 #include <QMutex>
@@ -137,7 +138,8 @@ public:
     QString proxyPassword;
     int proxyPort;
     bool proxyUse;
-    QAction *actionUseHTTPProxy;
+    QNetworkProxy::ProxyType proxyType;
+    QAction *actionUseProxy;
 
     // History lists append
     void appendRecycled(QString title, QUrl url);

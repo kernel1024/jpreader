@@ -45,6 +45,27 @@ void CSnNet::loadFinished(bool)
     if (gSet->autoTranslate && !snv->onceTranslated) snv->transButton->click();
 }
 
+void CSnNet::showErrorMsg(QNetworkReply *reply)
+{
+    if (reply==NULL) return;
+    if (reply->error()==QNetworkReply::NoError) return;
+    QString errorString = QString("<h1>Network Error</h1>");
+    if (reply!=NULL) {
+        errorString += QString("Qt error code: %1.").arg(reply->error());
+        errorString += QString(" <b>%1</b><br/>").arg(reply->errorString());
+    }
+    errorString = QString("<html><head><title>Network error</title></head><body>%1</body></html>")
+                             .arg(errorString);
+    snv->txtBrowser->setHtml(errorString);
+}
+
+void CSnNet::loadError(QNetworkReply::NetworkError)
+{
+    QNetworkReply *rpl = qobject_cast<QNetworkReply *>(sender());
+    showErrorMsg(rpl);
+    netStop();
+}
+
 void CSnNet::netStop()
 {
     emit closeAllSockets();
@@ -66,6 +87,8 @@ void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::C
     QNetworkReply* rpl = snv->txtBrowser->page()->networkAccessManager()->get(rq);
     connect(rpl,SIGNAL(finished()),this,SLOT(netHtmlLoaded()));
     connect(rpl,SIGNAL(downloadProgress(qint64,qint64)),this,SLOT(netDlProgress(qint64,qint64)));
+    connect(rpl,SIGNAL(error(QNetworkReply::NetworkError)),
+            this,SLOT(loadError(QNetworkReply::NetworkError)));
     connect(this,SIGNAL(closeAllSockets()),rpl,SLOT(deleteLater()));
 
     snv->updateButtonsState();
@@ -93,6 +116,12 @@ void CSnNet::netHtmlLoaded()
 {
     QNetworkReply* rpl = qobject_cast<QNetworkReply*>(sender());
     if (rpl==NULL) return;
+    if (rpl->error()!=QNetworkReply::NoError) {
+        showErrorMsg(rpl);
+        snv->updateButtonsState();
+        if (!snv->loadingByWebKit) loadFinished(true);
+        return;
+    }
     if (!rpl->isOpen()) return;
     QUrl base = rpl->url();
 

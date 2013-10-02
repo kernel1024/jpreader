@@ -58,6 +58,7 @@ public:
     QLineEdit *proxyHost, *proxyLogin, *proxyPassword;
     QSpinBox* proxyPort;
     QCheckBox* proxyUse;
+    QComboBox* proxyType;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();
