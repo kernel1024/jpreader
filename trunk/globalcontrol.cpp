@@ -110,6 +110,10 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionUseProxy->setCheckable(true);
     actionUseProxy->setChecked(false);
 
+    actionJSUsage = new QAction(tr("Enable JavaScript"),this);
+    actionJSUsage->setCheckable(true);
+    actionJSUsage->setChecked(false);
+
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -126,6 +130,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
             this,SLOT(ipcMessageReceived(QString)));
     connect(actionUseProxy,SIGNAL(toggled(bool)),
             this,SLOT(updateProxy(bool)));
+    connect(actionJSUsage,SIGNAL(toggled(bool)),
+            this,SLOT(toggleJSUsage(bool)));
 
     gctxTranHotkey = new QxtGlobalShortcut(this);
     gctxTranHotkey->setDisabled();
@@ -259,8 +265,9 @@ void CGlobalControl::readSettings()
     scpHostHistory.append(qs);
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     maxRecycled = settings.value("recycledCount",20).toInt();
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,
-                                                 settings.value("javascript",true).toBool());
+    bool jsstate = settings.value("javascript",true).toBool();
+    QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,jsstate);
+    actionJSUsage->setChecked(jsstate);
     QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
                                                  settings.value("autoloadimages",true).toBool());
     QByteArray ck = settings.value("cookies",QByteArray()).toByteArray();
@@ -457,6 +464,7 @@ void CGlobalControl::settingsDlg()
         updateAllBookmarks();
         QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,
                                                      dlg->useJS->isChecked());
+        actionJSUsage->setChecked(dlg->useJS->isChecked());
         QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
                                                      dlg->autoloadImages->isChecked());
         if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
@@ -538,6 +546,11 @@ void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
 
     if (forceMenuUpdate)
         actionUseProxy->setChecked(proxyUse);
+}
+
+void CGlobalControl::toggleJSUsage(bool useJS)
+{
+    QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,useJS);
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -711,6 +724,8 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
     mainWindow->menuTools->addAction(actionUseProxy);
+    mainWindow->menuTools->addSeparator();
+    mainWindow->menuTools->addAction(actionJSUsage);
 
     return mainWindow;
 }
