@@ -141,6 +141,8 @@ public:
     QNetworkProxy::ProxyType proxyType;
     QAction *actionUseProxy;
 
+    QAction *actionJSUsage;
+
     // History lists append
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);
@@ -187,6 +189,7 @@ public slots:
     void writeSettings();
     void readSettings();
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
+    void toggleJSUsage(bool useJS);
 };
 
 extern CGlobalControl* gSet;
