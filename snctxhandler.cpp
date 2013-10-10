@@ -106,6 +106,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                                    this, SLOT(openFrame()));
         ac->setData(QVariant(1234));
     }
+    QAction *ac = cm.addAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),
+                 this,SLOT(toggleForceNewTab()));
+    ac->setCheckable(true);
+    ac->setChecked(gSet->forceAllLinksInNewTab);
+
     cm.addSeparator();
     cm.addAction(QIcon::fromTheme("bookmark-new"),tr("Add current frame to bookmarks"),
                  this, SLOT(bookmarkFrame()));
@@ -196,6 +201,11 @@ void CSnCtxHandler::createPlainTextTab()
     s = s.replace('\n',"<br/>");
 
     new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
+}
+
+void CSnCtxHandler::toggleForceNewTab()
+{
+    gSet->forceAllLinksInNewTab=!gSet->forceAllLinksInNewTab;
 }
 
 void CSnCtxHandler::autoTranslateMenu()

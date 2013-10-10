@@ -126,6 +126,7 @@ public:
     QxtGlobalShortcut* gctxTranHotkey;
     bool autoTranslate;
     bool blockTabCloseActive;
+    bool forceAllLinksInNewTab;
 
     bool forceFontColor;
     QColor forcedFontColor;

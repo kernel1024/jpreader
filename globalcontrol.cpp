@@ -29,6 +29,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     useAdblock=false;
     globalContextTranslate=false;
     blockTabCloseActive=false;
+    forceAllLinksInNewTab=false;
     adblock.clear();
     cleaningState=false;
     debugNetReqLogging=false;

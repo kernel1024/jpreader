@@ -77,9 +77,12 @@ void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url)
         QMessageBox::warning(snv,tr("JPReader"),tr("Url is invalid"));
         return;
     }
-    snv->forwardStack.clear();
-    // --------
-    snv->netHandler->loadProcessed(u,frame);
+    if (gSet->forceAllLinksInNewTab)
+        new CSnippetViewer(snv->parentWnd, u, QStringList(), false);
+    else {
+        snv->forwardStack.clear();
+        snv->netHandler->loadProcessed(u,frame);
+    }
 }
 
 void CSnMsgHandler::linkHovered(const QString &link, const QString &, const QString &)
