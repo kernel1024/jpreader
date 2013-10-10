@@ -40,6 +40,7 @@ public slots:
     void toolTipHide();
     void gotTranslation(const QString& text);
     void createPlainTextTab();
+    void toggleForceNewTab();
 signals:
     void startTranslation();
 };
