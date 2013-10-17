@@ -95,7 +95,7 @@ class QSpecWebPage : public QWebPage {
 protected:
     bool acceptNavigationRequest( QWebFrame * frame, const QNetworkRequest & request, NavigationType type );
 signals:
-    void linkClickedExt(QWebFrame * frame, const QUrl &url);
+    void linkClickedExt(QWebFrame * frame, const QUrl &url, const QWebPage::NavigationType &clickType);
 };
 
 class QSpecNetworkAccessManager : public QNetworkAccessManager {

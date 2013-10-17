@@ -90,8 +90,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
 
-    connect(txtBrowser->page(), SIGNAL(linkClickedExt(QWebFrame*,QUrl)), msgHandler,
-            SLOT(linkClicked(QWebFrame*,QUrl)));
+    connect(txtBrowser->page(), SIGNAL(linkClickedExt(QWebFrame*,QUrl,QWebPage::NavigationType)), msgHandler,
+            SLOT(linkClicked(QWebFrame*,QUrl,QWebPage::NavigationType)));
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString,QString,QString)), msgHandler,
             SLOT(linkHovered(QString,QString,QString)));
     connect(txtBrowser->page(), SIGNAL(statusBarMessage(QString)),this,SLOT(statusBarMsg(QString)));

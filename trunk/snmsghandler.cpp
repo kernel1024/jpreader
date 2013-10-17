@@ -63,7 +63,7 @@ void CSnMsgHandler::loadHomeUri()
         QMessageBox::warning(snv,tr("JPReader"),tr("Unable to return to dynamically generated first page."));
 }
 
-void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url)
+void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url, const QWebPage::NavigationType &clickType)
 {
     QUrl u = url;
     if (u.isRelative() && frame!=NULL) {
@@ -77,10 +77,11 @@ void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url)
         QMessageBox::warning(snv,tr("JPReader"),tr("Url is invalid"));
         return;
     }
-    if (gSet->forceAllLinksInNewTab)
+    if (gSet->forceAllLinksInNewTab && clickType==QWebPage::NavigationTypeLinkClicked)
         new CSnippetViewer(snv->parentWnd, u, QStringList(), false);
     else {
-        snv->forwardStack.clear();
+        if (clickType==QWebPage::NavigationTypeLinkClicked)
+            snv->forwardStack.clear();
         snv->netHandler->loadProcessed(u,frame);
     }
 }
