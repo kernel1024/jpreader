@@ -20,7 +20,7 @@ public slots:
     void loadHomeUri();
     void navBack();
     void navForward();
-    void linkClicked(QWebFrame *frame, const QUrl &url);
+    void linkClicked(QWebFrame *frame, const QUrl &url, const QWebPage::NavigationType &clickType);
     void linkHovered(const QString &link, const QString &, const QString &);
     void searchFwd();
     void searchBack();

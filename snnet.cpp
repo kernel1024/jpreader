@@ -203,7 +203,6 @@ void CSnNet::reloadMedia(bool fromNew)
             snv->loadingBkgdFinished=false;
             snv->txtBrowser->settings()->setAttribute(QWebSettings::AutoLoadImages,true);
             snv->txtBrowser->setHtml(makeSimpleHtml(fi.fileName(),cn));
-            snv->urlEdit->setEditText(snv->Uri.toString());
         } else if (supportedTxt.contains(MIME, Qt::CaseInsensitive)) { // for local txt files
             QFile data(fname);
             QFileInfo fi(fname);
@@ -216,7 +215,6 @@ void CSnNet::reloadMedia(bool fromNew)
                 snv->loadingBkgdFinished=false;
                 snv->txtBrowser->setHtml(cn);
                 data.close();
-                snv->urlEdit->setEditText(snv->Uri.toString());
             }
         } else { // for local html files
             snv->fileChanged = false;
@@ -235,4 +233,6 @@ void CSnNet::reloadMedia(bool fromNew)
     } else
         snv->fileChanged = false;
     snv->txtBrowser->setFocus();
+    if (snv->Uri.isValid())
+        snv->urlEdit->setEditText(snv->Uri.toString());
 }

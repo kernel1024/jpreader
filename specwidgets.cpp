@@ -194,7 +194,7 @@ int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
 bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type)
 {
     if (type == NavigationTypeLinkClicked) {
-        emit linkClickedExt(frame,request.url());
+        emit linkClickedExt(frame,request.url(),type);
         return false;
     }
     return true;
