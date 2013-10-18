@@ -130,7 +130,9 @@ void CSnTrans::postTranslate()
     case TE_ATLAS: // Url contains translated file itself
         cn = snv->calculatedUrl;
         snv->fileChanged = true;
+        snv->netHandler->addUrlToProcessing(snv->savedBaseUrl);
         snv->txtBrowser->setHtml(cn,snv->savedBaseUrl);
+        snv->netHandler->removeUrlFromProcessing(snv->savedBaseUrl);
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     default:

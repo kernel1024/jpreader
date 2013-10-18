@@ -22,6 +22,8 @@ public:
     CSnNet(CSnippetViewer * parent);
     QUrl fixUrl(QUrl aUrl);
     bool isUrlNowProcessing(const QUrl &url);
+    void addUrlToProcessing(const QUrl &url);
+    void removeUrlFromProcessing(const QUrl &url);
 public slots:
     void loadProcessed(const QUrl & url, QWebFrame* frame = NULL,
                        QNetworkRequest::CacheLoadControl ca = QNetworkRequest::PreferNetwork);
