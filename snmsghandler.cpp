@@ -9,14 +9,12 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
 
 void CSnMsgHandler::searchFwd()
 {
-    if (!snv->txtPanel->isVisible()) return ;
     if (snv->searchEdit->currentText().isEmpty()) return ;
     snv->txtBrowser->findText(snv->searchEdit->currentText(), 0);
 }
 
 void CSnMsgHandler::searchBack()
 {
-    if (!snv->txtPanel->isVisible()) return ;
     if (snv->searchEdit->currentText().isEmpty()) return ;
     snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebPage::FindBackward);
 }

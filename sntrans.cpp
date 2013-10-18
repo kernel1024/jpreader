@@ -43,23 +43,24 @@ void CSnTrans::translate()
         if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive)) aUri=snv->auxContent;
     }
 
-    CTranslator* ct = new CTranslator(NULL,aUri,snv->waitDlg);
+    CTranslator* ct = new CTranslator(NULL,aUri,snv->waitHandler);
     QThread* th = new QThread();
     connect(ct,SIGNAL(calcFinished(bool,QString)),
             this,SLOT(calcFinished(bool,QString)),Qt::QueuedConnection);
-    snv->waitDlg->setProgressEnabled(false);
+    snv->waitHandler->setProgressValue(0);
     if (gSet->translatorEngine==TE_ATLAS) {
-        snv->waitDlg->setText(tr("Translating text with ATLAS..."));
-        snv->waitDlg->setProgressEnabled(true);
-        snv->waitDlg->setProgressValue(0);
-    } else
-        snv->waitDlg->setText(tr("Copying file to hosting..."));
-    snv->txtPanel->hide();
-    snv->waitDlg->show();
+        snv->waitHandler->setText(tr("Translating text with ATLAS..."));
+        snv->waitHandler->setProgressEnabled(true);
+    } else {
+        snv->waitHandler->setText(tr("Copying file to hosting..."));
+        snv->waitHandler->setProgressEnabled(false);
+    }
+    snv->waitPanel->show();
+    snv->transButton->setEnabled(false);
 
     connect(gSet,SIGNAL(stopTranslators()),
             ct,SLOT(abortAtlas()),Qt::QueuedConnection);
-    connect(snv->waitDlg->abortBtn,SIGNAL(clicked()),
+    connect(snv->abortBtn,SIGNAL(clicked()),
             ct,SLOT(abortAtlas()),Qt::QueuedConnection);
 
     ct->moveToThread(th);
@@ -70,8 +71,8 @@ void CSnTrans::translate()
 
 void CSnTrans::calcFinished(const bool success, const QString& aUrl)
 {
-    snv->waitDlg->hide();
-    snv->txtPanel->show();
+    snv->waitPanel->hide();
+    snv->transButton->setEnabled(true);
     if (success) {
         snv->calculatedUrl=aUrl;
         postTranslate();
