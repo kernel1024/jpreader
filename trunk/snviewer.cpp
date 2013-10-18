@@ -27,7 +27,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
     txtBrowser->setUrl(QUrl("about:blank"));
     txtPanel->layout()->addWidget(txtBrowser);
-    txtBrowser->setPage(new QSpecWebPage());
+    txtBrowser->setPage(new QSpecWebPage(this));
 
 	tabWidget=NULL;
     tabTitle="";
