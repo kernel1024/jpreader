@@ -99,6 +99,11 @@ void CSnNet::netStop()
 
 void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::CacheLoadControl ca)
 {
+    if (gSet->isUrlBlocked(url)) {
+        qDebug() << "adblock - skipping" << url;
+        return;
+    }
+
     snv->updateWebViewAttributes();
 
     QNetworkRequest rq(url);
