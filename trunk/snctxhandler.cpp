@@ -245,8 +245,10 @@ void CSnCtxHandler::duplicateTab()
     CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
 
     if (snv->fileChanged) {
-        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(),
-                                snv->txtBrowser->page()->mainFrame()->baseUrl());
+        QUrl b = snv->txtBrowser->page()->mainFrame()->baseUrl();
+        sv->netHandler->addUrlToProcessing(b);
+        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(), b);
+        sv->netHandler->removeUrlFromProcessing(b);
     }
 }
 
@@ -261,8 +263,10 @@ void CSnCtxHandler::detachTab()
     CSnippetViewer* sv = new CSnippetViewer(mwnd, url);
 
     if (snv->fileChanged) {
-        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(),
-                                snv->txtBrowser->page()->mainFrame()->baseUrl());
+        QUrl b = snv->txtBrowser->page()->mainFrame()->baseUrl();
+        sv->netHandler->addUrlToProcessing(b);
+        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(), b);
+        sv->netHandler->removeUrlFromProcessing(b);
     }
     snv->closeTab(true);
 }

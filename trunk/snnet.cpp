@@ -28,6 +28,20 @@ bool CSnNet::isUrlNowProcessing(const QUrl &url)
     return a;
 }
 
+void CSnNet::addUrlToProcessing(const QUrl &url)
+{
+    mtxBaseUrls.lock();
+    mlsBaseUrls << url;
+    mtxBaseUrls.unlock();
+}
+
+void CSnNet::removeUrlFromProcessing(const QUrl &url)
+{
+    mtxBaseUrls.lock();
+    mlsBaseUrls.removeAll(url);
+    mtxBaseUrls.unlock();
+}
+
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
@@ -61,7 +75,8 @@ void CSnNet::showErrorMsg(QNetworkReply *reply)
     QString errorString = QString("<h1>Network Error</h1>");
     if (reply!=NULL) {
         errorString += QString("Qt error code: %1.").arg(reply->error());
-        errorString += QString(" <b>%1</b><br/>").arg(reply->errorString());
+        errorString += QString(" <b>%1</b><br/><br/>").arg(reply->errorString());
+        errorString += QString("URL: %1<br/><br/>").arg(reply->request().url().toString());
     }
     errorString = QString("<html><head><title>Network error</title></head><body>%1</body></html>")
                              .arg(errorString);
@@ -171,19 +186,14 @@ void CSnNet::netHtmlLoaded()
         } else {
             QTextCodec* enc = detectEncoding(ba);
 
-            mtxBaseUrls.lock();
-            mlsBaseUrls << base;
-            mtxBaseUrls.unlock();
+            addUrlToProcessing(base);
 
-            qDebug() << "load decoded" << base;
             if (frm!=NULL)
                 frm->setHtml(fixMetaEncoding(enc->toUnicode(ba)),base);
             else
                 snv->txtBrowser->setHtml(fixMetaEncoding(enc->toUnicode(ba)),base);
 
-            mtxBaseUrls.lock();
-            mlsBaseUrls.removeAll(base);
-            mtxBaseUrls.unlock();
+            removeUrlFromProcessing(base);
         }
     }
     snv->updateButtonsState();

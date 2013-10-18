@@ -199,12 +199,18 @@ QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
 
 bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type)
 {
-    if (type == NavigationTypeLinkClicked) {
-        emit linkClickedExt(frame,request.url(),type);
-        return false;
-    } else if (type == NavigationTypeOther && !viewer->netHandler->isUrlNowProcessing(request.url())) {
-        emit linkClickedExt(frame,request.url(),type);
-        return false;
+    QUrl u = request.url();
+    QStringList validSchemes;
+    validSchemes << "http" << "https" << "ftp";
+    if (u.isValid() && validSchemes.contains(u.scheme(),Qt::CaseInsensitive)) {
+        if (type == NavigationTypeLinkClicked) {
+            emit linkClickedExt(frame,u,type);
+            return false;
+        } else if (type == NavigationTypeOther &&
+                   !viewer->netHandler->isUrlNowProcessing(u)) {
+            emit linkClickedExt(frame,u,type);
+            return false;
+        }
     }
     return true;
 }
