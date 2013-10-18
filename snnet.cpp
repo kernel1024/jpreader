@@ -6,6 +6,7 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+    mlsBaseUrls.clear();
 }
 
 QUrl CSnNet::fixUrl(QUrl aUrl)
@@ -17,6 +18,14 @@ QUrl CSnNet::fixUrl(QUrl aUrl)
     u = u.replace("%E2%80%BE","~");  // ~
     u = u.replace("%C2%A5","/"); // backslash to slash
     return QUrl::fromUserInput(QString::fromUtf8(u));
+}
+
+bool CSnNet::isUrlNowProcessing(const QUrl &url)
+{
+    mtxBaseUrls.lock();
+    bool a = mlsBaseUrls.contains(url);
+    mtxBaseUrls.unlock();
+    return a;
 }
 
 void CSnNet::loadStarted()
@@ -162,10 +171,19 @@ void CSnNet::netHtmlLoaded()
         } else {
             QTextCodec* enc = detectEncoding(ba);
 
+            mtxBaseUrls.lock();
+            mlsBaseUrls << base;
+            mtxBaseUrls.unlock();
+
+            qDebug() << "load decoded" << base;
             if (frm!=NULL)
                 frm->setHtml(fixMetaEncoding(enc->toUnicode(ba)),base);
             else
                 snv->txtBrowser->setHtml(fixMetaEncoding(enc->toUnicode(ba)),base);
+
+            mtxBaseUrls.lock();
+            mlsBaseUrls.removeAll(base);
+            mtxBaseUrls.unlock();
         }
     }
     snv->updateButtonsState();

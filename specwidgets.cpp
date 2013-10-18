@@ -191,9 +191,18 @@ int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
         return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
+QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
+    QWebPage(parent)
+{
+    viewer = parent;
+}
+
 bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type)
 {
     if (type == NavigationTypeLinkClicked) {
+        emit linkClickedExt(frame,request.url(),type);
+        return false;
+    } else if (type == NavigationTypeOther && !viewer->netHandler->isUrlNowProcessing(request.url())) {
         emit linkClickedExt(frame,request.url(),type);
         return false;
     }

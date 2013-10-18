@@ -6,6 +6,8 @@
 #include <QWebFrame>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QMutex>
+#include <QList>
 #include "snviewer.h"
 
 class CSnNet : public QObject
@@ -14,9 +16,12 @@ class CSnNet : public QObject
 private:
     CSnippetViewer *snv;
     void showErrorMsg(QNetworkReply* reply);
+    QList<QUrl> mlsBaseUrls;
+    QMutex mtxBaseUrls;
 public:
     CSnNet(CSnippetViewer * parent);
     QUrl fixUrl(QUrl aUrl);
+    bool isUrlNowProcessing(const QUrl &url);
 public slots:
     void loadProcessed(const QUrl & url, QWebFrame* frame = NULL,
                        QNetworkRequest::CacheLoadControl ca = QNetworkRequest::PreferNetwork);

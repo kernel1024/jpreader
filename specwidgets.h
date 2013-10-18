@@ -25,6 +25,7 @@
 #include <QKeyEvent>
 
 class CMainWindow;
+class CSnippetViewer;
 
 class QSpecTabBar : public QTabBar {
 	Q_OBJECT
@@ -92,7 +93,10 @@ public:
 
 class QSpecWebPage : public QWebPage {
     Q_OBJECT
+public:
+    QSpecWebPage(CSnippetViewer *parent);
 protected:
+    CSnippetViewer* viewer;
     bool acceptNavigationRequest( QWebFrame * frame, const QNetworkRequest & request, NavigationType type );
 signals:
     void linkClickedExt(QWebFrame * frame, const QUrl &url, const QWebPage::NavigationType &clickType);
