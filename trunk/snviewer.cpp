@@ -20,13 +20,13 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     setAttribute(Qt::WA_DeleteOnClose,true);
     parentWnd = parent;
 
-    txtPanel->layout()->removeWidget(txtBrowser);
+    layout()->removeWidget(txtBrowser);
     txtBrowser->setParent(NULL);
     delete txtBrowser;
-    txtBrowser = new QSpecWebView(txtPanel,parent);
+    txtBrowser = new QSpecWebView(this,parent);
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
     txtBrowser->setUrl(QUrl("about:blank"));
-    txtPanel->layout()->addWidget(txtBrowser);
+    layout()->addWidget(txtBrowser);
     txtBrowser->setPage(new QSpecWebPage(this));
 
 	tabWidget=NULL;
@@ -67,6 +67,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     ctxHandler = new CSnCtxHandler(this);
     transHandler = new CSnTrans(this);
     msgHandler = new CSnMsgHandler(this);
+    waitHandler = new CSnWaitCtl(this);
 
     connect(backButton, SIGNAL(clicked()), msgHandler, SLOT(searchBack()));
     connect(fwdButton, SIGNAL(clicked()), msgHandler, SLOT(searchFwd()));
@@ -114,11 +115,9 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
     connect(sc,SIGNAL(activated()),searchEdit,SLOT(setFocus()));
 
-    waitDlg = new CWaitDlg();
-    waitDlg->hide();
-    QVBoxLayout* wb = qobject_cast<QVBoxLayout *>(layout());
-    if (wb!=NULL)
-        wb->insertWidget(wb->indexOf(txtPanel),waitDlg);
+    waitPanel->hide();
+    errorPanel->hide();
+    errorLabel->setText(QString());
 
     netHandler->reloadMedia(true);
     txtBrowser->setFocus();
@@ -138,11 +137,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         parentWnd->closeStartPage();
 
     parentWnd->updateSuggestionLists(this);
-}
-
-CSnippetViewer::~CSnippetViewer()
-{
-    waitDlg->deleteLater();
 }
 
 void CSnippetViewer::updateButtonsState()
@@ -302,7 +296,7 @@ void CSnippetViewer::bindToTab(QSpecTabWidget* tabs, bool setFocused)
 
 void CSnippetViewer::closeTab(bool nowait)
 {
-    if (waitDlg->isVisible()) return; // prevent closing while translation thread active
+    if (waitPanel->isVisible()) return; // prevent closing while translation thread active
     if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
     if (!nowait) {
         if (gSet->blockTabCloseActive) return;

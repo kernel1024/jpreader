@@ -12,7 +12,6 @@
 #include <QTimer>
 
 #include "ui_snviewer.h"
-#include "waitdlg.h"
 #include "translator.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
@@ -21,11 +20,13 @@
 #include "snmsghandler.h"
 #include "snnet.h"
 #include "sntrans.h"
+#include "snwaitctl.h"
 
 class CSnCtxHandler;
 class CSnMsgHandler;
 class CSnNet;
 class CSnTrans;
+class CSnWaitCtl;
 
 class CSnippetViewer : public QWidget, public Ui::SnippetViewer
 {
@@ -36,9 +37,9 @@ public:
     CSnMsgHandler *msgHandler;
     CSnNet *netHandler;
     CSnTrans *transHandler;
+    CSnWaitCtl *waitHandler;
 
     QStringList slist;
-    CWaitDlg* waitDlg;
 	QString calculatedUrl;
 	QSpecTabWidget* tabWidget;
 	QPointer<QWebFrame> lastFrame;
@@ -53,16 +54,15 @@ public:
     bool isStartPage;
     QList<QUrl> backHistory;
     QList<QUrl> forwardStack;
+    bool onceLoaded;
+    bool onceTranslated;
+    bool loadingByWebKit;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
                    bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),
                    bool startPage = false);
-    virtual ~CSnippetViewer();
     QString getDocTitle();
     void bindToTab(QSpecTabWidget* tabs, bool setFocused = true);
-    bool onceLoaded;
-    bool onceTranslated;
-	bool loadingByWebKit;
     void keyPressEvent(QKeyEvent* event);
     void updateButtonsState();
     void updateWebViewAttributes();

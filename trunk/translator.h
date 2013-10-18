@@ -8,10 +8,12 @@
 #include <QColor>
 #include <QFont>
 #include <netdb.h>
-#include "waitdlg.h"
 #include "mainwindow.h"
 #include "atlastranslator.h"
 #include "globalcontrol.h"
+#include "snwaitctl.h"
+
+class CSnWaitCtl;
 
 class CTranslator : public QObject
 {
@@ -33,7 +35,7 @@ private:
     QString Uri;
     QString scpParams;
     QString scpHost;
-    CWaitDlg* waitDlg;
+    CSnWaitCtl* waitDlg;
     QString atlHost;
     int atlPort;
     int atlTcpRetryCount;
@@ -57,7 +59,7 @@ private:
     bool translateParagraph(QDomNode src);
 
 public:
-    explicit CTranslator(QObject* parent, QString aUri, CWaitDlg* aWaitDlg);
+    explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);

@@ -3,7 +3,7 @@
 #include "snviewer.h"
 #include "genericfuncs.h"
 
-CTranslator::CTranslator(QObject* parent, QString aUri, CWaitDlg *aWaitDlg)
+CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     : QObject(parent)
 {
     waitDlg = aWaitDlg;

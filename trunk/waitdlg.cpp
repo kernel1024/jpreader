@@ -15,18 +15,3 @@ CWaitDlg::~CWaitDlg()
 {
     delete ui;
 }
-
-void CWaitDlg::setText(QString aMsg)
-{
-    ui->lblMessage->setText(aMsg);
-}
-
-void CWaitDlg::setProgressEnabled(bool show)
-{
-    ui->atlasFrame->setVisible(show);
-}
-
-void CWaitDlg::setProgressValue(int val)
-{
-    ui->barProgress->setValue(val);
-}
