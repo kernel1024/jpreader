@@ -200,6 +200,7 @@ QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
 bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type)
 {
     QUrl u = request.url();
+    qDebug() << u;
     QStringList validSchemes;
     validSchemes << "http" << "https" << "ftp";
     if (u.isValid() && validSchemes.contains(u.scheme(),Qt::CaseInsensitive)) {
