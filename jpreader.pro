@@ -3,7 +3,6 @@ SUBDIRS += qtsingleapplication
 HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
-    waitdlg.h \
     specwidgets.h \
     atlastranslator.h \
     genericfuncs.h \
@@ -26,7 +25,6 @@ SOURCES = main.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
     snviewer.cpp \
-    waitdlg.cpp \
     atlastranslator.cpp \
     specwidgets.cpp \
     genericfuncs.cpp \
@@ -50,7 +48,6 @@ RESOURCES = \
 
 FORMS = main.ui \
     settingsdlg.ui \
-    waitdlg.ui \
     authdlg.ui \
     bookmarkdlg.ui \
     snviewer.ui \

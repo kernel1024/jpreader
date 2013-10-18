@@ -72,15 +72,17 @@ void CSnNet::showErrorMsg(QNetworkReply *reply)
 {
     if (reply==NULL) return;
     if (reply->error()==QNetworkReply::NoError) return;
-    QString errorString = QString("<h1>Network Error</h1>");
+    QString errorString;
     if (reply!=NULL) {
-        errorString += QString("Qt error code: %1.").arg(reply->error());
-        errorString += QString(" <b>%1</b><br/><br/>").arg(reply->errorString());
-        errorString += QString("URL: %1<br/><br/>").arg(reply->request().url().toString());
-    }
-    errorString = QString("<html><head><title>Network error</title></head><body>%1</body></html>")
-                             .arg(errorString);
-    snv->txtBrowser->setHtml(errorString);
+        errorString = QString("<b>%1</b><br/>").arg(reply->errorString());
+        errorString += QString("Network error #%1.<br/>").arg(reply->error());
+        errorString += QString("URL: %1").arg(reply->request().url().toString());
+    } else
+        errorString = QString("<b>Network Error</b>");
+    snv->errorLabel->setText(errorString);
+    snv->errorPanel->show();
+    if (snv->tabTitle.isEmpty())
+        snv->titleChanged(tr("Network error"));
 }
 
 void CSnNet::loadError(QNetworkReply::NetworkError)
