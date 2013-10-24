@@ -1,5 +1,6 @@
 #include <QNetworkDiskCache>
 #include <QNetworkProxy>
+#include <QMessageBox>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QStandardPaths>
@@ -33,6 +34,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     adblock.clear();
     cleaningState=false;
     debugNetReqLogging=false;
+    restoreLoadChecked=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -143,6 +145,10 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     settingsSaveTimer.setInterval(60000);
     connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
     settingsSaveTimer.start();
+
+    tabsListTimer.setInterval(30000);
+    connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
+    tabsListTimer.start();
 }
 
 void CGlobalControl::writeSettings()
@@ -333,6 +339,56 @@ void CGlobalControl::readSettings()
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     updateAllBookmarks();
     updateProxy(proxyUse,true);
+}
+
+void CGlobalControl::writeTabsList(bool clearList)
+{
+    QList<QUrl> urls;
+    urls.clear();
+    if (!clearList) {
+        for (int i=0;i<mainWindows.count();i++) {
+            for (int j=0;j<mainWindows.at(i)->tabMain->count();j++) {
+                CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(mainWindows.at(i)->tabMain->widget(j));
+                if (sn==NULL) continue;
+                if (sn->Uri.isValid() && !sn->Uri.isEmpty())
+                    urls << sn->Uri;
+            }
+        }
+        if (urls.isEmpty()) return;
+    }
+
+    QSettings settings("kernel1024", "jpreader-tabs");
+    settings.beginGroup("OpenedTabs");
+    settings.setValue("tabsCnt", urls.count());
+    for (int i=0;i<urls.count();i++)
+        settings.setValue(QString("tab_%1").arg(i),urls.at(i));
+    settings.endGroup();
+}
+
+void CGlobalControl::checkRestoreLoad(CMainWindow *w)
+{
+    if (restoreLoadChecked) return;
+    restoreLoadChecked = true;
+
+    QList<QUrl> urls;
+    urls.clear();
+    QSettings settings("kernel1024", "jpreader-tabs");
+    settings.beginGroup("OpenedTabs");
+    int cnt = settings.value("tabsCnt", 0).toInt();
+    for (int i=0;i<cnt;i++) {
+        QUrl u = settings.value(QString("tab_%1").arg(i),QUrl()).toUrl();
+        if (u.isValid() && !u.isEmpty())
+            urls << u;
+    }
+    settings.endGroup();
+
+    if (!urls.isEmpty()) {
+        if (QMessageBox::question(w,tr("JPReader"),tr("Program crashed in previous run. Restore all tabs?"),
+                                  QMessageBox::Yes,QMessageBox::No) == QMessageBox::Yes) {
+            for (int i=0;i<cnt;i++)
+                new CSnippetViewer(w,urls.at(i));
+        }
+    }
 }
 
 void CGlobalControl::settingsDlg()
@@ -728,6 +784,8 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
 
+    checkRestoreLoad(mainWindow);
+
     return mainWindow;
 }
 
@@ -758,6 +816,8 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 {
     if (cleaningState) return;
     cleaningState = true;
+
+    writeTabsList(true);
 
     if (receivers(SIGNAL(stopTranslators()))>0)
         emit stopTranslators();

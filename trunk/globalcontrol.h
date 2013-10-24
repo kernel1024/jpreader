@@ -112,6 +112,8 @@ public:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
     bool debugNetReqLogging;
+    QTimer tabsListTimer;
+    bool restoreLoadChecked;
 
     QString savedAuxDir;
     QSpecNetworkAccessManager netAccess;
@@ -189,6 +191,8 @@ public slots:
     // Settings management
     void writeSettings();
     void readSettings();
+    void writeTabsList(bool clearList = false);
+    void checkRestoreLoad(CMainWindow* w);
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
     void toggleJSUsage(bool useJS);
 };
