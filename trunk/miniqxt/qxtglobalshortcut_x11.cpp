@@ -85,7 +85,10 @@ private:
 };
 
 bool QxtX11ErrorHandler::error = false;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 Display *p_display = NULL;
+#endif
 
 class QxtX11Data {
 public:
