@@ -98,7 +98,7 @@ void CIndexerSearch::addHit(const KFileItem &hit)
     QString fname = hit.localPath();
     double nhits = 0.0;
     QString title;
-    processFile(w,nhits,title);
+    processFile(fname,nhits,title);
 
     // scan existing snippets and add new empty snippet
     for(int i=0;i<result.snippets.count();i++) {
