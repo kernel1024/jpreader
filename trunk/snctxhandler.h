@@ -30,6 +30,7 @@ public slots:
     void addContextBlock();
     void saveToFile();
     void openNewTab();
+    void openNewTabTranslate();
     void bookmarkFrame();
     void openFrame();
     void loadKwrite();
