@@ -28,9 +28,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     QMenu cm(snv);
     if (!wh.linkUrl().isEmpty()) {
-        QAction* nt = new QAction(QIcon::fromTheme("tab-new"),tr("Open in New Tab"),NULL);
+        QAction* nt = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab"),NULL);
         nt->setData(wh.linkUrl());
         connect(nt,SIGNAL(triggered()),this,SLOT(openNewTab()));
+        cm.addAction(nt);
+        nt = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab and translate"),NULL);
+        nt->setData(wh.linkUrl());
+        connect(nt,SIGNAL(triggered()),this,SLOT(openNewTabTranslate()));
         cm.addAction(nt);
         cm.addAction(snv->txtBrowser->pageAction(QWebPage::CopyLinkToClipboard));
     }
@@ -60,23 +64,20 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
         icm->addAction(snv->txtBrowser->pageAction(QWebPage::CopyImageToClipboard));
 
-        QAction* ac = icm->addAction(tr("Copy Image Url to Clipboard"),this,SLOT(copyImgUrl()));
+        QAction* ac = icm->addAction(tr("Copy image url to clipboard"),this,SLOT(copyImgUrl()));
         ac->setData(wh.imageUrl());
 
         icm->addSeparator();
 
-        ac = icm->addAction(tr("Open Image in New Tab"),this,SLOT(openImgNewTab()));
+        ac = icm->addAction(tr("Open image in new tab"),this,SLOT(openImgNewTab()));
         ac->setData(wh.imageUrl());
 
         if (!ba.isEmpty()) {
-            ac = icm->addAction(tr("Save Image to File..."),this,SLOT(saveImgToFile()));
+            ac = icm->addAction(tr("Save image to file..."),this,SLOT(saveImgToFile()));
             ac->setData(ba);
         }
     }
 
-    cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("go-previous"),tr("Back"),snv->msgHandler,SLOT(navBack()),QKeySequence(Qt::CTRL + Qt::Key_Z));
-    cm.addAction(QIcon::fromTheme("view-refresh"),tr("Reload"),snv->netHandler,SLOT(reloadMedia()),QKeySequence(Qt::CTRL + Qt::Key_R));
     if (!snv->txtBrowser->selectedText().isEmpty()) {
         cm.addSeparator();
         QAction *ac = cm.addAction(QIcon(":/google"),tr("Search in Google"),
@@ -106,10 +107,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                                    this, SLOT(openFrame()));
         ac->setData(QVariant(1234));
     }
-    QAction *ac = cm.addAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),
-                 this,SLOT(toggleForceNewTab()));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->forceAllLinksInNewTab);
 
     cm.addSeparator();
     cm.addAction(QIcon::fromTheme("bookmark-new"),tr("Add current frame to bookmarks"),
@@ -119,49 +116,64 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                                    this, SLOT(bookmarkFrame()));
         ac->setData(QVariant(1234));
     }
+
+    cm.addSeparator();
+    cm.addAction(QIcon::fromTheme("go-previous"),tr("Back"),
+                 snv->msgHandler,SLOT(navBack()),QKeySequence(Qt::CTRL + Qt::Key_Z));
+    cm.addAction(QIcon::fromTheme("view-refresh"),tr("Reload"),
+                 snv->netHandler,SLOT(reloadMedia()),QKeySequence(Qt::CTRL + Qt::Key_R));
+
+    cm.addAction(snv->txtBrowser->pageAction(QWebPage::SelectAll));
     cm.addSeparator();
     if ((!wh.imageUrl().isEmpty()) || (!wh.linkUrl().isEmpty())) {
         QMenu* acm = cm.addMenu(QIcon::fromTheme("emblem-important"),tr("AdBlock"));
         if (!wh.imageUrl().isEmpty()) {
-            QAction* act = acm->addAction(tr("Add Block by Image Url..."),
+            QAction* act = acm->addAction(tr("Add block by image url..."),
                                           this,SLOT(addContextBlock()));
             act->setData(wh.imageUrl());
         }
         if (!wh.linkUrl().isEmpty()) {
-            QAction* act = acm->addAction(tr("Add Block by Link Url..."),
+            QAction* act = acm->addAction(tr("Add block by link url..."),
                                           this,SLOT(addContextBlock()));
             act->setData(wh.linkUrl());
         }
         cm.addSeparator();
     }
-    cm.addAction(QIcon::fromTheme("documentation"),tr("Show source"),
+
+    QMenu *scm = cm.addMenu(QIcon::fromTheme("preferences-other"),tr("Settings"));
+    QAction *ac = scm->addAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),
+                 this,SLOT(toggleForceNewTab()));
+    ac->setCheckable(true);
+    ac->setChecked(gSet->forceAllLinksInNewTab);
+    ac = scm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),
+                               this,SLOT(autoTranslateMenu()));
+    ac->setCheckable(true);
+    ac->setChecked(gSet->autoTranslate);
+    ac = scm->addAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),
+                      this,SLOT(overrideFontMenu()));
+    ac->setCheckable(true);
+    ac->setChecked(gSet->useOverrideFont);
+    ac = scm->addAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),
+                      this,SLOT(autoloadImagesMenu()));
+    ac->setCheckable(true);
+    ac->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
+    ac = scm->addAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),
+                      this,SLOT(overrideFontColorMenu()));
+    ac->setCheckable(true);
+    ac->setChecked(gSet->forceFontColor);
+
+    QMenu *ccm = cm.addMenu(QIcon::fromTheme("system-run"),tr("Service"));
+    ccm->addAction(QIcon::fromTheme("documentation"),tr("Show source"),
                  this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
-    cm.addAction(QIcon::fromTheme("download"),tr("Open in browser"),
+    ccm->addAction(QIcon::fromTheme("download"),tr("Open in browser"),
                  this,SLOT(execKonq()),QKeySequence(Qt::CTRL + Qt::Key_W));
-    cm.addAction(snv->txtBrowser->pageAction(QWebPage::SelectAll));
-    cm.addSeparator();
-    QAction* atc = cm.addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),
-                                this,SLOT(autoTranslateMenu()));
-    atc->setCheckable(true);
-    atc->setChecked(gSet->autoTranslate);
-    atc = cm.addAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),
-                       this,SLOT(overrideFontMenu()));
-    atc->setCheckable(true);
-    atc->setChecked(gSet->useOverrideFont);
-    atc = cm.addAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),
-                       this,SLOT(autoloadImagesMenu()));
-    atc->setCheckable(true);
-    atc->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
-    atc = cm.addAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),
-                       this,SLOT(overrideFontColorMenu()));
-    atc->setCheckable(true);
-    atc->setChecked(gSet->forceFontColor);
-    cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
+    ccm->addSeparator();
+    ccm->addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
                  snv,SLOT(closeTab()));
-    cm.addSeparator();
-    cm.addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
+    ccm->addSeparator();
+    ccm->addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
                  this,SLOT(saveToFile()));
+
     cm.exec(snv->txtBrowser->mapToGlobal(pos));
 }
 
@@ -407,6 +419,24 @@ void CSnCtxHandler::openNewTab()
     u = snv->netHandler->fixUrl(u);
 
     new CSnippetViewer(snv->parentWnd, u, QStringList(), false, "", snv->comboZoom->currentText());
+}
+
+void CSnCtxHandler::openNewTabTranslate()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QUrl u = nt->data().toUrl();
+    if (u.isRelative() && snv->lastFrame) {
+        QUrl uu = snv->lastFrame->requestedUrl();
+        if (uu.isEmpty() || uu.isRelative())
+            uu = snv->Uri;
+        u = uu.resolved(u);
+    }
+    u = snv->netHandler->fixUrl(u);
+
+    CSnippetViewer* s = new CSnippetViewer(snv->parentWnd, u, QStringList(),
+                                             false, "", snv->comboZoom->currentText());
+    s->requestAutotranslate = true;
 }
 
 void CSnCtxHandler::openFrame() {

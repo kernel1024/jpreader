@@ -39,6 +39,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     calculatedUrl="";
 	onceLoaded=false;
     onceTranslated=false;
+    requestAutotranslate=false;
 	Uri = aUri;
     firstUri = aUri;
     auxContent = AuxContent;

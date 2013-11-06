@@ -65,7 +65,8 @@ void CSnNet::loadFinished(bool)
         snv->parentWnd->updateTabs();
     }
 
-    if (gSet->autoTranslate && !snv->onceTranslated) snv->transButton->click();
+    if ((gSet->autoTranslate || snv->requestAutotranslate) && !snv->onceTranslated)
+        snv->transButton->click();
 }
 
 void CSnNet::showErrorMsg(QNetworkReply *reply)
