@@ -58,8 +58,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 	}
     bindToTab(parent->tabMain, setFocused);
 
-    navButton->hide();
-
 	txtBrowser->setContextMenuPolicy(Qt::CustomContextMenu);
     txtBrowser->page()->setNetworkAccessManager(&(gSet->netAccess));
     txtBrowser->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
@@ -155,8 +153,6 @@ void CSnippetViewer::navByUrl()
 
 void CSnippetViewer::navByUrl(QString url)
 {
-    navButton->hide();
-
     QString aUrl = url;
     QUrl u = QUrl::fromUserInput(aUrl);
 
