@@ -29,14 +29,13 @@ void CSnMsgHandler::setZoom(QString z)
     }
 }
 
-void CSnMsgHandler::urlEdited(const QString &url)
+void CSnMsgHandler::urlEdited(const QString &)
 {
-    if (!snv->navButton->isVisible() && !url.isEmpty()) snv->navButton->show();
-    if (url.isEmpty()) snv->navButton->hide();
 }
 
 void CSnMsgHandler::navByClick()
 {
+    if (snv->urlEdit->currentText().isEmpty()) return;
     snv->navByUrl(snv->urlEdit->currentText());
 }
 
