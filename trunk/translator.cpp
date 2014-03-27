@@ -159,11 +159,23 @@ void CTranslator::examineXMLNode(QDomNode node)
 
         // pixiv stylesheet fix for novels viewer
         if (node.nodeName().toLower()=="div") {
-            if (!node.attributes().namedItem("class").isNull() &&
-                    node.attributes().namedItem("class").nodeValue().toLower()=="works_display") {
-                if (node.attributes().namedItem("style").isNull())
-                    node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                node.attributes().namedItem("style").setNodeValue("text-align: left;");
+            if (!node.attributes().namedItem("class").isNull()) {
+                if (node.attributes().namedItem("class").nodeValue().toLower()=="works_display") {
+                    if (node.attributes().namedItem("style").isNull())
+                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
+                    node.attributes().namedItem("style").setNodeValue("text-align: left;");
+                }
+
+                // hide comments popup div
+                if (node.attributes().namedItem("class").nodeValue().toLower().contains("-modal")) {
+                    if (node.attributes().namedItem("style").isNull())
+                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
+                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
+                        node.attributes().namedItem("style").setNodeValue("position: static;");
+                    else
+                        node.attributes().namedItem("style").setNodeValue(
+                                    node.attributes().namedItem("style").nodeValue()+"; position: static;");
+                }
             }
         }
 
