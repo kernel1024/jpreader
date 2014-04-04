@@ -195,9 +195,32 @@ void CSnTrans::hideTooltip()
 void CSnTrans::showWordTranslation(const QString &html)
 {
     QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
-    connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
+    t->setOpenExternalLinks(false);
+    t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(350,350);
-    QxtToolTip::show(QCursor::pos(),t,snv);
+
+    connect(t,SIGNAL(linkActivated(QString)),this,SLOT(showSuggestedTranslation(QString)));
+    connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
+
+    QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true);
+}
+
+void CSnTrans::showSuggestedTranslation(const QString &link)
+{
+    QUrl url(link);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    QString word = url.queryItemValue("word");
+#else
+    QUrlQuery requ(url);
+    QString word = requ.queryItemValue("word");
+#endif
+    if (word.startsWith('%')) {
+        QByteArray bword = word.toLatin1();
+        if (!bword.isNull() && !bword.isEmpty())
+            word = QUrl::fromPercentEncoding(bword);
+    }
+    if (dbusDict->isValid())
+        dbusDict->findWordTranslation(word);
 }
 
 void CSnTrans::showDictionaryWindow()

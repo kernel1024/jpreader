@@ -57,6 +57,8 @@ QxtToolTipPrivate* QxtToolTipPrivate::instance()
 
 QxtToolTipPrivate::QxtToolTipPrivate() : QWidget(qApp->desktop(), FLAGS)
 {
+    ignoreEnterEvent = false;
+    allowCloseOnLeave = false;
     setWindowFlags(FLAGS);
     vbox = new QVBoxLayout(this);
     setPalette(QToolTip::palette());
@@ -71,7 +73,7 @@ QxtToolTipPrivate::~QxtToolTipPrivate()
     self = 0;
 }
 
-void QxtToolTipPrivate::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect)
+void QxtToolTipPrivate::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect, const bool allowMouseEnter)
 {
 //    Q_ASSERT(tooltip && parent);
     if (!isVisible())
@@ -86,6 +88,8 @@ void QxtToolTipPrivate::show(const QPoint& pos, QWidget* tooltip, QWidget* paren
         setToolTip(tooltip);
         currentParent = parent;
         currentRect = rect;
+        ignoreEnterEvent = allowMouseEnter;
+        allowCloseOnLeave = false;
         move(calculatePos(scr, pos));
         QWidget::show();
     }
@@ -106,7 +110,17 @@ void QxtToolTipPrivate::setToolTip(QWidget* tooltip)
 void QxtToolTipPrivate::enterEvent(QEvent* event)
 {
     Q_UNUSED(event);
-    hideLater();
+    if (ignoreEnterEvent)
+        allowCloseOnLeave = true;
+    else
+        hideLater();
+}
+
+void QxtToolTipPrivate::leaveEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    if (!ignoreEnterEvent || allowCloseOnLeave)
+        hideLater();
 }
 
 void QxtToolTipPrivate::paintEvent(QPaintEvent* event)
@@ -135,6 +149,11 @@ bool QxtToolTipPrivate::eventFilter(QObject* object, QEvent* event)
             break;
     }
     case QEvent::Leave:
+    {
+            if (!ignoreEnterEvent)
+                hideLater();
+            break;
+    }
     case QEvent::WindowActivate:
     case QEvent::WindowDeactivate:
     case QEvent::MouseButtonPress:
@@ -253,9 +272,9 @@ QxtToolTip::QxtToolTip()
 
     \sa hide()
 */
-void QxtToolTip::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect)
+void QxtToolTip::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect, const bool allowMouseEnter)
 {
-    QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect);
+    QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect, allowMouseEnter);
 }
 
 /*!

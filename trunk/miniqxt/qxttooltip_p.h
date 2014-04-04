@@ -50,7 +50,7 @@ public:
     ~QxtToolTipPrivate();
 
     static QxtToolTipPrivate* instance();
-    void show(const QPoint& pos, QWidget* tooltip, QWidget* parent = 0, const QRect& rect = QRect());
+    void show(const QPoint& pos, QWidget* tooltip, QWidget* parent = 0, const QRect& rect = QRect(), const bool allowMouseEnter = false);
     void setToolTip(QWidget* tooltip);
     bool eventFilter(QObject* parent, QEvent* event);
     void hideLater();
@@ -60,12 +60,15 @@ public:
 
 protected:
     void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
     void paintEvent(QPaintEvent* event);
 
 private:
     static QxtToolTipPrivate* self;
     QWidget* currentParent;
     QRect currentRect;
+    bool ignoreEnterEvent;
+    bool allowCloseOnLeave;
 };
 
 #endif // QXTTOOLTIP_P_H
