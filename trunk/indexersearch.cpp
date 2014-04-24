@@ -46,9 +46,13 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
     } else {
         if (indexerSerivce == SE_NEPOMUK) {
 #ifdef WITH_NEPOMUK
+#if WITH_NEPOMUK == 1
             Nepomuk::Query::LiteralTerm term(query);
             Nepomuk::Query::FileQuery qr(term);
-
+#else
+            Nepomuk2::Query::LiteralTerm term(query);
+            Nepomuk2::Query::FileQuery qr(term);
+#endif
             KUrl ndir = qr.toSearchUrl();
             engine.dirLister()->openUrl(ndir);
 #else
