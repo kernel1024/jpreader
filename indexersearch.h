@@ -11,8 +11,8 @@
 #ifdef WITH_NEPOMUK
 #include <kdirmodel.h>
 #include <kdirlister.h>
-#include <nepomuk/filequery.h>
-#include <nepomuk/literalterm.h>
+#include <filequery.h>
+#include <literalterm.h>
 #endif
 #include "recollsearch.h"
 

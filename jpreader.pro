@@ -82,12 +82,23 @@ exists( /usr/include/magic.h ) {
 
 PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
 
-exists( /usr/include/nepomuk/filequery.h ) {
+exists( /usr/include/nepomuk2/filequery.h ) {
     lessThan(QT_MAJOR_VERSION, 5) {
+        INCLUDEPATH += /usr/include/nepomuk2
         CONFIG += use_nepomuk
-        DEFINES += WITH_NEPOMUK=1
-        LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
-        message("Nepomuk support: YES")
+        DEFINES += WITH_NEPOMUK=2
+        LIBS += -lkio -lkdecore -lsoprano -lnepomukcore -lnepomukcommon
+        message("Nepomuk 2 support: YES")
+    }
+} else {
+    exists( /usr/include/nepomuk/filequery.h ) {
+        lessThan(QT_MAJOR_VERSION, 5) {
+            INCLUDEPATH += /usr/include/nepomuk
+            CONFIG += use_nepomuk
+            DEFINES += WITH_NEPOMUK=1
+            LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
+            message("Nepomuk support: YES")
+        }
     }
 }
 
@@ -95,7 +106,7 @@ exists( /usr/include/nepomuk/filequery.h ) {
     message("Nepomuk support: NO")
 }
 
-system( recoll -h > /dev/null ) {
+system( which recoll > /dev/null 2>&1 ) {
     CONFIG += use_recoll
     DEFINES += WITH_RECOLL=1
     message("Recoll support: YES")
