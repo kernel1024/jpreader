@@ -65,7 +65,6 @@ public slots:
     void createSearch();
     void createStartBrowser();
     void activateTab();
-    void clearCaches();
     void helperClicked(int index);
     void helperPreClicked(int index);
     void helperItemClicked(QListWidgetItem* current, QListWidgetItem* previous);

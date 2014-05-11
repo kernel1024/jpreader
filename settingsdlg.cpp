@@ -66,6 +66,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
 	connect(ui->buttonDelQr,SIGNAL(clicked()),this,SLOT(delQrs()));
 	connect(ui->buttonDelBookmark,SIGNAL(clicked()),this,SLOT(delBkm()));
     connect(ui->buttonClearCookies,SIGNAL(clicked()),this,SLOT(clearCookies()));
+    connect(ui->buttonClearCaches,SIGNAL(clicked()),gSet,SLOT(clearCaches()));
     connect(ui->buttonCleanHistory,SIGNAL(clicked()),this,SLOT(clearHistory()));
     connect(ui->buttonGoHistory,SIGNAL(clicked()),this,SLOT(goHistory()));
     connect(ui->buttonAdAdd,SIGNAL(clicked()),this,SLOT(addAd()));

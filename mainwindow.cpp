@@ -76,7 +76,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
     connect(actionWnd, SIGNAL(triggered()), gSet, SLOT(addMainWindow()));
     connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
-    connect(actionClearCaches,SIGNAL(triggered()),this,SLOT(clearCaches()));
+    connect(actionClearCaches,SIGNAL(triggered()),gSet,SLOT(clearCaches()));
     connect(actionSaveSettings,SIGNAL(triggered()), gSet, SLOT(writeSettings()));
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
@@ -653,12 +653,6 @@ void CMainWindow::reloadCharsetList()
             }
         }
     }
-}
-
-void CMainWindow::clearCaches()
-{
-    QWebSettings::clearMemoryCaches();
-    gSet->netAccess.cache()->clear();
 }
 
 void CMainWindow::closeEvent(QCloseEvent *event)

@@ -700,6 +700,12 @@ void CGlobalControl::globalContextTranslateReady(const QString &text)
     QxtToolTip::show(p,t,NULL);
 }
 
+void CGlobalControl::clearCaches()
+{
+    QWebSettings::clearMemoryCaches();
+    netAccess.cache()->clear();
+}
+
 void CGlobalControl::preShutdown()
 {
     writeSettings();
