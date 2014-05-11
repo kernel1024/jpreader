@@ -187,6 +187,7 @@ public slots:
     void clipboardChanged(QClipboard::Mode mode);
     void ipcMessageReceived(const QString& msg);
     void globalContextTranslateReady(const QString& text);
+    void clearCaches();
 
     // Settings management
     void writeSettings();

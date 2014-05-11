@@ -148,6 +148,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="buttonClearCaches">
+           <property name="text">
+            <string>Clear all caches</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -1178,6 +1185,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkJS</tabstop>
   <tabstop>checkAutoloadImages</tabstop>
   <tabstop>buttonClearCookies</tabstop>
+  <tabstop>buttonClearCaches</tabstop>
   <tabstop>editHostingDir</tabstop>
   <tabstop>buttonHostingDir</tabstop>
   <tabstop>checkSCP</tabstop>
@@ -1311,7 +1319,7 @@ p, li { white-space: pre-wrap; }
      <y>165</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
+     <x>293</x>
      <y>213</y>
     </hint>
    </hints>
@@ -1327,7 +1335,7 @@ p, li { white-space: pre-wrap; }
      <y>176</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
+     <x>293</x>
      <y>242</y>
     </hint>
    </hints>
@@ -1343,7 +1351,7 @@ p, li { white-space: pre-wrap; }
      <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
+     <x>293</x>
      <y>271</y>
     </hint>
    </hints>
@@ -1359,7 +1367,7 @@ p, li { white-space: pre-wrap; }
      <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
+     <x>293</x>
      <y>300</y>
     </hint>
    </hints>
