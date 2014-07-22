@@ -99,6 +99,12 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                  this,SLOT(duplicateTab()));
     cm.addAction(QIcon::fromTheme("tab-detach"),tr("Detach tab"),
                  this,SLOT(detachTab()));
+    if (!wh.linkUrl().isEmpty()) {
+        QAction *ac = cm.addAction(QIcon::fromTheme("window-new"),tr("Open in new window"),
+                     this,SLOT(openNewWindow()));
+        ac->setData(wh.linkUrl());
+    }
+
     if (snv->lastFrame->parentFrame()) {
         cm.addSeparator();
         cm.addAction(QIcon::fromTheme("document-import"),tr("Open current frame in tab"),
@@ -281,6 +287,25 @@ void CSnCtxHandler::detachTab()
         sv->netHandler->removeUrlFromProcessing(b);
     }
     snv->closeTab(true);
+}
+
+void CSnCtxHandler::openNewWindow()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+
+    CMainWindow* mwnd = gSet->addMainWindow(false,false);
+
+    QUrl u = nt->data().toUrl();
+    if (u.isRelative() && snv->lastFrame) {
+        QUrl uu = snv->lastFrame->requestedUrl();
+        if (uu.isEmpty() || uu.isRelative())
+            uu = snv->Uri;
+        u = uu.resolved(u);
+    }
+    u = snv->netHandler->fixUrl(u);
+
+    new CSnippetViewer(mwnd, u);
 }
 
 void CSnCtxHandler::searchInGoogle()
