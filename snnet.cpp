@@ -1,6 +1,11 @@
 #include <QTextCodec>
+#include <QPointer>
 #include "snnet.h"
 #include "genericfuncs.h"
+
+Q_DECLARE_METATYPE(QPointer<QWebFrame>)
+
+#define QV_FramePtr QVariant::UserType+8
 
 CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
@@ -113,8 +118,8 @@ void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::C
 
     QNetworkRequest rq(url);
     if (frame!=NULL) {
-        QVariant frameptr = QVariant::fromValue((void *)frame);
-        rq.setAttribute(QNetworkRequest::User,frameptr);
+        QPointer<QWebFrame> frameptr(frame);
+        rq.setAttribute(QNetworkRequest::User,QVariant::fromValue(frameptr));
     }
     rq.setAttribute(QNetworkRequest::CacheLoadControlAttribute,ca);
 
@@ -159,13 +164,10 @@ void CSnNet::netHtmlLoaded()
     if (!rpl->isOpen()) return;
     QUrl base = rpl->url();
 
-    QWebFrame* frm = NULL;
-    QVariant vfrm = rpl->request().attribute(QNetworkRequest::User,QVariant());
-    if (vfrm.isValid()) {
-        if (vfrm.canConvert<void *>())
-            frm = qobject_cast<QWebFrame *>(static_cast<QObject *>(vfrm.value<void *>()));
-    }
-
+    QPointer<QWebFrame> frm;
+    QVariant vf = rpl->request().attribute(QNetworkRequest::User,QVariant());
+    if (vf.canConvert<QPointer<QWebFrame> >())
+        frm = vf.value<QPointer<QWebFrame> >();
 
     QByteArray ba = rpl->readAll();
     QString mime;
