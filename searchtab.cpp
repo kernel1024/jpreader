@@ -18,6 +18,7 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
 
     QThread *th = new QThread();
     engine = new CIndexerSearch();
+    titleTran = new CTitlesTranslator();
 
     mainWnd = parentWnd;
     sortMode = -3;
@@ -25,6 +26,8 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     selectFile();
 
     ui->listResults->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    ui->translateFrame->hide();
 
     connect(ui->buttonSearch, SIGNAL(clicked()), this, SLOT(doNewSearch()));
     connect(ui->comboFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(applyFilter(int)));
@@ -40,6 +43,19 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
             this,SLOT(searchFinished(QBResult,QString)),Qt::QueuedConnection);
     connect(this,SIGNAL(startSearch(QString,QDir)),
             engine,SLOT(doSearch(QString,QDir)),Qt::QueuedConnection);
+
+    connect(titleTran,SIGNAL(gotTranslation(QStringList)),
+            this,SLOT(gotTitleTranslation(QStringList)),Qt::QueuedConnection);
+    connect(titleTran,SIGNAL(updateProgress(int)),
+            this,SLOT(updateProgress(int)),Qt::QueuedConnection);
+    connect(ui->translateStopBtn,SIGNAL(clicked()),
+            titleTran,SLOT(stop()),Qt::QueuedConnection);
+    connect(this,SIGNAL(translateTitlesSrc(QStringList)),
+            titleTran,SLOT(translateTitles(QStringList)),Qt::QueuedConnection);
+
+    ui->listResults->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listResults->horizontalHeader(),SIGNAL(customContextMenuRequested(QPoint)),
+            this,SLOT(headerContextMenu(QPoint)));
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -68,6 +84,10 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
 
     engine->moveToThread(th);
     th->start();
+
+    QThread* th2 = new QThread();
+    titleTran->moveToThread(th2);
+    th2->start();
 }
 
 CSearchTab::~CSearchTab()
@@ -108,6 +128,9 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
         return;
     }
 
+    result.snippets.clear();
+    titleTran->stop();
+
     lastQuery = aQuery;
     result = aResult;
 
@@ -146,7 +169,57 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 
     int idx = mainWnd->tabMain->indexOf(this);
     if (idx>=0 && idx<mainWnd->tabMain->count())
-        mainWnd->tabMain->setTabText(idx,tr("B:[%1]").arg(lastQuery));
+        mainWnd->tabMain->setTabText(idx,tr("S:[%1]").arg(lastQuery));
+}
+
+void CSearchTab::headerContextMenu(const QPoint &pos)
+{
+    if (result.snippets.count()==0) return;
+
+    QMenu cm(this);
+    cm.addAction(tr("Translate titles"),this,SLOT(translateTitles()));
+
+    cm.exec(ui->listResults->mapToGlobal(pos));
+}
+
+void CSearchTab::translateTitles()
+{
+    if (result.snippets.count()==0) return;
+
+    QStringList titles;
+
+    for (int i=0;i<result.snippets.count();i++)
+        titles << result.snippets[i]["dc:title"];
+
+    emit translateTitlesSrc(titles);
+}
+
+void CSearchTab::gotTitleTranslation(const QStringList &res)
+{
+    if (!res.isEmpty() && res.last().contains("ERROR")) {
+        QMessageBox::warning(this,tr("JPReader"),tr("Title translation failed."));
+        return;
+    }
+
+    if (res.isEmpty() || result.snippets.count()==0 || res.count()!=result.snippets.count()) return;
+
+
+    for (int i=0;i<res.count();i++) {
+        if (!result.snippets[i].keys().contains("dc:title:saved"))
+            result.snippets[i]["dc:title:saved"]=result.snippets[i]["dc:title"];
+        result.snippets[i]["dc:title"]=res.at(i);
+    }
+    applyFilter(ui->comboFilter->currentIndex());
+}
+
+void CSearchTab::updateProgress(const int pos)
+{
+    if (pos>=0) {
+        ui->translateBar->setValue(pos);
+        if (!ui->translateFrame->isVisible())
+            ui->translateFrame->show();
+    } else
+        ui->translateFrame->hide();
 }
 
 void CSearchTab::doSearch()
@@ -252,6 +325,8 @@ void CSearchTab::applyFilter(int idx)
             ui->listResults->setItem(ridx, 2, dir);
             ui->listResults->setItem(ridx, 3, fsize);
             ui->listResults->setItem(ridx, 4, fname);
+            if (result.snippets[i].contains("dc:title:saved"))
+                ui->listResults->item(ridx,0)->setToolTip(result.snippets[i]["dc:title:saved"]);
         }
     }
     //int maxWidth = listResults->width() / 2;
@@ -276,9 +351,9 @@ void CSearchTab::applyFilter(int idx)
     ui->listResults->setColumnWidth(4, fnameLen + 20);
 
     if (sortMode>0)
-        ui->listResults->horizontalHeader()->setSortIndicator(abs(sortMode)-1,Qt::AscendingOrder);
-    else
         ui->listResults->horizontalHeader()->setSortIndicator(abs(sortMode)-1,Qt::DescendingOrder);
+    else
+        ui->listResults->horizontalHeader()->setSortIndicator(abs(sortMode)-1,Qt::AscendingOrder);
     ui->listResults->horizontalHeader()->setSortIndicatorShown(true);
 }
 

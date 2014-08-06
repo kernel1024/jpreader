@@ -75,6 +75,32 @@
     </layout>
    </item>
    <item>
+    <widget class="QFrame" name="translateFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QProgressBar" name="translateBar">
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="translateStopBtn">
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -268,12 +294,15 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>editSearch</tabstop>
   <tabstop>buttonSearch</tabstop>
+  <tabstop>translateStopBtn</tabstop>
   <tabstop>listResults</tabstop>
   <tabstop>snippetBrowser</tabstop>
   <tabstop>comboFilter</tabstop>
   <tabstop>buttonOpen</tabstop>
-  <tabstop>filenameEdit</tabstop>
+  <tabstop>editDir</tabstop>
+  <tabstop>buttonDir</tabstop>
  </tabstops>
  <resources/>
  <connections/>

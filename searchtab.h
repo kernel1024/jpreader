@@ -7,6 +7,7 @@
 #include <QKeyEvent>
 #include "mainwindow.h"
 #include "indexersearch.h"
+#include "titlestranslator.h"
 
 namespace Ui {
     class SearchTab;
@@ -36,6 +37,7 @@ private:
     int sortMode;
 
     CIndexerSearch *engine;
+    CTitlesTranslator *titleTran;
 
 protected:
     void doSearch();
@@ -44,6 +46,7 @@ protected:
 
 signals:
     void startSearch(const QString &searchTerm, const QDir &searchDir);
+    void translateTitlesSrc(const QStringList &titles);
 
 public slots:
     void doNewSearch();
@@ -57,6 +60,10 @@ public slots:
     void closeTab(bool nowait = false);
     void selectDir();
     void searchFinished(const QBResult &aResult, const QString &aQuery);
+    void headerContextMenu(const QPoint& pos);
+    void translateTitles();
+    void gotTitleTranslation(const QStringList &res);
+    void updateProgress(const int pos);
 
 };
 

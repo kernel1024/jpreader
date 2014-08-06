@@ -19,7 +19,8 @@ HEADERS = mainwindow.h \
     recollsearch.h \
     indexersearch.h \
     translator.h \
-    snwaitctl.h
+    snwaitctl.h \
+    titlestranslator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -41,7 +42,8 @@ SOURCES = main.cpp \
     recollsearch.cpp \
     indexersearch.cpp \
     translator.cpp \
-    snwaitctl.cpp
+    snwaitctl.cpp \
+    titlestranslator.cpp
 
 RESOURCES = \
     jpreader.qrc
