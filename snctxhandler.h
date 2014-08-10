@@ -42,6 +42,7 @@ public slots:
     void toolTipHide();
     void gotTranslation(const QString& text);
     void createPlainTextTab();
+    void createPlainTextTabTranslate();
     void toggleForceNewTab();
 signals:
     void startTranslation();

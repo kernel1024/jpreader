@@ -41,13 +41,20 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     if (!snv->txtBrowser->selectedText().isEmpty()) {
         cm.addAction(snv->txtBrowser->pageAction(QWebPage::Copy));
+
         QAction* nt = new QAction(QIcon::fromTheme("document-edit-verify"),tr("Translate"),NULL);
         nt->setData(snv->txtBrowser->selectedText());
         connect(nt,SIGNAL(triggered()),this,SLOT(translateFragment()));
         cm.addAction(nt);
+
         nt = new QAction(QIcon::fromTheme("tab-new-background"),tr("Create plain text in separate tab"),NULL);
         nt->setData(snv->txtBrowser->selectedText());
         connect(nt,SIGNAL(triggered()),this,SLOT(createPlainTextTab()));
+        cm.addAction(nt);
+
+        nt = new QAction(QIcon::fromTheme("tab-new-background"),tr("Translate plain text in separate tab"),NULL);
+        nt->setData(snv->txtBrowser->selectedText());
+        connect(nt,SIGNAL(triggered()),this,SLOT(createPlainTextTabTranslate()));
         cm.addAction(nt);
     }
 
@@ -219,6 +226,18 @@ void CSnCtxHandler::createPlainTextTab()
     s = s.replace('\n',"<br/>");
 
     new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
+}
+
+void CSnCtxHandler::createPlainTextTabTranslate()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QString s = nt->data().toString();
+    if (s.isEmpty()) return;
+    s = s.replace('\n',"<br/>");
+
+    CSnippetViewer *sn = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
+    sn->transButton->click();
 }
 
 void CSnCtxHandler::toggleForceNewTab()
