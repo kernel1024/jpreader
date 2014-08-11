@@ -121,6 +121,10 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionSnippetAutotranslate->setCheckable(true);
     actionSnippetAutotranslate->setChecked(false);
 
+    actionOverwritingTranslation = new QAction(tr("Overwriting translation"),this);
+    actionOverwritingTranslation->setCheckable(true);
+    actionOverwritingTranslation->setChecked(false);
+
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -792,6 +796,7 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addAction(actionSelectionDictionary);
     mainWindow->menuTools->addAction(actionUseProxy);
     mainWindow->menuTools->addAction(actionSnippetAutotranslate);
+    mainWindow->menuTools->addAction(actionOverwritingTranslation);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
 

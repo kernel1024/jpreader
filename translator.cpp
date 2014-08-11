@@ -25,6 +25,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     forcedFontColor=gSet->forcedFontColor;
     useOverrideFont=gSet->useOverrideFont;
     overrideFont=gSet->overrideFont;
+    overwritingTranslation=gSet->actionOverwritingTranslation->isChecked();
 }
 
 bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
@@ -87,7 +88,7 @@ void CTranslator::examineXMLNode(QDomNode node)
         if (node.isText() && node.parentNode().nodeName().toLower()=="title") return;
 
         if (xmlPass==PXCalculate && node.isText()) { // modify node
-			QDomNode nd = node.ownerDocument().createElement("p");
+            QDomNode nd = node.ownerDocument().createElement("span");
             nd.appendChild(node.ownerDocument().createTextNode(node.nodeValue()));
             QDomAttr flg = node.ownerDocument().createAttribute("jpreader_flag");
             flg.setNodeValue("on");
@@ -181,7 +182,7 @@ void CTranslator::examineXMLNode(QDomNode node)
 
 		// remove <pre> tags
 		if (node.isElement() && node.nodeName().toLower()=="pre") {
-			node.toElement().setTagName("p");
+            node.toElement().setTagName("span");
 		}
 
     }
@@ -296,9 +297,11 @@ bool CTranslator::translateParagraph(QDomNode src)
         if (xmlPass!=PXTranslate) {
             textNodesCnt++;
         } else {
-			QDomNode p = src.ownerDocument().createElement("p");
-			p.appendChild(p.ownerDocument().createTextNode(sl[i]));
-            p.appendChild(p.ownerDocument().createElement("br"));
+            QDomNode p = src.ownerDocument().createElement("span");
+            if (!overwritingTranslation) {
+                p.appendChild(p.ownerDocument().createTextNode(sl[i]));
+                p.appendChild(p.ownerDocument().createElement("br"));
+            }
 
             QString t = atlas.tranString(sl[i]);
             if (t.contains("ERROR:ATLAS_SLIPPED")) {
@@ -321,6 +324,10 @@ bool CTranslator::translateParagraph(QDomNode src)
                     p.appendChild(dp);
                 } else {
                     p.appendChild(p.ownerDocument().createTextNode(t));
+                }
+                if (overwritingTranslation) {
+                    p.attributes().setNamedItem(p.ownerDocument().createAttribute("title"));
+                    p.attributes().namedItem("title").setNodeValue(sl[i]);
                 }
             }
 

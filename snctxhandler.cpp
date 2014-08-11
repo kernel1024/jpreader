@@ -2,6 +2,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QProcess>
+#include <QWebHitTestResult>
+#include <QWebElement>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
@@ -37,6 +39,15 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         connect(nt,SIGNAL(triggered()),this,SLOT(openNewTabTranslate()));
         cm.addAction(nt);
         cm.addAction(snv->txtBrowser->pageAction(QWebPage::CopyLinkToClipboard));
+    }
+
+    QString tx = wh.enclosingBlockElement().toPlainText();
+    if (!tx.isEmpty()) {
+        cm.addSeparator();
+        QAction* nta = new QAction(QIcon::fromTheme("text-frame-link"),tr("Translate block"),NULL);
+        nta->setData(tx);
+        connect(nta,SIGNAL(triggered()),this,SLOT(translateFragment()));
+        cm.addAction(nta);
     }
 
     if (!snv->txtBrowser->selectedText().isEmpty()) {
