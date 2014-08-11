@@ -328,7 +328,8 @@ bool CTranslator::translateParagraph(QDomNode src)
                 if (overwritingTranslation) {
                     p.attributes().setNamedItem(p.ownerDocument().createAttribute("title"));
                     p.attributes().namedItem("title").setNodeValue(sl[i]);
-                }
+                } else
+                    p.appendChild(p.ownerDocument().createElement("br"));
             }
 
             src.appendChild(p);
