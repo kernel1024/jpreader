@@ -50,6 +50,7 @@ private:
     XMLPassMode xmlPass;
     bool useOverrideFont;
     bool forceFontColor;
+    bool overwritingTranslation;
     QColor forcedFontColor;
     QFont overrideFont;
 
