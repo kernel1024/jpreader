@@ -20,6 +20,7 @@ QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
 QString fixMetaEncoding(QString data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
 QList<QStringList> encodingsByScript();
+QString bool2str(bool value);
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, QFileDialog::Options options = QFileDialog::DontUseNativeDialog );
 QStringList getOpenFileNamesD ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, QFileDialog::Options options = QFileDialog::DontUseNativeDialog );

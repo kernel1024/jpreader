@@ -145,6 +145,7 @@ public:
     QAction *actionUseProxy;
 
     QAction *actionJSUsage;
+    QAction *actionSnippetAutotranslate;
 
     // History lists append
     void appendRecycled(QString title, QUrl url);

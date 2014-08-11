@@ -71,6 +71,7 @@ bool CAtlasTranslator::initTran(QString host, int port, ATTranslateMode TranMode
         sock.close();
         return false;
     }
+    inited = true;
     return true;
 }
 
@@ -142,5 +143,10 @@ void CAtlasTranslator::doneTran(bool lazyClose)
         }
     }
     sock.close();
+}
+
+bool CAtlasTranslator::isReady()
+{
+    return (inited && sock.isOpen());
 }
 
