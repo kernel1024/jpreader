@@ -252,3 +252,11 @@ QList<QStringList> encodingsByScript()
     enc << (QStringList() << "Other" << "windows-1258" << "IBM874" << "TSCII");
     return enc;
 }
+
+QString bool2str(bool value)
+{
+    if (value)
+        return QString("on");
+    else
+        return QString("off");
+}

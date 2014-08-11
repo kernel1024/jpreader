@@ -6,6 +6,7 @@
 #include "globalcontrol.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
+#include "atlastranslator.h"
 
 static int sortGMode = -3;
 
@@ -121,6 +122,7 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 {
     ui->buttonSearch->setEnabled(true);
     ui->snippetBrowser->clear();
+    ui->snippetBrowser->setToolTip(QString());
 
     if (aResult.snippets.count() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
@@ -264,6 +266,7 @@ void CSearchTab::doNewSearch()
     ui->listResults->setRowCount(0);
     ui->listResults->setColumnCount(0);
     ui->snippetBrowser->clear();
+    ui->snippetBrowser->setToolTip(QString());
     ui->comboFilter->clear();
     selectFile();
     doSearch();
@@ -280,6 +283,7 @@ void CSearchTab::applyFilter(int idx)
     if ((idx < 0) || (idx >= ui->comboFilter->count())) return ;
     ui->listResults->clear();
     ui->snippetBrowser->clear();
+    ui->snippetBrowser->setToolTip(QString());
     selectFile();
 
     QString flt = ui->comboFilter->itemText(idx).remove(QRegExp("\\(.*\\)")).trimmed();
@@ -404,23 +408,30 @@ void CSearchTab::applySnippet(int row, int, int, int)
             ui->listResults->item(row, 0)==NULL) {
         selectFile();
         ui->snippetBrowser->clear();
+        ui->snippetBrowser->setToolTip(QString());
     } else {
         if ((row < 0) || (row >= result.snippets.count())) return ;
         int sidx = ui->listResults->item(row, 0)->data(Qt::UserRole).toInt();
         QString s = result.snippets[sidx]["Snip"];
-        if (s.isEmpty()) {
+        QString tranState = bool2str(gSet->actionSnippetAutotranslate->isChecked());
+        if (s.isEmpty() || tranState!=result.snippets[sidx].value("SnipTran")) {
             s = createSpecSnippet(result.snippets[sidx]["FullFilename"]);
             result.snippets[sidx]["Snip"]=s;
+            result.snippets[sidx]["SnipUntran"]=createSpecSnippet(result.snippets[sidx]["FullFilename"],true);
+            result.snippets[sidx]["SnipTran"]=bool2str(gSet->actionSnippetAutotranslate->isChecked());
         }
         s="<font size='+1'>"+s+"</font>";
         ui->snippetBrowser->setHtml(s);
+        if (gSet->actionSnippetAutotranslate->isChecked() &&
+            result.snippets[sidx].value("Snip")!=result.snippets[sidx].value("SnipUntran"))
+            ui->snippetBrowser->setToolTip(result.snippets[sidx].value("SnipUntran"));
 
         selectFile(result.snippets[sidx]["Uri"], result.snippets[sidx]["DisplayFilename"]);
     }
 
 }
 
-QString CSearchTab::createSpecSnippet(QString aFilename) {
+QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated) {
     QString s = "";
     if(lastQuery.isEmpty()) return s;
     QFileInfo fi(aFilename);
@@ -456,12 +467,25 @@ QString CSearchTab::createSpecSnippet(QString aFilename) {
     fileContents.remove("\r");
     QHash<int,QStringList> snippets;
 
+    QStringList queryTermsTran = queryTerms;
+    CAtlasTranslator atlas;
+    if (gSet->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
+        if (!atlas.initTran(gSet->atlHost,gSet->atlPort)) {
+            qDebug() << tr("Unable to initialize ATLAS.");
+            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize ATLAS."));
+        } else {
+            for (int i=0;i<queryTerms.count();i++) {
+                queryTermsTran[i] = atlas.tranString(queryTerms[i]);
+            }
+        }
+    }
+
     const int snipWidth = 12;
     const int maxSnippets = 800 / snipWidth;
 
     for (int i=0;i<queryTerms.count();i++) {
-        QString ITerm = queryTerms[i];
-        ITerm = ITerm.trimmed();
+        QString ITerm = queryTerms.value(i).trimmed();
+        QString ITermT = queryTermsTran.value(i).trimmed();
         while (snippets[i].length()<maxSnippets && fileContents.contains(ITerm,Qt::CaseInsensitive)) {
             // extract term occurence from text
             int fsta = fileContents.indexOf(ITerm,0,Qt::CaseInsensitive)-snipWidth;
@@ -470,12 +494,20 @@ QString CSearchTab::createSpecSnippet(QString aFilename) {
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
+            bool makeTran = gSet->actionSnippetAutotranslate->isChecked() && atlas.isReady() && !forceUntranslated;
+            if (makeTran)
+                fspart = atlas.tranString(fspart);
             QString snpColor = gSet->snippetColors[i % gSet->snippetColors.count()].name();
-            fspart.replace(ITerm,"<font color='"+snpColor+"'>"+ITerm+"</font>",Qt::CaseInsensitive);
+            if (makeTran)
+                fspart.replace(ITermT,"<font color='"+snpColor+"'>"+ITermT+"</font>",Qt::CaseInsensitive);
+            else
+                fspart.replace(ITerm,"<font color='"+snpColor+"'>"+ITerm+"</font>",Qt::CaseInsensitive);
             // add occurence to collection
             snippets[i] << fspart;
         }
     }
+    if (atlas.isReady())
+        atlas.doneTran();
 
     // *** Weighted sorting ***
     // calculate term weights
