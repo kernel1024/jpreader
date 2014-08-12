@@ -14,6 +14,7 @@ class CSnCtxHandler : public QObject
 private:
     CSnippetViewer *snv;
 public:
+    bool menuActive;
     CSnCtxHandler(CSnippetViewer *parent);
 public slots:
     void contextMenu(const QPoint &pos);
@@ -46,6 +47,7 @@ public slots:
     void toggleForceNewTab();
 signals:
     void startTranslation();
+    void hideTooltips();
 };
 
 #endif // SNCTXHANDLER_H
