@@ -21,6 +21,7 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+    menuActive = false;
 }
 
 void CSnCtxHandler::contextMenu(const QPoint &pos)
@@ -41,7 +42,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         cm.addAction(snv->txtBrowser->pageAction(QWebPage::CopyLinkToClipboard));
     }
 
-    QString tx = wh.enclosingBlockElement().toPlainText();
+    QString tx = wh.element().toPlainText();
+    if (tx.isEmpty())
+        tx = wh.enclosingBlockElement().toPlainText();
     if (!tx.isEmpty()) {
         cm.addSeparator();
         QAction* nta = new QAction(QIcon::fromTheme("text-frame-link"),tr("Translate block"),NULL);
@@ -198,7 +201,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     ccm->addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
                  this,SLOT(saveToFile()));
 
+    menuActive = true;
+    emit hideTooltips();
     cm.exec(snv->txtBrowser->mapToGlobal(pos));
+    menuActive = false;
 }
 
 void CSnCtxHandler::translateFragment()
@@ -221,9 +227,10 @@ void CSnCtxHandler::translateFragment()
 
 void CSnCtxHandler::gotTranslation(const QString &text)
 {
-    if (!text.isEmpty()) {
+    if (!text.isEmpty() && !menuActive) {
         QSpecToolTipLabel* lbl = new QSpecToolTipLabel(wordWrap(text,80));
         connect(lbl,SIGNAL(labelHide()),this,SLOT(toolTipHide()));
+        connect(this,SIGNAL(hideTooltips()),lbl,SLOT(close()));
         QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd);
     }
 }
