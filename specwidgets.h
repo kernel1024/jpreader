@@ -133,4 +133,21 @@ protected:
     void updateSequenceView();
 };
 
+class QSpecTabContainer : public QWidget {
+    Q_OBJECT
+public:
+    CMainWindow* parentWnd;
+    QSpecTabWidget* tabWidget;
+    QString tabTitle;
+    QSpecTabContainer(CMainWindow *parent = 0);
+    void bindToTab(QSpecTabWidget *tabs, bool setFocused = true);
+
+    virtual bool canClose() { return true; }
+    virtual void recycleTab() { }
+    virtual QString getDocTitle() { return QString(); }
+public slots:
+    void detachTab();
+    void closeTab(bool nowait = false);
+};
+
 #endif // SPECTABWIDGET_H

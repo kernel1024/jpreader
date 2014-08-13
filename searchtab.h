@@ -13,26 +13,25 @@ namespace Ui {
     class SearchTab;
 }
 
-class CSearchTab : public QWidget
+class CSearchTab : public QSpecTabContainer
 {
     Q_OBJECT
 
 public:
     QString selectedUri;
 
-    explicit CSearchTab(QWidget *parent, CMainWindow *parentWnd);
+    explicit CSearchTab(CMainWindow *parent);
     virtual ~CSearchTab();
     void selectFile(const QString& uri = "", const QString& dispFilename = "");
     void updateQueryHistory();
-    void bindToTab(QSpecTabWidget *tabs);
     QString getLastQuery() { return lastQuery; }
     void keyPressEvent(QKeyEvent *event);
     void searchTerm(const QString &term);
+    QString getDocTitle();
+    void setDocTitle(const QString &title);
 private:
     Ui::SearchTab *ui;
-    CMainWindow *mainWnd;
     QBResult result;
-    QSpecTabWidget *tabWidget;
     QString lastQuery;
     int sortMode;
 
@@ -57,14 +56,12 @@ public slots:
     void execSnippet(int row, int column);
     void columnClicked(int col);
     void rowIdxClicked(int row);
-    void closeTab(bool nowait = false);
     void selectDir();
     void searchFinished(const QBResult &aResult, const QString &aQuery);
     void headerContextMenu(const QPoint& pos);
     void translateTitles();
     void gotTitleTranslation(const QStringList &res);
     void updateProgress(const int pos);
-
 };
 
 #endif // SEARCHTAB_H

@@ -28,11 +28,10 @@ class CSnNet;
 class CSnTrans;
 class CSnWaitCtl;
 
-class CSnippetViewer : public QWidget, public Ui::SnippetViewer
+class CSnippetViewer : public QSpecTabContainer, public Ui::SnippetViewer
 {
 	Q_OBJECT
 public:
-    CMainWindow* parentWnd;
     CSnCtxHandler *ctxHandler;
     CSnMsgHandler *msgHandler;
     CSnNet *netHandler;
@@ -41,14 +40,12 @@ public:
 
     QStringList slist;
 	QString calculatedUrl;
-	QSpecTabWidget* tabWidget;
 	QPointer<QWebFrame> lastFrame;
 	bool fileChanged;
 	QUrl savedBaseUrl;
     QString auxContent;
     QUrl firstUri;
     QUrl Uri;
-    QString tabTitle;
     bool translationBkgdFinished;
     bool loadingBkgdFinished;
     bool isStartPage;
@@ -62,15 +59,14 @@ public:
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
                    bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),
                    bool startPage = false);
-    QString getDocTitle();
-    void bindToTab(QSpecTabWidget* tabs, bool setFocused = true);
+    virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event);
     void updateButtonsState();
     void updateWebViewAttributes();
     void updateHistorySuggestion(const QStringList &suggestionList);
+    virtual bool canClose();
+    virtual void recycleTab();
 public slots:
-    void closeTab(bool nowait = false);
-    void recycleTab();
     void navByUrl(QString url);
     void navByUrl();
     void titleChanged(const QString & title);

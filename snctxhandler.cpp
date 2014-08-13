@@ -119,7 +119,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     cm.addAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),
                  this,SLOT(duplicateTab()));
     cm.addAction(QIcon::fromTheme("tab-detach"),tr("Detach tab"),
-                 this,SLOT(detachTab()));
+                 snv,SLOT(detachTab()));
     if (!wh.linkUrl().isEmpty()) {
         QAction *ac = cm.addAction(QIcon::fromTheme("window-new"),tr("Open in new window"),
                      this,SLOT(openNewWindow()));
@@ -307,25 +307,6 @@ void CSnCtxHandler::duplicateTab()
     }
 }
 
-void CSnCtxHandler::detachTab()
-{
-    CMainWindow* mwnd = gSet->addMainWindow(false,false);
-
-    QUrl url;
-    url.clear();
-    if (!snv->fileChanged) url=snv->Uri;
-
-    CSnippetViewer* sv = new CSnippetViewer(mwnd, url);
-
-    if (snv->fileChanged) {
-        QUrl b = snv->txtBrowser->page()->mainFrame()->baseUrl();
-        sv->netHandler->addUrlToProcessing(b);
-        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(), b);
-        sv->netHandler->removeUrlFromProcessing(b);
-    }
-    snv->closeTab(true);
-}
-
 void CSnCtxHandler::openNewWindow()
 {
     QAction* nt = qobject_cast<QAction *>(sender());
@@ -368,7 +349,7 @@ void CSnCtxHandler::searchLocal()
     if (nt==NULL) return;
     QString s = nt->data().toString();
 
-    CSearchTab *bt = new CSearchTab(snv->parentWnd->tabMain,snv->parentWnd);
+    CSearchTab *bt = new CSearchTab(snv->parentWnd);
     bt->searchTerm(s);
 }
 

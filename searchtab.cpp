@@ -10,8 +10,8 @@
 
 static int sortGMode = -3;
 
-CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
-    QWidget(parent),
+CSearchTab::CSearchTab(CMainWindow *parent) :
+    QSpecTabContainer(parent),
     ui(new Ui::SearchTab)
 {
     ui->setupUi(this);
@@ -21,9 +21,9 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     engine = new CIndexerSearch();
     titleTran = new CTitlesTranslator();
 
-    mainWnd = parentWnd;
     sortMode = -3;
     lastQuery = "";
+    tabTitle = tr("Search");
     selectFile();
 
     ui->listResults->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -62,7 +62,7 @@ CSearchTab::CSearchTab(QWidget *parent, CMainWindow* parentWnd) :
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
     ui->buttonDir->setIcon(QIcon::fromTheme("folder-sync"));
 
-    int mv = round((70* mainWnd->height()/100)/(ui->editSearch->fontMetrics().height()));
+    int mv = round((70* parentWnd->height()/100)/(ui->editSearch->fontMetrics().height()));
     ui->editSearch->setMaxVisibleItems(mv);
     updateQueryHistory();
 
@@ -106,7 +106,7 @@ void CSearchTab::updateQueryHistory()
 
 void CSearchTab::selectDir()
 {
-    QString dir = getExistingDirectoryD(mainWnd,tr("Search in"),gSet->savedAuxDir);
+    QString dir = getExistingDirectoryD(parentWnd,tr("Search in"),gSet->savedAuxDir);
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
@@ -126,7 +126,7 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 
     if (aResult.snippets.count() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
-        mainWnd->stSearchStatus.setText(tr("Ready"));
+        parentWnd->stSearchStatus.setText(tr("Ready"));
         return;
     }
 
@@ -165,13 +165,11 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
             arg(result.stats["Total hits"]).
             arg(elapsed));
     ui->labelStatus->setText(statusmsg);
-    mainWnd->stSearchStatus.setText(tr("Ready"));
-    mainWnd->updateTitle();
-    mainWnd->updateTabs();
+    parentWnd->stSearchStatus.setText(tr("Ready"));
+    parentWnd->updateTitle();
+    parentWnd->updateTabs();
 
-    int idx = mainWnd->tabMain->indexOf(this);
-    if (idx>=0 && idx<mainWnd->tabMain->count())
-        mainWnd->tabMain->setTabText(idx,tr("S:[%1]").arg(lastQuery));
+    setDocTitle(tr("S:[%1]").arg(lastQuery));
 }
 
 void CSearchTab::headerContextMenu(const QPoint &pos)
@@ -231,7 +229,7 @@ void CSearchTab::doSearch()
         return;
     }
 
-    mainWnd->stSearchStatus.setText(tr("Search in progress..."));
+    parentWnd->stSearchStatus.setText(tr("Search in progress..."));
     ui->buttonSearch->setEnabled(false);
     ui->snippetBrowser->setHtml("<html><body><div align='center'><font size='+2'>Search in progress...</font></div></body></html>");
 
@@ -258,6 +256,20 @@ void CSearchTab::searchTerm(const QString &term)
     }
     ui->editSearch->setEditText(term);
     doNewSearch();
+}
+
+QString CSearchTab::getDocTitle()
+{
+    return tabTitle;
+}
+
+void CSearchTab::setDocTitle(const QString& title)
+{
+    tabTitle = title;
+    int idx = parentWnd->tabMain->indexOf(this);
+    if (idx>=0 && idx<parentWnd->tabMain->count()) {
+        parentWnd->tabMain->setTabText(idx,tabTitle);
+    }
 }
 
 void CSearchTab::doNewSearch()
@@ -605,7 +617,7 @@ void CSearchTab::showSnippet()
 {
     QStringList sl = splitQuery(ui->editSearch->currentText());
 
-    new CSnippetViewer(mainWnd, selectedUri, sl);
+    new CSnippetViewer(parentWnd, selectedUri, sl);
 }
 
 void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)
@@ -633,41 +645,6 @@ void CSearchTab::execSnippet(int row, int column)
 {
     applySnippet(row, column, 0, 0);
     showSnippet();
-}
-
-void CSearchTab::closeTab(bool nowait)
-{
-    if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
-    if (!nowait) {
-        if (gSet->blockTabCloseActive) return;
-        gSet->blockTabClose();
-    }
-    if (tabWidget!=NULL) {
-        if (mainWnd->lastTabIdx>=0) tabWidget->setCurrentIndex(mainWnd->lastTabIdx);
-        tabWidget->removeTab(tabWidget->indexOf(this));
-    }
-    deleteLater();
-    mainWnd->updateTitle();
-    mainWnd->updateTabs();
-    mainWnd->checkTabs();
-}
-
-void CSearchTab::bindToTab(QSpecTabWidget* tabs)
-{
-    tabWidget = tabs;
-    if (tabWidget==NULL) return;
-    int i = tabWidget->addTab(this,tr("Search"));
-    if (gSet->showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
-        b->setFlat(true);
-        int sz = tabWidget->tabBar()->fontMetrics().height();
-        b->resize(QSize(sz,sz));
-        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
-        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
-    }
-    tabWidget->setCurrentWidget(this);
-    mainWnd->updateTitle();
-    mainWnd->updateTabs();
 }
 
 void CSearchTab::keyPressEvent(QKeyEvent *event)
