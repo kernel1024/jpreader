@@ -58,6 +58,17 @@ void CSnNet::loadStarted()
 
 void CSnNet::loadFinished(bool)
 {
+    QUrl base = snv->txtBrowser->url();
+    if (!base.isEmpty() && base.isLocalFile() && base!=snv->Uri && !snv->Uri.isEmpty() && !snv->waitPanel->isVisible()) {
+        // Spontaneous loading from WebView for local files
+        snv->onceTranslated = false;
+        snv->fileChanged = false;
+        snv->backHistory.append(base);
+        snv->Uri = base;
+        snv->urlEdit->setToolTip(tr("Displayed URL"));
+        snv->urlEdit->setPalette(QApplication::palette(snv->urlEdit));
+    }
+
     snv->barLoading->hide();
     snv->searchEdit->show();
     snv->loadingByWebKit = false;
