@@ -20,7 +20,8 @@ HEADERS = mainwindow.h \
     indexersearch.h \
     translator.h \
     snwaitctl.h \
-    titlestranslator.h
+    titlestranslator.h \
+    logdisplay.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -43,7 +44,8 @@ SOURCES = main.cpp \
     indexersearch.cpp \
     translator.cpp \
     snwaitctl.cpp \
-    titlestranslator.cpp
+    titlestranslator.cpp \
+    logdisplay.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -54,7 +56,8 @@ FORMS = main.ui \
     bookmarkdlg.ui \
     snviewer.ui \
     searchtab.ui \
-    lighttranslator.ui
+    lighttranslator.ui \
+    logdisplay.ui
 
 QT += webkit network xml dbus
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets

@@ -10,6 +10,14 @@
 
 #define UNUSED(x) (void)(x)
 
+extern QStringList debugMessages;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+#else
+void stdConsoleOutput(QtMsgType type, const char *msg);
+#endif
+
 QString detectMIME(QString filename);
 QString detectMIME(QByteArray buf);
 QTextCodec* detectEncoding(QByteArray content);

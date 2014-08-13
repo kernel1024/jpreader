@@ -89,6 +89,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(splitterMoved(int,int)));
     connect(tabMain, SIGNAL(tooltipRequested(QPoint,QPoint)), this, SLOT(tabBarTooltip(QPoint,QPoint)));
 
+    if (gSet->logWindow!=NULL)
+        connect(actionShowLog,SIGNAL(triggered()),gSet->logWindow,SLOT(show()));
+
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);
     sc->setContext(Qt::WindowShortcut);
