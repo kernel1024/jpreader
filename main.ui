@@ -155,6 +155,8 @@
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
+    <addaction name="actionShowLog"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -302,10 +304,17 @@
   </action>
   <action name="actionDetachTab">
    <property name="icon">
-    <iconset theme="tab-detach"/>
+    <iconset theme="tab-detach">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Detach current tab</string>
+   </property>
+  </action>
+  <action name="actionShowLog">
+   <property name="text">
+    <string>Show log</string>
    </property>
   </action>
  </widget>

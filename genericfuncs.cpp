@@ -1,6 +1,8 @@
 #include <QTextCodec>
+#include <QStringList>
 #include <QMimeData>
 #include <QMutex>
+#include <QString>
 
 #include <iostream>
 #include <unistd.h>
@@ -9,6 +11,8 @@
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 #include "SAX/filter/Writer.hpp"
@@ -16,6 +20,48 @@
 #include "taggle/Taggle.hpp"
 
 using namespace std;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#else
+void stdConsoleOutput(QtMsgType type, const char *msg)
+#endif
+{
+    QString lmsg = QString();
+
+    int line = 0;
+    const char *file = "<unsupported>";
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    line = context.line;
+    file = context.file;
+#endif
+
+    switch (type) {
+        case QtDebugMsg:
+            lmsg = QString("Debug: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            break;
+        case QtWarningMsg:
+            lmsg = QString("Warning: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            break;
+        case QtCriticalMsg:
+            lmsg = QString("Critical: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            break;
+        case QtFatalMsg:
+            lmsg = QString("Fatal: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            break;
+    }
+
+    if (!lmsg.isEmpty()) {
+        debugMessages << lmsg;
+        while (debugMessages.count()>5000)
+            debugMessages.removeFirst();
+        lmsg.append('\n');
+        fprintf(stderr, lmsg.toLocal8Bit().constData());
+
+        if (gSet!=NULL && gSet->logWindow!=NULL)
+            QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
+    }
+}
 
 QString detectMIME(QString filename)
 {

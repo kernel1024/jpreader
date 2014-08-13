@@ -1,15 +1,18 @@
 #include <QApplication>
 #include <QDir>
+#include <QStringList>
 
 #include "specwidgets.h"
 #include "globalcontrol.h"
 #include "indexersearch.h"
+#include "genericfuncs.h"
 
 #include <sys/resource.h>
 
 #include "qtsingleapplication.h"
 
 CGlobalControl* gSet;
+QStringList debugMessages;
 
 int main(int argc, char *argv[])
 {
@@ -24,6 +27,12 @@ int main(int argc, char *argv[])
         return -2;
     }
 
+    debugMessages.clear();
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    qInstallMessageHandler(stdConsoleOutput);
+#else
+    qInstallMsgHandler(stdConsoleOutput);
+#endif
     qRegisterMetaType<UrlHolder>("UrlHolder");
     qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
     qRegisterMetaType<QBResult>("QBResult");

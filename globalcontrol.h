@@ -24,6 +24,7 @@
 #include "specwidgets.h"
 #include "qtsingleapplication/src/qtsingleapplication.h"
 #include "miniqxt/qxtglobalshortcut.h"
+#include "logdisplay.h"
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
@@ -76,6 +77,7 @@ public:
     QAction* actionSelectionDictionary;
     QAction* actionGlobalTranslator;
     QIcon appIcon;
+    CLogDisplay* logWindow;
 
     QList<QColor> snippetColors;
 

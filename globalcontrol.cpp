@@ -54,6 +54,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     fontSerif="Times New Roman";
     fontSansSerif="Verdana";
 
+    logWindow = new CLogDisplay();
+
     lastClipboardContents = "";
     lastClipboardContentsUnformatted = "";
     lastClipboardIsHtml = false;
@@ -129,6 +131,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),this);
     actionAutoTranslate->setCheckable(true);
     actionAutoTranslate->setChecked(false);
+    actionAutoTranslate->setShortcut(Qt::Key_F8);
 
     actionOverrideFont = new QAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),this);
     actionOverrideFont->setCheckable(true);
