@@ -32,6 +32,8 @@ void CSnTrans::translate()
     snv->calculatedUrl="";
     QString aUri="";
     snv->onceTranslated=true;
+    snv->waitPanel->show();
+    snv->transButton->setEnabled(false);
     if (gSet->translatorEngine==TE_ATLAS) {
         aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
         snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
@@ -55,8 +57,6 @@ void CSnTrans::translate()
         snv->waitHandler->setText(tr("Copying file to hosting..."));
         snv->waitHandler->setProgressEnabled(false);
     }
-    snv->waitPanel->show();
-    snv->transButton->setEnabled(false);
 
     connect(gSet,SIGNAL(stopTranslators()),
             ct,SLOT(abortAtlas()),Qt::QueuedConnection);
@@ -131,6 +131,7 @@ void CSnTrans::postTranslate()
     case TE_ATLAS: // Url contains translated file itself
         cn = snv->calculatedUrl;
         snv->fileChanged = true;
+        snv->onceTranslated = true;
         snv->netHandler->addUrlToProcessing(snv->savedBaseUrl);
         snv->txtBrowser->setHtml(cn,snv->savedBaseUrl);
         snv->netHandler->removeUrlFromProcessing(snv->savedBaseUrl);
