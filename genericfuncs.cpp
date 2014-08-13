@@ -3,6 +3,7 @@
 #include <QMimeData>
 #include <QMutex>
 #include <QString>
+#include <QTime>
 
 #include <iostream>
 #include <unistd.h>
@@ -52,6 +53,7 @@ void stdConsoleOutput(QtMsgType type, const char *msg)
     }
 
     if (!lmsg.isEmpty()) {
+        lmsg = QTime::currentTime().toString("h:mm:ss") + " "+lmsg;
         debugMessages << lmsg;
         while (debugMessages.count()>5000)
             debugMessages.removeFirst();
