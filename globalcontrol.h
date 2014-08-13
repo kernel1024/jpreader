@@ -86,7 +86,6 @@ public:
     QList<UrlHolder> mainHistory;
     QStringList searchHistory;
     QStringList adblock;
-    bool useOverrideFont;
     QFont overrideFont;
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
@@ -126,11 +125,7 @@ public:
 
     bool globalContextTranslate;
     QxtGlobalShortcut* gctxTranHotkey;
-    bool autoTranslate;
     bool blockTabCloseActive;
-    bool forceAllLinksInNewTab;
-
-    bool forceFontColor;
     QColor forcedFontColor;
 
     int atlTcpRetryCount;
@@ -147,6 +142,18 @@ public:
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
     QAction *actionOverwritingTranslation;
+
+    QAction *actionForceNewTab;
+    QAction *actionAutoTranslate;
+    QAction *actionOverrideFont;
+    QAction *actionAutoloadImages;
+    QAction *actionOverrideFontColor;
+
+    // Actions for Settings menu
+    bool useOverrideFont();
+    bool autoTranslate();
+    bool forceAllLinksInNewTab();
+    bool forceFontColor();
 
     // History lists append
     void appendRecycled(QString title, QUrl url);
@@ -198,6 +205,7 @@ public slots:
     void checkRestoreLoad(CMainWindow* w);
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
     void toggleJSUsage(bool useJS);
+    void toggleAutoloadImages(bool loadImages);
 };
 
 extern CGlobalControl* gSet;

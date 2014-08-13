@@ -30,7 +30,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     useAdblock=false;
     globalContextTranslate=false;
     blockTabCloseActive=false;
-    forceAllLinksInNewTab=false;
     adblock.clear();
     cleaningState=false;
     debugNetReqLogging=false;
@@ -48,7 +47,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     appIcon.addFile(":/globe48");
     appIcon.addFile(":/globe128");
 
-    useOverrideFont=false;
     overrideStdFonts=false;
     overrideFont=QApplication::font();
     fontStandard=QApplication::font().family();
@@ -99,7 +97,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     dlg = NULL;
     activeWindow = NULL;
     lightTranslator = NULL;
-    autoTranslate = false;
 
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
     actionGlobalTranslator->setCheckable(true);
@@ -124,6 +121,26 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionOverwritingTranslation = new QAction(tr("Overwriting translation"),this);
     actionOverwritingTranslation->setCheckable(true);
     actionOverwritingTranslation->setChecked(false);
+
+    actionForceNewTab = new QAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),this);
+    actionForceNewTab->setCheckable(true);
+    actionForceNewTab->setChecked(false);
+
+    actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),this);
+    actionAutoTranslate->setCheckable(true);
+    actionAutoTranslate->setChecked(false);
+
+    actionOverrideFont = new QAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),this);
+    actionOverrideFont->setCheckable(true);
+    actionOverrideFont->setChecked(false);
+
+    actionAutoloadImages = new QAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),this);
+    actionAutoloadImages->setCheckable(true);
+    actionAutoloadImages->setChecked(false);
+
+    actionOverrideFontColor = new QAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),this);
+    actionOverrideFontColor->setCheckable(true);
+    actionOverrideFontColor->setChecked(false);
 
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
@@ -157,6 +174,26 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     tabsListTimer.setInterval(30000);
     connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
     tabsListTimer.start();
+}
+
+bool CGlobalControl::useOverrideFont()
+{
+    return actionOverrideFont->isChecked();
+}
+
+bool CGlobalControl::autoTranslate()
+{
+    return actionAutoTranslate->isChecked();
+}
+
+bool CGlobalControl::forceAllLinksInNewTab()
+{
+    return actionForceNewTab->isChecked();
+}
+
+bool CGlobalControl::forceFontColor()
+{
+    return actionOverrideFontColor->isChecked();
 }
 
 void CGlobalControl::writeSettings()
@@ -205,7 +242,7 @@ void CGlobalControl::writeSettings()
         settings.setValue(QString("adblock%1").arg(i),adblock.at(i));
 
     settings.setValue("useAdblock",useAdblock);
-    settings.setValue("useOverrideFont",useOverrideFont);
+    settings.setValue("useOverrideFont",useOverrideFont());
     settings.setValue("overrideFont",overrideFont.family());
     settings.setValue("overrideFontSize",overrideFont.pointSize());
     settings.setValue("overrideStdFonts",overrideStdFonts);
@@ -213,7 +250,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("fixedFont",fontFixed);
     settings.setValue("serifFont",fontSerif);
     settings.setValue("sansSerifFont",fontSansSerif);
-    settings.setValue("forceFontColor",forceFontColor);
+    settings.setValue("forceFontColor",forceFontColor());
     settings.setValue("forcedFontColor",forcedFontColor.name());
     settings.setValue("gctxHotkey",gctxTranHotkey->shortcut().toString());
     settings.setValue("atlHost_count",atlHostHistory.count());
@@ -314,7 +351,7 @@ void CGlobalControl::readSettings()
     }
 
     useAdblock=settings.value("useAdblock",false).toBool();
-    useOverrideFont=settings.value("useOverrideFont",false).toBool();
+    actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
     overrideFont.setFamily(settings.value("overrideFont","Verdana").toString());
     overrideFont.setPointSize(settings.value("overrideFontSize",12).toInt());
     overrideStdFonts=settings.value("overrideStdFonts",false).toBool();
@@ -322,7 +359,7 @@ void CGlobalControl::readSettings()
     fontFixed=settings.value("fixedFont","Courier New").toString();
     fontSerif=settings.value("serifFont","Times New Roman").toString();
     fontSansSerif=settings.value("sansSerifFont","Verdana").toString();
-    forceFontColor=settings.value("forceFontColor",false).toBool();
+    actionOverrideFontColor->setChecked(settings.value("forceFontColor",false).toBool());
     forcedFontColor=QColor(settings.value("forcedFontColor","#000000").toString());
     QString hk = settings.value("gctxHotkey",QString()).toString();
     if (!hk.isEmpty()) {
@@ -457,7 +494,7 @@ void CGlobalControl::settingsDlg()
     dlg->adList->clear();
     dlg->adList->addItems(adblock);
     dlg->useAd->setChecked(useAdblock);
-    dlg->useOverrideFont->setChecked(useOverrideFont);
+    dlg->useOverrideFont->setChecked(useOverrideFont());
     dlg->overrideStdFonts->setChecked(overrideStdFonts);
     dlg->fontOverride->setCurrentFont(overrideFont);
     QFont f = QApplication::font();
@@ -470,13 +507,13 @@ void CGlobalControl::settingsDlg()
     f.setFamily(fontSansSerif);
     dlg->fontSansSerif->setCurrentFont(f);
     dlg->fontOverrideSize->setValue(overrideFont.pointSize());
-    dlg->fontOverride->setEnabled(useOverrideFont);
-    dlg->fontOverrideSize->setEnabled(useOverrideFont);
+    dlg->fontOverride->setEnabled(useOverrideFont());
+    dlg->fontOverrideSize->setEnabled(useOverrideFont());
     dlg->fontStandard->setEnabled(overrideStdFonts);
     dlg->fontFixed->setEnabled(overrideStdFonts);
     dlg->fontSerif->setEnabled(overrideStdFonts);
     dlg->fontSansSerif->setEnabled(overrideStdFonts);
-    dlg->overrideFontColor->setChecked(forceFontColor);
+    dlg->overrideFontColor->setChecked(forceFontColor());
     dlg->updateFontColorPreview(forcedFontColor);
     dlg->gctxHotkey->setKeySequence(gctxTranHotkey->shortcut());
 #ifndef WITH_NEPOMUK
@@ -551,7 +588,7 @@ void CGlobalControl::settingsDlg()
             atlHostHistory.move(atlHostHistory.indexOf(atlHost),0);
         else
             atlHostHistory.prepend(atlHost);
-        useOverrideFont=dlg->useOverrideFont->isChecked();
+        actionOverrideFont->setChecked(dlg->useOverrideFont->isChecked());
         overrideStdFonts=dlg->overrideStdFonts->isChecked();
         overrideFont=dlg->fontOverride->currentFont();
         overrideFont.setPointSize(dlg->fontOverrideSize->value());
@@ -559,7 +596,7 @@ void CGlobalControl::settingsDlg()
         fontFixed=dlg->fontFixed->currentFont().family();
         fontSerif=dlg->fontSerif->currentFont().family();
         fontSansSerif=dlg->fontSansSerif->currentFont().family();
-        forceFontColor=dlg->overrideFontColor->isChecked();
+        actionOverrideFontColor->setChecked(dlg->overrideFontColor->isChecked());
         forcedFontColor=dlg->getOverridedFontColor();
         sl.clear();
         for (int i=0;i<dlg->adList->count();i++)
@@ -616,6 +653,11 @@ void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
 void CGlobalControl::toggleJSUsage(bool useJS)
 {
     QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,useJS);
+}
+
+void CGlobalControl::toggleAutoloadImages(bool loadImages)
+{
+    QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,loadImages);
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -799,6 +841,12 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addAction(actionOverwritingTranslation);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
+
+    mainWindow->menuSettings->addAction(actionForceNewTab);
+    mainWindow->menuSettings->addAction(actionAutoTranslate);
+    mainWindow->menuSettings->addAction(actionAutoloadImages);
+    mainWindow->menuSettings->addAction(actionOverrideFont);
+    mainWindow->menuSettings->addAction(actionOverrideFontColor);
 
     checkRestoreLoad(mainWindow);
 

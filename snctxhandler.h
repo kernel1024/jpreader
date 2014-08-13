@@ -19,10 +19,6 @@ public:
 public slots:
     void contextMenu(const QPoint &pos);
     void translateFragment();
-    void autoTranslateMenu();
-    void autoloadImagesMenu();
-    void overrideFontMenu();
-    void overrideFontColorMenu();
     void copyImgUrl();
     void duplicateTab();
     void openNewWindow();
@@ -43,7 +39,6 @@ public slots:
     void gotTranslation(const QString& text);
     void createPlainTextTab();
     void createPlainTextTabTranslate();
-    void toggleForceNewTab();
 signals:
     void startTranslation();
     void hideTooltips();
