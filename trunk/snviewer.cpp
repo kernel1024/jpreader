@@ -14,11 +14,10 @@
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
-    : QWidget(parent)
+    : QSpecTabContainer(parent)
 {
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
-    parentWnd = parent;
 
     layout()->removeWidget(txtBrowser);
     txtBrowser->setParent(NULL);
@@ -29,7 +28,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     layout()->addWidget(txtBrowser);
     txtBrowser->setPage(new QSpecWebPage(this));
 
-	tabWidget=NULL;
     tabTitle="";
     isStartPage = startPage;
     translationBkgdFinished=false;
@@ -272,44 +270,6 @@ void CSnippetViewer::keyPressEvent(QKeyEvent *event)
         QWidget::keyPressEvent(event);
 }
 
-void CSnippetViewer::bindToTab(QSpecTabWidget* tabs, bool setFocused)
-{
-	tabWidget=tabs;
-	if (tabWidget==NULL) return;
-    int i = tabWidget->addTab(this,getDocTitle());
-    if (gSet->showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
-        b->setFlat(true);
-        int sz = tabWidget->tabBar()->fontMetrics().height();
-        b->resize(QSize(sz,sz));
-        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
-        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
-    }
-    tabTitle = getDocTitle();
-    if (setFocused) tabWidget->setCurrentWidget(this);
-    parentWnd->updateTitle();
-    parentWnd->updateTabs();
-}
-
-void CSnippetViewer::closeTab(bool nowait)
-{
-    if (waitPanel->isVisible()) return; // prevent closing while translation thread active
-    if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
-    if (!nowait) {
-        if (gSet->blockTabCloseActive) return;
-        gSet->blockTabClose();
-    }
-    if (tabWidget!=NULL) {
-        if (parentWnd->lastTabIdx>=0) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
-		tabWidget->removeTab(tabWidget->indexOf(this));
-	}
-    recycleTab();
-    parentWnd->updateTitle();
-    parentWnd->updateTabs();
-    parentWnd->checkTabs();
-    deleteLater();
-}
-
 void CSnippetViewer::updateWebViewAttributes()
 {
     txtBrowser->settings()->setAttribute(QWebSettings::AutoLoadImages,
@@ -329,4 +289,10 @@ void CSnippetViewer::updateHistorySuggestion(const QStringList& suggestionList)
     urlEdit->clear();
     urlEdit->addItems(suggestionList);
     urlEdit->setEditText(s);
+}
+
+bool CSnippetViewer::canClose()
+{
+    if (waitPanel->isVisible()) return false; // prevent closing while translation thread active
+    return true;
 }

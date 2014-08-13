@@ -25,7 +25,6 @@ public slots:
     void overrideFontColorMenu();
     void copyImgUrl();
     void duplicateTab();
-    void detachTab();
     void openNewWindow();
     void openImgNewTab();
     void saveImgToFile();

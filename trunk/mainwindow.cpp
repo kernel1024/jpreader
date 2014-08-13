@@ -80,6 +80,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionSaveSettings,SIGNAL(triggered()), gSet, SLOT(writeSettings()));
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
+    connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -173,6 +174,15 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     if (t!=NULL) {
         connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
+    }
+}
+
+void CMainWindow::detachTab()
+{
+    if (tabMain->currentWidget()!=NULL) {
+        QSpecTabContainer *bt = qobject_cast<QSpecTabContainer *>(tabMain->currentWidget());
+        if (bt!=NULL)
+            bt->detachTab();
     }
 }
 
@@ -407,7 +417,7 @@ void CMainWindow::goHistory(QUuid idx)
 
 void CMainWindow::createSearch()
 {
-    new CSearchTab(tabMain,this);
+    new CSearchTab(this);
 }
 
 void CMainWindow::createStartBrowser()
@@ -592,9 +602,9 @@ void CMainWindow::updateTabs()
 {
     tabsMenu->clear();
     for(int i=0;i<tabMain->count();i++) {
-        CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
+        QSpecTabContainer* sv = qobject_cast<QSpecTabContainer*>(tabMain->widget(i));
 		if (sv==NULL) continue;
-		tabsMenu->addAction(sv->tabTitle,this,SLOT(activateTab()))->setData(i);
+        tabsMenu->addAction(sv->getDocTitle(),this,SLOT(activateTab()))->setData(i);
     }
     updateHelperList();
 }

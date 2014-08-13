@@ -31,10 +31,8 @@ void QSpecTabWidget::tabRightClick(int index)
 {
     emit tabRightClicked(index);
     if (mainTabWidget) {
-        CSnippetViewer * tb = qobject_cast<CSnippetViewer *>(widget(index));
+        QSpecTabContainer * tb = qobject_cast<QSpecTabContainer *>(widget(index));
         if (tb!=NULL) tb->closeTab();
-        CSearchTab * tbb = qobject_cast<CSearchTab *>(widget(index));
-        if (tbb!=NULL) tbb->closeTab();
     }
 }
 
@@ -290,4 +288,65 @@ void QHotkeyEdit::keyPressEvent(QKeyEvent *event)
 void QHotkeyEdit::updateSequenceView()
 {
     setText(p_shortcut.toString());
+}
+
+
+QSpecTabContainer::QSpecTabContainer(CMainWindow *parent)
+    : QWidget(parent)
+{
+    parentWnd = parent;
+    tabWidget=NULL;
+}
+
+void QSpecTabContainer::bindToTab(QSpecTabWidget *tabs, bool setFocused)
+{
+    tabWidget=tabs;
+    if (tabWidget==NULL) return;
+    int i = tabWidget->addTab(this,getDocTitle());
+    if (gSet->showTabCloseButtons) {
+        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
+        b->setFlat(true);
+        int sz = tabWidget->tabBar()->fontMetrics().height();
+        b->resize(QSize(sz,sz));
+        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
+        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
+    }
+    tabTitle = getDocTitle();
+    if (setFocused) tabWidget->setCurrentWidget(this);
+    parentWnd->updateTitle();
+    parentWnd->updateTabs();
+}
+
+void QSpecTabContainer::detachTab()
+{
+    if (tabWidget->count()<=1) return;
+
+    CMainWindow* mwnd = gSet->addMainWindow(false,false);
+
+    tabWidget->removeTab(tabWidget->indexOf(this));
+    parentWnd = mwnd;
+    setParent(mwnd);
+    bindToTab(mwnd->tabMain);
+    activateWindow();
+    mwnd->raise();
+}
+
+void QSpecTabContainer::closeTab(bool nowait)
+{
+    if (!canClose()) return;
+    if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
+
+    if (!nowait) {
+        if (gSet->blockTabCloseActive) return;
+        gSet->blockTabClose();
+    }
+    if (tabWidget!=NULL) {
+        if (parentWnd->lastTabIdx>=0) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
+        tabWidget->removeTab(tabWidget->indexOf(this));
+    }
+    recycleTab();
+    parentWnd->updateTitle();
+    parentWnd->updateTabs();
+    parentWnd->checkTabs();
+    deleteLater();
 }
