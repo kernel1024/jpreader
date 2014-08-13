@@ -74,7 +74,7 @@ void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url, const QWebPa
         QMessageBox::warning(snv,tr("JPReader"),tr("Url is invalid"));
         return;
     }
-    if (gSet->forceAllLinksInNewTab && clickType==QWebPage::NavigationTypeLinkClicked)
+    if (gSet->forceAllLinksInNewTab() && clickType==QWebPage::NavigationTypeLinkClicked)
         new CSnippetViewer(snv->parentWnd, u, QStringList(), false);
     else {
         if (clickType==QWebPage::NavigationTypeLinkClicked)

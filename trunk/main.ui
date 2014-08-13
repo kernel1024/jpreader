@@ -156,11 +156,17 @@
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuBookmarks"/>
    <addaction name="menuCharset"/>
    <addaction name="menuTools"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -295,6 +301,9 @@
    </property>
   </action>
   <action name="actionDetachTab">
+   <property name="icon">
+    <iconset theme="tab-detach"/>
+   </property>
    <property name="text">
     <string>Detach current tab</string>
    </property>

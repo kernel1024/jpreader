@@ -167,28 +167,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         cm.addSeparator();
     }
 
-    QMenu *scm = cm.addMenu(QIcon::fromTheme("preferences-other"),tr("Settings"));
-    QAction *ac = scm->addAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),
-                 this,SLOT(toggleForceNewTab()));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->forceAllLinksInNewTab);
-    ac = scm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),
-                               this,SLOT(autoTranslateMenu()));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->autoTranslate);
-    ac = scm->addAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),
-                      this,SLOT(overrideFontMenu()));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->useOverrideFont);
-    ac = scm->addAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),
-                      this,SLOT(autoloadImagesMenu()));
-    ac->setCheckable(true);
-    ac->setChecked(QWebSettings::globalSettings()->testAttribute(QWebSettings::AutoLoadImages));
-    ac = scm->addAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),
-                      this,SLOT(overrideFontColorMenu()));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->forceFontColor);
-
     QMenu *ccm = cm.addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show source"),
                  this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
@@ -203,6 +181,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     menuActive = true;
     emit hideTooltips();
+    QApplication::processEvents();
     cm.exec(snv->txtBrowser->mapToGlobal(pos));
     menuActive = false;
 }
@@ -256,33 +235,6 @@ void CSnCtxHandler::createPlainTextTabTranslate()
 
     CSnippetViewer *sn = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
     sn->transButton->click();
-}
-
-void CSnCtxHandler::toggleForceNewTab()
-{
-    gSet->forceAllLinksInNewTab=!gSet->forceAllLinksInNewTab;
-}
-
-void CSnCtxHandler::autoTranslateMenu()
-{
-    gSet->autoTranslate=!gSet->autoTranslate;
-}
-
-void CSnCtxHandler::overrideFontMenu()
-{
-    gSet->useOverrideFont=!gSet->useOverrideFont;
-}
-
-void CSnCtxHandler::overrideFontColorMenu()
-{
-    gSet->forceFontColor=!gSet->forceFontColor;
-}
-
-void CSnCtxHandler::autoloadImagesMenu()
-{
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
-                                                 !QWebSettings::globalSettings()->testAttribute(
-                                                     QWebSettings::AutoLoadImages));
 }
 
 void CSnCtxHandler::copyImgUrl()

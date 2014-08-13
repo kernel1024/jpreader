@@ -21,9 +21,9 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     atlTcpRetryCount=gSet->atlTcpRetryCount;
     atlTcpTimeout=gSet->atlTcpTimeout;
-    forceFontColor=gSet->forceFontColor;
+    forceFontColor=gSet->forceFontColor();
     forcedFontColor=gSet->forcedFontColor;
-    useOverrideFont=gSet->useOverrideFont;
+    useOverrideFont=gSet->useOverrideFont();
     overrideFont=gSet->overrideFont;
     overwritingTranslation=gSet->actionOverwritingTranslation->isChecked();
 }
