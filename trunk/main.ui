@@ -152,6 +152,13 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <widget class="QMenu" name="menuTranslationMode">
+     <property name="title">
+      <string>Translation mode</string>
+     </property>
+    </widget>
+    <addaction name="menuTranslationMode"/>
+    <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
@@ -315,6 +322,30 @@
   <action name="actionShowLog">
    <property name="text">
     <string>Show log</string>
+   </property>
+  </action>
+  <action name="actionTModeAdditive">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Additive translation</string>
+   </property>
+  </action>
+  <action name="actionTModeOverwriting">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Overwriting translation</string>
+   </property>
+  </action>
+  <action name="actionTModeTooltip">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tooltip translation</string>
    </property>
   </action>
  </widget>

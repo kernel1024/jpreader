@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QString>
+#include <QTimer>
 #include "snviewer.h"
 
 class CSnippetViewer;
@@ -14,7 +15,7 @@ class CSnCtxHandler : public QObject
 private:
     CSnippetViewer *snv;
 public:
-    bool menuActive;
+    QTimer menuActive;
     CSnCtxHandler(CSnippetViewer *parent);
 public slots:
     void contextMenu(const QPoint &pos);
@@ -39,6 +40,8 @@ public slots:
     void gotTranslation(const QString& text);
     void createPlainTextTab();
     void createPlainTextTabTranslate();
+    void menuClosed();
+    void menuOpened();
 signals:
     void startTranslation();
     void hideTooltips();

@@ -120,9 +120,24 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     actionSnippetAutotranslate->setCheckable(true);
     actionSnippetAutotranslate->setChecked(false);
 
-    actionOverwritingTranslation = new QAction(tr("Overwriting translation"),this);
-    actionOverwritingTranslation->setCheckable(true);
-    actionOverwritingTranslation->setChecked(false);
+    translationMode = new QActionGroup(this);
+
+    actionTMAdditive = new QAction(tr("Additive"),this);
+    actionTMAdditive->setCheckable(true);
+    actionTMAdditive->setActionGroup(translationMode);
+    actionTMAdditive->setData(TM_ADDITIVE);
+
+    actionTMOverwriting = new QAction(tr("Overwriting"),this);
+    actionTMOverwriting->setCheckable(true);
+    actionTMOverwriting->setActionGroup(translationMode);
+    actionTMOverwriting->setData(TM_OVERWRITING);
+
+    actionTMTooltip = new QAction(tr("Tooltip"),this);
+    actionTMTooltip->setCheckable(true);
+    actionTMTooltip->setActionGroup(translationMode);
+    actionTMTooltip->setData(TM_TOOLTIP);
+
+    actionTMAdditive->setChecked(true);
 
     actionForceNewTab = new QAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),this);
     actionForceNewTab->setCheckable(true);
@@ -841,7 +856,6 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addAction(actionSelectionDictionary);
     mainWindow->menuTools->addAction(actionUseProxy);
     mainWindow->menuTools->addAction(actionSnippetAutotranslate);
-    mainWindow->menuTools->addAction(actionOverwritingTranslation);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
 
@@ -850,6 +864,10 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuSettings->addAction(actionAutoloadImages);
     mainWindow->menuSettings->addAction(actionOverrideFont);
     mainWindow->menuSettings->addAction(actionOverrideFontColor);
+
+    mainWindow->menuTranslationMode->addAction(actionTMAdditive);
+    mainWindow->menuTranslationMode->addAction(actionTMOverwriting);
+    mainWindow->menuTranslationMode->addAction(actionTMTooltip);
 
     checkRestoreLoad(mainWindow);
 
@@ -950,6 +968,18 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     settings.setValue(QString("%1-user").arg(key),user);
     settings.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
     settings.endGroup();
+}
+
+int CGlobalControl::getTranslationMode()
+{
+    bool okconv;
+    int res = 0;
+    if (translationMode->checkedAction()!=NULL) {
+        res = translationMode->checkedAction()->data().toInt(&okconv);
+        if (!okconv)
+            res = 0;
+    }
+    return res;
 }
 
 UrlHolder::UrlHolder()
