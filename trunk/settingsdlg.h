@@ -59,6 +59,7 @@ public:
     QSpinBox* proxyPort;
     QCheckBox* proxyUse;
     QComboBox* proxyType;
+    QCheckBox* emptyRestore;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

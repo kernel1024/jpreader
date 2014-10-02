@@ -317,7 +317,7 @@ bool CTranslator::translateParagraph(QDomNode src)
                 return false;
             } else {
                 if (useOverrideFont || forceFontColor) {
-                    QDomNode dp = p.ownerDocument().createElement("div");
+                    QDomNode dp = p.ownerDocument().createElement("span");
                     dp.attributes().setNamedItem(p.ownerDocument().createAttribute("style"));
                     QString dstyle;
                     if (useOverrideFont)

@@ -387,6 +387,26 @@ p, li { white-space: pre-wrap; }
           </spacer>
          </item>
          <item>
+          <widget class="QCheckBox" name="checkEmptyRestore">
+           <property name="text">
+            <string>When ATLAS returns spaces or empty - replace with original text</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_13">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <widget class="QLabel" name="label_17">
@@ -1200,6 +1220,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
   <tabstop>atlRetryTimeout</tabstop>
+  <tabstop>checkEmptyRestore</tabstop>
   <tabstop>gctxHotkey</tabstop>
   <tabstop>checkTransFont</tabstop>
   <tabstop>transFont</tabstop>

@@ -1,6 +1,7 @@
 #include <QRegExp>
 #include <QUrl>
 #include "atlastranslator.h"
+#include "globalcontrol.h"
 
 CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTranslateMode TranMode) :
     QObject(parent)
@@ -9,6 +10,9 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTr
     atlPort=port;
     inited=false;
     tranMode=TranMode;
+    emptyRestore=false;
+    if (gSet!=NULL)
+        emptyRestore=gSet->emptyRestore;
 }
 
 CAtlasTranslator::~CAtlasTranslator()
@@ -116,7 +120,10 @@ QString CAtlasTranslator::tranString(QString src)
     }
 
     s = s.remove(QRegExp("^RES:"));
-    return QUrl::fromPercentEncoding(s.toLatin1());
+    QString res = QUrl::fromPercentEncoding(s.toLatin1());
+    if (res.trimmed().isEmpty() && emptyRestore)
+        return src;
+    return res;
 }
 
 void CAtlasTranslator::doneTran(bool lazyClose)
