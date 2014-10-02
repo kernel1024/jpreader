@@ -59,6 +59,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     proxyPort=ui->spinProxyPort;
     proxyUse=ui->checkUseProxy;
     proxyType=ui->listProxyType;
+    emptyRestore=ui->checkEmptyRestore;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

@@ -34,6 +34,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     cleaningState=false;
     debugNetReqLogging=false;
     restoreLoadChecked=false;
+    emptyRestore=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -234,6 +235,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlasHost",atlHost);
     settings.setValue("atlasPort",atlPort);
     settings.setValue("auxDir",savedAuxDir);
+    settings.setValue("emptyRestore",emptyRestore);
     settings.setValue("javascript",QWebSettings::globalSettings()->
                       testAttribute(QWebSettings::JavascriptEnabled));
     settings.setValue("autoloadimages",QWebSettings::globalSettings()->
@@ -334,6 +336,7 @@ void CGlobalControl::readSettings()
     }
     scpHostHistory.append(qs);
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
+    emptyRestore = settings.value("emptyRestore",false).toBool();
     maxRecycled = settings.value("recycledCount",20).toInt();
     bool jsstate = settings.value("javascript",true).toBool();
     QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,jsstate);
@@ -509,6 +512,7 @@ void CGlobalControl::settingsDlg()
     dlg->atlPort->setValue(atlPort);
     dlg->atlRetryCount->setValue(atlTcpRetryCount);
     dlg->atlRetryTimeout->setValue(atlTcpTimeout);
+    dlg->emptyRestore->setChecked(emptyRestore);
     dlg->adList->clear();
     dlg->adList->addItems(adblock);
     dlg->useAd->setChecked(useAdblock);
@@ -598,6 +602,7 @@ void CGlobalControl::settingsDlg()
         atlPort=dlg->atlPort->value();
         atlTcpRetryCount=dlg->atlRetryCount->value();
         atlTcpTimeout=dlg->atlRetryTimeout->value();
+        emptyRestore=dlg->emptyRestore->isChecked();
         if (scpHostHistory.contains(scpHost))
             scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
         else

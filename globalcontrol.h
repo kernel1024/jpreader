@@ -109,6 +109,7 @@ public:
     int translatorEngine;
     QString atlHost;
     int atlPort;
+    bool emptyRestore;
     QString sysBrowser;
     QString sysEditor;
     int maxRecycled;

@@ -20,6 +20,7 @@ private:
     int atlPort;
     bool inited;
     ATTranslateMode tranMode;
+    bool emptyRestore;
 public:
     explicit CAtlasTranslator(QObject *parent = 0, QString host = QString("localhost"), int port = 18000, ATTranslateMode TranMode = AutoTran);
     virtual ~CAtlasTranslator();
