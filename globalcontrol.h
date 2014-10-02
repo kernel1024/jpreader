@@ -34,6 +34,10 @@
 #define SE_NEPOMUK 1
 #define SE_RECOLL 2
 
+#define TM_ADDITIVE 1
+#define TM_OVERWRITING 2
+#define TM_TOOLTIP 3
+
 class CMainWindow;
 class QSpecCookieJar;
 class CLightTranslator;
@@ -143,13 +147,15 @@ public:
 
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
-    QAction *actionOverwritingTranslation;
 
     QAction *actionForceNewTab;
     QAction *actionAutoTranslate;
     QAction *actionOverrideFont;
     QAction *actionAutoloadImages;
     QAction *actionOverrideFontColor;
+
+    QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
+    QActionGroup *translationMode;
 
     // Actions for Settings menu
     bool useOverrideFont();
@@ -175,6 +181,8 @@ public:
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
+
+    int getTranslationMode();
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;

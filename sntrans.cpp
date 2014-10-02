@@ -195,7 +195,7 @@ void CSnTrans::hideTooltip()
 
 void CSnTrans::showWordTranslation(const QString &html)
 {
-    if (snv->ctxHandler->menuActive) return;
+    if (snv->ctxHandler->menuActive.isActive()) return;
     QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);

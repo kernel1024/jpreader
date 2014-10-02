@@ -25,7 +25,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     forcedFontColor=gSet->forcedFontColor;
     useOverrideFont=gSet->useOverrideFont();
     overrideFont=gSet->overrideFont;
-    overwritingTranslation=gSet->actionOverwritingTranslation->isChecked();
+    translationMode=gSet->getTranslationMode();
 }
 
 bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
@@ -298,12 +298,19 @@ bool CTranslator::translateParagraph(QDomNode src)
             textNodesCnt++;
         } else {
             QDomNode p = src.ownerDocument().createElement("span");
-            if (!overwritingTranslation) {
-                p.appendChild(p.ownerDocument().createTextNode(sl[i]));
-                p.appendChild(p.ownerDocument().createElement("br"));
+
+            QString srct = sl[i];
+            QString t = atlas.tranString(sl[i]);
+            if (translationMode==TM_TOOLTIP) {
+                QString ts = srct;
+                srct = t;
+                t = ts;
             }
 
-            QString t = atlas.tranString(sl[i]);
+            if (translationMode==TM_ADDITIVE) {
+                p.appendChild(p.ownerDocument().createTextNode(srct));
+                p.appendChild(p.ownerDocument().createElement("br"));
+            }
             if (t.contains("ERROR:ATLAS_SLIPPED")) {
                 atlas.doneTran();
                 src.appendChild(src.ownerDocument().createTextNode(t));
@@ -325,9 +332,9 @@ bool CTranslator::translateParagraph(QDomNode src)
                 } else {
                     p.appendChild(p.ownerDocument().createTextNode(t));
                 }
-                if (overwritingTranslation) {
+                if ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)) {
                     p.attributes().setNamedItem(p.ownerDocument().createAttribute("title"));
-                    p.attributes().namedItem("title").setNodeValue(sl[i]);
+                    p.attributes().namedItem("title").setNodeValue(srct);
                 } else
                     p.appendChild(p.ownerDocument().createElement("br"));
             }
