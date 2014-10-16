@@ -225,6 +225,14 @@ QNetworkReply* QSpecNetworkAccessManager::createRequest(Operation op, const QNet
                                                     QNetworkRequest(QUrl()));
     } else {
         QNetworkRequest rq(req);
+        if ((rq.url().scheme().compare("file",Qt::CaseInsensitive)==0) &&
+                (rq.url().hasQuery() || rq.url().hasFragment())) {
+            QString ps = rq.url().toString();
+            // modify url for files with query part in filename on local filesystem saved with wget
+            ps.replace("?","%3F");
+            ps.replace("#","%23");
+            rq.setUrl(QUrl(ps));
+        }
         if (!req.hasRawHeader("Referer")) {
             cachePolicy.insert(req.url(),req.attribute(QNetworkRequest::CacheLoadControlAttribute,
                                                        QNetworkRequest::PreferNetwork));
