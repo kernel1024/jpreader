@@ -16,6 +16,7 @@ QStringList debugMessages;
 
 int main(int argc, char *argv[])
 {
+#ifdef QT_DEBUG
     // create core dumps on segfaults
     rlimit rlp;
     int res = getrlimit(RLIMIT_CORE, &rlp);
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
         qDebug() << "err: setrlimit: RLIMIT_CORE";
         return -2;
     }
+#endif
 
     debugMessages.clear();
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
