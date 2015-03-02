@@ -12,18 +12,26 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     indexerSerivce = gSet->searchEngine;
     if (indexerSerivce == SE_NEPOMUK) {
 #ifdef WITH_NEPOMUK
+        engine = NULL;
         connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
         connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
 #endif
-    } else if (indexerSerivce == SE_RECOLL) {
-#ifdef WITH_RECOLL
+    } else if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
+#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+        if (!isValidConfig()) {
+            engine = NULL;
+            return;
+        }
         QThread* th = new QThread();
-        recollEngine = new CRecollSearch();
-        connect(recollEngine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
-        connect(recollEngine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
-        connect(this,SIGNAL(recollStartSearch(QString,int)),
-                recollEngine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
-        recollEngine->moveToThread(th);
+        if (indexerSerivce == SE_RECOLL)
+            engine = new CRecollSearch();
+        else
+            engine = new CBaloo5Search();
+        connect(engine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
+        connect(engine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
+        connect(this,SIGNAL(startThreadedSearch(QString,int)),
+                engine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
+        engine->moveToThread(th);
         th->start();
 #endif
     }
@@ -58,12 +66,11 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 #else
             engineFinished();
 #endif
-        } else if (indexerSerivce == SE_RECOLL) {
-#ifdef WITH_RECOLL
-            emit recollStartSearch(query,gSet->maxLimit);
-#else
-            engineFinished();
-#endif
+        } else if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
+            if (isValidConfig())
+                emit startThreadedSearch(query,gSet->maxLimit);
+            else
+                engineFinished();
         } else
             engineFinished();
     }
@@ -76,6 +83,9 @@ bool CIndexerSearch::isValidConfig()
 #endif
 #ifndef WITH_RECOLL
     if (indexerSerivce == SE_RECOLL) return false;
+#endif
+#ifndef WITH_BALOO5
+    if (indexerSerivce == SE_BALOO5) return false;
 #endif
     return true;
 }

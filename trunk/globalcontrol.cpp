@@ -77,6 +77,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     searchEngine = SE_NEPOMUK;
 #elif WITH_RECOLL
     searchEngine = SE_RECOLL;
+#elif WITH_BALOO5
+    searchEngine = SE_BALOO5;
 #else
     searchEngine = SE_NONE;
 #endif
@@ -544,10 +546,15 @@ void CGlobalControl::settingsDlg()
 #ifndef WITH_RECOLL
     dlg->searchRecoll->setEnabled(false);
 #endif
+#ifndef WITH_BALOO5
+    dlg->searchBaloo5->setEnabled(false);
+#endif
     if ((searchEngine==SE_NEPOMUK) && (dlg->searchNepomuk->isEnabled()))
         dlg->searchNepomuk->setChecked(true);
     else if ((searchEngine==SE_RECOLL) && (dlg->searchRecoll->isEnabled()))
         dlg->searchRecoll->setChecked(true);
+    else if ((searchEngine==SE_BALOO5) && (dlg->searchBaloo5->isEnabled()))
+        dlg->searchBaloo5->setChecked(true);
     else
         dlg->searchNone->setChecked(true);
 
@@ -635,6 +642,8 @@ void CGlobalControl::settingsDlg()
             searchEngine = SE_NEPOMUK;
         else if (dlg->searchRecoll->isChecked())
             searchEngine = SE_RECOLL;
+        else if (dlg->searchBaloo5->isChecked())
+            searchEngine = SE_BALOO5;
         else
             searchEngine = SE_NONE;
 

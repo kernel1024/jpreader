@@ -21,7 +21,9 @@ HEADERS = mainwindow.h \
     translator.h \
     snwaitctl.h \
     titlestranslator.h \
-    logdisplay.h
+    logdisplay.h \
+    baloo5search.h \
+    abstractthreadedsearch.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -45,7 +47,9 @@ SOURCES = main.cpp \
     translator.cpp \
     snwaitctl.cpp \
     titlestranslator.cpp \
-    logdisplay.cpp
+    logdisplay.cpp \
+    baloo5search.cpp \
+    abstractthreadedsearch.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -87,17 +91,15 @@ exists( /usr/include/magic.h ) {
 
 PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
 
-exists( /usr/include/nepomuk2/filequery.h ) {
-    lessThan(QT_MAJOR_VERSION, 5) {
+lessThan(QT_MAJOR_VERSION, 5) {
+    exists( /usr/include/nepomuk2/filequery.h ) {
         INCLUDEPATH += /usr/include/nepomuk2
         CONFIG += use_nepomuk
         DEFINES += WITH_NEPOMUK=2
         LIBS += -lkio -lkdecore -lsoprano -lnepomukcore -lnepomukcommon
         message("Nepomuk 2 support: YES")
-    }
-} else {
-    exists( /usr/include/nepomuk/filequery.h ) {
-        lessThan(QT_MAJOR_VERSION, 5) {
+    } else {
+        exists( /usr/include/nepomuk/filequery.h ) {
             INCLUDEPATH += /usr/include/nepomuk
             CONFIG += use_nepomuk
             DEFINES += WITH_NEPOMUK=1
@@ -105,10 +107,23 @@ exists( /usr/include/nepomuk2/filequery.h ) {
             message("Nepomuk support: YES")
         }
     }
+} else {
+    exists( /usr/include/KF5/Baloo/Baloo/Query ) {
+        INCLUDEPATH += /usr/include/KF5
+        INCLUDEPATH += /usr/include/KF5/Baloo
+        CONFIG += use_baloo5
+        DEFINES += WITH_BALOO5=1
+        LIBS += -lKF5Baloo
+        message("KF5 Baloo support: YES")
+    }
 }
 
 !use_nepomuk {
     message("Nepomuk support: NO")
+}
+
+!use_baloo5 {
+    message("KF5 Baloo support: NO")
 }
 
 system( which recoll > /dev/null 2>&1 ) {

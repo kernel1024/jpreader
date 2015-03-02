@@ -1,24 +1,16 @@
 #ifndef RECOLLSEARCH_H
 #define RECOLLSEARCH_H
 
-#include <QObject>
-#include <QString>
+#include "abstractthreadedsearch.h"
 
-class CRecollSearch : public QObject
+class CRecollSearch : public CAbstractThreadedSearch
 {
     Q_OBJECT
 public:
     explicit CRecollSearch(QObject *parent = 0);
-
-private:
-    bool working;
-    
-signals:
-    void addHit(const QString &fileName);
-    void finished();
     
 public slots:
-    void doSearch(const QString &qr, int maxLimit);
+    virtual void doSearch(const QString &qr, int maxLimit);
     
 };
 
