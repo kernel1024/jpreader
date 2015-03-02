@@ -4,9 +4,8 @@
 #include "recollsearch.h"
 
 CRecollSearch::CRecollSearch(QObject *parent) :
-    QObject(parent)
+    CAbstractThreadedSearch(parent)
 {
-    working = false;
 }
 
 void CRecollSearch::doSearch(const QString &qr, int maxLimit)

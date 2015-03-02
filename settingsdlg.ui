@@ -42,7 +42,7 @@
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Maximum search results count limit</string>
+            <string>&amp;Maximum search results count limit</string>
            </property>
            <property name="buddy">
             <cstring>spinMaxLimit</cstring>
@@ -72,7 +72,7 @@
          <item>
           <widget class="QLabel" name="label_12">
            <property name="text">
-            <string>Maximum recycled menu items</string>
+            <string>Maximum &amp;recycled menu items</string>
            </property>
            <property name="buddy">
             <cstring>spinMaxRecycled</cstring>
@@ -89,7 +89,7 @@
          <item>
           <widget class="QLabel" name="label_13">
            <property name="text">
-            <string>Maximum history items</string>
+            <string>Maximum history &amp;items</string>
            </property>
            <property name="buddy">
             <cstring>spinMaxHistory</cstring>
@@ -179,7 +179,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Hosting directory</string>
+             <string>&amp;Hosting directory</string>
             </property>
             <property name="buddy">
              <cstring>editHostingDir</cstring>
@@ -221,7 +221,7 @@ p, li { white-space: pre-wrap; }
           <item row="2" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>Url with hosted directory</string>
+             <string>&amp;Url with hosted directory</string>
             </property>
             <property name="buddy">
              <cstring>editHostingUrl</cstring>
@@ -263,7 +263,7 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QRadioButton" name="radioNifty">
             <property name="text">
-             <string>Nifty</string>
+             <string>&amp;Nifty</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -273,14 +273,14 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QRadioButton" name="radioGoogle">
             <property name="text">
-             <string>Google</string>
+             <string>Googl&amp;e</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioAtlas">
             <property name="text">
-             <string>Local ATLAS by TCP</string>
+             <string>&amp;Local ATLAS by TCP</string>
             </property>
            </widget>
           </item>
@@ -307,7 +307,7 @@ p, li { white-space: pre-wrap; }
            <item row="0" column="0">
             <widget class="QLabel" name="label_10">
              <property name="text">
-              <string>ATLAS host</string>
+              <string>ATLAS &amp;host</string>
              </property>
              <property name="buddy">
               <cstring>atlHost</cstring>
@@ -344,7 +344,7 @@ p, li { white-space: pre-wrap; }
            <item row="2" column="0">
             <widget class="QLabel" name="label_18">
              <property name="text">
-              <string>TCP retry count</string>
+              <string>TCP &amp;retry count</string>
              </property>
              <property name="buddy">
               <cstring>atlRetryCnt</cstring>
@@ -361,7 +361,7 @@ p, li { white-space: pre-wrap; }
            <item row="3" column="0">
             <widget class="QLabel" name="label_19">
              <property name="text">
-              <string>TCP retry delay</string>
+              <string>TCP retry &amp;delay</string>
              </property>
              <property name="buddy">
               <cstring>atlRetryTimeout</cstring>
@@ -411,7 +411,7 @@ p, li { white-space: pre-wrap; }
            <item>
             <widget class="QLabel" name="label_17">
              <property name="text">
-              <string>Global translator hotkey</string>
+              <string>Global translator hot&amp;key</string>
              </property>
              <property name="buddy">
               <cstring>gctxHotkey</cstring>
@@ -513,7 +513,7 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Standard</string>
+               <string>Stan&amp;dard</string>
               </property>
               <property name="buddy">
                <cstring>fontStandard</cstring>
@@ -526,7 +526,7 @@ p, li { white-space: pre-wrap; }
             <item row="2" column="0">
              <widget class="QLabel" name="label_14">
               <property name="text">
-               <string>Fixed</string>
+               <string>F&amp;ixed</string>
               </property>
               <property name="buddy">
                <cstring>fontFixed</cstring>
@@ -539,7 +539,7 @@ p, li { white-space: pre-wrap; }
             <item row="3" column="0">
              <widget class="QLabel" name="label_15">
               <property name="text">
-               <string>Serif</string>
+               <string>S&amp;erif</string>
               </property>
               <property name="buddy">
                <cstring>fontSerif</cstring>
@@ -552,7 +552,7 @@ p, li { white-space: pre-wrap; }
             <item row="4" column="0">
              <widget class="QLabel" name="label_16">
               <property name="text">
-               <string>Sans Serif</string>
+               <string>Sa&amp;ns Serif</string>
               </property>
               <property name="buddy">
                <cstring>fontSansSerif</cstring>
@@ -670,7 +670,7 @@ p, li { white-space: pre-wrap; }
          <item row="1" column="0">
           <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>Browser</string>
+            <string>Bro&amp;wser</string>
            </property>
            <property name="buddy">
             <cstring>editBrowser</cstring>
@@ -694,7 +694,7 @@ p, li { white-space: pre-wrap; }
          <item row="2" column="0">
           <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Editor</string>
+            <string>&amp;Editor</string>
            </property>
            <property name="buddy">
             <cstring>editEditor</cstring>
@@ -718,7 +718,7 @@ p, li { white-space: pre-wrap; }
          <item row="3" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>SCP Host</string>
+            <string>SCP &amp;Host</string>
            </property>
            <property name="buddy">
             <cstring>editScpHost</cstring>
@@ -744,7 +744,7 @@ p, li { white-space: pre-wrap; }
          <item row="4" column="0">
           <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>SCP Params</string>
+            <string>SCP Para&amp;ms</string>
            </property>
            <property name="buddy">
             <cstring>editScpParams</cstring>
@@ -762,21 +762,28 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QRadioButton" name="radioSearchNone">
             <property name="text">
-             <string>Local file search</string>
+             <string>&amp;Local file search</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioSearchNepomuk">
             <property name="text">
-             <string>Nepomuk</string>
+             <string>&amp;Nepomuk</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioSearchRecoll">
             <property name="text">
-             <string>Recoll</string>
+             <string>&amp;Recoll</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchBaloo5">
+            <property name="text">
+             <string>&amp;Baloo (KDE Frameworks 5)</string>
             </property>
            </widget>
           </item>
@@ -1241,6 +1248,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>radioSearchNone</tabstop>
   <tabstop>radioSearchNepomuk</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
+  <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
   <tabstop>listBookmarks</tabstop>

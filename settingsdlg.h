@@ -53,6 +53,7 @@ public:
     QRadioButton* searchNepomuk;
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
+    QRadioButton* searchBaloo5;
     QCheckBox* debugLogNetReq;
     QCheckBox* visualShowTabCloseButtons;
     QLineEdit *proxyHost, *proxyLogin, *proxyPassword;

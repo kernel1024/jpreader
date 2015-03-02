@@ -8,13 +8,24 @@
 #include <QTime>
 #include <QDir>
 #include <QFileInfo>
+
 #ifdef WITH_NEPOMUK
 #include <kdirmodel.h>
 #include <kdirlister.h>
 #include <filequery.h>
 #include <literalterm.h>
 #endif
+
+#ifdef WITH_BALOO5
+#include "baloo5search.h"
+#endif
+
+#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+#include "abstractthreadedsearch.h"
+#endif
+
 #include "recollsearch.h"
+
 
 typedef QHash<QString, QString> QStrHash;
 
@@ -60,8 +71,8 @@ private:
     KDirModel engine;
     void addHit(const KFileItem &hit);
 #endif
-#ifdef WITH_RECOLL
-    CRecollSearch *recollEngine;
+#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+    CAbstractThreadedSearch *engine;
 #endif
     bool working;
     QBResult result;
@@ -76,8 +87,8 @@ private:
 
 signals:
     void searchFinished(const QBResult &result, const QString &aQuery);
-#ifdef WITH_RECOLL
-    void recollStartSearch(const QString &qr, int maxLimit);
+#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+    void startThreadedSearch(const QString &qr, int maxLimit);
 #endif
 
 public slots:

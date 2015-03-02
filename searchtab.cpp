@@ -72,6 +72,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
         ui->labelMode->setText("Nepomuk search");
     else if (engine->getCurrentIndexerService()==SE_RECOLL)
         ui->labelMode->setText("Recoll search");
+    else if (engine->getCurrentIndexerService()==SE_BALOO5)
+        ui->labelMode->setText("Baloo KF5 search");
     else
         ui->labelMode->setText("Local file search");
 

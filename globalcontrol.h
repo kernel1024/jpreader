@@ -33,6 +33,7 @@
 #define SE_NONE 0
 #define SE_NEPOMUK 1
 #define SE_RECOLL 2
+#define SE_BALOO5 3
 
 #define TM_ADDITIVE 1
 #define TM_OVERWRITING 2

@@ -680,6 +680,7 @@ void CMainWindow::helpAbout()
     if (rev.contains(':')) rev=rev.remove(QRegExp("^.*:"));
     QString nepomuk = tr("no");
     QString recoll = tr("no");
+    QString baloo5 = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
@@ -691,15 +692,21 @@ void CMainWindow::helpAbout()
 #ifdef WITH_RECOLL
     recoll = tr("yes");
 #endif
+#ifdef WITH_BALOO5
+    baloo5 = tr("yes");
+#endif
     QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
                      "Build: %1 %2\nPlatform: %3\nBuild date: %4\n\n"
-                     "Nepomuk backend compiled: %5\nRecoll backend compiled: %6")
+                     "Nepomuk backend compiled: %5\n"
+                     "Recoll backend compiled: %6\n"
+                     "Baloo (KDE Frameworks 5) backend compiled: %7")
                     .arg(rev)
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
                     .arg(BUILD_DATE)
                     .arg(nepomuk)
-                    .arg(recoll);
+                    .arg(recoll)
+                    .arg(baloo5);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }

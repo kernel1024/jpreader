@@ -51,6 +51,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     searchNepomuk=ui->radioSearchNepomuk;
     searchRecoll=ui->radioSearchRecoll;
     searchNone=ui->radioSearchNone;
+    searchBaloo5=ui->radioSearchBaloo5;
     debugLogNetReq=ui->checkLogNetworkRequests;
     visualShowTabCloseButtons=ui->checkTabCloseBtn;
     proxyHost=ui->editProxyHost;
