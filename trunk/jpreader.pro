@@ -113,6 +113,7 @@ lessThan(QT_MAJOR_VERSION, 5) {
         INCLUDEPATH += /usr/include/KF5/Baloo
         CONFIG += use_baloo5
         DEFINES += WITH_BALOO5=1
+        DEFINES += WITH_THREADED_SEARCH=1
         LIBS += -lKF5Baloo
         message("KF5 Baloo support: YES")
     }
@@ -129,6 +130,7 @@ lessThan(QT_MAJOR_VERSION, 5) {
 system( which recoll > /dev/null 2>&1 ) {
     CONFIG += use_recoll
     DEFINES += WITH_RECOLL=1
+    DEFINES += WITH_THREADED_SEARCH=2
     message("Recoll support: YES")
 } else {
     message("Recoll support: NO")

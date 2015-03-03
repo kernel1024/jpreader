@@ -17,7 +17,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
         connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
 #endif
     } else if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
-#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+#ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
             engine = NULL;
             return;

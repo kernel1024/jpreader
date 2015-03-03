@@ -16,16 +16,11 @@
 #include <literalterm.h>
 #endif
 
-#ifdef WITH_BALOO5
-#include "baloo5search.h"
-#endif
-
-#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+#ifdef WITH_THREADED_SEARCH
 #include "abstractthreadedsearch.h"
-#endif
-
+#include "baloo5search.h"
 #include "recollsearch.h"
-
+#endif
 
 typedef QHash<QString, QString> QStrHash;
 
@@ -71,7 +66,7 @@ private:
     KDirModel engine;
     void addHit(const KFileItem &hit);
 #endif
-#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+#ifdef WITH_THREADED_SEARCH
     CAbstractThreadedSearch *engine;
 #endif
     bool working;
@@ -87,7 +82,7 @@ private:
 
 signals:
     void searchFinished(const QBResult &result, const QString &aQuery);
-#if defined(WITH_RECOLL) || defined(WITH_BALOO5)
+#ifdef WITH_THREADED_SEARCH
     void startThreadedSearch(const QString &qr, int maxLimit);
 #endif
 
