@@ -130,7 +130,9 @@ lessThan(QT_MAJOR_VERSION, 5) {
 system( which recoll > /dev/null 2>&1 ) {
     CONFIG += use_recoll
     DEFINES += WITH_RECOLL=1
-    DEFINES += WITH_THREADED_SEARCH=2
+    !use_baloo5 {
+        DEFINES += WITH_THREADED_SEARCH=1
+    }
     message("Recoll support: YES")
 } else {
     message("Recoll support: NO")
