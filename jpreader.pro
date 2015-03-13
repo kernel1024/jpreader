@@ -138,11 +138,11 @@ system( which recoll > /dev/null 2>&1 ) {
     message("Recoll support: NO")
 }
 
-SVNREV = $$system(svnversion .)
+GITREV = $$system(git rev-list HEAD|head -n1|cut -c -7)
 PLATFORM = $$system(uname -s)
 BDATE = $$system(date +%F)
 
-DEFINES += BUILD_REV=\\\"$$SVNREV\\\"
+DEFINES += BUILD_REV=\\\"$$GITREV\\\"
 DEFINES += BUILD_PLATFORM=\\\"$$PLATFORM\\\"
 DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 
