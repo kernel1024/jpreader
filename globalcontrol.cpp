@@ -1049,13 +1049,23 @@ int CGlobalControl::getSourceLanguage()
     return res;
 }
 
-QString CGlobalControl::getSourceLanguageID()
+QString CGlobalControl::getSourceLanguageID(int engineStd)
 {
     QString srcLang;
     switch (getSourceLanguage()) {
         case LS_JAPANESE: srcLang="ja"; break;
-        case LS_CHINESETRAD: srcLang="zh-TW"; break;
-        case LS_CHINESESIMP: srcLang="zh-CN"; break;
+        case LS_CHINESETRAD:
+            if (engineStd==TE_BINGAPI)
+                srcLang="zh-CHT";
+            else
+                srcLang="zh-TW";
+            break;
+        case LS_CHINESESIMP:
+            if (engineStd==TE_BINGAPI)
+                srcLang="zh-CHS";
+            else
+                srcLang="zh-CN";
+            break;
         case LS_KOREAN: srcLang="ko"; break;
         default: srcLang="ja"; break;
     }

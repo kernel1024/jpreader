@@ -220,8 +220,8 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortMutex.unlock();
 
     if (tran==NULL || !tran->initTran()) {
-        dst=tr("Unable to initialize ATLAS.");
-        qDebug() << tr("Unable to initialize ATLAS.");
+        dst=tr("Unable to initialize translation engine.");
+        qDebug() << tr("Unable to initialize translation engine.");
         return false;
     }
 
@@ -379,6 +379,12 @@ void CTranslator::translate()
                 tran->doneTran(true);
         }
         if (!oktrans) {
+            emit calcFinished(false,"");
+            deleteLater();
+            return;
+        }
+    } else if (translationEngine==TE_BINGAPI) {
+        if (!translateDocument(Uri,aUrl)) {
             emit calcFinished(false,"");
             deleteLater();
             return;

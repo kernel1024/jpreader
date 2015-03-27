@@ -196,7 +196,7 @@ public:
 
     int getTranslationMode();
     int getSourceLanguage();
-    QString getSourceLanguageID();
+    QString getSourceLanguageID(int engineStd = TE_GOOGLE);
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;
