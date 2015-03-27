@@ -694,10 +694,13 @@ void CMainWindow::helpAbout()
     baloo5 = tr("yes");
 #endif
     QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
-                     "%1Platform: %2\nBuild date: %3\n\n"
-                     "Nepomuk backend compiled: %4\n"
-                     "Recoll backend compiled: %5\n"
-                     "Baloo (KDE Frameworks 5) backend compiled: %6")
+                     "Build: %1 %2\n"
+                     "Platform: %3\n"
+                     "Build date: %4\n\n"
+                     "Nepomuk backend compiled: %5\n"
+                     "Recoll backend compiled: %6\n"
+                     "Baloo (KDE Frameworks 5) backend compiled: %7")
+                    .arg(BUILD_REV)
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
                     .arg(BUILD_DATE)
