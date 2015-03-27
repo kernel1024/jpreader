@@ -142,6 +142,30 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
 
     actionTMAdditive->setChecked(true);
 
+    sourceLanguage = new QActionGroup(this);
+
+    actionLSJapanese = new QAction(tr("Japanese"),this);
+    actionLSJapanese->setCheckable(true);
+    actionLSJapanese->setActionGroup(sourceLanguage);
+    actionLSJapanese->setData(LS_JAPANESE);
+
+    actionLSChineseSimplified = new QAction(tr("Chinese simplified"),this);
+    actionLSChineseSimplified->setCheckable(true);
+    actionLSChineseSimplified->setActionGroup(sourceLanguage);
+    actionLSChineseSimplified->setData(LS_CHINESESIMP);
+
+    actionLSChineseTraditional = new QAction(tr("Chinese traditional"),this);
+    actionLSChineseTraditional->setCheckable(true);
+    actionLSChineseTraditional->setActionGroup(sourceLanguage);
+    actionLSChineseTraditional->setData(LS_CHINESETRAD);
+
+    actionLSKorean = new QAction(tr("Korean"),this);
+    actionLSKorean->setCheckable(true);
+    actionLSKorean->setActionGroup(sourceLanguage);
+    actionLSKorean->setData(LS_KOREAN);
+
+    actionLSJapanese->setChecked(true);
+
     actionForceNewTab = new QAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),this);
     actionForceNewTab->setCheckable(true);
     actionForceNewTab->setChecked(false);
@@ -883,6 +907,11 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTranslationMode->addAction(actionTMOverwriting);
     mainWindow->menuTranslationMode->addAction(actionTMTooltip);
 
+    mainWindow->menuSourceLanguage->addAction(actionLSJapanese);
+    mainWindow->menuSourceLanguage->addAction(actionLSChineseSimplified);
+    mainWindow->menuSourceLanguage->addAction(actionLSChineseTraditional);
+    mainWindow->menuSourceLanguage->addAction(actionLSKorean);
+
     checkRestoreLoad(mainWindow);
 
     return mainWindow;
@@ -990,6 +1019,18 @@ int CGlobalControl::getTranslationMode()
     int res = 0;
     if (translationMode->checkedAction()!=NULL) {
         res = translationMode->checkedAction()->data().toInt(&okconv);
+        if (!okconv)
+            res = 0;
+    }
+    return res;
+}
+
+int CGlobalControl::getSourceLanguage()
+{
+    bool okconv;
+    int res = 0;
+    if (sourceLanguage->checkedAction()!=NULL) {
+        res = sourceLanguage->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
     }

@@ -39,6 +39,11 @@
 #define TM_OVERWRITING 2
 #define TM_TOOLTIP 3
 
+#define LS_JAPANESE 1
+#define LS_CHINESETRAD 2
+#define LS_CHINESESIMP 3
+#define LS_KOREAN 4
+
 class CMainWindow;
 class QSpecCookieJar;
 class CLightTranslator;
@@ -157,7 +162,9 @@ public:
     QAction *actionOverrideFontColor;
 
     QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
-    QActionGroup *translationMode;
+    QAction *actionLSJapanese, *actionLSChineseTraditional;
+    QAction *actionLSChineseSimplified, *actionLSKorean;
+    QActionGroup *translationMode, *sourceLanguage;
 
     // Actions for Settings menu
     bool useOverrideFont();
@@ -185,6 +192,7 @@ public:
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
 
     int getTranslationMode();
+    int getSourceLanguage();
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;

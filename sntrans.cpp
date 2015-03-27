@@ -42,7 +42,10 @@ void CSnTrans::translate()
     } else {
         if (snv->txtBrowser->page()!=NULL && snv->txtBrowser->page()->mainFrame()!=NULL)
             aUri = snv->txtBrowser->page()->mainFrame()->baseUrl().toString();
-        if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive)) aUri=snv->auxContent;
+        if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive))
+            aUri=snv->Uri.toString();
+        if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive))
+            aUri=snv->auxContent;
     }
 
     CTranslator* ct = new CTranslator(NULL,aUri,snv->waitHandler);
@@ -96,6 +99,7 @@ void CSnTrans::postTranslate()
     QByteArray postBody;
     QUrl url;
     QString cn;
+    QString srcLang;
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QUrlQuery qu;
 #endif
@@ -111,13 +115,21 @@ void CSnTrans::postTranslate()
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     case TE_GOOGLE:
+        // Source language codes for Google Translate
+        switch (gSet->getSourceLanguage()) {
+            case LS_JAPANESE: srcLang="ja"; break;
+            case LS_CHINESETRAD: srcLang="zh-TW"; break;
+            case LS_CHINESESIMP: srcLang="zh-CN"; break;
+            case LS_KOREAN: srcLang="ko"; break;
+            default: srcLang="ja"; break;
+        }
         url = QUrl("http://translate.google.com/translate");
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        url.addQueryItem("sl","ja");
+        url.addQueryItem("sl",srcLang);
         url.addQueryItem("tl","en");
         url.addQueryItem("u",snv->calculatedUrl);
 #else
-        qu.addQueryItem("sl","ja");
+        qu.addQueryItem("sl",srcLang);
         qu.addQueryItem("tl","en");
         qu.addQueryItem("u",snv->calculatedUrl);
         url.setQuery(qu);

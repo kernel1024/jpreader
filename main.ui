@@ -102,7 +102,7 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionNewSearch"/>
@@ -121,20 +121,20 @@
    </widget>
    <widget class="QMenu" name="menuBookmarks">
     <property name="title">
-     <string>Bookmarks</string>
+     <string>&amp;Bookmarks</string>
     </property>
     <addaction name="actionAddBM"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionOpenCB"/>
     <addaction name="actionOpenCBPlain"/>
@@ -145,19 +145,25 @@
    </widget>
    <widget class="QMenu" name="menuCharset">
     <property name="title">
-     <string>Charset</string>
+     <string>&amp;Charset</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <widget class="QMenu" name="menuTranslationMode">
      <property name="title">
-      <string>Translation mode</string>
+      <string>&amp;Translation mode</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuSourceLanguage">
+     <property name="title">
+      <string>Source language</string>
      </property>
     </widget>
     <addaction name="menuTranslationMode"/>
+    <addaction name="menuSourceLanguage"/>
     <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDetachTab"/>
@@ -167,7 +173,7 @@
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
-     <string>Settings</string>
+     <string>&amp;Settings</string>
     </property>
    </widget>
    <addaction name="menuFile"/>
@@ -181,17 +187,17 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
    </property>
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Settings...</string>
+    <string>&amp;Settings...</string>
    </property>
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -199,7 +205,7 @@
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>Open...</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -207,12 +213,12 @@
   </action>
   <action name="actionOpenInDir">
    <property name="text">
-    <string>Open in document directory...</string>
+    <string>Open &amp;in document directory...</string>
    </property>
   </action>
   <action name="actionNew">
    <property name="text">
-    <string>New</string>
+    <string>&amp;New</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -220,7 +226,7 @@
   </action>
   <action name="actionOpenCB">
    <property name="text">
-    <string>Paste</string>
+    <string>&amp;Paste</string>
    </property>
    <property name="shortcut">
     <string>F6</string>
@@ -228,12 +234,12 @@
   </action>
   <action name="actionClearCB">
    <property name="text">
-    <string>Clear clipboard</string>
+    <string>&amp;Clear clipboard</string>
    </property>
   </action>
   <action name="actionOpenClip">
    <property name="text">
-    <string>Open with Url from clipboard</string>
+    <string>Open with &amp;Url from clipboard</string>
    </property>
   </action>
   <action name="actionAutodetection">
@@ -243,7 +249,7 @@
   </action>
   <action name="actionWnd">
    <property name="text">
-    <string>New window</string>
+    <string>New &amp;window</string>
    </property>
    <property name="shortcut">
     <string>F3</string>
@@ -251,22 +257,22 @@
   </action>
   <action name="actionNewSearch">
    <property name="text">
-    <string>New search</string>
+    <string>New sea&amp;rch</string>
    </property>
   </action>
   <action name="actionClearCaches">
    <property name="text">
-    <string>Clear caches</string>
+    <string>C&amp;lear caches</string>
    </property>
   </action>
   <action name="actionSaveSettings">
    <property name="text">
-    <string>Save settings</string>
+    <string>S&amp;ave settings</string>
    </property>
   </action>
   <action name="actionAddBM">
    <property name="text">
-    <string>Add bookmark...</string>
+    <string>&amp;Add bookmark...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
@@ -274,7 +280,7 @@
   </action>
   <action name="actionOpenCBPlain">
    <property name="text">
-    <string>Paste plain text</string>
+    <string>Paste plain &amp;text</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -282,7 +288,7 @@
   </action>
   <action name="actionTextTranslator">
    <property name="text">
-    <string>Text translator</string>
+    <string>T&amp;ext translator</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
@@ -298,7 +304,7 @@
   </action>
   <action name="actionExitAll">
    <property name="text">
-    <string>Exit and close all</string>
+    <string>&amp;Exit and close all</string>
    </property>
   </action>
   <action name="actionUseHTTPProxy">
@@ -316,12 +322,12 @@
     </iconset>
    </property>
    <property name="text">
-    <string>Detach current tab</string>
+    <string>&amp;Detach current tab</string>
    </property>
   </action>
   <action name="actionShowLog">
    <property name="text">
-    <string>Show log</string>
+    <string>&amp;Show log</string>
    </property>
   </action>
   <action name="actionTModeAdditive">
@@ -346,6 +352,11 @@
    </property>
    <property name="text">
     <string>Tooltip translation</string>
+   </property>
+  </action>
+  <action name="actionBlah">
+   <property name="text">
+    <string>blah</string>
    </property>
   </action>
  </widget>
