@@ -64,6 +64,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     rbBingAPI=ui->radioBingAPI;
     bingID=ui->editBingID;
     bingKey=ui->editBingKey;
+    createCoredumps=ui->checkCreateCoredumps;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

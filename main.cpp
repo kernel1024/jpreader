@@ -16,19 +16,6 @@ QStringList debugMessages;
 
 int main(int argc, char *argv[])
 {
-#ifdef QT_DEBUG
-    // create core dumps on segfaults
-    rlimit rlp;
-    int res = getrlimit(RLIMIT_CORE, &rlp);
-    rlp.rlim_cur = RLIM_INFINITY;
-    res = setrlimit(RLIMIT_CORE, &rlp);
-    if (res < 0)
-    {
-        qDebug() << "err: setrlimit: RLIMIT_CORE";
-        return -2;
-    }
-#endif
-
     debugMessages.clear();
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     qInstallMessageHandler(stdConsoleOutput);
@@ -45,6 +32,15 @@ int main(int argc, char *argv[])
         return !app.sendMessage("newWindow");
 
     gSet = new CGlobalControl(&app);
+
+    if (gSet->createCoredumps) {
+        // create core dumps on segfaults
+        rlimit rlp;
+        getrlimit(RLIMIT_CORE, &rlp);
+        rlp.rlim_cur = RLIM_INFINITY;
+        setrlimit(RLIMIT_CORE, &rlp);
+    }
+
     app.setStyle(new QSpecMenuStyle);
     QApplication::setQuitOnLastWindowClosed(false);
 

@@ -35,6 +35,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     debugNetReqLogging=false;
     restoreLoadChecked=false;
     emptyRestore=false;
+    createCoredumps=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -320,6 +321,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("proxyType",proxyType);
     settings.setValue("bingID",bingID);
     settings.setValue("bingKey",bingKey);
+    settings.setValue("createCoredumps",createCoredumps);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -431,6 +433,7 @@ void CGlobalControl::readSettings()
     proxyUse = settings.value("proxyUse",false).toBool();
     bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
+    createCoredumps = settings.value("createCoredumps",false).toBool();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -573,6 +576,7 @@ void CGlobalControl::settingsDlg()
     dlg->overrideFontColor->setChecked(forceFontColor());
     dlg->updateFontColorPreview(forcedFontColor);
     dlg->gctxHotkey->setKeySequence(gctxTranHotkey->shortcut());
+    dlg->createCoredumps->setChecked(createCoredumps);
 #ifndef WITH_NEPOMUK
     dlg->searchNepomuk->setEnabled(false);
 #endif
@@ -674,6 +678,7 @@ void CGlobalControl::settingsDlg()
         gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
         if (!gctxTranHotkey->shortcut().isEmpty())
             gctxTranHotkey->setEnabled();
+        createCoredumps=dlg->createCoredumps->isChecked();
         if (dlg->searchNepomuk->isChecked())
             searchEngine = SE_NEPOMUK;
         else if (dlg->searchRecoll->isChecked())

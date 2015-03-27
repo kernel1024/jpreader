@@ -64,6 +64,7 @@ public:
     QCheckBox* emptyRestore;
     QLineEdit* bingID;
     QLineEdit* bingKey;
+    QCheckBox* createCoredumps;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

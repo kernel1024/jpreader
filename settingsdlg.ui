@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>393</height>
+    <height>370</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1183,13 +1183,20 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
-          <string>Logging to console</string>
+          <string>Debug tools</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_18">
+         <layout class="QHBoxLayout" name="horizontalLayout_21">
           <item>
            <widget class="QCheckBox" name="checkLogNetworkRequests">
             <property name="text">
-             <string>Log network requests</string>
+             <string>Log network requests to console</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkCreateCoredumps">
+            <property name="text">
+             <string>Create core dumps on segfaults</string>
             </property>
            </widget>
           </item>
@@ -1340,6 +1347,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>editProxyLogin</tabstop>
   <tabstop>editProxyPassword</tabstop>
   <tabstop>checkLogNetworkRequests</tabstop>
+  <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
  </tabstops>
  <resources/>

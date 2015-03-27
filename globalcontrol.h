@@ -103,6 +103,7 @@ public:
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
     bool showTabCloseButtons;
+    bool createCoredumps;
 
     int searchEngine;
     bool useAdblock;
