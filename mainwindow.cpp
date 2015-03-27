@@ -676,15 +676,13 @@ void CMainWindow::closeEvent(QCloseEvent *event)
 
 void CMainWindow::helpAbout()
 {
-    QString rev(BUILD_REV);
-    if (rev.contains(':')) rev=rev.remove(QRegExp("^.*:"));
     QString nepomuk = tr("no");
     QString recoll = tr("no");
     QString baloo5 = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
-    debugstr = tr ("(debug build)");
+    debugstr = tr ("Debug build.\n");
 #endif
 #ifdef WITH_NEPOMUK
     nepomuk = tr("yes");
@@ -696,11 +694,10 @@ void CMainWindow::helpAbout()
     baloo5 = tr("yes");
 #endif
     QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
-                     "Build: %1 %2\nPlatform: %3\nBuild date: %4\n\n"
-                     "Nepomuk backend compiled: %5\n"
-                     "Recoll backend compiled: %6\n"
-                     "Baloo (KDE Frameworks 5) backend compiled: %7")
-                    .arg(rev)
+                     "%1Platform: %2\nBuild date: %3\n\n"
+                     "Nepomuk backend compiled: %4\n"
+                     "Recoll backend compiled: %5\n"
+                     "Baloo (KDE Frameworks 5) backend compiled: %6")
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
                     .arg(BUILD_DATE)
