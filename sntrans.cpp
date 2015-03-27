@@ -34,7 +34,8 @@ void CSnTrans::translate()
     snv->onceTranslated=true;
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->translatorEngine==TE_ATLAS) {
+    if (gSet->translatorEngine==TE_ATLAS ||
+            gSet->translatorEngine==TE_BINGAPI) {
         aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
         snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
         if (snv->savedBaseUrl.hasFragment())
@@ -56,15 +57,18 @@ void CSnTrans::translate()
     if (gSet->translatorEngine==TE_ATLAS) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
+    } else if (gSet->translatorEngine==TE_BINGAPI) {
+        snv->waitHandler->setText(tr("Translating text with Bing API..."));
+        snv->waitHandler->setProgressEnabled(true);
     } else {
         snv->waitHandler->setText(tr("Copying file to hosting..."));
         snv->waitHandler->setProgressEnabled(false);
     }
 
     connect(gSet,SIGNAL(stopTranslators()),
-            ct,SLOT(abortAtlas()),Qt::QueuedConnection);
+            ct,SLOT(abortTranslator()),Qt::QueuedConnection);
     connect(snv->abortBtn,SIGNAL(clicked()),
-            ct,SLOT(abortAtlas()),Qt::QueuedConnection);
+            ct,SLOT(abortTranslator()),Qt::QueuedConnection);
 
     ct->moveToThread(th);
     th->start();
@@ -99,7 +103,6 @@ void CSnTrans::postTranslate()
     QByteArray postBody;
     QUrl url;
     QString cn;
-    QString srcLang;
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QUrlQuery qu;
 #endif
@@ -115,21 +118,13 @@ void CSnTrans::postTranslate()
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     case TE_GOOGLE:
-        // Source language codes for Google Translate
-        switch (gSet->getSourceLanguage()) {
-            case LS_JAPANESE: srcLang="ja"; break;
-            case LS_CHINESETRAD: srcLang="zh-TW"; break;
-            case LS_CHINESESIMP: srcLang="zh-CN"; break;
-            case LS_KOREAN: srcLang="ko"; break;
-            default: srcLang="ja"; break;
-        }
         url = QUrl("http://translate.google.com/translate");
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        url.addQueryItem("sl",srcLang);
+        url.addQueryItem("sl",gSet->getSourceLanguageID());
         url.addQueryItem("tl","en");
         url.addQueryItem("u",snv->calculatedUrl);
 #else
-        qu.addQueryItem("sl",srcLang);
+        qu.addQueryItem("sl",gSet->getSourceLanguageID());
         qu.addQueryItem("tl","en");
         qu.addQueryItem("u",snv->calculatedUrl);
         url.setQuery(qu);
@@ -141,6 +136,7 @@ void CSnTrans::postTranslate()
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     case TE_ATLAS: // Url contains translated file itself
+    case TE_BINGAPI:
         cn = snv->calculatedUrl;
         snv->fileChanged = true;
         snv->onceTranslated = true;

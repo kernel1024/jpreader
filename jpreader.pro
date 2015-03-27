@@ -23,7 +23,8 @@ HEADERS = mainwindow.h \
     titlestranslator.h \
     logdisplay.h \
     baloo5search.h \
-    abstractthreadedsearch.h
+    abstractthreadedsearch.h \
+    abstracttranslator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -49,7 +50,8 @@ SOURCES = main.cpp \
     titlestranslator.cpp \
     logdisplay.cpp \
     baloo5search.cpp \
-    abstractthreadedsearch.cpp
+    abstractthreadedsearch.cpp \
+    abstracttranslator.cpp
 
 RESOURCES = \
     jpreader.qrc

@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QString>
-#include "atlastranslator.h"
+#include "abstracttranslator.h"
 
 namespace Ui {
 class CLigthTranslator;
@@ -19,7 +19,6 @@ public:
     
 private:
     Ui::CLigthTranslator *ui;
-    CAtlasTranslator::ATTranslateMode tranMode;
     bool isTranslating;
 
 protected:
@@ -31,7 +30,6 @@ signals:
 public slots:
     void restoreWindow();
     void translate();
-    void tranModeChanged(bool state);
     void gotTranslation(const QString& text);
 
 };

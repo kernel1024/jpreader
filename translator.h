@@ -9,7 +9,7 @@
 #include <QFont>
 #include <netdb.h>
 #include "mainwindow.h"
-#include "atlastranslator.h"
+#include "abstracttranslator.h"
 #include "globalcontrol.h"
 #include "snwaitctl.h"
 
@@ -36,37 +36,38 @@ private:
     QString scpParams;
     QString scpHost;
     CSnWaitCtl* waitDlg;
-    QString atlHost;
-    int atlPort;
     int atlTcpRetryCount;
     int atlTcpTimeout;
-    bool atlasToAbort;
+    bool abortFlag;
     bool atlasSlipped;
     int translationEngine;
     QMutex abortMutex;
     int textNodesCnt;
     int textNodesProgress;
-    CAtlasTranslator atlas;
+    CAbstractTranslator* tran;
     XMLPassMode xmlPass;
     bool useOverrideFont;
     bool forceFontColor;
     int translationMode;
     QColor forcedFontColor;
     QFont overrideFont;
+    int engine;
+    QString srcLanguage;
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
-    bool translateWithAtlas(const QString& srcUri, QString& dst);
+    bool translateDocument(const QString& srcUri, QString& dst);
     void examineXMLNode(QDomNode node);
     bool translateParagraph(QDomNode src);
 
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
+    ~CTranslator();
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);
 
 public slots:
-    void abortAtlas();
+    void abortTranslator();
     void translate();
 
 };

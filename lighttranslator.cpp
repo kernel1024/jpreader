@@ -8,7 +8,6 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CLigthTranslator)
 {
-    tranMode = CAtlasTranslator::AutoTran;
     isTranslating = false;
 
     ui->setupUi(this);
@@ -16,9 +15,6 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     ui->barTranslating->hide();
 
     connect(ui->btnTranslate,SIGNAL(clicked()),this,SLOT(translate()));
-    connect(ui->rbDirAuto,SIGNAL(toggled(bool)),this,SLOT(tranModeChanged(bool)));
-
-    ui->rbDirAuto->setChecked(true);
 }
 
 void CLightTranslator::closeEvent(QCloseEvent *event)
@@ -46,7 +42,7 @@ void CLightTranslator::translate()
 
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
-    at->setParams(s,tranMode);
+    at->setParams(s);
     connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
     connect(at,SIGNAL(gotTranslation(QString)),this,SLOT(gotTranslation(QString)),Qt::QueuedConnection);
     at->moveToThread(th);
@@ -55,16 +51,6 @@ void CLightTranslator::translate()
     ui->barTranslating->show();
 
     emit startTranslation();
-}
-
-void CLightTranslator::tranModeChanged(bool)
-{
-    CAtlasTranslator::ATTranslateMode m = CAtlasTranslator::AutoTran;
-    if (ui->rbDirEJ->isChecked())
-        m = CAtlasTranslator::EngToJpnTran;
-    else if (ui->rbDirJE->isChecked())
-        m = CAtlasTranslator::JpnToEngTran;
-    tranMode = m;
 }
 
 void CLightTranslator::gotTranslation(const QString &text)

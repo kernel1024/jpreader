@@ -17,99 +17,136 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="widget">
       <attribute name="title">
        <string>General</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_13">
+      <layout class="QHBoxLayout" name="horizontalLayout_20">
        <item>
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Local search engine</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>1</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <widget class="QRadioButton" name="radioSearchNone">
+            <property name="text">
+             <string>&amp;Local file search</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchNepomuk">
+            <property name="text">
+             <string>&amp;Nepomuk</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchRecoll">
+            <property name="text">
+             <string>&amp;Recoll</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioSearchBaloo5">
+            <property name="text">
+             <string>&amp;Baloo (KDE Frameworks 5)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <layout class="QVBoxLayout" name="verticalLayout_13">
          <item>
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>&amp;Maximum search results count limit</string>
+          <spacer name="verticalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="buddy">
-            <cstring>spinMaxLimit</cstring>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>1</height>
+            </size>
            </property>
-          </widget>
+          </spacer>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinMaxLimit">
-           <property name="minimum">
-            <number>50</number>
-           </property>
-           <property name="maximum">
-            <number>100000</number>
-           </property>
-           <property name="singleStep">
-            <number>50</number>
-           </property>
-           <property name="value">
-            <number>1000</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_12">
-         <item>
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Maximum &amp;recycled menu items</string>
-           </property>
-           <property name="buddy">
-            <cstring>spinMaxRecycled</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="spinMaxRecycled"/>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_13">
-         <item>
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Maximum history &amp;items</string>
-           </property>
-           <property name="buddy">
-            <cstring>spinMaxHistory</cstring>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>&amp;Maximum search results count limit</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxLimit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxLimit">
+             <property name="minimum">
+              <number>50</number>
+             </property>
+             <property name="maximum">
+              <number>100000</number>
+             </property>
+             <property name="singleStep">
+              <number>50</number>
+             </property>
+             <property name="value">
+              <number>1000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinMaxHistory">
-           <property name="maximum">
-            <number>100000</number>
-           </property>
-           <property name="value">
-            <number>5000</number>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <item>
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>M&amp;aximum recycled menu items</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxRecycled</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxRecycled"/>
+           </item>
+          </layout>
          </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Maximum history &amp;items</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxHistory</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxHistory">
+             <property name="maximum">
+              <number>100000</number>
+             </property>
+             <property name="value">
+              <number>5000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
@@ -129,123 +166,37 @@
           </layout>
          </item>
          <item>
-          <spacer name="horizontalSpacer_6">
+          <layout class="QHBoxLayout" name="horizontalLayout_17">
+           <item>
+            <widget class="QPushButton" name="buttonClearCookies">
+             <property name="text">
+              <string>Clear all cookies</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="buttonClearCaches">
+             <property name="text">
+              <string>Clear all caches</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_8">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>20</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
          </item>
-         <item>
-          <widget class="QPushButton" name="buttonClearCookies">
-           <property name="text">
-            <string>Clear all cookies</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonClearCaches">
-           <property name="text">
-            <string>Clear all caches</string>
-           </property>
-          </widget>
-         </item>
         </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Local hosting for Nifty and Google Translator</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout_2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>&amp;Hosting directory</string>
-            </property>
-            <property name="buddy">
-             <cstring>editHostingDir</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLineEdit" name="editHostingDir"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonHostingDir">
-              <property name="text">
-               <string>...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkSCP">
-            <property name="text">
-             <string>Use SCP for copying</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Verdana'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In case of SCP copying &amp;quot;Hosting directory&amp;quot; must be a &lt;span style=&quot; font-weight:600;&quot;&gt;full path&lt;/span&gt; on remote system&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>&amp;Url with hosted directory</string>
-            </property>
-            <property name="buddy">
-             <cstring>editHostingUrl</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="editHostingUrl"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -284,6 +235,13 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QRadioButton" name="radioBingAPI">
+            <property name="text">
+             <string>&amp;Bing Translate API</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -292,6 +250,79 @@ p, li { white-space: pre-wrap; }
          <property name="currentIndex">
           <number>0</number>
          </property>
+         <widget class="QWidget" name="tab_11">
+          <attribute name="title">
+           <string>Nifty / Google</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <item>
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Local hosting parameters</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QFormLayout" name="formLayout_2">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>&amp;Hosting directory</string>
+               </property>
+               <property name="buddy">
+                <cstring>editHostingDir</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <item>
+                <widget class="QLineEdit" name="editHostingDir"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonHostingDir">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>&amp;Url with hosted directory</string>
+               </property>
+               <property name="buddy">
+                <cstring>editHostingUrl</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="editHostingUrl"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkSCP">
+             <property name="text">
+              <string>Use SCP for copying</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Verdana'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In case of SCP copying &amp;quot;Hosting directory&amp;quot; must be a &lt;span style=&quot; font-weight:600;&quot;&gt;full path&lt;/span&gt; on remote system&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="tab_9">
           <attribute name="title">
            <string>ATLAS</string>
@@ -332,7 +363,7 @@ p, li { white-space: pre-wrap; }
              <item row="1" column="0">
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>&amp;ATLAS port</string>
+                <string>AT&amp;LAS port</string>
                </property>
                <property name="buddy">
                 <cstring>atlPort</cstring>
@@ -419,7 +450,7 @@ p, li { white-space: pre-wrap; }
              <item>
               <widget class="QLabel" name="label_17">
                <property name="text">
-                <string>Glo&amp;bal translator hotkey</string>
+                <string>Global translator hot&amp;key</string>
                </property>
                <property name="buddy">
                 <cstring>gctxHotkey</cstring>
@@ -440,6 +471,69 @@ p, li { white-space: pre-wrap; }
               <size>
                <width>20</width>
                <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_10">
+          <attribute name="title">
+           <string>Bing API</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_19">
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>89</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QFormLayout" name="formLayout_7">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_25">
+               <property name="text">
+                <string>Client I&amp;D</string>
+               </property>
+               <property name="buddy">
+                <cstring>editBingID</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="editBingID"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>Client &amp;key</string>
+               </property>
+               <property name="buddy">
+                <cstring>editBingKey</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="editBingKey"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_14">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>89</height>
               </size>
              </property>
             </spacer>
@@ -754,7 +848,7 @@ p, li { white-space: pre-wrap; }
          <item row="4" column="0">
           <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>SCP Para&amp;ms</string>
+            <string>SCP P&amp;arams</string>
            </property>
            <property name="buddy">
             <cstring>editScpParams</cstring>
@@ -762,43 +856,6 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="title">
-          <string>Local search engine</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
-          <item>
-           <widget class="QRadioButton" name="radioSearchNone">
-            <property name="text">
-             <string>&amp;Local file search</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioSearchNepomuk">
-            <property name="text">
-             <string>&amp;Nepomuk</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioSearchRecoll">
-            <property name="text">
-             <string>&amp;Recoll</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioSearchBaloo5">
-            <property name="text">
-             <string>&amp;Baloo (KDE Frameworks 5)</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_4">
@@ -1216,6 +1273,10 @@ p, li { white-space: pre-wrap; }
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>radioSearchNone</tabstop>
+  <tabstop>radioSearchNepomuk</tabstop>
+  <tabstop>radioSearchRecoll</tabstop>
+  <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>spinMaxLimit</tabstop>
   <tabstop>spinMaxRecycled</tabstop>
   <tabstop>spinMaxHistory</tabstop>
@@ -1223,23 +1284,26 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkAutoloadImages</tabstop>
   <tabstop>buttonClearCookies</tabstop>
   <tabstop>buttonClearCaches</tabstop>
-  <tabstop>editHostingDir</tabstop>
-  <tabstop>buttonHostingDir</tabstop>
-  <tabstop>checkSCP</tabstop>
-  <tabstop>editHostingUrl</tabstop>
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>radioNifty</tabstop>
   <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>
+  <tabstop>radioBingAPI</tabstop>
   <tabstop>tabWidget_2</tabstop>
+  <tabstop>editHostingDir</tabstop>
+  <tabstop>buttonHostingDir</tabstop>
+  <tabstop>editHostingUrl</tabstop>
+  <tabstop>checkSCP</tabstop>
   <tabstop>atlHost</tabstop>
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
   <tabstop>atlRetryTimeout</tabstop>
   <tabstop>checkEmptyRestore</tabstop>
   <tabstop>gctxHotkey</tabstop>
+  <tabstop>editBingID</tabstop>
+  <tabstop>editBingKey</tabstop>
   <tabstop>checkTransFont</tabstop>
   <tabstop>transFont</tabstop>
   <tabstop>transFontSize</tabstop>
@@ -1256,10 +1320,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonEditor</tabstop>
   <tabstop>editScpHost</tabstop>
   <tabstop>editScpParams</tabstop>
-  <tabstop>radioSearchNone</tabstop>
-  <tabstop>radioSearchNepomuk</tabstop>
-  <tabstop>radioSearchRecoll</tabstop>
-  <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
   <tabstop>listBookmarks</tabstop>

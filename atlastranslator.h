@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QString>
+#include <abstracttranslator.h>
 
-class CAtlasTranslator : public QObject
+class CAtlasTranslator : public CAbstractTranslator
 {
     Q_OBJECT
 public:
@@ -18,14 +19,14 @@ private:
     QTcpSocket sock;
     QString atlHost;
     int atlPort;
-    bool inited;
     ATTranslateMode tranMode;
+    bool inited;
     bool emptyRestore;
 public:
-    explicit CAtlasTranslator(QObject *parent = 0, QString host = QString("localhost"), int port = 18000, ATTranslateMode TranMode = AutoTran);
+    explicit CAtlasTranslator(QObject *parent, QString host, int port, ATTranslateMode TranMode = AutoTran);
     virtual ~CAtlasTranslator();
 
-    bool initTran(QString host, int port, ATTranslateMode TranMode = AutoTran);
+    bool initTran();
     QString tranString(QString src);
     void doneTran(bool lazyClose = false);
     bool isReady();

@@ -6,7 +6,7 @@
 #include "globalcontrol.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
-#include "atlastranslator.h"
+#include "abstracttranslator.h"
 
 static int sortGMode = -3;
 
@@ -482,14 +482,14 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     QHash<int,QStringList> snippets;
 
     QStringList queryTermsTran = queryTerms;
-    CAtlasTranslator atlas;
+    CAbstractTranslator* tran = translatorFactory(this);
     if (gSet->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
-        if (!atlas.initTran(gSet->atlHost,gSet->atlPort)) {
-            qDebug() << tr("Unable to initialize ATLAS.");
-            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize ATLAS."));
+        if (tran==NULL || !tran->initTran()) {
+            qDebug() << tr("Unable to initialize translation engine.");
+            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
         } else {
             for (int i=0;i<queryTerms.count();i++) {
-                queryTermsTran[i] = atlas.tranString(queryTerms[i]);
+                queryTermsTran[i] = tran->tranString(queryTerms[i]);
             }
         }
     }
@@ -508,9 +508,12 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = gSet->actionSnippetAutotranslate->isChecked() && atlas.isReady() && !forceUntranslated;
+            bool makeTran = tran!=NULL &&
+                            gSet->actionSnippetAutotranslate->isChecked() &&
+                            tran->isReady() &&
+                            !forceUntranslated;
             if (makeTran)
-                fspart = atlas.tranString(fspart);
+                fspart = tran->tranString(fspart);
             QString snpColor = gSet->snippetColors[i % gSet->snippetColors.count()].name();
             if (makeTran)
                 fspart.replace(ITermT,"<font color='"+snpColor+"'>"+ITermT+"</font>",Qt::CaseInsensitive);
@@ -520,8 +523,11 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
             snippets[i] << fspart;
         }
     }
-    if (atlas.isReady())
-        atlas.doneTran();
+    if (tran!=NULL) {
+        if (tran->isReady())
+            tran->doneTran();
+        tran->deleteLater();
+    }
 
     // *** Weighted sorting ***
     // calculate term weights

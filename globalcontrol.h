@@ -29,6 +29,7 @@
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
 #define TE_ATLAS 2
+#define TE_BINGAPI 3
 
 #define SE_NONE 0
 #define SE_NEPOMUK 1
@@ -143,6 +144,8 @@ public:
 
     int atlTcpRetryCount;
     int atlTcpTimeout;
+    QString bingID;
+    QString bingKey;
 
     QString proxyHost;
     QString proxyLogin;
@@ -193,6 +196,7 @@ public:
 
     int getTranslationMode();
     int getSourceLanguage();
+    QString getSourceLanguageID();
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;

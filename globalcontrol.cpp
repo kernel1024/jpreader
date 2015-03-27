@@ -63,6 +63,8 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
 
     atlTcpRetryCount = 3;
     atlTcpTimeout = 2;
+    bingID = QString();
+    bingKey = QString();
 
     proxyHost = QString();
     proxyPort = 3128;
@@ -316,6 +318,8 @@ void CGlobalControl::writeSettings()
     settings.setValue("proxyPassword",proxyPassword);
     settings.setValue("proxyUse",proxyUse);
     settings.setValue("proxyType",proxyType);
+    settings.setValue("bingID",bingID);
+    settings.setValue("bingKey",bingKey);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -425,6 +429,8 @@ void CGlobalControl::readSettings()
     proxyLogin = settings.value("proxyLogin",QString()).toString();
     proxyPassword = settings.value("proxyPassword",QString()).toString();
     proxyUse = settings.value("proxyUse",false).toBool();
+    bingID = settings.value("bingID",QString()).toString();
+    bingKey = settings.value("bingKey",QString()).toString();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -521,6 +527,7 @@ void CGlobalControl::settingsDlg()
     case TE_NIFTY: dlg->rbNifty->setChecked(true); break;
     case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
     case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
+    case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
     default: dlg->rbNifty->setChecked(true); break;
     }
     dlg->scpHost->clear();
@@ -538,6 +545,8 @@ void CGlobalControl::settingsDlg()
     dlg->atlPort->setValue(atlPort);
     dlg->atlRetryCount->setValue(atlTcpRetryCount);
     dlg->atlRetryTimeout->setValue(atlTcpTimeout);
+    dlg->bingID->setText(bingID);
+    dlg->bingKey->setText(bingKey);
     dlg->emptyRestore->setChecked(emptyRestore);
     dlg->adList->clear();
     dlg->adList->addItems(adblock);
@@ -625,6 +634,7 @@ void CGlobalControl::settingsDlg()
         if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
         else if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
+        else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
         else translatorEngine=TE_NIFTY;
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
@@ -633,6 +643,8 @@ void CGlobalControl::settingsDlg()
         atlPort=dlg->atlPort->value();
         atlTcpRetryCount=dlg->atlRetryCount->value();
         atlTcpTimeout=dlg->atlRetryTimeout->value();
+        bingID=dlg->bingID->text();
+        bingKey=dlg->bingKey->text();
         emptyRestore=dlg->emptyRestore->isChecked();
         if (scpHostHistory.contains(scpHost))
             scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
@@ -1035,6 +1047,19 @@ int CGlobalControl::getSourceLanguage()
             res = 0;
     }
     return res;
+}
+
+QString CGlobalControl::getSourceLanguageID()
+{
+    QString srcLang;
+    switch (getSourceLanguage()) {
+        case LS_JAPANESE: srcLang="ja"; break;
+        case LS_CHINESETRAD: srcLang="zh-TW"; break;
+        case LS_CHINESESIMP: srcLang="zh-CN"; break;
+        case LS_KOREAN: srcLang="ko"; break;
+        default: srcLang="ja"; break;
+    }
+    return srcLang;
 }
 
 UrlHolder::UrlHolder()

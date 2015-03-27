@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QString>
-#include "atlastranslator.h"
+#include "abstracttranslator.h"
 
 class CAuxTranslator : public QObject
 {
@@ -11,11 +11,9 @@ class CAuxTranslator : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.jpreader.auxtranslator")
 private:
     QString text;
-    CAtlasTranslator::ATTranslateMode tranMode;
 public:
     explicit CAuxTranslator(QObject *parent = 0);
-    void setParams(const QString& Text, const CAtlasTranslator::ATTranslateMode TranMode =
-            CAtlasTranslator::AutoTran);
+    void setParams(const QString& Text);
 
 signals:
     Q_SCRIPTABLE void gotTranslation(const QString& text);

@@ -4,7 +4,7 @@
 #include "globalcontrol.h"
 
 CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTranslateMode TranMode) :
-    QObject(parent)
+    CAbstractTranslator(parent)
 {
     atlHost=host;
     atlPort=port;
@@ -21,13 +21,11 @@ CAtlasTranslator::~CAtlasTranslator()
         doneTran();
 }
 
-bool CAtlasTranslator::initTran(QString host, int port, ATTranslateMode TranMode)
+bool CAtlasTranslator::initTran()
 {
     if (inited) return true;
     if (sock.isOpen()) return true;
-    atlHost=host;
-    atlPort=port;
-    tranMode=TranMode;
+
     sock.connectToHost(atlHost,atlPort);
     if (!sock.waitForConnected()) {
         qDebug() << "ATLAS: connection timeout";

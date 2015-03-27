@@ -30,6 +30,7 @@ public:
     QRadioButton* rbNifty;
     QRadioButton* rbGoogle;
     QRadioButton* rbAtlas;
+    QRadioButton* rbBingAPI;
     QCheckBox* cbSCP;
     QLineEdit* scpParams;
     QComboBox* scpHost;
@@ -61,6 +62,8 @@ public:
     QCheckBox* proxyUse;
     QComboBox* proxyType;
     QCheckBox* emptyRestore;
+    QLineEdit* bingID;
+    QLineEdit* bingKey;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

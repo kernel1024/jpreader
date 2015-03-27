@@ -14,8 +14,6 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     useSCP=gSet->useScp;
     scpParams=gSet->scpParams;
     scpHost=gSet->scpHost;
-    atlHost=gSet->atlHost;
-    atlPort=gSet->atlPort;
     translationEngine=gSet->translatorEngine;
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
@@ -26,6 +24,15 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     useOverrideFont=gSet->useOverrideFont();
     overrideFont=gSet->overrideFont;
     translationMode=gSet->getTranslationMode();
+    engine=gSet->translatorEngine;
+    srcLanguage=gSet->getSourceLanguageID();
+    tran=translatorFactory(this);
+}
+
+CTranslator::~CTranslator()
+{
+    if (tran!=NULL)
+        tran->deleteLater();
 }
 
 bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
@@ -76,7 +83,7 @@ void CTranslator::examineXMLNode(QDomNode node)
 {
     if (atlasSlipped) return;
     abortMutex.lock();
-    if (atlasToAbort) {
+    if (abortFlag) {
         abortMutex.unlock();
         return;
     }
@@ -206,13 +213,13 @@ void CTranslator::examineXMLNode(QDomNode node)
     }
 }
 
-bool CTranslator::translateWithAtlas(const QString &srcUri, QString &dst)
+bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 {
     abortMutex.lock();
-    atlasToAbort=false;
+    abortFlag=false;
     abortMutex.unlock();
 
-    if (!atlas.initTran(atlHost,atlPort)) {
+    if (tran==NULL || !tran->initTran()) {
         dst=tr("Unable to initialize ATLAS.");
         qDebug() << tr("Unable to initialize ATLAS.");
         return false;
@@ -230,7 +237,7 @@ bool CTranslator::translateWithAtlas(const QString &srcUri, QString &dst)
     QDomDocument doc;
     QString errMsg; int errLine, errCol;
     if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
-        atlas.doneTran();
+        tran->doneTran();
         qDebug() << tr("HTML to XML beautification error");
         qDebug() << errMsg << "at line" << errLine << ":" << errCol;
         return false;
@@ -259,7 +266,7 @@ bool CTranslator::translateWithAtlas(const QString &srcUri, QString &dst)
 
         dst = doc.toString();
 
-        atlas.doneTran();
+        tran->doneTran();
     }
 
 /*    QFile f(QDir::home().absoluteFilePath("a.html"));
@@ -272,6 +279,8 @@ bool CTranslator::translateWithAtlas(const QString &srcUri, QString &dst)
 
 bool CTranslator::translateParagraph(QDomNode src)
 {
+    if (tran==NULL) return false;
+
     int baseProgress = 0;
     if (textNodesCnt>0) {
         baseProgress = 100*textNodesProgress/textNodesCnt;
@@ -287,7 +296,7 @@ bool CTranslator::translateParagraph(QDomNode src)
     if (xmlPass==PXTranslate) src.removeChild(src.firstChild());
     for(int i=0;i<sl.count();i++) {
         abortMutex.lock();
-        if (atlasToAbort) {
+        if (abortFlag) {
             abortMutex.unlock();
             src.appendChild(src.ownerDocument().createTextNode(tr("ATLAS: Translation thread aborted.")));
             break;
@@ -300,7 +309,7 @@ bool CTranslator::translateParagraph(QDomNode src)
             QDomNode p = src.ownerDocument().createElement("span");
 
             QString srct = sl[i];
-            QString t = atlas.tranString(sl[i]);
+            QString t = tran->tranString(sl[i]);
             if (translationMode==TM_TOOLTIP) {
                 QString ts = srct;
                 srct = t;
@@ -312,7 +321,7 @@ bool CTranslator::translateParagraph(QDomNode src)
                 p.appendChild(p.ownerDocument().createElement("br"));
             }
             if (t.contains("ERROR:ATLAS_SLIPPED")) {
-                atlas.doneTran();
+                tran->doneTran();
                 src.appendChild(src.ownerDocument().createTextNode(t));
                 return false;
             } else {
@@ -357,7 +366,7 @@ void CTranslator::translate()
     if (translationEngine==TE_ATLAS) {
         bool oktrans = false;
         for (int i=0;i<atlTcpRetryCount;i++) {
-            if (translateWithAtlas(Uri,aUrl)) {
+            if (translateDocument(Uri,aUrl)) {
                 oktrans = true;
                 break;
             }
@@ -366,7 +375,8 @@ void CTranslator::translate()
 #else
             thread()->wait(atlTcpTimeout*1000);
 #endif
-            atlas.doneTran(true);
+            if (tran!=NULL)
+                tran->doneTran(true);
         }
         if (!oktrans) {
             emit calcFinished(false,"");
@@ -384,9 +394,9 @@ void CTranslator::translate()
     deleteLater();
 }
 
-void CTranslator::abortAtlas()
+void CTranslator::abortTranslator()
 {
     abortMutex.lock();
-    atlasToAbort=true;
+    abortFlag=true;
     abortMutex.unlock();
 }

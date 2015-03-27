@@ -2,8 +2,8 @@
 #include <QStringList>
 #include <QApplication>
 #include "titlestranslator.h"
-#include "atlastranslator.h"
 #include "globalcontrol.h"
+#include "abstracttranslator.h"
 
 CTitlesTranslator::CTitlesTranslator(QObject *parent) :
     QObject(parent),
@@ -22,12 +22,14 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     QStringList res;
     stopReq=false;
 
-    CAtlasTranslator atlas;
-    if (!atlas.initTran(gSet->atlHost,gSet->atlPort)) {
+    CAbstractTranslator* tran=translatorFactory(this);
+    if (tran==NULL || !tran->initTran()) {
         qDebug() << tr("Unable to initialize ATLAS.");
         res.clear();
         res << "ERROR";
         emit gotTranslation(res);
+        if (tran!=NULL)
+            tran->deleteLater();
         return;
     }
     int p = -1;
@@ -36,7 +38,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
             res.clear();
             break;
         }
-        QString s = atlas.tranString(titles.at(i));
+        QString s = tran->tranString(titles.at(i));
         if (s.contains("ERROR")) break;
         res << s;
         if (100*i/titles.count()!=p) {
@@ -45,7 +47,8 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
             QApplication::processEvents();
         }
     }
-    atlas.doneTran();
+    tran->doneTran();
+    tran->deleteLater();
     emit updateProgress(-1);
     emit gotTranslation(res);
 }

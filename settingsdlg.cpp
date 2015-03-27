@@ -61,6 +61,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     proxyUse=ui->checkUseProxy;
     proxyType=ui->listProxyType;
     emptyRestore=ui->checkEmptyRestore;
+    rbBingAPI=ui->radioBingAPI;
+    bingID=ui->editBingID;
+    bingKey=ui->editBingKey;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
