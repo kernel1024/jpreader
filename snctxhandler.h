@@ -20,6 +20,7 @@ public:
 public slots:
     void contextMenu(const QPoint &pos);
     void translateFragment();
+    void openFragment();
     void copyImgUrl();
     void duplicateTab();
     void openNewWindow();

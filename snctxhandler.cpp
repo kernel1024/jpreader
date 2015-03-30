@@ -48,7 +48,12 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         tx = wh.enclosingBlockElement().toPlainText();
     if (!tx.isEmpty()) {
         cm->addSeparator();
-        QAction* nta = new QAction(QIcon::fromTheme("text-frame-link"),tr("Translate block"),NULL);
+        QAction* nta = new QAction(QIcon::fromTheme("text-frame-unlink"),
+                                   tr("Open block text in separate tab"),NULL);
+        nta->setData(tx);
+        connect(nta,SIGNAL(triggered()),this,SLOT(openFragment()));
+        cm->addAction(nta);
+        nta = new QAction(QIcon::fromTheme("text-frame-link"),tr("Translate block"),NULL);
         nta->setData(tx);
         connect(nta,SIGNAL(triggered()),this,SLOT(translateFragment()));
         cm->addAction(nta);
@@ -213,6 +218,17 @@ void CSnCtxHandler::translateFragment()
     th->start();
 
     emit startTranslation();
+}
+
+void CSnCtxHandler::openFragment()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QString s = nt->data().toString();
+    if (s.isEmpty()) return;
+    s = s.replace('\n',"<br/>");
+
+    new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
 }
 
 void CSnCtxHandler::gotTranslation(const QString &text)
