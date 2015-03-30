@@ -200,6 +200,7 @@ public:
     int getTranslationMode();
     int getSourceLanguage();
     QString getSourceLanguageID(int engineStd = TE_GOOGLE);
+    QString getSourceLanguageIDStr(int engine, int engineStd = TE_GOOGLE);
 
     QString getSourceLanguageString(int srcLang);
     QString getTranslationEngineString(int engine);

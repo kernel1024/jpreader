@@ -142,6 +142,8 @@
     <addaction name="actionClearCB"/>
     <addaction name="separator"/>
     <addaction name="actionClearCaches"/>
+    <addaction name="separator"/>
+    <addaction name="actionFindText"/>
    </widget>
    <widget class="QMenu" name="menuCharset">
     <property name="title">
@@ -159,7 +161,7 @@
     </widget>
     <widget class="QMenu" name="menuSourceLanguage">
      <property name="title">
-      <string>Source language</string>
+      <string>Source &amp;language</string>
      </property>
     </widget>
     <addaction name="menuTranslationMode"/>
@@ -357,6 +359,11 @@
   <action name="actionBlah">
    <property name="text">
     <string>blah</string>
+   </property>
+  </action>
+  <action name="actionFindText">
+   <property name="text">
+    <string>&amp;Find text</string>
    </property>
   </action>
  </widget>

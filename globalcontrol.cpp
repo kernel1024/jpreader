@@ -95,10 +95,21 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
 
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
-    fs += tr("jpreader_cache") + QDir::separator();
+    QString fcache = fs + tr("jpreader_cache") + QDir::separator();
     QNetworkDiskCache* cache = new QNetworkDiskCache(this);
-    cache->setCacheDirectory(fs);
+    cache->setCacheDirectory(fcache);
     netAccess.setCache(cache);
+
+    QString fdata = fs + tr("jpreader_local_storage") + QDir::separator();
+    QDir fddata(fdata);
+    QWebSettings* ws = QWebSettings::globalSettings();
+    if (!fddata.exists()) {
+        if (!fddata.mkpath(fdata))
+            qDebug() << "Unable to create directory for local storage feature: " << fdata;
+        else
+            ws->enablePersistentStorage(fdata);
+    } else
+        ws->enablePersistentStorage(fdata);
 
     netAccess.setProxy(QNetworkProxy());
 
@@ -1064,8 +1075,13 @@ int CGlobalControl::getSourceLanguage()
 
 QString CGlobalControl::getSourceLanguageID(int engineStd)
 {
+    return getSourceLanguageIDStr(getSourceLanguage(),engineStd);
+}
+
+QString CGlobalControl::getSourceLanguageIDStr(int engine, int engineStd)
+{
     QString srcLang;
-    switch (getSourceLanguage()) {
+    switch (engine) {
         case LS_JAPANESE: srcLang="ja"; break;
         case LS_CHINESETRAD:
             if (engineStd==TE_BINGAPI)
@@ -1083,17 +1099,6 @@ QString CGlobalControl::getSourceLanguageID(int engineStd)
         default: srcLang="ja"; break;
     }
     return srcLang;
-}
-
-QString CGlobalControl::getSourceLanguageString(int srcLang)
-{
-    switch (srcLang) {
-        case LS_JAPANESE: return QString("Japanese");
-        case LS_CHINESESIMP: return QString("Chinese simplified");
-        case LS_CHINESETRAD: return QString("Chinese traditional");
-        case LS_KOREAN: return QString("Korean");
-        default: return QString("<unknown language>");
-    }
 }
 
 QString CGlobalControl::getTranslationEngineString(int engine)

@@ -75,6 +75,7 @@ public slots:
     void hideTooltip();
     void tabBarTooltip(const QPoint& globalPos, const QPoint &localPos);
     void detachTab();
+    void findText();
 signals:
     void aboutToClose(CMainWindow* sender);
 

@@ -7,6 +7,7 @@
 #include <QString>
 #include <QAction>
 #include <QMutex>
+#include <QTimer>
 #include "snviewer.h"
 
 class CSnippetViewer;
@@ -18,6 +19,7 @@ private:
     QMutex lockSrcLang, lockTranEngine;
     CSnippetViewer *snv;
 public:
+    QTimer *loadingBarHideTimer;
     CSnMsgHandler(CSnippetViewer * parent);
 public slots:
     void loadHomeUri();
@@ -34,6 +36,7 @@ public slots:
     void tranEngine(int engine);
     void updateSrcLang(QAction *action);
     void updateTranEngine();
+    void hideBarLoading();
 };
 
 #endif // SNMSGHANDLER_H

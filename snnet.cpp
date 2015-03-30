@@ -50,7 +50,6 @@ void CSnNet::removeUrlFromProcessing(const QUrl &url)
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
-    snv->searchEdit->hide();
     snv->barLoading->show();
     snv->loadingByWebKit = true;
     snv->updateButtonsState();
@@ -69,8 +68,7 @@ void CSnNet::loadFinished(bool)
         snv->urlEdit->setPalette(QApplication::palette(snv->urlEdit));
     }
 
-    snv->barLoading->hide();
-    snv->searchEdit->show();
+    snv->msgHandler->hideBarLoading();
     snv->loadingByWebKit = false;
     snv->updateButtonsState();
 

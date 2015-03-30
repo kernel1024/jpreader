@@ -81,6 +81,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
     connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
+    connect(actionFindText,SIGNAL(triggered()),this,SLOT(findText()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -186,6 +187,15 @@ void CMainWindow::detachTab()
         QSpecTabContainer *bt = qobject_cast<QSpecTabContainer *>(tabMain->currentWidget());
         if (bt!=NULL)
             bt->detachTab();
+    }
+}
+
+void CMainWindow::findText()
+{
+    if (tabMain->currentWidget()!=NULL) {
+        CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+        if (sn!=NULL)
+            sn->searchPanel->show();
     }
 }
 

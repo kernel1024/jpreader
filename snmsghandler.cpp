@@ -5,6 +5,8 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+    loadingBarHideTimer = new QTimer(this);
+    connect(loadingBarHideTimer,SIGNAL(timeout()),loadingBarHideTimer,SLOT(stop()));
 }
 
 void CSnMsgHandler::searchFwd()
@@ -87,6 +89,11 @@ void CSnMsgHandler::updateTranEngine()
         snv->comboTranEngine->setCurrentIndex(gSet->translatorEngine);
 
     lockTranEngine.unlock();
+}
+
+void CSnMsgHandler::hideBarLoading()
+{
+    loadingBarHideTimer->start(1500);
 }
 
 void CSnMsgHandler::navBack()

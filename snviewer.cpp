@@ -1,6 +1,7 @@
 #include <QShortcut>
 #include <QUrl>
 #include <QFileInfo>
+#include <QTimer>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
@@ -48,7 +49,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     forwardStack.clear();
     barLoading->setValue(0);
     barLoading->hide();
-    searchEdit->show();
     if (!aSearchText.isEmpty()) slist.append(aSearchText);
 	if (slist.count()>0) {
         searchEdit->addItems(aSearchText);
@@ -88,6 +88,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
 
+    connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barLoading, SLOT(hide()));
+
     connect(txtBrowser->page(), SIGNAL(linkClickedExt(QWebFrame*,QUrl,QWebPage::NavigationType)), msgHandler,
             SLOT(linkClicked(QWebFrame*,QUrl,QWebPage::NavigationType)));
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString,QString,QString)), msgHandler,
@@ -108,10 +110,18 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     stopButton->setEnabled(false);
 	reloadButton->setEnabled(false);
 
-    comboSrcLang->maximumSize() = comboSrcLang->geometry().size();
-    comboTranEngine->maximumSize() = comboTranEngine->geometry().size();
-    for (int i=0;i<LSCOUNT;i++)
-        comboSrcLang->addItem(gSet->getSourceLanguageString(i),i);
+    for (int i=0;i<LSCOUNT;i++) {
+        QString s = gSet->getSourceLanguageIDStr(i,TE_GOOGLE);
+        if (s.startsWith("ja"))
+            s=QString("jp");
+        comboSrcLang->addItem(s,i);
+        switch (i) {
+            case LS_JAPANESE: comboSrcLang->setItemData(i,"Japanese",Qt::ToolTipRole); break;
+            case LS_CHINESESIMP: comboSrcLang->setItemData(i,"Chinese simplified",Qt::ToolTipRole); break;
+            case LS_CHINESETRAD: comboSrcLang->setItemData(i,"Chinese traditional",Qt::ToolTipRole); break;
+            case LS_KOREAN: comboSrcLang->setItemData(i,"Korean",Qt::ToolTipRole); break;
+        }
+    }
     for (int i=0;i<TECOUNT;i++)
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
     comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
@@ -123,9 +133,13 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
-    connect(sc,SIGNAL(activated()),searchEdit,SLOT(setFocus()));
+    connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
+    sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
+    connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
+
 
     waitPanel->hide();
+    searchPanel->hide();
     errorPanel->hide();
     errorLabel->setText(QString());
 
