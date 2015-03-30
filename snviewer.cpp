@@ -108,6 +108,19 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     stopButton->setEnabled(false);
 	reloadButton->setEnabled(false);
 
+    comboSrcLang->maximumSize() = comboSrcLang->geometry().size();
+    comboTranEngine->maximumSize() = comboTranEngine->geometry().size();
+    for (int i=0;i<LSCOUNT;i++)
+        comboSrcLang->addItem(gSet->getSourceLanguageString(i),i);
+    for (int i=0;i<TECOUNT;i++)
+        comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
+    comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
+    comboTranEngine->setCurrentIndex(gSet->translatorEngine);
+    connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
+    connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
+    connect(gSet->sourceLanguage, SIGNAL(triggered(QAction*)), msgHandler, SLOT(updateSrcLang(QAction*)));
+    connect(gSet, SIGNAL(settingsUpdated()), msgHandler, SLOT(updateTranEngine()));
+
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
     connect(sc,SIGNAL(activated()),searchEdit,SLOT(setFocus()));

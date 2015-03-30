@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1026</width>
+    <width>1166</width>
     <height>687</height>
    </rect>
   </property>
@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>2</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
     <number>2</number>
    </property>
    <item>
@@ -153,7 +162,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <property name="spacing">
-        <number>3</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QPushButton" name="backButton">
@@ -284,11 +293,32 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="transButton">
-       <property name="text">
-        <string>Translate</string>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <property name="spacing">
+        <number>2</number>
        </property>
-      </widget>
+       <item>
+        <widget class="QComboBox" name="comboSrcLang">
+         <property name="toolTip">
+          <string>Source language</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboTranEngine">
+         <property name="toolTip">
+          <string>Translation engine</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="transButton">
+         <property name="text">
+          <string>Translate</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -398,7 +428,7 @@
   <customwidget>
    <class>QWebView</class>
    <extends>QWidget</extends>
-   <header>QtWebKit/QWebView</header>
+   <header>QtWebKitWidgets/QWebView</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -413,6 +443,8 @@
   <tabstop>backButton</tabstop>
   <tabstop>fwdButton</tabstop>
   <tabstop>comboZoom</tabstop>
+  <tabstop>comboSrcLang</tabstop>
+  <tabstop>comboTranEngine</tabstop>
   <tabstop>transButton</tabstop>
   <tabstop>abortBtn</tabstop>
   <tabstop>hideErrorButton</tabstop>
@@ -427,12 +459,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>171</y>
+     <x>1153</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
-     <x>433</x>
-     <y>154</y>
+     <x>435</x>
+     <y>118</y>
     </hint>
    </hints>
   </connection>

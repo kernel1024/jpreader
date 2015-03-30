@@ -39,6 +39,56 @@ void CSnMsgHandler::navByClick()
     snv->navByUrl(snv->urlEdit->currentText());
 }
 
+void CSnMsgHandler::srcLang(int lang)
+{
+    if (!lockSrcLang.tryLock()) return;
+
+    foreach (QAction *ac, gSet->sourceLanguage->actions()) {
+        bool okconv;
+        int id = ac->data().toInt(&okconv);
+        if (okconv && id>=0 && id<LSCOUNT && id==lang) {
+            ac->setChecked(true);
+            ac->trigger();
+            break;
+        }
+    }
+
+    lockSrcLang.unlock();
+}
+
+void CSnMsgHandler::tranEngine(int engine)
+{
+    if (!lockTranEngine.tryLock()) return;
+
+    if (engine>=0 && engine<TECOUNT)
+        gSet->setTranslationEngine(engine);
+
+    lockTranEngine.unlock();
+}
+
+void CSnMsgHandler::updateSrcLang(QAction *action)
+{
+    if (!lockSrcLang.tryLock()) return;
+
+    bool okconv;
+    int id = action->data().toInt(&okconv);
+    if (okconv && id>=0 && id<LSCOUNT) {
+        snv->comboSrcLang->setCurrentIndex(id);
+    }
+
+    lockSrcLang.unlock();
+}
+
+void CSnMsgHandler::updateTranEngine()
+{
+    if (!lockTranEngine.tryLock()) return;
+
+    if (gSet->translatorEngine>=0 && gSet->translatorEngine<snv->comboTranEngine->count())
+        snv->comboTranEngine->setCurrentIndex(gSet->translatorEngine);
+
+    lockTranEngine.unlock();
+}
+
 void CSnMsgHandler::navBack()
 {
     if (snv->backHistory.count()==0) return;

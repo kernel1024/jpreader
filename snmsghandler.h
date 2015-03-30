@@ -5,6 +5,8 @@
 #include <QUrl>
 #include <QWebFrame>
 #include <QString>
+#include <QAction>
+#include <QMutex>
 #include "snviewer.h"
 
 class CSnippetViewer;
@@ -13,6 +15,7 @@ class CSnMsgHandler : public QObject
 {
     Q_OBJECT
 private:
+    QMutex lockSrcLang, lockTranEngine;
     CSnippetViewer *snv;
 public:
     CSnMsgHandler(CSnippetViewer * parent);
@@ -27,6 +30,10 @@ public slots:
     void setZoom(QString z);
     void urlEdited(const QString &url);
     void navByClick();
+    void srcLang(int lang);
+    void tranEngine(int engine);
+    void updateSrcLang(QAction *action);
+    void updateTranEngine();
 };
 
 #endif // SNMSGHANDLER_H

@@ -30,20 +30,22 @@
 #define TE_GOOGLE 1
 #define TE_ATLAS 2
 #define TE_BINGAPI 3
+#define TECOUNT 4
 
 #define SE_NONE 0
 #define SE_NEPOMUK 1
 #define SE_RECOLL 2
 #define SE_BALOO5 3
 
-#define TM_ADDITIVE 1
-#define TM_OVERWRITING 2
-#define TM_TOOLTIP 3
+#define TM_ADDITIVE 0
+#define TM_OVERWRITING 1
+#define TM_TOOLTIP 2
 
-#define LS_JAPANESE 1
-#define LS_CHINESETRAD 2
-#define LS_CHINESESIMP 3
-#define LS_KOREAN 4
+#define LS_JAPANESE 0
+#define LS_CHINESETRAD 1
+#define LS_CHINESESIMP 2
+#define LS_KOREAN 3
+#define LSCOUNT 4
 
 class CMainWindow;
 class QSpecCookieJar;
@@ -198,6 +200,10 @@ public:
     int getTranslationMode();
     int getSourceLanguage();
     QString getSourceLanguageID(int engineStd = TE_GOOGLE);
+
+    QString getSourceLanguageString(int srcLang);
+    QString getTranslationEngineString(int engine);
+    void setTranslationEngine(int engine);
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;
@@ -207,6 +213,7 @@ protected:
 signals:
     void startAuxTranslation();
     void stopTranslators();
+    void settingsUpdated();
 
 public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);

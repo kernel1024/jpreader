@@ -533,6 +533,9 @@ void CGlobalControl::settingsDlg()
     case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
     default: dlg->rbNifty->setChecked(true); break;
     }
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    dlg->rbBingAPI->setEnabled(false);
+#endif
     dlg->scpHost->clear();
     if (!scpHostHistory.contains(scpHost))
         scpHostHistory.append(scpHost);
@@ -640,6 +643,10 @@ void CGlobalControl::settingsDlg()
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
         else translatorEngine=TE_NIFTY;
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+        if (translatorEngine==TE_BINGAPI)
+            translatorEngine=TE_GOOGLE;
+#endif
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();
@@ -705,6 +712,7 @@ void CGlobalControl::settingsDlg()
         }
 
         updateProxy(proxyUse,true);
+        emit settingsUpdated();
     }
     dlg->setParent(NULL);
     delete dlg;
@@ -1075,6 +1083,34 @@ QString CGlobalControl::getSourceLanguageID(int engineStd)
         default: srcLang="ja"; break;
     }
     return srcLang;
+}
+
+QString CGlobalControl::getSourceLanguageString(int srcLang)
+{
+    switch (srcLang) {
+        case LS_JAPANESE: return QString("Japanese");
+        case LS_CHINESESIMP: return QString("Chinese simplified");
+        case LS_CHINESETRAD: return QString("Chinese traditional");
+        case LS_KOREAN: return QString("Korean");
+        default: return QString("<unknown language>");
+    }
+}
+
+QString CGlobalControl::getTranslationEngineString(int engine)
+{
+    switch (engine) {
+        case TE_NIFTY: return QString("Nifty");
+        case TE_GOOGLE: return QString("Google");
+        case TE_ATLAS: return QString("ATLAS");
+        case TE_BINGAPI: return QString("Bing API");
+        default: return QString("<unknown engine>");
+    }
+}
+
+void CGlobalControl::setTranslationEngine(int engine)
+{
+    translatorEngine = engine;
+    emit settingsUpdated();
 }
 
 UrlHolder::UrlHolder()
