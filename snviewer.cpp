@@ -49,6 +49,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     forwardStack.clear();
     barLoading->setValue(0);
     barLoading->hide();
+    barPlaceholder->show();
     if (!aSearchText.isEmpty()) slist.append(aSearchText);
 	if (slist.count()>0) {
         searchEdit->addItems(aSearchText);
@@ -89,6 +90,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
 
     connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barLoading, SLOT(hide()));
+    connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barPlaceholder, SLOT(show()));
 
     connect(txtBrowser->page(), SIGNAL(linkClickedExt(QWebFrame*,QUrl,QWebPage::NavigationType)), msgHandler,
             SLOT(linkClicked(QWebFrame*,QUrl,QWebPage::NavigationType)));
@@ -136,7 +138,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
     connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
-
 
     waitPanel->hide();
     searchPanel->hide();

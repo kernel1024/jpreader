@@ -48,8 +48,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         tx = wh.enclosingBlockElement().toPlainText();
     if (!tx.isEmpty()) {
         cm->addSeparator();
-        QAction* nta = new QAction(QIcon::fromTheme("text-frame-unlink"),
-                                   tr("Open block text in separate tab"),NULL);
+        QAction* nta = new QAction(tr("Open block text in separate tab"),NULL);
         nta->setData(tx);
         connect(nta,SIGNAL(triggered()),this,SLOT(openFragment()));
         cm->addAction(nta);

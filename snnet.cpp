@@ -51,6 +51,7 @@ void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
     snv->barLoading->show();
+    snv->barPlaceholder->hide();
     snv->loadingByWebKit = true;
     snv->updateButtonsState();
 }
