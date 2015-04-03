@@ -5,9 +5,11 @@
 #include <QString>
 #include <QStringList>
 #include <QKeyEvent>
+#include <QSortFilterProxyModel>
 #include "mainwindow.h"
 #include "indexersearch.h"
 #include "titlestranslator.h"
+#include "searchmodel.h"
 
 namespace Ui {
     class SearchTab;
@@ -31,9 +33,10 @@ public:
     void setDocTitle(const QString &title);
 private:
     Ui::SearchTab *ui;
-    QBResult result;
+    CSearchModel *model;
+    QSortFilterProxyModel *sort;
+    QStrHash stats;
     QString lastQuery;
-    int sortMode;
 
     CIndexerSearch *engine;
     CTitlesTranslator *titleTran;
@@ -49,16 +52,12 @@ signals:
 
 public slots:
     void doNewSearch();
-    void applyFilter(int idx);
-    void applySort(int idx);
-    void applySnippet(int row, int column, int oldRow, int oldColumn);
+    void applySnippet(const QModelIndex& index);
     void showSnippet();
-    void execSnippet(int row, int column);
-    void columnClicked(int col);
-    void rowIdxClicked(int row);
+    void execSnippet(const QModelIndex& index);
     void selectDir();
     void searchFinished(const QBResult &aResult, const QString &aQuery);
-    void headerContextMenu(const QPoint& pos);
+    void translatorContextMenu(const QPoint& pos);
     void translateTitles();
     void gotTitleTranslation(const QStringList &res);
     void updateProgress(const int pos);

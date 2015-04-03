@@ -8,8 +8,6 @@
 #include "genericfuncs.h"
 #include "abstracttranslator.h"
 
-static int sortGMode = -3;
-
 CSearchTab::CSearchTab(CMainWindow *parent) :
     QSpecTabContainer(parent),
     ui(new Ui::SearchTab)
@@ -21,7 +19,6 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     engine = new CIndexerSearch();
     titleTran = new CTitlesTranslator();
 
-    sortMode = -3;
     lastQuery = "";
     tabTitle = tr("Search");
     selectFile();
@@ -30,14 +27,16 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
 
     ui->translateFrame->hide();
 
+    model = new CSearchModel(this,ui->listResults);
+    sort = new QSortFilterProxyModel(this);
+    sort->setSourceModel(model);
+    ui->listResults->setModel(sort);
+
     connect(ui->buttonSearch, SIGNAL(clicked()), this, SLOT(doNewSearch()));
-    connect(ui->comboFilter, SIGNAL(currentIndexChanged(int)), this, SLOT(applyFilter(int)));
-    connect(ui->listResults, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(applySnippet(int, int, int, int)));
+    connect(ui->listResults, SIGNAL(pressed(QModelIndex)), this, SLOT(applySnippet(QModelIndex)));
     connect(ui->buttonOpen, SIGNAL(clicked()), this, SLOT(showSnippet()));
-    connect(ui->listResults, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(execSnippet(int, int)));
+    connect(ui->listResults, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(execSnippet(QModelIndex)));
     connect(ui->editSearch->lineEdit(), SIGNAL(returnPressed()), ui->buttonSearch, SLOT(click()));
-    connect(ui->listResults->horizontalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(columnClicked(int)));
-    connect(ui->listResults->verticalHeader(),SIGNAL(sectionClicked(int)),this,SLOT(rowIdxClicked(int)));
     connect(ui->buttonDir, SIGNAL(clicked()), this, SLOT(selectDir()));
 
     connect(engine,SIGNAL(searchFinished(QBResult,QString)),
@@ -54,9 +53,9 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(this,SIGNAL(translateTitlesSrc(QStringList)),
             titleTran,SLOT(translateTitles(QStringList)),Qt::QueuedConnection);
 
-    ui->listResults->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->listResults->horizontalHeader(),SIGNAL(customContextMenuRequested(QPoint)),
-            this,SLOT(headerContextMenu(QPoint)));
+    ui->buttonSearch->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->buttonSearch,SIGNAL(customContextMenuRequested(QPoint)),
+            this,SLOT(translatorContextMenu(QPoint)));
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -112,14 +111,6 @@ void CSearchTab::selectDir()
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
-bool dirsGreaterThan(const DirStruct& f1, const DirStruct& f2)
-{
-    if (f1.count==f2.count)
-        return (f1.dirName>f2.dirName);
-    else
-        return (f1.count > f2.count);
-}
-
 void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 {
     ui->buttonSearch->setEnabled(true);
@@ -132,39 +123,16 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
         return;
     }
 
-    result.snippets.clear();
+    model->deleteAllItems();
     titleTran->stop();
 
     lastQuery = aQuery;
-    result = aResult;
+    model->addItems(aResult.snippets);
+    stats = aResult.stats;
 
-    ui->comboFilter->clear();
-    ui->comboFilter->addItem(tr("show all"));
-    QHash<QString, int> dirs;
-    for (int i = 0;i < result.snippets.count();i++) {
-        if (dirs.contains(result.snippets[i]["Dir"]))
-            dirs[result.snippets[i]["Dir"]]++;
-        else
-            dirs[result.snippets[i]["Dir"]] = 1;
-    }
-    QList<DirStruct> sortedDirs;
-    QHashIterator<QString, int> i(dirs);
-    while (i.hasNext()) {
-        i.next();
-        sortedDirs << DirStruct(i.key(),i.value());
-    }
-    qSort(sortedDirs.begin(),sortedDirs.end(),dirsGreaterThan);
-    QListIterator<DirStruct> j(sortedDirs);
-    while (j.hasNext()) {
-        DirStruct t=j.next();
-        ui->comboFilter->addItem(QString("%1 (%2 snippets)").arg(t.dirName).arg(t.count));
-    }
-    applySort(sortMode);
-    ui->comboFilter->setCurrentIndex(0);
-
-    QString elapsed = QString(result.stats["Elapsed time"]).remove(QRegExp("[s]"));
+    QString elapsed = QString(stats["Elapsed time"]).remove(QRegExp("[s]"));
     QString statusmsg(tr("Found %1 results at %2 seconds").
-            arg(result.stats["Total hits"]).
+            arg(stats["Total hits"]).
             arg(elapsed));
     ui->labelStatus->setText(statusmsg);
     parentWnd->stSearchStatus.setText(tr("Ready"));
@@ -174,24 +142,24 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
     setDocTitle(tr("S:[%1]").arg(lastQuery));
 }
 
-void CSearchTab::headerContextMenu(const QPoint &pos)
+void CSearchTab::translatorContextMenu(const QPoint &pos)
 {
-    if (result.snippets.count()==0) return;
+    if (model->rowCount()==0) return;
 
     QMenu cm(this);
     cm.addAction(tr("Translate titles"),this,SLOT(translateTitles()));
 
-    cm.exec(ui->listResults->mapToGlobal(pos));
+    cm.exec(ui->buttonSearch->mapToGlobal(pos));
 }
 
 void CSearchTab::translateTitles()
 {
-    if (result.snippets.count()==0) return;
+    if (model->rowCount()==0) return;
 
     QStringList titles;
 
-    for (int i=0;i<result.snippets.count();i++)
-        titles << result.snippets[i]["dc:title"];
+    for (int i=0;i<model->rowCount();i++)
+        titles << model->getSnippet(i)["dc:title"];
 
     emit translateTitlesSrc(titles);
 }
@@ -203,15 +171,15 @@ void CSearchTab::gotTitleTranslation(const QStringList &res)
         return;
     }
 
-    if (res.isEmpty() || result.snippets.count()==0 || res.count()!=result.snippets.count()) return;
-
+    if (res.isEmpty() || model->rowCount()==0 || res.count()!=model->rowCount()) return;
 
     for (int i=0;i<res.count();i++) {
-        if (!result.snippets[i].keys().contains("dc:title:saved"))
-            result.snippets[i]["dc:title:saved"]=result.snippets[i]["dc:title"];
-        result.snippets[i]["dc:title"]=res.at(i);
+        QStrHash snip = model->getSnippet(i);
+        if (!snip.contains("dc:title:saved"))
+            snip["dc:title:saved"]=snip["dc:title"];
+        snip["dc:title"]=res.at(i);
+        model->setSnippet(i,snip);
     }
-    applyFilter(ui->comboFilter->currentIndex());
 }
 
 void CSearchTab::updateProgress(const int pos)
@@ -276,173 +244,41 @@ void CSearchTab::setDocTitle(const QString& title)
 
 void CSearchTab::doNewSearch()
 {
-    ui->listResults->clear();
-    ui->listResults->setRowCount(0);
-    ui->listResults->setColumnCount(0);
+    model->deleteAllItems();
     ui->snippetBrowser->clear();
     ui->snippetBrowser->setToolTip(QString());
-    ui->comboFilter->clear();
     selectFile();
     doSearch();
 }
 
-void CSearchTab::rowIdxClicked(int row)
+void CSearchTab::applySnippet(const QModelIndex &index)
 {
-    execSnippet(row,0);
-}
-
-void CSearchTab::applyFilter(int idx)
-{
-    if (!(result.presented)) return ;
-    if ((idx < 0) || (idx >= ui->comboFilter->count())) return ;
-    ui->listResults->clear();
-    ui->snippetBrowser->clear();
-    ui->snippetBrowser->setToolTip(QString());
-    selectFile();
-
-    QString flt = ui->comboFilter->itemText(idx).remove(QRegExp("\\(.*\\)")).trimmed();
-
-    ui->listResults->setColumnCount(5);
-    ui->listResults->setRowCount(0);
-
-    int titleLen = 0; int scoreLen = ui->listResults->fontMetrics().width("Rel. XX"); int groupLen = 0;
-    int sizeLen = 0; int fnameLen = 0;
-
-    ui->listResults->setHorizontalHeaderLabels(QStringList() << tr("Title") << tr("Rel.") <<
-                                           tr("Group") << tr("Size") << tr("Filename"));
-    for (int i = 0;i < result.snippets.count();i++) {
-        if ((idx == 0) || ((idx > 0) && (result.snippets[i]["Dir"] == flt))) {
-
-            QString s = result.snippets[i]["dc:title"];
-            QTableWidgetItem* title = new QTableWidgetItem(s);
-            if (ui->listResults->fontMetrics().width(s) > titleLen) titleLen = ui->listResults->fontMetrics().width(s);
-            title->setData(Qt::UserRole, QVariant(i));
-
-            s = result.snippets[i]["Dir"];
-            QTableWidgetItem* dir = new QTableWidgetItem(s);
-            dir->setStatusTip(result.snippets[i]["DisplayFilename"]);
-            if (ui->listResults->fontMetrics().width(s) > groupLen) groupLen = ui->listResults->fontMetrics().width(s);
-
-            s = result.snippets[i]["FileSize"];
-            QTableWidgetItem* fsize = new QTableWidgetItem(s);
-            if (ui->listResults->fontMetrics().width(s) > sizeLen) sizeLen = ui->listResults->fontMetrics().width(s);
-
-            s = result.snippets[i]["Score"];
-            s = QString("%1").arg(s.toDouble(), 0, 'f', 1);
-            QTableWidgetItem* score = new QTableWidgetItem(s);
-            if (ui->listResults->fontMetrics().width(s) > scoreLen) scoreLen = ui->listResults->fontMetrics().width(s);
-
-            s = result.snippets[i]["OnlyFilename"];
-            QTableWidgetItem* fname = new QTableWidgetItem(s);
-            if (ui->listResults->fontMetrics().width(s) > fnameLen) fnameLen = ui->listResults->fontMetrics().width(s);
-
-            ui->listResults->insertRow(ui->listResults->rowCount());
-            int ridx = ui->listResults->rowCount() - 1;
-            ui->listResults->setItem(ridx, 0, title);
-            ui->listResults->setItem(ridx, 1, score);
-            ui->listResults->setItem(ridx, 2, dir);
-            ui->listResults->setItem(ridx, 3, fsize);
-            ui->listResults->setItem(ridx, 4, fname);
-            if (result.snippets[i].contains("dc:title:saved"))
-                ui->listResults->item(ridx,0)->setToolTip(result.snippets[i]["dc:title:saved"]);
-        }
-    }
-    //int maxWidth = listResults->width() / 2;
-    QFontMetrics fm(ui->listResults->font());
-
-    int titleMaxWidth = fm.width('X') * 50;
-    int scoreMaxWidth = fm.width('X') * 7;
-    int groupMaxWidth = fm.width('X') * 22;
-    int sizeMaxWidth =  fm.width('X') * 10;
-    int fnameMaxWidth = fm.width('X') * 25;
-
-    if (titleLen >  titleMaxWidth) titleLen = titleMaxWidth;
-    if (scoreLen > scoreMaxWidth) scoreLen = scoreMaxWidth;
-    if (groupLen > groupMaxWidth) groupLen = groupMaxWidth;
-    if (sizeLen > sizeMaxWidth) sizeLen = sizeMaxWidth;
-    if (fnameLen > fnameMaxWidth) fnameLen = fnameMaxWidth;
-
-    ui->listResults->setColumnWidth(0, titleLen + 20);
-    ui->listResults->setColumnWidth(1, scoreLen + 20);
-    ui->listResults->setColumnWidth(2, groupLen + 20);
-    ui->listResults->setColumnWidth(3, sizeLen + 20);
-    ui->listResults->setColumnWidth(4, fnameLen + 20);
-
-    if (sortMode>0)
-        ui->listResults->horizontalHeader()->setSortIndicator(abs(sortMode)-1,Qt::DescendingOrder);
-    else
-        ui->listResults->horizontalHeader()->setSortIndicator(abs(sortMode)-1,Qt::AscendingOrder);
-    ui->listResults->horizontalHeader()->setSortIndicatorShown(true);
-}
-
-bool snippetsLessThan(const QStrHash& f1, const QStrHash& f2)
-{
-    switch (abs(sortGMode)) {
-        case 1: return (f1["FileTitle"] < f2["FileTitle"]);
-        case 2: return (f1["Score"].toDouble() < f2["Score"].toDouble());
-        case 3: return (f1["FilePath"] < f2["FilePath"]);
-        case 4: return (f1["FileSizeNum"].toULongLong() < f2["FileSizeNum"].toULongLong() );
-        case 5: return (f1["OnlyFilename"] < f2["OnlyFilename"]);
-        default: return (f1["FileTitle"] < f2["FileTitle"]);
-    }
-}
-
-bool snippetsGreaterThan(const QStrHash& f1, const QStrHash& f2)
-{
-    switch (abs(sortGMode)) {
-        case 1: return (f1["FileTitle"] > f2["FileTitle"]);
-        case 2: return (f1["Score"].toDouble() > f2["Score"].toDouble());
-        case 3: return (f1["FilePath"] > f2["FilePath"]);
-        case 4: return (f1["FileSizeNum"].toULongLong() > f2["FileSizeNum"].toULongLong() );
-        case 5: return (f1["OnlyFilename"] > f2["OnlyFilename"]);
-        default: return (f1["FileTitle"] > f2["FileTitle"]);
-    }
-}
-
-void CSearchTab::applySort(int idx)
-{
-    if (!(result.presented)) return ;
-    if (abs(idx)>5) return ;
-
-    sortMode = idx;
-    gSet->sortMutex.lock();
-    sortGMode = sortMode;
-    if (idx>0)
-        qSort(result.snippets.begin(), result.snippets.end(), snippetsLessThan);
-    else
-        qSort(result.snippets.begin(), result.snippets.end(), snippetsGreaterThan);
-    gSet->sortMutex.unlock();
-    applyFilter(ui->comboFilter->currentIndex());
-}
-
-void CSearchTab::applySnippet(int row, int, int, int)
-{
-    if (!(result.presented)) return ;
-    if (result.snippets.count()==0 ||
-            ui->listResults->item(row, 0)==NULL) {
+    if (stats.isEmpty() || !index.isValid()) return;
+    if (model->rowCount()==0) {
         selectFile();
         ui->snippetBrowser->clear();
         ui->snippetBrowser->setToolTip(QString());
     } else {
-        if ((row < 0) || (row >= result.snippets.count())) return ;
-        int sidx = ui->listResults->item(row, 0)->data(Qt::UserRole).toInt();
-        QString s = result.snippets[sidx]["Snip"];
+        int row = sort->mapToSource(index).row();
+        if ((row < 0) || (row >= model->rowCount())) return;
+        QStrHash snip = model->getSnippet(row);
+        QString s = snip["Snip"];
         QString tranState = bool2str(gSet->actionSnippetAutotranslate->isChecked());
-        if (s.isEmpty() || tranState!=result.snippets[sidx].value("SnipTran")) {
-            s = createSpecSnippet(result.snippets[sidx]["FullFilename"]);
-            result.snippets[sidx]["Snip"]=s;
-            result.snippets[sidx]["SnipUntran"]=createSpecSnippet(result.snippets[sidx]["FullFilename"],true);
-            result.snippets[sidx]["SnipTran"]=bool2str(gSet->actionSnippetAutotranslate->isChecked());
+        if (s.isEmpty() || tranState!=snip.value("SnipTran")) {
+            s = createSpecSnippet(snip["FullFilename"]);
+            snip["Snip"]=s;
+            snip["SnipUntran"]=createSpecSnippet(snip["FullFilename"],true);
+            snip["SnipTran"]=bool2str(gSet->actionSnippetAutotranslate->isChecked());
+            model->setSnippet(row, snip);
         }
         s="<font size='+1'>"+s+"</font>";
         ui->snippetBrowser->setHtml(s);
         if (gSet->actionSnippetAutotranslate->isChecked() &&
-            result.snippets[sidx].value("Snip")!=result.snippets[sidx].value("SnipUntran"))
-            ui->snippetBrowser->setToolTip(result.snippets[sidx].value("SnipUntran"));
+            snip.value("Snip")!=snip.value("SnipUntran"))
+            ui->snippetBrowser->setToolTip(snip.value("SnipUntran"));
 
-        selectFile(result.snippets[sidx]["Uri"], result.snippets[sidx]["DisplayFilename"]);
+        selectFile(snip["Uri"], snip["DisplayFilename"]);
     }
-
 }
 
 QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated) {
@@ -641,24 +477,16 @@ void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)
     }
 }
 
-void CSearchTab::columnClicked(int col)
+void CSearchTab::execSnippet(const QModelIndex &index)
 {
-    if (abs(sortMode)==(col+1))
-        applySort(-sortMode);
-    else
-        applySort(col+1);
-}
-
-void CSearchTab::execSnippet(int row, int column)
-{
-    applySnippet(row, column, 0, 0);
+    applySnippet(index);
     showSnippet();
 }
 
 void CSearchTab::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key()==Qt::Key_F3)
-        execSnippet(ui->listResults->currentRow(),0);
-    else
+    if (event->key()==Qt::Key_Return) {
+        execSnippet(ui->listResults->currentIndex());
+    } else
         QWidget::keyPressEvent(event);
 }

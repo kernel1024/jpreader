@@ -108,7 +108,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QTableWidget" name="listResults">
+     <widget class="QTableView" name="listResults">
       <property name="mouseTracking">
        <bool>true</bool>
       </property>
@@ -126,6 +126,9 @@
       </property>
       <property name="gridStyle">
        <enum>Qt::DotLine</enum>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
       </property>
       <property name="cornerButtonEnabled">
        <bool>false</bool>
@@ -154,70 +157,11 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <layout class="QHBoxLayout" name="_2">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Filter</string>
-         </property>
-         <property name="buddy">
-          <cstring>comboFilter</cstring>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboFilter">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QPushButton" name="buttonOpen">
-       <property name="text">
-        <string>Open</string>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Filename</string>
+        <string>F&amp;ilename</string>
        </property>
        <property name="buddy">
         <cstring>filenameEdit</cstring>
@@ -234,6 +178,16 @@
        </property>
        <property name="readOnly">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonOpen">
+       <property name="text">
+        <string>Open</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -299,8 +253,6 @@
   <tabstop>translateStopBtn</tabstop>
   <tabstop>listResults</tabstop>
   <tabstop>snippetBrowser</tabstop>
-  <tabstop>comboFilter</tabstop>
-  <tabstop>buttonOpen</tabstop>
   <tabstop>editDir</tabstop>
   <tabstop>buttonDir</tabstop>
  </tabstops>

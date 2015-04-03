@@ -25,7 +25,8 @@ HEADERS = mainwindow.h \
     baloo5search.h \
     abstractthreadedsearch.h \
     abstracttranslator.h \
-    bingtranslator.h
+    bingtranslator.h \
+    searchmodel.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -53,7 +54,8 @@ SOURCES = main.cpp \
     baloo5search.cpp \
     abstractthreadedsearch.cpp \
     abstracttranslator.cpp \
-    bingtranslator.cpp
+    bingtranslator.cpp \
+    searchmodel.cpp
 
 RESOURCES = \
     jpreader.qrc
