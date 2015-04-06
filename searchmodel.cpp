@@ -17,6 +17,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
 {
     bool ok;
     int sc;
+    float sf;
     QString score;
 
     if (!index.isValid()) return QVariant();
@@ -42,9 +43,38 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             default: return QVariant();
         }
         return QVariant();
+
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (snippets[idx].contains("dc:title:saved"))
             return snippets[idx]["dc:title:saved"];
+
+    } else if (role == Qt::UserRole + cpSortRole) {
+        switch (index.column()) {
+            case 0: return snippets[idx]["dc:title"];
+            case 1:
+                score = snippets[idx]["Score"];
+                sf = score.toFloat(&ok);
+                if (ok)
+                    return sf;
+                else
+                    return score;
+                break;
+            case 2: return snippets[idx]["Dir"];
+            case 3:
+                score = snippets[idx]["FileSizeNum"];
+                sc = score.toInt(&ok);
+                if (ok)
+                    return sc;
+                else
+                    return score;
+            case 4: return snippets[idx]["OnlyFilename"];
+            default: return QVariant();
+        }
+        return QVariant();
+
+    } else if (role == Qt::UserRole + cpFilterRole) {
+        // column calculation removed - filtering only by directory
+        return snippets[idx]["Dir"];
     }
     return QVariant();
 }
@@ -97,15 +127,27 @@ QStrHash CSearchModel::getSnippet(int idx)
 void CSearchModel::setSnippet(int idx, QStrHash snippet)
 {
     if (idx<0 || idx>=snippets.count()) return;
-    QModelIndex ix = createIndex(idx,0);
     snippets[idx]=snippet;
-    if (table!=NULL)
-        table->update(ix);
+    emit itemContentsUpdated();
 }
 
 QStringList CSearchModel::getSnippetKeys(int idx)
 {
     return snippets[idx].keys();
+}
+
+QStringList CSearchModel::getDistinctValues(QString snippetKey)
+{
+    QStringList sl;
+    sl.clear();
+    if (snippetKey.isEmpty()) return sl;
+
+    for (int i=0;i<snippets.count();i++) {
+        QString s = snippets[i][snippetKey];
+        if (!s.isEmpty() && !sl.contains(s))
+            sl << s;
+    }
+    return sl;
 }
 
 void CSearchModel::deleteAllItems()

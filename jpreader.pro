@@ -20,13 +20,13 @@ HEADERS = mainwindow.h \
     indexersearch.h \
     translator.h \
     snwaitctl.h \
+    searchmodel.h \
     titlestranslator.h \
     logdisplay.h \
     baloo5search.h \
     abstractthreadedsearch.h \
     abstracttranslator.h \
-    bingtranslator.h \
-    searchmodel.h
+    bingtranslator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \

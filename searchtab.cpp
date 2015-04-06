@@ -30,10 +30,23 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     model = new CSearchModel(this,ui->listResults);
     sort = new QSortFilterProxyModel(this);
     sort->setSourceModel(model);
+    sort->setSortRole(Qt::UserRole + cpSortRole);
+    sort->setFilterRole(Qt::UserRole + cpFilterRole);
     ui->listResults->setModel(sort);
 
+    connect(model, SIGNAL(itemContentsUpdated()), sort, SLOT(invalidate()));
+
+    QHeaderView *hh = ui->listResults->horizontalHeader();
+    if (hh!=NULL) {
+        hh->setToolTip(tr("Right click for advanced commands on results list"));
+        hh->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(hh,SIGNAL(customContextMenuRequested(QPoint)),
+                this,SLOT(headerMenu(QPoint)));
+    }
+
     connect(ui->buttonSearch, SIGNAL(clicked()), this, SLOT(doNewSearch()));
-    connect(ui->listResults, SIGNAL(pressed(QModelIndex)), this, SLOT(applySnippet(QModelIndex)));
+    connect(ui->listResults->selectionModel(),SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+            this,SLOT(applySnippet(QItemSelection,QItemSelection)));
     connect(ui->buttonOpen, SIGNAL(clicked()), this, SLOT(showSnippet()));
     connect(ui->listResults, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(execSnippet(QModelIndex)));
     connect(ui->editSearch->lineEdit(), SIGNAL(returnPressed()), ui->buttonSearch, SLOT(click()));
@@ -52,10 +65,6 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
             titleTran,SLOT(stop()),Qt::QueuedConnection);
     connect(this,SIGNAL(translateTitlesSrc(QStringList)),
             titleTran,SLOT(translateTitles(QStringList)),Qt::QueuedConnection);
-
-    ui->buttonSearch->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->buttonSearch,SIGNAL(customContextMenuRequested(QPoint)),
-            this,SLOT(translatorContextMenu(QPoint)));
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -128,6 +137,7 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
 
     lastQuery = aQuery;
     model->addItems(aResult.snippets);
+    ui->listResults->sortByColumn(1,Qt::DescendingOrder);
     stats = aResult.stats;
 
     QString elapsed = QString(stats["Elapsed time"]).remove(QRegExp("[s]"));
@@ -140,16 +150,6 @@ void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
     parentWnd->updateTabs();
 
     setDocTitle(tr("S:[%1]").arg(lastQuery));
-}
-
-void CSearchTab::translatorContextMenu(const QPoint &pos)
-{
-    if (model->rowCount()==0) return;
-
-    QMenu cm(this);
-    cm.addAction(tr("Translate titles"),this,SLOT(translateTitles()));
-
-    cm.exec(ui->buttonSearch->mapToGlobal(pos));
 }
 
 void CSearchTab::translateTitles()
@@ -190,6 +190,55 @@ void CSearchTab::updateProgress(const int pos)
             ui->translateFrame->show();
     } else
         ui->translateFrame->hide();
+}
+
+void CSearchTab::headerMenu(const QPoint &pos)
+{
+    if (model->rowCount()==0) return;
+    QHeaderView* hh = qobject_cast<QHeaderView *>(sender());
+    if (hh==NULL) return;
+
+    int column = hh->logicalIndexAt(pos);
+
+    QMenu cm(this);
+
+    if (column == 2) { // Directory filter
+        QStringList sl = model->getDistinctValues("Dir");
+        if (!sl.isEmpty()) {
+            QMenu *cmf = cm.addMenu(tr("Filter"));
+            QAction *ac = cmf->addAction(tr("Clear filter"),this,SLOT(applyFilter()));
+            ac->setData(QString());
+            cmf->addSeparator();
+            for (int i=0;i<sl.count();i++) {
+                ac = cmf->addAction(sl.at(i),this,SLOT(applyFilter()));
+                ac->setData(sl.at(i));
+            }
+            cm.addSeparator();
+        }
+    }
+    cm.addAction(tr("Translate titles"),this,SLOT(translateTitles()));
+
+    cm.exec(hh->mapToGlobal(pos));
+}
+
+void CSearchTab::applyFilter()
+{
+    QAction *ac = qobject_cast<QAction *>(sender());
+    if (ac==NULL) return;
+
+    QString dir = ac->data().toString();
+    if (dir.isEmpty())
+        sort->setFilterRegExp(QRegExp());
+    else {
+        sort->setFilterKeyColumn(2);
+        sort->setFilterFixedString(dir);
+    }
+}
+
+void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &)
+{
+    if (selected.isEmpty()) return;
+    applySnippet(selected.indexes().first());
 }
 
 void CSearchTab::doSearch()
