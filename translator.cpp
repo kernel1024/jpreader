@@ -184,6 +184,17 @@ void CTranslator::examineXMLNode(QDomNode node)
                         node.attributes().namedItem("style").setNodeValue(
                                     node.attributes().namedItem("style").nodeValue()+"; position: static;");
                 }
+
+                // Style fix for 2015/05 pixiv novel viewer update
+                if (node.attributes().namedItem("class").nodeValue().toLower()=="novel-text-wrapper") {
+                    if (node.attributes().namedItem("style").isNull())
+                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
+                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
+                        node.attributes().namedItem("style").setNodeValue("display:block;");
+                    else
+                        node.attributes().namedItem("style").setNodeValue(
+                                    node.attributes().namedItem("style").nodeValue()+"; display:block;");
+                }
             }
         }
 
