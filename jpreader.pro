@@ -152,7 +152,6 @@ DEFINES += BUILD_REV=\\\"$$GITREV\\\"
 DEFINES += BUILD_PLATFORM=\\\"$$PLATFORM\\\"
 DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 
-include( qtsingleapplication/src/qtsingleapplication.pri )
 include( arabica/arabica.pri )
 include( miniqxt/miniqxt.pri )
 

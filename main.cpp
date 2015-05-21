@@ -9,8 +9,6 @@
 
 #include <sys/resource.h>
 
-#include "qtsingleapplication.h"
-
 CGlobalControl* gSet;
 QStringList debugMessages;
 
@@ -27,11 +25,11 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QBResult>("QBResult");
     qRegisterMetaType<QDir>("QDir");
 
-    QtSingleApplication app(argc, argv);
-    if (app.isRunning())
-        return !app.sendMessage("newWindow");
+    QApplication app(argc, argv);
 
     gSet = new CGlobalControl(&app);
+    if ((gSet==NULL) || (gSet->ipcServer==NULL))
+        return 0;
 
     if (gSet->createCoredumps) {
         // create core dumps on segfaults

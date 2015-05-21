@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QApplication>
 #include <QDataStream>
 #include <QString>
 #include <QUrl>
@@ -17,12 +18,13 @@
 #include <QClipboard>
 #include <QMutex>
 #include <QTimer>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QDebug>
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "specwidgets.h"
-#include "qtsingleapplication/src/qtsingleapplication.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "logdisplay.h"
 
@@ -46,6 +48,9 @@
 #define LS_CHINESESIMP 2
 #define LS_KOREAN 3
 #define LSCOUNT 4
+
+#define DBUS_NAME "org.jpreader.auxtranslator"
+#define IPC_NAME "org.jpreader.ipc.main"
 
 class CMainWindow;
 class QSpecCookieJar;
@@ -80,12 +85,13 @@ class CGlobalControl : public QObject
 {
     Q_OBJECT
 public:
-    explicit CGlobalControl(QtSingleApplication *parent);
+    explicit CGlobalControl(QApplication *parent);
 
     CMainWindow* activeWindow;
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
     CAuxTranslator* auxTranslatorDBus;
+    QLocalServer* ipcServer;
 
     QAction* actionSelectionDictionary;
     QAction* actionGlobalTranslator;
@@ -205,11 +211,16 @@ public:
     QString getSourceLanguageString(int srcLang);
     QString getTranslationEngineString(int engine);
     void setTranslationEngine(int engine);
+
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;
     void cleanTmpFiles();
     void startGlobalContextTranslate(const QString& text);
+
+private:
+    bool setupIPC();
+    void sendIPCMessage(QLocalSocket *socket, const QString& msg);
 
 signals:
     void startAuxTranslation();
@@ -227,7 +238,7 @@ public slots:
     void blockTabClose();
     void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
     void clipboardChanged(QClipboard::Mode mode);
-    void ipcMessageReceived(const QString& msg);
+    void ipcMessageReceived();
     void globalContextTranslateReady(const QString& text);
     void clearCaches();
 

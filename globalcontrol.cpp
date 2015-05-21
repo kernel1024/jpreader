@@ -1,6 +1,7 @@
 #include <QNetworkDiskCache>
 #include <QNetworkProxy>
 #include <QMessageBox>
+#include <QLocalSocket>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QStandardPaths>
@@ -17,10 +18,15 @@
 #include "auxtranslator_adaptor.h"
 #include "miniqxt/qxttooltip.h"
 
+#define IPC_EOF "\n###"
 
-CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
+CGlobalControl::CGlobalControl(QApplication *parent) :
     QObject(parent)
 {
+    ipcServer = NULL;
+    if (!setupIPC())
+        return;
+
     snippetColors << QColor(Qt::red) << QColor(Qt::green) << QColor(Qt::blue) << QColor(Qt::cyan) <<
                      QColor(Qt::magenta) << QColor(Qt::darkRed) << QColor(Qt::darkGreen) <<
                      QColor(Qt::darkBlue) << QColor(Qt::darkCyan) << QColor(Qt::darkMagenta) <<
@@ -205,7 +211,7 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     new AuxtranslatorAdaptor(auxTranslatorDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
     dbus.registerObject("/",auxTranslatorDBus);
-    dbus.registerService("org.jpreader.auxtranslator");
+    dbus.registerService(DBUS_NAME);
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
@@ -213,8 +219,6 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
             this,SLOT(authentication(QNetworkReply*,QAuthenticator*)));
     connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
             this,SLOT(clipboardChanged(QClipboard::Mode)));
-    connect(parent,SIGNAL(messageReceived(QString)),
-            this,SLOT(ipcMessageReceived(QString)));
     connect(actionUseProxy,SIGNAL(toggled(bool)),
             this,SLOT(updateProxy(bool)));
     connect(actionJSUsage,SIGNAL(toggled(bool)),
@@ -233,6 +237,38 @@ CGlobalControl::CGlobalControl(QtSingleApplication *parent) :
     tabsListTimer.setInterval(30000);
     connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
     tabsListTimer.start();
+}
+
+bool CGlobalControl::setupIPC()
+{
+    QString serverName = IPC_NAME;
+    serverName.replace(QRegExp("[^\\w\\-. ]"), "");
+
+    QLocalSocket *socket = new QLocalSocket();
+    socket->connectToServer(serverName);
+    if (socket->waitForConnected(1000)){
+        // Connected. Process is already running, send message to it
+        sendIPCMessage(socket,"newWindow");
+        socket->flush();
+        socket->close();
+        socket->deleteLater();
+        return false;
+    } else {
+        // New process. Startup server and gSet normally, listen for new instances
+        ipcServer = new QLocalServer();
+        ipcServer->removeServer(serverName);
+        ipcServer->listen(serverName);
+        connect(ipcServer, SIGNAL(newConnection()), this, SLOT(ipcMessageReceived()));
+    }
+    return true;
+}
+
+void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
+{
+    if (socket==NULL) return;
+
+    QString s = QString("%1%2").arg(msg).arg(IPC_EOF);
+    socket->write(s.toUtf8());
 }
 
 bool CGlobalControl::useOverrideFont()
@@ -911,9 +947,19 @@ void CGlobalControl::updateAllRecycleBins()
     foreach (CMainWindow* w, mainWindows) w->updateRecycled();
 }
 
-void CGlobalControl::ipcMessageReceived(const QString &msg)
+void CGlobalControl::ipcMessageReceived()
 {
-    if (msg==QString("newWindow"))
+    QLocalSocket *socket = ipcServer->nextPendingConnection();
+    QByteArray bmsg;
+    do {
+        if (!socket->waitForReadyRead(2000)) return;
+        bmsg.append(socket->readAll());
+    } while (!bmsg.contains(QString(IPC_EOF).toUtf8()));
+    socket->close();
+    socket->deleteLater();
+
+    QStringList cmd = QString::fromUtf8(bmsg).split('\n');
+    if (cmd.first().startsWith("newWindow"))
         addMainWindow();
 }
 
@@ -997,6 +1043,9 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
     gctxTranHotkey->setDisabled();
     QApplication::processEvents();
     gctxTranHotkey->deleteLater();
+    QApplication::processEvents();
+
+    ipcServer->close();
     QApplication::processEvents();
 
     if (appQuit)
