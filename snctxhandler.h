@@ -43,6 +43,7 @@ public slots:
     void createPlainTextTabTranslate();
     void menuClosed();
     void menuOpened();
+    void showDictionary();
 signals:
     void startTranslation();
     void hideTooltips();

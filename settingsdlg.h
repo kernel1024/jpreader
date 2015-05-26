@@ -65,8 +65,9 @@ public:
     QLineEdit* bingID;
     QLineEdit* bingKey;
     QCheckBox* createCoredumps;
-    QCheckBox* checkUserAgent;
-    QComboBox* editUserAgent;
+    QCheckBox* overrideUserAgent;
+    QComboBox* userAgent;
+    QListWidget* dictPaths;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();
@@ -93,6 +94,8 @@ public slots:
     void importAdOpera();
     void importAd();
     void fontColorDlg();
+    void addDictPath();
+    void delDictPath();
 };
 
 #endif // SETTINGSDLG_H

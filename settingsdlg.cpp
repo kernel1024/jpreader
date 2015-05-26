@@ -65,8 +65,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     bingID=ui->editBingID;
     bingKey=ui->editBingKey;
     createCoredumps=ui->checkCreateCoredumps;
-    checkUserAgent=ui->checkUserAgent;
-    editUserAgent=ui->editUserAgent;
+    overrideUserAgent=ui->checkUserAgent;
+    userAgent=ui->editUserAgent;
+    dictPaths=ui->listDictPaths;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
@@ -82,6 +83,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAdImport,SIGNAL(clicked()),this,SLOT(importAd()));
     connect(ui->buttonAdImportOpera,SIGNAL(clicked()),this,SLOT(importAdOpera()));
     connect(ui->buttonFontColorOverride,SIGNAL(clicked()),this,SLOT(fontColorDlg()));
+    connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
+    connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
 }
 
 CSettingsDlg::~CSettingsDlg()
@@ -221,6 +224,21 @@ void CSettingsDlg::fontColorDlg()
     QColor c = QColorDialog::getColor(overridedFontColor,this);
     if (!c.isValid()) return;
     updateFontColorPreview(c);
+}
+
+void CSettingsDlg::addDictPath()
+{
+    QString s = QFileDialog::getExistingDirectory(this,tr("Select directory"));
+    if (!s.isEmpty())
+        ui->listDictPaths->addItem(s);
+}
+
+void CSettingsDlg::delDictPath()
+{
+    int idx = ui->listDictPaths->currentRow();
+    if (idx<0 || idx>=ui->listDictPaths->count()) return;
+    QListWidgetItem *a = ui->listDictPaths->takeItem(idx);
+    delete a;
 }
 
 void CSettingsDlg::updateFontColorPreview(const QColor &c)

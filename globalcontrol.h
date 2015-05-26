@@ -28,6 +28,10 @@
 #include "miniqxt/qxtglobalshortcut.h"
 #include "logdisplay.h"
 
+#include "goldendictmgr.h"
+#include "goldendict/wordfinder.hh"
+
+
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
 #define TE_ATLAS 2
@@ -97,6 +101,12 @@ public:
     QAction* actionGlobalTranslator;
     QIcon appIcon;
     CLogDisplay* logWindow;
+
+    ArticleNetworkAccessManager * dictNetMan;
+    CGoldenDictMgr * dictManager;
+    WordFinder * wordFinder;
+    QStringList dictPaths;
+    QString dictIndexDir;
 
     QList<QColor> snippetColors;
 
@@ -245,6 +255,7 @@ public slots:
     void ipcMessageReceived();
     void globalContextTranslateReady(const QString& text);
     void clearCaches();
+    void showDictionaryWindow(const QString& text);
 
     // Settings management
     void writeSettings();
@@ -257,5 +268,7 @@ public slots:
 };
 
 extern CGlobalControl* gSet;
+
+int compareStringLists(const QStringList& left, const QStringList& right);
 
 #endif // QGLOBALSETTINGS_H

@@ -558,6 +558,57 @@ p, li { white-space: pre-wrap; }
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="tab_12">
+          <attribute name="title">
+           <string>Local dictionary</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <item>
+            <widget class="QLabel" name="label_27">
+             <property name="text">
+              <string>Sea&amp;rch paths</string>
+             </property>
+             <property name="buddy">
+              <cstring>listDictPaths</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="listDictPaths"/>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_20">
+             <item>
+              <widget class="QPushButton" name="buttonAddDictPath">
+               <property name="text">
+                <string>Add path...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="buttonDelDictPath">
+               <property name="text">
+                <string>Delete</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -1331,6 +1382,9 @@ p, li { white-space: pre-wrap; }
   <tabstop>gctxHotkey</tabstop>
   <tabstop>editBingID</tabstop>
   <tabstop>editBingKey</tabstop>
+  <tabstop>listDictPaths</tabstop>
+  <tabstop>buttonAddDictPath</tabstop>
+  <tabstop>buttonDelDictPath</tabstop>
   <tabstop>checkTransFont</tabstop>
   <tabstop>transFont</tabstop>
   <tabstop>transFontSize</tabstop>

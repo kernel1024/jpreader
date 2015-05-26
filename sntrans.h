@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QString>
 #include "snviewer.h"
-#include "dictionary_interface.h"
 
 class CSnTrans : public QObject
 {
@@ -13,7 +12,7 @@ private:
     CSnippetViewer *snv;
     QTimer *selectionTimer;
     QString storedSelection;
-    OrgQjradDictionaryInterface* dbusDict;
+    void findWordTranslation(const QString& text);
 public:
     CSnTrans(CSnippetViewer * parent);
 public slots:
@@ -26,7 +25,7 @@ public slots:
     void hideTooltip();
     void showWordTranslation(const QString & html);
     void showSuggestedTranslation(const QString & link);
-    void showDictionaryWindow();
+    void dictDataReady();
 };
 
 #endif // SNTRANS_H

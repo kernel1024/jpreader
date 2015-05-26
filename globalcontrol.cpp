@@ -49,6 +49,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     searchHistory.clear();
     scpHostHistory.clear();
     atlHostHistory.clear();
+    dictPaths.clear();
     overrideUserAgent=false;
     userAgent.clear();
     userAgentHistory.clear();
@@ -104,12 +105,12 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
-    QString fcache = fs + tr("jpreader_cache") + QDir::separator();
+    QString fcache = fs + tr("cache") + QDir::separator();
     QNetworkDiskCache* cache = new QNetworkDiskCache(this);
     cache->setCacheDirectory(fcache);
     netAccess.setCache(cache);
 
-    QString fdata = fs + tr("jpreader_local_storage") + QDir::separator();
+    QString fdata = fs + tr("local_storage") + QDir::separator();
     QDir fddata(fdata);
     QWebSettings* ws = QWebSettings::globalSettings();
     if (!fddata.exists()) {
@@ -119,6 +120,14 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             ws->enablePersistentStorage(fdata);
     } else
         ws->enablePersistentStorage(fdata);
+
+    dictIndexDir = fs + tr("dictIndex") + QDir::separator();
+    QDir dictIndex(dictIndexDir);
+    if (!dictIndex.exists())
+        if (!dictIndex.mkpath(dictIndexDir)) {
+            qDebug() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
+            dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        }
 
     netAccess.setProxy(QNetworkProxy());
 
@@ -231,6 +240,10 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     gctxTranHotkey->setDisabled();
     connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
 
+    wordFinder = new WordFinder(this);
+    dictManager = new CGoldenDictMgr(this);
+    dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
+
     readSettings();
 
     settingsSaveTimer.setInterval(60000);
@@ -240,6 +253,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     tabsListTimer.setInterval(30000);
     connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
     tabsListTimer.start();
+
+    wordFinder->clear();
+    QTimer::singleShot(1500,dictManager,SLOT(loadDictionaries()));
 }
 
 bool CGlobalControl::setupIPC()
@@ -377,6 +393,9 @@ void CGlobalControl::writeSettings()
     settings.setValue("userAgentHistory_count",userAgentHistory.count());
     for (int i=0;i<userAgentHistory.count();i++)
         settings.setValue(QString("userAgentHistory%1").arg(i),userAgentHistory.at(i));
+    settings.setValue("dictPaths_count",dictPaths.count());
+    for (int i=0;i<dictPaths.count();i++)
+        settings.setValue(QString("dictPaths%1").arg(i),dictPaths.at(i));
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -503,6 +522,11 @@ void CGlobalControl::readSettings()
         overrideUserAgent=false;
     else if (userAgentHistory.isEmpty())
         userAgentHistory << userAgent;
+
+    cnt=settings.value("dictPaths_count",0).toInt();
+    dictPaths.clear();
+    for (int i=0;i<cnt;i++)
+        dictPaths << settings.value(QString("dictPaths%1").arg(i)).toString();
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -671,11 +695,14 @@ void CGlobalControl::settingsDlg()
 
     dlg->debugLogNetReq->setChecked(debugNetReqLogging);
 
-    dlg->checkUserAgent->setChecked(overrideUserAgent);
-    dlg->editUserAgent->setEnabled(overrideUserAgent);
-    dlg->editUserAgent->clear();
-    dlg->editUserAgent->addItems(userAgentHistory);
-    dlg->editUserAgent->lineEdit()->setText(userAgent);
+    dlg->overrideUserAgent->setChecked(overrideUserAgent);
+    dlg->userAgent->setEnabled(overrideUserAgent);
+    dlg->userAgent->clear();
+    dlg->userAgent->addItems(userAgentHistory);
+    dlg->userAgent->lineEdit()->setText(userAgent);
+
+    dlg->dictPaths->clear();
+    dlg->dictPaths->addItems(dictPaths);
 
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
@@ -774,14 +801,23 @@ void CGlobalControl::settingsDlg()
 
         debugNetReqLogging = dlg->debugLogNetReq->isChecked();
 
-        overrideUserAgent = dlg->checkUserAgent->isChecked();
+        overrideUserAgent = dlg->overrideUserAgent->isChecked();
         if (overrideUserAgent) {
-            userAgent = dlg->editUserAgent->lineEdit()->text();
+            userAgent = dlg->userAgent->lineEdit()->text();
             if (!userAgentHistory.contains(userAgent))
                 userAgentHistory << userAgent;
 
             if (userAgent.isEmpty())
                 overrideUserAgent=false;
+        }
+
+        sl.clear();
+        for (int i=0;i<dlg->dictPaths->count();i++)
+            sl.append(dlg->dictPaths->item(i)->text());
+        if (compareStringLists(dictPaths,sl)!=0) {
+            dictPaths.clear();
+            dictPaths.append(sl);
+            dictManager->loadDictionaries();
         }
 
         proxyHost = dlg->proxyHost->text();
@@ -920,6 +956,11 @@ void CGlobalControl::clearCaches()
 {
     QWebSettings::clearMemoryCaches();
     netAccess.cache()->clear();
+}
+
+void CGlobalControl::showDictionaryWindow(const QString &text)
+{
+
 }
 
 void CGlobalControl::preShutdown()
@@ -1264,4 +1305,18 @@ QDataStream &operator<<(QDataStream &out, const UrlHolder &obj) {
 QDataStream &operator>>(QDataStream &in, UrlHolder &obj) {
     in >> obj.title >> obj.url >> obj.uuid;
     return in;
+}
+
+
+int compareStringLists(const QStringList &left, const QStringList &right)
+{
+    int diff = left.count()-right.count();
+    if (diff!=0) return diff;
+
+    for (int i=0;i<left.count();i++) {
+        diff = QString::compare(left.at(i),right.at(i));
+        if (diff!=0) return diff;
+    }
+
+    return 0;
 }

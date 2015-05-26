@@ -116,7 +116,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                           this,SLOT(searchInJisho()));
         ac->setData(snv->txtBrowser->selectedText());
         ac = cm->addAction(QIcon::fromTheme("accessories-dictionary"),tr("GoldenDict/qjrad dictionary"),
-                          snv->transHandler,SLOT(showDictionaryWindow()));
+                          this,SLOT(showDictionary()));
         ac->setData(snv->txtBrowser->selectedText());
     }
 
@@ -199,6 +199,15 @@ void CSnCtxHandler::menuClosed()
 void CSnCtxHandler::menuOpened()
 {
     emit hideTooltips();
+}
+
+void CSnCtxHandler::showDictionary()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QString s = nt->data().toString();
+
+    gSet->showDictionaryWindow(s);
 }
 
 void CSnCtxHandler::translateFragment()

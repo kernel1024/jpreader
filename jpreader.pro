@@ -1,5 +1,3 @@
-SUBDIRS += qtsingleapplication
-
 HEADERS = mainwindow.h \
     snviewer.h \
     settingsdlg.h \
@@ -26,7 +24,8 @@ HEADERS = mainwindow.h \
     baloo5search.h \
     abstractthreadedsearch.h \
     abstracttranslator.h \
-    bingtranslator.h
+    bingtranslator.h \
+    goldendictmgr.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -55,7 +54,8 @@ SOURCES = main.cpp \
     abstractthreadedsearch.cpp \
     abstracttranslator.cpp \
     bingtranslator.cpp \
-    searchmodel.cpp
+    searchmodel.cpp \
+    goldendictmgr.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -73,7 +73,13 @@ QT += webkit network xml dbus
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
 
 DEFINES += WITHWEBKIT
-CONFIG += warn_on link_pkgconfig
+CONFIG += warn_on \
+    link_pkgconfig \
+    exceptions \
+    rtti \
+    stl
+
+LIBS += -lz
 
 exists( /usr/include/X11/Xlib.h ) {
     LIBS += -lX11
@@ -154,6 +160,7 @@ DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 
 include( arabica/arabica.pri )
 include( miniqxt/miniqxt.pri )
+include( goldendict/goldendict.pri )
 
 # install
 sources.files = $$SOURCES \
@@ -165,8 +172,6 @@ INSTALLS += target
 
 OTHER_FILES += \
     img/startpage.html \
-    org.jpreader.auxtranslator.xml \
-    org.qjrad.dictionary.xml
+    org.jpreader.auxtranslator.xml
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
-DBUS_INTERFACES = org.qjrad.dictionary.xml

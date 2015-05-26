@@ -15,16 +15,12 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
 {
     snv = parent;
 
-    dbusDict = new OrgQjradDictionaryInterface("org.qjrad.dictionary","/",
-                                               QDBusConnection::sessionBus(),this);
-
     selectionTimer = new QTimer(this);
     selectionTimer->setInterval(1000);
     selectionTimer->setSingleShot(true);
 
     connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()),this,SLOT(selectionChanged()));
     connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
-    connect(dbusDict, SIGNAL(gotWordTranslation(QString)),this,SLOT(showWordTranslation(QString)));
 }
 
 void CSnTrans::translate()
@@ -189,11 +185,27 @@ void CSnTrans::selectionChanged()
         selectionTimer->start();
 }
 
+void CSnTrans::findWordTranslation(const QString &text)
+{
+    QUrl req;
+    req.setScheme( "gdlookup" );
+    req.setHost( "localhost" );
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+    req.addQueryItem( "word", text );
+#else
+    QUrlQuery requ;
+    requ.addQueryItem( "word", text );
+    req.setQuery(requ);
+#endif
+    QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
+    connect(rep,SIGNAL(finished()),this,SLOT(dictDataReady()));
+}
+
 void CSnTrans::selectionShow()
 {
     if (storedSelection.isEmpty()) return;
-    if (dbusDict->isValid())
-        dbusDict->findWordTranslation(storedSelection);
+
+    findWordTranslation(storedSelection);
 }
 
 void CSnTrans::hideTooltip()
@@ -230,16 +242,16 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
         if (!bword.isNull() && !bword.isEmpty())
             word = QUrl::fromPercentEncoding(bword);
     }
-    if (dbusDict->isValid())
-        dbusDict->findWordTranslation(word);
+    findWordTranslation(word);
 }
 
-void CSnTrans::showDictionaryWindow()
+void CSnTrans::dictDataReady()
 {
-    if (!dbusDict->isValid()) return;
-    QAction* nt = qobject_cast<QAction *>(sender());
-    if (nt==NULL) return;
-    QString s = nt->data().toString();
-    if (s.isEmpty()) return;
-    dbusDict->showDictionaryWindow(s);
+    QString res = QString();
+    QNetworkReply* rep = qobject_cast<QNetworkReply *>(sender());
+    if (rep!=NULL) {
+        res = QString::fromUtf8(rep->readAll());
+        rep->deleteLater();
+    }
+    showWordTranslation(res);
 }
