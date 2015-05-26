@@ -49,6 +49,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     searchHistory.clear();
     scpHostHistory.clear();
     atlHostHistory.clear();
+    overrideUserAgent=false;
+    userAgent.clear();
+    userAgentHistory.clear();
 
     appIcon.addFile(":/globe16");
     appIcon.addFile(":/globe32");
@@ -369,6 +372,11 @@ void CGlobalControl::writeSettings()
     settings.setValue("bingID",bingID);
     settings.setValue("bingKey",bingKey);
     settings.setValue("createCoredumps",createCoredumps);
+    settings.setValue("overrideUserAgent",overrideUserAgent);
+    settings.setValue("userAgent",userAgent);
+    settings.setValue("userAgentHistory_count",userAgentHistory.count());
+    for (int i=0;i<userAgentHistory.count();i++)
+        settings.setValue(QString("userAgentHistory%1").arg(i),userAgentHistory.at(i));
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -481,6 +489,20 @@ void CGlobalControl::readSettings()
     bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
     createCoredumps = settings.value("createCoredumps",false).toBool();
+
+    overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
+    userAgent=settings.value("userAgent",QString()).toString();
+    cnt=settings.value("userAgentHistory_count",0).toInt();
+    userAgentHistory.clear();
+    for (int i=0;i<cnt;i++) {
+        QString s = settings.value(QString("userAgentHistory%1").arg(i),QString()).toString();
+        if (!s.isEmpty())
+            userAgentHistory << s;
+    }
+    if (userAgent.isEmpty())
+        overrideUserAgent=false;
+    else if (userAgentHistory.isEmpty())
+        userAgentHistory << userAgent;
 
     settings.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
@@ -649,6 +671,12 @@ void CGlobalControl::settingsDlg()
 
     dlg->debugLogNetReq->setChecked(debugNetReqLogging);
 
+    dlg->checkUserAgent->setChecked(overrideUserAgent);
+    dlg->editUserAgent->setEnabled(overrideUserAgent);
+    dlg->editUserAgent->clear();
+    dlg->editUserAgent->addItems(userAgentHistory);
+    dlg->editUserAgent->lineEdit()->setText(userAgent);
+
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
     dlg->proxyLogin->setText(proxyLogin);
@@ -745,6 +773,16 @@ void CGlobalControl::settingsDlg()
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
         debugNetReqLogging = dlg->debugLogNetReq->isChecked();
+
+        overrideUserAgent = dlg->checkUserAgent->isChecked();
+        if (overrideUserAgent) {
+            userAgent = dlg->editUserAgent->lineEdit()->text();
+            if (!userAgentHistory.contains(userAgent))
+                userAgentHistory << userAgent;
+
+            if (userAgent.isEmpty())
+                overrideUserAgent=false;
+        }
 
         proxyHost = dlg->proxyHost->text();
         proxyPort = dlg->proxyPort->value();

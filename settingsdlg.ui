@@ -23,7 +23,7 @@
       <attribute name="title">
        <string>General</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_20">
+      <layout class="QHBoxLayout" name="horizontalLayout_22">
        <item>
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
@@ -71,7 +71,7 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>1</height>
+             <height>13</height>
             </size>
            </property>
           </spacer>
@@ -166,6 +166,24 @@
           </layout>
          </item>
          <item>
+          <layout class="QVBoxLayout" name="verticalLayout_18">
+           <item>
+            <widget class="QCheckBox" name="checkUserAgent">
+             <property name="text">
+              <string>Override user agent</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="editUserAgent">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_17">
            <item>
             <widget class="QPushButton" name="buttonClearCookies">
@@ -191,7 +209,7 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>0</height>
+             <height>13</height>
             </size>
            </property>
           </spacer>
@@ -617,7 +635,7 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Stan&amp;dard</string>
+               <string>St&amp;andard</string>
               </property>
               <property name="buddy">
                <cstring>fontStandard</cstring>
@@ -1289,6 +1307,8 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxHistory</tabstop>
   <tabstop>checkJS</tabstop>
   <tabstop>checkAutoloadImages</tabstop>
+  <tabstop>checkUserAgent</tabstop>
+  <tabstop>editUserAgent</tabstop>
   <tabstop>buttonClearCookies</tabstop>
   <tabstop>buttonClearCaches</tabstop>
   <tabstop>btnOK</tabstop>
@@ -1359,8 +1379,8 @@ p, li { white-space: pre-wrap; }
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>635</x>
-     <y>370</y>
+     <x>695</x>
+     <y>359</y>
     </hint>
     <hint type="destinationlabel">
      <x>204</x>
@@ -1375,8 +1395,8 @@ p, li { white-space: pre-wrap; }
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>720</x>
-     <y>370</y>
+     <x>781</x>
+     <y>359</y>
     </hint>
     <hint type="destinationlabel">
      <x>271</x>
@@ -1395,8 +1415,8 @@ p, li { white-space: pre-wrap; }
      <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>111</x>
-     <y>122</y>
+     <x>123</x>
+     <y>111</y>
     </hint>
    </hints>
   </connection>
@@ -1412,7 +1432,7 @@ p, li { white-space: pre-wrap; }
     </hint>
     <hint type="destinationlabel">
      <x>770</x>
-     <y>122</y>
+     <y>112</y>
     </hint>
    </hints>
   </connection>
@@ -1427,8 +1447,8 @@ p, li { white-space: pre-wrap; }
      <y>165</y>
     </hint>
     <hint type="destinationlabel">
-     <x>293</x>
-     <y>213</y>
+     <x>298</x>
+     <y>200</y>
     </hint>
    </hints>
   </connection>
@@ -1439,12 +1459,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>263</x>
-     <y>176</y>
+     <x>266</x>
+     <y>171</y>
     </hint>
     <hint type="destinationlabel">
-     <x>293</x>
-     <y>242</y>
+     <x>298</x>
+     <y>229</y>
     </hint>
    </hints>
   </connection>
@@ -1459,8 +1479,8 @@ p, li { white-space: pre-wrap; }
      <y>164</y>
     </hint>
     <hint type="destinationlabel">
-     <x>293</x>
-     <y>271</y>
+     <x>298</x>
+     <y>258</y>
     </hint>
    </hints>
   </connection>
@@ -1475,8 +1495,8 @@ p, li { white-space: pre-wrap; }
      <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>293</x>
-     <y>300</y>
+     <x>298</x>
+     <y>287</y>
     </hint>
    </hints>
   </connection>
@@ -1557,6 +1577,22 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>146</x>
      <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUserAgent</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editUserAgent</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>470</x>
+     <y>225</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>500</x>
+     <y>253</y>
     </hint>
    </hints>
   </connection>

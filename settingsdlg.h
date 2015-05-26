@@ -65,6 +65,8 @@ public:
     QLineEdit* bingID;
     QLineEdit* bingKey;
     QCheckBox* createCoredumps;
+    QCheckBox* checkUserAgent;
+    QComboBox* editUserAgent;
 
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();

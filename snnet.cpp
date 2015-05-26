@@ -133,6 +133,9 @@ void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::C
     }
     rq.setAttribute(QNetworkRequest::CacheLoadControlAttribute,ca);
 
+    if (gSet->overrideUserAgent)
+        rq.setRawHeader("User-Agent",gSet->userAgent.toLatin1());
+
     QNetworkReply* rpl = snv->txtBrowser->page()->networkAccessManager()->get(rq);
     connect(rpl,SIGNAL(finished()),this,SLOT(netHtmlLoaded()));
     connect(rpl,SIGNAL(downloadProgress(qint64,qint64)),this,SLOT(netDlProgress(qint64,qint64)));

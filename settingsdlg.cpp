@@ -65,6 +65,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     bingID=ui->editBingID;
     bingKey=ui->editBingKey;
     createCoredumps=ui->checkCreateCoredumps;
+    checkUserAgent=ui->checkUserAgent;
+    editUserAgent=ui->editUserAgent;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));

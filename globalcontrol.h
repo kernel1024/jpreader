@@ -113,6 +113,10 @@ public:
     bool showTabCloseButtons;
     bool createCoredumps;
 
+    bool overrideUserAgent;
+    QString userAgent;
+    QStringList userAgentHistory;
+
     int searchEngine;
     bool useAdblock;
     QString scpHost;
