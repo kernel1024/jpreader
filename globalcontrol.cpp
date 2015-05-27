@@ -9,6 +9,11 @@
 #include <QDesktopServices>
 #endif
 
+#include "mainwindow.h"
+#include "settingsdlg.h"
+#include "miniqxt/qxtglobalshortcut.h"
+#include "goldendictmgr.h"
+
 #include "globalcontrol.h"
 #include "authdlg.h"
 #include "lighttranslator.h"
@@ -17,6 +22,7 @@
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
 #include "miniqxt/qxttooltip.h"
+#include "auxdictionary.h"
 
 #define IPC_EOF "\n###"
 
@@ -54,10 +60,10 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     userAgent.clear();
     userAgentHistory.clear();
 
-    appIcon.addFile(":/globe16");
-    appIcon.addFile(":/globe32");
-    appIcon.addFile(":/globe48");
-    appIcon.addFile(":/globe128");
+    appIcon.addFile(":/img/globe16");
+    appIcon.addFile(":/img/globe32");
+    appIcon.addFile(":/img/globe48");
+    appIcon.addFile(":/img/globe128");
 
     overrideStdFonts=false;
     overrideFont=QApplication::font();
@@ -134,6 +140,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dlg = NULL;
     activeWindow = NULL;
     lightTranslator = NULL;
+    auxDictionary = NULL;
 
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
     actionGlobalTranslator->setCheckable(true);
@@ -240,7 +247,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     gctxTranHotkey->setDisabled();
     connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
 
-    wordFinder = new WordFinder(this);
     dictManager = new CGoldenDictMgr(this);
     dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
 
@@ -254,7 +260,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
     tabsListTimer.start();
 
-    wordFinder->clear();
     QTimer::singleShot(1500,dictManager,SLOT(loadDictionaries()));
 }
 
@@ -703,6 +708,8 @@ void CGlobalControl::settingsDlg()
 
     dlg->dictPaths->clear();
     dlg->dictPaths->addItems(dictPaths);
+    dlg->loadedDicts.clear();
+    dlg->loadedDicts.append(dictManager->getLoadedDictionaries());
 
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
@@ -960,7 +967,16 @@ void CGlobalControl::clearCaches()
 
 void CGlobalControl::showDictionaryWindow(const QString &text)
 {
+    if (auxDictionary==NULL) {
+        auxDictionary = new CAuxDictionary();
+        auxDictionary->show();
+        auxDictionary->adjustSplitters();
+    }
 
+    if (!text.isEmpty())
+        auxDictionary->findWord(text);
+    else
+        auxDictionary->restoreWindow();
 }
 
 void CGlobalControl::preShutdown()

@@ -586,6 +586,13 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="buttonDelDictPath">
+               <property name="text">
+                <string>Delete</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer_6">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -599,9 +606,9 @@ p, li { white-space: pre-wrap; }
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="buttonDelDictPath">
+              <widget class="QPushButton" name="buttonLoadedDicts">
                <property name="text">
-                <string>Delete</string>
+                <string>Loaded dictionaries...</string>
                </property>
               </widget>
              </item>
@@ -1385,6 +1392,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>listDictPaths</tabstop>
   <tabstop>buttonAddDictPath</tabstop>
   <tabstop>buttonDelDictPath</tabstop>
+  <tabstop>buttonLoadedDicts</tabstop>
   <tabstop>checkTransFont</tabstop>
   <tabstop>transFont</tabstop>
   <tabstop>transFontSize</tabstop>

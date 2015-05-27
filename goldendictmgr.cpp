@@ -109,6 +109,19 @@ sptr<Dictionary::DataRequest> CGoldenDictMgr::makeEmptyPage() const
     return r;
 }
 
+QStringList CGoldenDictMgr::getLoadedDictionaries()
+{
+    QStringList res;
+    res.clear();
+
+    for( unsigned x = dictionaries.size(); x--; )
+        res << tr("%1 (%2 words)")
+               .arg(QString::fromUtf8(dictionaries[x]->getName().c_str()))
+               .arg(dictionaries[x]->getWordCount());
+
+    return res;
+}
+
 
 std::string CGoldenDictMgr::makeNotFoundBody(const QString &word)
 {

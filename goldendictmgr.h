@@ -136,6 +136,8 @@ public:
     /// Creates an 'untitled' page. The result is guaranteed to be instant.
     sptr< Dictionary::DataRequest > makeEmptyPage() const;
 
+    QStringList getLoadedDictionaries();
+
 private:
     std::string makeHtmlHeader( QString const & word ) const;
     static std::string makeNotFoundBody( QString const & word );

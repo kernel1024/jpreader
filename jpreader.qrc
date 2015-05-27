@@ -1,11 +1,14 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/img">
         <file alias="google">img/google.png</file>
         <file alias="globe16">img/globe_16.png</file>
         <file alias="globe32">img/globe_32.png</file>
         <file alias="globe48">img/globe_48.png</file>
         <file alias="globe128">img/globe_128.png</file>
-        <file alias="startpage">img/startpage.html</file>
         <file alias="jisho">img/jisho.png</file>
+    </qresource>
+    <qresource prefix="/data">
+        <file alias="startpage">data/startpage.html</file>
+        <file alias="article-style.css">data/article-style.css</file>
     </qresource>
 </RCC>

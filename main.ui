@@ -168,6 +168,7 @@
     <addaction name="menuSourceLanguage"/>
     <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
+    <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
     <addaction name="actionShowLog"/>
@@ -364,6 +365,17 @@
   <action name="actionFindText">
    <property name="text">
     <string>&amp;Find text</string>
+   </property>
+  </action>
+  <action name="actionDictionary">
+   <property name="icon">
+    <iconset theme="accessories-dictionary"/>
+   </property>
+   <property name="text">
+    <string>D&amp;ictionary</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
  </widget>

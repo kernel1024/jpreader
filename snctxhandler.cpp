@@ -106,16 +106,16 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     if (!snv->txtBrowser->selectedText().isEmpty()) {
         cm->addSeparator();
-        QAction *ac = cm->addAction(QIcon(":/google"),tr("Search in Google"),
+        QAction *ac = cm->addAction(QIcon(":/img/google"),tr("Search in Google"),
                                    this,SLOT(searchInGoogle()));
         ac->setData(snv->txtBrowser->selectedText());
         ac = cm->addAction(QIcon::fromTheme("nepomuk"),tr("Local search"),
                           this,SLOT(searchLocal()));
         ac->setData(snv->txtBrowser->selectedText());
-        ac = cm->addAction(QIcon(":/jisho"),tr("Jisho word translation"),
+        ac = cm->addAction(QIcon(":/img/jisho"),tr("Jisho word translation"),
                           this,SLOT(searchInJisho()));
         ac->setData(snv->txtBrowser->selectedText());
-        ac = cm->addAction(QIcon::fromTheme("accessories-dictionary"),tr("GoldenDict/qjrad dictionary"),
+        ac = cm->addAction(QIcon::fromTheme("accessories-dictionary"),tr("Local dictionary"),
                           this,SLOT(showDictionary()));
         ac->setData(snv->txtBrowser->selectedText());
     }

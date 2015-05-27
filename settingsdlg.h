@@ -69,6 +69,8 @@ public:
     QComboBox* userAgent;
     QListWidget* dictPaths;
 
+    QStringList loadedDicts;
+
     explicit CSettingsDlg(QWidget *parent = 0);
     virtual ~CSettingsDlg();
 
@@ -96,6 +98,7 @@ public slots:
     void fontColorDlg();
     void addDictPath();
     void delDictPath();
+    void showLoadedDicts();
 };
 
 #endif // SETTINGSDLG_H

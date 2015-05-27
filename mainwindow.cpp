@@ -82,6 +82,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
     connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
     connect(actionFindText,SIGNAL(triggered()),this,SLOT(findText()));
+    connect(actionDictionary,SIGNAL(triggered()),gSet,SLOT(showDictionaryWindow()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -435,7 +436,7 @@ void CMainWindow::createSearch()
 
 void CMainWindow::createStartBrowser()
 {
-    QFile f(":/startpage");
+    QFile f(":/data/startpage");
     QString html;
     if (f.open(QIODevice::ReadOnly))
         html = QString::fromUtf8(f.readAll());

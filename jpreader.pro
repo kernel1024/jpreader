@@ -25,7 +25,8 @@ HEADERS = mainwindow.h \
     abstractthreadedsearch.h \
     abstracttranslator.h \
     bingtranslator.h \
-    goldendictmgr.h
+    goldendictmgr.h \
+    auxdictionary.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -55,7 +56,8 @@ SOURCES = main.cpp \
     abstracttranslator.cpp \
     bingtranslator.cpp \
     searchmodel.cpp \
-    goldendictmgr.cpp
+    goldendictmgr.cpp \
+    auxdictionary.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -67,7 +69,8 @@ FORMS = main.ui \
     snviewer.ui \
     searchtab.ui \
     lighttranslator.ui \
-    logdisplay.ui
+    logdisplay.ui \
+    auxdictionary.ui
 
 QT += webkit network xml dbus
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
@@ -171,7 +174,8 @@ target.path = /usr/local/bin
 INSTALLS += target
 
 OTHER_FILES += \
-    img/startpage.html \
+    data/startpage.html \
+    data/article-style.css \
     org.jpreader.auxtranslator.xml
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml

@@ -85,6 +85,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonFontColorOverride,SIGNAL(clicked()),this,SLOT(fontColorDlg()));
     connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
     connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
+    connect(ui->buttonLoadedDicts,SIGNAL(clicked()),this,SLOT(showLoadedDicts()));
 }
 
 CSettingsDlg::~CSettingsDlg()
@@ -239,6 +240,14 @@ void CSettingsDlg::delDictPath()
     if (idx<0 || idx>=ui->listDictPaths->count()) return;
     QListWidgetItem *a = ui->listDictPaths->takeItem(idx);
     delete a;
+}
+
+void CSettingsDlg::showLoadedDicts()
+{
+    QString msg = tr("No dictionaries loaded.");
+    if (!loadedDicts.isEmpty())
+        msg = tr("Loaded %1 dictionaries:\n").arg(loadedDicts.count())+loadedDicts.join('\n');
+    QMessageBox::information(this,tr("JPReader"),msg);
 }
 
 void CSettingsDlg::updateFontColorPreview(const QColor &c)

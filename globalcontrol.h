@@ -22,15 +22,8 @@
 #include <QLocalSocket>
 #include <QDebug>
 
-#include "mainwindow.h"
-#include "settingsdlg.h"
 #include "specwidgets.h"
-#include "miniqxt/qxtglobalshortcut.h"
 #include "logdisplay.h"
-
-#include "goldendictmgr.h"
-#include "goldendict/wordfinder.hh"
-
 
 #define TE_NIFTY 0
 #define TE_GOOGLE 1
@@ -61,6 +54,11 @@ class QSpecCookieJar;
 class CLightTranslator;
 class CAuxTranslator;
 class CTranslator;
+class CAuxDictionary;
+class ArticleNetworkAccessManager;
+class CGoldenDictMgr;
+class QxtGlobalShortcut;
+class CSettingsDlg;
 
 class UrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
@@ -104,9 +102,9 @@ public:
 
     ArticleNetworkAccessManager * dictNetMan;
     CGoldenDictMgr * dictManager;
-    WordFinder * wordFinder;
     QStringList dictPaths;
     QString dictIndexDir;
+    CAuxDictionary* auxDictionary;
 
     QList<QColor> snippetColors;
 
@@ -255,7 +253,7 @@ public slots:
     void ipcMessageReceived();
     void globalContextTranslateReady(const QString& text);
     void clearCaches();
-    void showDictionaryWindow(const QString& text);
+    void showDictionaryWindow(const QString& text = QString());
 
     // Settings management
     void writeSettings();

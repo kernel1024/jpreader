@@ -6,7 +6,7 @@
 
 #include "sntrans.h"
 #include "globalcontrol.h"
-#include "specwidgets.h"
+#include "goldendictmgr.h"
 #include "translator.h"
 #include "qxttooltip.h"
 

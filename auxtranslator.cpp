@@ -1,4 +1,5 @@
 #include "auxtranslator.h"
+#include "specwidgets.h"
 #include "globalcontrol.h"
 
 CAuxTranslator::CAuxTranslator(QObject *parent) :
