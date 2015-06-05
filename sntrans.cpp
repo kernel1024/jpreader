@@ -23,6 +23,27 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
 }
 
+void CSnTrans::convertToXML()
+{
+    snv->calculatedUrl="";
+    snv->onceTranslated=true;
+    QString aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
+    snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
+    if (snv->savedBaseUrl.hasFragment())
+        snv->savedBaseUrl.setFragment(QString());
+
+    CTranslator* ct = new CTranslator(NULL,aUri,NULL);
+    QString res;
+    if (!ct->documentToXML(aUri,res)) {
+        QMessageBox::critical(snv,tr("JPReader error"),tr("Translation to XML failed."));
+        return;
+    }
+
+    snv->calculatedUrl=res;
+    postTranslate();
+    snv->parentWnd->updateTabs();
+}
+
 void CSnTrans::translate()
 {
     snv->calculatedUrl="";

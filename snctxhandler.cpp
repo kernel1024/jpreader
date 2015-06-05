@@ -177,6 +177,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
                  this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
     ccm->addAction(QIcon::fromTheme("download"),tr("Open in browser"),
                  this,SLOT(execKonq()),QKeySequence(Qt::CTRL + Qt::Key_W));
+    ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Convert to XML"),
+                   snv->transHandler,SLOT(convertToXML()));
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
                  snv,SLOT(closeTab()));

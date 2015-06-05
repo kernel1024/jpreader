@@ -45,7 +45,7 @@ private:
     int textNodesCnt;
     int textNodesProgress;
     CAbstractTranslator* tran;
-    XMLPassMode xmlPass;
+    bool tranInited;
     bool useOverrideFont;
     bool forceFontColor;
     int translationMode;
@@ -56,12 +56,13 @@ private:
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateDocument(const QString& srcUri, QString& dst);
-    void examineXMLNode(QDomNode node);
-    bool translateParagraph(QDomNode src);
+    void examineXMLNode(QDomNode node, XMLPassMode xmlPass);
+    bool translateParagraph(QDomNode src, XMLPassMode xmlPass);
 
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
     ~CTranslator();
+    bool documentToXML(const QString& srcUri, QString& dst);
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);

@@ -26,6 +26,7 @@ public slots:
     void showWordTranslation(const QString & html);
     void showSuggestedTranslation(const QString & link);
     void dictDataReady();
+    void convertToXML();
 };
 
 #endif // SNTRANS_H

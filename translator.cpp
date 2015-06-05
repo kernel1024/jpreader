@@ -26,7 +26,8 @@ CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
     translationMode=gSet->getTranslationMode();
     engine=gSet->translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
-    tran=translatorFactory(this);
+    tran=NULL;
+    tranInited=false;
 }
 
 CTranslator::~CTranslator()
@@ -79,7 +80,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     }
 }
 
-void CTranslator::examineXMLNode(QDomNode node)
+void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
 {
     if (atlasSlipped) return;
     abortMutex.lock();
@@ -91,7 +92,7 @@ void CTranslator::examineXMLNode(QDomNode node)
 
     QApplication::processEvents();
 
-    if (xmlPass==PXTranslate || xmlPass==PXCalculate) {
+    if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
         if (node.isText() && node.parentNode().nodeName().toLower()=="title") return;
 
         if (xmlPass==PXCalculate && node.isText()) { // modify node
@@ -100,12 +101,12 @@ void CTranslator::examineXMLNode(QDomNode node)
             QDomAttr flg = node.ownerDocument().createAttribute("jpreader_flag");
             flg.setNodeValue("on");
             nd.attributes().setNamedItem(flg);
-            translateParagraph(nd);
+            translateParagraph(nd,xmlPass);
             node.parentNode().replaceChild(nd,node);
         }
         if (xmlPass==PXTranslate && node.attributes().contains("jpreader_flag")) {
             node.attributes().removeNamedItem("jpreader_flag");
-            if (!translateParagraph(node)) atlasSlipped=true;
+            if (!translateParagraph(node,xmlPass)) atlasSlipped=true;
         }
     }
 
@@ -220,7 +221,7 @@ void CTranslator::examineXMLNode(QDomNode node)
 
 
     for(int i=0;i<node.childNodes().count();i++) {
-        examineXMLNode(node.childNodes().at(i));
+        examineXMLNode(node.childNodes().at(i),xmlPass);
     }
 }
 
@@ -229,6 +230,11 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortMutex.lock();
     abortFlag=false;
     abortMutex.unlock();
+
+    if (tran==NULL && !tranInited) {
+        tran = translatorFactory(this);
+        tranInited = true;
+    }
 
     if (tran==NULL || !tran->initTran()) {
         dst=tr("Unable to initialize translation engine.");
@@ -256,24 +262,24 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     atlasSlipped=false;
     textNodesCnt=0;
-    xmlPass=PXPreprocess;
-    examineXMLNode(doc);
+    XMLPassMode xmlPass=PXPreprocess;
+    examineXMLNode(doc,xmlPass);
     //qDebug() << doc.toString();
 
     xmlPass=PXCalculate;
-    examineXMLNode(doc);
+    examineXMLNode(doc,xmlPass);
     //qDebug() << doc.toString();
 
     textNodesProgress=0;
     xmlPass=PXTranslate;
-    examineXMLNode(doc);
+    examineXMLNode(doc,xmlPass);
     //qDebug() << doc.toString();
 
     if (atlasSlipped)
         dst="ERROR:ATLAS_SLIPPED";
     else {
         xmlPass=PXPostprocess;
-        examineXMLNode(doc);
+        examineXMLNode(doc,xmlPass);
 
         dst = doc.toString();
 
@@ -288,7 +294,47 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     return true;
 }
 
-bool CTranslator::translateParagraph(QDomNode src)
+bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
+{
+    abortMutex.lock();
+    abortFlag=false;
+    abortMutex.unlock();
+
+    dst = "";
+    if (srcUri.isEmpty()) return false;
+
+    // convert source HTML to XML
+    QString src = srcUri.trimmed();
+    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
+    QByteArray xmls = XMLizeHTML(src.toUtf8(),"UTF-8");
+
+    // load into DOM
+    QDomDocument doc;
+    QString errMsg; int errLine, errCol;
+    if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
+        qDebug() << tr("HTML to XML beautification error");
+        qDebug() << errMsg << "at line" << errLine << ":" << errCol;
+        return false;
+    }
+
+    atlasSlipped=false;
+    textNodesCnt=0;
+    XMLPassMode xmlPass=PXPreprocess;
+    examineXMLNode(doc,xmlPass);
+
+    xmlPass=PXCalculate;
+    examineXMLNode(doc,xmlPass);
+
+    textNodesProgress=0;
+    xmlPass=PXTranslate;
+    examineXMLNode(doc,xmlPass);
+
+    dst = doc.toString();
+
+    return true;
+}
+
+bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
 {
     if (tran==NULL) return false;
 
