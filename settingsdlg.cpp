@@ -229,7 +229,7 @@ void CSettingsDlg::fontColorDlg()
 
 void CSettingsDlg::addDictPath()
 {
-    QString s = QFileDialog::getExistingDirectory(this,tr("Select directory"));
+    QString s = getExistingDirectoryD(this,tr("Select directory"));
     if (!s.isEmpty())
         ui->listDictPaths->addItem(s);
 }
