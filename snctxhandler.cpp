@@ -183,6 +183,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     ccm->addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
                  snv,SLOT(closeTab()));
     ccm->addSeparator();
+    if (!snv->txtBrowser->selectedText().isEmpty()) {
+        QAction *act = ccm->addAction(QIcon::fromTheme("document-save-as"),tr("Save selected text as file..."),
+                                      this,SLOT(saveToFile()));
+        act->setData(snv->txtBrowser->selectedText());
+    }
     ccm->addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
                  this,SLOT(saveToFile()));
 
@@ -418,19 +423,31 @@ void CSnCtxHandler::saveImgToFile()
 
 void CSnCtxHandler::saveToFile()
 {
-    QString fname = getSaveFileNameD(snv,tr("Save to HTML"),QDir::homePath(),
+    QString selectedText;
+    selectedText.clear();
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt!=NULL)
+        selectedText = nt->data().toString();
+
+    QString fname;
+    if (selectedText.isEmpty())
+        fname = getSaveFileNameD(snv,tr("Save to HTML"),QDir::homePath(),
                                                  tr("HTML file (*.html);;Text file (*.txt)"));
+    else
+        fname = getSaveFileNameD(snv,tr("Save to file"),QDir::homePath(),
+                                                 tr("Text file (*.txt)"));
+
     if (fname.isNull() || fname.isEmpty()) return;
 
     QFile f(fname);
     f.open(QIODevice::WriteOnly|QIODevice::Truncate);
     QFileInfo fi(fname);
     QByteArray bf;
-    if (fi.suffix().toLower()=="txt") {
+    if (!selectedText.isEmpty())
+        bf = selectedText.toUtf8();
+    else if (fi.suffix().toLower()=="txt")
         bf = snv->txtBrowser->page()->mainFrame()->toPlainText().toUtf8();
-    } else {
-        //QTextCodec* cd = detectEncoding(snv->txtBrowser->page()->mainFrame()->toHtml().toAscii());
-        //bf = cd->fromUnicode(snv->txtBrowser->page()->mainFrame()->toHtml());
+    else {
         bf = snv->txtBrowser->page()->mainFrame()->toHtml().toUtf8();
     }
     f.write(bf);
