@@ -152,7 +152,7 @@ QByteArray XMLizeHTML(QByteArray html, QString encoding)
     xmlizerMutex.lock();
 	Arabica::SAX::Taggle<std::string> parser;
     std::ostringstream sink;
-    Arabica::SAX::Writer<std::string> writer(sink, 4);
+    Arabica::SAX::Writer<std::string> writer(sink, 0);
     Arabica::SAX::CatchErrorHandler<std::string> eh;
 
     writer.setParent(parser);

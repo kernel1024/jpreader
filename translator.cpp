@@ -199,6 +199,25 @@ void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
             }
         }
 
+        // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
+        int idx=0;
+        while(idx<node.childNodes().count()) {
+            // Remove 'vtoken' inline span
+            QDomNode span = node.childNodes().item(idx);
+            if (span.nodeName().toLower()=="span" &&
+                    !span.attributes().namedItem("class").isNull() &&
+                    span.attributes().namedItem("class").nodeValue().toLower().startsWith("vtoken")) {
+
+                while(!span.childNodes().isEmpty())
+                    node.insertBefore(span.removeChild(span.firstChild()),span);
+
+                node.removeChild(span);
+                node.normalize();
+                idx=0;
+            }
+            idx++;
+        }
+
 		// remove <pre> tags
 		if (node.isElement() && node.nodeName().toLower()=="pre") {
             node.toElement().setTagName("span");
