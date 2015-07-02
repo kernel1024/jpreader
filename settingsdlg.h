@@ -68,6 +68,7 @@ public:
     QCheckBox* overrideUserAgent;
     QComboBox* userAgent;
     QListWidget* dictPaths;
+    QCheckBox* ignoreSSLErrors;
 
     QStringList loadedDicts;
 

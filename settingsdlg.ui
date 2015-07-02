@@ -163,6 +163,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="checkIgnoreSSLErrors">
+             <property name="text">
+              <string>Ignore SSL errors</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -1365,6 +1372,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxHistory</tabstop>
   <tabstop>checkJS</tabstop>
   <tabstop>checkAutoloadImages</tabstop>
+  <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
   <tabstop>buttonClearCookies</tabstop>

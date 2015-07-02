@@ -48,6 +48,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     restoreLoadChecked=false;
     emptyRestore=false;
     createCoredumps=false;
+    ignoreSSLErrors=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -401,6 +402,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("dictPaths_count",dictPaths.count());
     for (int i=0;i<dictPaths.count();i++)
         settings.setValue(QString("dictPaths%1").arg(i),dictPaths.at(i));
+    settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
     settings.endGroup();
     settingsSaveMutex.unlock();
 }
@@ -513,6 +515,7 @@ void CGlobalControl::readSettings()
     bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
     createCoredumps = settings.value("createCoredumps",false).toBool();
+    ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
@@ -711,6 +714,7 @@ void CGlobalControl::settingsDlg()
     dlg->loadedDicts.clear();
     dlg->loadedDicts.append(dictManager->getLoadedDictionaries());
 
+    dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
     dlg->proxyLogin->setText(proxyLogin);
@@ -827,6 +831,7 @@ void CGlobalControl::settingsDlg()
             dictManager->loadDictionaries();
         }
 
+        ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
         proxyHost = dlg->proxyHost->text();
         proxyPort = dlg->proxyPort->value();
         proxyLogin = dlg->proxyLogin->text();

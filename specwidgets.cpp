@@ -218,13 +218,17 @@ QNetworkReply* QSpecNetworkAccessManager::createRequest(Operation op, const QNet
 {
     if (gSet->debugNetReqLogging)
         qDebug() << req.url();
-
     if (gSet->isUrlBlocked(req.url())) {
         qDebug() << "adblock - skipping" << req.url();
         return QNetworkAccessManager::createRequest(QNetworkAccessManager::GetOperation,
                                                     QNetworkRequest(QUrl()));
     } else {
         QNetworkRequest rq(req);
+        if (gSet->ignoreSSLErrors) {
+            QSslConfiguration sconf = rq.sslConfiguration();
+            sconf.setPeerVerifyMode(QSslSocket::VerifyNone);
+            rq.setSslConfiguration(sconf);
+        }
         if ((rq.url().scheme().compare("file",Qt::CaseInsensitive)==0) &&
                 (rq.url().hasQuery() || rq.url().hasFragment())) {
             QString ps = rq.url().toString();

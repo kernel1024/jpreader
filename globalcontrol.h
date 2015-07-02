@@ -176,6 +176,8 @@ public:
     QNetworkProxy::ProxyType proxyType;
     QAction *actionUseProxy;
 
+    bool ignoreSSLErrors;
+
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
 

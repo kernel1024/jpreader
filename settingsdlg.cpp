@@ -68,6 +68,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     overrideUserAgent=ui->checkUserAgent;
     userAgent=ui->editUserAgent;
     dictPaths=ui->listDictPaths;
+    ignoreSSLErrors=ui->checkIgnoreSSLErrors;
 
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
