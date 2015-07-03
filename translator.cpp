@@ -300,7 +300,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
         xmlPass=PXPostprocess;
         examineXMLNode(doc,xmlPass);
 
-        dst = doc.toString();
+        dst = doc.toString(-1);
 
         tran->doneTran();
     }
@@ -348,7 +348,7 @@ bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
     xmlPass=PXTranslate;
     examineXMLNode(doc,xmlPass);
 
-    dst = doc.toString();
+    dst = doc.toString(-1);
 
     return true;
 }
@@ -382,8 +382,6 @@ bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
         if (xmlPass!=PXTranslate) {
             textNodesCnt++;
         } else {
-            QDomNode p = src.ownerDocument().createElement("span");
-
             QString srct = sl[i];
             QString t = tran->tranString(sl[i]);
             if (translationMode==TM_TOOLTIP) {
@@ -393,8 +391,8 @@ bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
             }
 
             if (translationMode==TM_ADDITIVE) {
-                p.appendChild(p.ownerDocument().createTextNode(srct));
-                p.appendChild(p.ownerDocument().createElement("br"));
+                src.appendChild(src.ownerDocument().createTextNode(srct));
+                src.appendChild(src.ownerDocument().createElement("br"));
             }
             if (t.contains("ERROR:ATLAS_SLIPPED")) {
                 tran->doneTran();
@@ -402,8 +400,8 @@ bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
                 return false;
             } else {
                 if (useOverrideFont || forceFontColor) {
-                    QDomNode dp = p.ownerDocument().createElement("span");
-                    dp.attributes().setNamedItem(p.ownerDocument().createAttribute("style"));
+                    QDomNode dp = src.ownerDocument().createElement("span");
+                    dp.attributes().setNamedItem(src.ownerDocument().createAttribute("style"));
                     QString dstyle;
                     if (useOverrideFont)
                         dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
@@ -412,19 +410,17 @@ bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
                     if (forceFontColor)
                         dstyle+=tr("color: %1;").arg(forcedFontColor.name());
                     dp.attributes().namedItem("style").setNodeValue(dstyle);
-                    dp.appendChild(p.ownerDocument().createTextNode(t));
-                    p.appendChild(dp);
+                    dp.appendChild(src.ownerDocument().createTextNode(t));
+                    src.appendChild(dp);
                 } else {
-                    p.appendChild(p.ownerDocument().createTextNode(t));
+                    src.appendChild(src.ownerDocument().createTextNode(t));
                 }
                 if ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)) {
-                    p.attributes().setNamedItem(p.ownerDocument().createAttribute("title"));
-                    p.attributes().namedItem("title").setNodeValue(srct);
+                    src.attributes().setNamedItem(src.ownerDocument().createAttribute("title"));
+                    src.attributes().namedItem("title").setNodeValue(srct);
                 } else
-                    p.appendChild(p.ownerDocument().createElement("br"));
+                    src.appendChild(src.ownerDocument().createElement("br"));
             }
-
-            src.appendChild(p);
 
             if (textNodesCnt>0 && i%5==0) {
                 int pr = 100*textNodesProgress/textNodesCnt;
