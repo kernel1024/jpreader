@@ -29,12 +29,8 @@
 ** <http://libqxt.org>  <foundation@libqxt.org>
 *****************************************************************************/
 
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-#   include <QX11Info>
-#else
-#   include <QApplication>
-#   include <xcb/xcb.h>
-#endif
+#include <QApplication>
+#include <xcb/xcb.h>
 #include <QVector>
 #include <X11/Xlib.h>
 
@@ -86,21 +82,15 @@ private:
 
 bool QxtX11ErrorHandler::error = false;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 Display *p_display = NULL;
-#endif
 
 class QxtX11Data {
 public:
     QxtX11Data()
     {
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        m_display = QX11Info::display();
-#else
         if (p_display == NULL)
             p_display = XOpenDisplay(NULL);
         m_display = p_display;
-#endif
     }
 
     bool isValid()
@@ -153,16 +143,6 @@ private:
 
 } // namespace
 
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-bool QxtGlobalShortcutPrivate::eventFilter(void *message)
-{
-    XEvent *event = static_cast<XEvent *>(message);
-    if (event->type == KeyPress)
-    {
-        XKeyEvent *key = reinterpret_cast<XKeyEvent *>(event);
-        unsigned int keycode = key->keycode;
-        unsigned int keystate = key->state;
-#else
 bool QxtGlobalShortcutPrivate::nativeEventFilter(const QByteArray & eventType,
     void *message, long *result)
 {
@@ -186,7 +166,6 @@ bool QxtGlobalShortcutPrivate::nativeEventFilter(const QByteArray & eventType,
             keystate |= Mod4Mask;
         if(kev->state & XCB_MOD_MASK_SHIFT)
             keystate |= ShiftMask;
-#endif
         activateShortcut(keycode,
             // Mod1Mask == Alt, Mod4Mask == Meta
             keystate & (ShiftMask | ControlMask | Mod1Mask | Mod4Mask));

@@ -3,9 +3,7 @@
 #include <QFileInfo>
 #include <QTimer>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
-#endif
 
 #include <math.h>
 #include "snviewer.h"
@@ -184,13 +182,9 @@ void CSnippetViewer::navByUrl(QString url)
 
     if (!u.isValid() || !url.contains('.')) {
         u = QUrl("http://google.com/search");
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        u.addQueryItem("q", url);
-#else
         QUrlQuery qu;
         qu.addQueryItem("q", url);
         u.setQuery(qu);
-#endif
     }
 
     urlEdit->setPalette(QApplication::palette(urlEdit));

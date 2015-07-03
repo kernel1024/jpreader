@@ -1,6 +1,5 @@
 #include <QUrl>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QEventLoop>
 #include <QTimer>
 #include <QDebug>
@@ -178,5 +177,3 @@ bool CBingTranslator::isReady()
 {
     return !authHeader.isEmpty() && nam!=NULL;
 }
-
-#endif

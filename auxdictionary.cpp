@@ -1,8 +1,6 @@
 #include <QMessageBox>
 #include <QUrl>
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
-#endif
 
 #include "auxdictionary.h"
 #include "goldendictmgr.h"
@@ -62,13 +60,9 @@ void CAuxDictionary::showTranslationFor(const QString &text)
     QUrl req;
     req.setScheme( "gdlookup" );
     req.setHost( "localhost" );
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    req.addQueryItem( "word", text );
-#else
     QUrlQuery requ;
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
-#endif
     ui->viewArticles->load( req );
 
     ui->viewArticles->setCursor( Qt::WaitCursor );
@@ -219,13 +213,9 @@ void CAuxDictionary::showEmptyDictPage()
 
     req.setScheme( "gdlookup" );
     req.setHost( "localhost" );
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    req.addQueryItem( "blank", "1" );
-#else
     QUrlQuery requ;
     requ.addQueryItem( "blank", "1" );
     req.setQuery(requ);
-#endif
 
     ui->viewArticles->load( req );
 

@@ -5,9 +5,7 @@
 #include <QWebHitTestResult>
 #include <QWebElement>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
-#endif
 
 #include "qxttooltip.h"
 #include "snctxhandler.h"
@@ -326,13 +324,9 @@ void CSnCtxHandler::searchInGoogle()
     if (nt==NULL) return;
     QString s = nt->data().toString();
     QUrl u("http://google.com/search");
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    u.addQueryItem("q", s);
-#else
     QUrlQuery qu;
     qu.addQueryItem("q", s);
     u.setQuery(qu);
-#endif
 
     new CSnippetViewer(snv->parentWnd, u);
 }
@@ -353,17 +347,11 @@ void CSnCtxHandler::searchInJisho()
     if (nt==NULL) return;
     QString s = nt->data().toString();
     QUrl u("http://jisho.org/words");
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    u.addQueryItem("jap",s);
-    u.addQueryItem("eng=","");
-    u.addQueryItem("dict","edict");
-#else
     QUrlQuery qu;
     qu.addQueryItem("jap",s);
     qu.addQueryItem("eng=","");
     qu.addQueryItem("dict","edict");
     u.setQuery(qu);
-#endif
 
     new CSnippetViewer(snv->parentWnd, u);
 }

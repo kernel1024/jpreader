@@ -4,8 +4,6 @@
 #include <QNetworkAccessManager>
 #include "abstracttranslator.h"
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-
 class CBingTranslator : public CAbstractTranslator
 {
 private:
@@ -28,7 +26,5 @@ public:
     bool isReady();
 
 };
-
-#endif // QT5
 
 #endif // CBINGTRANSLATOR_H

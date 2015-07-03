@@ -26,9 +26,7 @@
 #include <QUrl>
 #include <QDebug>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-#   include <QUrlQuery>
-#endif
+#include <QUrlQuery>
 
 using std::vector;
 using std::string;
@@ -864,13 +862,9 @@ string ArticleRequest::linkWord( QString const & str )
 
   url.setScheme( "gdlookup" );
   url.setHost( "localhost" );
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-  url.addQueryItem( "word", str );
-#else
   QUrlQuery requ;
   requ.addQueryItem( "word", str );
   url.setQuery(requ);
-#endif
 
   string escapedResult = Html::escape( str.toUtf8().data() );
   return string( "<a href=\"" ) + url.toEncoded().data() + "\">" + escapedResult +"</a>";
@@ -946,14 +940,6 @@ sptr< Dictionary::DataRequest > ArticleNetworkAccessManager::getResource(
     QMap< QString, QString > contexts;
     QString word, contextsEncoded;
 
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    if ( url.queryItemValue( "blank" ) == "1" )
-      return dictMgr->makeEmptyPage();
-
-    word = url.queryItemValue( "word" );
-
-    contextsEncoded = url.queryItemValue( "contexts" );
-#else
     QUrlQuery qr(url);
     if ( qr.queryItemValue( "blank" ) == "1" )
         return dictMgr->makeEmptyPage();
@@ -962,7 +948,6 @@ sptr< Dictionary::DataRequest > ArticleNetworkAccessManager::getResource(
 
     contextsEncoded = qr.queryItemValue( "contexts" );
 
-#endif
     // Unpack contexts
 
     if ( contextsEncoded.size() )

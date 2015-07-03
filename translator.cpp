@@ -442,11 +442,7 @@ void CTranslator::translate()
                 oktrans = true;
                 break;
             }
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
             QThread::sleep(atlTcpTimeout);
-#else
-            thread()->wait(atlTcpTimeout*1000);
-#endif
             if (tran!=NULL)
                 tran->doneTran(true);
         }

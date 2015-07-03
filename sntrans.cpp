@@ -1,8 +1,6 @@
 #include <QMessageBox>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
-#endif
 
 #include "sntrans.h"
 #include "globalcontrol.h"
@@ -120,9 +118,7 @@ void CSnTrans::postTranslate()
     QByteArray postBody;
     QUrl url;
     QString cn;
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QUrlQuery qu;
-#endif
     switch (gSet->translatorEngine) {
     case TE_NIFTY:
         // POST requester
@@ -136,16 +132,10 @@ void CSnTrans::postTranslate()
         break;
     case TE_GOOGLE:
         url = QUrl("http://translate.google.com/translate");
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        url.addQueryItem("sl",gSet->getSourceLanguageID());
-        url.addQueryItem("tl","en");
-        url.addQueryItem("u",snv->calculatedUrl);
-#else
         qu.addQueryItem("sl",gSet->getSourceLanguageID());
         qu.addQueryItem("tl","en");
         qu.addQueryItem("u",snv->calculatedUrl);
         url.setQuery(qu);
-#endif
         rqst.setUrl(url);
         rqst.setRawHeader("Referer",url.toString().toUtf8());
         snv->onceLoaded=true;
@@ -211,13 +201,9 @@ void CSnTrans::findWordTranslation(const QString &text)
     QUrl req;
     req.setScheme( "gdlookup" );
     req.setHost( "localhost" );
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    req.addQueryItem( "word", text );
-#else
     QUrlQuery requ;
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
-#endif
     QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
     connect(rep,SIGNAL(finished()),this,SLOT(dictDataReady()));
 }
@@ -252,12 +238,8 @@ void CSnTrans::showWordTranslation(const QString &html)
 void CSnTrans::showSuggestedTranslation(const QString &link)
 {
     QUrl url(link);
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    QString word = url.queryItemValue("word");
-#else
     QUrlQuery requ(url);
     QString word = requ.queryItemValue("word");
-#endif
     if (word.startsWith('%')) {
         QByteArray bword = word.toLatin1();
         if (!bword.isNull() && !bword.isEmpty())

@@ -3,11 +3,7 @@
 #include <QMessageBox>
 #include <QLocalSocket>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QStandardPaths>
-#else
-#include <QDesktopServices>
-#endif
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
@@ -104,11 +100,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 #endif
 
     QString fs = QString();
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    fs = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
-#else
     fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-#endif
 
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
@@ -634,9 +626,6 @@ void CGlobalControl::settingsDlg()
     case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
     default: dlg->rbNifty->setChecked(true); break;
     }
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-    dlg->rbBingAPI->setEnabled(false);
-#endif
     dlg->scpHost->clear();
     if (!scpHostHistory.contains(scpHost))
         scpHostHistory.append(scpHost);
@@ -756,10 +745,6 @@ void CGlobalControl::settingsDlg()
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
         else translatorEngine=TE_NIFTY;
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-        if (translatorEngine==TE_BINGAPI)
-            translatorEngine=TE_GOOGLE;
-#endif
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();

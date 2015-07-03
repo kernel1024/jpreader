@@ -72,8 +72,7 @@ FORMS = main.ui \
     logdisplay.ui \
     auxdictionary.ui
 
-QT += webkit network xml dbus
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
+QT += webkit network xml dbus widgets webkitwidgets
 
 DEFINES += WITHWEBKIT
 CONFIG += warn_on \
@@ -106,36 +105,14 @@ exists( /usr/include/magic.h ) {
 
 PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
 
-lessThan(QT_MAJOR_VERSION, 5) {
-    exists( /usr/include/nepomuk2/filequery.h ) {
-        INCLUDEPATH += /usr/include/nepomuk2
-        CONFIG += use_nepomuk
-        DEFINES += WITH_NEPOMUK=2
-        LIBS += -lkio -lkdecore -lsoprano -lnepomukcore -lnepomukcommon
-        message("Nepomuk 2 support: YES")
-    } else {
-        exists( /usr/include/nepomuk/filequery.h ) {
-            INCLUDEPATH += /usr/include/nepomuk
-            CONFIG += use_nepomuk
-            DEFINES += WITH_NEPOMUK=1
-            LIBS += -lkio -lkdecore -lsoprano -lnepomuk -lnepomukquery -lnepomukutils
-            message("Nepomuk support: YES")
-        }
-    }
-} else {
-    exists( /usr/include/KF5/Baloo/Baloo/Query ) {
-        INCLUDEPATH += /usr/include/KF5
-        INCLUDEPATH += /usr/include/KF5/Baloo
-        CONFIG += use_baloo5
-        DEFINES += WITH_BALOO5=1
-        DEFINES += WITH_THREADED_SEARCH=1
-        LIBS += -lKF5Baloo
-        message("KF5 Baloo support: YES")
-    }
-}
-
-!use_nepomuk {
-    message("Nepomuk support: NO")
+exists( /usr/include/KF5/Baloo/Baloo/Query ) {
+    INCLUDEPATH += /usr/include/KF5
+    INCLUDEPATH += /usr/include/KF5/Baloo
+    CONFIG += use_baloo5
+    DEFINES += WITH_BALOO5=1
+    DEFINES += WITH_THREADED_SEARCH=1
+    LIBS += -lKF5Baloo
+    message("KF5 Baloo support: YES")
 }
 
 !use_baloo5 {
