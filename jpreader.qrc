@@ -6,6 +6,7 @@
         <file alias="globe48">img/globe_48.png</file>
         <file alias="globe128">img/globe_128.png</file>
         <file alias="jisho">img/jisho.png</file>
+        <file alias="nepomuk">img/nepomuk.png</file>
     </qresource>
     <qresource prefix="/data">
         <file alias="startpage">data/startpage.html</file>

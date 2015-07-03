@@ -89,9 +89,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     netAccess.setCookieJar(&cookieJar);
 
-#ifdef WITH_NEPOMUK
-    searchEngine = SE_NEPOMUK;
-#elif WITH_RECOLL
+#if WITH_RECOLL
     searchEngine = SE_RECOLL;
 #elif WITH_BALOO5
     searchEngine = SE_BALOO5;
@@ -670,18 +668,13 @@ void CGlobalControl::settingsDlg()
     dlg->updateFontColorPreview(forcedFontColor);
     dlg->gctxHotkey->setKeySequence(gctxTranHotkey->shortcut());
     dlg->createCoredumps->setChecked(createCoredumps);
-#ifndef WITH_NEPOMUK
-    dlg->searchNepomuk->setEnabled(false);
-#endif
 #ifndef WITH_RECOLL
     dlg->searchRecoll->setEnabled(false);
 #endif
 #ifndef WITH_BALOO5
     dlg->searchBaloo5->setEnabled(false);
 #endif
-    if ((searchEngine==SE_NEPOMUK) && (dlg->searchNepomuk->isEnabled()))
-        dlg->searchNepomuk->setChecked(true);
-    else if ((searchEngine==SE_RECOLL) && (dlg->searchRecoll->isEnabled()))
+    if ((searchEngine==SE_RECOLL) && (dlg->searchRecoll->isEnabled()))
         dlg->searchRecoll->setChecked(true);
     else if ((searchEngine==SE_BALOO5) && (dlg->searchBaloo5->isEnabled()))
         dlg->searchBaloo5->setChecked(true);
@@ -784,9 +777,7 @@ void CGlobalControl::settingsDlg()
         if (!gctxTranHotkey->shortcut().isEmpty())
             gctxTranHotkey->setEnabled();
         createCoredumps=dlg->createCoredumps->isChecked();
-        if (dlg->searchNepomuk->isChecked())
-            searchEngine = SE_NEPOMUK;
-        else if (dlg->searchRecoll->isChecked())
+        if (dlg->searchRecoll->isChecked())
             searchEngine = SE_RECOLL;
         else if (dlg->searchBaloo5->isChecked())
             searchEngine = SE_BALOO5;

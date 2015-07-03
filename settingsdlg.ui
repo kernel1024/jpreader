@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>370</height>
+    <height>374</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,13 +34,6 @@
            <widget class="QRadioButton" name="radioSearchNone">
             <property name="text">
              <string>&amp;Local file search</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioSearchNepomuk">
-            <property name="text">
-             <string>&amp;Nepomuk</string>
             </property>
            </widget>
           </item>
@@ -1364,7 +1357,6 @@ p, li { white-space: pre-wrap; }
  </customwidgets>
  <tabstops>
   <tabstop>radioSearchNone</tabstop>
-  <tabstop>radioSearchNepomuk</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
   <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>spinMaxLimit</tabstop>

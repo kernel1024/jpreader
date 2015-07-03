@@ -10,13 +10,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     result = QBResult();
     query = QString();
     indexerSerivce = gSet->searchEngine;
-    if (indexerSerivce == SE_NEPOMUK) {
-#ifdef WITH_NEPOMUK
-        engine = NULL;
-        connect(engine.dirLister(),SIGNAL(completed()),this,SLOT(engineFinished()));
-        connect(engine.dirLister(),SIGNAL(newItems(KFileItemList)),this,SLOT(nepomukNewItems(KFileItemList)));
-#endif
-    } else if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
+    if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
             engine = NULL;
@@ -52,21 +46,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         searchInDir(searchDir,query);
         engineFinished();
     } else {
-        if (indexerSerivce == SE_NEPOMUK) {
-#ifdef WITH_NEPOMUK
-#if WITH_NEPOMUK == 1
-            Nepomuk::Query::LiteralTerm term(query);
-            Nepomuk::Query::FileQuery qr(term);
-#else
-            Nepomuk2::Query::LiteralTerm term(query);
-            Nepomuk2::Query::FileQuery qr(term);
-#endif
-            KUrl ndir = qr.toSearchUrl();
-            engine.dirLister()->openUrl(ndir);
-#else
-            engineFinished();
-#endif
-        } else if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
+        if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
             if (isValidConfig())
                 emit startThreadedSearch(query,gSet->maxLimit);
             else
@@ -78,9 +58,6 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 
 bool CIndexerSearch::isValidConfig()
 {
-#ifndef WITH_NEPOMUK
-    if (indexerSerivce == SE_NEPOMUK) return false;
-#endif
 #ifndef WITH_RECOLL
     if (indexerSerivce == SE_RECOLL) return false;
 #endif
@@ -99,74 +76,6 @@ int CIndexerSearch::getCurrentIndexerService()
 {
     return indexerSerivce;
 }
-
-#ifdef WITH_NEPOMUK
-void CIndexerSearch::addHit(const KFileItem &hit)
-{
-    if (result.snippets.count()>gSet->maxLimit) return;
-    // Add only files (no feeds, cached pages etc...)
-    if (!hit.isFile()) return;
-    if (hit.localPath().isEmpty()) return;
-
-    // get URI and file info
-    QString fname = hit.localPath();
-    double nhits = 0.0;
-    QString title;
-    processFile(fname,nhits,title);
-
-    // scan existing snippets and add new empty snippet
-    for(int i=0;i<result.snippets.count();i++) {
-        if (result.snippets[i]["FullFilename"]==fname) {
-            if ((result.snippets[i]["Score"]).toDouble()<=nhits)
-                return; // skip same hit with lower score, leave hit with higher score
-            else {
-                // remove old hit with lower score
-                result.snippets.removeAt(i);
-                break;
-            }
-        }
-    }
-
-    result.snippets.append(QStrHash());
-
-    result.snippets.last()["Uri"] = QUrl::fromLocalFile(fname).toString();
-    QFileInfo wf(fname);
-    result.snippets.last()["FullFilename"] = fname;
-    result.snippets.last()["DisplayFilename"] = fname;
-    result.snippets.last()["FilePath"] = wf.filePath();
-    if (wf.exists()) {
-        double sz = (double)(wf.size()) / 1024;
-        result.snippets.last()["FileSize"] = QString("%L1 Kb").arg(sz, 0, 'f', 1);
-        result.snippets.last()["FileSizeNum"] = QString("%1").arg(wf.size());
-    } else {
-        result.snippets.last()["FullFilename"] = "not_found";
-        result.snippets.last()["FileSize"] = "0";
-        result.snippets.last()["FileSizeNum"] = "0";
-    }
-    result.snippets.last()["OnlyFilename"] = wf.fileName();
-    result.snippets.last()["Dir"] = QDir(wf.dir()).dirName();
-
-    // extract base properties (score, type etc)
-    result.snippets.last()["Src"]="Files";
-    result.snippets.last()["Score"]=QString("%1").arg(nhits,0,'f',4);
-    result.snippets.last()["MimeT"]=hit.mimetype();
-    result.snippets.last()["MimeType"]=hit.mimetype();
-    result.snippets.last()["Type"]="File";
-
-    result.snippets.last()["Time"]=hit.time(KFileItem::ModificationTime).toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
-
-    result.snippets.last()["dc:title"]=title;
-    result.snippets.last()["Filename"]=fname;
-    result.snippets.last()["FileTitle"] = wf.fileName();
-}
-
-void CIndexerSearch::nepomukNewItems(const KFileItemList &items)
-{
-    if (!working) return;
-    for (int i=0;i<items.count();i++)
-        addHit(items.at(i));
-}
-#endif
 
 void CIndexerSearch::addHitFS(const QFileInfo &hit)
 {

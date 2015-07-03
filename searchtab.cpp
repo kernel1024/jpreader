@@ -76,9 +76,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
 
     bindToTab(parentWnd->tabMain);
 
-    if (engine->getCurrentIndexerService()==SE_NEPOMUK)
-        ui->labelMode->setText("Nepomuk search");
-    else if (engine->getCurrentIndexerService()==SE_RECOLL)
+    if (engine->getCurrentIndexerService()==SE_RECOLL)
         ui->labelMode->setText("Recoll search");
     else if (engine->getCurrentIndexerService()==SE_BALOO5)
         ui->labelMode->setText("Baloo KF5 search");
@@ -88,7 +86,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     if (!engine->isValidConfig())
         QMessageBox::warning(parentWnd,tr("JPReader warning"),
                              tr("Configuration error. \n"
-                                "You have enabled Nepomuk or Recoll search engine in settings, \n"
+                                "You have enabled Recoll search engine in settings, \n"
                                 "but jpreader compiled without support for selected engine.\n"
                                 "Fallback to local file search.\n"
                                 "Please, check program settings and reopen new search tab."));

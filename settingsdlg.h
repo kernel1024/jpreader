@@ -51,7 +51,6 @@ public:
     QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
     QCheckBox *overrideFontColor;
     QHotkeyEdit *gctxHotkey;
-    QRadioButton* searchNepomuk;
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
     QRadioButton* searchBaloo5;

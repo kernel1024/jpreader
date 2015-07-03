@@ -683,16 +683,12 @@ void CMainWindow::closeEvent(QCloseEvent *event)
 
 void CMainWindow::helpAbout()
 {
-    QString nepomuk = tr("no");
     QString recoll = tr("no");
     QString baloo5 = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
     debugstr = tr ("Debug build.\n");
-#endif
-#ifdef WITH_NEPOMUK
-    nepomuk = tr("yes");
 #endif
 #ifdef WITH_RECOLL
     recoll = tr("yes");
@@ -704,14 +700,12 @@ void CMainWindow::helpAbout()
                      "Build: %1 %2\n"
                      "Platform: %3\n"
                      "Build date: %4\n\n"
-                     "Nepomuk backend compiled: %5\n"
-                     "Recoll backend compiled: %6\n"
-                     "Baloo (KDE Frameworks 5) backend compiled: %7")
+                     "Recoll backend compiled: %5\n"
+                     "Baloo (KDE Frameworks 5) backend compiled: %6")
                     .arg(BUILD_REV)
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
                     .arg(BUILD_DATE)
-                    .arg(nepomuk)
                     .arg(recoll)
                     .arg(baloo5);
 

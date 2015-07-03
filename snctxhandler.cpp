@@ -107,7 +107,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         QAction *ac = cm->addAction(QIcon(":/img/google"),tr("Search in Google"),
                                    this,SLOT(searchInGoogle()));
         ac->setData(snv->txtBrowser->selectedText());
-        ac = cm->addAction(QIcon::fromTheme("nepomuk"),tr("Local search"),
+        ac = cm->addAction(QIcon::fromTheme(":/img/nepomuk"),tr("Local search"),
                           this,SLOT(searchLocal()));
         ac->setData(snv->txtBrowser->selectedText());
         ac = cm->addAction(QIcon(":/img/jisho"),tr("Jisho word translation"),

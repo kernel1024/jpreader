@@ -9,13 +9,6 @@
 #include <QDir>
 #include <QFileInfo>
 
-#ifdef WITH_NEPOMUK
-#include <kdirmodel.h>
-#include <kdirlister.h>
-#include <filequery.h>
-#include <literalterm.h>
-#endif
-
 #ifdef WITH_THREADED_SEARCH
 #include "abstractthreadedsearch.h"
 #include "baloo5search.h"
@@ -62,10 +55,6 @@ public:
     int getCurrentIndexerService();
     
 private:
-#ifdef WITH_NEPOMUK
-    KDirModel engine;
-    void addHit(const KFileItem &hit);
-#endif
 #ifdef WITH_THREADED_SEARCH
     CAbstractThreadedSearch *engine;
 #endif
@@ -89,9 +78,6 @@ signals:
 public slots:
     void engineFinished();
     void doSearch(const QString &searchTerm, const QDir &searchDir);
-#ifdef WITH_NEPOMUK
-    void nepomukNewItems(const KFileItemList &items);
-#endif
     void auxAddHit(const QString &fileName);
 
 };

@@ -32,7 +32,6 @@
 #define TECOUNT 4
 
 #define SE_NONE 0
-#define SE_NEPOMUK 1
 #define SE_RECOLL 2
 #define SE_BALOO5 3
 

@@ -48,7 +48,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     overrideFontColor=ui->checkFontColorOverride;
     overridedFontColor=Qt::black;
     gctxHotkey=ui->gctxHotkey;
-    searchNepomuk=ui->radioSearchNepomuk;
     searchRecoll=ui->radioSearchRecoll;
     searchNone=ui->radioSearchNone;
     searchBaloo5=ui->radioSearchBaloo5;
