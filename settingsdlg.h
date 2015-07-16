@@ -27,7 +27,6 @@ public:
     QLineEdit* editor;
 	QListWidget* qrList;
 	QListWidget* bmList;
-    QRadioButton* rbNifty;
     QRadioButton* rbGoogle;
     QRadioButton* rbAtlas;
     QRadioButton* rbBingAPI;

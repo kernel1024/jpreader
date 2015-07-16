@@ -16,6 +16,9 @@
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -230,16 +233,6 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QRadioButton" name="radioNifty">
-            <property name="text">
-             <string>&amp;Nifty</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QRadioButton" name="radioGoogle">
             <property name="text">
              <string>Googl&amp;e</string>
@@ -270,7 +263,7 @@
          </property>
          <widget class="QWidget" name="tab_11">
           <attribute name="title">
-           <string>Nifty / Google</string>
+           <string>Google</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_17">
            <item>
@@ -898,7 +891,7 @@ p, li { white-space: pre-wrap; }
          <item row="3" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>SCP &amp;Host</string>
+            <string>S&amp;CP Host</string>
            </property>
            <property name="buddy">
             <cstring>editScpHost</cstring>
@@ -1076,6 +1069,12 @@ p, li { white-space: pre-wrap; }
       <layout class="QVBoxLayout" name="verticalLayout_9">
        <item>
         <widget class="QListWidget" name="listAdblock">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Not supported yet</string>
+         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::ExtendedSelection</enum>
          </property>
@@ -1085,6 +1084,9 @@ p, li { white-space: pre-wrap; }
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
           <widget class="QPushButton" name="buttonAdAdd">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Add...</string>
            </property>
@@ -1092,6 +1094,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QPushButton" name="buttonAdDel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Delete</string>
            </property>
@@ -1099,6 +1104,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QPushButton" name="buttonAdImport">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Import...</string>
            </property>
@@ -1106,6 +1114,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QPushButton" name="buttonAdImportOpera">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Import from Opera...</string>
            </property>
@@ -1126,6 +1137,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QCheckBox" name="checkUseAd">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Enable AdBlock</string>
            </property>
@@ -1142,6 +1156,12 @@ p, li { white-space: pre-wrap; }
       <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
         <widget class="QGroupBox" name="groupBox_8">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Not supported yet</string>
+         </property>
          <property name="title">
           <string>Proxy</string>
          </property>
@@ -1372,7 +1392,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>radioNifty</tabstop>
   <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>

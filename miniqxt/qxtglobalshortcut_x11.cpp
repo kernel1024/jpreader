@@ -57,9 +57,6 @@ public:
                         event->request_code == 34 /* X_UngrabKey */)
                 {
                     error = true;
-                    //TODO:
-                    //char errstr[256];
-                    //XGetErrorText(dpy, err->error_code, errstr, 256);
                 }
         }
         return 0;
@@ -186,10 +183,6 @@ quint32 QxtGlobalShortcutPrivate::nativeModifiers(Qt::KeyboardModifiers modifier
     if (modifiers & Qt::MetaModifier)
         native |= Mod4Mask;
 
-    // TODO: resolve these?
-    //if (modifiers & Qt::MetaModifier)
-    //if (modifiers & Qt::KeypadModifier)
-    //if (modifiers & Qt::GroupSwitchModifier)
     return native;
 }
 

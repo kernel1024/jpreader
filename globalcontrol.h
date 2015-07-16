@@ -83,6 +83,9 @@ public:
     int count;
 };
 
+// TODO: Remove unnecesary parameters
+// TODO: Rework history subsystem
+
 class CGlobalControl : public QObject
 {
     Q_OBJECT

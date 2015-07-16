@@ -21,7 +21,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     editor=ui->editEditor;
 	qrList=ui->listQr;
 	bmList=ui->listBookmarks;
-    rbNifty=ui->radioNifty;
     rbGoogle=ui->radioGoogle;
     cbSCP=ui->checkSCP;
     scpParams=ui->editScpParams;

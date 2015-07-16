@@ -8,6 +8,8 @@
 #include "globalcontrol.h"
 #include "ui_auxdictionary.h"
 
+// TODO: Make QNetworkQuery-loader from specialized NAM to WebEngine
+
 CAuxDictionary::CAuxDictionary(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CAuxDictionary)

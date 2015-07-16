@@ -887,7 +887,7 @@ void CGlobalControl::blockTabClose()
     QTimer::singleShot(500,this,SLOT(closeLockTimer()));
 }
 
-// TODO: move to snview
+// TODO: Move http authentication to snview, also check for proxy auth
 /*void CGlobalControl::authentication(QNetworkReply *reply, QAuthenticator *authenticator)
 {
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),reply->url(),authenticator->realm());
