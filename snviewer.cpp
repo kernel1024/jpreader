@@ -28,7 +28,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
     txtBrowser->setUrl(QUrl("about:blank"));
     layout()->addWidget(txtBrowser);
-//    txtBrowser->setPage(new QSpecWebPage(this));
+    txtBrowser->setPage(new QSpecWebPage(gSet->webProfile,parent,this));
 
     tabTitle="";
     isStartPage = startPage;
@@ -37,7 +37,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     loading = false;
     fileChanged = false;
     calculatedUrl="";
-	onceLoaded=false;
     onceTranslated=false;
     requestAutotranslate=false;
     slist.clear();
@@ -51,7 +50,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 	}
     bindToTab(parent->tabMain, setFocused);
 
-	txtBrowser->setContextMenuPolicy(Qt::CustomContextMenu);
+    txtBrowser->setContextMenuPolicy(Qt::CustomContextMenu);
 //    txtBrowser->page()->setNetworkAccessManager(&(gSet->netAccess));
 //    txtBrowser->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 
@@ -80,6 +79,11 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(loadStarted()), netHandler, SLOT(loadStarted()));
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
+
+    connect(txtBrowser->page(), SIGNAL(authenticationRequired(QUrl,QAuthenticator*)),
+            netHandler, SLOT(authenticationRequired(QUrl,QAuthenticator*)));
+    connect(txtBrowser->page(), SIGNAL(proxyAuthenticationRequired(QUrl,QAuthenticator*,QString)),
+            netHandler, SLOT(proxyAuthenticationRequired(QUrl,QAuthenticator*,QString)));
 
     connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barLoading, SLOT(hide()));
     connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barPlaceholder, SLOT(show()));

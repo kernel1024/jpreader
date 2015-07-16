@@ -363,3 +363,43 @@ void QSpecTabContainer::closeTab(bool nowait)
     parentWnd->checkTabs();
     deleteLater();
 }
+
+
+QSpecWebPage::QSpecWebPage(QObject *parent)
+    : QWebEnginePage(parent)
+{
+    parentWnd = NULL;
+}
+
+QSpecWebPage::QSpecWebPage(QWebEngineProfile *profile, CMainWindow* wnd, QObject *parent)
+    : QWebEnginePage(profile, parent)
+{
+    parentWnd = wnd;
+}
+
+bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
+{
+    Q_UNUSED(type);
+    Q_UNUSED(isMainFrame);
+
+    emit linkClickedExt(url,type);
+
+    return !gSet->isUrlBlocked(url);
+}
+
+bool QSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)
+{
+    Q_UNUSED(certificateError);
+
+    return gSet->ignoreSSLErrors;
+}
+
+QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
+{
+    Q_UNUSED(type);
+
+    if (parentWnd==NULL) return NULL;
+
+    CSnippetViewer* sv = new CSnippetViewer(parentWnd);
+    return sv->txtBrowser->page();
+}

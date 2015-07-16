@@ -252,11 +252,9 @@ public slots:
     void preShutdown();
     void closeLockTimer();
     void blockTabClose();
-//    void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
     void clipboardChanged(QClipboard::Mode mode);
     void ipcMessageReceived();
     void globalContextTranslateReady(const QString& text);
-//    void clearCaches();
     void showDictionaryWindow(const QString& text = QString());
 
     // Settings management

@@ -87,12 +87,10 @@ public slots:
     void selectEditor();
 	void delQrs();
 	void delBkm();
-    void clearCookies();
-    void clearHistory();
     void goHistory();
+    void clearHistory();
     void addAd();
     void delAd();
-    void importAdOpera();
     void importAd();
     void fontColorDlg();
     void addDictPath();

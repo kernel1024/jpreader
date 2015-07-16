@@ -73,14 +73,11 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonEditor,SIGNAL(clicked()),this,SLOT(selectEditor()));
 	connect(ui->buttonDelQr,SIGNAL(clicked()),this,SLOT(delQrs()));
 	connect(ui->buttonDelBookmark,SIGNAL(clicked()),this,SLOT(delBkm()));
-    connect(ui->buttonClearCookies,SIGNAL(clicked()),this,SLOT(clearCookies()));
-    connect(ui->buttonClearCaches,SIGNAL(clicked()),gSet,SLOT(clearCaches()));
     connect(ui->buttonCleanHistory,SIGNAL(clicked()),this,SLOT(clearHistory()));
     connect(ui->buttonGoHistory,SIGNAL(clicked()),this,SLOT(goHistory()));
     connect(ui->buttonAdAdd,SIGNAL(clicked()),this,SLOT(addAd()));
     connect(ui->buttonAdDel,SIGNAL(clicked()),this,SLOT(delAd()));
     connect(ui->buttonAdImport,SIGNAL(clicked()),this,SLOT(importAd()));
-    connect(ui->buttonAdImportOpera,SIGNAL(clicked()),this,SLOT(importAdOpera()));
     connect(ui->buttonFontColorOverride,SIGNAL(clicked()),this,SLOT(fontColorDlg()));
     connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
     connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
@@ -126,12 +123,6 @@ void CSettingsDlg::delBkm()
 		bmList->removeItemWidget(i);
 		delete i;
 	}
-}
-
-void CSettingsDlg::clearCookies()
-{
-//    if (gSet!=NULL)
-//        gSet->cookieJar.clearCookies();
 }
 
 void CSettingsDlg::clearHistory()
@@ -186,34 +177,6 @@ void CSettingsDlg::importAd()
         QString s = inird.readLine();
         if (!s.isEmpty())
             lnks << s;
-    }
-    ini.close();
-    adList->addItems(lnks);
-}
-
-void CSettingsDlg::importAdOpera()
-{
-    QString fname = getOpenFileNameD(this,tr("Import rules from Opera urlfilter"),QDir::home().filePath(".opera/urlfilter.ini"),"urlfilter.ini");
-    if (fname.isEmpty()) return;
-
-    QFile ini(fname);
-    if (!ini.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
-        return;
-    }
-    QTextStream inird(&ini);
-    bool rdlinks = false;
-    QStringList lnks;
-    lnks.clear();
-    while (!inird.atEnd()) {
-        QString s = inird.readLine();
-        if (rdlinks && (s.isEmpty() || s.left(1)=="[")) rdlinks=false;
-        if (rdlinks) {
-            if (!s.contains("=UUID:")) continue;
-            s.remove(QRegExp("=UUID:.*$"));
-            lnks << s;
-        }
-        if (s.contains("[exclude]")) rdlinks=true;
     }
     ini.close();
     adList->addItems(lnks);

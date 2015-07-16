@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QKeySequence>
 #include <QKeyEvent>
+#include <QWebEnginePage>
 
 class CMainWindow;
 class CSnippetViewer;
@@ -106,6 +107,21 @@ public:
 public slots:
     void detachTab();
     void closeTab(bool nowait = false);
+};
+
+class QSpecWebPage : public QWebEnginePage {
+    Q_OBJECT
+private:
+    CMainWindow* parentWnd;
+public:
+    QSpecWebPage(QObject* parent = 0);
+    QSpecWebPage(QWebEngineProfile* profile, CMainWindow* wnd, QObject* parent = 0);
+protected:
+    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
+    bool certificateError(const QWebEngineCertificateError &certificateError);
+    QWebEnginePage* createWindow(WebWindowType type);
+signals:
+    void linkClickedExt(const QUrl& url, NavigationType type);
 };
 
 #endif // SPECTABWIDGET_H

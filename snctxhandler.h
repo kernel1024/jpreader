@@ -30,7 +30,7 @@ public slots:
     void saveToFile();
     void openNewTab();
     void openNewTabTranslate();
-    void bookmarkFrame();
+    void bookmarkPage();
 //    void openFrame();
     void loadKwrite();
     void execKonq();

@@ -136,7 +136,6 @@ void CSnTrans::postTranslate()
         qu.addQueryItem("tl","en");
         qu.addQueryItem("u",snv->calculatedUrl);
         url.setQuery(qu);
-        snv->onceLoaded=true;
         snv->txtBrowser->load(url);
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;

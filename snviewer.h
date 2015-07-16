@@ -45,7 +45,6 @@ public:
     bool translationBkgdFinished;
     bool loadingBkgdFinished;
     bool isStartPage;
-    bool onceLoaded;
     bool onceTranslated;
     bool loading;
     bool requestAutotranslate;

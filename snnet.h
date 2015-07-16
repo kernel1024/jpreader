@@ -21,6 +21,9 @@ public:
 public slots:
     void load(const QUrl & url);
     void load(const QString & html, const QUrl& baseUrl = QUrl());
+    void authenticationRequired(const QUrl& requestUrl, QAuthenticator* authenticator);
+    void proxyAuthenticationRequired(const QUrl & requestUrl, QAuthenticator * authenticator,
+                                     const QString & proxyHost);
 /*    void netDlProgress(qint64 bytesReceived, qint64 bytesTotal);
     void netHtmlLoaded();
     void reloadMedia(bool fromNew = false);

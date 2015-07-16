@@ -187,24 +187,6 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_17">
-           <item>
-            <widget class="QPushButton" name="buttonClearCookies">
-             <property name="text">
-              <string>Clear all cookies</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="buttonClearCaches">
-             <property name="text">
-              <string>Clear all caches</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
           <spacer name="verticalSpacer_8">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -1070,7 +1052,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QListWidget" name="listAdblock">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="toolTip">
           <string>Not supported yet</string>
@@ -1085,7 +1067,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QPushButton" name="buttonAdAdd">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Add...</string>
@@ -1095,7 +1077,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QPushButton" name="buttonAdDel">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Delete</string>
@@ -1105,20 +1087,10 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QPushButton" name="buttonAdImport">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Import...</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonAdImportOpera">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Import from Opera...</string>
            </property>
           </widget>
          </item>
@@ -1138,7 +1110,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QCheckBox" name="checkUseAd">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Enable AdBlock</string>
@@ -1387,8 +1359,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
-  <tabstop>buttonClearCookies</tabstop>
-  <tabstop>buttonClearCaches</tabstop>
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>
@@ -1439,7 +1409,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdAdd</tabstop>
   <tabstop>buttonAdDel</tabstop>
   <tabstop>buttonAdImport</tabstop>
-  <tabstop>buttonAdImportOpera</tabstop>
   <tabstop>checkUseAd</tabstop>
   <tabstop>checkUseProxy</tabstop>
   <tabstop>editProxyHost</tabstop>

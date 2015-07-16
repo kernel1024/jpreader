@@ -11,7 +11,6 @@
 #include "goldendictmgr.h"
 
 #include "globalcontrol.h"
-#include "authdlg.h"
 #include "lighttranslator.h"
 #include "auxtranslator.h"
 #include "translator.h"
@@ -237,8 +236,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
-/*    connect(&netAccess,SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
-            this,SLOT(authentication(QNetworkReply*,QAuthenticator*)));*/
     connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
             this,SLOT(clipboardChanged(QClipboard::Mode)));
     connect(actionUseProxy,SIGNAL(toggled(bool)),
@@ -887,18 +884,6 @@ void CGlobalControl::blockTabClose()
     QTimer::singleShot(500,this,SLOT(closeLockTimer()));
 }
 
-// TODO: Move http authentication to snview, also check for proxy auth
-/*void CGlobalControl::authentication(QNetworkReply *reply, QAuthenticator *authenticator)
-{
-    CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),reply->url(),authenticator->realm());
-    if (dlg->exec()) {
-        authenticator->setUser(dlg->getUser());
-        authenticator->setPassword(dlg->getPassword());
-    }
-    dlg->setParent(NULL);
-    delete dlg;
-}*/
-
 void CGlobalControl::clipboardChanged(QClipboard::Mode mode)
 {
     QClipboard *cb = QApplication::clipboard();
@@ -958,12 +943,6 @@ void CGlobalControl::globalContextTranslateReady(const QString &text)
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,NULL);
 }
-
-/*void CGlobalControl::clearCaches()
-{
-    QWebSettings::clearMemoryCaches();
-    netAccess.cache()->clear();
-}*/
 
 void CGlobalControl::showDictionaryWindow(const QString &text)
 {

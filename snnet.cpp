@@ -2,6 +2,7 @@
 #include <QPointer>
 #include "snnet.h"
 #include "genericfuncs.h"
+#include "authdlg.h"
 
 //Q_DECLARE_METATYPE(QPointer<QWebFrame>)
 
@@ -147,6 +148,29 @@ void CSnNet::load(const QString &html, const QUrl &baseUrl)
 {
     snv->updateWebViewAttributes();
     snv->txtBrowser->setHtml(html,baseUrl);
+}
+
+void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
+{
+    CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    if (dlg->exec()) {
+        authenticator->setUser(dlg->getUser());
+        authenticator->setPassword(dlg->getPassword());
+    }
+    dlg->setParent(NULL);
+    delete dlg;
+}
+
+void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator,
+                                         const QString &proxyHost)
+{
+    CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    if (dlg->exec()) {
+        authenticator->setUser(dlg->getUser());
+        authenticator->setPassword(dlg->getPassword());
+    }
+    dlg->setParent(NULL);
+    delete dlg;
 }
 
 /*void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::CacheLoadControl ca)
