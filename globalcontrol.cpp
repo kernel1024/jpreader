@@ -1,7 +1,7 @@
-#include <QNetworkDiskCache>
 #include <QNetworkProxy>
 #include <QMessageBox>
 #include <QLocalSocket>
+#include <QWebEngineSettings>
 
 #include <QStandardPaths>
 
@@ -87,7 +87,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     proxyUse = false;
     proxyType = QNetworkProxy::HttpCachingProxy;
 
-    netAccess.setCookieJar(&cookieJar);
+//    netAccess.setCookieJar(&cookieJar);
 
 #if WITH_RECOLL
     searchEngine = SE_RECOLL;
@@ -97,12 +97,24 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     searchEngine = SE_NONE;
 #endif
 
+
+    webProfile = new QWebEngineProfile("jpreader2",this);
+
     QString fs = QString();
     fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
-    QString fcache = fs + tr("cache") + QDir::separator();
+
+    QString fcache = fs + tr("cache2") + QDir::separator();
+    webProfile->setCachePath(fcache);
+    QString fdata = fs + tr("local_storage2") + QDir::separator();
+    webProfile->setPersistentStoragePath(fdata);
+
+    webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+    webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+
+/*    QString fcache = fs + tr("cache") + QDir::separator();
     QNetworkDiskCache* cache = new QNetworkDiskCache(this);
     cache->setCacheDirectory(fcache);
     netAccess.setCache(cache);
@@ -116,7 +128,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
         else
             ws->enablePersistentStorage(fdata);
     } else
-        ws->enablePersistentStorage(fdata);
+        ws->enablePersistentStorage(fdata);*/
 
     dictIndexDir = fs + tr("dictIndex") + QDir::separator();
     QDir dictIndex(dictIndexDir);
@@ -126,7 +138,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         }
 
-    netAccess.setProxy(QNetworkProxy());
+//    netAccess.setProxy(QNetworkProxy());
 
     dlg = NULL;
     activeWindow = NULL;
@@ -225,8 +237,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
     connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
-    connect(&netAccess,SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
-            this,SLOT(authentication(QNetworkReply*,QAuthenticator*)));
+/*    connect(&netAccess,SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
+            this,SLOT(authentication(QNetworkReply*,QAuthenticator*)));*/
     connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
             this,SLOT(clipboardChanged(QClipboard::Mode)));
     connect(actionUseProxy,SIGNAL(toggled(bool)),
@@ -309,7 +321,7 @@ bool CGlobalControl::forceFontColor()
 void CGlobalControl::writeSettings()
 {
     if (!settingsSaveMutex.tryLock(1000)) return;
-    QSettings settings("kernel1024", "jpreader");
+    QSettings settings("kernel1024", "jpreader2");
     settings.beginGroup("MainWindow");
     settings.setValue("searchCnt", searchHistory.count());
     for (int i=0;i<searchHistory.count();i++)
@@ -327,11 +339,11 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlasPort",atlPort);
     settings.setValue("auxDir",savedAuxDir);
     settings.setValue("emptyRestore",emptyRestore);
-    settings.setValue("javascript",QWebSettings::globalSettings()->
-                      testAttribute(QWebSettings::JavascriptEnabled));
-    settings.setValue("autoloadimages",QWebSettings::globalSettings()->
-                      testAttribute(QWebSettings::AutoLoadImages));
-    settings.setValue("cookies",cookieJar.saveCookies());
+    settings.setValue("javascript",QWebEngineSettings::globalSettings()->
+                      testAttribute(QWebEngineSettings::JavascriptEnabled));
+    settings.setValue("autoloadimages",QWebEngineSettings::globalSettings()->
+                      testAttribute(QWebEngineSettings::AutoLoadImages));
+//    settings.setValue("cookies",cookieJar.saveCookies());
     settings.setValue("recycledCount",maxRecycled);
     settings.beginWriteArray("bookmarks");
     int i=0;
@@ -399,7 +411,7 @@ void CGlobalControl::writeSettings()
 
 void CGlobalControl::readSettings()
 {
-    QSettings settings("kernel1024", "jpreader");
+    QSettings settings("kernel1024", "jpreader2");
     settings.beginGroup("MainWindow");
     int cnt = settings.value("searchCnt",0).toInt();
     QStringList qs;
@@ -416,7 +428,7 @@ void CGlobalControl::readSettings()
     maxLimit = settings.value("maxLimit",1000).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
-    translatorEngine = settings.value("tr_engine",TE_NIFTY).toInt();
+    translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
     useScp = settings.value("scp",false).toBool();
     scpHost = settings.value("scphost","").toString();
     scpParams = settings.value("scpparams","").toString();
@@ -442,12 +454,14 @@ void CGlobalControl::readSettings()
     emptyRestore = settings.value("emptyRestore",false).toBool();
     maxRecycled = settings.value("recycledCount",20).toInt();
     bool jsstate = settings.value("javascript",true).toBool();
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,jsstate);
+    QWebEngineSettings::globalSettings()->
+            setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
     actionJSUsage->setChecked(jsstate);
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
+    QWebEngineSettings::globalSettings()->
+            setAttribute(QWebEngineSettings::AutoLoadImages,
                                                  settings.value("autoloadimages",true).toBool());
-    QByteArray ck = settings.value("cookies",QByteArray()).toByteArray();
-    cookieJar.loadCookies(&ck);
+//    QByteArray ck = settings.value("cookies",QByteArray()).toByteArray();
+//    cookieJar.loadCookies(&ck);
     int sz = settings.beginReadArray("bookmarks");
     for (int i=0; i<sz; i++) {
         settings.setArrayIndex(i);
@@ -542,14 +556,15 @@ void CGlobalControl::writeTabsList(bool clearList)
             for (int j=0;j<mainWindows.at(i)->tabMain->count();j++) {
                 CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(mainWindows.at(i)->tabMain->widget(j));
                 if (sn==NULL) continue;
-                if (sn->Uri.isValid() && !sn->Uri.isEmpty())
-                    urls << sn->Uri;
+                QUrl url = sn->getUrl();
+                if (url.isValid() && !url.isEmpty())
+                    urls << url;
             }
         }
         if (urls.isEmpty()) return;
     }
 
-    QSettings settings("kernel1024", "jpreader-tabs");
+    QSettings settings("kernel1024", "jpreader-tabs2");
     settings.beginGroup("OpenedTabs");
     settings.setValue("tabsCnt", urls.count());
     for (int i=0;i<urls.count();i++)
@@ -564,7 +579,7 @@ void CGlobalControl::checkRestoreLoad(CMainWindow *w)
 
     QList<QUrl> urls;
     urls.clear();
-    QSettings settings("kernel1024", "jpreader-tabs");
+    QSettings settings("kernel1024", "jpreader-tabs2");
     settings.beginGroup("OpenedTabs");
     int cnt = settings.value("tabsCnt", 0).toInt();
     for (int i=0;i<cnt;i++) {
@@ -596,10 +611,10 @@ void CGlobalControl::settingsDlg()
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
-    dlg->useJS->setChecked(QWebSettings::globalSettings()->
-                           testAttribute(QWebSettings::JavascriptEnabled));
-    dlg->autoloadImages->setChecked(QWebSettings::globalSettings()->
-                                    testAttribute(QWebSettings::AutoLoadImages));
+    dlg->useJS->setChecked(QWebEngineSettings::globalSettings()->
+                           testAttribute(QWebEngineSettings::JavascriptEnabled));
+    dlg->autoloadImages->setChecked(QWebEngineSettings::globalSettings()->
+                                    testAttribute(QWebEngineSettings::AutoLoadImages));
     dlg->qrList->clear();
     for (int i=0;i<searchHistory.count();i++)
         dlg->qrList->addItem(searchHistory.at(i));
@@ -618,11 +633,11 @@ void CGlobalControl::settingsDlg()
         dlg->hsList->addItem(li);
     }
     switch (translatorEngine) {
-    case TE_NIFTY: dlg->rbNifty->setChecked(true); break;
+//    case TE_NIFTY: dlg->rbNifty->setChecked(true); break;
     case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
     case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
     case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
-    default: dlg->rbNifty->setChecked(true); break;
+    default: dlg->rbAtlas->setChecked(true); break;
     }
     dlg->scpHost->clear();
     if (!scpHostHistory.contains(scpHost))
@@ -728,16 +743,16 @@ void CGlobalControl::settingsDlg()
             bookmarks[dlg->bmList->item(i)->data(Qt::UserRole).toString()] =
                     dlg->bmList->item(i)->data(Qt::UserRole+1).toUrl();
         updateAllBookmarks();
-        QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,
+        QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
                                                      dlg->useJS->isChecked());
         actionJSUsage->setChecked(dlg->useJS->isChecked());
-        QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,
+        QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                                      dlg->autoloadImages->isChecked());
-        if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
-        else if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
+//        if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
+        if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
-        else translatorEngine=TE_NIFTY;
+        else translatorEngine=TE_ATLAS;
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();
@@ -828,26 +843,29 @@ void CGlobalControl::settingsDlg()
     dlg=NULL;
 }
 
-void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
+void CGlobalControl::updateProxy(bool useProxy, bool )
 {
     proxyUse = useProxy;
-    if (!proxyUse || proxyHost.isEmpty())
+
+    // Unavailable in 5.5
+
+/*    if (!proxyUse || proxyHost.isEmpty())
         netAccess.setProxy(QNetworkProxy());
     else
         netAccess.setProxy(QNetworkProxy(proxyType,proxyHost,proxyPort,proxyLogin,proxyPassword));
 
     if (forceMenuUpdate)
-        actionUseProxy->setChecked(proxyUse);
+        actionUseProxy->setChecked(proxyUse);*/
 }
 
 void CGlobalControl::toggleJSUsage(bool useJS)
 {
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::JavascriptEnabled,useJS);
+    QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::JavascriptEnabled,useJS);
 }
 
 void CGlobalControl::toggleAutoloadImages(bool loadImages)
 {
-    QWebSettings::globalSettings()->setAttribute(QWebSettings::AutoLoadImages,loadImages);
+    QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,loadImages);
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -869,7 +887,8 @@ void CGlobalControl::blockTabClose()
     QTimer::singleShot(500,this,SLOT(closeLockTimer()));
 }
 
-void CGlobalControl::authentication(QNetworkReply *reply, QAuthenticator *authenticator)
+// TODO: move to snview
+/*void CGlobalControl::authentication(QNetworkReply *reply, QAuthenticator *authenticator)
 {
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),reply->url(),authenticator->realm());
     if (dlg->exec()) {
@@ -878,7 +897,7 @@ void CGlobalControl::authentication(QNetworkReply *reply, QAuthenticator *authen
     }
     dlg->setParent(NULL);
     delete dlg;
-}
+}*/
 
 void CGlobalControl::clipboardChanged(QClipboard::Mode mode)
 {
@@ -940,11 +959,11 @@ void CGlobalControl::globalContextTranslateReady(const QString &text)
     QxtToolTip::show(p,t,NULL);
 }
 
-void CGlobalControl::clearCaches()
+/*void CGlobalControl::clearCaches()
 {
     QWebSettings::clearMemoryCaches();
     netAccess.cache()->clear();
-}
+}*/
 
 void CGlobalControl::showDictionaryWindow(const QString &text)
 {
@@ -1116,6 +1135,8 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
         }
         QApplication::processEvents();
     }
+    webProfile->deleteLater();
+    QApplication::processEvents();
     gctxTranHotkey->setDisabled();
     QApplication::processEvents();
     gctxTranHotkey->deleteLater();
@@ -1123,6 +1144,8 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 
     ipcServer->close();
     QApplication::processEvents();
+
+    webProfile=NULL;
 
     if (appQuit)
         QApplication::quit();
@@ -1143,7 +1166,7 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader");
+    QSettings settings("kernel1024", "jpreader2");
     settings.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
 
@@ -1166,7 +1189,7 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
 void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader");
+    QSettings settings("kernel1024", "jpreader2");
     settings.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
     settings.setValue(QString("%1-user").arg(key),user);
@@ -1229,7 +1252,6 @@ QString CGlobalControl::getSourceLanguageIDStr(int engine, int engineStd)
 QString CGlobalControl::getTranslationEngineString(int engine)
 {
     switch (engine) {
-        case TE_NIFTY: return QString("Nifty");
         case TE_GOOGLE: return QString("Google");
         case TE_ATLAS: return QString("ATLAS");
         case TE_BINGAPI: return QString("Bing API");

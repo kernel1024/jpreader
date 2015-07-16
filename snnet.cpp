@@ -3,18 +3,18 @@
 #include "snnet.h"
 #include "genericfuncs.h"
 
-Q_DECLARE_METATYPE(QPointer<QWebFrame>)
+//Q_DECLARE_METATYPE(QPointer<QWebFrame>)
 
-#define QV_FramePtr QVariant::UserType+8
+//#define QV_FramePtr QVariant::UserType+8
 
 CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
-    mlsBaseUrls.clear();
+//    mlsBaseUrls.clear();
 }
 
-QUrl CSnNet::fixUrl(QUrl aUrl)
+/*QUrl CSnNet::fixUrl(QUrl aUrl)
 {
     QByteArray u = aUrl.toEncoded();
     if (u.isEmpty())
@@ -45,32 +45,21 @@ void CSnNet::removeUrlFromProcessing(const QUrl &url)
     mtxBaseUrls.lock();
     mlsBaseUrls.removeAll(url);
     mtxBaseUrls.unlock();
-}
+}*/
 
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
     snv->barLoading->show();
     snv->barPlaceholder->hide();
-    snv->loadingByWebKit = true;
+    snv->loading = true;
     snv->updateButtonsState();
 }
 
 void CSnNet::loadFinished(bool)
 {
-    QUrl base = snv->txtBrowser->url();
-    if (!base.isEmpty() && base.isLocalFile() && base!=snv->Uri && !snv->Uri.isEmpty() && !snv->waitPanel->isVisible()) {
-        // Spontaneous loading from WebView for local files
-        snv->onceTranslated = false;
-        snv->fileChanged = false;
-        snv->backHistory.append(base);
-        snv->Uri = base;
-        snv->urlEdit->setToolTip(tr("Displayed URL"));
-        snv->urlEdit->setPalette(QApplication::palette(snv->urlEdit));
-    }
-
     snv->msgHandler->hideBarLoading();
-    snv->loadingByWebKit = false;
+    snv->loading = false;
     snv->updateButtonsState();
 
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
@@ -86,7 +75,7 @@ void CSnNet::loadFinished(bool)
     }
 }
 
-void CSnNet::showErrorMsg(QNetworkReply *reply)
+/*void CSnNet::showErrorMsg(QNetworkReply *reply)
 {
     if (reply==NULL) return;
     if (reply->error()==QNetworkReply::NoError) return;
@@ -115,9 +104,52 @@ void CSnNet::netStop()
     emit closeAllSockets();
     snv->loadingByWebKit = false;
     snv->updateButtonsState();
+}*/
+
+void CSnNet::load(const QUrl &url)
+{
+    if (gSet->isUrlBlocked(url)) {
+        qDebug() << "adblock - skipping" << url;
+        return;
+    }
+
+    snv->updateWebViewAttributes();
+    if (snv->isStartPage)
+        snv->isStartPage = false;
+
+    QString fname = url.toLocalFile();
+    if (!fname.isEmpty()) {
+        QString MIME = detectMIME(fname);
+        if (MIME.startsWith("text/",Qt::CaseInsensitive)) { // for local txt files
+            QFile data(fname);
+            QFileInfo fi(fname);
+            if (data.open(QFile::ReadOnly)) {
+                QByteArray ba = data.readAll();
+                QTextCodec* cd = detectEncoding(ba);
+                QString cn=makeSimpleHtml(fi.fileName(),cd->toUnicode(ba));
+                snv->fileChanged = false;
+                snv->translationBkgdFinished=false;
+                snv->loadingBkgdFinished=false;
+                snv->txtBrowser->setHtml(cn);
+                data.close();
+            }
+        } else { // for local html files
+            snv->fileChanged = false;
+            snv->txtBrowser->load(url);
+        }
+    } else {
+        snv->fileChanged = false;
+        snv->txtBrowser->load(url);
+    }
 }
 
-void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::CacheLoadControl ca)
+void CSnNet::load(const QString &html, const QUrl &baseUrl)
+{
+    snv->updateWebViewAttributes();
+    snv->txtBrowser->setHtml(html,baseUrl);
+}
+
+/*void CSnNet::loadProcessed(const QUrl &url, QWebFrame *frame, QNetworkRequest::CacheLoadControl ca)
 {
     if (gSet->isUrlBlocked(url)) {
         qDebug() << "adblock - skipping" << url;
@@ -289,3 +321,4 @@ void CSnNet::reloadMedia(bool fromNew)
     if (snv->Uri.isValid())
         snv->urlEdit->setEditText(snv->Uri.toString());
 }
+*/

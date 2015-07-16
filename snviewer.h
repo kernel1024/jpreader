@@ -5,11 +5,11 @@
 #include <QString>
 #include <QStringList>
 #include <QPointer>
-#include <QWebFrame>
 #include <QList>
 #include <QUrl>
 #include <QKeyEvent>
 #include <QTimer>
+#include <QWebEngineView>
 
 #include "ui_snviewer.h"
 #include "translator.h"
@@ -37,23 +37,17 @@ public:
     CSnNet *netHandler;
     CSnTrans *transHandler;
     CSnWaitCtl *waitHandler;
+    QWebEngineView *txtBrowser;
 
     QStringList slist;
 	QString calculatedUrl;
-	QPointer<QWebFrame> lastFrame;
 	bool fileChanged;
-	QUrl savedBaseUrl;
-    QString auxContent;
-    QUrl firstUri;
-    QUrl Uri;
     bool translationBkgdFinished;
     bool loadingBkgdFinished;
     bool isStartPage;
-    QList<QUrl> backHistory;
-    QList<QUrl> forwardStack;
     bool onceLoaded;
     bool onceTranslated;
-    bool loadingByWebKit;
+    bool loading;
     bool requestAutotranslate;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
@@ -66,6 +60,7 @@ public:
     void updateHistorySuggestion(const QStringList &suggestionList);
     virtual bool canClose();
     virtual void recycleTab();
+    QUrl getUrl();
 public slots:
     void navByUrl(QString url);
     void navByUrl();

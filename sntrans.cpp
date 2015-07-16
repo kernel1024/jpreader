@@ -16,6 +16,7 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     selectionTimer = new QTimer(this);
     selectionTimer->setInterval(1000);
     selectionTimer->setSingleShot(true);
+    savedBaseUrl.clear();
 
     connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()),this,SLOT(selectionChanged()));
     connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
@@ -23,12 +24,17 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
 
 void CSnTrans::convertToXML()
 {
+    snv->txtBrowser->page()->toHtml([this](const QString& result) { convertToXMLPriv(result); });
+}
+
+void CSnTrans::convertToXMLPriv(const QString& data)
+{
     snv->calculatedUrl="";
     snv->onceTranslated=true;
-    QString aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
-    snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
-    if (snv->savedBaseUrl.hasFragment())
-        snv->savedBaseUrl.setFragment(QString());
+    QString aUri = data;
+    savedBaseUrl = snv->txtBrowser->page()->url();
+    if (savedBaseUrl.hasFragment())
+        savedBaseUrl.setFragment(QString());
 
     CTranslator* ct = new CTranslator(NULL,aUri,NULL);
     QString res;
@@ -44,25 +50,31 @@ void CSnTrans::convertToXML()
 
 void CSnTrans::translate()
 {
+    if (gSet->translatorEngine==TE_ATLAS ||
+            gSet->translatorEngine==TE_BINGAPI) {
+        savedBaseUrl = snv->txtBrowser->page()->url();
+        if (savedBaseUrl.hasFragment())
+            savedBaseUrl.setFragment(QString());
+        snv->txtBrowser->page()->toHtml([this](const QString& html) {
+            translatePriv(html);
+        });
+    } else {
+        QString aUri = snv->txtBrowser->page()->url().toString();
+        if (!aUri.isEmpty())
+            translatePriv(aUri);
+        else
+            snv->txtBrowser->page()->toHtml([this](const QString& html) {
+                translatePriv(html);
+            });
+    }
+}
+
+void CSnTrans::translatePriv(const QString &aUri)
+{
     snv->calculatedUrl="";
-    QString aUri="";
     snv->onceTranslated=true;
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->translatorEngine==TE_ATLAS ||
-            gSet->translatorEngine==TE_BINGAPI) {
-        aUri = snv->txtBrowser->page()->mainFrame()->toHtml();
-        snv->savedBaseUrl = snv->txtBrowser->page()->mainFrame()->baseUrl();
-        if (snv->savedBaseUrl.hasFragment())
-            snv->savedBaseUrl.setFragment(QString());
-    } else {
-        if (snv->txtBrowser->page()!=NULL && snv->txtBrowser->page()->mainFrame()!=NULL)
-            aUri = snv->txtBrowser->page()->mainFrame()->baseUrl().toString();
-        if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive))
-            aUri=snv->Uri.toString();
-        if (aUri.isEmpty() || aUri.contains("about:blank",Qt::CaseInsensitive))
-            aUri=snv->auxContent;
-    }
 
     CTranslator* ct = new CTranslator(NULL,aUri,snv->waitHandler);
     QThread* th = new QThread();
@@ -114,32 +126,18 @@ void CSnTrans::postTranslate()
         QMessageBox::warning(snv,tr("JPReader error"),tr("ATLAS slipped. Please restart translation."));
         return;
     }
-    QNetworkRequest rqst;
-    QByteArray postBody;
     QUrl url;
     QString cn;
     QUrlQuery qu;
     switch (gSet->translatorEngine) {
-    case TE_NIFTY:
-        // POST requester
-        rqst.setUrl(QUrl("http://honyaku-result.nifty.com/LUCNIFTY/ns/wt_ex.cgi"));
-        rqst.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded");
-        postBody=QByteArray("SLANG=ja&TLANG=en&XMODE=1&SURL=");
-        postBody.append(QUrl::toPercentEncoding(snv->calculatedUrl));
-        snv->onceLoaded=true;
-        snv->txtBrowser->load(rqst,QNetworkAccessManager::PostOperation,postBody);
-        if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
-        break;
     case TE_GOOGLE:
         url = QUrl("http://translate.google.com/translate");
         qu.addQueryItem("sl",gSet->getSourceLanguageID());
         qu.addQueryItem("tl","en");
         qu.addQueryItem("u",snv->calculatedUrl);
         url.setQuery(qu);
-        rqst.setUrl(url);
-        rqst.setRawHeader("Referer",url.toString().toUtf8());
         snv->onceLoaded=true;
-        snv->txtBrowser->load(rqst,QNetworkAccessManager::GetOperation);
+        snv->txtBrowser->load(url);
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     case TE_ATLAS: // Url contains translated file itself
@@ -147,9 +145,7 @@ void CSnTrans::postTranslate()
         cn = snv->calculatedUrl;
         snv->fileChanged = true;
         snv->onceTranslated = true;
-        snv->netHandler->addUrlToProcessing(snv->savedBaseUrl);
-        snv->txtBrowser->setHtml(cn,snv->savedBaseUrl);
-        snv->netHandler->removeUrlFromProcessing(snv->savedBaseUrl);
+        snv->txtBrowser->setHtml(cn,savedBaseUrl);
         if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
         break;
     default:
@@ -167,26 +163,6 @@ void CSnTrans::postTranslate()
 void CSnTrans::progressLoad(int progress)
 {
     snv->barLoading->setValue(progress);
-    if (!snv->onceLoaded && progress!=1244512) return;
-    if (gSet->translatorEngine==TE_NIFTY) {
-        if (snv->txtBrowser->page()->mainFrame()->childFrames().count()>1) {
-            if (snv->txtBrowser->page()->mainFrame()->childFrames()[1]->baseUrl().toString().contains("LUCNIFTY")) {
-                snv->onceLoaded=false;
-                snv->netHandler->loadProcessed(snv->txtBrowser->page()->mainFrame()->childFrames()[1]->baseUrl());
-                snv->txtBrowser->setFocus();
-                snv->fileChanged = true;
-            }
-        }
-    } else if (gSet->translatorEngine==TE_GOOGLE) {
-        if (snv->txtBrowser->page()->mainFrame()->childFrames().count()>1) {
-            if (snv->txtBrowser->page()->mainFrame()->childFrames()[1]->baseUrl().toString().contains("translate_p")) {
-                snv->onceLoaded=false;
-                snv->netHandler->loadProcessed(snv->txtBrowser->page()->mainFrame()->childFrames()[1]->baseUrl());
-                snv->txtBrowser->setFocus();
-                snv->fileChanged = true;
-            }
-        }
-    }
 }
 
 void CSnTrans::selectionChanged()

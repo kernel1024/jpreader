@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QUrl>
-#include <QWebFrame>
 #include <QString>
 #include <QAction>
 #include <QMutex>
@@ -22,11 +21,11 @@ public:
     QTimer *loadingBarHideTimer;
     CSnMsgHandler(CSnippetViewer * parent);
 public slots:
-    void loadHomeUri();
-    void navBack();
-    void navForward();
-    void linkClicked(QWebFrame *frame, const QUrl &url, const QWebPage::NavigationType &clickType);
-    void linkHovered(const QString &link, const QString &, const QString &);
+//    void loadHomeUri();
+//    void navBack();
+//    void navForward();
+//    void linkClicked(QWebFrame *frame, const QUrl &url, const QWebPage::NavigationType &clickType);
+    void linkHovered(const QString &link);
     void searchFwd();
     void searchBack();
     void setZoom(QString z);

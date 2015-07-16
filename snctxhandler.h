@@ -31,7 +31,7 @@ public slots:
     void openNewTab();
     void openNewTabTranslate();
     void bookmarkFrame();
-    void openFrame();
+//    void openFrame();
     void loadKwrite();
     void execKonq();
     void searchInGoogle();

@@ -57,16 +57,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="homeButton">
-         <property name="toolTip">
-          <string>Return to initial page</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="reloadButton">
          <property name="toolTip">
           <string>Reload</string>
@@ -453,33 +443,20 @@
     </widget>
    </item>
    <item>
-    <widget class="QWebView" name="txtBrowser">
+    <widget class="QWidget" name="browser" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="url">
-      <url>
-       <string>about:blank</string>
-      </url>
-     </property>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKitWidgets/QWebView</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>backNavButton</tabstop>
   <tabstop>fwdNavButton</tabstop>
-  <tabstop>homeButton</tabstop>
   <tabstop>reloadButton</tabstop>
   <tabstop>stopButton</tabstop>
   <tabstop>urlEdit</tabstop>
@@ -490,7 +467,7 @@
   <tabstop>transButton</tabstop>
   <tabstop>abortBtn</tabstop>
   <tabstop>hideErrorButton</tabstop>
-  <tabstop>txtBrowser</tabstop>
+  <tabstop>browser</tabstop>
  </tabstops>
  <resources/>
  <connections>

@@ -18,7 +18,7 @@ void CSnMsgHandler::searchFwd()
 void CSnMsgHandler::searchBack()
 {
     if (snv->searchEdit->currentText().isEmpty()) return ;
-    snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebPage::FindBackward);
+    snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebEnginePage::FindBackward);
 }
 
 void CSnMsgHandler::setZoom(QString z)
@@ -96,23 +96,23 @@ void CSnMsgHandler::hideBarLoading()
     loadingBarHideTimer->start(1500);
 }
 
-void CSnMsgHandler::navBack()
+/*void CSnMsgHandler::navBack()
 {
     if (snv->backHistory.count()==0) return;
     snv->forwardStack.prepend(snv->backHistory.takeLast()); // move current url;
-    snv->netHandler->loadProcessed(snv->backHistory.takeLast(),NULL,QNetworkRequest::PreferCache);
+    snv->netHandler->load(snv->backHistory.takeLast());
 }
 
 void CSnMsgHandler::navForward()
 {
     if (snv->forwardStack.count()==0) return;
-    snv->netHandler->loadProcessed(snv->forwardStack.takeFirst(),NULL,QNetworkRequest::PreferCache);
+    snv->netHandler->load(snv->forwardStack.takeFirst());
 }
 
 void CSnMsgHandler::loadHomeUri()
 {
     if (!snv->firstUri.isEmpty())
-        snv->netHandler->loadProcessed(snv->firstUri);
+        snv->netHandler->load(snv->firstUri);
     else
         QMessageBox::warning(snv,tr("JPReader"),tr("Unable to return to dynamically generated first page."));
 }
@@ -136,11 +136,11 @@ void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url, const QWebPa
     else {
         if (clickType==QWebPage::NavigationTypeLinkClicked)
             snv->forwardStack.clear();
-        snv->netHandler->loadProcessed(u,frame);
+        snv->netHandler->load(u,frame);
     }
-}
+}*/
 
-void CSnMsgHandler::linkHovered(const QString &link, const QString &, const QString &)
+void CSnMsgHandler::linkHovered(const QString &link)
 {
     snv->statusBarMsg(link);
 }

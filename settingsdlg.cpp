@@ -131,8 +131,8 @@ void CSettingsDlg::delBkm()
 
 void CSettingsDlg::clearCookies()
 {
-    if (gSet!=NULL)
-        gSet->cookieJar.clearCookies();
+//    if (gSet!=NULL)
+//        gSet->cookieJar.clearCookies();
 }
 
 void CSettingsDlg::clearHistory()

@@ -1,6 +1,7 @@
 #include <QMessageBox>
 #include <QUrl>
 #include <QUrlQuery>
+#include <QWebEngineView>
 
 #include "auxdictionary.h"
 #include "goldendictmgr.h"
@@ -16,7 +17,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
 
     wordFinder = new WordFinder(this);
-    ui->viewArticles->page()->setNetworkAccessManager(gSet->dictNetMan);
+    //ui->viewArticles->page()->setNetworkAccessManager(gSet->dictNetMan);
 
     connect(ui->editWord, SIGNAL(editTextChanged(QString const &)),
             this, SLOT(translateInputChanged(QString const &)));

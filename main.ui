@@ -141,8 +141,6 @@
     <addaction name="separator"/>
     <addaction name="actionClearCB"/>
     <addaction name="separator"/>
-    <addaction name="actionClearCaches"/>
-    <addaction name="separator"/>
     <addaction name="actionFindText"/>
    </widget>
    <widget class="QMenu" name="menuCharset">
@@ -369,7 +367,9 @@
   </action>
   <action name="actionDictionary">
    <property name="icon">
-    <iconset theme="accessories-dictionary"/>
+    <iconset theme="accessories-dictionary">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>D&amp;ictionary</string>

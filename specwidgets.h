@@ -7,10 +7,6 @@
 #include <QTabWidget>
 #include <QEvent>
 #include <QPoint>
-#include <QWebView>
-#include <QWebPage>
-#include <QNetworkCookieJar>
-#include <QNetworkAccessManager>
 #include <QProxyStyle>
 #include <QStyleOption>
 #include <QUrl>
@@ -66,49 +62,11 @@ signals:
     void tooltipRequested(const QPoint& globalPos, const QPoint& localPos);
 };
 
-class QSpecWebView : public QWebView {
-    Q_OBJECT
-public:
-    CMainWindow* parentWnd;
-    QSpecWebView(QWidget *parent, CMainWindow *mainWnd);
-protected:
-    virtual QWebView* createWindow(QWebPage::WebWindowType type);
-};
-
-class QSpecCookieJar : public QNetworkCookieJar {
-    Q_OBJECT
-public:
-    QSpecCookieJar(QWidget *parent = 0);
-    void loadCookies(QByteArray* dump);
-    QByteArray saveCookies();
-    void clearCookies();
-};
-
 class QSpecMenuStyle : public QProxyStyle {
     Q_OBJECT
 public:
     int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0,
                             QStyleHintReturn * returnData = 0 ) const;
-};
-
-class QSpecWebPage : public QWebPage {
-    Q_OBJECT
-public:
-    QSpecWebPage(CSnippetViewer *parent);
-protected:
-    CSnippetViewer* viewer;
-    bool acceptNavigationRequest( QWebFrame * frame, const QNetworkRequest & request, NavigationType type );
-signals:
-    void linkClickedExt(QWebFrame * frame, const QUrl &url, const QWebPage::NavigationType &clickType);
-};
-
-class QSpecNetworkAccessManager : public QNetworkAccessManager {
-    Q_OBJECT
-protected:
-    QMap<QUrl,QVariant> cachePolicy;
-    virtual QNetworkReply * createRequest(Operation op,
-                                          const QNetworkRequest & req,
-                                          QIODevice * outgoingData = 0);
 };
 
 class QSpecToolTipLabel : public QLabel {

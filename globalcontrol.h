@@ -20,16 +20,17 @@
 #include <QTimer>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QWebEngineProfile>
 #include <QDebug>
 
 #include "specwidgets.h"
 #include "logdisplay.h"
 
-#define TE_NIFTY 0
-#define TE_GOOGLE 1
-#define TE_ATLAS 2
-#define TE_BINGAPI 3
-#define TECOUNT 4
+//#define TE_NIFTY 0
+#define TE_GOOGLE 0
+#define TE_ATLAS 1
+#define TE_BINGAPI 2
+#define TECOUNT 3
 
 #define SE_NONE 0
 #define SE_RECOLL 2
@@ -124,6 +125,7 @@ public:
     QString userAgent;
     QStringList userAgentHistory;
 
+    QWebEngineProfile *webProfile;
     int searchEngine;
     bool useAdblock;
     QString scpHost;
@@ -149,8 +151,6 @@ public:
     bool restoreLoadChecked;
 
     QString savedAuxDir;
-    QSpecNetworkAccessManager netAccess;
-    QSpecCookieJar cookieJar;
     QString forcedCharset;
 
     QString lastClipboardContents;
@@ -249,11 +249,11 @@ public slots:
     void preShutdown();
     void closeLockTimer();
     void blockTabClose();
-    void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
+//    void authentication(QNetworkReply *reply, QAuthenticator *authenticator);
     void clipboardChanged(QClipboard::Mode mode);
     void ipcMessageReceived();
     void globalContextTranslateReady(const QString& text);
-    void clearCaches();
+//    void clearCaches();
     void showDictionaryWindow(const QString& text = QString());
 
     // Settings management

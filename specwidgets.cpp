@@ -120,6 +120,7 @@ void QSpecTabBar::mousePressEvent(QMouseEvent *event)
     }
 }
 
+/*
 QSpecWebView::QSpecWebView(QWidget *parent, CMainWindow* mainWnd)
     : QWebView(parent)
 {
@@ -178,7 +179,7 @@ void QSpecCookieJar::clearCookies()
     cookies.clear();
     allCookies().clear();
     setAllCookies(cookies);
-}
+}*/
 
 int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
                                QStyleHintReturn *returnData) const
@@ -189,7 +190,7 @@ int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
         return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
-QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
+/*QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
     QWebPage(parent)
 {
     viewer = parent;
@@ -249,7 +250,7 @@ QNetworkReply* QSpecNetworkAccessManager::createRequest(Operation op, const QNet
         }
         return QNetworkAccessManager::createRequest(op, rq, outgoingData);
     }
-}
+}*/
 
 
 void QSpecToolTipLabel::hideEvent(QHideEvent *)

@@ -2,8 +2,6 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QProcess>
-#include <QWebHitTestResult>
-#include <QWebElement>
 
 #include <QUrlQuery>
 
@@ -25,7 +23,8 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
 
 void CSnCtxHandler::contextMenu(const QPoint &pos)
 {
-    QWebHitTestResult wh = snv->txtBrowser->page()->mainFrame()->hitTestContent(pos);
+    QMessageBox::information(snv,tr("JPReader"),tr("context menu"));
+/*    QWebHitTestResult wh = snv->txtBrowser->page()->mainFrame()->hitTestContent(pos);
     snv->lastFrame=wh.frame();
 
     QMenu *cm = new QMenu(snv);
@@ -193,7 +192,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     menuActive.start();
     connect(cm,SIGNAL(aboutToHide()),this,SLOT(menuClosed()));
     cm->setAttribute(Qt::WA_DeleteOnClose,true);
-    cm->popup(snv->txtBrowser->mapToGlobal(pos));
+    cm->popup(snv->txtBrowser->mapToGlobal(pos));*/
 }
 
 void CSnCtxHandler::menuClosed()
@@ -291,12 +290,12 @@ void CSnCtxHandler::duplicateTab()
 
     CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
 
-    if (snv->fileChanged) {
-        QUrl b = snv->txtBrowser->page()->mainFrame()->baseUrl();
-        sv->netHandler->addUrlToProcessing(b);
+/*    if (snv->fileChanged) {
+        QUrl b = snv->txtBrowser->page()->url();
+        //sv->netHandler->addUrlToProcessing(b);
         sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(), b);
-        sv->netHandler->removeUrlFromProcessing(b);
-    }
+        //sv->netHandler->removeUrlFromProcessing(b);
+    }*/
 }
 
 void CSnCtxHandler::openNewWindow()
@@ -307,13 +306,13 @@ void CSnCtxHandler::openNewWindow()
     CMainWindow* mwnd = gSet->addMainWindow(false,false);
 
     QUrl u = nt->data().toUrl();
-    if (u.isRelative() && snv->lastFrame) {
-        QUrl uu = snv->lastFrame->requestedUrl();
+    if (u.isRelative()) {
+        QUrl uu = snv->txtBrowser->page()->requestedUrl();
         if (uu.isEmpty() || uu.isRelative())
-            uu = snv->Uri;
+            uu = snv->getUrl();
         u = uu.resolved(u);
     }
-    u = snv->netHandler->fixUrl(u);
+//    u = snv->netHandler->fixUrl(u);
 
     new CSnippetViewer(mwnd, u);
 }
@@ -427,19 +426,28 @@ void CSnCtxHandler::saveToFile()
 
     if (fname.isNull() || fname.isEmpty()) return;
 
-    QFile f(fname);
-    f.open(QIODevice::WriteOnly|QIODevice::Truncate);
     QFileInfo fi(fname);
-    QByteArray bf;
-    if (!selectedText.isEmpty())
-        bf = selectedText.toUtf8();
-    else if (fi.suffix().toLower()=="txt")
-        bf = snv->txtBrowser->page()->mainFrame()->toPlainText().toUtf8();
-    else {
-        bf = snv->txtBrowser->page()->mainFrame()->toHtml().toUtf8();
-    }
-    f.write(bf);
-    f.close();
+    if (!selectedText.isEmpty()) {
+        QFile f(fname);
+        f.open(QIODevice::WriteOnly|QIODevice::Truncate);
+        f.write(selectedText.toUtf8());
+        f.close();
+    } else if (fi.suffix().toLower()=="txt")
+        snv->txtBrowser->page()->toPlainText([fname](const QString& result)
+        {
+            QFile f(fname);
+            f.open(QIODevice::WriteOnly|QIODevice::Truncate);
+            f.write(result.toUtf8());
+            f.close();
+        });
+    else
+        snv->txtBrowser->page()->toHtml([fname](const QString& result)
+        {
+            QFile f(fname);
+            f.open(QIODevice::WriteOnly|QIODevice::Truncate);
+            f.write(result.toUtf8());
+            f.close();
+        });
 }
 
 void CSnCtxHandler::openNewTab()
@@ -447,13 +455,13 @@ void CSnCtxHandler::openNewTab()
     QAction* nt = qobject_cast<QAction *>(sender());
     if (nt==NULL) return;
     QUrl u = nt->data().toUrl();
-    if (u.isRelative() && snv->lastFrame) {
-        QUrl uu = snv->lastFrame->requestedUrl();
+    if (u.isRelative()) {
+        QUrl uu = snv->txtBrowser->page()->requestedUrl();
         if (uu.isEmpty() || uu.isRelative())
-            uu = snv->Uri;
+            uu = snv->getUrl();
         u = uu.resolved(u);
     }
-    u = snv->netHandler->fixUrl(u);
+//    u = snv->netHandler->fixUrl(u);
 
     new CSnippetViewer(snv->parentWnd, u, QStringList(), false, "", snv->comboZoom->currentText());
 }
@@ -463,20 +471,20 @@ void CSnCtxHandler::openNewTabTranslate()
     QAction* nt = qobject_cast<QAction *>(sender());
     if (nt==NULL) return;
     QUrl u = nt->data().toUrl();
-    if (u.isRelative() && snv->lastFrame) {
-        QUrl uu = snv->lastFrame->requestedUrl();
+    if (u.isRelative()) {
+        QUrl uu = snv->txtBrowser->page()->requestedUrl();
         if (uu.isEmpty() || uu.isRelative())
-            uu = snv->Uri;
+            uu = snv->getUrl();
         u = uu.resolved(u);
     }
-    u = snv->netHandler->fixUrl(u);
+//    u = snv->netHandler->fixUrl(u);
 
     CSnippetViewer* s = new CSnippetViewer(snv->parentWnd, u, QStringList(),
                                              false, "", snv->comboZoom->currentText());
     s->requestAutotranslate = true;
 }
 
-void CSnCtxHandler::openFrame() {
+/*void CSnCtxHandler::openFrame() {
     if (!snv->lastFrame) return;
     QPointer<QWebFrame> lf = snv->lastFrame;
     if (!lf->requestedUrl().isValid()) return;
@@ -485,7 +493,7 @@ void CSnCtxHandler::openFrame() {
     if (ac!=NULL && ac->data().toInt()==1234) focused=false;
 
     new CSnippetViewer(snv->parentWnd,lf->requestedUrl(),QStringList(),focused, "", snv->comboZoom->currentText());
-}
+}*/
 
 void CSnCtxHandler::addContextBlock()
 {
@@ -500,10 +508,7 @@ void CSnCtxHandler::addContextBlock()
 }
 
 void CSnCtxHandler::bookmarkFrame() {
-    if (!snv->lastFrame) return;
-    QPointer<QWebFrame> lf = snv->lastFrame;
-    QAction* ac = qobject_cast<QAction*>(sender());
-    if (ac!=NULL && ac->data().toInt()==1234) lf=lf->parentFrame();
+    QWebEnginePage *lf = snv->txtBrowser->page();
     CBookmarkDlg *dlg = new CBookmarkDlg(snv,lf->title(),lf->requestedUrl().toString());
     if (dlg->exec()) {
         QString t = dlg->getBkTitle();
@@ -520,16 +525,18 @@ void CSnCtxHandler::bookmarkFrame() {
 
 void CSnCtxHandler::loadKwrite()
 {
-    QString fname = snv->Uri.toLocalFile();
+    QString fname = snv->getUrl().toLocalFile();
     if (fname.isEmpty() || snv->fileChanged)
     {
         QString uuid = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+".html";
         fname = QDir::temp().absoluteFilePath(uuid);
-        QFile tfile(fname);
-        tfile.open(QIODevice::WriteOnly);
-        tfile.write(snv->txtBrowser->page()->mainFrame()->toHtml().toUtf8());
-        tfile.close();
-        gSet->createdFiles.append(fname);
+        snv->txtBrowser->page()->toHtml([fname](const QString& html) {
+            QFile tfile(fname);
+            tfile.open(QIODevice::WriteOnly);
+            tfile.write(html.toUtf8());
+            tfile.close();
+            gSet->createdFiles.append(fname);
+        });
     }
     if (!QProcess::startDetached(gSet->sysEditor, QStringList() << fname))
         QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
@@ -537,7 +544,7 @@ void CSnCtxHandler::loadKwrite()
 
 void CSnCtxHandler::execKonq()
 {
-    if (!QProcess::startDetached(gSet->sysBrowser, QStringList() << QString::fromUtf8(snv->Uri.toEncoded())))
+    if (!QProcess::startDetached(gSet->sysBrowser, QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
         QMessageBox::critical(snv, trUtf8("JPReader"), trUtf8("Unable to start browser."));
 }
 

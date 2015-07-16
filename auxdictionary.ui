@@ -50,7 +50,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWebView" name="viewArticles">
+     <widget class="QWebEngineView" name="viewArticles">
       <property name="url">
        <url>
         <string>about:blank</string>
@@ -61,13 +61,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKitWidgets/QWebView</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>editWord</tabstop>
   <tabstop>btnClear</tabstop>

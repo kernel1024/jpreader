@@ -72,14 +72,14 @@ FORMS = main.ui \
     logdisplay.ui \
     auxdictionary.ui
 
-QT += webkit network xml dbus widgets webkitwidgets
+QT += network xml dbus widgets webenginewidgets
 
-DEFINES += WITHWEBKIT
 CONFIG += warn_on \
     link_pkgconfig \
     exceptions \
     rtti \
-    stl
+    stl \
+    c++11
 
 LIBS += -lz
 
@@ -156,3 +156,6 @@ OTHER_FILES += \
     org.jpreader.auxtranslator.xml
 
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
+
+DISTFILES += \
+    README.md

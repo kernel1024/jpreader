@@ -76,7 +76,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
     connect(actionWnd, SIGNAL(triggered()), gSet, SLOT(addMainWindow()));
     connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
-    connect(actionClearCaches,SIGNAL(triggered()),gSet,SLOT(clearCaches()));
     connect(actionSaveSettings,SIGNAL(triggered()), gSet, SLOT(writeSettings()));
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
@@ -288,8 +287,8 @@ void CMainWindow::updateHelperList()
                 CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
                 if (sv!=NULL) {
                     it->setText(sv->tabTitle);
-                    it->setStatusTip(sv->Uri.toString());
-                    it->setToolTip(sv->Uri.toString());
+                    it->setStatusTip(sv->getUrl().toString());
+                    it->setToolTip(sv->getUrl().toString());
                     if (sv->translationBkgdFinished)
                         it->setForeground(QBrush(Qt::green));
                     else if (sv->loadingBkgdFinished)
@@ -472,7 +471,7 @@ void CMainWindow::openAuxFileInDir()
         QMessageBox::warning(this,tr("JPReader error"),tr("Active document viewer tab not found."));
         return;
     }
-    QString auxDir = sv->Uri.toLocalFile();
+    QString auxDir = sv->getUrl().toLocalFile();
     if (auxDir.isEmpty()) {
         QMessageBox::warning(this,tr("JPReader error"),tr("Remote document opened. Cannot define local directory."));
         return;
@@ -548,7 +547,7 @@ void CMainWindow::addBookmark()
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sv==NULL) return;
 
-    CBookmarkDlg *dlg = new CBookmarkDlg(sv,sv->tabTitle,sv->Uri.toString());
+    CBookmarkDlg *dlg = new CBookmarkDlg(sv,sv->tabTitle,sv->getUrl().toString());
     if (dlg->exec()) {
         QString t = dlg->getBkTitle();
         if (!t.isEmpty() && !gSet->bookmarks.contains(t)) {
@@ -688,7 +687,7 @@ void CMainWindow::helpAbout()
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
-    debugstr = tr ("Debug build.\n");
+    debugstr = tr ("(debug)\n");
 #endif
 #ifdef WITH_RECOLL
     recoll = tr("yes");
@@ -701,7 +700,8 @@ void CMainWindow::helpAbout()
                      "Platform: %3\n"
                      "Build date: %4\n\n"
                      "Recoll backend compiled: %5\n"
-                     "Baloo (KDE Frameworks 5) backend compiled: %6")
+                     "Baloo (KDE Frameworks 5) backend compiled: %6\n\n"
+                     "WebEngine version.")
                     .arg(BUILD_REV)
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
