@@ -186,8 +186,9 @@ void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
                                     node.attributes().namedItem("style").nodeValue()+"; position: static;");
                 }
 
-                // Style fix for 2015/05 pixiv novel viewer update
-                if (node.attributes().namedItem("class").nodeValue().toLower()=="novel-text-wrapper") {
+                // Style fix for 2015/05..2015/07 pixiv novel viewer update
+                if ((node.attributes().namedItem("class").nodeValue().toLower()=="novel-text-wrapper") ||
+                        (node.attributes().namedItem("class").nodeValue().toLower()=="novel-pages")) {
                     if (node.attributes().namedItem("style").isNull())
                         node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
                     if (node.attributes().namedItem("style").nodeValue().isEmpty())
