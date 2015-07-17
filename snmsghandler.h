@@ -21,10 +21,6 @@ public:
     QTimer *loadingBarHideTimer;
     CSnMsgHandler(CSnippetViewer * parent);
 public slots:
-//    void loadHomeUri();
-//    void navBack();
-//    void navForward();
-//    void linkClicked(QWebFrame *frame, const QUrl &url, const QWebPage::NavigationType &clickType);
     void linkHovered(const QString &link);
     void searchFwd();
     void searchBack();

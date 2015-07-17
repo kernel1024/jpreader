@@ -86,8 +86,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     proxyUse = false;
     proxyType = QNetworkProxy::HttpCachingProxy;
 
-//    netAccess.setCookieJar(&cookieJar);
-
 #if WITH_RECOLL
     searchEngine = SE_RECOLL;
 #elif WITH_BALOO5
@@ -113,22 +111,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
-/*    QString fcache = fs + tr("cache") + QDir::separator();
-    QNetworkDiskCache* cache = new QNetworkDiskCache(this);
-    cache->setCacheDirectory(fcache);
-    netAccess.setCache(cache);
-
-    QString fdata = fs + tr("local_storage") + QDir::separator();
-    QDir fddata(fdata);
-    QWebSettings* ws = QWebSettings::globalSettings();
-    if (!fddata.exists()) {
-        if (!fddata.mkpath(fdata))
-            qDebug() << "Unable to create directory for local storage feature: " << fdata;
-        else
-            ws->enablePersistentStorage(fdata);
-    } else
-        ws->enablePersistentStorage(fdata);*/
-
     dictIndexDir = fs + tr("dictIndex") + QDir::separator();
     QDir dictIndex(dictIndexDir);
     if (!dictIndex.exists())
@@ -136,8 +118,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             qDebug() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
             dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         }
-
-//    netAccess.setProxy(QNetworkProxy());
 
     dlg = NULL;
     activeWindow = NULL;
@@ -206,10 +186,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionLSKorean->setData(LS_KOREAN);
 
     actionLSJapanese->setChecked(true);
-
-    actionForceNewTab = new QAction(QIcon::fromTheme("split"),tr("Force all links in new tab"),this);
-    actionForceNewTab->setCheckable(true);
-    actionForceNewTab->setChecked(false);
 
     actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),this);
     actionAutoTranslate->setCheckable(true);
@@ -305,11 +281,6 @@ bool CGlobalControl::autoTranslate()
     return actionAutoTranslate->isChecked();
 }
 
-bool CGlobalControl::forceAllLinksInNewTab()
-{
-    return actionForceNewTab->isChecked();
-}
-
 bool CGlobalControl::forceFontColor()
 {
     return actionOverrideFontColor->isChecked();
@@ -340,7 +311,6 @@ void CGlobalControl::writeSettings()
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
     settings.setValue("autoloadimages",QWebEngineSettings::globalSettings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
-//    settings.setValue("cookies",cookieJar.saveCookies());
     settings.setValue("recycledCount",maxRecycled);
     settings.beginWriteArray("bookmarks");
     int i=0;
@@ -531,6 +501,9 @@ void CGlobalControl::readSettings()
         overrideUserAgent=false;
     else if (userAgentHistory.isEmpty())
         userAgentHistory << userAgent;
+
+    if (overrideUserAgent)
+        webProfile->setHttpUserAgent(userAgent);
 
     cnt=settings.value("dictPaths_count",0).toInt();
     dictPaths.clear();
@@ -810,6 +783,9 @@ void CGlobalControl::settingsDlg()
                 overrideUserAgent=false;
         }
 
+        if (overrideUserAgent)
+            webProfile->setHttpUserAgent(userAgent);
+
         sl.clear();
         for (int i=0;i<dlg->dictPaths->count();i++)
             sl.append(dlg->dictPaths->item(i)->text());
@@ -1053,7 +1029,6 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
 
-    mainWindow->menuSettings->addAction(actionForceNewTab);
     mainWindow->menuSettings->addAction(actionAutoTranslate);
     mainWindow->menuSettings->addAction(actionAutoloadImages);
     mainWindow->menuSettings->addAction(actionOverrideFont);

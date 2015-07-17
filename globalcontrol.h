@@ -84,7 +84,6 @@ public:
 };
 
 // TODO: Remove unnecesary parameters
-// TODO: Rework history subsystem
 
 class CGlobalControl : public QObject
 {
@@ -129,6 +128,7 @@ public:
     QStringList userAgentHistory;
 
     QWebEngineProfile *webProfile;
+
     int searchEngine;
     bool useAdblock;
     QString scpHost;
@@ -183,7 +183,6 @@ public:
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
 
-    QAction *actionForceNewTab;
     QAction *actionAutoTranslate;
     QAction *actionOverrideFont;
     QAction *actionAutoloadImages;
@@ -197,7 +196,6 @@ public:
     // Actions for Settings menu
     bool useOverrideFont();
     bool autoTranslate();
-    bool forceAllLinksInNewTab();
     bool forceFontColor();
 
     // History lists append

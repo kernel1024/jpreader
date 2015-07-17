@@ -47,10 +47,12 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         engineFinished();
     } else {
         if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
+#ifdef WITH_THREADED_SEARCH
             if (isValidConfig())
                 emit startThreadedSearch(query,gSet->maxLimit);
             else
                 engineFinished();
+#endif
         } else
             engineFinished();
     }

@@ -24,9 +24,8 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
 
 void CSnCtxHandler::contextMenu(const QPoint &pos)
 {
-//    QWebHitTestResult wh = snv->txtBrowser->page()->mainFrame()->hitTestContent(pos);
+    QUrl wUrl = QUrl(); // unable to get url on link click
 
-    QUrl wUrl = QUrl();
     QString sText = snv->txtBrowser->selectedText();
 
     QMenu *cm = new QMenu(snv);

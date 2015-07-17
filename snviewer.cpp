@@ -242,6 +242,10 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
                 url.scheme().startsWith("file",Qt::CaseInsensitive))
             urlEdit->setEditText(aUrl.toString());
+        else if (netHandler->loadedUrl.isValid() &&
+                 (netHandler->loadedUrl.scheme().startsWith("http",Qt::CaseInsensitive) ||
+                                 netHandler->loadedUrl.scheme().startsWith("file",Qt::CaseInsensitive)))
+            urlEdit->setEditText(netHandler->loadedUrl.toString());
         else
             urlEdit->setEditText("about://blank");
     }

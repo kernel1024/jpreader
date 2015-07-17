@@ -39,6 +39,7 @@ public slots:
     void articleLoadFinished(bool ok);
     void showEmptyDictPage();
     void restoreWindow();
+    void articleLoaded();
 
 };
 

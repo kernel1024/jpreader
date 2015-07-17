@@ -95,15 +95,11 @@ exists( /usr/include/magic.h ) {
     error("libmagic not found.");
 }
 
-!packagesExist(glib-2.0 gobject-2.0) {
-    error("Glib not found.");
-}
-
 !packagesExist(icu-uc icu-io icu-i18n) {
     error("icu not found.");
 }
 
-PKGCONFIG += glib-2.0 gobject-2.0 icu-uc icu-io icu-i18n
+PKGCONFIG += icu-uc icu-io icu-i18n
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5

@@ -96,50 +96,6 @@ void CSnMsgHandler::hideBarLoading()
     loadingBarHideTimer->start(1500);
 }
 
-/*void CSnMsgHandler::navBack()
-{
-    if (snv->backHistory.count()==0) return;
-    snv->forwardStack.prepend(snv->backHistory.takeLast()); // move current url;
-    snv->netHandler->load(snv->backHistory.takeLast());
-}
-
-void CSnMsgHandler::navForward()
-{
-    if (snv->forwardStack.count()==0) return;
-    snv->netHandler->load(snv->forwardStack.takeFirst());
-}
-
-void CSnMsgHandler::loadHomeUri()
-{
-    if (!snv->firstUri.isEmpty())
-        snv->netHandler->load(snv->firstUri);
-    else
-        QMessageBox::warning(snv,tr("JPReader"),tr("Unable to return to dynamically generated first page."));
-}
-
-void CSnMsgHandler::linkClicked(QWebFrame * frame, const QUrl &url, const QWebPage::NavigationType &clickType)
-{
-    QUrl u = url;
-    if (u.isRelative() && frame!=NULL) {
-        QUrl uu = frame->requestedUrl();
-        if (uu.isEmpty() || uu.isRelative())
-            uu = snv->Uri;
-        u = uu.resolved(u);
-    }
-    u = snv->netHandler->fixUrl(u);
-    if (u.isEmpty()) {
-        QMessageBox::warning(snv,tr("JPReader"),tr("Url is invalid"));
-        return;
-    }
-    if (gSet->forceAllLinksInNewTab() && clickType==QWebPage::NavigationTypeLinkClicked)
-        new CSnippetViewer(snv->parentWnd, u, QStringList(), false);
-    else {
-        if (clickType==QWebPage::NavigationTypeLinkClicked)
-            snv->forwardStack.clear();
-        snv->netHandler->load(u,frame);
-    }
-}*/
-
 void CSnMsgHandler::linkHovered(const QString &link)
 {
     snv->statusBarMsg(link);

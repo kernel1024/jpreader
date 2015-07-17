@@ -8,8 +8,6 @@
 #include "globalcontrol.h"
 #include "ui_auxdictionary.h"
 
-// TODO: Make QNetworkQuery-loader from specialized NAM to WebEngine
-
 CAuxDictionary::CAuxDictionary(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CAuxDictionary)
@@ -66,9 +64,20 @@ void CAuxDictionary::showTranslationFor(const QString &text)
     QUrlQuery requ;
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
-    ui->viewArticles->load( req );
+
+    QNetworkReply* rpl = gSet->dictNetMan->get(QNetworkRequest(req));
+    connect(rpl,SIGNAL(finished()),this,SLOT(articleLoaded()));
 
     ui->viewArticles->setCursor( Qt::WaitCursor );
+}
+
+void CAuxDictionary::articleLoaded()
+{
+    QNetworkReply* rpl = qobject_cast<QNetworkReply *>(sender());
+    if (rpl==NULL) return;
+    QByteArray ba = rpl->readAll();
+    rpl->close();
+    ui->viewArticles->setHtml(QString::fromUtf8(ba));
 }
 
 void CAuxDictionary::updateMatchResults(bool finished)
@@ -212,18 +221,7 @@ void CAuxDictionary::articleLoadFinished(bool )
 
 void CAuxDictionary::showEmptyDictPage()
 {
-    QUrl req;
-
-    req.setScheme( "gdlookup" );
-    req.setHost( "localhost" );
-    QUrlQuery requ;
-    requ.addQueryItem( "blank", "1" );
-    req.setQuery(requ);
-
-    ui->viewArticles->load( req );
-
-    ui->viewArticles->setCursor( Qt::WaitCursor );
-
+    ui->viewArticles->load(QUrl("about://blank"));
 }
 
 void CAuxDictionary::restoreWindow()
