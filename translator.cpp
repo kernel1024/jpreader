@@ -41,7 +41,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     QString wdir = hostingDir;
     if (wdir.isEmpty()
             || hostingUrl.isEmpty()
-            || hostingUrl.contains("about:blank",Qt::CaseInsensitive)) return false;
+            || !hostingUrl.startsWith("http",Qt::CaseInsensitive)) return false;
     QString filename = QUrl(aUri).toLocalFile();
     if (filename.isEmpty()) {
         calculatedUrl=aUri;

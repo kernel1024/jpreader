@@ -95,7 +95,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 #endif
 
 
-    webProfile = new QWebEngineProfile("jpreader2",this);
+    webProfile = new QWebEngineProfile("jpreader",this);
 
     QString fs = QString();
     fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
@@ -103,9 +103,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
 
-    QString fcache = fs + tr("cache2") + QDir::separator();
+    QString fcache = fs + tr("cache") + QDir::separator();
     webProfile->setCachePath(fcache);
-    QString fdata = fs + tr("local_storage2") + QDir::separator();
+    QString fdata = fs + tr("local_storage") + QDir::separator();
     webProfile->setPersistentStoragePath(fdata);
 
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
@@ -289,7 +289,7 @@ bool CGlobalControl::forceFontColor()
 void CGlobalControl::writeSettings()
 {
     if (!settingsSaveMutex.tryLock(1000)) return;
-    QSettings settings("kernel1024", "jpreader2");
+    QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("MainWindow");
     settings.setValue("searchCnt", searchHistory.count());
     for (int i=0;i<searchHistory.count();i++)
@@ -378,7 +378,7 @@ void CGlobalControl::writeSettings()
 
 void CGlobalControl::readSettings()
 {
-    QSettings settings("kernel1024", "jpreader2");
+    QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("MainWindow");
     int cnt = settings.value("searchCnt",0).toInt();
     QStringList qs;
@@ -427,8 +427,6 @@ void CGlobalControl::readSettings()
     QWebEngineSettings::globalSettings()->
             setAttribute(QWebEngineSettings::AutoLoadImages,
                                                  settings.value("autoloadimages",true).toBool());
-//    QByteArray ck = settings.value("cookies",QByteArray()).toByteArray();
-//    cookieJar.loadCookies(&ck);
     int sz = settings.beginReadArray("bookmarks");
     for (int i=0; i<sz; i++) {
         settings.setArrayIndex(i);
@@ -534,7 +532,7 @@ void CGlobalControl::writeTabsList(bool clearList)
         if (urls.isEmpty()) return;
     }
 
-    QSettings settings("kernel1024", "jpreader-tabs2");
+    QSettings settings("kernel1024", "jpreader-tabs");
     settings.beginGroup("OpenedTabs");
     settings.setValue("tabsCnt", urls.count());
     for (int i=0;i<urls.count();i++)
@@ -549,7 +547,7 @@ void CGlobalControl::checkRestoreLoad(CMainWindow *w)
 
     QList<QUrl> urls;
     urls.clear();
-    QSettings settings("kernel1024", "jpreader-tabs2");
+    QSettings settings("kernel1024", "jpreader-tabs");
     settings.beginGroup("OpenedTabs");
     int cnt = settings.value("tabsCnt", 0).toInt();
     for (int i=0;i<cnt;i++) {
@@ -718,7 +716,6 @@ void CGlobalControl::settingsDlg()
         actionJSUsage->setChecked(dlg->useJS->isChecked());
         QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                                      dlg->autoloadImages->isChecked());
-//        if (dlg->rbNifty->isChecked()) translatorEngine=TE_NIFTY;
         if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
@@ -1024,7 +1021,7 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
-    mainWindow->menuTools->addAction(actionUseProxy);
+//    mainWindow->menuTools->addAction(actionUseProxy);
     mainWindow->menuTools->addAction(actionSnippetAutotranslate);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
@@ -1120,7 +1117,7 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader2");
+    QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
 
@@ -1143,7 +1140,7 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
 void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader2");
+    QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
     settings.setValue(QString("%1-user").arg(key),user);

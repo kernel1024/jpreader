@@ -281,17 +281,16 @@ void CSnCtxHandler::copyImgUrl()
 
 void CSnCtxHandler::duplicateTab()
 {
-    QString url = "about:blank";
+    QString url = "about://blank";
     if (!snv->fileChanged) url=snv->urlEdit->currentText();
 
     CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
 
-/*    if (snv->fileChanged) {
-        QUrl b = snv->txtBrowser->page()->url();
-        //sv->netHandler->addUrlToProcessing(b);
-        sv->txtBrowser->setHtml(snv->txtBrowser->page()->mainFrame()->toHtml(), b);
-        //sv->netHandler->removeUrlFromProcessing(b);
-    }*/
+    if (snv->fileChanged) {
+        snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
+            sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
+        });
+    }
 }
 
 void CSnCtxHandler::openNewWindow()
@@ -308,7 +307,6 @@ void CSnCtxHandler::openNewWindow()
             uu = snv->getUrl();
         u = uu.resolved(u);
     }
-//    u = snv->netHandler->fixUrl(u);
 
     new CSnippetViewer(mwnd, u);
 }

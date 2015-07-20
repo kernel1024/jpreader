@@ -26,7 +26,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     txtBrowser = new QWebEngineView(this);
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
-    txtBrowser->setUrl(QUrl("about:blank"));
+    txtBrowser->setUrl(QUrl("about://blank"));
     layout()->addWidget(txtBrowser);
     txtBrowser->setPage(new QSpecWebPage(gSet->webProfile,parent,this));
 
@@ -51,8 +51,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     bindToTab(parent->tabMain, setFocused);
 
     txtBrowser->setContextMenuPolicy(Qt::CustomContextMenu);
-//    txtBrowser->page()->setNetworkAccessManager(&(gSet->netAccess));
-//    txtBrowser->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 
     netHandler = new CSnNet(this);
     ctxHandler = new CSnCtxHandler(this);
@@ -88,11 +86,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barLoading, SLOT(hide()));
     connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barPlaceholder, SLOT(show()));
 
-//    connect(txtBrowser->page(), SIGNAL(linkClickedExt(QWebFrame*,QUrl,QWebPage::NavigationType)), msgHandler,
-//            SLOT(linkClicked(QWebFrame*,QUrl,QWebPage::NavigationType)));
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString)), msgHandler,
             SLOT(linkHovered(QString)));
-//    connect(txtBrowser->page(), SIGNAL(statusBarMessage(QString)),this,SLOT(statusBarMsg(QString)));
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
     fwdNavButton->setIcon(QIcon::fromTheme("go-next"));
@@ -101,11 +96,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 	reloadButton->setIcon(QIcon::fromTheme("view-refresh"));
     stopButton->setIcon(QIcon::fromTheme("process-stop"));
     navButton->setIcon(QIcon::fromTheme("arrow-right"));
-
-/*    backNavButton->setEnabled(false);
-    fwdNavButton->setEnabled(false);
-    stopButton->setEnabled(false);
-    reloadButton->setEnabled(false);*/
 
     for (int i=0;i<LSCOUNT;i++) {
         QString s = gSet->getSourceLanguageIDStr(i,TE_GOOGLE);
@@ -219,7 +209,6 @@ void CSnippetViewer::titleChanged(const QString & title)
     else
         tabTitle = s;
     tabWidget->setTabText(i,tabWidget->fontMetrics().elidedText(s,Qt::ElideRight,150));
-//	tabWidget->setTabToolTip(i,s);
 
     if (!title.isEmpty()) {
         if (txtBrowser->page()->url().isValid() &&
@@ -247,7 +236,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
                                  netHandler->loadedUrl.scheme().startsWith("file",Qt::CaseInsensitive)))
             urlEdit->setEditText(netHandler->loadedUrl.toString());
         else
-            urlEdit->setEditText("about://blank");
+            urlEdit->clearEditText();
     }
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
@@ -263,8 +252,8 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 void CSnippetViewer::recycleTab()
 {
     if (tabTitle.isEmpty() || !txtBrowser->page()->url().isValid() ||
-            txtBrowser->page()->url().toString().
-            contains("about:blank",Qt::CaseInsensitive)) return;
+            !txtBrowser->page()->url().toString().
+            startsWith("http",Qt::CaseInsensitive)) return;
     gSet->appendRecycled(tabTitle,txtBrowser->page()->url());
 }
 

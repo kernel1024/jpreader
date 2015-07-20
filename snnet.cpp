@@ -53,7 +53,7 @@ void CSnNet::load(const QUrl &url)
     QString fname = url.toLocalFile();
     if (!fname.isEmpty()) {
         QString MIME = detectMIME(fname);
-        if (MIME.startsWith("text/",Qt::CaseInsensitive)) { // for local txt files
+        if (MIME.startsWith("text/plain",Qt::CaseInsensitive)) { // for local txt files
             QFile data(fname);
             QFileInfo fi(fname);
             if (data.open(QFile::ReadOnly)) {
@@ -63,7 +63,7 @@ void CSnNet::load(const QUrl &url)
                 snv->fileChanged = false;
                 snv->translationBkgdFinished=false;
                 snv->loadingBkgdFinished=false;
-                snv->txtBrowser->setHtml(cn);
+                snv->txtBrowser->setHtml(cn,url);
                 data.close();
             }
         } else { // for local html files
@@ -98,6 +98,7 @@ void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *auth
 void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator,
                                          const QString &proxyHost)
 {
+    Q_UNUSED(proxyHost);
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
     if (dlg->exec()) {
         authenticator->setUser(dlg->getUser());
