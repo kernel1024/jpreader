@@ -269,7 +269,7 @@ void CSnCtxHandler::createPlainTextTabTranslate()
     s = s.replace('\n',"<br/>");
 
     CSnippetViewer *sn = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
-    sn->transButton->click();
+    sn->requestAutotranslate = true;
 }
 
 void CSnCtxHandler::copyImgUrl()
@@ -360,7 +360,8 @@ void CSnCtxHandler::openImgNewTab()
     if (nt==NULL) return;
     QUrl url = nt->data().toUrl();
 
-    new CSnippetViewer(snv->parentWnd, url.toString(), QStringList(),true, QString(), snv->comboZoom->currentText());
+    new CSnippetViewer(snv->parentWnd, url.toString(), QStringList(),
+                       true, QString(), snv->comboZoom->currentText());
 }
 
 void CSnCtxHandler::saveImgToFile()
@@ -397,7 +398,8 @@ void CSnCtxHandler::saveImgToFile()
             if (fmtss.contains(fi.suffix(),Qt::CaseInsensitive))
                 px.save(fname,fi.suffix().toUtf8().data(),100);
             else
-                QMessageBox::warning(snv,tr("JPReader"),tr("Wrong format selected (%1)").arg(fi.suffix()));
+                QMessageBox::warning(snv,tr("JPReader"),
+                                     tr("Wrong format selected (%1)").arg(fi.suffix()));
         }
     }
 }
@@ -455,7 +457,6 @@ void CSnCtxHandler::openNewTab()
             uu = snv->getUrl();
         u = uu.resolved(u);
     }
-//    u = snv->netHandler->fixUrl(u);
 
     new CSnippetViewer(snv->parentWnd, u, QStringList(), false, "", snv->comboZoom->currentText());
 }
@@ -471,23 +472,11 @@ void CSnCtxHandler::openNewTabTranslate()
             uu = snv->getUrl();
         u = uu.resolved(u);
     }
-//    u = snv->netHandler->fixUrl(u);
 
     CSnippetViewer* s = new CSnippetViewer(snv->parentWnd, u, QStringList(),
                                              false, "", snv->comboZoom->currentText());
     s->requestAutotranslate = true;
 }
-
-/*void CSnCtxHandler::openFrame() {
-    if (!snv->lastFrame) return;
-    QPointer<QWebFrame> lf = snv->lastFrame;
-    if (!lf->requestedUrl().isValid()) return;
-    QAction* ac = qobject_cast<QAction*>(sender());
-    bool focused=true;
-    if (ac!=NULL && ac->data().toInt()==1234) focused=false;
-
-    new CSnippetViewer(snv->parentWnd,lf->requestedUrl(),QStringList(),focused, "", snv->comboZoom->currentText());
-}*/
 
 void CSnCtxHandler::addContextBlock()
 {
@@ -538,7 +527,8 @@ void CSnCtxHandler::loadKwrite()
 
 void CSnCtxHandler::execKonq()
 {
-    if (!QProcess::startDetached(gSet->sysBrowser, QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
+    if (!QProcess::startDetached(gSet->sysBrowser,
+                                 QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
         QMessageBox::critical(snv, trUtf8("JPReader"), trUtf8("Unable to start browser."));
 }
 
