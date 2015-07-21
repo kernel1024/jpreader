@@ -83,8 +83,6 @@ public:
     int count;
 };
 
-// TODO: Remove unnecesary parameters
-
 class CGlobalControl : public QObject
 {
     Q_OBJECT
