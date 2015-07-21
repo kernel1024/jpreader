@@ -72,24 +72,24 @@ bool CBingTranslator::initTran()
     QByteArray ra = rpl->readAll();
 
     if (rpl->error()!=QNetworkReply::NoError) {
-        qDebug() << "Bing auth error: " << rpl->error();
-        qDebug() << "Response: " << ra;
+        qCritical() << "Bing auth error: " << rpl->error();
+        qCritical() << "Response: " << ra;
         return false;
     }
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
     if (jdoc.isNull() || jdoc.isEmpty()) {
-        qDebug() << "Bing auth: incorrect JSON auth response";
-        qDebug() << "Response: " << ra;
+        qCritical() << "Bing auth: incorrect JSON auth response";
+        qCritical() << "Response: " << ra;
         return false;
     }
 
     QJsonObject jroot = jdoc.object();
     QString token = jroot.value("access_token").toString();
     if (token.isEmpty()) {
-        qDebug() << "Bing auth: empty JSON token";
-        qDebug() << "Response: " << ra;
+        qCritical() << "Bing auth: empty JSON token";
+        qCritical() << "Response: " << ra;
         return false;
     }
 

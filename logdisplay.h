@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QStringList>
+#include <QSyntaxHighlighter>
 
 namespace Ui {
     class CLogDisplay;
@@ -23,8 +24,10 @@ private:
     Ui::CLogDisplay *ui;
     QStringList savedMessages;
     bool firstShow;
+    QSyntaxHighlighter* syntax;
 
-    // QWidget interface
+    void updateText(const QString& text);
+
 protected:
     void showEvent(QShowEvent *);
 };

@@ -70,7 +70,7 @@ QString detectMIME(QString filename)
     const char* bm = bma.data();
     const char* mg = magic_file(myt,bm);
     if (mg==NULL) {
-        qDebug() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
+        qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QString("text/plain");
     }
     QString mag(mg);
@@ -84,7 +84,7 @@ QString detectMIME(QByteArray buf)
     magic_load(myt,NULL);
     const char* mg = magic_buffer(myt,buf.data(),buf.length());
     if (mg==NULL) {
-        qDebug() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
+        qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QString("text/plain");
     }
     QString mag(mg);
@@ -167,7 +167,7 @@ QByteArray XMLizeHTML(QByteArray html, QString encoding)
     if(eh.errorsReported())
     {
         QString err(eh.errors().c_str());
-        qDebug() << err;
+        qCritical() << err;
         eh.reset();
     }
 

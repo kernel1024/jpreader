@@ -258,7 +258,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     if (tran==NULL || !tran->initTran()) {
         dst=tr("Unable to initialize translation engine.");
-        qDebug() << tr("Unable to initialize translation engine.");
+        qCritical() << tr("Unable to initialize translation engine.");
         return false;
     }
 
@@ -275,8 +275,8 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     QString errMsg; int errLine, errCol;
     if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
         tran->doneTran();
-        qDebug() << tr("HTML to XML beautification error");
-        qDebug() << errMsg << "at line" << errLine << ":" << errCol;
+        qCritical() << tr("HTML to XML beautification error");
+        qCritical() << errMsg << "at line" << errLine << ":" << errCol;
         return false;
     }
 
@@ -284,16 +284,16 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     textNodesCnt=0;
     XMLPassMode xmlPass=PXPreprocess;
     examineXMLNode(doc,xmlPass);
-    //qDebug() << doc.toString();
+    //qInfo() << doc.toString();
 
     xmlPass=PXCalculate;
     examineXMLNode(doc,xmlPass);
-    //qDebug() << doc.toString();
+    //qInfo() << doc.toString();
 
     textNodesProgress=0;
     xmlPass=PXTranslate;
     examineXMLNode(doc,xmlPass);
-    //qDebug() << doc.toString();
+    //qInfo() << doc.toString();
 
     if (atlasSlipped)
         dst="ERROR:ATLAS_SLIPPED";
@@ -332,8 +332,8 @@ bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
     QDomDocument doc;
     QString errMsg; int errLine, errCol;
     if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
-        qDebug() << tr("HTML to XML beautification error");
-        qDebug() << errMsg << "at line" << errLine << ":" << errCol;
+        qCritical() << tr("HTML to XML beautification error");
+        qCritical() << errMsg << "at line" << errLine << ":" << errCol;
         return false;
     }
 

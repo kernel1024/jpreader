@@ -115,7 +115,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     QDir dictIndex(dictIndexDir);
     if (!dictIndex.exists())
         if (!dictIndex.mkpath(dictIndexDir)) {
-            qDebug() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
+            qCritical() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
             dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         }
 

@@ -42,7 +42,7 @@ void CSnNet::loadFinished(bool)
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {
-        qDebug() << "adblock - skipping" << url;
+        qInfo() << "adblock - skipping" << url;
         return;
     }
 

@@ -1,5 +1,5 @@
-#include <QNetworkCookie>
-
+#include <QTextCharFormat>
+#include <QRegExp>
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
@@ -120,67 +120,6 @@ void QSpecTabBar::mousePressEvent(QMouseEvent *event)
     }
 }
 
-/*
-QSpecWebView::QSpecWebView(QWidget *parent, CMainWindow* mainWnd)
-    : QWebView(parent)
-{
-    parentWnd = mainWnd;
-}
-
-QWebView* QSpecWebView::createWindow(QWebPage::WebWindowType)
-{
-    CSnippetViewer* sv = new CSnippetViewer(parentWnd);
-    return sv->txtBrowser;
-}
-
-QSpecCookieJar::QSpecCookieJar(QWidget *parent)
-    : QNetworkCookieJar(parent)
-{
-
-}
-
-void QSpecCookieJar::loadCookies(QByteArray* dump)
-{
-    QDataStream sv(dump,QIODevice::ReadOnly);
-    int cnt;
-    sv >> cnt;
-    QList<QNetworkCookie> cookies;
-    cookies.clear();
-    for (int i=0;i<cnt;i++) {
-        QByteArray ckvalue;
-        sv >> ckvalue;
-        QList<QNetworkCookie> cl = QNetworkCookie::parseCookies(ckvalue);
-        if (cl.count()>0) cookies.append(cl);
-    }
-    setAllCookies(cookies);
-}
-
-QByteArray QSpecCookieJar::saveCookies()
-{
-    QByteArray dump;
-    dump.clear();
-    QDataStream sv(&dump,QIODevice::WriteOnly);
-    QList<QNetworkCookie> cookies = allCookies();
-    int cnt = cookies.count();
-    sv << cnt;
-    for (int i=0;i<cnt;i++) {
-        if (!cookies[i].isSessionCookie()) {
-            if (cookies[i].expirationDate()>=QDateTime::currentDateTime()) {
-                sv << cookies[i].toRawForm(QNetworkCookie::Full);
-            }
-        }
-    }
-    return dump;
-}
-
-void QSpecCookieJar::clearCookies()
-{
-    QList<QNetworkCookie> cookies;
-    cookies.clear();
-    allCookies().clear();
-    setAllCookies(cookies);
-}*/
-
 int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
                                QStyleHintReturn *returnData) const
 {
@@ -189,69 +128,6 @@ int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
     else
         return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
-
-/*QSpecWebPage::QSpecWebPage(CSnippetViewer *parent) :
-    QWebPage(parent)
-{
-    viewer = parent;
-}
-
-bool QSpecWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type)
-{
-    QUrl u = request.url();
-    QStringList validSchemes;
-    validSchemes << "http" << "https" << "ftp";
-    if (u.isValid() && validSchemes.contains(u.scheme(),Qt::CaseInsensitive)) {
-        if (type == NavigationTypeLinkClicked) {
-            emit linkClickedExt(frame,u,type);
-            return false;
-        } else if (type == NavigationTypeOther &&
-                   !viewer->netHandler->isUrlNowProcessing(u)) {
-            emit linkClickedExt(frame,u,type);
-            return false;
-        }
-    }
-    return true;
-}
-
-QNetworkReply* QSpecNetworkAccessManager::createRequest(Operation op, const QNetworkRequest &req,
-                                              QIODevice *outgoingData)
-{
-    if (gSet->debugNetReqLogging)
-        qDebug() << req.url();
-    if (gSet->isUrlBlocked(req.url())) {
-        qDebug() << "adblock - skipping" << req.url();
-        return QNetworkAccessManager::createRequest(QNetworkAccessManager::GetOperation,
-                                                    QNetworkRequest(QUrl()));
-    } else {
-        QNetworkRequest rq(req);
-        if (gSet->ignoreSSLErrors) {
-            QSslConfiguration sconf = rq.sslConfiguration();
-            sconf.setPeerVerifyMode(QSslSocket::VerifyNone);
-            rq.setSslConfiguration(sconf);
-        }
-        if ((rq.url().scheme().compare("file",Qt::CaseInsensitive)==0) &&
-                (rq.url().hasQuery() || rq.url().hasFragment())) {
-            QString ps = rq.url().toString();
-            // modify url for files with query part in filename on local filesystem saved with wget
-            ps.replace("?","%3F");
-            ps.replace("#","%23");
-            rq.setUrl(QUrl(ps));
-        }
-        if (!req.hasRawHeader("Referer")) {
-            cachePolicy.insert(req.url(),req.attribute(QNetworkRequest::CacheLoadControlAttribute,
-                                                       QNetworkRequest::PreferNetwork));
-        }
-        else {
-            QUrl ref(QString::fromLatin1(req.rawHeader("Referer")));
-            if (!ref.isEmpty() && cachePolicy.contains(ref)) {
-                rq.setAttribute(QNetworkRequest::CacheLoadControlAttribute,cachePolicy[ref]);
-            }
-        }
-        return QNetworkAccessManager::createRequest(op, rq, outgoingData);
-    }
-}*/
-
 
 void QSpecToolTipLabel::hideEvent(QHideEvent *)
 {
@@ -402,4 +278,49 @@ QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
 
     CSnippetViewer* sv = new CSnippetViewer(parentWnd);
     return sv->txtBrowser->page();
+}
+
+
+QSpecLogHighlighter::QSpecLogHighlighter(QObject *parent)
+    : QSyntaxHighlighter(parent)
+{
+
+}
+
+QSpecLogHighlighter::QSpecLogHighlighter(QTextDocument *parent)
+    : QSyntaxHighlighter(parent)
+{
+
+}
+
+void QSpecLogHighlighter::highlightBlock(const QString &text)
+{
+    formatBlock(text,QRegExp("^\\S{,8}"),Qt::black,true);
+
+    formatBlock(text,QRegExp("\\sInfo:\\s"),Qt::darkBlue,true);
+}
+
+void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
+                                      const QColor &color,
+                                      bool weight,
+                                      bool italic,
+                                      bool underline,
+                                      bool strikeout)
+{
+    QTextCharFormat fmt;
+    fmt.setForeground(color);
+    if (weight)
+        fmt.setFontWeight(QFont::Bold);
+    else
+        fmt.setFontWeight(QFont::Normal);
+    fmt.setFontItalic(italic);
+    fmt.setFontUnderline(underline);
+    fmt.setFontStrikeOut(strikeout);
+
+    int index = text.indexOf(exp);
+    while (index >= 0) {
+        int length = exp.matchedLength();
+        setFormat(index, length, fmt);
+        index = text.indexOf(exp, index + length);
+    }
 }

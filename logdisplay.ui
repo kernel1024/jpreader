@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>535</width>
+    <width>736</width>
     <height>376</height>
    </rect>
   </property>
@@ -15,20 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPlainTextEdit" name="logView">
-     <property name="font">
-      <font>
-       <family>Courier New</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="lineWrapMode">
-      <enum>QPlainTextEdit::NoWrap</enum>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="QTextEdit" name="logView"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -64,7 +51,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>logView</tabstop>
   <tabstop>checkScrollLock</tabstop>
   <tabstop>buttonClose</tabstop>
  </tabstops>

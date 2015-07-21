@@ -28,7 +28,7 @@ bool CAtlasTranslator::initTran()
 
     sock.connectToHost(atlHost,atlPort);
     if (!sock.waitForConnected()) {
-        qDebug() << "ATLAS: connection timeout";
+        qCritical() << "ATLAS: connection timeout";
         return false;
     }
     QByteArray buf;
@@ -39,14 +39,14 @@ bool CAtlasTranslator::initTran()
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
-            qDebug() << "ATLAS: initialization timeout";
+            qCritical() << "ATLAS: initialization timeout";
             sock.close();
             return false;
         }
     }
     buf = sock.readLine().simplified();
     if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
-        qDebug() << "ATLAS: initialization error";
+        qCritical() << "ATLAS: initialization error";
         sock.close();
         return false;
     }
@@ -62,14 +62,14 @@ bool CAtlasTranslator::initTran()
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
-            qDebug() << "ATLAS: direction timeout error";
+            qCritical() << "ATLAS: direction timeout error";
             sock.close();
             return false;
         }
     }
     buf = sock.readLine().simplified();
     if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
-        qDebug() << "ATLAS: direction error";
+        qCritical() << "ATLAS: direction error";
         sock.close();
         return false;
     }
@@ -92,7 +92,7 @@ QString CAtlasTranslator::tranString(QString src)
     while(true) {
         if (!sock.canReadLine()) {
             if (!sock.waitForReadyRead(60000)) {
-                qDebug() << "ATLAS: translation timeout error";
+                qCritical() << "ATLAS: translation timeout error";
                 sock.close();
                 return "ERROR";
             }
@@ -107,11 +107,11 @@ QString CAtlasTranslator::tranString(QString src)
     s = QString::fromLatin1(sumbuf);
     if (sumbuf.isEmpty() || !s.contains(QRegExp("^RES:"))) {
         if (s.contains("NEED_RESTART")) {
-            qDebug() << "ATLAS: translation engine slipped. Please restart again.";
+            qCritical() << "ATLAS: translation engine slipped. Please restart again.";
             sock.close();
             return "ERROR:ATLAS_SLIPPED";
         } else {
-            qDebug() << "ATLAS: translation error";
+            qCritical() << "ATLAS: translation error";
             sock.close();
             return "ERROR";
         }
@@ -135,14 +135,14 @@ void CAtlasTranslator::doneTran(bool lazyClose)
         sock.flush();
         if (!sock.canReadLine()) {
             if (!sock.waitForReadyRead()) {
-                qDebug() << "ATLAS: finalization timeout error";
+                qCritical() << "ATLAS: finalization timeout error";
                 sock.close();
                 return;
             }
         }
         buf = sock.readLine().simplified();
         if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
-            qDebug() << "ATLAS: finalization error";
+            qCritical() << "ATLAS: finalization error";
             sock.close();
             return;
         }

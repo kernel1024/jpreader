@@ -174,7 +174,7 @@ void CGoldenDictMgr::loadDictionaries()
 
     showMessage(tr("Loading dictionaries..."));
 
-    qDebug() << "Indexing dictionaries. Please wait.";
+    qInfo() << "Indexing dictionaries. Please wait.";
 
     CDictLoader *loadDicts = new CDictLoader(this, gSet->dictPaths);
 
@@ -192,7 +192,7 @@ void CGoldenDictMgr::loadDone()
     CDictLoader* loadDicts = qobject_cast<CDictLoader *>(sender());
 
     if (loadDicts==NULL) {
-        qDebug() << "Unexpected call for loadDone.";
+        qCritical() << "Unexpected call for loadDone.";
         showMessage(tr("ERROR: Unexpected call for loadDone. Dictionaries unavailable!"));
         return;
     }
@@ -212,7 +212,7 @@ void CGoldenDictMgr::loadDone()
 
     dictionaries = loadDicts->getDictionaries();
 
-    qDebug() << "Dictionaries loaded";
+    qInfo() << "Dictionaries loaded";
 
     // Remove any stale index files
 

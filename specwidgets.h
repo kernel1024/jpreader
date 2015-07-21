@@ -20,6 +20,7 @@
 #include <QKeySequence>
 #include <QKeyEvent>
 #include <QWebEnginePage>
+#include <QSyntaxHighlighter>
 
 class CMainWindow;
 class CSnippetViewer;
@@ -122,6 +123,23 @@ protected:
     QWebEnginePage* createWindow(WebWindowType type);
 signals:
     void linkClickedExt(const QUrl& url, NavigationType type);
+};
+
+class QSpecLogHighlighter : public QSyntaxHighlighter {
+    Q_OBJECT
+public:
+    QSpecLogHighlighter(QObject* parent = 0);
+    QSpecLogHighlighter(QTextDocument* parent);
+protected:
+    virtual void highlightBlock(const QString& text);
+private:
+    void formatBlock(const QString& text,
+                     const QRegExp& exp,
+                     const QColor& color = Qt::black,
+                     bool weight = false,
+                     bool italic = false,
+                     bool underline = false,
+                     bool strikeout = false);
 };
 
 #endif // SPECTABWIDGET_H

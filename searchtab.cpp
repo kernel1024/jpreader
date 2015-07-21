@@ -368,7 +368,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     CAbstractTranslator* tran = translatorFactory(this);
     if (gSet->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (tran==NULL || !tran->initTran()) {
-            qDebug() << tr("Unable to initialize translation engine.");
+            qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
         } else {
             for (int i=0;i<queryTerms.count();i++) {

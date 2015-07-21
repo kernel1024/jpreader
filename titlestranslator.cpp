@@ -24,7 +24,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
 
     CAbstractTranslator* tran=translatorFactory(this);
     if (tran==NULL || !tran->initTran()) {
-        qDebug() << tr("Unable to initialize ATLAS.");
+        qCritical() << tr("Unable to initialize ATLAS.");
         res.clear();
         res << "ERROR";
         emit gotTranslation(res);

@@ -4,6 +4,7 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 #include "mainwindow.h"
+#include "specwidgets.h"
 #include "ui_logdisplay.h"
 
 CLogDisplay::CLogDisplay() :
@@ -12,6 +13,8 @@ CLogDisplay::CLogDisplay() :
 {
     ui->setupUi(this);
     firstShow = true;
+    syntax = new QSpecLogHighlighter(ui->logView->document());
+
     updateMessages();
 }
 
@@ -32,18 +35,23 @@ void CLogDisplay::updateMessages()
     if (!savedMessages.isEmpty())
         fr = debugMessages.lastIndexOf(savedMessages.last());
     if (fr>=0 && fr<debugMessages.count()) {
-        for (int i=fr;i<debugMessages.count();i++)
+        for (int i=(fr+1);i<debugMessages.count();i++)
             savedMessages << debugMessages.at(i);
     } else
         savedMessages = debugMessages;
 
-    ui->logView->setPlainText(savedMessages.join('\n'));
+    updateText(savedMessages.join('\n'));
     if (ui->logView->verticalScrollBar()!=NULL) {
         if (!ui->checkScrollLock->isChecked())
             ui->logView->verticalScrollBar()->setValue(ui->logView->verticalScrollBar()->maximum());
         else if (sv!=-1)
             ui->logView->verticalScrollBar()->setValue(sv);
     }
+}
+
+void CLogDisplay::updateText(const QString &text)
+{
+    ui->logView->setPlainText(text);
 }
 
 void CLogDisplay::showEvent(QShowEvent *)

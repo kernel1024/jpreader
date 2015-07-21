@@ -18,7 +18,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
     if (!text.isEmpty()) {
         CAbstractTranslator* tran=translatorFactory(this);
         if (tran==NULL || !tran->initTran()) {
-            qDebug() << tr("Unable to initialize translation engine.");
+            qCritical() << tr("Unable to initialize translation engine.");
             text = "ERROR";
         } else {
             text = tran->tranString(text);

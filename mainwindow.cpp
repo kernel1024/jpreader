@@ -40,7 +40,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     if (hbx!=NULL)
         hbx->insertWidget(0,tabHelper,0,Qt::AlignTop);
     else
-        qDebug() << "Main HBox layout not found. Check form design, update source.";
+        qCritical() << "Main HBox layout not found. Check form design, update source.";
     tabHelper->addTab(tr("Tabs"));
     tabHelper->addTab(tr("Recycled"));
     tabHelper->addTab(tr("History"));
@@ -518,7 +518,6 @@ void CMainWindow::clearClipboard()
 void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(getClipboardContent(true));
-    qDebug() << url;
     url.setFragment("");
     QString uri = url.toString().remove(QRegExp("#$"));
     if (uri.isEmpty()) {
