@@ -27,7 +27,7 @@ namespace SAX
   class XMLPScanToken
   {
     public:
-      void setParserData(std::auto_ptr<XMLPScanTokenParserImpl>& data)
+      void setParserData(std::unique_ptr<XMLPScanTokenParserImpl>& data)
       {
         data_ = data;
       }
@@ -36,7 +36,7 @@ namespace SAX
         return data_.get();
       }
     private:
-      std::auto_ptr<XMLPScanTokenParserImpl> data_;
+      std::unique_ptr<XMLPScanTokenParserImpl> data_;
   }; // XMLPScanToken
 
   template<class string_type, class string_adaptor>

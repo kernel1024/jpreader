@@ -114,22 +114,22 @@ class msxml2_wrapper :
     virtual void parse(inputSourceT& input);
 
   protected:
-  	virtual std::auto_ptr<typename XMLReaderT::PropertyBase> doGetProperty(const string_type& name)
+  	virtual std::unique_ptr<typename XMLReaderT::PropertyBase> doGetProperty(const string_type& name)
     {
       if(name == properties_.lexicalHandler)
       {
         Property<lexicalHandlerT*>* prop = new Property<lexicalHandlerT*>(lexicalHandler_.getLexicalHandler());
-        return std::auto_ptr<XMLReaderT::PropertyBase>(prop);
+        return std::unique_ptr<XMLReaderT::PropertyBase>(prop);
       }
       if(name == properties_.declHandler)
       {
         Property<declHandlerT*>* prop = new Property<declHandlerT*>(declHandler_.getDeclHandler());
-        return std::auto_ptr<XMLReaderT::PropertyBase>(prop);
+        return std::unique_ptr<XMLReaderT::PropertyBase>(prop);
       }
       throw SAX::SAXNotRecognizedException("Property not recognized ");    
     } // doGetProperty
 
-	  virtual void doSetProperty(const string_type& name, std::auto_ptr<typename XMLReaderT::PropertyBase> value)
+	  virtual void doSetProperty(const string_type& name, std::unique_ptr<typename XMLReaderT::PropertyBase> value)
     {
       if(name == properties_.lexicalHandler)
       {

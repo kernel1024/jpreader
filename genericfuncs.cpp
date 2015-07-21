@@ -44,6 +44,9 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
         case QtFatalMsg:
             lmsg = QString("Fatal: %1 (%2:%3)").arg(msg).arg(file).arg(line);
             break;
+        case QtInfoMsg:
+            lmsg = QString("Info: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            break;
     }
 
     if (!lmsg.isEmpty()) {

@@ -59,8 +59,8 @@ public:
 
   virtual void parse(InputSourceT& input);
 
-  virtual std::auto_ptr<PropertyBase> doGetProperty(const string_type& name);
-  virtual void doSetProperty(const string_type& name, std::auto_ptr<PropertyBase> value);
+  virtual std::unique_ptr<PropertyBase> doGetProperty(const string_type& name);
+  virtual void doSetProperty(const string_type& name, std::unique_ptr<PropertyBase> value);
 
 private:
   void reportError(const std::string& message, bool fatal = false);
@@ -248,13 +248,13 @@ void Garden<string_type, T0, T1>::setFeature(const string_type& name, bool value
 ///////////////////////////////////////
 // properties
 template<class string_type, class T0, class T1>
-std::auto_ptr<typename Garden<string_type, T0, T1>::PropertyBase> Garden<string_type, T0, T1>::doGetProperty(const string_type& name)
+std::unique_ptr<typename Garden<string_type, T0, T1>::PropertyBase> Garden<string_type, T0, T1>::doGetProperty(const string_type& name)
 {
   throw SAXNotRecognizedException(string_adaptor::asStdString(name));
 } // doGetProperty
 
 template<class string_type, class T0, class T1>
-void Garden<string_type, T0, T1>::doSetProperty(const string_type& name, std::auto_ptr<typename XMLReaderInterface<string_type, T0, T1>::PropertyBase> value)
+void Garden<string_type, T0, T1>::doSetProperty(const string_type& name, std::unique_ptr<typename XMLReaderInterface<string_type, T0, T1>::PropertyBase> value)
 {
   throw SAXNotRecognizedException(string_adaptor::asStdString(name));
 } // doSetProperty

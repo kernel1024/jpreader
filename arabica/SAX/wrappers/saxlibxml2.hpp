@@ -172,8 +172,8 @@ class libxml2_wrapper :
   protected:
     ////////////////////////////////////////////////
     // properties
-    virtual std::auto_ptr<PropertyBaseT> doGetProperty(const string_type& name);
-    virtual void doSetProperty(const string_type& name, std::auto_ptr<PropertyBaseT> value);
+    virtual std::unique_ptr<PropertyBaseT> doGetProperty(const string_type& name);
+    virtual void doSetProperty(const string_type& name, std::unique_ptr<PropertyBaseT> value);
 
   public:
     virtual string_type getPublicId() const;
@@ -335,24 +335,24 @@ void libxml2_wrapper<string_type, T0, T1>::setFeature(const string_type& name, b
 } // setFeature
 
 template<class string_type, class T0, class T1>
-std::auto_ptr<typename libxml2_wrapper<string_type, T0, T1>::PropertyBaseT> libxml2_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
+std::unique_ptr<typename libxml2_wrapper<string_type, T0, T1>::PropertyBaseT> libxml2_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
 {
   if(name == properties_.declHandler)
   {
     getDeclHandlerT* prop = new getDeclHandlerT(declHandler_);
-    return std::auto_ptr<PropertyBaseT>(prop);
+    return std::unique_ptr<PropertyBaseT>(prop);
   }
 	if(name == properties_.lexicalHandler)
   {
     getLexicalHandlerT* prop = new getLexicalHandlerT(lexicalHandler_);
-    return std::auto_ptr<PropertyBaseT>(prop);
+    return std::unique_ptr<PropertyBaseT>(prop);
   }
 
   throw SAX::SAXNotRecognizedException(std::string("Property not recognized ") + string_adaptor::asStdString(name));
 } // doGetProperty
 
 template<class string_type, class T0, class T1>
-void libxml2_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::auto_ptr<PropertyBaseT> value)
+void libxml2_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::unique_ptr<PropertyBaseT> value)
 {
   if(name == properties_.declHandler)
   {

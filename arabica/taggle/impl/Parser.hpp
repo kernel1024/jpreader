@@ -397,12 +397,12 @@ public:
   } // setFeature
 
   typedef typename XMLReaderInterface<string_type, string_adaptor_type>::PropertyBase PropertyBaseT;
-  virtual std::auto_ptr<PropertyBaseT> doGetProperty(const string_type& /*name*/)
+  virtual std::shared_ptr<PropertyBaseT> doGetProperty(const string_type& /*name*/)
   {
-    return std::auto_ptr<PropertyBaseT>(0);
+    return std::shared_ptr<PropertyBaseT>(0);
   } // doGetProperty
 
-  virtual void doSetProperty(const string_type& /*name*/, std::auto_ptr<PropertyBaseT> /*value*/)
+  virtual void doSetProperty(const string_type& /*name*/, std::shared_ptr<PropertyBaseT> /*value*/)
   {
   } // doSetProperty
 

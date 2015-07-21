@@ -270,8 +270,8 @@ class expat_wrapper :
     ///////////////////////////////////////////////////
     // properties
   protected:
-    virtual std::auto_ptr<PropertyBaseT> doGetProperty(const string_type& name);
-    virtual void doSetProperty(const string_type& name, std::auto_ptr<PropertyBaseT> value);
+    virtual std::unique_ptr<PropertyBaseT> doGetProperty(const string_type& name);
+    virtual void doSetProperty(const string_type& name, std::unique_ptr<PropertyBaseT> value);
   private:
     qualifiedNameT processName(const string_type& qName, bool isAttribute);
     void reportError(const std::string& message, bool fatal = false);
@@ -515,24 +515,24 @@ bool expat_wrapper<string_type, T0, T1>::do_parse(inputSourceT& source, XML_Pars
 } // do_parse
 
 template<class string_type, class T0, class T1>
-std::auto_ptr<typename expat_wrapper<string_type, T0, T1>::PropertyBaseT> expat_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
+std::unique_ptr<typename expat_wrapper<string_type, T0, T1>::PropertyBaseT> expat_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
 {
   if(name == properties_.lexicalHandler)
   {
     getLexicalHandlerT* prop = new getLexicalHandlerT(lexicalHandler_);
-    return std::auto_ptr<PropertyBaseT>(prop);
+    return std::unique_ptr<PropertyBaseT>(prop);
   }
   if(name == properties_.declHandler)
   {
     getDeclHandlerT* prop = new getDeclHandlerT(declHandler_);
-    return std::auto_ptr<PropertyBaseT>(prop);
+    return std::unique_ptr<PropertyBaseT>(prop);
   }
 
   throw SAX::SAXNotRecognizedException(std::string("Property not recognized ") + SA::asStdString(name));    
 } // doGetProperty
 
 template<class string_type, class T0, class T1>
-void expat_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::auto_ptr<PropertyBaseT> value)
+void expat_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::unique_ptr<PropertyBaseT> value)
 {
   if(name == properties_.lexicalHandler)
   {

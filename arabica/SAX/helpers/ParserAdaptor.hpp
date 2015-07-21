@@ -150,12 +150,12 @@ public:
   } // getFeature
 
 protected:
-  virtual std::auto_ptr<PropertyBase> doGetProperty(const string_type& name)
+  virtual std::unique_ptr<PropertyBase> doGetProperty(const string_type& name)
   {
     throw SAXNotRecognizedException("Property not recognized " + makeString(name));
   } // doGetProperty
 
-  virtual void doSetProperty(const string_type& name, std::auto_ptr<PropertyBase> value)
+  virtual void doSetProperty(const string_type& name, std::unique_ptr<PropertyBase> value)
   {
     throw SAXNotRecognizedException("Property not recognized " + makeString(name));
   } // doSetProperty

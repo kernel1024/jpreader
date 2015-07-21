@@ -192,8 +192,8 @@ class xerces_wrapper : public ProgressiveParser<string_type, typename Arabica::g
     //@}
 
   protected:
-    virtual std::auto_ptr<typename XMLReaderT::PropertyBase> doGetProperty(const string_type& name);
-    virtual void doSetProperty(const string_type& name, std::auto_ptr<typename XMLReaderT::PropertyBase> value);
+    virtual std::unique_ptr<typename XMLReaderT::PropertyBase> doGetProperty(const string_type& name);
+    virtual void doSetProperty(const string_type& name, std::unique_ptr<typename XMLReaderT::PropertyBase> value);
 
   private:
     ///////////////////////////////
@@ -284,7 +284,7 @@ class xerces_wrapper : public ProgressiveParser<string_type, typename Arabica::g
           return base::construct_from_utf8(reinterpret_cast<const char*>(bytes), length);
         } // construct_from_XMLByte
 
-        static std::auto_ptr<XERCES_CPP_NAMESPACE::XMLTranscoder> transcoder_;
+        static std::unique_ptr<XERCES_CPP_NAMESPACE::XMLTranscoder> transcoder_;
         static void kickoff()
         {
           XERCES_CPP_NAMESPACE::XMLTransService::Codes  res;
@@ -843,7 +843,7 @@ class xerces_wrapper : public ProgressiveParser<string_type, typename Arabica::g
 
     /////////////////////////////////////////////
     // Member variables
-    std::auto_ptr<XercesImpl::xerces_initializer> initializer_;
+    std::unique_ptr<XercesImpl::xerces_initializer> initializer_;
     XERCES_CPP_NAMESPACE::SAX2XMLReader* xerces_;
     ContentHandlerAdaptor contentHandlerAdaptor_;
     EntityResolverAdaptor entityResolverAdaptor_;
@@ -860,7 +860,7 @@ class xerces_wrapper : public ProgressiveParser<string_type, typename Arabica::g
 
 #ifdef ARABICA_NO_WCHAR_T
 template<class string_type, class T0, class T1>
-std::auto_ptr<XERCES_CPP_NAMESPACE::XMLTranscoder> xerces_wrapper<string_type, T0, T1>::xerces_string_adaptor::transcoder_;
+std::unique_ptr<XERCES_CPP_NAMESPACE::XMLTranscoder> xerces_wrapper<string_type, T0, T1>::xerces_string_adaptor::transcoder_;
 #endif
 
 template<class string_type, class T0, class T1>
@@ -868,7 +868,7 @@ xerces_wrapper<string_type, T0, T1>::xerces_wrapper()
 {
   try
   {
-    std::auto_ptr<XercesImpl::xerces_initializer> init(new XercesImpl::xerces_initializer());
+    std::unique_ptr<XercesImpl::xerces_initializer> init(new XercesImpl::xerces_initializer());
     initializer_ = init;
 #ifdef ARABICA_NO_WCHAR_T
     xerces_string_adaptor::kickoff();
@@ -936,19 +936,19 @@ void xerces_wrapper<string_type, T0, T1>::setFeature(const string_type& name, bo
 } // setFeature
 
 template<class string_type, class T0, class T1>
-std::auto_ptr<typename xerces_wrapper<string_type, T0, T1>::XMLReaderT::PropertyBase> xerces_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
+std::unique_ptr<typename xerces_wrapper<string_type, T0, T1>::XMLReaderT::PropertyBase> xerces_wrapper<string_type, T0, T1>::doGetProperty(const string_type& name)
 {
   if(name == properties_.lexicalHandler)
   {
     typedef typename XMLReaderT::template Property<LexicalHandlerT *> Prop;
     Prop *prop = new Prop(lexicalHandlerAdaptor_.getLexicalHandler());
-    return std::auto_ptr<typename XMLReaderT::PropertyBase>(prop);
+    return std::unique_ptr<typename XMLReaderT::PropertyBase>(prop);
   }
   if(name == properties_.declHandler)
   {
     typedef typename XMLReaderT::template Property<DeclHandlerT*> Prop;
     Prop* prop = new Prop(declHandlerAdaptor_.getDeclHandler());
-    return std::auto_ptr<typename XMLReaderT::PropertyBase>(prop);
+    return std::unique_ptr<typename XMLReaderT::PropertyBase>(prop);
   }
   if (name == properties_.externalSchemaLocation)
   {
@@ -959,7 +959,7 @@ std::auto_ptr<typename xerces_wrapper<string_type, T0, T1>::XMLReaderT::Property
             XERCES_CPP_NAMESPACE::XMLUni::fgXercesSchemaExternalSchemaLocation));
 
     externalSchemaLocation_ = XSA::makeStringT(xercesExternalSchemaLocation);
-    std::auto_ptr<typename XMLReaderT::PropertyBase> toReturn(new StringPropertyType(externalSchemaLocation_));
+    std::unique_ptr<typename XMLReaderT::PropertyBase> toReturn(new StringPropertyType(externalSchemaLocation_));
 #ifdef SAXXERCES_DEBUG
     std::cerr << "Returning " << typeid(toReturn)
               << "(*(" << typeid(*toReturn.get()) << ")" 
@@ -978,13 +978,13 @@ std::auto_ptr<typename xerces_wrapper<string_type, T0, T1>::XMLReaderT::Property
             XERCES_CPP_NAMESPACE::XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation));
 
     externalNoNamespaceSchemaLocation_ = XSA::makeStringT(xercesExternalNoNamespaceSchemaLocation);
-    return std::auto_ptr<typename XMLReaderT::PropertyBase>(new StringPropertyType(externalNoNamespaceSchemaLocation_));
+    return std::unique_ptr<typename XMLReaderT::PropertyBase>(new StringPropertyType(externalNoNamespaceSchemaLocation_));
   }
   throw SAX::SAXNotRecognizedException("Property not recognized ");    
 } // doGetProperty
 
 template<class string_type, class T0, class T1>
-void xerces_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::auto_ptr<typename XMLReaderT::PropertyBase> value)
+void xerces_wrapper<string_type, T0, T1>::doSetProperty(const string_type& name, std::unique_ptr<typename XMLReaderT::PropertyBase> value)
 {
   if(name == properties_.lexicalHandler)
   {
@@ -1091,7 +1091,7 @@ bool xerces_wrapper<string_type,
                     T0, T1>::parseFirst(InputSourceT& input,
                                         XMLPScanToken& toFill)
 {
-  std::auto_ptr<XercesXMLPScanToken> newToken(new XercesXMLPScanToken);
+  std::unique_ptr<XercesXMLPScanToken> newToken(new XercesXMLPScanToken);
   // To store the result from Xerces parseFirst().
   bool result = false;
   if (input.getByteStream() == 0)
@@ -1112,8 +1112,8 @@ bool xerces_wrapper<string_type,
     result = xerces_->parseFirst(isAdaptor, newToken->token_);
   }
   if (result) {
-    // We need to explicitly convert to auto_ptr<base class>.
-    std::auto_ptr<XMLPScanTokenParserImpl> toSet(newToken.release());
+    // We need to explicitly convert to unique_ptr<base class>.
+    std::unique_ptr<XMLPScanTokenParserImpl> toSet(newToken.release());
     toFill.setParserData(toSet);
   }
   return result;

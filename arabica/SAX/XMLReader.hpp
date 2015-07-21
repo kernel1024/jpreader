@@ -359,8 +359,8 @@ protected:
   }; // class Property
 
 public:
-  virtual std::auto_ptr<PropertyBase> doGetProperty(const string_type& name) = 0;
-  virtual void doSetProperty(const string_type& name, std::auto_ptr<PropertyBase> value) = 0;
+  virtual std::shared_ptr<PropertyBase> doGetProperty(const string_type& name) = 0;
+  virtual void doSetProperty(const string_type& name, std::shared_ptr<PropertyBase> value) = 0;
 
   /**
    * Look up the value of a property.
@@ -393,7 +393,7 @@ public:
   template<typename propertyTypeT>
   propertyTypeT& getProperty(const string_type& name) const
   {
-    std::auto_ptr<PropertyBase> pb = doGetProperty(name);
+    std::shared_ptr<PropertyBase> pb = doGetProperty(name);
     Property<propertyTypeT&>* prop = dynamic_cast<Property<propertyTypeT&>* >(pb.get());
 
     if(!prop)
@@ -434,7 +434,7 @@ public:
   void setProperty(const string_type& name, propertyTypeT& value)
   {
     Property<propertyTypeT&>* prop = new Property<propertyTypeT&>(value);
-    doSetProperty(name, std::auto_ptr<PropertyBase>(prop));
+    doSetProperty(name, std::shared_ptr<PropertyBase>(prop));
   } // setProperty
 }; // class XMLReaderInterface
 
