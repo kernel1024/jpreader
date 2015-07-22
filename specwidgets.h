@@ -128,7 +128,6 @@ signals:
 class QSpecLogHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
 public:
-    QSpecLogHighlighter(QObject* parent = 0);
     QSpecLogHighlighter(QTextDocument* parent);
 protected:
     virtual void highlightBlock(const QString& text);

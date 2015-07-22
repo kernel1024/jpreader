@@ -280,13 +280,6 @@ QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
     return sv->txtBrowser->page();
 }
 
-
-QSpecLogHighlighter::QSpecLogHighlighter(QObject *parent)
-    : QSyntaxHighlighter(parent)
-{
-
-}
-
 QSpecLogHighlighter::QSpecLogHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
@@ -295,9 +288,13 @@ QSpecLogHighlighter::QSpecLogHighlighter(QTextDocument *parent)
 
 void QSpecLogHighlighter::highlightBlock(const QString &text)
 {
-    formatBlock(text,QRegExp("^\\S{,8}"),Qt::black,true);
-
-    formatBlock(text,QRegExp("\\sInfo:\\s"),Qt::darkBlue,true);
+    formatBlock(text,QRegExp("^\\S{,8}",Qt::CaseInsensitive),Qt::black,true);
+    formatBlock(text,QRegExp("\\sDebug:\\s",Qt::CaseInsensitive),Qt::black,true);
+    formatBlock(text,QRegExp("\\sWarning:\\s",Qt::CaseInsensitive),Qt::darkRed,true);
+    formatBlock(text,QRegExp("\\sCritical:\\s",Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp("\\sFatal:\\s",Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp("\\sInfo:\\s",Qt::CaseInsensitive),Qt::darkBlue,true);
+    formatBlock(text,QRegExp("\\(\\S+\\)$",Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
 void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
@@ -307,6 +304,8 @@ void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
                                       bool underline,
                                       bool strikeout)
 {
+    if (text.isEmpty()) return;
+
     QTextCharFormat fmt;
     fmt.setForeground(color);
     if (weight)
@@ -317,10 +316,10 @@ void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
     fmt.setFontUnderline(underline);
     fmt.setFontStrikeOut(strikeout);
 
-    int index = text.indexOf(exp);
-    while (index >= 0) {
+    int pos = 0;
+    while ((pos=exp.indexIn(text,pos)) != -1) {
         int length = exp.matchedLength();
-        setFormat(index, length, fmt);
-        index = text.indexOf(exp, index + length);
+        setFormat(pos, length, fmt);
+        pos += length;
     }
 }
