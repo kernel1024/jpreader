@@ -142,6 +142,9 @@ void CAuxDictionary::updateMatchResults(bool finished)
     {
         ui->listWords->unsetCursor();
 
+        if (ui->listWords->count()>0)
+            ui->listWords->setCurrentRow(0);
+
         if ( !wordFinder->getErrorString().isEmpty() )
             QMessageBox::critical(this,tr("JPReader"),
                                   tr( "WARNING: %1" ).arg( wordFinder->getErrorString() ) );

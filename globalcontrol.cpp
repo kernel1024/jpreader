@@ -129,6 +129,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionGlobalTranslator->setChecked(false);
 
     actionSelectionDictionary = new QAction(tr("Dictionary search"),this);
+    actionSelectionDictionary->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F9));
     actionSelectionDictionary->setCheckable(true);
     actionSelectionDictionary->setChecked(false);
 
