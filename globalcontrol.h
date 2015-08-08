@@ -154,10 +154,6 @@ public:
     QString savedAuxDir;
     QString forcedCharset;
 
-    QString lastClipboardContents;
-    QString lastClipboardContentsUnformatted;
-    bool lastClipboardIsHtml;
-
     bool globalContextTranslate;
     QxtGlobalShortcut* gctxTranHotkey;
     bool blockTabCloseActive;

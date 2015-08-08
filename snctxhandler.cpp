@@ -5,6 +5,8 @@
 #include <QUrlQuery>
 #include <QWebEngineView>
 #include <QWebEnginePage>
+#include <QClipboard>
+#include <QMimeData>
 
 #include "qxttooltip.h"
 #include "snctxhandler.h"
@@ -147,6 +149,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     cm->addAction(QIcon::fromTheme("view-refresh"),tr("Reload"),
                  snv->txtBrowser,SLOT(reload()),QKeySequence(Qt::CTRL + Qt::Key_R));
 
+    QClipboard *cb = QApplication::clipboard();
+    if (cb->mimeData(QClipboard::Clipboard)->hasText())
+        cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     cm->addSeparator();
 //    if ((!wh.imageUrl().isEmpty()) || (!wUrl.isEmpty())) {

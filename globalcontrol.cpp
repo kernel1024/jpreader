@@ -70,10 +70,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     logWindow = new CLogDisplay();
 
-    lastClipboardContents = "";
-    lastClipboardContentsUnformatted = "";
-    lastClipboardIsHtml = false;
-
     atlTcpRetryCount = 3;
     atlTcpTimeout = 2;
     bingID = QString();
@@ -861,38 +857,11 @@ void CGlobalControl::blockTabClose()
 void CGlobalControl::clipboardChanged(QClipboard::Mode mode)
 {
     QClipboard *cb = QApplication::clipboard();
-    if (mode==QClipboard::Clipboard) {
-        if (cb->mimeData(QClipboard::Clipboard)->hasHtml()) {
-            lastClipboardContents = cb->mimeData(QClipboard::Clipboard)->html();
-            lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-            lastClipboardIsHtml = true;
-        } else if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
-            lastClipboardContents = cb->mimeData(QClipboard::Clipboard)->text();
-            lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-            lastClipboardIsHtml = false;
-        } else {
-            lastClipboardContents = "";
-            lastClipboardContentsUnformatted = "";
-            lastClipboardIsHtml = false;
-        }
-    } else if (mode==QClipboard::Selection) {
-        if (cb->mimeData(QClipboard::Selection)->hasHtml()) {
-            lastClipboardContents = cb->mimeData(QClipboard::Selection)->html();
-            lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Selection)->text();
-            lastClipboardIsHtml = true;
-        } else if (cb->mimeData(QClipboard::Selection)->hasText()) {
-            lastClipboardContents = cb->mimeData(QClipboard::Selection)->text();
-            lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Selection)->text();
-            lastClipboardIsHtml = false;
-        } else {
-            lastClipboardContents = "";
-            lastClipboardContentsUnformatted = "";
-            lastClipboardIsHtml = false;
-        }
-    }
 
-    if (!lastClipboardContentsUnformatted.isEmpty() && actionGlobalTranslator->isChecked())
-        startGlobalContextTranslate(lastClipboardContentsUnformatted);
+    if (actionGlobalTranslator->isChecked() &&
+        (mode==QClipboard::Selection) &&
+        (!cb->mimeData(QClipboard::Selection)->text().isEmpty()))
+        startGlobalContextTranslate(cb->mimeData(QClipboard::Selection)->text());
 }
 
 void CGlobalControl::startGlobalContextTranslate(const QString &text)

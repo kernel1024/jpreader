@@ -29,6 +29,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtBrowser->setUrl(QUrl("about://blank"));
     layout()->addWidget(txtBrowser);
     txtBrowser->setPage(new QSpecWebPage(gSet->webProfile,parent,this));
+    txtBrowser->page()->action(QWebEnginePage::Paste)->setIcon(QIcon::fromTheme("edit-paste"));
+    txtBrowser->page()->action(QWebEnginePage::SelectAll)->setIcon(QIcon::fromTheme("edit-select-all"));
 
     tabTitle="";
     isStartPage = startPage;

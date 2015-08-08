@@ -177,40 +177,39 @@ QByteArray XMLizeHTML(QByteArray html, QString encoding)
 }
 
 QString getClipboardContent(bool noFormatting, bool plainpre) {
-    QString s = "";
-    if (gSet->lastClipboardContents.isEmpty() && gSet->lastClipboardContentsUnformatted.isEmpty()) {
-        QClipboard *cb = QApplication::clipboard();
-        if (cb->mimeData(QClipboard::Clipboard)->hasHtml()) {
-            gSet->lastClipboardContents = cb->mimeData(QClipboard::Clipboard)->html();
-            gSet->lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-            gSet->lastClipboardIsHtml = true;
-        } else if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
-            gSet->lastClipboardContents = cb->mimeData(QClipboard::Clipboard)->text();
-            gSet->lastClipboardContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-            gSet->lastClipboardIsHtml = false;
-        }
+    QString res = "";
+    QString cbContents = "";
+    QString cbContentsUnformatted = "";
+
+    QClipboard *cb = QApplication::clipboard();
+    if (cb->mimeData(QClipboard::Clipboard)->hasHtml()) {
+        cbContents = cb->mimeData(QClipboard::Clipboard)->html();
+        cbContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
+    } else if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
+        cbContents = cb->mimeData(QClipboard::Clipboard)->text();
+        cbContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
     }
 
-    if (plainpre && !gSet->lastClipboardContentsUnformatted.isEmpty()) {
-        s=gSet->lastClipboardContentsUnformatted;
-        if (s.indexOf("\r\n")>=0)
-            s.replace("\r\n","</p><p>");
+    if (plainpre && !cbContentsUnformatted.isEmpty()) {
+        res=cbContentsUnformatted;
+        if (res.indexOf("\r\n")>=0)
+            res.replace("\r\n","</p><p>");
         else
-            s.replace("\n","</p><p>");
-        s = "<p>"+s+"</p>";
-        s = makeSimpleHtml("<...>",s);
+            res.replace("\n","</p><p>");
+        res = "<p>"+res+"</p>";
+        res = makeSimpleHtml("<...>",res);
     } else {
         if (noFormatting) {
-            if (!gSet->lastClipboardContentsUnformatted.isEmpty())
-                s = gSet->lastClipboardContentsUnformatted;
+            if (!cbContentsUnformatted.isEmpty())
+                res = cbContentsUnformatted;
         } else {
-            if (!gSet->lastClipboardContents.isEmpty())
-                s = gSet->lastClipboardContents;
-            else if (!gSet->lastClipboardContentsUnformatted.isEmpty())
-                s = makeSimpleHtml("<...>",gSet->lastClipboardContentsUnformatted);
+            if (!cbContents.isEmpty())
+                res = cbContents;
+            else if (!cbContentsUnformatted.isEmpty())
+                res = makeSimpleHtml("<...>",cbContentsUnformatted);
         }
     }
-    return s;
+    return res;
 }
 
 QString fixMetaEncoding(QString data_utf8)
