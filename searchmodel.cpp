@@ -59,7 +59,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                 else
                     return score;
                 break;
-            case 2: return snippets[idx]["Dir"];
+            case 2: return snippets[idx]["FilePath"];
             case 3:
                 score = snippets[idx]["FileSizeNum"];
                 sc = score.toInt(&ok);

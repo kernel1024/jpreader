@@ -105,7 +105,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit)
     result.snippets.last()["Uri"] = QString("file://%1").arg(w);
     result.snippets.last()["FullFilename"] = w;
     result.snippets.last()["DisplayFilename"] = w;
-    result.snippets.last()["FilePath"] = hit.filePath();
+    result.snippets.last()["FilePath"] = hit.path();
     double sz = (double)(hit.size()) / 1024;
     result.snippets.last()["FileSize"] = QString("%L1 Kb").arg(sz, 0, 'f', 1);
     result.snippets.last()["FileSizeNum"] = QString("%1").arg(hit.size());

@@ -86,8 +86,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     if (!engine->isValidConfig())
         QMessageBox::warning(parentWnd,tr("JPReader warning"),
                              tr("Configuration error. \n"
-                                "You have enabled Recoll search engine in settings, \n"
-                                "but jpreader compiled without support for selected engine.\n"
+                                "You have enabled some search engine in settings, \n"
+                                "but jpreader compiled without support for this engine.\n"
                                 "Fallback to local file search.\n"
                                 "Please, check program settings and reopen new search tab."));
 
