@@ -29,7 +29,7 @@ void CSnNet::loadFinished(bool)
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->translationBkgdFinished) { // tab is inactive
         snv->loadingBkgdFinished=true;
-        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),QColor("blue"));
+        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::blue);
         snv->parentWnd->updateTabs();
     }
 

@@ -154,7 +154,7 @@ void CSnTrans::postTranslate()
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->loadingBkgdFinished) { // tab is inactive
         snv->translationBkgdFinished=true;
-        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),QColor("green"));
+        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::red);
         snv->parentWnd->updateTabs();
     }
 }
