@@ -41,12 +41,12 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     calculatedUrl="";
     onceTranslated=false;
     requestAutotranslate=false;
-    slist.clear();
+    searchList.clear();
     barLoading->setValue(0);
     barLoading->hide();
     barPlaceholder->show();
-    if (!aSearchText.isEmpty()) slist.append(aSearchText);
-	if (slist.count()>0) {
+    if (!aSearchText.isEmpty()) searchList.append(aSearchText);
+    if (searchList.count()>0) {
         searchEdit->addItems(aSearchText);
         searchEdit->setCurrentIndex(0);
 	}
@@ -127,9 +127,9 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
 
     waitPanel->hide();
-    searchPanel->hide();
     errorPanel->hide();
     errorLabel->setText(QString());
+    searchPanel->setVisible(!searchList.isEmpty());
 
     if (AuxContent.isEmpty())
         netHandler->load(aUri);

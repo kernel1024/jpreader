@@ -39,7 +39,7 @@ public:
     CSnWaitCtl *waitHandler;
     QWebEngineView *txtBrowser;
 
-    QStringList slist;
+    QStringList searchList;
 	QString calculatedUrl;
 	bool fileChanged;
     bool translationBkgdFinished;
