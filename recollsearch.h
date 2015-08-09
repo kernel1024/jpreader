@@ -8,6 +8,9 @@ class CRecollSearch : public CAbstractThreadedSearch
     Q_OBJECT
 public:
     explicit CRecollSearch(QObject *parent = 0);
+
+private:
+    QString strFromBase64(const QString &src);
     
 public slots:
     virtual void doSearch(const QString &qr, int maxLimit);

@@ -63,7 +63,7 @@ private:
     QString query;
     QTime searchTimer;
     int indexerSerivce;
-    void addHitFS(const QFileInfo &hit);
+    void addHitFS(const QFileInfo &hit, const QString &title=QString(), const float rel=-1.0);
     void processFile(const QString &filename, double &hitRate, QString &title);
     QString extractFileTitle(const QString& fc);
     double calculateHitRate(const QString &fc);
@@ -78,7 +78,7 @@ signals:
 public slots:
     void engineFinished();
     void doSearch(const QString &searchTerm, const QDir &searchDir);
-    void auxAddHit(const QString &fileName);
+    void auxAddHit(const QString &fileName, const QString &title=QString(), const float rel=-1.0);
 
 };
 

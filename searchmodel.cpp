@@ -18,7 +18,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
     bool ok;
     int sc;
     float sf;
-    QString score;
+    QString score,ps;
 
     if (!index.isValid()) return QVariant();
 
@@ -31,9 +31,15 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 0: return snippets[idx]["dc:title"];
             case 1:
                 score = snippets[idx]["Score"];
-                sc = ceil(score.toFloat(&ok));
+                ps.clear();
+                if (snippets[idx]["relMode"]=="count")
+                    sc = ceil(score.toFloat(&ok));
+                else {
+                    sc = score.toFloat(&ok)*100;
+                    ps = "%";
+                }
                 if (ok)
-                    return tr("%1").arg(sc);
+                    return tr("%1%2").arg(sc).arg(ps);
                 else
                     return score;
                 break;

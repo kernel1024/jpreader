@@ -17,6 +17,7 @@ public:
 
 signals:
     void addHit(const QString &fileName);
+    void addHitFull(const QString &fileName, const QString &title, float rel);
     void finished();
 
 public slots:

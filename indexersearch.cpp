@@ -22,6 +22,8 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
         else
             engine = new CBaloo5Search();
         connect(engine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
+        connect(engine,SIGNAL(addHitFull(QString,QString,float)),
+                this,SLOT(auxAddHit(QString,QString,float)),Qt::QueuedConnection);
         connect(engine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
         connect(this,SIGNAL(startThreadedSearch(QString,int)),
                 engine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
@@ -79,14 +81,26 @@ int CIndexerSearch::getCurrentIndexerService()
     return indexerSerivce;
 }
 
-void CIndexerSearch::addHitFS(const QFileInfo &hit)
+void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, const float rel)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
     double nhits = 0.0;
-    QString title;
-    processFile(w,nhits,title);
-    if (nhits<1.0) return;
+    QString ftitle;
+    bool relPercent = false;
+
+    // use indexer file info from search engine (if available)
+    if (rel>=0.0) {
+        ftitle = title;
+        nhits = rel;
+        relPercent = true;
+    } else
+        processFile(w,nhits,ftitle);
+
+    if (nhits==0.0) return;
+
+    if (ftitle.isEmpty())
+        ftitle = hit.fileName();
 
     // scan existing snippets and add new empty snippet
     for(int i=0;i<result.snippets.count();i++) {
@@ -121,9 +135,14 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit)
     QDateTime dtm=hit.lastModified();
     result.snippets.last()["Time"]=dtm.toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
 
-    result.snippets.last()["dc:title"]=title;
+    result.snippets.last()["dc:title"]=ftitle;
     result.snippets.last()["Filename"]=hit.fileName();
     result.snippets.last()["FileTitle"] = hit.fileName();
+
+    if (relPercent)
+        result.snippets.last()["relMode"]=tr("percent");
+    else
+        result.snippets.last()["relMode"]=tr("count");
 }
 
 void CIndexerSearch::processFile(const QString &filename, double &hitRate, QString &title)
@@ -207,10 +226,10 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
     }
 }
 
-void CIndexerSearch::auxAddHit(const QString &fileName)
+void CIndexerSearch::auxAddHit(const QString &fileName, const QString &title, const float rel)
 {
     QFileInfo fi(fileName);
-    addHitFS(fi);
+    addHitFS(fi,title,rel);
 }
 
 void CIndexerSearch::engineFinished()
