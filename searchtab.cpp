@@ -251,6 +251,7 @@ void CSearchTab::doSearch()
     ui->snippetBrowser->setHtml("<html><body><div align='center'><font size='+2'>Search in progress...</font></div></body></html>");
 
     QString searchTerm = ui->editSearch->currentText();
+    setDocTitle(tr("Searching:[%1]").arg(searchTerm));
 
     int idx = ui->editSearch->findText(searchTerm,Qt::MatchFixedString);
     if (idx!=-1)
