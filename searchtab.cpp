@@ -533,7 +533,7 @@ void CSearchTab::execSnippet(const QModelIndex &index)
 
 void CSearchTab::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key()==Qt::Key_Return) {
+    if (event->key()==Qt::Key_Return && model->rowCount()>0) {
         execSnippet(ui->listResults->currentIndex());
     } else
         QWidget::keyPressEvent(event);
