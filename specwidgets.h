@@ -122,7 +122,7 @@ protected:
     bool certificateError(const QWebEngineCertificateError &certificateError);
     QWebEnginePage* createWindow(WebWindowType type);
 signals:
-    void linkClickedExt(const QUrl& url, NavigationType type);
+    void linkClickedExt(const QUrl& url, const int type);
 };
 
 class QSpecLogHighlighter : public QSyntaxHighlighter {

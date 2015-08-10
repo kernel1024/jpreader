@@ -258,7 +258,7 @@ bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     Q_UNUSED(type);
     Q_UNUSED(isMainFrame);
 
-    emit linkClickedExt(url,type);
+    emit linkClickedExt(url,(int)type);
 
     return !gSet->isUrlBlocked(url);
 }

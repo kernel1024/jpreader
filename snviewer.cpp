@@ -28,7 +28,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
     txtBrowser->setUrl(QUrl("about://blank"));
     layout()->addWidget(txtBrowser);
-    txtBrowser->setPage(new QSpecWebPage(gSet->webProfile,parent,this));
+    QSpecWebPage *wp = new QSpecWebPage(gSet->webProfile,parent,this);
+    txtBrowser->setPage(wp);
     txtBrowser->page()->action(QWebEnginePage::Paste)->setIcon(QIcon::fromTheme("edit-paste"));
     txtBrowser->page()->action(QWebEnginePage::SelectAll)->setIcon(QIcon::fromTheme("edit-select-all"));
 
@@ -90,6 +91,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString)), msgHandler,
             SLOT(linkHovered(QString)));
+    connect(wp, SIGNAL(linkClickedExt(QUrl,int)), netHandler,
+            SLOT(userNavigationRequest(QUrl,int)));
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
     fwdNavButton->setIcon(QIcon::fromTheme("go-next"));

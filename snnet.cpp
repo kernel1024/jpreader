@@ -39,6 +39,12 @@ void CSnNet::loadFinished(bool)
     }
 }
 
+void CSnNet::userNavigationRequest(const QUrl &, const int)
+{
+    snv->onceTranslated = false;
+    snv->fileChanged = false;
+}
+
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {
