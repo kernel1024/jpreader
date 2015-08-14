@@ -37,6 +37,8 @@ void CSnNet::loadFinished(bool)
         snv->requestAutotranslate = false;
         snv->transButton->click();
     }
+
+    if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
 }
 
 void CSnNet::userNavigationRequest(const QUrl &, const int)

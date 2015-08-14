@@ -263,6 +263,7 @@ void CMainWindow::tabChanged(int idx)
         if (sn!=NULL) {
             sn->translationBkgdFinished=false;
             sn->loadingBkgdFinished=false;
+            sn->txtBrowser->setFocus(Qt::OtherFocusReason);
         }
     }
 
@@ -496,7 +497,7 @@ void CMainWindow::createFromClipboard()
         return;
     }
     CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
-    sv->urlEdit->setFocus(Qt::OtherFocusReason);
+    sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
 void CMainWindow::createFromClipboardPlain()
@@ -507,7 +508,7 @@ void CMainWindow::createFromClipboardPlain()
         return;
     }
     CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
-    sv->urlEdit->setFocus(Qt::OtherFocusReason);
+    sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
 void CMainWindow::clearClipboard()
@@ -525,7 +526,7 @@ void CMainWindow::openFromClipboard()
         return;
     }
     CSnippetViewer* sv = new CSnippetViewer(this, uri);
-    sv->urlEdit->setFocus(Qt::OtherFocusReason);
+    sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
 void CMainWindow::updateBookmarks()
