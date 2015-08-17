@@ -10,6 +10,17 @@ class CAuxDictionary;
 
 class WordFinder;
 
+class CAuxDictKeyFilter : public QObject
+{
+    Q_OBJECT
+public:
+    CAuxDictKeyFilter(QObject *parent = 0);
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
+signals:
+    void keyPressed(int key);
+};
+
 class CAuxDictionary : public QDialog
 {
     Q_OBJECT
@@ -24,6 +35,8 @@ public:
 private:
     Ui::CAuxDictionary *ui;
     WordFinder *wordFinder;
+    CAuxDictKeyFilter* keyFilter;
+    bool forceFocusToEdit;
     void showTranslationFor(const QString& text);
     void updateMatchResults(bool finished);
 
@@ -40,6 +53,7 @@ public slots:
     void showEmptyDictPage();
     void restoreWindow();
     void articleLoaded();
+    void editKeyPressed(int key);
 
 };
 

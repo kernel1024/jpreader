@@ -2,6 +2,7 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <QWebEngineView>
+#include <QKeyEvent>
 
 #include "auxdictionary.h"
 #include "goldendictmgr.h"
@@ -13,6 +14,8 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     ui(new Ui::CAuxDictionary)
 {
     ui->setupUi(this);
+
+    forceFocusToEdit = false;
 
     ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
 
@@ -34,6 +37,11 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     connect( ui->viewArticles,SIGNAL(loadFinished(bool)),this,SLOT(articleLoadFinished(bool)));
 
+    keyFilter = new CAuxDictKeyFilter(this);
+    ui->editWord->installEventFilter(keyFilter);
+    connect(keyFilter, SIGNAL(keyPressed(int)),
+            this, SLOT(editKeyPressed(int)));
+
     wordFinder->clear();
 }
 
@@ -52,6 +60,7 @@ void CAuxDictionary::adjustSplitters()
 void CAuxDictionary::findWord(const QString &text)
 {
     restoreWindow();
+    forceFocusToEdit = false;
     ui->editWord->setEditText(text);
 }
 
@@ -77,6 +86,11 @@ void CAuxDictionary::articleLoaded()
     QByteArray ba = rpl->readAll();
     rpl->close();
     ui->viewArticles->setHtml(QString::fromUtf8(ba));
+}
+
+void CAuxDictionary::editKeyPressed(int )
+{
+    forceFocusToEdit = true;
 }
 
 void CAuxDictionary::updateMatchResults(bool finished)
@@ -219,6 +233,9 @@ void CAuxDictionary::wordListSelectionChanged()
 void CAuxDictionary::articleLoadFinished(bool )
 {
     ui->viewArticles->unsetCursor();
+
+    if (forceFocusToEdit)
+        ui->editWord->setFocus();
 }
 
 void CAuxDictionary::showEmptyDictPage()
@@ -230,4 +247,21 @@ void CAuxDictionary::restoreWindow()
 {
     show();
     activateWindow();
+}
+
+
+CAuxDictKeyFilter::CAuxDictKeyFilter(QObject *parent)
+    : QObject(parent)
+{
+
+}
+
+bool CAuxDictKeyFilter::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type()==QEvent::KeyPress) {
+        QKeyEvent *ev = static_cast<QKeyEvent *>(event);
+        if (ev!=NULL)
+            emit keyPressed(ev->key());
+    }
+    return QObject::eventFilter(obj,event);
 }

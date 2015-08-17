@@ -19,6 +19,7 @@
 #include "goldendict/langcoder.hh"
 #include "goldendict/folding.hh"
 #include "goldendict/utf8.hh"
+#include "goldendict/romaji.hh"
 #include "mainwindow.h"
 
 #include <QMessageBox>
@@ -211,6 +212,12 @@ void CGoldenDictMgr::loadDone()
     }
 
     dictionaries = loadDicts->getDictionaries();
+
+    // Make Romaji
+    vector< sptr< Dictionary::Class > > romajiDictionaries = Romaji::makeDictionaries();
+
+    dictionaries.insert( dictionaries.end(), romajiDictionaries.begin(),
+                         romajiDictionaries.end() );
 
     qInfo() << "Dictionaries loaded";
 
