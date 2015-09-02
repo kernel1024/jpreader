@@ -291,7 +291,7 @@ void CSnCtxHandler::duplicateTab()
 
     CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
 
-    if (snv->fileChanged) {
+    if (snv->fileChanged || url.isEmpty()) {
         snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
             sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
         });
