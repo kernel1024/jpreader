@@ -196,6 +196,7 @@ void CSnCtxHandler::gotTranslation(const QString &text)
 {
     if (!text.isEmpty() && !menuActive.isActive()) {
         QSpecToolTipLabel* lbl = new QSpecToolTipLabel(wordWrap(text,80));
+        lbl->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
         connect(lbl,SIGNAL(labelHide()),this,SLOT(toolTipHide()));
         connect(this,SIGNAL(hideTooltips()),lbl,SLOT(close()));
         QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd);

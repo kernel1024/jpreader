@@ -883,6 +883,7 @@ void CGlobalControl::startGlobalContextTranslate(const QString &text)
 void CGlobalControl::globalContextTranslateReady(const QString &text)
 {
     QSpecToolTipLabel* t = new QSpecToolTipLabel(wordWrap(text,80));
+    t->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,NULL);
 }

@@ -202,6 +202,7 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(350,350);
+    t->setStyleSheet("QLabel { background: #fefdeb; }");
 
     connect(t,SIGNAL(linkActivated(QString)),this,SLOT(showSuggestedTranslation(QString)));
     connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
