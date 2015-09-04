@@ -241,16 +241,16 @@ void QSpecTabContainer::closeTab(bool nowait)
 }
 
 
-QSpecWebPage::QSpecWebPage(QObject *parent)
+QSpecWebPage::QSpecWebPage(CSnippetViewer *parent)
     : QWebEnginePage(parent)
 {
-    parentWnd = NULL;
+    parentViewer = parent;
 }
 
-QSpecWebPage::QSpecWebPage(QWebEngineProfile *profile, CMainWindow* wnd, QObject *parent)
+QSpecWebPage::QSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
     : QWebEnginePage(profile, parent)
 {
-    parentWnd = wnd;
+    parentViewer = parent;
 }
 
 bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
@@ -274,9 +274,9 @@ QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
 {
     Q_UNUSED(type);
 
-    if (parentWnd==NULL) return NULL;
+    if (parentViewer==NULL) return NULL;
 
-    CSnippetViewer* sv = new CSnippetViewer(parentWnd,QUrl(),QStringList(),false);
+    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),false);
     return sv->txtBrowser->page();
 }
 

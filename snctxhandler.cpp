@@ -42,21 +42,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         cm->addAction(nt);
     }
 
-/*    QString tx = wh.element().toPlainText();
-    if (tx.isEmpty())
-        tx = wh.enclosingBlockElement().toPlainText();
-    if (!tx.isEmpty()) {
-        cm->addSeparator();
-        QAction* nta = new QAction(tr("Open block text in separate tab"),NULL);
-        nta->setData(tx);
-        connect(nta,SIGNAL(triggered()),this,SLOT(openFragment()));
-        cm->addAction(nta);
-        nta = new QAction(QIcon::fromTheme("text-frame-link"),tr("Translate block"),NULL);
-        nta->setData(tx);
-        connect(nta,SIGNAL(triggered()),this,SLOT(translateFragment()));
-        cm->addAction(nta);
-    }*/
-
     if (!sText.isEmpty()) {
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
 
@@ -75,33 +60,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         connect(nt,SIGNAL(triggered()),this,SLOT(createPlainTextTabTranslate()));
         cm->addAction(nt);
     }
-
-/*    if (!wh.imageUrl().isEmpty()) {
-        QByteArray ba;
-        ba.clear();
-        if (!wh.pixmap().isNull()) {
-            QDataStream sba(&ba,QIODevice::WriteOnly);
-            sba << wh.pixmap() << wh.imageUrl();
-        }
-
-        cm->addSeparator();
-        QMenu* icm = cm->addMenu(QIcon::fromTheme("file-preview"),tr("Image"));
-
-        icm->addAction(snv->txtBrowser->pageAction(QWebPage::CopyImageToClipboard));
-
-        QAction* ac = icm->addAction(tr("Copy image url to clipboard"),this,SLOT(copyImgUrl()));
-        ac->setData(wh.imageUrl());
-
-        icm->addSeparator();
-
-        ac = icm->addAction(tr("Open image in new tab"),this,SLOT(openImgNewTab()));
-        ac->setData(wh.imageUrl());
-
-        if (!ba.isEmpty()) {
-            ac = icm->addAction(tr("Save image to file..."),this,SLOT(saveImgToFile()));
-            ac->setData(ba);
-        }
-    }*/
 
     if (!sText.isEmpty()) {
         cm->addSeparator();
@@ -130,15 +88,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         ac->setData(wUrl);
     }
 
-    /*if (snv->lastFrame->parentFrame()) {
-        cm->addSeparator();
-        cm->addAction(QIcon::fromTheme("document-import"),tr("Open current frame in tab"),
-                     this, SLOT(openFrame()));
-        QAction* ac = cm->addAction(QIcon::fromTheme("document-export"),tr("Open current frame in tab background"),
-                                   this, SLOT(openFrame()));
-        ac->setData(QVariant(1234));
-    }*/
-
     cm->addSeparator();
     cm->addAction(QIcon::fromTheme("bookmark-new"),tr("Add current page to bookmarks"),
                  this, SLOT(bookmarkPage()));
@@ -154,7 +103,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     cm->addSeparator();
-//    if ((!wh.imageUrl().isEmpty()) || (!wUrl.isEmpty())) {
     if (!wUrl.isEmpty()) {
         QMenu* acm = cm->addMenu(QIcon::fromTheme("emblem-important"),tr("AdBlock"));
 /*        if (!wh.imageUrl().isEmpty()) {
