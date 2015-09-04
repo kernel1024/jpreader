@@ -215,9 +215,8 @@ void CSettingsDlg::showLoadedDicts()
 void CSettingsDlg::updateFontColorPreview(const QColor &c)
 {
     overridedFontColor = c;
-    QPalette p = ui->frameFontColorOverride->palette();
-    p.setBrush(QPalette::Window,QBrush(overridedFontColor));
-    ui->frameFontColorOverride->setPalette(p);
+    ui->frameFontColorOverride->setStyleSheet(QString("QFrame { background: %1; }")
+                                              .arg(overridedFontColor.name(QColor::HexRgb)));
 }
 
 QColor CSettingsDlg::getOverridedFontColor()

@@ -183,7 +183,7 @@ void CSnippetViewer::navByUrl(QString url)
         u.setQuery(qu);
     }
 
-    urlEdit->setPalette(QApplication::palette(urlEdit));
+    urlEdit->lineEdit()->setStyleSheet(QString());
 
     fileChanged=false;
 
@@ -245,12 +245,10 @@ void CSnippetViewer::urlChanged(const QUrl & url)
     }
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
-        QPalette p = urlEdit->palette();
-        p.setBrush(QPalette::Base,QBrush(QColor("#D7FFD7")));
-        urlEdit->setPalette(p);
+        urlEdit->lineEdit()->setStyleSheet("QLineEdit { background: #d7ffd7; }");
     } else {
         urlEdit->setToolTip(tr("Displayed URL"));
-        urlEdit->setPalette(QApplication::palette(urlEdit));
+        urlEdit->lineEdit()->setStyleSheet(QString());
     }
 }
 
