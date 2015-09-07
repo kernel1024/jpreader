@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>374</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1128,12 +1128,6 @@ p, li { white-space: pre-wrap; }
       <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
         <widget class="QGroupBox" name="groupBox_8">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Not supported yet</string>
-         </property>
          <property name="title">
           <string>Proxy</string>
          </property>

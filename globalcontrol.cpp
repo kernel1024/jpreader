@@ -90,31 +90,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     searchEngine = SE_NONE;
 #endif
 
-
-    webProfile = new QWebEngineProfile("jpreader",this);
-
-    QString fs = QString();
-    fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-
-    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
-    if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
-
-    QString fcache = fs + tr("cache") + QDir::separator();
-    webProfile->setCachePath(fcache);
-    QString fdata = fs + tr("local_storage") + QDir::separator();
-    webProfile->setPersistentStoragePath(fdata);
-
-    webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
-    webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
-
-    dictIndexDir = fs + tr("dictIndex") + QDir::separator();
-    QDir dictIndex(dictIndexDir);
-    if (!dictIndex.exists())
-        if (!dictIndex.mkpath(dictIndexDir)) {
-            qCritical() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
-            dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-        }
-
     dlg = NULL;
     activeWindow = NULL;
     lightTranslator = NULL;
@@ -220,10 +195,34 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     gctxTranHotkey->setDisabled();
     connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
 
+    readSettings();
+
+    webProfile = new QWebEngineProfile("jpreader",this);
+
+    QString fs = QString();
+    fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+
+    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
+    if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
+
+    QString fcache = fs + tr("cache") + QDir::separator();
+    webProfile->setCachePath(fcache);
+    QString fdata = fs + tr("local_storage") + QDir::separator();
+    webProfile->setPersistentStoragePath(fdata);
+
+    webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+    webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+
+    dictIndexDir = fs + tr("dictIndex") + QDir::separator();
+    QDir dictIndex(dictIndexDir);
+    if (!dictIndex.exists())
+        if (!dictIndex.mkpath(dictIndexDir)) {
+            qCritical() << "Unable to create directory for dictionary indexes: " << dictIndexDir;
+            dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        }
+
     dictManager = new CGoldenDictMgr(this);
     dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
-
-    readSettings();
 
     settingsSaveTimer.setInterval(60000);
     connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
@@ -810,19 +809,19 @@ void CGlobalControl::settingsDlg()
     dlg=NULL;
 }
 
-void CGlobalControl::updateProxy(bool useProxy, bool )
+void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
 {
     proxyUse = useProxy;
 
-    // Unavailable in 5.5
+    QNetworkProxy proxy = QNetworkProxy();
 
-/*    if (!proxyUse || proxyHost.isEmpty())
-        netAccess.setProxy(QNetworkProxy());
-    else
-        netAccess.setProxy(QNetworkProxy(proxyType,proxyHost,proxyPort,proxyLogin,proxyPassword));
+    if (proxyUse && !proxyHost.isEmpty())
+        proxy = QNetworkProxy(proxyType,proxyHost,proxyPort,proxyLogin,proxyPassword);
+
+    QNetworkProxy::setApplicationProxy(proxy);
 
     if (forceMenuUpdate)
-        actionUseProxy->setChecked(proxyUse);*/
+        actionUseProxy->setChecked(proxyUse);
 }
 
 void CGlobalControl::toggleJSUsage(bool useJS)
