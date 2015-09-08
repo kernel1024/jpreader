@@ -171,6 +171,7 @@ public:
     bool proxyUse;
     QNetworkProxy::ProxyType proxyType;
     QAction *actionUseProxy;
+    bool proxyUseTranslator;
 
     bool ignoreSSLErrors;
 

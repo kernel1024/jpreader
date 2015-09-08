@@ -80,6 +80,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     proxyLogin = QString();
     proxyPassword = QString();
     proxyUse = false;
+    proxyUseTranslator = false;
     proxyType = QNetworkProxy::HttpCachingProxy;
 
 #if WITH_RECOLL
@@ -356,6 +357,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("proxyPassword",proxyPassword);
     settings.setValue("proxyUse",proxyUse);
     settings.setValue("proxyType",proxyType);
+    settings.setValue("proxyUseTranslator",proxyUseTranslator);
     settings.setValue("bingID",bingID);
     settings.setValue("bingKey",bingKey);
     settings.setValue("createCoredumps",createCoredumps);
@@ -477,6 +479,7 @@ void CGlobalControl::readSettings()
     proxyLogin = settings.value("proxyLogin",QString()).toString();
     proxyPassword = settings.value("proxyPassword",QString()).toString();
     proxyUse = settings.value("proxyUse",false).toBool();
+    proxyUseTranslator = settings.value("proxyUseTranslator",false).toBool();
     bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
     createCoredumps = settings.value("createCoredumps",false).toBool();
@@ -681,6 +684,7 @@ void CGlobalControl::settingsDlg()
     dlg->proxyLogin->setText(proxyLogin);
     dlg->proxyPassword->setText(proxyPassword);
     dlg->proxyUse->setChecked(proxyUse);
+    dlg->proxyUseTranslator->setChecked(proxyUseTranslator);
     switch (proxyType) {
         case QNetworkProxy::HttpCachingProxy: dlg->proxyType->setCurrentIndex(0); break;
         case QNetworkProxy::HttpProxy: dlg->proxyType->setCurrentIndex(1); break;
@@ -794,6 +798,7 @@ void CGlobalControl::settingsDlg()
         proxyLogin = dlg->proxyLogin->text();
         proxyPassword = dlg->proxyPassword->text();
         proxyUse = dlg->proxyUse->isChecked();
+        proxyUseTranslator = dlg->proxyUseTranslator->isChecked();
         switch (dlg->proxyType->currentIndex()) {
             case 0: proxyType = QNetworkProxy::HttpCachingProxy; break;
             case 1: proxyType = QNetworkProxy::HttpProxy; break;
@@ -991,7 +996,7 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
-//    mainWindow->menuTools->addAction(actionUseProxy);
+    mainWindow->menuTools->addAction(actionUseProxy);
     mainWindow->menuTools->addAction(actionSnippetAutotranslate);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);

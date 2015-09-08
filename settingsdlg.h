@@ -59,6 +59,7 @@ public:
     QSpinBox* proxyPort;
     QCheckBox* proxyUse;
     QComboBox* proxyType;
+    QCheckBox* proxyUseTranslator;
     QCheckBox* emptyRestore;
     QLineEdit* bingID;
     QLineEdit* bingKey;

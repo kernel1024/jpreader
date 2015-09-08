@@ -26,6 +26,11 @@ bool CAtlasTranslator::initTran()
     if (inited) return true;
     if (sock.isOpen()) return true;
 
+    if (gSet->proxyUseTranslator)
+        sock.setProxy(QNetworkProxy::DefaultProxy);
+    else
+        sock.setProxy(QNetworkProxy::NoProxy);
+
     sock.connectToHost(atlHost,atlPort);
     if (!sock.waitForConnected()) {
         qCritical() << "ATLAS: connection timeout";

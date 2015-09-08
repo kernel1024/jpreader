@@ -58,6 +58,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     proxyPort=ui->spinProxyPort;
     proxyUse=ui->checkUseProxy;
     proxyType=ui->listProxyType;
+    proxyUseTranslator=ui->checkUseProxyTranslator;
     emptyRestore=ui->checkEmptyRestore;
     rbBingAPI=ui->radioBingAPI;
     bingID=ui->editBingID;

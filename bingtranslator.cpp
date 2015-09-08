@@ -55,6 +55,11 @@ bool CBingTranslator::initTran()
     if (nam==NULL)
         nam=new QNetworkAccessManager(this);
 
+    if (gSet->proxyUseTranslator)
+        nam->setProxy(QNetworkProxy::DefaultProxy);
+    else
+        nam->setProxy(QNetworkProxy::NoProxy);
+
     QUrlQuery postData;
     postData.addQueryItem("grant_type","client_credentials");
     postData.addQueryItem("client_id",QUrl::toPercentEncoding(clientID));
