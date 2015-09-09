@@ -199,6 +199,13 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QPushButton" name="buttonClearCookies">
+           <property name="text">
+            <string>Clear cookies</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -1360,6 +1367,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
+  <tabstop>buttonClearCookies</tabstop>
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>

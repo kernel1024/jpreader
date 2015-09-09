@@ -97,6 +97,7 @@ public slots:
     void addDictPath();
     void delDictPath();
     void showLoadedDicts();
+    void clearCookies();
 };
 
 #endif // SETTINGSDLG_H

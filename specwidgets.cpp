@@ -323,3 +323,22 @@ void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
         pos += length;
     }
 }
+
+#ifdef WEBENGINE_56
+
+QSpecUrlInterceptor::QSpecUrlInterceptor(QObject *p)
+    : QWebEngineUrlRequestInterceptor(p)
+{
+
+}
+
+bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
+{
+    if (gSet->isUrlBlocked(info.requestUrl())) {
+        info.block(true);
+        return true;
+    }
+    return false;
+}
+
+#endif

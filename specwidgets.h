@@ -22,6 +22,11 @@
 #include <QWebEnginePage>
 #include <QSyntaxHighlighter>
 
+#ifdef WEBENGINE_56
+#include <QWebEngineUrlRequestInterceptor>
+#include <QWebEngineUrlRequestInfo>
+#endif
+
 class CMainWindow;
 class CSnippetViewer;
 
@@ -140,5 +145,16 @@ private:
                      bool underline = false,
                      bool strikeout = false);
 };
+
+#ifdef WEBENGINE_56
+
+class QSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
+    Q_OBJECT
+public:
+    QSpecUrlInterceptor(QObject *p = 0);
+    bool interceptRequest(QWebEngineUrlRequestInfo &info);
+};
+
+#endif // WEBENGINE_56
 
 #endif // SPECTABWIDGET_H

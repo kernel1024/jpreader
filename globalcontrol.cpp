@@ -5,6 +5,10 @@
 
 #include <QStandardPaths>
 
+#ifdef WEBENGINE_56
+#include <QWebEngineCookieStoreClient>
+#endif
+
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "miniqxt/qxtglobalshortcut.h"
@@ -213,6 +217,11 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+
+#ifdef WEBENGINE_56
+    webProfile->setRequestInterceptor(new QSpecUrlInterceptor());
+    webProfile->setCookieStoreClient(new QWebEngineCookieStoreClient());
+#endif
 
     dictIndexDir = fs + tr("dictIndex") + QDir::separator();
     QDir dictIndex(dictIndexDir);

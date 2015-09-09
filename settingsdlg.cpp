@@ -2,6 +2,10 @@
 #include <QMessageBox>
 #include <QColorDialog>
 
+#ifdef WEBENGINE_56
+#include <QWebEngineCookieStoreClient>
+#endif
+
 #include "settingsdlg.h"
 #include "ui_settingsdlg.h"
 #include "mainwindow.h"
@@ -83,6 +87,11 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
     connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
     connect(ui->buttonLoadedDicts,SIGNAL(clicked()),this,SLOT(showLoadedDicts()));
+    connect(ui->buttonClearCookies,SIGNAL(clicked(bool)),this,SLOT(clearCookies()));
+
+#ifndef WEBENGINE_56
+    ui->buttonClearCookies->setEnabled(false);
+#endif
 }
 
 CSettingsDlg::~CSettingsDlg()
@@ -211,6 +220,15 @@ void CSettingsDlg::showLoadedDicts()
     if (!loadedDicts.isEmpty())
         msg = tr("Loaded %1 dictionaries:\n").arg(loadedDicts.count())+loadedDicts.join('\n');
     QMessageBox::information(this,tr("JPReader"),msg);
+}
+
+void CSettingsDlg::clearCookies()
+{
+#ifdef WEBENGINE_56
+    QWebEngineCookieStoreClient* wsc = gSet->webProfile->cookieStoreClient();
+    if (wsc!=NULL)
+        wsc->deleteAllCookies();
+#endif
 }
 
 void CSettingsDlg::updateFontColorPreview(const QColor &c)
