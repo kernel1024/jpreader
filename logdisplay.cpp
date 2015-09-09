@@ -1,5 +1,6 @@
 #include <QScrollBar>
 #include <QDebug>
+#include <QInputDialog>
 #include "logdisplay.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
@@ -14,6 +15,11 @@ CLogDisplay::CLogDisplay() :
     ui->setupUi(this);
     firstShow = true;
     syntax = new QSpecLogHighlighter(ui->logView->document());
+
+    ui->logView->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(ui->logView,SIGNAL(customContextMenuRequested(QPoint)),
+            this,SLOT(logCtxMenu(QPoint)));
 
     updateMessages();
 }
@@ -47,6 +53,37 @@ void CLogDisplay::updateMessages()
         else if (sv!=-1)
             ui->logView->verticalScrollBar()->setValue(sv);
     }
+}
+
+void CLogDisplay::logCtxMenu(const QPoint &pos)
+{
+    QMenu *cm = ui->logView->createStandardContextMenu();
+
+    QUrl su(ui->logView->textCursor().selectedText());
+    if (su.isValid()) {
+        cm->addSeparator();
+
+        QAction* ac = cm->addAction(QIcon::fromTheme("emblem-important"),
+                                    tr("Adblock this URL"),this,SLOT(addToAdblock()));
+        ac->setData(su);
+    }
+
+    cm->setAttribute(Qt::WA_DeleteOnClose,true);
+    cm->popup(ui->logView->mapToGlobal(pos));
+}
+
+void CLogDisplay::addToAdblock()
+{
+    QAction* nt = qobject_cast<QAction *>(sender());
+    if (nt==NULL) return;
+    QUrl url = nt->data().toUrl();
+    if (url.isEmpty() || !url.isValid()) return;
+    QString u = url.toString();
+    bool ok;
+
+    u = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),QLineEdit::Normal,u,&ok);
+    if (ok)
+        gSet->adblock.append(u);
 }
 
 void CLogDisplay::updateText(const QString &text)

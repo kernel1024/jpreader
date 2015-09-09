@@ -26,7 +26,6 @@
 #include "specwidgets.h"
 #include "logdisplay.h"
 
-//#define TE_NIFTY 0
 #define TE_GOOGLE 0
 #define TE_ATLAS 1
 #define TE_BINGAPI 2

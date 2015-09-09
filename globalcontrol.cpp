@@ -609,7 +609,6 @@ void CGlobalControl::settingsDlg()
         dlg->hsList->addItem(li);
     }
     switch (translatorEngine) {
-//    case TE_NIFTY: dlg->rbNifty->setChecked(true); break;
     case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
     case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
     case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;

@@ -260,6 +260,9 @@ bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 
     emit linkClickedExt(url,(int)type);
 
+    if (gSet->debugNetReqLogging)
+        qInfo() << "Net request (main frame):" << url;
+
     return !gSet->isUrlBlocked(url);
 }
 
@@ -335,9 +338,17 @@ QSpecUrlInterceptor::QSpecUrlInterceptor(QObject *p)
 bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
     if (gSet->isUrlBlocked(info.requestUrl())) {
+        if (gSet->debugNetReqLogging)
+            qWarning() << "Net request:" << info.requestUrl() << "BLOCKED";
+
         info.block(true);
+
         return true;
     }
+
+    if (gSet->debugNetReqLogging)
+        qInfo() << "Net request:" << info.requestUrl();
+
     return false;
 }
 

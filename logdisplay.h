@@ -19,6 +19,8 @@ public:
 
 public slots:
     void updateMessages();
+    void logCtxMenu(const QPoint& pos);
+    void addToAdblock();
 
 private:
     Ui::CLogDisplay *ui;

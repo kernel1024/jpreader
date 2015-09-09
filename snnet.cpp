@@ -1,5 +1,7 @@
 #include <QTextCodec>
 #include <QPointer>
+#include <QMessageBox>
+#include <QFileInfo>
 #include "snnet.h"
 #include "genericfuncs.h"
 #include "authdlg.h"
@@ -60,10 +62,19 @@ void CSnNet::load(const QUrl &url)
 
     QString fname = url.toLocalFile();
     if (!fname.isEmpty()) {
+        QFileInfo fi(fname);
+        if (!fi.exists()) {
+            QString cn=makeSimpleHtml(tr("Error"),tr("Unable to find file '%1'.").arg(fname));
+            snv->fileChanged = false;
+            snv->translationBkgdFinished=false;
+            snv->loadingBkgdFinished=false;
+            snv->txtBrowser->setHtml(cn,url);
+            QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file. File not found."));
+            return;
+        }
         QString MIME = detectMIME(fname);
         if (MIME.startsWith("text/plain",Qt::CaseInsensitive)) { // for local txt files
             QFile data(fname);
-            QFileInfo fi(fname);
             if (data.open(QFile::ReadOnly)) {
                 QByteArray ba = data.readAll();
                 QTextCodec* cd = detectEncoding(ba);
