@@ -256,8 +256,8 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 void CSnippetViewer::recycleTab()
 {
     if (tabTitle.isEmpty() || !txtBrowser->page()->url().isValid() ||
-            !txtBrowser->page()->url().toString().
-            startsWith("http",Qt::CaseInsensitive)) return;
+            txtBrowser->page()->url().toString().
+            startsWith("about",Qt::CaseInsensitive)) return;
     gSet->appendRecycled(tabTitle,txtBrowser->page()->url());
 }
 
