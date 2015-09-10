@@ -1088,7 +1088,12 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 bool CGlobalControl::isUrlBlocked(QUrl url)
 {
     if (!useAdblock) return false;
+    if (!adblockMutex.tryLock(10000)) {
+        qCritical() << "Failed to lock adblock mutex";
+        return false;
+    }
     QStringList adlist(adblock);
+    adblockMutex.unlock();
 
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);

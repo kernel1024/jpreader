@@ -107,13 +107,14 @@ public:
 
     QList<QColor> snippetColors;
 
-    QMutex sortMutex;
+//    QMutex sortMutex;
 
     QMap<QString, QUrl> bookmarks;
     QList<UrlHolder> recycleBin;
     QList<UrlHolder> mainHistory;
     QStringList searchHistory;
     QStringList adblock;
+    QMutex adblockMutex;
     QFont overrideFont;
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
