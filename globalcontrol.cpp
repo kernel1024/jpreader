@@ -38,6 +38,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
                      QColor(Qt::darkYellow) << QColor(Qt::gray);
 
     maxLimit=1000;
+    maxHistory=5000;
     useAdblock=false;
     globalContextTranslate=false;
     blockTabCloseActive=false;
@@ -309,6 +310,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
     settings.setValue("maxLimit",maxLimit);
+    settings.setValue("maxHistory",maxHistory);
     settings.setValue("browser",sysBrowser);
     settings.setValue("editor",sysEditor);
     settings.setValue("tr_engine",translatorEngine);
@@ -406,6 +408,7 @@ void CGlobalControl::readSettings()
     hostingDir = settings.value("hostingDir","").toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
     maxLimit = settings.value("maxLimit",1000).toInt();
+    maxHistory = settings.value("maxHistory",5000).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
     translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
@@ -593,6 +596,7 @@ void CGlobalControl::settingsDlg()
     dlg->hostingDir->setText(hostingDir);
     dlg->hostingUrl->setText(hostingUrl);
     dlg->maxLimit->setValue(maxLimit);
+    dlg->maxHistory->setValue(maxHistory);
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
@@ -712,6 +716,7 @@ void CGlobalControl::settingsDlg()
         hostingDir=dlg->hostingDir->text();
         hostingUrl=dlg->hostingUrl->text();
         maxLimit=dlg->maxLimit->value();
+        maxHistory=dlg->maxHistory->value();
         sysEditor=dlg->editor->text();
         sysBrowser=dlg->browser->text();
         maxRecycled=dlg->maxRecycled->value();
@@ -968,6 +973,10 @@ void CGlobalControl::appendMainHistory(UrlHolder &item)
     if (mainHistory.contains(item))
         mainHistory.removeOne(item);
     mainHistory.prepend(item);
+
+    while (mainHistory.count()>maxHistory)
+        mainHistory.removeLast();
+
     updateAllHistoryLists();
 }
 

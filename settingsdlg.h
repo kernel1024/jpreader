@@ -23,6 +23,7 @@ public:
     QLineEdit* hostingUrl;
     QLineEdit* hostingDir;
     QSpinBox* maxLimit;
+    QSpinBox* maxHistory;
     QLineEdit* browser;
     QLineEdit* editor;
 	QListWidget* qrList;

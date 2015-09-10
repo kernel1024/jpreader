@@ -21,6 +21,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     hostingUrl=ui->editHostingUrl;
     hostingDir=ui->editHostingDir;
     maxLimit=ui->spinMaxLimit;
+    maxHistory=ui->spinMaxHistory;
     browser=ui->editBrowser;
     editor=ui->editEditor;
 	qrList=ui->listQr;

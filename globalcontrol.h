@@ -110,6 +110,7 @@ public:
     QMap<QString, QUrl> bookmarks;
     QList<UrlHolder> recycleBin;
     QList<UrlHolder> mainHistory;
+    int maxHistory;
     QStringList searchHistory;
     QStringList adblock;
     QMutex adblockMutex;
