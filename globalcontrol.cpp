@@ -43,7 +43,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     blockTabCloseActive=false;
     adblock.clear();
     cleaningState=false;
-    debugNetReqLogging=false;
     restoreLoadChecked=false;
     emptyRestore=false;
     createCoredumps=false;
@@ -181,6 +180,11 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionOverrideFontColor->setCheckable(true);
     actionOverrideFontColor->setChecked(false);
 
+    actionLogNetRequests = new QAction(tr("Log network requests"),this);
+    actionLogNetRequests->setCheckable(true);
+    actionLogNetRequests->setChecked(false);
+    debugNetReqLogging=false;
+
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -195,6 +199,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             this,SLOT(updateProxy(bool)));
     connect(actionJSUsage,SIGNAL(toggled(bool)),
             this,SLOT(toggleJSUsage(bool)));
+    connect(actionLogNetRequests,SIGNAL(toggled(bool)),
+            this,SLOT(toggleLogNetRequests(bool)));
 
     gctxTranHotkey = new QxtGlobalShortcut(this);
     gctxTranHotkey->setDisabled();
@@ -453,12 +459,15 @@ void CGlobalControl::readSettings()
             mainHistory.clear();
         }
     }
+
+    adblockMutex.lock();
     cnt = settings.value("adblock_count",0).toInt();
     adblock.clear();
     for (int i=0;i<cnt;i++) {
         QString at = settings.value(QString("adblock%1").arg(i),"").toString();
         if (!at.isEmpty()) adblock << at;
     }
+    adblockMutex.unlock();
 
     useAdblock=settings.value("useAdblock",false).toBool();
     actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
@@ -673,7 +682,7 @@ void CGlobalControl::settingsDlg()
 
     dlg->visualShowTabCloseButtons->setChecked(showTabCloseButtons);
 
-    dlg->debugLogNetReq->setChecked(debugNetReqLogging);
+    dlg->debugLogNetReq->setChecked(actionLogNetRequests->isChecked());
 
     dlg->overrideUserAgent->setChecked(overrideUserAgent);
     dlg->userAgent->setEnabled(overrideUserAgent);
@@ -756,13 +765,18 @@ void CGlobalControl::settingsDlg()
         fontSansSerif=dlg->fontSansSerif->currentFont().family();
         actionOverrideFontColor->setChecked(dlg->overrideFontColor->isChecked());
         forcedFontColor=dlg->getOverridedFontColor();
+
         sl.clear();
         for (int i=0;i<dlg->adList->count();i++)
             sl << dlg->adList->item(i)->text();
         sl.sort();
+        adblockMutex.lock();
         adblock.clear();
         adblock.append(sl);
+        adblockMutex.unlock();
+
         useAdblock=dlg->useAd->isChecked();
+
         gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
         if (!gctxTranHotkey->shortcut().isEmpty())
             gctxTranHotkey->setEnabled();
@@ -776,7 +790,7 @@ void CGlobalControl::settingsDlg()
 
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
-        debugNetReqLogging = dlg->debugLogNetReq->isChecked();
+        actionLogNetRequests->setChecked(dlg->debugLogNetReq->isChecked());
 
         overrideUserAgent = dlg->overrideUserAgent->isChecked();
         if (overrideUserAgent) {
@@ -845,6 +859,11 @@ void CGlobalControl::toggleJSUsage(bool useJS)
 void CGlobalControl::toggleAutoloadImages(bool loadImages)
 {
     QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,loadImages);
+}
+
+void CGlobalControl::toggleLogNetRequests(bool logRequests)
+{
+    debugNetReqLogging = logRequests;
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -1015,6 +1034,8 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
 
     mainWindow->show();
 
+    mainWindow->menuTools->addAction(actionLogNetRequests);
+    mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
     mainWindow->menuTools->addAction(actionUseProxy);
@@ -1115,6 +1136,20 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
         if (fl.exactMatch(u)) return true;
     }
     return false;
+}
+
+void CGlobalControl::adblockAppend(QString url)
+{
+    adblockMutex.lock();
+    adblock.append(url);
+    adblockMutex.unlock();
+}
+
+void CGlobalControl::adblockAppend(QStringList urls)
+{
+    adblockMutex.lock();
+    adblock.append(urls);
+    adblockMutex.unlock();
 }
 
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)

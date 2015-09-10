@@ -441,7 +441,8 @@ void CSnCtxHandler::addContextBlock()
     QString u = url.toString();
     bool ok;
     u = QInputDialog::getText(snv,tr("Add adblock filter"),tr("Filter template"),QLineEdit::Normal,u,&ok);
-    if (ok) gSet->adblock.append(u);
+    if (ok)
+        gSet->adblockAppend(u);
 }
 
 void CSnCtxHandler::bookmarkPage() {

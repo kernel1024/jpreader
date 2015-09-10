@@ -83,7 +83,7 @@ void CLogDisplay::addToAdblock()
 
     u = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),QLineEdit::Normal,u,&ok);
     if (ok)
-        gSet->adblock.append(u);
+        gSet->adblockAppend(u);
 }
 
 void CLogDisplay::updateText(const QString &text)

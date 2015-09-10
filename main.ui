@@ -97,7 +97,7 @@
      <x>0</x>
      <y>0</y>
      <width>883</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -107,14 +107,11 @@
     <addaction name="actionNew"/>
     <addaction name="actionNewSearch"/>
     <addaction name="separator"/>
+    <addaction name="actionWnd"/>
+    <addaction name="separator"/>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenClip"/>
     <addaction name="actionOpenInDir"/>
-    <addaction name="separator"/>
-    <addaction name="actionWnd"/>
-    <addaction name="separator"/>
-    <addaction name="actionSettings"/>
-    <addaction name="actionSaveSettings"/>
     <addaction name="separator"/>
     <addaction name="actionExitAll"/>
     <addaction name="actionExit"/>
@@ -131,6 +128,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -170,12 +168,14 @@
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
     <addaction name="actionShowLog"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>&amp;Settings</string>
     </property>
+    <addaction name="actionSettings"/>
+    <addaction name="actionSaveSettings"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -376,6 +376,11 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="text">
+    <string>About &amp;Qt</string>
    </property>
   </action>
  </widget>

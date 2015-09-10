@@ -64,6 +64,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 	recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),"");
 
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
+    connect(actionAboutQt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(actionSettings, SIGNAL(triggered()), gSet, SLOT(settingsDlg()));
 	connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(actionExitAll, SIGNAL(triggered()), gSet, SLOT(cleanupAndExit()));

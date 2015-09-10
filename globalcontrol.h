@@ -175,6 +175,7 @@ public:
 
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
+    QAction *actionLogNetRequests;
 
     QAction *actionAutoTranslate;
     QAction *actionOverrideFont;
@@ -206,6 +207,8 @@ public:
 
     // Ad-block
     bool isUrlBlocked(QUrl url);
+    void adblockAppend(QString url);
+    void adblockAppend(QStringList urls);
 
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
@@ -257,6 +260,7 @@ public slots:
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
     void toggleJSUsage(bool useJS);
     void toggleAutoloadImages(bool loadImages);
+    void toggleLogNetRequests(bool logRequests);
 };
 
 extern CGlobalControl* gSet;
