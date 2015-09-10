@@ -1088,10 +1088,12 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 bool CGlobalControl::isUrlBlocked(QUrl url)
 {
     if (!useAdblock) return false;
+    QStringList adlist(adblock);
+
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
-    for(int i=0;i<adblock.count();i++) {
-        QRegExp fl(adblock.at(i),Qt::CaseInsensitive,QRegExp::Wildcard);
+    for(int i=0;i<adlist.count();i++) {
+        QRegExp fl(adlist.at(i),Qt::CaseInsensitive,QRegExp::Wildcard);
         if (fl.exactMatch(u)) return true;
     }
     return false;
