@@ -469,12 +469,13 @@ void CMainWindow::openAuxFileInDir()
     QWidget* t = tabMain->currentWidget();
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(t);
     if (sv==NULL) {
-        QMessageBox::warning(this,tr("JPReader error"),tr("Active document viewer tab not found."));
+        QMessageBox::warning(this,tr("JPReader"),
+                             tr("Active document viewer tab not found."));
         return;
     }
     QString auxDir = sv->getUrl().toLocalFile();
     if (auxDir.isEmpty()) {
-        QMessageBox::warning(this,tr("JPReader error"),tr("Remote document opened. Cannot define local directory."));
+        QMessageBox::warning(this,tr("JPReader"),tr("Remote document opened. Cannot define local directory."));
         return;
     }
     QStringList fnames = getOpenFileNamesD(this,tr("Open HTML file"),auxDir);

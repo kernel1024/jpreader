@@ -84,7 +84,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
         ui->labelMode->setText("Local file search");
 
     if (!engine->isValidConfig())
-        QMessageBox::warning(parentWnd,tr("JPReader warning"),
+        QMessageBox::warning(parentWnd,tr("JPReader"),
                              tr("Configuration error. \n"
                                 "You have enabled some search engine in settings, \n"
                                 "but jpreader compiled without support for this engine.\n"

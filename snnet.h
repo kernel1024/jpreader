@@ -21,7 +21,7 @@ public slots:
                                      const QString & proxyHost);
     void loadStarted();
     void loadFinished(bool);
-    void userNavigationRequest(const QUrl& url, const int type);
+    void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
 
 };
 

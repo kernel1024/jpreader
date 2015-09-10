@@ -39,7 +39,7 @@ void CSnTrans::convertToXMLPriv(const QString& data)
     CTranslator* ct = new CTranslator(NULL,aUri,NULL);
     QString res;
     if (!ct->documentToXML(aUri,res)) {
-        QMessageBox::critical(snv,tr("JPReader error"),tr("Translation to XML failed."));
+        QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
         return;
     }
 
@@ -113,9 +113,9 @@ void CSnTrans::calcFinished(const bool success, const QString& aUrl)
         snv->parentWnd->updateTabs();
     } else {
         if (aUrl.contains("ERROR:ATLAS_SLIPPED"))
-            QMessageBox::warning(snv,tr("JPReader error"),tr("ATLAS slipped. Please restart translation."));
+            QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
         else
-            QMessageBox::warning(snv,tr("JPReader error"),tr("Url not calculated. Network error occured."));
+            QMessageBox::warning(snv,tr("JPReader"),tr("Url not calculated. Network error occured."));
     }
 }
 
@@ -123,7 +123,7 @@ void CSnTrans::postTranslate()
 {
     if (snv->calculatedUrl.isEmpty()) return;
     if (snv->calculatedUrl.contains("ERROR:ATLAS_SLIPPED")) {
-        QMessageBox::warning(snv,tr("JPReader error"),tr("ATLAS slipped. Please restart translation."));
+        QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
         return;
     }
     QUrl url;

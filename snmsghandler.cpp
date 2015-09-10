@@ -1,4 +1,3 @@
-#include <QMessageBox>
 #include "snmsghandler.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)

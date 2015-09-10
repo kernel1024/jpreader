@@ -255,13 +255,14 @@ QSpecWebPage::QSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
 
 bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
-    Q_UNUSED(type);
-    Q_UNUSED(isMainFrame);
+    emit linkClickedExt(url,(int)type,isMainFrame);
 
-    emit linkClickedExt(url,(int)type);
-
-    if (gSet->debugNetReqLogging)
-        qInfo() << "Net request (main frame):" << url;
+    if (gSet->debugNetReqLogging) {
+        if (isMainFrame)
+            qInfo() << "Net request (main frame):" << url;
+        else
+            qInfo() << "Net request (sub frame):" << url;
+    }
 
     return !gSet->isUrlBlocked(url);
 }

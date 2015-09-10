@@ -127,7 +127,7 @@ protected:
     bool certificateError(const QWebEngineCertificateError &certificateError);
     QWebEnginePage* createWindow(WebWindowType type);
 signals:
-    void linkClickedExt(const QUrl& url, const int type);
+    void linkClickedExt(const QUrl& url, const int type, const bool isMainFrame);
 };
 
 class QSpecLogHighlighter : public QSyntaxHighlighter {

@@ -32,7 +32,8 @@ void CLightTranslator::restoreWindow()
 void CLightTranslator::translate()
 {
     if (isTranslating) {
-        QMessageBox::warning(this,tr("JPReader error"),tr("ATLAS engine is translating text now. Please try later."));
+        QMessageBox::warning(this,tr("JPReader"),
+                             tr("ATLAS engine is translating text now. Please try later."));
         return;
     }
     QString s = ui->textSource->toPlainText();
@@ -59,7 +60,8 @@ void CLightTranslator::gotTranslation(const QString &text)
     ui->barTranslating->hide();
     activateWindow();
     if (text.startsWith("ERROR")) {
-        QMessageBox::warning(this,tr("JPReader error"),tr("Error occured during translation. Try again."));
+        QMessageBox::warning(this,tr("JPReader"),
+                             tr("Error occured during translation. Try again."));
         ui->textResult->clear();
         return;
     }

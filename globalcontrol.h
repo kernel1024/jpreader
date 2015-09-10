@@ -107,8 +107,6 @@ public:
 
     QList<QColor> snippetColors;
 
-//    QMutex sortMutex;
-
     QMap<QString, QUrl> bookmarks;
     QList<UrlHolder> recycleBin;
     QList<UrlHolder> mainHistory;
@@ -197,6 +195,7 @@ public:
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);
     void appendMainHistory(UrlHolder& item);
+    bool updateMainHistoryTitle(UrlHolder& item, QString newTitle);
 
     // Lists updaters
     void updateAllBookmarks();

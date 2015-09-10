@@ -43,10 +43,17 @@ void CSnNet::loadFinished(bool)
     if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
 }
 
-void CSnNet::userNavigationRequest(const QUrl &, const int)
+void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool isMainFrame)
 {
+    Q_UNUSED(type);
+
     snv->onceTranslated = false;
     snv->fileChanged = false;
+
+    if (isMainFrame) {
+        UrlHolder uh(QString("(blank)"),url);
+        gSet->appendMainHistory(uh);
+    }
 }
 
 void CSnNet::load(const QUrl &url)

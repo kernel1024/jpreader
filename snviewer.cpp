@@ -91,8 +91,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString)), msgHandler,
             SLOT(linkHovered(QString)));
-    connect(wp, SIGNAL(linkClickedExt(QUrl,int)), netHandler,
-            SLOT(userNavigationRequest(QUrl,int)));
+    connect(wp, SIGNAL(linkClickedExt(QUrl,int,bool)), netHandler,
+            SLOT(userNavigationRequest(QUrl,int,bool)));
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
     fwdNavButton->setIcon(QIcon::fromTheme("go-next"));
@@ -219,7 +219,8 @@ void CSnippetViewer::titleChanged(const QString & title)
         if (txtBrowser->page()->url().isValid() &&
                 !txtBrowser->page()->url().toString().contains("about:blank",Qt::CaseInsensitive)) {
                 UrlHolder uh(title,txtBrowser->page()->url());
-                gSet->appendMainHistory(uh);
+                if (!gSet->updateMainHistoryTitle(uh,title))
+                    gSet->appendMainHistory(uh);
             }
     }
     parentWnd->updateTitle();

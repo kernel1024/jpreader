@@ -952,6 +952,19 @@ void CGlobalControl::appendMainHistory(UrlHolder &item)
     updateAllHistoryLists();
 }
 
+bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
+{
+    if (mainHistory.contains(item)) {
+        int idx = mainHistory.indexOf(item);
+        if (idx>=0) {
+            mainHistory[idx].title = newTitle;
+            updateAllHistoryLists();
+            return true;
+        }
+    }
+    return false;
+}
+
 void CGlobalControl::updateAllBookmarks()
 {
     foreach (CMainWindow* w, mainWindows) w->updateBookmarks();

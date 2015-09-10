@@ -205,8 +205,9 @@ void CGoldenDictMgr::loadDone()
 
     if ( loadDicts->getExceptionText().size() )
     {
-      QMessageBox::critical( gSet->activeWindow, tr("Error loading dictionaries"),
-                             QString::fromUtf8( loadDicts->getExceptionText().c_str() ) );
+      QMessageBox::critical( gSet->activeWindow, tr("JPReader"),
+                             tr("Error loading dictionaries %1").
+                             arg(QString::fromUtf8( loadDicts->getExceptionText().c_str() ) ));
 
       return;
     }
