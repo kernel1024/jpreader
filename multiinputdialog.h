@@ -17,10 +17,11 @@ class CMultiInputDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CMultiInputDialog(QWidget *parent, const QStrHash& data);
+    explicit CMultiInputDialog(QWidget *parent, const QString &title,
+                               const QStrHash& data);
     ~CMultiInputDialog();
 
-    QStringList getInputData();
+    QStrHash getInputData();
 
 private:
     Ui::CMultiInputDialog *ui;

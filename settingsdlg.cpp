@@ -11,6 +11,7 @@
 #include "mainwindow.h"
 #include "globalcontrol.h"
 #include "genericfuncs.h"
+#include "multiinputdialog.h"
 
 CSettingsDlg::CSettingsDlg(QWidget *parent) :
     QDialog(parent),
@@ -84,7 +85,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
     connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
     connect(ui->buttonLoadedDicts,SIGNAL(clicked()),this,SLOT(showLoadedDicts()));
-    connect(ui->buttonClearCookies,SIGNAL(clicked(bool)),this,SLOT(clearCookies()));
+    connect(ui->buttonClearCookies,SIGNAL(clicked()),this,SLOT(clearCookies()));
+    connect(ui->buttonEditBookmark,SIGNAL(clicked()),this,SLOT(editBkm()));
 
 #ifndef WEBENGINE_56
     ui->buttonClearCookies->setEnabled(false);
@@ -137,8 +139,20 @@ void CSettingsDlg::editBkm()
     QList<QListWidgetItem *> dl = ui->listBookmarks->selectedItems();
     if (dl.isEmpty()) return;
 
-    // TODO: editor
+    QStrHash data;
+    data["Page title"]=dl.first()->data(Qt::UserRole).toString();
+    data["Url"]=dl.first()->data(Qt::UserRole+1).toUrl().toString();
 
+    CMultiInputDialog *dlg = new CMultiInputDialog(this,tr("Edit bookmark"),data);
+    if (dlg->exec()) {
+        data = dlg->getInputData();
+        dl.first()->setData(Qt::UserRole,data["Page title"]);
+        dl.first()->setData(Qt::UserRole+1,QUrl(data["Url"]));
+        dl.first()->setText(QString("%1 [ %2 ]").
+                            arg(data["Page title"]).
+                            arg(data["Url"]));
+    }
+    dlg->deleteLater();
 }
 
 void CSettingsDlg::clearHistory()

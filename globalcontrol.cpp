@@ -304,6 +304,7 @@ void CGlobalControl::writeSettings()
     if (!settingsSaveMutex.tryLock(1000)) return;
     QSettings settings("kernel1024", "jpreader");
     settings.beginGroup("MainWindow");
+    settings.remove("");
     settings.setValue("searchCnt", searchHistory.count());
     for (int i=0;i<searchHistory.count();i++)
         settings.setValue(QString("searchTxt%1").arg(i), searchHistory.at(i));

@@ -1,11 +1,14 @@
 #include "multiinputdialog.h"
 #include "ui_multiinputdialog.h"
 
-CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QStrHash& data) :
+CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
+                                     const QStrHash& data) :
     QDialog(parent),
     ui(new Ui::CMultiInputDialog)
 {
     ui->setupUi(this);
+
+    setWindowTitle(title);
 
     formLayout = new QFormLayout();
     formLayout->setObjectName(QStringLiteral("formLayout"));
@@ -37,10 +40,10 @@ CMultiInputDialog::~CMultiInputDialog()
     delete ui;
 }
 
-QStringList CMultiInputDialog::getInputData()
+QStrHash CMultiInputDialog::getInputData()
 {
-    QStringList res;
+    QStrHash res;
     for (int i=0;i<edits.count();i++)
-        res << edits.at(i)->text();
+        res[labels.at(i)->text()] = edits.at(i)->text();
     return res;
 }
