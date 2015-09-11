@@ -701,6 +701,9 @@ void CGlobalControl::settingsDlg()
         case QNetworkProxy::Socks5Proxy: dlg->proxyType->setCurrentIndex(2); break;
         default: dlg->proxyType->setCurrentIndex(0); break;
     }
+
+    dlg->getCookiesFromStore();
+
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
         hostingUrl=dlg->hostingUrl->text();

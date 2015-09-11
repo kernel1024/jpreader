@@ -9,6 +9,7 @@
 #include <QCheckBox>
 #include <QFontComboBox>
 #include <QColor>
+#include <QNetworkCookie>
 #include "specwidgets.h"
 #include "globalcontrol.h"
 
@@ -75,6 +76,10 @@ public:
 private:
     Ui::SettingsDlg *ui;
     QColor overridedFontColor;
+    QList<QNetworkCookie> cookiesList;
+
+    void updateCookiesTable();
+    void setCookies(const QByteArray& cookies);
 
 public:
     void updateFontColorPreview(const QColor &c);
@@ -105,6 +110,7 @@ public slots:
     void delDictPath();
     void showLoadedDicts();
     void clearCookies();
+    void getCookiesFromStore();
 };
 
 #endif // SETTINGSDLG_H

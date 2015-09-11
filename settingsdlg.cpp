@@ -71,6 +71,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     dictPaths=ui->listDictPaths;
     ignoreSSLErrors=ui->checkIgnoreSSLErrors;
 
+    cookiesList.clear();
+
     connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
     connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
     connect(ui->buttonEditor,SIGNAL(clicked()),this,SLOT(selectEditor()));
@@ -90,22 +92,49 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
 
 #ifndef WEBENGINE_56
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
-    ui->buttonClearCookies->setEnabled(false);
-    ui->buttonClearCookies->setToolTip(we56);
     ui->groupBoxProxy->setEnabled(false);
     ui->groupBoxProxy->setToolTip(we56);
+
     ui->listAdblock->setEnabled(false);
     ui->listAdblock->setToolTip(we56);
     ui->buttonAdAdd->setEnabled(false);
     ui->buttonAdDel->setEnabled(false);
     ui->buttonAdImport->setEnabled(false);
     ui->checkUseAd->setEnabled(false);
+
+    ui->tableCookies->setEnabled(false);
+    ui->tableCookies->setToolTip(we56);
+    ui->buttonDelCookies->setEnabled(false);
+    ui->buttonExportCookies->setEnabled(false);
+    ui->buttonClearCookies->setEnabled(false);
 #endif
 }
 
 CSettingsDlg::~CSettingsDlg()
 {
     delete ui;
+}
+
+void CSettingsDlg::updateCookiesTable()
+{
+    QTableWidget *t = ui->tableCookies;
+
+    t->clear();
+    t->setRowCount(cookiesList.count());
+    t->setColumnCount(5);
+    t->setHorizontalHeaderLabels(QStringList() << tr("Domain") << tr("Name")
+                                 << tr("Path") << tr("Expiration")<< tr("Value"));
+    for (int i=0;i<cookiesList.count();i++) {
+        t->setItem(i,0,new QTableWidgetItem(cookiesList.at(i).domain()));
+        t->setItem(i,1,new QTableWidgetItem(QString::fromUtf8(
+                                                cookiesList.at(i).name().toPercentEncoding())));
+        t->setItem(i,2,new QTableWidgetItem(cookiesList.at(i).path()));
+        t->setItem(i,3,new QTableWidgetItem(cookiesList.at(i).expirationDate()
+                                            .toString(Qt::DefaultLocaleShortDate)));
+        t->setItem(i,4,new QTableWidgetItem(QString::fromUtf8(
+                                                cookiesList.at(i).value().toPercentEncoding())));
+    }
+    t->resizeColumnsToContents();
 }
 
 void CSettingsDlg::selectDir()
@@ -261,6 +290,17 @@ void CSettingsDlg::clearCookies()
 #endif
 }
 
+void CSettingsDlg::getCookiesFromStore()
+{
+#ifdef WEBENGINE_56
+    if (gSet->webProfile->cookieStoreClient()!=NULL) {
+        gSet->webProfile->cookieStoreClient()->getAllCookies([this](const QByteArray& cookies) {
+            setCookies(cookies);
+        });
+    }
+#endif
+}
+
 void CSettingsDlg::updateFontColorPreview(const QColor &c)
 {
     overridedFontColor = c;
@@ -306,6 +346,12 @@ void CSettingsDlg::setMainHistory(QUHList history)
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
     }
+}
+
+void CSettingsDlg::setCookies(const QByteArray &cookies)
+{
+    cookiesList = QNetworkCookie::parseCookies(cookies);
+    updateCookiesTable();
 }
 
 QBookmarksMap CSettingsDlg::getBookmarks()

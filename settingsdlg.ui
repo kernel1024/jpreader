@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>792</width>
+    <width>842</width>
     <height>408</height>
    </rect>
   </property>
@@ -198,13 +198,6 @@
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonClearCookies">
-           <property name="text">
-            <string>Clear cookies</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </item>
@@ -880,7 +873,7 @@ p, li { white-space: pre-wrap; }
          <item row="3" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>S&amp;CP Host</string>
+            <string>SCP &amp;Host</string>
            </property>
            <property name="buddy">
             <cstring>editScpHost</cstring>
@@ -1132,6 +1125,61 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_13">
+      <attribute name="title">
+       <string>Cookies</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_21">
+       <item>
+        <widget class="QTableWidget" name="tableCookies">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <widget class="QPushButton" name="buttonExportCookies">
+           <property name="text">
+            <string>Export...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonDelCookies">
+           <property name="text">
+            <string>Delete</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_7">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonClearCookies">
+           <property name="text">
+            <string>Clear cookies</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab_8">
       <attribute name="title">
        <string>Misc</string>
@@ -1371,7 +1419,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
-  <tabstop>buttonClearCookies</tabstop>
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>
@@ -1424,6 +1471,8 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdDel</tabstop>
   <tabstop>buttonAdImport</tabstop>
   <tabstop>checkUseAd</tabstop>
+  <tabstop>tableCookies</tabstop>
+  <tabstop>buttonClearCookies</tabstop>
   <tabstop>checkUseProxy</tabstop>
   <tabstop>editProxyHost</tabstop>
   <tabstop>spinProxyPort</tabstop>
