@@ -89,7 +89,17 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonEditBookmark,SIGNAL(clicked()),this,SLOT(editBkm()));
 
 #ifndef WEBENGINE_56
+    QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
     ui->buttonClearCookies->setEnabled(false);
+    ui->buttonClearCookies->setToolTip(we56);
+    ui->groupBoxProxy->setEnabled(false);
+    ui->groupBoxProxy->setToolTip(we56);
+    ui->listAdblock->setEnabled(false);
+    ui->listAdblock->setToolTip(we56);
+    ui->buttonAdAdd->setEnabled(false);
+    ui->buttonAdDel->setEnabled(false);
+    ui->buttonAdImport->setEnabled(false);
+    ui->checkUseAd->setEnabled(false);
 #endif
 }
 

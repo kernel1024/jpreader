@@ -1068,9 +1068,6 @@ p, li { white-space: pre-wrap; }
          <property name="enabled">
           <bool>true</bool>
          </property>
-         <property name="toolTip">
-          <string>Not supported yet</string>
-         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::ExtendedSelection</enum>
          </property>
@@ -1141,7 +1138,7 @@ p, li { white-space: pre-wrap; }
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
-        <widget class="QGroupBox" name="groupBox_8">
+        <widget class="QGroupBox" name="groupBoxProxy">
          <property name="title">
           <string>Proxy</string>
          </property>
