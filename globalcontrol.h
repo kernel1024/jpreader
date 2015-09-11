@@ -82,6 +82,10 @@ public:
     int count;
 };
 
+typedef QHash<QString, QString> QStrHash;
+typedef QList<UrlHolder> QUHList;
+typedef QMap<QString, QUrl> QBookmarksMap;
+
 class CGlobalControl : public QObject
 {
     Q_OBJECT
@@ -107,9 +111,9 @@ public:
 
     QList<QColor> snippetColors;
 
-    QMap<QString, QUrl> bookmarks;
-    QList<UrlHolder> recycleBin;
-    QList<UrlHolder> mainHistory;
+    QBookmarksMap bookmarks;
+    QUHList recycleBin;
+    QUHList mainHistory;
     int maxHistory;
     QStringList searchHistory;
     QStringList adblock;

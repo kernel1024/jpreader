@@ -983,6 +983,13 @@ p, li { white-space: pre-wrap; }
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
+          <widget class="QPushButton" name="buttonEditBookmark">
+           <property name="text">
+            <string>Edit...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="buttonDelBookmark">
            <property name="text">
             <string>Delete</string>
@@ -1410,6 +1417,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
   <tabstop>listBookmarks</tabstop>
+  <tabstop>buttonEditBookmark</tabstop>
   <tabstop>buttonDelBookmark</tabstop>
   <tabstop>listHistory</tabstop>
   <tabstop>buttonCleanHistory</tabstop>

@@ -26,7 +26,8 @@ HEADERS = mainwindow.h \
     abstracttranslator.h \
     bingtranslator.h \
     goldendictmgr.h \
-    auxdictionary.h
+    auxdictionary.h \
+    multiinputdialog.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -57,7 +58,8 @@ SOURCES = main.cpp \
     bingtranslator.cpp \
     searchmodel.cpp \
     goldendictmgr.cpp \
-    auxdictionary.cpp
+    auxdictionary.cpp \
+    multiinputdialog.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -70,7 +72,8 @@ FORMS = main.ui \
     searchtab.ui \
     lighttranslator.ui \
     logdisplay.ui \
-    auxdictionary.ui
+    auxdictionary.ui \
+    multiinputdialog.ui
 
 QT += network xml dbus widgets webenginewidgets
 

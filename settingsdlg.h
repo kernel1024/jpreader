@@ -10,6 +10,7 @@
 #include <QFontComboBox>
 #include <QColor>
 #include "specwidgets.h"
+#include "globalcontrol.h"
 
 namespace Ui {
     class SettingsDlg;
@@ -26,8 +27,6 @@ public:
     QSpinBox* maxHistory;
     QLineEdit* browser;
     QLineEdit* editor;
-	QListWidget* qrList;
-	QListWidget* bmList;
     QRadioButton* rbGoogle;
     QRadioButton* rbAtlas;
     QRadioButton* rbBingAPI;
@@ -39,9 +38,7 @@ public:
     QSpinBox* atlRetryCount;
     QSpinBox* atlRetryTimeout;
     QSpinBox* maxRecycled;
-    QListWidget* hsList;
     QCheckBox* useJS;
-    QListWidget* adList;
     QCheckBox* useAd;
     QCheckBox* useOverrideFont;
     QSpinBox* fontOverrideSize;
@@ -83,12 +80,21 @@ public:
     void updateFontColorPreview(const QColor &c);
     QColor getOverridedFontColor();
 
+    void setBookmarks(QBookmarksMap bookmarks);
+    void setQueryHistory(QStringList history);
+    void setAdblock(QStringList adblock);
+    void setMainHistory(QUHList history);
+    QBookmarksMap getBookmarks();
+    QStringList getQueryHistory();
+    QStringList getAdblock();
+
 public slots:
     void selectDir();
     void selectBrowser();
     void selectEditor();
 	void delQrs();
 	void delBkm();
+    void editBkm();
     void goHistory();
     void clearHistory();
     void addAd();

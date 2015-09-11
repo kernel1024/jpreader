@@ -24,8 +24,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     maxHistory=ui->spinMaxHistory;
     browser=ui->editBrowser;
     editor=ui->editEditor;
-	qrList=ui->listQr;
-	bmList=ui->listBookmarks;
     rbGoogle=ui->radioGoogle;
     cbSCP=ui->checkSCP;
     scpParams=ui->editScpParams;
@@ -36,9 +34,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     atlRetryTimeout=ui->atlRetryTimeout;
     rbAtlas=ui->radioAtlas;
     maxRecycled=ui->spinMaxRecycled;
-    hsList=ui->listHistory;
     useJS=ui->checkJS;
-    adList=ui->listAdblock;
     useAd=ui->checkUseAd;
     useOverrideFont=ui->checkTransFont;
     fontOverride=ui->transFont;
@@ -120,20 +116,29 @@ void CSettingsDlg::selectEditor()
 
 void CSettingsDlg::delQrs()
 {
-	QList<QListWidgetItem *> dl =qrList->selectedItems();
+    QList<QListWidgetItem *> dl = ui->listQr->selectedItems();
 	foreach (QListWidgetItem* i, dl) {
-		qrList->removeItemWidget(i);
+        ui->listQr->removeItemWidget(i);
 		delete i;
 	}
 }
 
 void CSettingsDlg::delBkm()
 {
-	QList<QListWidgetItem *> dl =bmList->selectedItems();
+    QList<QListWidgetItem *> dl = ui->listBookmarks->selectedItems();
 	foreach (QListWidgetItem* i, dl) {
-		bmList->removeItemWidget(i);
+        ui->listBookmarks->removeItemWidget(i);
 		delete i;
-	}
+    }
+}
+
+void CSettingsDlg::editBkm()
+{
+    QList<QListWidgetItem *> dl = ui->listBookmarks->selectedItems();
+    if (dl.isEmpty()) return;
+
+    // TODO: editor
+
 }
 
 void CSettingsDlg::clearHistory()
@@ -142,12 +147,12 @@ void CSettingsDlg::clearHistory()
         gSet->mainHistory.clear();
         gSet->updateAllHistoryLists();
     }
-	hsList->clear();
+    ui->listHistory->clear();
 }
 
 void CSettingsDlg::goHistory()
 {
-    QListWidgetItem* it = hsList->currentItem();
+    QListWidgetItem* it = ui->listHistory->currentItem();
     if (it==NULL || gSet->activeWindow==NULL) return;
     QUuid idx(it->data(Qt::UserRole).toString());
     gSet->activeWindow->goHistory(idx);
@@ -159,14 +164,14 @@ void CSettingsDlg::addAd()
     QString s = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),
                                       QLineEdit::Normal,"",&ok);
     if (!ok) return;
-    adList->addItem(s);
+    ui->listAdblock->addItem(s);
 }
 
 void CSettingsDlg::delAd()
 {
-    QList<QListWidgetItem *> dl =adList->selectedItems();
+    QList<QListWidgetItem *> dl = ui->listAdblock->selectedItems();
     foreach (QListWidgetItem* i, dl) {
-        adList->removeItemWidget(i);
+        ui->listAdblock->removeItemWidget(i);
         delete i;
     }
 }
@@ -190,7 +195,7 @@ void CSettingsDlg::importAd()
             lnks << s;
     }
     ini.close();
-    adList->addItems(lnks);
+    ui->listAdblock->addItems(lnks);
 }
 
 void CSettingsDlg::fontColorDlg()
@@ -242,4 +247,68 @@ void CSettingsDlg::updateFontColorPreview(const QColor &c)
 QColor CSettingsDlg::getOverridedFontColor()
 {
     return overridedFontColor;
+}
+
+void CSettingsDlg::setBookmarks(QBookmarksMap bookmarks)
+{
+    foreach (const QString &t, bookmarks.keys()) {
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
+                                                  arg(t).
+                                                  arg(bookmarks.value(t).toString()));
+        li->setData(Qt::UserRole,t);
+        li->setData(Qt::UserRole+1,bookmarks.value(t));
+        ui->listBookmarks->addItem(li);
+    }
+}
+
+void CSettingsDlg::setQueryHistory(QStringList history)
+{
+    ui->listQr->clear();
+    for (int i=0;i<history.count();i++)
+        ui->listQr->addItem(history.at(i));
+}
+
+void CSettingsDlg::setAdblock(QStringList adblock)
+{
+    ui->listAdblock->clear();
+    ui->listAdblock->addItems(adblock);
+}
+
+void CSettingsDlg::setMainHistory(QUHList history)
+{
+    foreach (const UrlHolder &t, history) {
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title).
+                                                  arg(t.url.toString()));
+        li->setData(Qt::UserRole,t.uuid.toString());
+        ui->listHistory->addItem(li);
+    }
+}
+
+QBookmarksMap CSettingsDlg::getBookmarks()
+{
+    QBookmarksMap bookmarks;
+    bookmarks.clear();
+    for (int i=0; i<ui->listBookmarks->count(); i++)
+        bookmarks[ui->listBookmarks->item(i)->data(Qt::UserRole).toString()] =
+                ui->listBookmarks->item(i)->data(Qt::UserRole+1).toUrl();
+    return bookmarks;
+}
+
+QStringList CSettingsDlg::getQueryHistory()
+{
+    QStringList sl;
+    sl.clear();
+    for (int i=0; i<ui->listQr->count();i++)
+        sl << ui->listQr->item(i)->text();
+    return sl;
+}
+
+QStringList CSettingsDlg::getAdblock()
+{
+    QStringList sl;
+    sl.clear();
+    for (int i=0;i<ui->listAdblock->count();i++)
+        sl << ui->listAdblock->item(i)->text();
+    sl.sort();
+    return sl;
 }

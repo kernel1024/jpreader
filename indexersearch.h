@@ -9,13 +9,13 @@
 #include <QDir>
 #include <QFileInfo>
 
+#include "globalcontrol.h"
+
 #ifdef WITH_THREADED_SEARCH
 #include "abstractthreadedsearch.h"
 #include "baloo5search.h"
 #include "recollsearch.h"
 #endif
-
-typedef QHash<QString, QString> QStrHash;
 
 class QBResult
 {

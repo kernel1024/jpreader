@@ -604,23 +604,12 @@ void CGlobalControl::settingsDlg()
                            testAttribute(QWebEngineSettings::JavascriptEnabled));
     dlg->autoloadImages->setChecked(QWebEngineSettings::globalSettings()->
                                     testAttribute(QWebEngineSettings::AutoLoadImages));
-    dlg->qrList->clear();
-    for (int i=0;i<searchHistory.count();i++)
-        dlg->qrList->addItem(searchHistory.at(i));
-    foreach (const QString &t, bookmarks.keys()) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
-                                                  arg(t).
-                                                  arg(bookmarks.value(t).toString()));
-        li->setData(Qt::UserRole,t);
-        li->setData(Qt::UserRole+1,bookmarks.value(t));
-        dlg->bmList->addItem(li);
-    }
-    foreach (const UrlHolder &t, mainHistory) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title).
-                                                  arg(t.url.toString()));
-        li->setData(Qt::UserRole,t.uuid.toString());
-        dlg->hsList->addItem(li);
-    }
+
+    dlg->setBookmarks(bookmarks);
+    dlg->setMainHistory(mainHistory);
+    dlg->setQueryHistory(searchHistory);
+    dlg->setAdblock(adblock);
+
     switch (translatorEngine) {
     case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
     case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
@@ -645,8 +634,7 @@ void CGlobalControl::settingsDlg()
     dlg->bingID->setText(bingID);
     dlg->bingKey->setText(bingKey);
     dlg->emptyRestore->setChecked(emptyRestore);
-    dlg->adList->clear();
-    dlg->adList->addItems(adblock);
+
     dlg->useAd->setChecked(useAdblock);
     dlg->useOverrideFont->setChecked(useOverrideFont());
     dlg->overrideStdFonts->setChecked(overrideStdFonts);
@@ -720,19 +708,20 @@ void CGlobalControl::settingsDlg()
         sysEditor=dlg->editor->text();
         sysBrowser=dlg->browser->text();
         maxRecycled=dlg->maxRecycled->value();
-        QStringList sl;
-        for (int i=0; i<dlg->qrList->count();i++)
-            sl << dlg->qrList->item(i)->text();
+
         searchHistory.clear();
-        searchHistory.append(sl);
+        searchHistory.append(dlg->getQueryHistory());
         updateAllQueryLists();
+        bookmarks = dlg->getBookmarks();
+        updateAllBookmarks();
+        adblockMutex.lock();
+        adblock.clear();
+        adblock.append(dlg->getAdblock());
+        adblockMutex.unlock();
+
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
         if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
-        bookmarks.clear();
-        for (int i=0; i<dlg->bmList->count(); i++)
-            bookmarks[dlg->bmList->item(i)->data(Qt::UserRole).toString()] =
-                    dlg->bmList->item(i)->data(Qt::UserRole+1).toUrl();
-        updateAllBookmarks();
+
         QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
                                                      dlg->useJS->isChecked());
         actionJSUsage->setChecked(dlg->useJS->isChecked());
@@ -771,15 +760,6 @@ void CGlobalControl::settingsDlg()
         actionOverrideFontColor->setChecked(dlg->overrideFontColor->isChecked());
         forcedFontColor=dlg->getOverridedFontColor();
 
-        sl.clear();
-        for (int i=0;i<dlg->adList->count();i++)
-            sl << dlg->adList->item(i)->text();
-        sl.sort();
-        adblockMutex.lock();
-        adblock.clear();
-        adblock.append(sl);
-        adblockMutex.unlock();
-
         useAdblock=dlg->useAd->isChecked();
 
         gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
@@ -810,6 +790,7 @@ void CGlobalControl::settingsDlg()
         if (overrideUserAgent)
             webProfile->setHttpUserAgent(userAgent);
 
+        QStringList sl;
         sl.clear();
         for (int i=0;i<dlg->dictPaths->count();i++)
             sl.append(dlg->dictPaths->item(i)->text());
