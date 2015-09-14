@@ -6,6 +6,7 @@
 #include "globalcontrol.h"
 #include "indexersearch.h"
 #include "genericfuncs.h"
+#include "adblockrule.h"
 
 #include <sys/resource.h>
 
@@ -17,9 +18,13 @@ int main(int argc, char *argv[])
     debugMessages.clear();
     qInstallMessageHandler(stdConsoleOutput);
     qRegisterMetaType<UrlHolder>("UrlHolder");
-    qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
     qRegisterMetaType<QBResult>("QBResult");
     qRegisterMetaType<QDir>("QDir");
+    qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
+    qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
+    qRegisterMetaTypeStreamOperators<CAdBlockList>("CAdBlockList");
+    qRegisterMetaTypeStreamOperators<QUHList>("QUHList");
+    qRegisterMetaTypeStreamOperators<QBookmarksMap>("QBookmarksMap");
 
     QApplication app(argc, argv);
 

@@ -45,6 +45,8 @@ public:
     }
 };
 
+Q_DECLARE_METATYPE(QBResult)
+
 class CIndexerSearch : public QObject
 {
     Q_OBJECT

@@ -74,6 +74,8 @@ public:
     bool operator!=(const UrlHolder &s) const;
 };
 
+Q_DECLARE_METATYPE(UrlHolder)
+
 class DirStruct {
 public:
     DirStruct();
@@ -129,7 +131,7 @@ public:
 
     QWebEngineProfile *webProfile;
 
-    QList<CAdBlockRule> adblock;
+    CAdBlockList adblock;
     QMutex adblockMutex;
     bool useAdblock;
 

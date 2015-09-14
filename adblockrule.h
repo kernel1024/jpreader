@@ -10,6 +10,7 @@
 #ifndef CADBLOCKRULE_H
 #define CADBLOCKRULE_H
 
+#include <QObject>
 #include <QString>
 #include <QRegExp>
 #include <QStringList>
@@ -56,5 +57,9 @@ private:
     QRegExp m_regExp;
     QStringList m_options;
 };
+
+typedef QList<CAdBlockRule> CAdBlockList;
+
+Q_DECLARE_METATYPE(CAdBlockRule)
 
 #endif // CADBLOCKRULE_H

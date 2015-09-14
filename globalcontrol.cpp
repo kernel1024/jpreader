@@ -303,11 +303,21 @@ void CGlobalControl::writeSettings()
 {
     if (!settingsSaveMutex.tryLock(1000)) return;
     QSettings settings("kernel1024", "jpreader");
+    QSettings bigdata("kernel1024", "jpreader-bigdata");
     settings.beginGroup("MainWindow");
+    bigdata.beginGroup("main");
     settings.remove("");
-    settings.setValue("searchCnt", searchHistory.count());
-    for (int i=0;i<searchHistory.count();i++)
-        settings.setValue(QString("searchTxt%1").arg(i), searchHistory.at(i));
+    bigdata.remove("");
+
+    bigdata.setValue("searchHistory",QVariant::fromValue(searchHistory));
+    bigdata.setValue("bookmarks",QVariant::fromValue(bookmarks));
+    bigdata.setValue("history",QVariant::fromValue(mainHistory));
+    bigdata.setValue("adblock",QVariant::fromValue(adblock));
+    bigdata.setValue("atlHostHistory",QVariant::fromValue(atlHostHistory));
+    bigdata.setValue("scpHostHistory",QVariant::fromValue(scpHostHistory));
+    bigdata.setValue("userAgentHistory",QVariant::fromValue(userAgentHistory));
+    bigdata.setValue("dictPaths",QVariant::fromValue(dictPaths));
+
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
     settings.setValue("maxLimit",maxLimit);
@@ -327,26 +337,6 @@ void CGlobalControl::writeSettings()
     settings.setValue("autoloadimages",QWebEngineSettings::globalSettings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
     settings.setValue("recycledCount",maxRecycled);
-    settings.beginWriteArray("bookmarks");
-    int i=0;
-    foreach (const QString &t, bookmarks.keys()) {
-        settings.setArrayIndex(i);
-        settings.setValue("title",t);
-        settings.setValue("url",bookmarks.value(t));
-        i++;
-    }
-    settings.endArray();
-
-    QByteArray ba;
-    QDataStream hss(&ba,QIODevice::WriteOnly);
-    hss << mainHistory;
-    settings.setValue("history",ba);
-
-    settings.setValue("adblock_count",adblock.count());
-    for (int i=0;i<adblock.count();i++) {
-        settings.setValue(QString("adblock%1").arg(i),adblock.at(i).filter());
-        settings.setValue(QString("adblock_listID%1").arg(i),adblock.at(i).listID());
-    }
 
     settings.setValue("useAdblock",useAdblock);
     settings.setValue("useOverrideFont",useOverrideFont());
@@ -360,12 +350,6 @@ void CGlobalControl::writeSettings()
     settings.setValue("forceFontColor",forceFontColor());
     settings.setValue("forcedFontColor",forcedFontColor.name());
     settings.setValue("gctxHotkey",gctxTranHotkey->shortcut().toString());
-    settings.setValue("atlHost_count",atlHostHistory.count());
-    for (int i=0;i<atlHostHistory.count();i++)
-        settings.setValue(QString("atlHost%1").arg(i),atlHostHistory.at(i));
-    settings.setValue("scpHost_count",scpHostHistory.count());
-    for (int i=0;i<scpHostHistory.count();i++)
-        settings.setValue(QString("scpHost%1").arg(i),scpHostHistory.at(i));
 
     settings.setValue("searchEngine",searchEngine);
     settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
@@ -383,30 +367,115 @@ void CGlobalControl::writeSettings()
     settings.setValue("createCoredumps",createCoredumps);
     settings.setValue("overrideUserAgent",overrideUserAgent);
     settings.setValue("userAgent",userAgent);
-    settings.setValue("userAgentHistory_count",userAgentHistory.count());
-    for (int i=0;i<userAgentHistory.count();i++)
-        settings.setValue(QString("userAgentHistory%1").arg(i),userAgentHistory.at(i));
-    settings.setValue("dictPaths_count",dictPaths.count());
-    for (int i=0;i<dictPaths.count();i++)
-        settings.setValue(QString("dictPaths%1").arg(i),dictPaths.at(i));
     settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
     settings.endGroup();
+    bigdata.endGroup();
     settingsSaveMutex.unlock();
 }
 
 void CGlobalControl::readSettings()
 {
     QSettings settings("kernel1024", "jpreader");
+    QSettings bigdata("kernel1024", "jpreader-bigdata");
     settings.beginGroup("MainWindow");
-    int cnt = settings.value("searchCnt",0).toInt();
+    bigdata.beginGroup("main");
+
+    int cnt = 0;
     QStringList qs;
-    for (int i=0;i<cnt;i++) {
-        QString s=settings.value(QString("searchTxt%1").arg(i),"").toString();
-        if (!s.isEmpty()) qs << s;
-    }
-    searchHistory.clear();
-    searchHistory.append(qs);
+
+    if (settings.value("searchCnt",0).toInt()>0) {
+        cnt = settings.value("searchCnt",0).toInt();
+        QStringList qs;
+        for (int i=0;i<cnt;i++) {
+            QString s=settings.value(QString("searchTxt%1").arg(i),"").toString();
+            if (!s.isEmpty()) qs << s;
+        }
+        searchHistory.clear();
+        searchHistory.append(qs);
+    } else
+        searchHistory = bigdata.value("searchHistory",QStringList()).value<QStringList>();
+
     updateAllQueryLists();
+
+    if (settings.value("atlHost_count",0).toInt()>0) {
+        cnt = settings.value("atlHost_count",0).toInt();
+        qs.clear();
+        atlHostHistory.clear();
+        for (int i=0;i<cnt;i++) {
+            QString s=settings.value(QString("atlHost%1").arg(i),"").toString();
+            if (!s.isEmpty()) qs << s;
+        }
+        atlHostHistory.append(qs);
+    } else
+        atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
+
+    if (settings.value("scpHost_count",0).toInt()>0) {
+        cnt = settings.value("scpHost_count",0).toInt();
+        qs.clear();
+        scpHostHistory.clear();
+        for (int i=0;i<cnt;i++) {
+            QString s=settings.value(QString("scpHost%1").arg(i),"").toString();
+            if (!s.isEmpty()) qs << s;
+        }
+        scpHostHistory.append(qs);
+    } else
+        scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
+
+    int sz = settings.beginReadArray("bookmarks");
+    if (sz>0) {
+        for (int i=0; i<sz; i++) {
+            settings.setArrayIndex(i);
+            QString t = settings.value("title").toString();
+            if (!t.isEmpty())
+                bookmarks[t]=settings.value("url").toUrl();
+        }
+    } else
+        bookmarks = bigdata.value("bookmarks").value<QBookmarksMap>();
+    settings.endArray();
+
+    QByteArray ba = settings.value("history",QByteArray()).toByteArray();
+    if (!ba.isEmpty()) {
+        mainHistory.clear();
+        QDataStream hss(&ba,QIODevice::ReadOnly);
+        try {
+            hss >> mainHistory;
+        } catch (...) {
+            mainHistory.clear();
+        }
+    } else
+        mainHistory = bigdata.value("history").value<QUHList>();
+
+    adblockMutex.lock();
+    if (settings.value("adblock_count",0).toInt()) {
+        cnt = settings.value("adblock_count",0).toInt();
+        adblock.clear();
+        for (int i=0;i<cnt;i++) {
+            QString at = settings.value(QString("adblock%1").arg(i),"").toString();
+            QString it = settings.value(QString("adblock_listID%1").arg(i),"").toString();
+            if (!at.isEmpty()) adblock << CAdBlockRule(at,it);
+        }
+    } else
+        adblock = bigdata.value("adblock").value<CAdBlockList>();
+    adblockMutex.unlock();
+
+    if (settings.value("userAgentHistory_count",0).toInt()>0) {
+        cnt=settings.value("userAgentHistory_count",0).toInt();
+        userAgentHistory.clear();
+        for (int i=0;i<cnt;i++) {
+            QString s = settings.value(QString("userAgentHistory%1").arg(i),QString()).toString();
+            if (!s.isEmpty())
+                userAgentHistory << s;
+        }
+    } else
+        userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
+
+    if (settings.value("dictPaths_count",0).toInt()>0) {
+        cnt=settings.value("dictPaths_count",0).toInt();
+        dictPaths.clear();
+        for (int i=0;i<cnt;i++)
+            dictPaths << settings.value(QString("dictPaths%1").arg(i)).toString();
+    } else
+        dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
 
     hostingDir = settings.value("hostingDir","").toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
@@ -420,22 +489,6 @@ void CGlobalControl::readSettings()
     scpParams = settings.value("scpparams","").toString();
     atlHost = settings.value("atlasHost","localhost").toString();
     atlPort = settings.value("atlasPort",18000).toInt();
-    cnt = settings.value("atlHost_count",0).toInt();
-    qs.clear();
-    atlHostHistory.clear();
-    for (int i=0;i<cnt;i++) {
-        QString s=settings.value(QString("atlHost%1").arg(i),"").toString();
-        if (!s.isEmpty()) qs << s;
-    }
-    atlHostHistory.append(qs);
-    cnt = settings.value("scpHost_count",0).toInt();
-    qs.clear();
-    scpHostHistory.clear();
-    for (int i=0;i<cnt;i++) {
-        QString s=settings.value(QString("scpHost%1").arg(i),"").toString();
-        if (!s.isEmpty()) qs << s;
-    }
-    scpHostHistory.append(qs);
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     emptyRestore = settings.value("emptyRestore",false).toBool();
     maxRecycled = settings.value("recycledCount",20).toInt();
@@ -446,36 +499,6 @@ void CGlobalControl::readSettings()
     QWebEngineSettings::globalSettings()->
             setAttribute(QWebEngineSettings::AutoLoadImages,
                                                  settings.value("autoloadimages",true).toBool());
-    int sz = settings.beginReadArray("bookmarks");
-    for (int i=0; i<sz; i++) {
-        settings.setArrayIndex(i);
-        QString t = settings.value("title").toString();
-        if (!t.isEmpty())
-            bookmarks[t]=settings.value("url").toUrl();
-    }
-    settings.endArray();
-
-    QByteArray ba = settings.value("history",QByteArray()).toByteArray();
-    if (!ba.isEmpty()) {
-        mainHistory.clear();
-        QDataStream hss(&ba,QIODevice::ReadOnly);
-        try {
-            hss >> mainHistory;
-        } catch (...) {
-            mainHistory.clear();
-        }
-    }
-
-    adblockMutex.lock();
-    cnt = settings.value("adblock_count",0).toInt();
-    adblock.clear();
-    for (int i=0;i<cnt;i++) {
-        QString at = settings.value(QString("adblock%1").arg(i),"").toString();
-        QString it = settings.value(QString("adblock_listID%1").arg(i),"").toString();
-        if (!at.isEmpty()) adblock << CAdBlockRule(at,it);
-    }
-    adblockMutex.unlock();
-
     useAdblock=settings.value("useAdblock",false).toBool();
     actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
     overrideFont.setFamily(settings.value("overrideFont","Verdana").toString());
@@ -512,13 +535,6 @@ void CGlobalControl::readSettings()
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
-    cnt=settings.value("userAgentHistory_count",0).toInt();
-    userAgentHistory.clear();
-    for (int i=0;i<cnt;i++) {
-        QString s = settings.value(QString("userAgentHistory%1").arg(i),QString()).toString();
-        if (!s.isEmpty())
-            userAgentHistory << s;
-    }
     if (userAgent.isEmpty())
         overrideUserAgent=false;
     else if (userAgentHistory.isEmpty())
@@ -527,12 +543,9 @@ void CGlobalControl::readSettings()
     if (overrideUserAgent)
         webProfile->setHttpUserAgent(userAgent);
 
-    cnt=settings.value("dictPaths_count",0).toInt();
-    dictPaths.clear();
-    for (int i=0;i<cnt;i++)
-        dictPaths << settings.value(QString("dictPaths%1").arg(i)).toString();
 
     settings.endGroup();
+    bigdata.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     updateAllBookmarks();
