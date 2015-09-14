@@ -107,7 +107,7 @@
            <item>
             <widget class="QLabel" name="label_12">
              <property name="text">
-              <string>M&amp;aximum recycled menu items</string>
+              <string>Ma&amp;ximum recycled menu items</string>
              </property>
              <property name="buddy">
               <cstring>spinMaxRecycled</cstring>
@@ -1137,6 +1137,12 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="cornerButtonEnabled">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

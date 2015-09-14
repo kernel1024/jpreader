@@ -348,3 +348,11 @@ QString bool2str(bool value)
     else
         return QString("off");
 }
+
+QString bool2str2(bool value)
+{
+    if (value)
+        return QString("TRUE");
+    else
+        return QString("FALSE");
+}

@@ -89,6 +89,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonLoadedDicts,SIGNAL(clicked()),this,SLOT(showLoadedDicts()));
     connect(ui->buttonClearCookies,SIGNAL(clicked()),this,SLOT(clearCookies()));
     connect(ui->buttonEditBookmark,SIGNAL(clicked()),this,SLOT(editBkm()));
+    connect(ui->buttonDelCookies,SIGNAL(clicked()),this,SLOT(delCookies()));
+    connect(ui->buttonExportCookies,SIGNAL(clicked()),this,SLOT(exportCookies()));
 
 #ifndef WEBENGINE_56
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
@@ -117,24 +119,46 @@ CSettingsDlg::~CSettingsDlg()
 
 void CSettingsDlg::updateCookiesTable()
 {
-    QTableWidget *t = ui->tableCookies;
+    QTableWidget *table = ui->tableCookies;
 
-    t->clear();
-    t->setRowCount(cookiesList.count());
-    t->setColumnCount(5);
-    t->setHorizontalHeaderLabels(QStringList() << tr("Domain") << tr("Name")
-                                 << tr("Path") << tr("Expiration")<< tr("Value"));
+    table->setSortingEnabled(false);
+    table->clear();
+    table->setColumnCount(5);
+    table->setRowCount(cookiesList.count());
+    table->setHorizontalHeaderLabels(QStringList() << tr("Domain") << tr("Name")
+                                 << tr("Path") << tr("Expiration") << tr("Value"));
     for (int i=0;i<cookiesList.count();i++) {
-        t->setItem(i,0,new QTableWidgetItem(cookiesList.at(i).domain()));
-        t->setItem(i,1,new QTableWidgetItem(QString::fromUtf8(
-                                                cookiesList.at(i).name().toPercentEncoding())));
-        t->setItem(i,2,new QTableWidgetItem(cookiesList.at(i).path()));
-        t->setItem(i,3,new QTableWidgetItem(cookiesList.at(i).expirationDate()
-                                            .toString(Qt::DefaultLocaleShortDate)));
-        t->setItem(i,4,new QTableWidgetItem(QString::fromUtf8(
-                                                cookiesList.at(i).value().toPercentEncoding())));
+
+        QString s = cookiesList.at(i).domain();
+        QTableWidgetItem* item = new QTableWidgetItem(s);
+        item->setData(Qt::UserRole+1,i);
+        table->setItem(i,0,item);
+
+        s = QString::fromUtf8(cookiesList.at(i).name());
+        item = new QTableWidgetItem(s);
+        item->setData(Qt::UserRole+1,i);
+        table->setItem(i,1,item);
+
+        s = cookiesList.at(i).path();
+        item = new QTableWidgetItem(s);
+        item->setData(Qt::UserRole+1,i);
+        table->setItem(i,2,item);
+
+        s = cookiesList.at(i).expirationDate().toString(Qt::DefaultLocaleShortDate);
+        item = new QTableWidgetItem(s);
+        item->setData(Qt::UserRole+1,i);
+        table->setItem(i,3,item);
+
+        s = QString::fromUtf8(cookiesList.at(i).value());
+        item = new QTableWidgetItem(s);
+        item->setData(Qt::UserRole+1,i);
+        table->setItem(i,4,item);
     }
-    t->resizeColumnsToContents();
+    table->resizeColumnToContents(0);
+    table->resizeColumnToContents(1);
+    table->resizeColumnToContents(2);
+    table->resizeColumnToContents(3);
+    table->setSortingEnabled(true);
 }
 
 void CSettingsDlg::selectDir()
@@ -287,6 +311,8 @@ void CSettingsDlg::clearCookies()
     QWebEngineCookieStoreClient* wsc = gSet->webProfile->cookieStoreClient();
     if (wsc!=NULL)
         wsc->deleteAllCookies();
+
+    getCookiesFromStore();
 #endif
 }
 
@@ -298,6 +324,62 @@ void CSettingsDlg::getCookiesFromStore()
             setCookies(cookies);
         });
     }
+#endif
+}
+
+void CSettingsDlg::delCookies()
+{
+#ifdef WEBENGINE_56
+    QList<int> r = getSelectedRows(ui->tableCookies);
+    if (gSet->webProfile->cookieStoreClient()!=NULL) {
+        foreach (const int idx, r)
+            gSet->webProfile->cookieStoreClient()->deleteCookie(cookiesList.at(idx));
+
+        getCookiesFromStore();
+    }
+#endif
+}
+
+void CSettingsDlg::exportCookies()
+{
+#ifdef WEBENGINE_56
+    QList<int> r = getSelectedRows(ui->tableCookies);
+    if (r.isEmpty()) {
+        QMessageBox::information(this,tr("JPReader"),tr("Please select cookies for export."));
+        return;
+    }
+
+    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),QDir::homePath(),
+                                     tr("Text file, Netscape format (*.txt)"));
+
+    if (fname.isEmpty() || fname.isNull()) return;
+
+    QFile f(fname);
+    if (!f.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this,tr("JPReader"),tr("Unable to create file."));
+        return;
+    }
+    QTextStream fs(&f);
+
+    for (int i=0;i<r.count();i++) {
+        int idx = r.at(i);
+        fs << cookiesList.at(idx).domain()
+           << "\t"
+           << bool2str2(cookiesList.at(idx).domain().startsWith("."))
+           << "\t"
+           << cookiesList.at(idx).path()
+           << "\t"
+           << bool2str2(cookiesList.at(idx).isSecure())
+           << "\t"
+           << cookiesList.at(idx).expirationDate().toTime_t()
+           << "\t"
+           << cookiesList.at(idx).name()
+           << "\t"
+           << cookiesList.at(idx).value()
+           << endl;
+    }
+    fs.flush();
+    f.close();
 #endif
 }
 
@@ -352,6 +434,17 @@ void CSettingsDlg::setCookies(const QByteArray &cookies)
 {
     cookiesList = QNetworkCookie::parseCookies(cookies);
     updateCookiesTable();
+}
+
+QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table)
+{
+    QList<int> res;
+    res.clear();
+    foreach (const QTableWidgetItem *i, table->selectedItems()) {
+        if (!res.contains(i->data(Qt::UserRole+1).toInt()))
+            res << i->data(Qt::UserRole+1).toInt();
+    }
+    return res;
 }
 
 QBookmarksMap CSettingsDlg::getBookmarks()

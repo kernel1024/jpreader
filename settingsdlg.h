@@ -10,6 +10,7 @@
 #include <QFontComboBox>
 #include <QColor>
 #include <QNetworkCookie>
+#include <QTableWidget>
 #include "specwidgets.h"
 #include "globalcontrol.h"
 
@@ -80,6 +81,7 @@ private:
 
     void updateCookiesTable();
     void setCookies(const QByteArray& cookies);
+    QList<int> getSelectedRows(QTableWidget* table);
 
 public:
     void updateFontColorPreview(const QColor &c);
@@ -111,6 +113,8 @@ public slots:
     void showLoadedDicts();
     void clearCookies();
     void getCookiesFromStore();
+    void delCookies();
+    void exportCookies();
 };
 
 #endif // SETTINGSDLG_H
