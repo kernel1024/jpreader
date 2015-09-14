@@ -25,6 +25,7 @@
 
 #include "specwidgets.h"
 #include "logdisplay.h"
+#include "adblockrule.h"
 
 #define TE_GOOGLE 0
 #define TE_ATLAS 1
@@ -116,8 +117,6 @@ public:
     QUHList mainHistory;
     int maxHistory;
     QStringList searchHistory;
-    QStringList adblock;
-    QMutex adblockMutex;
     QFont overrideFont;
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
@@ -130,8 +129,11 @@ public:
 
     QWebEngineProfile *webProfile;
 
-    int searchEngine;
+    QList<CAdBlockRule> adblock;
+    QMutex adblockMutex;
     bool useAdblock;
+
+    int searchEngine;
     QString scpHost;
     QString scpParams;
     bool useScp;
@@ -213,7 +215,8 @@ public:
     // Ad-block
     bool isUrlBlocked(QUrl url);
     void adblockAppend(QString url);
-    void adblockAppend(QStringList urls);
+    void adblockAppend(CAdBlockRule url);
+    void adblockAppend(QList<CAdBlockRule> urls);
 
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);

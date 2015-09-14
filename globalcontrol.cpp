@@ -343,8 +343,10 @@ void CGlobalControl::writeSettings()
     settings.setValue("history",ba);
 
     settings.setValue("adblock_count",adblock.count());
-    for (int i=0;i<adblock.count();i++)
-        settings.setValue(QString("adblock%1").arg(i),adblock.at(i));
+    for (int i=0;i<adblock.count();i++) {
+        settings.setValue(QString("adblock%1").arg(i),adblock.at(i).filter());
+        settings.setValue(QString("adblock_listID%1").arg(i),adblock.at(i).listID());
+    }
 
     settings.setValue("useAdblock",useAdblock);
     settings.setValue("useOverrideFont",useOverrideFont());
@@ -469,7 +471,8 @@ void CGlobalControl::readSettings()
     adblock.clear();
     for (int i=0;i<cnt;i++) {
         QString at = settings.value(QString("adblock%1").arg(i),"").toString();
-        if (!at.isEmpty()) adblock << at;
+        QString it = settings.value(QString("adblock_listID%1").arg(i),"").toString();
+        if (!at.isEmpty()) adblock << CAdBlockRule(at,it);
     }
     adblockMutex.unlock();
 
@@ -1120,26 +1123,32 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
         qCritical() << "Failed to lock adblock mutex";
         return false;
     }
-    QStringList adlist(adblock);
+    QList<CAdBlockRule> adlist(adblock);
     adblockMutex.unlock();
 
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
+
     for(int i=0;i<adlist.count();i++) {
-        QRegExp fl(adlist.at(i),Qt::CaseInsensitive,QRegExp::Wildcard);
-        if (fl.exactMatch(u)) return true;
+        if (adlist.at(i).networkMatch(u))
+            return true;
     }
     return false;
 }
 
 void CGlobalControl::adblockAppend(QString url)
 {
+    adblockAppend(CAdBlockRule(url,QString()));
+}
+
+void CGlobalControl::adblockAppend(CAdBlockRule url)
+{
     adblockMutex.lock();
     adblock.append(url);
     adblockMutex.unlock();
 }
 
-void CGlobalControl::adblockAppend(QStringList urls)
+void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
 {
     adblockMutex.lock();
     adblock.append(urls);

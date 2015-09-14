@@ -83,6 +83,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAdAdd,SIGNAL(clicked()),this,SLOT(addAd()));
     connect(ui->buttonAdDel,SIGNAL(clicked()),this,SLOT(delAd()));
     connect(ui->buttonAdImport,SIGNAL(clicked()),this,SLOT(importAd()));
+    connect(ui->buttonAdExport,SIGNAL(clicked()),this,SLOT(exportAd()));
     connect(ui->buttonFontColorOverride,SIGNAL(clicked()),this,SLOT(fontColorDlg()));
     connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
     connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
@@ -97,11 +98,12 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->groupBoxProxy->setEnabled(false);
     ui->groupBoxProxy->setToolTip(we56);
 
-    ui->listAdblock->setEnabled(false);
-    ui->listAdblock->setToolTip(we56);
+    ui->treeAdblock->setEnabled(false);
+    ui->treeAdblock->setToolTip(we56);
     ui->buttonAdAdd->setEnabled(false);
     ui->buttonAdDel->setEnabled(false);
     ui->buttonAdImport->setEnabled(false);
+    ui->buttonAdExport->setEnabled(false);
     ui->checkUseAd->setEnabled(false);
 
     ui->tableCookies->setEnabled(false);
@@ -159,6 +161,28 @@ void CSettingsDlg::updateCookiesTable()
     table->resizeColumnToContents(2);
     table->resizeColumnToContents(3);
     table->setSortingEnabled(true);
+}
+
+void CSettingsDlg::updateAdblockList()
+{
+    ui->treeAdblock->setHeaderLabels(QStringList() << tr("AdBlock patterns"));
+    QHash<QString,QTreeWidgetItem*> cats;
+    ui->treeAdblock->clear();
+    for (int i=0;i<adblockList.count();i++) {
+        QTreeWidgetItem* tli = NULL;
+        QString cat = adblockList.at(i).listID();
+        if (cats.keys().contains(cat))
+            tli = cats.value(cat);
+        else {
+            tli = new QTreeWidgetItem(ui->treeAdblock);
+            tli->setText(0,cat);
+            cats[cat] = tli;
+        }
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(tli);
+        item->setText(0,adblockList.at(i).filter());
+        item->setData(0,Qt::UserRole+1,i);
+    }
 }
 
 void CSettingsDlg::selectDir()
@@ -241,16 +265,25 @@ void CSettingsDlg::addAd()
     QString s = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),
                                       QLineEdit::Normal,"",&ok);
     if (!ok) return;
-    ui->listAdblock->addItem(s);
+
+    adblockList << CAdBlockRule(s,QString());
+    updateAdblockList();
 }
 
 void CSettingsDlg::delAd()
 {
-    QList<QListWidgetItem *> dl = ui->listAdblock->selectedItems();
-    foreach (QListWidgetItem* i, dl) {
-        ui->listAdblock->removeItemWidget(i);
-        delete i;
-    }
+    QList<int> r;
+    foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
+        r << i->data(0,Qt::UserRole+1).toInt();
+
+    QList<CAdBlockRule> tmp = adblockList;
+
+    foreach (const int idx, r)
+        adblockList.removeOne(tmp.at(idx));
+
+    tmp.clear();
+
+    updateAdblockList();
 }
 
 void CSettingsDlg::importAd()
@@ -258,21 +291,55 @@ void CSettingsDlg::importAd()
     QString fname = getOpenFileNameD(this,tr("Import rules from text file"),QDir::homePath());
     if (fname.isEmpty()) return;
 
-    QFile ini(fname);
-    if (!ini.open(QIODevice::ReadOnly)) {
+    QFile f(fname);
+    if (!f.open(QIODevice::ReadOnly)) {
         QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
         return;
     }
-    QTextStream inird(&ini);
-    QStringList lnks;
-    lnks.clear();
-    while (!inird.atEnd()) {
-        QString s = inird.readLine();
-        if (!s.isEmpty())
-            lnks << s;
+    QTextStream fs(&f);
+
+    QFileInfo fi(fname);
+
+    int psz = adblockList.count();
+    while (!fs.atEnd()) {
+        adblockList << CAdBlockRule(fs.readLine(),fi.fileName());
     }
-    ini.close();
-    ui->listAdblock->addItems(lnks);
+    f.close();
+
+    updateAdblockList();
+
+    psz = adblockList.count() - psz;
+    QMessageBox::information(this,tr("JPReader"),tr("%1 rules imported.").arg(psz));
+}
+
+void CSettingsDlg::exportAd()
+{
+    if (ui->treeAdblock->selectedItems().isEmpty()) {
+        QMessageBox::information(this,tr("JPReader"),tr("Please select patterns for export."));
+        return;
+    }
+
+    QList<int> r;
+    foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
+        r << i->data(0,Qt::UserRole+1).toInt();
+
+    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),QDir::homePath(),
+                                     tr("Text file (*.txt)"));
+
+    if (fname.isEmpty() || fname.isNull()) return;
+
+    QFile f(fname);
+    if (!f.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this,tr("JPReader"),tr("Unable to create file"));
+        return;
+    }
+    QTextStream fs(&f);
+
+    for (int i=0;i<r.count();i++)
+        fs << adblockList.at(r.at(i)).filter() << endl;
+
+    fs.flush();
+    f.close();
 }
 
 void CSettingsDlg::fontColorDlg()
@@ -414,10 +481,10 @@ void CSettingsDlg::setQueryHistory(QStringList history)
         ui->listQr->addItem(history.at(i));
 }
 
-void CSettingsDlg::setAdblock(QStringList adblock)
+void CSettingsDlg::setAdblock(QList<CAdBlockRule> adblock)
 {
-    ui->listAdblock->clear();
-    ui->listAdblock->addItems(adblock);
+    adblockList = adblock;
+    updateAdblockList();
 }
 
 void CSettingsDlg::setMainHistory(QUHList history)
@@ -466,12 +533,7 @@ QStringList CSettingsDlg::getQueryHistory()
     return sl;
 }
 
-QStringList CSettingsDlg::getAdblock()
+QList<CAdBlockRule> CSettingsDlg::getAdblock()
 {
-    QStringList sl;
-    sl.clear();
-    for (int i=0;i<ui->listAdblock->count();i++)
-        sl << ui->listAdblock->item(i)->text();
-    sl.sort();
-    return sl;
+    return adblockList;
 }

@@ -27,7 +27,8 @@ HEADERS = mainwindow.h \
     bingtranslator.h \
     goldendictmgr.h \
     auxdictionary.h \
-    multiinputdialog.h
+    multiinputdialog.h \
+    adblockrule.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -59,7 +60,8 @@ SOURCES = main.cpp \
     searchmodel.cpp \
     goldendictmgr.cpp \
     auxdictionary.cpp \
-    multiinputdialog.cpp
+    multiinputdialog.cpp \
+    adblockrule.cpp
 
 RESOURCES = \
     jpreader.qrc

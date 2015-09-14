@@ -1057,13 +1057,18 @@ p, li { white-space: pre-wrap; }
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_9">
        <item>
-        <widget class="QListWidget" name="listAdblock">
-         <property name="enabled">
-          <bool>true</bool>
+        <widget class="QTreeWidget" name="treeAdblock">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
          </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::ExtendedSelection</enum>
          </property>
+         <column>
+          <property name="text">
+           <string notr="true">1</string>
+          </property>
+         </column>
         </widget>
        </item>
        <item>
@@ -1095,6 +1100,13 @@ p, li { white-space: pre-wrap; }
            </property>
            <property name="text">
             <string>Import...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAdExport">
+           <property name="text">
+            <string>Export...</string>
            </property>
           </widget>
          </item>
@@ -1472,10 +1484,11 @@ p, li { white-space: pre-wrap; }
   <tabstop>listHistory</tabstop>
   <tabstop>buttonCleanHistory</tabstop>
   <tabstop>buttonGoHistory</tabstop>
-  <tabstop>listAdblock</tabstop>
+  <tabstop>treeAdblock</tabstop>
   <tabstop>buttonAdAdd</tabstop>
   <tabstop>buttonAdDel</tabstop>
   <tabstop>buttonAdImport</tabstop>
+  <tabstop>buttonAdExport</tabstop>
   <tabstop>checkUseAd</tabstop>
   <tabstop>tableCookies</tabstop>
   <tabstop>buttonClearCookies</tabstop>
@@ -1489,6 +1502,8 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkLogNetworkRequests</tabstop>
   <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
+  <tabstop>buttonExportCookies</tabstop>
+  <tabstop>buttonDelCookies</tabstop>
  </tabstops>
  <resources/>
  <connections>

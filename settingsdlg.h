@@ -13,6 +13,7 @@
 #include <QTableWidget>
 #include "specwidgets.h"
 #include "globalcontrol.h"
+#include "adblockrule.h"
 
 namespace Ui {
     class SettingsDlg;
@@ -78,10 +79,12 @@ private:
     Ui::SettingsDlg *ui;
     QColor overridedFontColor;
     QList<QNetworkCookie> cookiesList;
+    QList<CAdBlockRule> adblockList;
 
     void updateCookiesTable();
     void setCookies(const QByteArray& cookies);
     QList<int> getSelectedRows(QTableWidget* table);
+    void updateAdblockList();
 
 public:
     void updateFontColorPreview(const QColor &c);
@@ -89,11 +92,11 @@ public:
 
     void setBookmarks(QBookmarksMap bookmarks);
     void setQueryHistory(QStringList history);
-    void setAdblock(QStringList adblock);
+    void setAdblock(QList<CAdBlockRule> adblock);
     void setMainHistory(QUHList history);
     QBookmarksMap getBookmarks();
     QStringList getQueryHistory();
-    QStringList getAdblock();
+    QList<CAdBlockRule> getAdblock();
 
 public slots:
     void selectDir();
@@ -107,6 +110,7 @@ public slots:
     void addAd();
     void delAd();
     void importAd();
+    void exportAd();
     void fontColorDlg();
     void addDictPath();
     void delDictPath();
