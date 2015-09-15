@@ -84,24 +84,12 @@
         <number>2</number>
        </property>
        <item>
-        <widget class="QComboBox" name="urlEdit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QLineEdit" name="urlEdit">
          <property name="minimumSize">
           <size>
            <width>150</width>
            <height>0</height>
           </size>
-         </property>
-         <property name="editable">
-          <bool>true</bool>
-         </property>
-         <property name="maxVisibleItems">
-          <number>20</number>
          </property>
         </widget>
        </item>
@@ -461,13 +449,15 @@
   <tabstop>stopButton</tabstop>
   <tabstop>urlEdit</tabstop>
   <tabstop>navButton</tabstop>
+  <tabstop>searchEdit</tabstop>
+  <tabstop>backButton</tabstop>
+  <tabstop>fwdButton</tabstop>
   <tabstop>comboZoom</tabstop>
   <tabstop>comboSrcLang</tabstop>
   <tabstop>comboTranEngine</tabstop>
   <tabstop>transButton</tabstop>
   <tabstop>abortBtn</tabstop>
   <tabstop>hideErrorButton</tabstop>
-  <tabstop>browser</tabstop>
  </tabstops>
  <resources/>
  <connections>

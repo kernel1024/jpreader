@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <QWebEngineSettings>
 #include <QWebEngineHistory>
-
+#include <QCompleter>
 #include <QUrlQuery>
 
 #include <math.h>
@@ -61,6 +61,12 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     msgHandler = new CSnMsgHandler(this);
     waitHandler = new CSnWaitCtl(this);
 
+    QCompleter *completer = new QCompleter(this);
+    completer->setModel(new QSpecUrlHistoryModel(completer));
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setFilterMode(Qt::MatchContains);
+    urlEdit->setCompleter(completer);
+
     connect(backButton, SIGNAL(clicked()), msgHandler, SLOT(searchBack()));
     connect(fwdButton, SIGNAL(clicked()), msgHandler, SLOT(searchFwd()));
     connect(comboZoom,SIGNAL(currentIndexChanged(QString)), msgHandler, SLOT(setZoom(QString)));
@@ -68,8 +74,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(stopButton, SIGNAL(clicked()), txtBrowser, SLOT(stop()));
     connect(reloadButton, SIGNAL(clicked()), txtBrowser, SLOT(reload()));
     connect(searchEdit->lineEdit(), SIGNAL(returnPressed()), fwdButton, SLOT(click()));
-    connect(urlEdit->lineEdit(), SIGNAL(returnPressed()), this, SLOT(navByUrl()));
-    connect(urlEdit->lineEdit(), SIGNAL(textEdited(QString)),msgHandler,SLOT(urlEdited(QString)));
+    connect(urlEdit, SIGNAL(returnPressed()), this, SLOT(navByUrl()));
     connect(navButton, SIGNAL(clicked()), msgHandler, SLOT(navByClick()));
     connect(fwdNavButton, SIGNAL(clicked()), txtBrowser, SLOT(forward()));
     connect(backNavButton, SIGNAL(clicked()), txtBrowser, SLOT(back()));
@@ -150,12 +155,10 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     }
 
     int mv = round((70*parentWnd->height()/100)/(urlEdit->fontMetrics().height()));
-    urlEdit->setMaxVisibleItems(mv);
+    completer->setMaxVisibleItems(mv);
 
     if (!startPage)
         parentWnd->closeStartPage();
-
-    parentWnd->updateSuggestionLists(this);
 }
 
 void CSnippetViewer::updateButtonsState()
@@ -168,7 +171,7 @@ void CSnippetViewer::updateButtonsState()
 
 void CSnippetViewer::navByUrl()
 {
-    navByUrl(urlEdit->lineEdit()->text());
+    navByUrl(urlEdit->text());
 }
 
 void CSnippetViewer::navByUrl(QString url)
@@ -183,7 +186,7 @@ void CSnippetViewer::navByUrl(QString url)
         u.setQuery(qu);
     }
 
-    urlEdit->lineEdit()->setStyleSheet(QString());
+    urlEdit->setStyleSheet(QString());
 
     fileChanged=false;
 
@@ -231,25 +234,25 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 {
     if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
             url.scheme().startsWith("file",Qt::CaseInsensitive))
-        urlEdit->setEditText(url.toString());
+        urlEdit->setText(url.toString());
     else {
         QUrl aUrl = getUrl();
         if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
                 url.scheme().startsWith("file",Qt::CaseInsensitive))
-            urlEdit->setEditText(aUrl.toString());
+            urlEdit->setText(aUrl.toString());
         else if (netHandler->loadedUrl.isValid() &&
                  (netHandler->loadedUrl.scheme().startsWith("http",Qt::CaseInsensitive) ||
                                  netHandler->loadedUrl.scheme().startsWith("file",Qt::CaseInsensitive)))
-            urlEdit->setEditText(netHandler->loadedUrl.toString());
+            urlEdit->setText(netHandler->loadedUrl.toString());
         else
-            urlEdit->clearEditText();
+            urlEdit->clear();
     }
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
-        urlEdit->lineEdit()->setStyleSheet("QLineEdit { background: #d7ffd7; }");
+        urlEdit->setStyleSheet("QLineEdit { background: #d7ffd7; }");
     } else {
         urlEdit->setToolTip(tr("Displayed URL"));
-        urlEdit->lineEdit()->setStyleSheet(QString());
+        urlEdit->setStyleSheet(QString());
     }
 }
 
@@ -309,14 +312,6 @@ void CSnippetViewer::updateWebViewAttributes()
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,gSet->fontSerif);
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,gSet->fontSansSerif);
     }
-}
-
-void CSnippetViewer::updateHistorySuggestion(const QStringList& suggestionList)
-{
-    QString s = urlEdit->currentText();
-    urlEdit->clear();
-    urlEdit->addItems(suggestionList);
-    urlEdit->setEditText(s);
 }
 
 bool CSnippetViewer::canClose()

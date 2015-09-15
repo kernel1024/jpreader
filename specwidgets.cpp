@@ -354,3 +354,35 @@ bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 }
 
 #endif
+
+QSpecUrlHistoryModel::QSpecUrlHistoryModel(QObject *parent)
+    : QAbstractListModel(parent)
+{
+
+}
+
+int QSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+
+    return gSet->mainHistory.count();
+}
+
+QVariant QSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
+{
+    int idx = index.row();
+
+    if (idx<0 || idx>=gSet->mainHistory.count()) return QVariant();
+
+    if (role==Qt::DisplayRole || role==Qt::EditRole)
+        return gSet->mainHistory.at(idx).url.toString();
+
+    return QVariant();
+}
+
+Qt::ItemFlags QSpecUrlHistoryModel::flags(const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+
+    return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+}

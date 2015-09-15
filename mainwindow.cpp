@@ -373,24 +373,6 @@ void CMainWindow::updateHistoryList()
         it->setData(Qt::UserRole+2,t.uuid.toString());
         helperList->addItem(it);
     }
-    updateSuggestionLists(NULL);
-}
-
-void CMainWindow::updateSuggestionLists(CSnippetViewer* snviewer)
-{
-    QStringList sg;
-    for (int i=0;i<200;i++) {
-        if (i>=gSet->mainHistory.count()) break;
-        sg << gSet->mainHistory.at(i).url.toString();
-    }
-    if (snviewer==NULL) {
-        for (int i=0;i<tabMain->count();i++) {
-            CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->widget(i));
-            if (sn!=NULL)
-                sn->updateHistorySuggestion(sg);
-        }
-    } else
-        snviewer->updateHistorySuggestion(sg);
 }
 
 void CMainWindow::updateTitle()

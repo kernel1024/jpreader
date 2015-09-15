@@ -30,14 +30,10 @@ void CSnMsgHandler::setZoom(QString z)
     }
 }
 
-void CSnMsgHandler::urlEdited(const QString &)
-{
-}
-
 void CSnMsgHandler::navByClick()
 {
-    if (snv->urlEdit->currentText().isEmpty()) return;
-    snv->navByUrl(snv->urlEdit->currentText());
+    if (snv->urlEdit->text().isEmpty()) return;
+    snv->navByUrl(snv->urlEdit->text());
 }
 
 void CSnMsgHandler::srcLang(int lang)

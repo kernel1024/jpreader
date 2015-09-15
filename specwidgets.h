@@ -21,6 +21,7 @@
 #include <QKeyEvent>
 #include <QWebEnginePage>
 #include <QSyntaxHighlighter>
+#include <QAbstractListModel>
 
 #ifdef WEBENGINE_56
 #include <QWebEngineUrlRequestInterceptor>
@@ -156,5 +157,14 @@ public:
 };
 
 #endif // WEBENGINE_56
+
+class QSpecUrlHistoryModel : public QAbstractListModel {
+    Q_OBJECT
+public:
+    QSpecUrlHistoryModel(QObject *parent = 0);
+    int rowCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+};
 
 #endif // SPECTABWIDGET_H

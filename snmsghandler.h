@@ -25,7 +25,6 @@ public slots:
     void searchFwd();
     void searchBack();
     void setZoom(QString z);
-    void urlEdited(const QString &url);
     void navByClick();
     void srcLang(int lang);
     void tranEngine(int engine);

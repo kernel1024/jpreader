@@ -56,7 +56,6 @@ public:
     void keyPressEvent(QKeyEvent* event);
     void updateButtonsState();
     void updateWebViewAttributes();
-    void updateHistorySuggestion(const QStringList &suggestionList);
     virtual bool canClose();
     virtual void recycleTab();
     QUrl getUrl();

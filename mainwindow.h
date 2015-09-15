@@ -36,7 +36,6 @@ public:
     void updateRecycled();
     void updateTabs();
     void updateHistoryList();
-    void updateSuggestionLists(CSnippetViewer *snviewer);
 
 private:
     QMenu* recycledMenu;
