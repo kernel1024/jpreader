@@ -124,7 +124,7 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
         return false;
     }
 
-    bool matched = m_regExp.indexIn(encodedUrl) != -1;
+    bool matched = encodedUrl.contains(m_regExp);
 
     if (matched
             && !m_options.isEmpty()) {
