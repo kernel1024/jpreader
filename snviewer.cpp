@@ -85,6 +85,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(loadStarted()), netHandler, SLOT(loadStarted()));
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
+    connect(txtBrowser, SIGNAL(iconUrlChanged(QUrl)), netHandler, SLOT(iconUrlChanged(QUrl)));
 
     connect(txtBrowser->page(), SIGNAL(authenticationRequired(QUrl,QAuthenticator*)),
             netHandler, SLOT(authenticationRequired(QUrl,QAuthenticator*)));
@@ -212,8 +213,9 @@ void CSnippetViewer::titleChanged(const QString & title)
 		}
         if (s.isEmpty()) s = "< ... >";
 	}
+    s = s.trimmed();
     if (!title.isEmpty())
-        tabTitle = title;
+        tabTitle = title.trimmed();
     else
         tabTitle = s;
     tabWidget->setTabText(i,tabWidget->fontMetrics().elidedText(s,Qt::ElideRight,150));
@@ -222,7 +224,7 @@ void CSnippetViewer::titleChanged(const QString & title)
         if (txtBrowser->page()->url().isValid() &&
                 !txtBrowser->page()->url().toString().contains("about:blank",Qt::CaseInsensitive)) {
                 UrlHolder uh(title,txtBrowser->page()->url());
-                if (!gSet->updateMainHistoryTitle(uh,title))
+                if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
                     gSet->appendMainHistory(uh);
             }
     }
@@ -247,6 +249,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         else
             urlEdit->clear();
     }
+
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
         urlEdit->setStyleSheet("QLineEdit { background: #d7ffd7; }");
@@ -254,6 +257,11 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         urlEdit->setToolTip(tr("Displayed URL"));
         urlEdit->setStyleSheet(QString());
     }
+
+    if (gSet->favicons.keys().contains(url.host()+url.path()))
+        updateTabIcon(gSet->favicons[url.host()+url.path()]);
+    else if (gSet->favicons.keys().contains(url.host()))
+        updateTabIcon(gSet->favicons[url.host()]);
 }
 
 void CSnippetViewer::recycleTab()

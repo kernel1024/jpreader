@@ -2,7 +2,7 @@
 #include <QMessageBox>
 #include <QLocalSocket>
 #include <QWebEngineSettings>
-
+#include <QNetworkCookieJar>
 #include <QStandardPaths>
 
 #ifdef WEBENGINE_56
@@ -48,6 +48,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     emptyRestore=false;
     createCoredumps=false;
     ignoreSSLErrors=false;
+    showFavicons=false;
     forcedCharset=""; // autodetect
     createdFiles.clear();
     recycleBin.clear();
@@ -59,6 +60,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     overrideUserAgent=false;
     userAgent.clear();
     userAgentHistory.clear();
+    favicons.clear();
 
     appIcon.addFile(":/img/globe16");
     appIcon.addFile(":/img/globe32");
@@ -228,6 +230,11 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 #ifdef WEBENGINE_56
     webProfile->setRequestInterceptor(new QSpecUrlInterceptor());
     webProfile->setCookieStoreClient(new QWebEngineCookieStoreClient());
+
+    connect(webProfile->cookieStoreClient(), SIGNAL(cookieAdded(QNetworkCookie)),
+            this, SLOT(cookieAdded(QNetworkCookie)));
+    connect(webProfile->cookieStoreClient(), SIGNAL(cookieRemoved(QNetworkCookie)),
+            this, SLOT(cookieRemoved(QNetworkCookie)));
 #endif
 
     dictIndexDir = fs + tr("dictIndex") + QDir::separator();
@@ -240,6 +247,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     dictManager = new CGoldenDictMgr(this);
     dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
+
+    auxNetManager = new QNetworkAccessManager(this);
 
     settingsSaveTimer.setInterval(60000);
     connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
@@ -368,6 +377,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("overrideUserAgent",overrideUserAgent);
     settings.setValue("userAgent",userAgent);
     settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
+    settings.setValue("showFavicons",showFavicons);
     settings.endGroup();
     bigdata.endGroup();
     settingsSaveMutex.unlock();
@@ -532,6 +542,7 @@ void CGlobalControl::readSettings()
     bingKey = settings.value("bingKey",QString()).toString();
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
+    showFavicons = settings.value("showFavicons",true).toBool();
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
@@ -705,6 +716,7 @@ void CGlobalControl::settingsDlg()
     dlg->loadedDicts.append(dictManager->getLoadedDictionaries());
 
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
+    dlg->visualShowFavicons->setChecked(showFavicons);
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
     dlg->proxyLogin->setText(proxyLogin);
@@ -821,6 +833,7 @@ void CGlobalControl::settingsDlg()
         }
 
         ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
+        showFavicons = dlg->visualShowFavicons->isChecked();
         proxyHost = dlg->proxyHost->text();
         proxyPort = dlg->proxyPort->value();
         proxyLogin = dlg->proxyLogin->text();
@@ -870,6 +883,18 @@ void CGlobalControl::toggleAutoloadImages(bool loadImages)
 void CGlobalControl::toggleLogNetRequests(bool logRequests)
 {
     debugNetReqLogging = logRequests;
+}
+
+void CGlobalControl::cookieAdded(const QNetworkCookie &cookie)
+{
+    if (auxNetManager->cookieJar()!=NULL)
+        auxNetManager->cookieJar()->insertCookie(cookie);
+}
+
+void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
+{
+    if (auxNetManager->cookieJar()!=NULL)
+        auxNetManager->cookieJar()->deleteCookie(cookie);
 }
 
 void CGlobalControl::cleanTmpFiles()

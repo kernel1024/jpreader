@@ -56,6 +56,21 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
     }
 }
 
+void CSnNet::iconUrlChanged(const QUrl &url)
+{
+    if (!gSet->showFavicons) return;
+    if (url.isEmpty() || !url.isValid()) return;
+
+    if (url.isLocalFile()) {
+        QIcon icon = QIcon(url.toLocalFile());
+        if (!icon.isNull())
+            snv->updateTabIcon(icon);
+    } else {
+        QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(url));
+        connect(rpl,SIGNAL(finished()),this,SLOT(urlIconFinished()));
+    }
+}
+
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {
@@ -132,4 +147,26 @@ void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator 
     }
     dlg->setParent(NULL);
     delete dlg;
+}
+
+void CSnNet::urlIconFinished()
+{
+    QNetworkReply *rpl = qobject_cast<QNetworkReply*>(sender());
+    if (rpl==NULL) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QPixmap p;
+        if (p.loadFromData(rpl->readAll())) {
+            QIcon ico(p);
+            snv->updateTabIcon(ico);
+            QString host = rpl->url().host();
+            QString path = rpl->url().path();
+            if (!host.isEmpty()) {
+                gSet->favicons[host] = ico;
+                if (!path.isEmpty())
+                    gSet->favicons[host+path] = ico;
+            }
+        }
+    }
+    rpl->deleteLater();
 }

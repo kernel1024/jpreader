@@ -21,6 +21,7 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QWebEngineProfile>
+#include <QNetworkAccessManager>
 #include <QDebug>
 
 #include "specwidgets.h"
@@ -124,12 +125,17 @@ public:
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
     bool showTabCloseButtons;
     bool createCoredumps;
+    bool showFavicons;
 
     bool overrideUserAgent;
     QString userAgent;
     QStringList userAgentHistory;
 
     QWebEngineProfile *webProfile;
+
+    QNetworkAccessManager *auxNetManager;
+
+    QHash<QString,QIcon> favicons;
 
     CAdBlockList adblock;
     QMutex adblockMutex;
@@ -271,6 +277,10 @@ public slots:
     void toggleJSUsage(bool useJS);
     void toggleAutoloadImages(bool loadImages);
     void toggleLogNetRequests(bool logRequests);
+
+    // Cookies sync
+    void cookieAdded(const QNetworkCookie &cookie);
+    void cookieRemoved(const QNetworkCookie &cookie);
 };
 
 extern CGlobalControl* gSet;

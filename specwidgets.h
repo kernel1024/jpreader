@@ -34,9 +34,13 @@ class CSnippetViewer;
 class QSpecTabBar : public QTabBar {
 	Q_OBJECT
 public:
-	QSpecTabBar(QWidget *p = 0);
+    QSpecTabBar(QWidget *p = 0);
+    void setBrowserTabs(bool enabled);
+private:
+    int m_browserTabs;
 protected:
 	virtual void mousePressEvent( QMouseEvent * event );
+    QSize minimumTabSizeHint(int index) const;
 signals:
 	void tabRightClicked(int index);
     void tabLeftClicked(int index);
@@ -48,11 +52,12 @@ class QSpecTabWidget : public QTabWidget {
 	Q_OBJECT
 public:
 	QSpecTabWidget(QWidget *p = 0);
-
-public:
-	QTabBar *tabBar() const;
+    QSpecTabBar *tabBar() const;
     CMainWindow* parentWnd;
     bool mainTabWidget;
+
+private:
+    QSpecTabBar* m_tabBar;
 
 protected:
     virtual void mouseDoubleClickEvent( QMouseEvent * event );
@@ -111,6 +116,7 @@ public:
     virtual bool canClose() { return true; }
     virtual void recycleTab() { }
     virtual QString getDocTitle() { return QString(); }
+    void updateTabIcon(const QIcon& icon);
 public slots:
     void detachTab();
     void closeTab(bool nowait = false);

@@ -70,6 +70,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     userAgent=ui->editUserAgent;
     dictPaths=ui->listDictPaths;
     ignoreSSLErrors=ui->checkIgnoreSSLErrors;
+    visualShowFavicons=ui->checkTabFavicon;
 
     cookiesList.clear();
 

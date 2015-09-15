@@ -27,6 +27,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     savedHelperWidth=0;
     setWindowIcon(gSet->appIcon);
 
+    tabMain->tabBar()->setBrowserTabs(true);
+
     stSearchStatus.setText(tr("Ready"));
     stSearchStatus.setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     statusBar()->addPermanentWidget(&stSearchStatus);

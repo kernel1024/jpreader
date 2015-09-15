@@ -69,6 +69,7 @@ public:
     QComboBox* userAgent;
     QListWidget* dictPaths;
     QCheckBox* ignoreSSLErrors;
+    QCheckBox* visualShowFavicons;
 
     QStringList loadedDicts;
 

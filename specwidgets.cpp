@@ -11,15 +11,15 @@ QSpecTabWidget::QSpecTabWidget(QWidget *p)
 {
     parentWnd = NULL;
     mainTabWidget = true;
-    QSpecTabBar* tb = new QSpecTabBar(this);
-    setTabBar(tb);
-    connect(tb,SIGNAL(tabRightClicked(int)),this,SLOT(tabRightClick(int)));
-    connect(tb,SIGNAL(tabLeftClicked(int)),this,SLOT(tabLeftClick(int)));
+    m_tabBar = new QSpecTabBar(this);
+    setTabBar(m_tabBar);
+    connect(m_tabBar,SIGNAL(tabRightClicked(int)),this,SLOT(tabRightClick(int)));
+    connect(m_tabBar,SIGNAL(tabLeftClicked(int)),this,SLOT(tabLeftClick(int)));
 }
 
-QTabBar* QSpecTabWidget::tabBar() const
+QSpecTabBar *QSpecTabWidget::tabBar() const
 {
-	return QTabWidget::tabBar();
+    return m_tabBar;
 }
 
 void QSpecTabWidget::tabLeftClick(int index)
@@ -83,9 +83,14 @@ void QSpecTabWidget::selectPrevTab()
 }
 
 QSpecTabBar::QSpecTabBar(QWidget *p)
-	: QTabBar(p)
+    : QTabBar(p), m_browserTabs(false)
 {
 
+}
+
+void QSpecTabBar::setBrowserTabs(bool enabled)
+{
+    m_browserTabs = enabled;
 }
 
 void QSpecTabBar::mousePressEvent(QMouseEvent *event)
@@ -118,6 +123,15 @@ void QSpecTabBar::mousePressEvent(QMouseEvent *event)
             }
         }
     }
+}
+
+QSize QSpecTabBar::minimumTabSizeHint(int index) const
+{
+    if (!m_browserTabs)
+        return QTabBar::minimumTabSizeHint(index);
+
+    int h = QTabBar::minimumTabSizeHint(index).height();
+    return QSize(h,h);
 }
 
 int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
@@ -198,12 +212,19 @@ void QSpecTabContainer::bindToTab(QSpecTabWidget *tabs, bool setFocused)
         int sz = tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
         connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
-        tabWidget->tabBar()->setTabButton(i,QTabBar::LeftSide,b);
+        tabWidget->tabBar()->setTabButton(i,QTabBar::RightSide,b);
     }
     tabTitle = getDocTitle();
     if (setFocused) tabWidget->setCurrentWidget(this);
     parentWnd->updateTitle();
     parentWnd->updateTabs();
+}
+
+void QSpecTabContainer::updateTabIcon(const QIcon &icon)
+{
+    if (!gSet->showFavicons) return;
+    if (tabWidget==NULL) return;
+    tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
 }
 
 void QSpecTabContainer::detachTab()

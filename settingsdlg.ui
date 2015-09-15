@@ -1354,11 +1354,18 @@ p, li { white-space: pre-wrap; }
          <property name="title">
           <string>Visual features</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_15">
+         <layout class="QHBoxLayout" name="horizontalLayout_23">
           <item>
            <widget class="QCheckBox" name="checkTabCloseBtn">
             <property name="text">
              <string>Show tab close button on each tab</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkTabFavicon">
+            <property name="text">
+             <string>Show tab favicons</string>
             </property>
            </widget>
           </item>
@@ -1502,6 +1509,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkLogNetworkRequests</tabstop>
   <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
+  <tabstop>checkTabFavicon</tabstop>
   <tabstop>buttonExportCookies</tabstop>
   <tabstop>buttonDelCookies</tabstop>
  </tabstops>
