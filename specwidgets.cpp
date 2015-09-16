@@ -127,11 +127,13 @@ void QSpecTabBar::mousePressEvent(QMouseEvent *event)
 
 QSize QSpecTabBar::minimumTabSizeHint(int index) const
 {
-    if (!m_browserTabs)
+    if (!m_browserTabs || count()==0)
         return QTabBar::minimumTabSizeHint(index);
 
-    int h = QTabBar::minimumTabSizeHint(index).height();
-    return QSize(h,h);
+    QSize sz = QTabBar::minimumTabSizeHint(index);
+    if (sz.width()>(width()/count()))
+        sz.setWidth(width()/count());
+    return sz;
 }
 
 int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
