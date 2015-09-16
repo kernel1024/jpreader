@@ -31,13 +31,11 @@ public slots:
     void openNewTab();
     void openNewTabTranslate();
     void bookmarkPage();
-//    void openFrame();
     void loadKwrite();
     void execKonq();
     void searchInGoogle();
     void searchLocal();
     void searchInJisho();
-    void toolTipHide();
     void gotTranslation(const QString& text);
     void createPlainTextTab();
     void createPlainTextTabTranslate();

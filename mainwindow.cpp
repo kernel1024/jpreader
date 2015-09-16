@@ -150,11 +150,6 @@ void CMainWindow::closeStartPage()
         pt->closeTab(true);
 }
 
-void CMainWindow::hideTooltip()
-{
-    QxtToolTip::setToolTip(tabMain->tabBar(),NULL);
-}
-
 void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
 {
     QPoint p = tabMain->tabBar()->mapFromGlobal(globalPos);
@@ -166,7 +161,19 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv!=NULL) {
         t = new QSpecToolTipLabel(sv->tabTitle);
-        t->setPixmap(sv->txtBrowser->grab().scaledToWidth(250,Qt::SmoothTransformation));
+
+        QPixmap pix = sv->txtBrowser->grab().scaledToWidth(250,Qt::SmoothTransformation);
+        QPainter dc(&pix);
+        QRect rx = pix.rect();
+        QFont f = dc.font();
+        f.setPointSize(8);
+        dc.setFont(f);
+        rx.setHeight(dc.fontMetrics().height());
+        dc.fillRect(rx,t->palette().toolTipBase());
+        dc.setPen(t->palette().toolTipText().color());
+        dc.drawText(rx,Qt::AlignLeft | Qt::AlignVCenter,sv->tabTitle);
+
+        t->setPixmap(pix);
     } else {
         CSearchTab* bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt!=NULL) {
@@ -174,10 +181,8 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
         }
     }
 
-    if (t!=NULL) {
-        connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
+    if (t!=NULL)
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
-    }
 }
 
 void CMainWindow::detachTab()

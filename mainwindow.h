@@ -71,7 +71,6 @@ public slots:
     void addBookmark();
     void showLightTranslator();
     void closeStartPage();
-    void hideTooltip();
     void tabBarTooltip(const QPoint& globalPos, const QPoint &localPos);
     void detachTab();
     void findText();

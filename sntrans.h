@@ -25,7 +25,6 @@ public slots:
     void progressLoad(int progress);
     void selectionChanged();
     void selectionShow();
-    void hideTooltip();
     void showWordTranslation(const QString & html);
     void showSuggestedTranslation(const QString & link);
     void dictDataReady();

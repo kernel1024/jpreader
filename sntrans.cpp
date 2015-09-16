@@ -190,11 +190,6 @@ void CSnTrans::selectionShow()
     findWordTranslation(storedSelection);
 }
 
-void CSnTrans::hideTooltip()
-{
-    QxtToolTip::setToolTip(snv,NULL);
-}
-
 void CSnTrans::showWordTranslation(const QString &html)
 {
     if (snv->ctxHandler->menuActive.isActive()) return;
@@ -205,7 +200,6 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setStyleSheet("QLabel { background: #fefdeb; }");
 
     connect(t,SIGNAL(linkActivated(QString)),this,SLOT(showSuggestedTranslation(QString)));
-    connect(t,SIGNAL(labelHide()),this,SLOT(hideTooltip()));
     connect(snv->ctxHandler,SIGNAL(hideTooltips()),t,SLOT(close()));
 
     QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true);
