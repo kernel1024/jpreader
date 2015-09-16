@@ -15,6 +15,7 @@
 #include "searchtab.h"
 #include "bookmarkdlg.h"
 #include "lighttranslator.h"
+#include "downloadmanager.h"
 
 CMainWindow::CMainWindow(bool withSearch, bool withViewer)
         : MainWindow()
@@ -95,6 +96,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 
     if (gSet->logWindow!=NULL)
         connect(actionShowLog,SIGNAL(triggered()),gSet->logWindow,SLOT(show()));
+    if (gSet->downloadManager!=NULL)
+        connect(actionDownloadManager,SIGNAL(triggered()),gSet->downloadManager,SLOT(show()));
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);

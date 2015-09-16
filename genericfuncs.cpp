@@ -285,7 +285,7 @@ QStringList getSuffixesFromFilter(const QString& filter)
     return res;
 }
 
-QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
+QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options, QString preselectFileName )
 {
     QFileDialog d(parent,caption,dir,filter);
     d.setFileMode(QFileDialog::AnyFile);
@@ -302,6 +302,10 @@ QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QStr
 
     if (selectedFilter && !selectedFilter->isEmpty())
             d.selectNameFilter(*selectedFilter);
+
+    if (!preselectFileName.isEmpty())
+        d.selectFile(preselectFileName);
+
     if (d.exec()==QDialog::Accepted) {
         if (selectedFilter!=NULL)
             *selectedFilter=d.selectedNameFilter();
@@ -355,4 +359,27 @@ QString bool2str2(bool value)
         return QString("TRUE");
     else
         return QString("FALSE");
+}
+
+QString formatBytes(qint64 sz) {
+    QString s;
+    float msz;
+    if (sz<1024.0) {
+        msz=sz;
+        s="b";
+    } else if (sz<(1024.0 * 1024.0)) {
+        msz=sz/1024.0;
+        s="Kb";
+    } else if (sz<(1024.0 * 1024.0 * 1024.0)) {
+        msz=sz/(1024.0*1024.0);
+        s="Mb";
+    } else if (sz<(1024.0 * 1024.0 * 1024.0 * 1024.0)) {
+        msz=sz/(1024.0 * 1024.0 * 1024.0);
+        s="Gb";
+    } else {
+        msz=sz/(1024.0 * 1024.0 * 1024.0 * 1024.0);
+        s="Tb";
+    }
+    s=QString("%1").arg(msz,0,'f',2)+" "+s;
+    return s;
 }

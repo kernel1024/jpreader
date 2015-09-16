@@ -22,6 +22,7 @@
 #include "auxtranslator_adaptor.h"
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
+#include "downloadmanager.h"
 
 #define IPC_EOF "\n###"
 
@@ -75,6 +76,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     fontSansSerif="Verdana";
 
     logWindow = new CLogDisplay();
+
+    downloadManager = new CDownloadManager();
 
     atlTcpRetryCount = 3;
     atlTcpTimeout = 2;
@@ -226,6 +229,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+
+    connect(webProfile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
+            downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
 
 #ifdef WEBENGINE_56
     webProfile->setRequestInterceptor(new QSpecUrlInterceptor());

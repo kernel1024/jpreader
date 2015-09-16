@@ -28,7 +28,8 @@ HEADERS = mainwindow.h \
     goldendictmgr.h \
     auxdictionary.h \
     multiinputdialog.h \
-    adblockrule.h
+    adblockrule.h \
+    downloadmanager.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -61,7 +62,8 @@ SOURCES = main.cpp \
     goldendictmgr.cpp \
     auxdictionary.cpp \
     multiinputdialog.cpp \
-    adblockrule.cpp
+    adblockrule.cpp \
+    downloadmanager.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -75,7 +77,8 @@ FORMS = main.ui \
     lighttranslator.ui \
     logdisplay.ui \
     auxdictionary.ui \
-    multiinputdialog.ui
+    multiinputdialog.ui \
+    downloadmanager.ui
 
 QT += network xml dbus widgets webenginewidgets
 

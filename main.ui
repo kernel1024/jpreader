@@ -164,6 +164,7 @@
     <addaction name="menuSourceLanguage"/>
     <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
+    <addaction name="actionDownloadManager"/>
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
     <addaction name="separator"/>
@@ -381,6 +382,11 @@
   <action name="actionAboutQt">
    <property name="text">
     <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="actionDownloadManager">
+   <property name="text">
+    <string>Download manager</string>
    </property>
   </action>
  </widget>

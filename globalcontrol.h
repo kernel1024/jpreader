@@ -51,7 +51,6 @@
 #define IPC_NAME "org.jpreader.ipc.main"
 
 class CMainWindow;
-class QSpecCookieJar;
 class CLightTranslator;
 class CAuxTranslator;
 class CTranslator;
@@ -60,6 +59,7 @@ class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
 class QxtGlobalShortcut;
 class CSettingsDlg;
+class CDownloadManager;
 
 class UrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
@@ -106,6 +106,7 @@ public:
     QAction* actionGlobalTranslator;
     QIcon appIcon;
     CLogDisplay* logWindow;
+    CDownloadManager* downloadManager;
 
     ArticleNetworkAccessManager * dictNetMan;
     CGoldenDictMgr * dictManager;
