@@ -62,8 +62,6 @@ protected:
 
 };
 
-typedef QWebEngineDownloadItem::DownloadState DownloadState;
-
 class CDownloadsModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -88,7 +86,7 @@ public slots:
     void appendItem(const CDownloadItem& item);
 
     void downloadFinished();
-    void downloadStateChanged(DownloadState state);
+    void downloadStateChanged(QWebEngineDownloadItem::DownloadState state);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
     void abortDownload();

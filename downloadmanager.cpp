@@ -57,10 +57,10 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     }
 
     connect(item, SIGNAL(finished()), model, SLOT(downloadFinished()));
-    connect(item, SIGNAL(stateChanged(DownloadState)),
-            model, SLOT(downloadStateChanged(DownloadState)));
     connect(item, SIGNAL(downloadProgress(qint64,qint64)),
             model, SLOT(downloadProgress(qint64,qint64)));
+    connect(item, &QWebEngineDownloadItem::stateChanged,
+            model, &CDownloadsModel::downloadStateChanged);
 
     item->setPath(fname);
 
@@ -266,7 +266,7 @@ void CDownloadsModel::downloadFinished()
         deleteDownloadItem(index(idx,0));
 }
 
-void CDownloadsModel::downloadStateChanged(DownloadState state)
+void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
 {
     QWebEngineDownloadItem* item = qobject_cast<QWebEngineDownloadItem *>(sender());
     if (item==NULL) return;
