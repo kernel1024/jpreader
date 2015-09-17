@@ -4,13 +4,21 @@
 #include <QDialog>
 #include <QAbstractTableModel>
 #include <QWebEngineDownloadItem>
+#include <QAbstractItemDelegate>
 
 namespace Ui {
 class CDownloadManager;
 }
 
+class CDownloadsModel;
+class CDownloadBarDelegate;
+
 class CDownloadItem
 {
+    friend class CDownloadsModel;
+private:
+    bool m_empty;
+    bool autoDelete;
 public:
     quint32 id;
     QString fileName;
@@ -24,6 +32,7 @@ public:
     CDownloadItem &operator=(const CDownloadItem& other);
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
+    bool isEmpty();
 };
 
 Q_DECLARE_METATYPE(CDownloadItem)
@@ -40,10 +49,12 @@ public:
 
 public slots:
     void handleDownload(QWebEngineDownloadItem* item);
+    void contextMenu(const QPoint& pos);
 
 private:
     CDownloadsModel *model;
     Ui::CDownloadManager *ui;
+    bool firstResize;
 
 protected:
     void closeEvent(QCloseEvent * event);
@@ -70,6 +81,9 @@ public:
     int rowCount( const QModelIndex & parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent) const;
 
+    CDownloadItem getDownloadItem(const QModelIndex & index);
+    void deleteDownloadItem(const QModelIndex & index);
+
 public slots:
     void appendItem(const CDownloadItem& item);
 
@@ -77,6 +91,24 @@ public slots:
     void downloadStateChanged(DownloadState state);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
+    void abortDownload();
+    void cleanDownload();
+    void cleanFinishedDownloads();
+    void openDirectory();
+
 };
+
+class CDownloadBarDelegate : public QAbstractItemDelegate {
+    Q_OBJECT
+private:
+    CDownloadsModel* m_model;
+
+public:
+    CDownloadBarDelegate(QObject *parent, CDownloadsModel* model);
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+};
+
 
 #endif // DOWNLOADMANAGER_H

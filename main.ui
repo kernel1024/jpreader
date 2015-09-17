@@ -385,8 +385,11 @@
    </property>
   </action>
   <action name="actionDownloadManager">
+   <property name="icon">
+    <iconset theme="folder-downloads"/>
+   </property>
    <property name="text">
-    <string>Download manager</string>
+    <string>Download &amp;manager</string>
    </property>
   </action>
  </widget>

@@ -52,6 +52,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="buttonClearFinished">
+       <property name="text">
+        <string>Clear finished</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonHide">
        <property name="text">
         <string>Hide</string>
@@ -62,6 +69,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tableDownloads</tabstop>
+  <tabstop>buttonClearFinished</tabstop>
+  <tabstop>buttonHide</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

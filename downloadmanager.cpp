@@ -1,8 +1,13 @@
 #include <QWidget>
 #include <QCloseEvent>
+#include <QMenu>
+#include <QMessageBox>
+#include <QProcess>
+#include <QPainter>
 #include <QDebug>
 #include "downloadmanager.h"
 #include "genericfuncs.h"
+#include "globalcontrol.h"
 #include "ui_downloadmanager.h"
 
 CDownloadManager::CDownloadManager(QWidget *parent) :
@@ -11,9 +16,20 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    firstResize = true;
+
+    setWindowIcon(QIcon::fromTheme("folder-downloads"));
+
     model = new CDownloadsModel(this);
     ui->tableDownloads->setModel(model);
     ui->tableDownloads->verticalHeader()->hide();
+    ui->tableDownloads->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,model));
+
+    connect(ui->tableDownloads, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(contextMenu(QPoint)));
+
+    connect(ui->buttonClearFinished, SIGNAL(clicked()), model, SLOT(cleanFinishedDownloads()));
 }
 
 CDownloadManager::~CDownloadManager()
@@ -53,6 +69,35 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     item->accept();
 }
 
+void CDownloadManager::contextMenu(const QPoint &pos)
+{
+    QModelIndex idx = ui->tableDownloads->indexAt(pos);
+    CDownloadItem item = model->getDownloadItem(idx);
+    if (item.isEmpty()) return;
+
+    QMenu *cm = new QMenu(this);
+    QAction *acm;
+
+    if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
+        acm = cm->addAction(tr("Abort"),model,SLOT(abortDownload()));
+        acm->setData(idx.row());
+        cm->addSeparator();
+    }
+
+    acm = cm->addAction(tr("Remove"),model,SLOT(cleanDownload()));
+    acm->setData(idx.row());
+
+    if (item.state==QWebEngineDownloadItem::DownloadCompleted ||
+            item.state==QWebEngineDownloadItem::DownloadInProgress) {
+        cm->addSeparator();
+        acm = cm->addAction(tr("Open directory"),model,SLOT(openDirectory()));
+        acm->setData(idx.row());
+    }
+
+    cm->setAttribute(Qt::WA_DeleteOnClose,true);
+    cm->popup(ui->tableDownloads->mapToGlobal(pos));
+}
+
 void CDownloadManager::closeEvent(QCloseEvent *event)
 {
     hide();
@@ -63,10 +108,13 @@ void CDownloadManager::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event);
 
-    ui->tableDownloads->setColumnWidth(0,30);
+    if (!firstResize) return;
+    firstResize = false;
+
+    ui->tableDownloads->horizontalHeader()->setSectionResizeMode(0,QHeaderView::ResizeToContents);
     ui->tableDownloads->setColumnWidth(1,350);
-    ui->tableDownloads->setColumnWidth(2,100);
-    ui->tableDownloads->setColumnWidth(3,250);
+    ui->tableDownloads->setColumnWidth(2,200);
+    ui->tableDownloads->horizontalHeader()->setStretchLastSection(true);
 }
 
 CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
@@ -97,24 +145,24 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
     if (idx<0 || idx>=maxl)
         return QVariant();
 
+    CDownloadItem t = downloads.at(idx);
     if (role == Qt::DecorationRole) {
         if (index.column()==0) {
-            switch (downloads.at(idx).state) {
+            switch (t.state) {
                 case QWebEngineDownloadItem::DownloadCancelled:
-                    return QIcon::fromTheme("dialog-cancel").pixmap(QSize(16,16));
+                    return QIcon::fromTheme("task-reject").pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadCompleted:
-                    return QIcon::fromTheme("dialog-ok-apply").pixmap(QSize(16,16));
+                    return QIcon::fromTheme("task-complete").pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadInProgress:
                 case QWebEngineDownloadItem::DownloadRequested:
-                    return QIcon::fromTheme("media-playback-start").pixmap(QSize(16,16));
+                    return QIcon::fromTheme("arrow-right").pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadInterrupted:
-                    return QIcon::fromTheme("media-playback-pause").pixmap(QSize(16,16));
+                    return QIcon::fromTheme("task-attention").pixmap(QSize(16,16));
                 default: return QVariant();
             }
             return QVariant();
         }
     } else if (role == Qt::DisplayRole) {
-        CDownloadItem t = downloads.at(idx);
         QFileInfo fi(t.fileName);
         switch (index.column()) {
             case 1: return fi.fileName();
@@ -126,7 +174,9 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         }
         return QVariant();
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
-        return downloads.at(idx).fileName;
+        return t.fileName;
+    } else if (role == Qt::UserRole+1) {
+        return 100*t.received/t.total;
     }
     return QVariant();
 
@@ -164,6 +214,31 @@ int CDownloadsModel::columnCount(const QModelIndex &parent) const
     return 4;
 }
 
+CDownloadItem CDownloadsModel::getDownloadItem(const QModelIndex &index)
+{
+    if (!index.isValid()) return CDownloadItem();
+    int idx = index.row();
+
+    int maxl = downloads.count();
+    if (idx<0 || idx>=maxl)
+        return CDownloadItem();
+
+    return downloads.at(idx);
+}
+
+void CDownloadsModel::deleteDownloadItem(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+    int idx = index.row();
+
+    int maxl = downloads.count();
+    if (idx<0 || idx>=maxl) return;
+
+    beginRemoveRows(QModelIndex(),idx,idx);
+    downloads.removeAt(idx);
+    endRemoveRows();
+}
+
 void CDownloadsModel::appendItem(const CDownloadItem &item)
 {
     int idx = downloads.count();
@@ -180,13 +255,15 @@ void CDownloadsModel::downloadFinished()
     int idx = downloads.indexOf(CDownloadItem(item->id()));
     if (idx<0 || idx>=downloads.count()) return;
 
-    downloads[idx].state = QWebEngineDownloadItem::DownloadCompleted;
-    downloads[idx].received = downloads.at(idx).total;
+    downloads[idx].state = item->state();
     downloads[idx].ptr = NULL;
 
     emit dataChanged(index(idx,0),index(idx,3));
 
     item->deleteLater();
+
+    if (downloads[idx].autoDelete)
+        deleteDownloadItem(index(idx,0));
 }
 
 void CDownloadsModel::downloadStateChanged(DownloadState state)
@@ -216,6 +293,65 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     emit dataChanged(index(idx,2),index(idx,3));
 }
 
+void CDownloadsModel::abortDownload()
+{
+    QAction *acm = qobject_cast<QAction *>(sender());
+    if (acm==NULL) return;
+
+    int idx = acm->data().toInt();
+    if (idx<0 || idx>=downloads.count()) return;
+
+    if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress &&
+            downloads.at(idx).ptr!=NULL) {
+        downloads[idx].ptr->cancel();
+    } else
+        QMessageBox::warning(m_manager,tr("JPReader"),tr("Unable to stop this download. Incorrect state."));
+}
+
+void CDownloadsModel::cleanDownload()
+{
+    QAction *acm = qobject_cast<QAction *>(sender());
+    if (acm==NULL) return;
+
+    int idx = acm->data().toInt();
+    if (idx<0 || idx>=downloads.count()) return;
+
+    if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress &&
+            downloads.at(idx).ptr!=NULL) {
+        downloads[idx].autoDelete = true;
+        downloads[idx].ptr->cancel();
+    } else
+        deleteDownloadItem(index(idx,0));
+}
+
+void CDownloadsModel::cleanFinishedDownloads()
+{
+    int idx = 0;
+    while (idx<downloads.count()) {
+        if (downloads.at(idx).state!=QWebEngineDownloadItem::DownloadInProgress) {
+            beginRemoveRows(QModelIndex(),idx,idx);
+            downloads.removeAt(idx);
+            endRemoveRows();
+            idx = 0;
+        } else
+            idx++;
+    }
+}
+
+void CDownloadsModel::openDirectory()
+{
+    QAction *acm = qobject_cast<QAction *>(sender());
+    if (acm==NULL) return;
+
+    int idx = acm->data().toInt();
+    if (idx<0 || idx>=downloads.count()) return;
+
+    QFileInfo fi(downloads.at(idx).fileName);
+
+    if (!QProcess::startDetached("xdg-open", QStringList() << fi.path()))
+        QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
+}
+
 CDownloadItem::CDownloadItem()
 {
     id = 0;
@@ -224,6 +360,8 @@ CDownloadItem::CDownloadItem()
     received = 0;
     total = 0;
     ptr = NULL;
+    autoDelete = false;
+    m_empty = true;
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)
@@ -234,6 +372,8 @@ CDownloadItem::CDownloadItem(quint32 itemId)
     received = 0;
     total = 0;
     ptr = NULL;
+    autoDelete = false;
+    m_empty = false;
 }
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
@@ -245,6 +385,8 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         received = 0;
         total = 0;
         ptr = NULL;
+        autoDelete = false;
+        m_empty = true;
     } else {
         id = item->id();
         fileName = item->path();
@@ -252,6 +394,8 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         received = item->receivedBytes();
         total = item->totalBytes();
         ptr = item;
+        autoDelete = false;
+        m_empty = false;
     }
 }
 
@@ -263,6 +407,8 @@ CDownloadItem &CDownloadItem::operator=(const CDownloadItem &other)
     received = other.received;
     total = other.total;
     ptr = other.ptr;
+    autoDelete = other.autoDelete;
+    m_empty = false;
     return *this;
 }
 
@@ -274,4 +420,44 @@ bool CDownloadItem::operator==(const CDownloadItem &s) const
 bool CDownloadItem::operator!=(const CDownloadItem &s) const
 {
     return !operator==(s);
+}
+
+bool CDownloadItem::isEmpty()
+{
+    return m_empty;
+}
+
+CDownloadBarDelegate::CDownloadBarDelegate(QObject *parent, CDownloadsModel *model)
+    : QAbstractItemDelegate(parent)
+{
+    m_model = model;
+}
+
+void CDownloadBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                                 const QModelIndex &index) const
+{
+    if (index.column() == 2) {
+            int progress = index.data(Qt::UserRole+1).toInt();
+
+            QStyleOptionProgressBar progressBarOption;
+            QRect r = option.rect;
+            r.setHeight(r.height()-10); r.moveTop(5);
+            progressBarOption.rect = r;
+            progressBarOption.minimum = 0;
+            progressBarOption.maximum = 100;
+            progressBarOption.progress = progress;
+            progressBarOption.text = QString::number(progress) + "%";
+            progressBarOption.textVisible = true;
+
+            QApplication::style()->drawControl(QStyle::CE_ProgressBar,
+                                               &progressBarOption, painter);
+        }
+}
+
+QSize CDownloadBarDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Q_UNUSED(option);
+    Q_UNUSED(index);
+
+    return QSize(200,32);
 }
