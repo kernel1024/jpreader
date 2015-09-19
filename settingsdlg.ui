@@ -235,6 +235,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QRadioButton" name="radioYandexAPI">
+            <property name="text">
+             <string>&amp;Yandex.Translate API</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -493,7 +500,7 @@ p, li { white-space: pre-wrap; }
              <item row="0" column="0">
               <widget class="QLabel" name="label_25">
                <property name="text">
-                <string>Client I&amp;D</string>
+                <string>Clie&amp;nt ID</string>
                </property>
                <property name="buddy">
                 <cstring>editBingID</cstring>
@@ -527,6 +534,56 @@ p, li { white-space: pre-wrap; }
               <size>
                <width>20</width>
                <height>89</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_14">
+          <attribute name="title">
+           <string>Yandex API</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <spacer name="verticalSpacer_15">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>109</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_24">
+             <item>
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>Client &amp;key</string>
+               </property>
+               <property name="buddy">
+                <cstring>editYandexKey</cstring>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="editYandexKey"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_16">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>109</height>
               </size>
              </property>
             </spacer>
@@ -1450,6 +1507,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>
+  <tabstop>radioYandexAPI</tabstop>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>editHostingDir</tabstop>
   <tabstop>buttonHostingDir</tabstop>
@@ -1463,6 +1521,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>gctxHotkey</tabstop>
   <tabstop>editBingID</tabstop>
   <tabstop>editBingKey</tabstop>
+  <tabstop>editYandexKey</tabstop>
   <tabstop>listDictPaths</tabstop>
   <tabstop>buttonAddDictPath</tabstop>
   <tabstop>buttonDelDictPath</tabstop>

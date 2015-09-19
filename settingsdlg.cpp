@@ -71,6 +71,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     dictPaths=ui->listDictPaths;
     ignoreSSLErrors=ui->checkIgnoreSSLErrors;
     visualShowFavicons=ui->checkTabFavicon;
+    rbYandexAPI=ui->radioYandexAPI;
+    yandexKey=ui->editYandexKey;
 
     cookiesList.clear();
 

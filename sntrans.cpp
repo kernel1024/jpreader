@@ -51,7 +51,8 @@ void CSnTrans::convertToXMLPriv(const QString& data)
 void CSnTrans::translate()
 {
     if (gSet->translatorEngine==TE_ATLAS ||
-            gSet->translatorEngine==TE_BINGAPI) {
+        gSet->translatorEngine==TE_BINGAPI ||
+        gSet->translatorEngine==TE_YANDEX) {
         savedBaseUrl = snv->txtBrowser->page()->url();
         if (savedBaseUrl.hasFragment())
             savedBaseUrl.setFragment(QString());
@@ -86,6 +87,9 @@ void CSnTrans::translatePriv(const QString &aUri)
         snv->waitHandler->setProgressEnabled(true);
     } else if (gSet->translatorEngine==TE_BINGAPI) {
         snv->waitHandler->setText(tr("Translating text with Bing API..."));
+        snv->waitHandler->setProgressEnabled(true);
+    } else if (gSet->translatorEngine==TE_YANDEX) {
+        snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
     } else {
         snv->waitHandler->setText(tr("Copying file to hosting..."));
@@ -130,26 +134,27 @@ void CSnTrans::postTranslate()
     QString cn;
     QUrlQuery qu;
     switch (gSet->translatorEngine) {
-    case TE_GOOGLE:
-        url = QUrl("http://translate.google.com/translate");
-        qu.addQueryItem("sl",gSet->getSourceLanguageID());
-        qu.addQueryItem("tl","en");
-        qu.addQueryItem("u",snv->calculatedUrl);
-        url.setQuery(qu);
-        snv->txtBrowser->load(url);
-        if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
-        break;
-    case TE_ATLAS: // Url contains translated file itself
-    case TE_BINGAPI:
-        cn = snv->calculatedUrl;
-        snv->fileChanged = true;
-        snv->onceTranslated = true;
-        snv->txtBrowser->setHtml(cn,savedBaseUrl);
-        if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
-        break;
-    default:
-        QMessageBox::warning(snv,tr("JPReader"),tr("Unknown translation engine selected"));
-        return;
+        case TE_GOOGLE:
+            url = QUrl("http://translate.google.com/translate");
+            qu.addQueryItem("sl",gSet->getSourceLanguageID());
+            qu.addQueryItem("tl","en");
+            qu.addQueryItem("u",snv->calculatedUrl);
+            url.setQuery(qu);
+            snv->txtBrowser->load(url);
+            if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            break;
+        case TE_ATLAS: // Url contains translated file itself
+        case TE_BINGAPI:
+        case TE_YANDEX:
+            cn = snv->calculatedUrl;
+            snv->fileChanged = true;
+            snv->onceTranslated = true;
+            snv->txtBrowser->setHtml(cn,savedBaseUrl);
+            if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            break;
+        default:
+            QMessageBox::warning(snv,tr("JPReader"),tr("Unknown translation engine selected"));
+            return;
     }
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->loadingBkgdFinished) { // tab is inactive

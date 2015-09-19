@@ -83,6 +83,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     atlTcpTimeout = 2;
     bingID = QString();
     bingKey = QString();
+    yandexKey = QString();
 
     proxyHost = QString();
     proxyPort = 3128;
@@ -379,6 +380,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("proxyUseTranslator",proxyUseTranslator);
     settings.setValue("bingID",bingID);
     settings.setValue("bingKey",bingKey);
+    settings.setValue("yandexKey",yandexKey);
     settings.setValue("createCoredumps",createCoredumps);
     settings.setValue("overrideUserAgent",overrideUserAgent);
     settings.setValue("userAgent",userAgent);
@@ -546,6 +548,7 @@ void CGlobalControl::readSettings()
     proxyUseTranslator = settings.value("proxyUseTranslator",false).toBool();
     bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
+    yandexKey = settings.value("yandexKey",QString()).toString();
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
     showFavicons = settings.value("showFavicons",true).toBool();
@@ -645,10 +648,11 @@ void CGlobalControl::settingsDlg()
     dlg->setAdblock(adblock);
 
     switch (translatorEngine) {
-    case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
-    case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
-    case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
-    default: dlg->rbAtlas->setChecked(true); break;
+        case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
+        case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
+        case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
+        case TE_YANDEX: dlg->rbYandexAPI->setChecked(true); break;
+        default: dlg->rbAtlas->setChecked(true); break;
     }
     dlg->scpHost->clear();
     if (!scpHostHistory.contains(scpHost))
@@ -667,6 +671,7 @@ void CGlobalControl::settingsDlg()
     dlg->atlRetryTimeout->setValue(atlTcpTimeout);
     dlg->bingID->setText(bingID);
     dlg->bingKey->setText(bingKey);
+    dlg->yandexKey->setText(yandexKey);
     dlg->emptyRestore->setChecked(emptyRestore);
 
     dlg->useAd->setChecked(useAdblock);
@@ -768,6 +773,7 @@ void CGlobalControl::settingsDlg()
         if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
+        else if (dlg->rbYandexAPI->isChecked()) translatorEngine=TE_YANDEX;
         else translatorEngine=TE_ATLAS;
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
@@ -778,6 +784,7 @@ void CGlobalControl::settingsDlg()
         atlTcpTimeout=dlg->atlRetryTimeout->value();
         bingID=dlg->bingID->text();
         bingKey=dlg->bingKey->text();
+        yandexKey=dlg->yandexKey->text();
         emptyRestore=dlg->emptyRestore->isChecked();
         if (scpHostHistory.contains(scpHost))
             scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
@@ -1268,13 +1275,17 @@ QString CGlobalControl::getSourceLanguageIDStr(int engine, int engineStd)
     switch (engine) {
         case LS_JAPANESE: srcLang="ja"; break;
         case LS_CHINESETRAD:
-            if (engineStd==TE_BINGAPI)
+            if (engineStd==TE_YANDEX)
+                srcLang="zh";
+            else if (engineStd==TE_BINGAPI)
                 srcLang="zh-CHT";
             else
                 srcLang="zh-TW";
             break;
         case LS_CHINESESIMP:
-            if (engineStd==TE_BINGAPI)
+            if (engineStd==TE_YANDEX)
+                srcLang="zh";
+            else if (engineStd==TE_BINGAPI)
                 srcLang="zh-CHS";
             else
                 srcLang="zh-CN";
@@ -1291,6 +1302,7 @@ QString CGlobalControl::getTranslationEngineString(int engine)
         case TE_GOOGLE: return QString("Google");
         case TE_ATLAS: return QString("ATLAS");
         case TE_BINGAPI: return QString("Bing API");
+        case TE_YANDEX: return QString("Yandex API");
         default: return QString("<unknown engine>");
     }
 }

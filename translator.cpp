@@ -452,7 +452,8 @@ void CTranslator::translate()
             deleteLater();
             return;
         }
-    } else if (translationEngine==TE_BINGAPI) {
+    } else if (translationEngine==TE_BINGAPI ||
+               translationEngine==TE_YANDEX) {
         if (!translateDocument(Uri,aUrl)) {
             emit calcFinished(false,"");
             deleteLater();

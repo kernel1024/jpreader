@@ -29,7 +29,8 @@ HEADERS = mainwindow.h \
     auxdictionary.h \
     multiinputdialog.h \
     adblockrule.h \
-    downloadmanager.h
+    downloadmanager.h \
+    yandextranslator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -63,7 +64,8 @@ SOURCES = main.cpp \
     auxdictionary.cpp \
     multiinputdialog.cpp \
     adblockrule.cpp \
-    downloadmanager.cpp
+    downloadmanager.cpp \
+    yandextranslator.cpp
 
 RESOURCES = \
     jpreader.qrc

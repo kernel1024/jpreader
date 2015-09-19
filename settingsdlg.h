@@ -33,6 +33,7 @@ public:
     QRadioButton* rbGoogle;
     QRadioButton* rbAtlas;
     QRadioButton* rbBingAPI;
+    QRadioButton* rbYandexAPI;
     QCheckBox* cbSCP;
     QLineEdit* scpParams;
     QComboBox* scpHost;
@@ -64,6 +65,7 @@ public:
     QCheckBox* emptyRestore;
     QLineEdit* bingID;
     QLineEdit* bingKey;
+    QLineEdit* yandexKey;
     QCheckBox* createCoredumps;
     QCheckBox* overrideUserAgent;
     QComboBox* userAgent;

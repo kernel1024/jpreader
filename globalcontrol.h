@@ -31,7 +31,8 @@
 #define TE_GOOGLE 0
 #define TE_ATLAS 1
 #define TE_BINGAPI 2
-#define TECOUNT 3
+#define TE_YANDEX 3
+#define TECOUNT 4
 
 #define SE_NONE 0
 #define SE_RECOLL 2
@@ -177,6 +178,7 @@ public:
     int atlTcpTimeout;
     QString bingID;
     QString bingKey;
+    QString yandexKey;
 
     QString proxyHost;
     QString proxyLogin;
