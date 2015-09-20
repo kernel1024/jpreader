@@ -22,7 +22,7 @@ CYandexTranslator::CYandexTranslator(QObject *parent, const QString &yandexKey)
 
 CYandexTranslator::~CYandexTranslator()
 {
-
+    doneTran();
 }
 
 bool CYandexTranslator::initTran()
@@ -36,12 +36,16 @@ bool CYandexTranslator::initTran()
         nam->setProxy(QNetworkProxy::NoProxy);
 
     srcLang = gSet->getSourceLanguageID(TE_YANDEX);
+    tranError.clear();
     return true;
 }
 
 QString CYandexTranslator::tranString(QString src)
 {
-    if (!isReady()) return QString();
+    if (!isReady()) {
+        tranError = QString("ERROR: Yandex translator not ready");
+        return QString("ERROR:TRAN_NOT_READY");
+    }
 
     if (src.length()>=10000) {
         // Split by separator chars
@@ -62,7 +66,7 @@ QString CYandexTranslator::tranString(QString src)
         res.clear();
         for (int i=0;i<srout.count();i++) {
             QString s = tranStringInternal(srout.at(i));
-            if (s.startsWith("ERR:")) {
+            if (!tranError.isEmpty()) {
                 res=s;
                 break;
             }
@@ -76,6 +80,9 @@ QString CYandexTranslator::tranString(QString src)
 void CYandexTranslator::doneTran(bool lazyClose)
 {
     Q_UNUSED(lazyClose);
+    if (nam!=NULL)
+        nam->deleteLater();
+    nam=NULL;
 }
 
 bool CYandexTranslator::isReady()
@@ -119,21 +126,27 @@ QString CYandexTranslator::tranStringInternal(QString src)
 
     QNetworkReply *rpl = nam->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
-    if (!waitForReply(rpl)) return QString("ERR:YANDEX_NETWORK_ERROR");
+    if (!waitForReply(rpl)) {
+        tranError = QString("ERROR: Yandex translator network error");
+        return QString("ERROR:TRAN_YANDEX_NETWORK_ERROR");
+    }
 
     QByteArray ra = rpl->readAll();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
-    if (jdoc.isNull() || jdoc.isEmpty())
-        return QString("ERR:YANDEX_JSON_ERROR");
+    if (jdoc.isNull() || jdoc.isEmpty()) {
+        tranError = QString("ERROR: Yandex translator JSON error");
+        return QString("ERROR:TRAN_YANDEX_JSON_ERROR");
+    }
 
     QJsonObject jroot = jdoc.object();
     int code = jroot.value("code").toInt(500);
 
     if (code!=200 || !jroot.value("text").isArray()) {
         qCritical() << "Yandex error:" << jroot.value("message").toString();
-        return QString("ERR:YANDEX_TRAN_ERROR");
+        tranError = QString("ERROR: Yandex translator error: %1").arg(jroot.value("message").toString());
+        return QString("ERROR:TRAN_YANDEX_TRAN_ERROR");
     }
 
     QVariantList vl = jroot.value("text").toArray().toVariantList();

@@ -82,7 +82,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 
 void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
 {
-    if (atlasSlipped) return;
+    if (translatorFailed) return;
     abortMutex.lock();
     if (abortFlag) {
         abortMutex.unlock();
@@ -106,7 +106,7 @@ void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
         }
         if (xmlPass==PXTranslate && node.attributes().contains("jpreader_flag")) {
             node.attributes().removeNamedItem("jpreader_flag");
-            if (!translateParagraph(node,xmlPass)) atlasSlipped=true;
+            if (!translateParagraph(node,xmlPass)) translatorFailed=true;
         }
     }
 
@@ -280,7 +280,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
         return false;
     }
 
-    atlasSlipped=false;
+    translatorFailed=false;
     textNodesCnt=0;
     XMLPassMode xmlPass=PXPreprocess;
     examineXMLNode(doc,xmlPass);
@@ -295,9 +295,9 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     examineXMLNode(doc,xmlPass);
     //qInfo() << doc.toString();
 
-    if (atlasSlipped)
-        dst="ERROR:ATLAS_SLIPPED";
-    else {
+    if (translatorFailed) {
+        dst=tran->getErrorMsg();
+    } else {
         xmlPass=PXPostprocess;
         examineXMLNode(doc,xmlPass);
 
@@ -311,7 +311,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     f.write(doc.toByteArray());
     f.close();*/
 
-    return true;
+    return !translatorFailed;
 }
 
 bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
@@ -337,7 +337,7 @@ bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
         return false;
     }
 
-    atlasSlipped=false;
+    translatorFailed=false;
     textNodesCnt=0;
     XMLPassMode xmlPass=PXPreprocess;
     examineXMLNode(doc,xmlPass);
@@ -395,7 +395,7 @@ bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
                 src.appendChild(src.ownerDocument().createTextNode(srct));
                 src.appendChild(src.ownerDocument().createElement("br"));
             }
-            if (t.contains("ERROR:ATLAS_SLIPPED")) {
+            if (!tran->getErrorMsg().isEmpty()) {
                 tran->doneTran();
                 src.appendChild(src.ownerDocument().createTextNode(t));
                 return false;
@@ -438,24 +438,27 @@ void CTranslator::translate()
     QString aUrl;
     if (translationEngine==TE_ATLAS) {
         bool oktrans = false;
+        QString lastAtlasError;
+        lastAtlasError.clear();
         for (int i=0;i<atlTcpRetryCount;i++) {
             if (translateDocument(Uri,aUrl)) {
                 oktrans = true;
                 break;
-            }
+            } else
+                lastAtlasError = tran->getErrorMsg();
             QThread::sleep(atlTcpTimeout);
             if (tran!=NULL)
                 tran->doneTran(true);
         }
         if (!oktrans) {
-            emit calcFinished(false,"");
+            emit calcFinished(false,lastAtlasError);
             deleteLater();
             return;
         }
     } else if (translationEngine==TE_BINGAPI ||
                translationEngine==TE_YANDEX) {
         if (!translateDocument(Uri,aUrl)) {
-            emit calcFinished(false,"");
+            emit calcFinished(false,tran->getErrorMsg());
             deleteLater();
             return;
         }

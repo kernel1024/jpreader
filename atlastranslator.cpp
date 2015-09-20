@@ -79,12 +79,16 @@ bool CAtlasTranslator::initTran()
         return false;
     }
     inited = true;
+    tranError.clear();
     return true;
 }
 
 QString CAtlasTranslator::tranString(QString src)
 {
-    if (!sock.isOpen()) return "ERROR: Socket not opened";
+    if (!sock.isOpen()) {
+        tranError = QString("ERROR: ATLAS socket not opened");
+        return "ERROR:TRAN_ATLAS_SOCK_NOT_OPENED";
+    }
 
     // TR command and response
     QString s = QString::fromLatin1(QUrl::toPercentEncoding(src," ")).trimmed();
@@ -99,7 +103,8 @@ QString CAtlasTranslator::tranString(QString src)
             if (!sock.waitForReadyRead(60000)) {
                 qCritical() << "ATLAS: translation timeout error";
                 sock.close();
-                return "ERROR";
+                tranError = QString("ERROR: ATLAS socket error");
+                return "ERROR:TRAN_ATLAS_SOCKET_ERROR";
             }
         }
         buf = sock.readLine();
@@ -114,11 +119,13 @@ QString CAtlasTranslator::tranString(QString src)
         if (s.contains("NEED_RESTART")) {
             qCritical() << "ATLAS: translation engine slipped. Please restart again.";
             sock.close();
+            tranError = QString("ERROR: ATLAS slipped");
             return "ERROR:ATLAS_SLIPPED";
         } else {
             qCritical() << "ATLAS: translation error";
             sock.close();
-            return "ERROR";
+            tranError = QString("ERROR: ATLAS translation error");
+            return "ERROR:TRAN_ATLAS_TRAN_ERROR";
         }
     }
 

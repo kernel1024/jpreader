@@ -6,12 +6,17 @@
 
 CAbstractTranslator::CAbstractTranslator(QObject *parent) : QObject(parent)
 {
-
+    tranError.clear();
 }
 
 CAbstractTranslator::~CAbstractTranslator()
 {
 
+}
+
+QString CAbstractTranslator::getErrorMsg()
+{
+    return tranError;
 }
 
 CAbstractTranslator *translatorFactory(QObject* parent)

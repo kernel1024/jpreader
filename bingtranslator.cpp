@@ -26,7 +26,7 @@ CBingTranslator::CBingTranslator(QObject *parent, const QString &bingID, const Q
 
 CBingTranslator::~CBingTranslator()
 {
-
+    doneTran();
 }
 
 bool CBingTranslator::waitForReply(QNetworkReply *reply)
@@ -105,7 +105,10 @@ bool CBingTranslator::initTran()
 
 QString CBingTranslator::tranString(QString src)
 {
-    if (!isReady()) return QString();
+    if (!isReady()) {
+        tranError = QString("ERROR: Bing translator not ready");
+        return QString("ERROR:TRAN_NOT_READY");
+    }
 
     if (src.length()>=10000) {
         // Split by separator chars
@@ -126,7 +129,7 @@ QString CBingTranslator::tranString(QString src)
         res.clear();
         for (int i=0;i<srout.count();i++) {
             QString s = tranStringInternal(srout.at(i));
-            if (s.startsWith("ERR:")) {
+            if (!tranError.isEmpty()) {
                 res=s;
                 break;
             }
@@ -152,13 +155,18 @@ QString CBingTranslator::tranStringInternal(QString src)
 
     QNetworkReply *rpl = nam->get(rq);
 
-    if (!waitForReply(rpl)) return QString("ERR:BING_NETWORK_ERROR");
+    if (!waitForReply(rpl)) {
+        tranError = QString("ERROR: Bing translator network error");
+        return QString("ERROR:TRAN_BING_NETWORK_ERROR");
+    }
 
     QByteArray ra = rpl->readAll();
 
     QDomDocument xdoc;
-    if (!xdoc.setContent(ra))
-        return QString("ERR:BING_XML_ERROR");
+    if (!xdoc.setContent(ra)) {
+        tranError = QString("ERROR: Bing translator XML error");
+        return QString("ERROR:TRAN_BING_XML_ERROR");
+    }
 
     QString res;
     res.clear();
@@ -176,6 +184,9 @@ QString CBingTranslator::tranStringInternal(QString src)
 void CBingTranslator::doneTran(bool)
 {
     authHeader.clear();
+    if (nam!=NULL)
+        nam->deleteLater();
+    nam=NULL;
 }
 
 bool CBingTranslator::isReady()

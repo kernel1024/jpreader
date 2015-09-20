@@ -39,7 +39,8 @@ private:
     int atlTcpRetryCount;
     int atlTcpTimeout;
     bool abortFlag;
-    bool atlasSlipped;
+    bool translatorFailed;
+    QString translatorError;
     int translationEngine;
     QMutex abortMutex;
     int textNodesCnt;

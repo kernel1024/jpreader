@@ -116,8 +116,8 @@ void CSnTrans::calcFinished(const bool success, const QString& aUrl)
         postTranslate();
         snv->parentWnd->updateTabs();
     } else {
-        if (aUrl.contains("ERROR:ATLAS_SLIPPED"))
-            QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
+        if (aUrl.startsWith("ERROR:"))
+            QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(aUrl));
         else
             QMessageBox::warning(snv,tr("JPReader"),tr("Url not calculated. Network error occured."));
     }
