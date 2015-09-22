@@ -124,7 +124,8 @@ void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
         deniedNodes << "object" << "iframe" << "noscript" << "script";
         int ridx = 0;
         while (ridx<node.childNodes().count()) {
-            if (deniedNodes.contains(node.childNodes().at(ridx).nodeName(),Qt::CaseInsensitive))
+            if (deniedNodes.contains(node.childNodes().at(ridx).nodeName(),Qt::CaseInsensitive) &&
+                    node.childNodes().at(ridx).isElement())
                 node.removeChild(node.childNodes().at(ridx));
             else
                 ridx++;
@@ -160,9 +161,13 @@ void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
                 sdivst = node.attributes().namedItem("style").nodeValue().toLower();
 
             if (!sdivst.contains("absolute",Qt::CaseInsensitive)) {
-                QDomAttr divst = node.ownerDocument().createAttribute("style");
-                divst.setNodeValue("height:auto;");
-                node.attributes().setNamedItem(divst);
+                if (node.attributes().namedItem("style").isNull())
+                    node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
+                if (node.attributes().namedItem("style").nodeValue().isEmpty())
+                    node.attributes().namedItem("style").setNodeValue("height:auto;");
+                else
+                    node.attributes().namedItem("style").setNodeValue(
+                                node.attributes().namedItem("style").nodeValue()+"; height:auto;");
             }
         }
 
