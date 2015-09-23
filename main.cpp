@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QStringList>
 
 #include "specwidgets.h"
@@ -7,6 +8,7 @@
 #include "indexersearch.h"
 #include "genericfuncs.h"
 #include "adblockrule.h"
+#include "css/parser_pp.h"
 
 #include <sys/resource.h>
 
@@ -27,6 +29,12 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<QBookmarksMap>("QBookmarksMap");
 
     QApplication app(argc, argv);
+
+    QFile iecssf(":/data/htmlcxx-default.css");
+    iecssf.open(QIODevice::ReadOnly);
+    htmlcxx::CSS::IE_CSS = (char*)malloc(iecssf.size());
+    iecssf.read(htmlcxx::CSS::IE_CSS,iecssf.size());
+    iecssf.close();
 
     gSet = new CGlobalControl(&app);
     if ((gSet==NULL) || (gSet->ipcServer==NULL))

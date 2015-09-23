@@ -38,7 +38,7 @@ void CSnTrans::convertToXMLPriv(const QString& data)
 
     CTranslator* ct = new CTranslator(NULL,aUri,NULL);
     QString res;
-    if (!ct->documentToXML(aUri,res)) {
+    if (!ct->documentReparse(aUri,res)) {
         QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
         return;
     }

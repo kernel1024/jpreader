@@ -4,11 +4,10 @@
 #include <QObject>
 #include <QString>
 #include <QMutex>
-#include <QDomNode>
 #include <QColor>
 #include <QFont>
-#include <html/ParserDom.h>
 #include <netdb.h>
+#include "html/ParserDom.h"
 #include "mainwindow.h"
 #include "abstracttranslator.h"
 #include "globalcontrol.h"
@@ -18,16 +17,18 @@ using namespace htmlcxx;
 
 class CHTMLNode {
 public:
-public:
     QString text, tagName, closingText;
     bool isTag, isComment;
     QList<CHTMLNode> children;
+    QMap<QString,QString> attributes;
     CHTMLNode();
     ~CHTMLNode();
     CHTMLNode(tree<HTML::Node> const & node);
+    CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other);
     bool operator==(const CHTMLNode &s) const;
     bool operator!=(const CHTMLNode &s) const;
+    void normalize();
 };
 
 Q_DECLARE_METATYPE(CHTMLNode)
@@ -76,8 +77,6 @@ private:
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateDocument(const QString& srcUri, QString& dst);
-    void examineXMLNode(QDomNode node, XMLPassMode xmlPass);
-    bool translateParagraph(QDomNode src, XMLPassMode xmlPass);
 
     void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
     bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
@@ -86,7 +85,7 @@ private:
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
     ~CTranslator();
-    bool documentToXML(const QString& srcUri, QString& dst);
+    bool documentReparse(const QString& srcUri, QString& dst);
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);

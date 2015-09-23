@@ -1,7 +1,6 @@
 #include <QTextCodec>
 #include <QStringList>
 #include <QMimeData>
-#include <QMutex>
 #include <QString>
 #include <QTime>
 
@@ -16,9 +15,6 @@
 #include <stdlib.h>
 #include "genericfuncs.h"
 #include "globalcontrol.h"
-#include "SAX/filter/Writer.hpp"
-#include "SAX/helpers/CatchErrorHandler.hpp"
-#include "taggle/Taggle.hpp"
 
 using namespace std;
 
@@ -140,40 +136,6 @@ QString makeSimpleHtml(QString title, QString content)
     cn+="<title>"+title+"</title></head>";
     cn+="<body>"+cnt+"</body></html>";
     return cn;
-}
-
-QMutex xmlizerMutex;
-
-QByteArray XMLizeHTML(QByteArray html, QString encoding)
-{
-    xmlizerMutex.lock();
-	Arabica::SAX::Taggle<std::string> parser;
-    std::ostringstream sink;
-    Arabica::SAX::Writer<std::string> writer(sink, 0);
-    Arabica::SAX::CatchErrorHandler<std::string> eh;
-
-    writer.setParent(parser);
-    writer.setErrorHandler(eh);
-
-    std::istringstream iss(html.data(),std::istringstream::in);
-    Arabica::SAX::InputSource<std::string> is;
-
-    std::string enc = encoding.toLatin1().constData();
-    is.setByteStream(iss);
-    is.setEncoding(enc);
-
-    writer.parse(is);
-
-    if(eh.errorsReported())
-    {
-        QString err(eh.errors().c_str());
-        qCritical() << err;
-        eh.reset();
-    }
-
-    QByteArray xmldoc(sink.str().c_str());
-    xmlizerMutex.unlock();
-	return xmldoc;
 }
 
 QString getClipboardContent(bool noFormatting, bool plainpre) {

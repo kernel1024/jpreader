@@ -14,5 +14,5 @@ Library dependencies:
 
 Integrated static parts from libraries:
 
-    arabica 2010.11 ( http://www.jezuk.co.uk/cgi-bin/view/arabica )
+    htmlcxx 0.84
     libqxt 0.6.2 

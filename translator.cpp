@@ -82,176 +82,6 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     }
 }
 
-void CTranslator::examineXMLNode(QDomNode node, XMLPassMode xmlPass)
-{
-    if (translatorFailed) return;
-    abortMutex.lock();
-    if (abortFlag) {
-        abortMutex.unlock();
-        return;
-    }
-    abortMutex.unlock();
-
-    QApplication::processEvents();
-
-    if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
-        if (node.isText() && node.parentNode().nodeName().toLower()=="title") return;
-
-        if (xmlPass==PXCalculate && node.isText()) { // modify node
-            QDomNode nd = node.ownerDocument().createElement("span");
-            nd.appendChild(node.ownerDocument().createTextNode(node.nodeValue()));
-            QDomAttr flg = node.ownerDocument().createAttribute("jpreader_flag");
-            flg.setNodeValue("on");
-            nd.attributes().setNamedItem(flg);
-            translateParagraph(nd,xmlPass);
-            node.parentNode().replaceChild(nd,node);
-        }
-        if (xmlPass==PXTranslate && node.attributes().contains("jpreader_flag")) {
-            node.attributes().removeNamedItem("jpreader_flag");
-            if (!translateParagraph(node,xmlPass)) translatorFailed=true;
-        }
-    }
-
-	if (xmlPass==PXPreprocess) {
-        if (node.isElement() && node.nodeName().toLower()=="meta") {
-            if (!node.attributes().namedItem("http-equiv").isNull() &&
-                    node.attributes().namedItem("http-equiv").nodeValue().toLower()=="content-type") {
-                if (!node.attributes().namedItem("content").isNull())
-                    node.attributes().namedItem("content").setNodeValue("text/html; charset=UTF-8");
-            }
-        }
-
-		// cleanup iframes, objects and other unusable tags
-		QStringList deniedNodes;
-        deniedNodes << "object" << "iframe" << "noscript" << "script";
-        int ridx = 0;
-        while (ridx<node.childNodes().count()) {
-            if (deniedNodes.contains(node.childNodes().at(ridx).nodeName(),Qt::CaseInsensitive) &&
-                    node.childNodes().at(ridx).isElement())
-                node.removeChild(node.childNodes().at(ridx));
-            else
-                ridx++;
-		}
-
-		// fix script and styles comment blocks
-		if (node.nodeName().toLower()=="script" || node.nodeName().toLower()=="style") {
-			if (!node.firstChild().toText().isNull()) {
-				QString b = node.firstChild().toText().nodeValue();
-				b.remove("<!--"); b.remove("-->");
-				b = b.simplified();
-				node.removeChild(node.firstChild());
-				node.appendChild(node.ownerDocument().createComment(b));
-			}
-		}
-
-        // expand null-sized unclosed container tags into small paragraphs
-        QStringList containerTags;
-        containerTags << "b" << "center" << "cite" << "code" <<
-                         "dd" << "del" << "dir" << "div" << "dl" << "dt" << "em" << "font" << "form" <<
-                         "h1" << "h2" << "h3" << "h4" << "h5" << "h6" << "i" << "ins" << "label" << " legend" <<
-                         "li" << "map" << "menu" << "p" << "pre" << "q" << "s" << "select" <<
-                         "small" << "span" << "strike" << "strong" << "style" << "table" << "tbody" <<
-                         "textarea" << "title" <<"tr" << "tt" << "u" << "ul";
-        if (containerTags.contains(node.nodeName().toLower()) && node.childNodes().isEmpty()) {
-			node.appendChild(node.ownerDocument().createTextNode(" "));
-		}
-
-        // unfold compressed divs
-        if (node.nodeName().toLower()=="div") {
-            QString sdivst = "";
-            if (!node.attributes().namedItem("style").isNull())
-                sdivst = node.attributes().namedItem("style").nodeValue().toLower();
-
-            if (!sdivst.contains("absolute",Qt::CaseInsensitive)) {
-                if (node.attributes().namedItem("style").isNull())
-                    node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                    node.attributes().namedItem("style").setNodeValue("height:auto;");
-                else
-                    node.attributes().namedItem("style").setNodeValue(
-                                node.attributes().namedItem("style").nodeValue()+"; height:auto;");
-            }
-        }
-
-        // pixiv stylesheet fix for novels viewer
-        if (node.nodeName().toLower()=="div") {
-            if (!node.attributes().namedItem("class").isNull()) {
-                if (node.attributes().namedItem("class").nodeValue().toLower()=="works_display") {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    node.attributes().namedItem("style").setNodeValue("text-align: left;");
-                }
-
-                // hide comments popup div
-                if (node.attributes().namedItem("class").nodeValue().toLower().contains("-modal")) {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                        node.attributes().namedItem("style").setNodeValue("position: static;");
-                    else
-                        node.attributes().namedItem("style").setNodeValue(
-                                    node.attributes().namedItem("style").nodeValue()+"; position: static;");
-                }
-
-                // Style fix for 2015/05..2015/07 pixiv novel viewer update
-                if ((node.attributes().namedItem("class").nodeValue().toLower()=="novel-text-wrapper") ||
-                        (node.attributes().namedItem("class").nodeValue().toLower()=="novel-pages")) {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                        node.attributes().namedItem("style").setNodeValue("display:block;");
-                    else
-                        node.attributes().namedItem("style").setNodeValue(
-                                    node.attributes().namedItem("style").nodeValue()+"; display:block;");
-                }
-            }
-        }
-
-        // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
-        int idx=0;
-        while(idx<node.childNodes().count()) {
-            // Remove 'vtoken' inline span
-            QDomNode span = node.childNodes().item(idx);
-            if (span.nodeName().toLower()=="span" &&
-                    !span.attributes().namedItem("class").isNull() &&
-                    span.attributes().namedItem("class").nodeValue().toLower().startsWith("vtoken")) {
-
-                while(!span.childNodes().isEmpty())
-                    node.insertBefore(span.removeChild(span.firstChild()),span);
-
-                node.removeChild(span);
-                node.normalize();
-                idx=0;
-            }
-            idx++;
-        }
-
-		// remove <pre> tags
-		if (node.isElement() && node.nodeName().toLower()=="pre") {
-            node.toElement().setTagName("span");
-		}
-
-    }
-	if (xmlPass==PXPostprocess) {
-        // remove duplicated <br>
-        int idx=0;
-        while(idx<node.childNodes().count()) {
-            if (node.childNodes().at(idx).nodeName().toLower()=="br") {
-                while(!node.childNodes().at(idx+1).isNull() &&
-                      node.childNodes().at(idx+1).nodeName().toLower()=="br") {
-                    node.removeChild(node.childNodes().at(idx+1));
-                }
-            }
-            idx++;
-        }
-    }
-
-
-    for(int i=0;i<node.childNodes().count();i++) {
-        examineXMLNode(node.childNodes().at(i),xmlPass);
-    }
-}
-
 bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 {
     abortMutex.lock();
@@ -272,50 +102,8 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     dst = "";
     if (srcUri.isEmpty()) return false;
 
-    // convert source HTML to XML
 	QString src = srcUri.trimmed();
 	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
-/*    QByteArray xmls = XMLizeHTML(src.toUtf8(),"UTF-8");
-
-    // load into DOM
-    QDomDocument doc;
-    QString errMsg; int errLine, errCol;
-    if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
-        tran->doneTran();
-        qCritical() << tr("HTML to XML beautification error");
-        qCritical() << errMsg << "at line" << errLine << ":" << errCol;
-        return false;
-    }
-
-    translatorFailed=false;
-    textNodesCnt=0;
-    XMLPassMode xmlPass=PXPreprocess;
-    examineXMLNode(doc,xmlPass);
-    //qInfo() << doc.toString();
-
-    xmlPass=PXCalculate;
-    examineXMLNode(doc,xmlPass);
-    //qInfo() << doc.toString();
-
-    textNodesProgress=0;
-    xmlPass=PXTranslate;
-    examineXMLNode(doc,xmlPass);
-    //qInfo() << doc.toString();
-
-    if (translatorFailed) {
-        dst=tran->getErrorMsg();
-    } else {
-        xmlPass=PXPostprocess;
-        examineXMLNode(doc,xmlPass);
-
-        dst = doc.toString(-1);
-
-        tran->doneTran();
-    }
-
-    */
-
-    translatorFailed = false;
 
     HTML::ParserDom parser;
     parser.parse(src.toUtf8().toStdString());
@@ -324,8 +112,12 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
+    translatorFailed = false;
+    textNodesCnt=0;
     examineNode(doc,PXPreprocess);
     examineNode(doc,PXCalculate);
+
+    textNodesProgress=0;
     examineNode(doc,PXTranslate);
 
     if (translatorFailed) {
@@ -337,15 +129,10 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
         tran->doneTran();
     }
 
-/*    QFile f(QDir::home().absoluteFilePath("a.html"));
-    f.open(QIODevice::WriteOnly);
-    f.write(doc.toByteArray());
-    f.close();*/
-
     return !translatorFailed;
 }
 
-bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
+bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 {
     abortMutex.lock();
     abortFlag=false;
@@ -354,7 +141,6 @@ bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
     dst = "";
     if (srcUri.isEmpty()) return false;
 
-    // convert source HTML to XML
     QString src = srcUri.trimmed();
     src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
@@ -365,117 +151,16 @@ bool CTranslator::documentToXML(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
+    translatorFailed=false;
+    textNodesCnt=0;
     examineNode(doc,PXPreprocess);
     examineNode(doc,PXCalculate);
+
+    textNodesProgress=0;
     examineNode(doc,PXTranslate);
 
     generateHTML(doc,dst);
 
-
-/*    QByteArray xmls = XMLizeHTML(src.toUtf8(),"UTF-8");
-
-    // load into DOM
-    QDomDocument doc;
-    QString errMsg; int errLine, errCol;
-    if (!doc.setContent(xmls,&errMsg,&errLine,&errCol)) {
-        qCritical() << tr("HTML to XML beautification error");
-        qCritical() << errMsg << "at line" << errLine << ":" << errCol;
-        return false;
-    }
-
-    translatorFailed=false;
-    textNodesCnt=0;
-    XMLPassMode xmlPass=PXPreprocess;
-    examineXMLNode(doc,xmlPass);
-
-    xmlPass=PXCalculate;
-    examineXMLNode(doc,xmlPass);
-
-    textNodesProgress=0;
-    xmlPass=PXTranslate;
-    examineXMLNode(doc,xmlPass);
-
-    dst = doc.toString(-1);*/
-
-    return true;
-}
-
-bool CTranslator::translateParagraph(QDomNode src, XMLPassMode xmlPass)
-{
-    if (tran==NULL) return false;
-
-    int baseProgress = 0;
-    if (textNodesCnt>0) {
-        baseProgress = 100*textNodesProgress/textNodesCnt;
-    }
-    QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, baseProgress));
-
-    QString ssrc = src.firstChild().nodeValue();
-    ssrc = ssrc.replace("\r\n","\n");
-    ssrc = ssrc.replace('\r','\n');
-    ssrc = ssrc.replace(QRegExp("\n{2,}"),"\n");
-    QStringList sl = ssrc.split('\n',QString::SkipEmptyParts);
-
-    if (xmlPass==PXTranslate) src.removeChild(src.firstChild());
-    for(int i=0;i<sl.count();i++) {
-        abortMutex.lock();
-        if (abortFlag) {
-            abortMutex.unlock();
-            src.appendChild(src.ownerDocument().createTextNode(tr("ATLAS: Translation thread aborted.")));
-            break;
-        }
-        abortMutex.unlock();
-
-        if (xmlPass!=PXTranslate) {
-            textNodesCnt++;
-        } else {
-            QString srct = sl[i];
-            QString t = tran->tranString(sl[i]);
-            if (translationMode==TM_TOOLTIP) {
-                QString ts = srct;
-                srct = t;
-                t = ts;
-            }
-
-            if (translationMode==TM_ADDITIVE) {
-                src.appendChild(src.ownerDocument().createTextNode(srct));
-                src.appendChild(src.ownerDocument().createElement("br"));
-            }
-            if (!tran->getErrorMsg().isEmpty()) {
-                tran->doneTran();
-                src.appendChild(src.ownerDocument().createTextNode(t));
-                return false;
-            } else {
-                if (useOverrideFont || forceFontColor) {
-                    QDomNode dp = src.ownerDocument().createElement("span");
-                    dp.attributes().setNamedItem(src.ownerDocument().createAttribute("style"));
-                    QString dstyle;
-                    if (useOverrideFont)
-                        dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
-                                    overrideFont.family()).arg(
-                                    overrideFont.pointSize());
-                    if (forceFontColor)
-                        dstyle+=tr("color: %1;").arg(forcedFontColor.name());
-                    dp.attributes().namedItem("style").setNodeValue(dstyle);
-                    dp.appendChild(src.ownerDocument().createTextNode(t));
-                    src.appendChild(dp);
-                } else {
-                    src.appendChild(src.ownerDocument().createTextNode(t));
-                }
-                if ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)) {
-                    src.attributes().setNamedItem(src.ownerDocument().createAttribute("title"));
-                    src.attributes().namedItem("title").setNodeValue(srct);
-                } else
-                    src.appendChild(src.ownerDocument().createElement("br"));
-            }
-
-            if (textNodesCnt>0 && i%5==0) {
-                int pr = 100*textNodesProgress/textNodesCnt;
-                QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, pr));
-            }
-            textNodesProgress++;
-        }
-    }
     return true;
 }
 
@@ -493,12 +178,6 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     QStringList skipTags;
     skipTags << "style" << "script" << "noscript" << "object" << "iframe" << "title";
-
-    qDebug() << node.text
-             << node.tagName
-             << node.closingText
-             << node.isTag
-             << node.isComment;
 
     if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
         if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
@@ -518,107 +197,51 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 if (!node.attributes().namedItem("content").isNull())
                     node.attributes().namedItem("content").setNodeValue("text/html; charset=UTF-8");
             }
-        }
+        }*/
 
-        // cleanup iframes, objects and other unusable tags
-        QStringList deniedNodes;
-        deniedNodes << "object" << "iframe" << "noscript" << "script";
-        int ridx = 0;
-        while (ridx<node.childNodes().count()) {
-            if (deniedNodes.contains(node.childNodes().at(ridx).nodeName(),Qt::CaseInsensitive) &&
-                    node.childNodes().at(ridx).isElement())
-                node.removeChild(node.childNodes().at(ridx));
-            else
-                ridx++;
-        }
+        // div processing
+        if (node.tagName.toLower()=="div") {
 
-        // fix script and styles comment blocks
-        if (node.nodeName().toLower()=="script" || node.nodeName().toLower()=="style") {
-            if (!node.firstChild().toText().isNull()) {
-                QString b = node.firstChild().toText().nodeValue();
-                b.remove("<!--"); b.remove("-->");
-                b = b.simplified();
-                node.removeChild(node.firstChild());
-                node.appendChild(node.ownerDocument().createComment(b));
-            }
-        }
-
-        // expand null-sized unclosed container tags into small paragraphs
-        QStringList containerTags;
-        containerTags << "b" << "center" << "cite" << "code" <<
-                         "dd" << "del" << "dir" << "div" << "dl" << "dt" << "em" << "font" << "form" <<
-                         "h1" << "h2" << "h3" << "h4" << "h5" << "h6" << "i" << "ins" << "label" << " legend" <<
-                         "li" << "map" << "menu" << "p" << "pre" << "q" << "s" << "select" <<
-                         "small" << "span" << "strike" << "strong" << "style" << "table" << "tbody" <<
-                         "textarea" << "title" <<"tr" << "tt" << "u" << "ul";
-        if (containerTags.contains(node.nodeName().toLower()) && node.childNodes().isEmpty()) {
-            node.appendChild(node.ownerDocument().createTextNode(" "));
-        }
-
-        // unfold compressed divs
-        if (node.nodeName().toLower()=="div") {
+            // unfold compressed divs
             QString sdivst = "";
-            if (!node.attributes().namedItem("style").isNull())
-                sdivst = node.attributes().namedItem("style").nodeValue().toLower();
-
+            if (node.attributes.contains("style"))
+                sdivst = node.attributes.value("style");
             if (!sdivst.contains("absolute",Qt::CaseInsensitive)) {
-                if (node.attributes().namedItem("style").isNull())
-                    node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                    node.attributes().namedItem("style").setNodeValue("height:auto;");
+                if (!node.attributes.contains("style"))
+                    node.attributes["style"]="";
+                if (node.attributes.value("style").isEmpty())
+                    node.attributes["style"]="height:auto;";
                 else
-                    node.attributes().namedItem("style").setNodeValue(
-                                node.attributes().namedItem("style").nodeValue()+"; height:auto;");
+                    node.attributes["style"]=node.attributes.value("style")+"; height:auto;";
             }
-        }
 
-        // pixiv stylesheet fix for novels viewer
-        if (node.nodeName().toLower()=="div") {
-            if (!node.attributes().namedItem("class").isNull()) {
-                if (node.attributes().namedItem("class").nodeValue().toLower()=="works_display") {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    node.attributes().namedItem("style").setNodeValue("text-align: left;");
-                }
-
-                // hide comments popup div
-                if (node.attributes().namedItem("class").nodeValue().toLower().contains("-modal")) {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                        node.attributes().namedItem("style").setNodeValue("position: static;");
-                    else
-                        node.attributes().namedItem("style").setNodeValue(
-                                    node.attributes().namedItem("style").nodeValue()+"; position: static;");
-                }
-
-                // Style fix for 2015/05..2015/07 pixiv novel viewer update
-                if ((node.attributes().namedItem("class").nodeValue().toLower()=="novel-text-wrapper") ||
-                        (node.attributes().namedItem("class").nodeValue().toLower()=="novel-pages")) {
-                    if (node.attributes().namedItem("style").isNull())
-                        node.attributes().setNamedItem(node.ownerDocument().createAttribute("style"));
-                    if (node.attributes().namedItem("style").nodeValue().isEmpty())
-                        node.attributes().namedItem("style").setNodeValue("display:block;");
-                    else
-                        node.attributes().namedItem("style").setNodeValue(
-                                    node.attributes().namedItem("style").nodeValue()+"; display:block;");
-                }
+            // pixiv - unfolding novel pages to one big page
+            QStringList unhide_classes { "novel-text-wrapper", "novel-pages", "novel-page" };
+            if (node.attributes.contains("class") &&
+                    unhide_classes.contains(node.attributes.value("class"))) {
+                if (!node.attributes.contains("style"))
+                    node.attributes["style"]="";
+                if (node.attributes.value("style").isEmpty())
+                    node.attributes["style"]="display:block;";
+                else
+                    node.attributes["style"]=node.attributes.value("style")+"; display:block;";
             }
         }
 
         // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
         int idx=0;
-        while(idx<node.childNodes().count()) {
+        while(idx<node.children.count()) {
             // Remove 'vtoken' inline span
-            QDomNode span = node.childNodes().item(idx);
-            if (span.nodeName().toLower()=="span" &&
-                    !span.attributes().namedItem("class").isNull() &&
-                    span.attributes().namedItem("class").nodeValue().toLower().startsWith("vtoken")) {
+            if (node.children.at(idx).tagName=="span" &&
+                    node.children.at(idx).attributes.contains("class") &&
+                    node.children.at(idx).attributes.value("class").startsWith("vtoken")) {
 
-                while(!span.childNodes().isEmpty())
-                    node.insertBefore(span.removeChild(span.firstChild()),span);
+                while (!node.children.at(idx).children.isEmpty()) {
+                    node.children.insert(idx,node.children[idx].children.takeFirst());
+                    idx++;
+                }
 
-                node.removeChild(span);
+                node.children.removeAt(idx);
                 node.normalize();
                 idx=0;
             }
@@ -626,25 +249,24 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // remove <pre> tags
-        if (node.isElement() && node.nodeName().toLower()=="pre") {
-            node.toElement().setTagName("span");
-        }*/
+        if (node.isTag && node.tagName=="pre") {
+            node.tagName="span";
+        }
 
     }
     if (xmlPass==PXPostprocess) {
-/*        // remove duplicated <br>
+        // remove duplicated <br>
         int idx=0;
-        while(idx<node.childNodes().count()) {
-            if (node.childNodes().at(idx).nodeName().toLower()=="br") {
-                while(!node.childNodes().at(idx+1).isNull() &&
-                      node.childNodes().at(idx+1).nodeName().toLower()=="br") {
-                    node.removeChild(node.childNodes().at(idx+1));
+        while(idx<node.children.count()) {
+            if (node.children.at(idx).tagName=="br") {
+                while(idx<(node.children.count()-1) &&
+                      node.children.at(idx+1).tagName=="br") {
+                    node.children.removeAt(idx+1);
                 }
             }
             idx++;
-        }*/
+        }
     }
-
 
     for(int i=0;i<node.children.count();i++) {
         examineNode(node.children[i],xmlPass);
@@ -672,7 +294,9 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     QString sout;
     sout.clear();
 
-    //if (xmlPass==PXTranslate) src.removeChild(src.firstChild());
+    QStringList srctls;
+    srctls.clear();
+
     for(int i=0;i<sl.count();i++) {
         abortMutex.lock();
         if (abortFlag) {
@@ -686,44 +310,44 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             textNodesCnt++;
         } else {
             QString srct = sl[i];
-            QString t = tran->tranString(sl[i]);
-            if (translationMode==TM_TOOLTIP) {
-                QString ts = srct;
-                srct = t;
-                t = ts;
-            }
 
-            if (translationMode==TM_ADDITIVE)
-                sout += srct + "<br/>";
+            if (srct.trimmed().isEmpty())
+                sout += "\n";
+            else {
+                QString t = tran->tranString(sl[i]);
+                if (translationMode==TM_TOOLTIP) {
+                    QString ts = srct;
+                    srct = t;
+                    t = ts;
+                }
 
-            if (!tran->getErrorMsg().isEmpty()) {
-                tran->doneTran();
-                sout += t;
-                failure = true;
-                break;
-            } else {
-/*                if (useOverrideFont || forceFontColor) {
-                    QDomNode dp = src.ownerDocument().createElement("span");
-                    dp.attributes().setNamedItem(src.ownerDocument().createAttribute("style"));
-                    QString dstyle;
-                    if (useOverrideFont)
-                        dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
-                                    overrideFont.family()).arg(
-                                    overrideFont.pointSize());
-                    if (forceFontColor)
-                        dstyle+=tr("color: %1;").arg(forcedFontColor.name());
-                    dp.attributes().namedItem("style").setNodeValue(dstyle);
-                    dp.appendChild(src.ownerDocument().createTextNode(t));
-                    src.appendChild(dp);
-                } else {*/
+                if (translationMode==TM_ADDITIVE)
+                    sout += srct + "<br/>";
 
-                sout += t;
+                if (!tran->getErrorMsg().isEmpty()) {
+                    tran->doneTran();
+                    sout += t;
+                    failure = true;
+                    break;
+                } else {
+                    if (useOverrideFont || forceFontColor) {
+                        QString dstyle;
+                        if (useOverrideFont)
+                            dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
+                                        overrideFont.family()).arg(
+                                        overrideFont.pointSize());
+                        if (forceFontColor)
+                            dstyle+=tr("color: %1;").arg(forcedFontColor.name());
 
-                /*if ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)) {
-                    src.attributes().setNamedItem(src.ownerDocument().createAttribute("title"));
-                    src.attributes().namedItem("title").setNodeValue(srct);
-                } else*/
-                    sout += "<br/>\n";
+                        sout += QString("<span style=\"%1\">%2</span>").arg(dstyle).arg(t);
+                    } else
+                        sout += t;
+
+                    if (translationMode==TM_ADDITIVE)
+                        sout += "<br/>\n";
+                    else
+                        srctls << srct;
+                }
             }
 
             if (textNodesCnt>0 && i%5==0) {
@@ -734,11 +358,18 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
         }
     }
 
-    if (xmlPass==PXTranslate && !sout.isEmpty())
-        src.text = sout;
+    if (xmlPass==PXTranslate && !sout.isEmpty()) {
+        if (!srctls.isEmpty() && ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)))
+            src.text = QString("<span title=\"%1\">%2</span>")
+                       .arg(srctls.join("\n").replace('"','\''))
+                       .arg(sout);
+        else
+            src.text = sout;
+    }
 
     if (failure)
         return false;
+
 
     return true;
 
@@ -746,7 +377,19 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
 void CTranslator::generateHTML(CHTMLNode &src, QString &html)
 {
-    html.append(src.text);
+    if (src.isTag && !src.tagName.isEmpty()) {
+        html.append("<"+src.tagName);
+        for (int i=0;i<src.attributes.keys().count();i++) {
+            QString key = src.attributes.keys().at(i);
+            QString val = src.attributes.value(key);
+            if (!val.contains("\""))
+                html.append(QString(" %1=\"%2\"").arg(key).arg(val));
+            else
+                html.append(QString(" %1='%2'").arg(key).arg(val));
+        }
+        html.append(">");
+    } else
+        html.append(src.text);
 
     for (int i=0; i<src.children.count(); i++ )
         generateHTML(src.children[i],html);
@@ -805,6 +448,7 @@ void CTranslator::abortTranslator()
 CHTMLNode::CHTMLNode()
 {
     children.clear();
+    attributes.clear();
     text.clear();
     tagName.clear();
     closingText.clear();
@@ -815,11 +459,14 @@ CHTMLNode::CHTMLNode()
 CHTMLNode::~CHTMLNode()
 {
     children.clear();
+    attributes.clear();
 }
 
 CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 {
     tree<HTML::Node>::iterator it = node.begin();
+
+    it->parseAttributes();
 
     text = QString::fromStdString(it->text());
     tagName = QString::fromStdString(it->tagName());
@@ -827,10 +474,28 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
     isTag = it->isTag();
     isComment = it->isComment();
 
+    attributes.clear();
+
+    for (auto& kv : it->attributes())
+        attributes.insert(QString::fromStdString(kv.first).toLower(),QString::fromStdString(kv.second).toLower());
+
     children.clear();
 
     for (unsigned i=0; i<it.number_of_children(); i++ )
         children << CHTMLNode(node.child(it,i));
+}
+
+CHTMLNode::CHTMLNode(const QString &innerText)
+{
+    // creates text node
+    text = innerText;
+    tagName = innerText;
+    closingText.clear();
+    isTag = false;
+    isComment = false;
+
+    attributes.clear();
+    children.clear();
 }
 
 CHTMLNode &CHTMLNode::operator=(const CHTMLNode &other)
@@ -840,6 +505,10 @@ CHTMLNode &CHTMLNode::operator=(const CHTMLNode &other)
     closingText = other.closingText;
     isTag = other.isTag;
     isComment = other.isComment;
+
+    attributes.clear();
+
+    attributes = other.attributes;
 
     children.clear();
 
@@ -856,4 +525,28 @@ bool CHTMLNode::operator==(const CHTMLNode &s) const
 bool CHTMLNode::operator!=(const CHTMLNode &s) const
 {
     return !operator==(s);
+}
+
+void CHTMLNode::normalize()
+{
+    QList<CHTMLNode> cl;
+    cl.clear();
+
+    QString acc;
+
+    for (int i=0;i<children.count();i++) {
+        if (!children.at(i).isTag && !children.at(i).isComment) {
+            // Text node
+            acc += children.at(i).text;
+        } else {
+            // Regular tag
+            if (!acc.isEmpty())
+                cl.append(CHTMLNode(acc));
+            cl.append(children.at(i));
+        }
+    }
+    if (!acc.isEmpty())
+        cl.append(CHTMLNode(acc));
+
+    children = cl;
 }

@@ -11,5 +11,6 @@
     <qresource prefix="/data">
         <file alias="startpage">data/startpage.html</file>
         <file alias="article-style.css">data/article-style.css</file>
+        <file alias="htmlcxx-default.css">htmlcxx/css/default.css</file>
     </qresource>
 </RCC>
