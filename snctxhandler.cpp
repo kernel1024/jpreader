@@ -146,8 +146,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     });
     ccm->addAction(ac);
 
-    ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Convert to XML"),
-                   snv->transHandler,SLOT(convertToXML()));
+    ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Parse document"),
+                   snv->transHandler,SLOT(reparseDocument()));
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
                  snv,SLOT(closeTab()));

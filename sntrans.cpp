@@ -22,12 +22,12 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
 }
 
-void CSnTrans::convertToXML()
+void CSnTrans::reparseDocument()
 {
-    snv->txtBrowser->page()->toHtml([this](const QString& result) { convertToXMLPriv(result); });
+    snv->txtBrowser->page()->toHtml([this](const QString& result) { reparseDocumentPriv(result); });
 }
 
-void CSnTrans::convertToXMLPriv(const QString& data)
+void CSnTrans::reparseDocumentPriv(const QString& data)
 {
     snv->calculatedUrl="";
     snv->onceTranslated=true;

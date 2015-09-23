@@ -28,8 +28,8 @@ public slots:
     void showWordTranslation(const QString & html);
     void showSuggestedTranslation(const QString & link);
     void dictDataReady();
-    void convertToXML();
-    void convertToXMLPriv(const QString& data);
+    void reparseDocument();
+    void reparseDocumentPriv(const QString& data);
 };
 
 #endif // SNTRANS_H

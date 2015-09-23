@@ -4,6 +4,7 @@
 #include <QTextCodec>
 #include <QAbstractNetworkCache>
 #include <QTextDocument>
+#include <QWebEngineSettings>
 
 #include "qxttooltip.h"
 #include "mainwindow.h"
@@ -631,6 +632,10 @@ void CMainWindow::forceCharset()
         cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
     gSet->forcedCharset = cs;
     gSet->updateAllCharsetLists();
+
+    if (gSet->webProfile!=NULL &&
+            gSet->webProfile->settings()!=NULL)
+        gSet->webProfile->settings()->setDefaultTextEncoding(cs);
 }
 
 void CMainWindow::reloadCharsetList()
