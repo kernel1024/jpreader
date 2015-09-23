@@ -114,7 +114,9 @@ exists( $$[QT_INSTALL_HEADERS]/QtWebEngineCore/QWebEngineUrlRequestInterceptor )
     error("icu not found.");
 }
 
-PKGCONFIG += icu-uc icu-io icu-i18n
+PKGCONFIG += icu-uc icu-io icu-i18n htmlcxx
+
+INCLUDEPATH += /usr/include/htmlcxx
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5

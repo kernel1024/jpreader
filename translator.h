@@ -7,11 +7,30 @@
 #include <QDomNode>
 #include <QColor>
 #include <QFont>
+#include <html/ParserDom.h>
 #include <netdb.h>
 #include "mainwindow.h"
 #include "abstracttranslator.h"
 #include "globalcontrol.h"
 #include "snwaitctl.h"
+
+using namespace htmlcxx;
+
+class CHTMLNode {
+public:
+public:
+    QString text, tagName, closingText;
+    bool isTag, isComment;
+    QList<CHTMLNode> children;
+    CHTMLNode();
+    ~CHTMLNode();
+    CHTMLNode(tree<HTML::Node> const & node);
+    CHTMLNode &operator=(const CHTMLNode& other);
+    bool operator==(const CHTMLNode &s) const;
+    bool operator!=(const CHTMLNode &s) const;
+};
+
+Q_DECLARE_METATYPE(CHTMLNode)
 
 class CSnWaitCtl;
 
@@ -59,6 +78,10 @@ private:
     bool translateDocument(const QString& srcUri, QString& dst);
     void examineXMLNode(QDomNode node, XMLPassMode xmlPass);
     bool translateParagraph(QDomNode src, XMLPassMode xmlPass);
+
+    void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
+    bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
+    void generateHTML(CHTMLNode & src, QString &html);
 
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
