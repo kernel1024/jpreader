@@ -29,6 +29,7 @@ public:
     bool operator==(const CHTMLNode &s) const;
     bool operator!=(const CHTMLNode &s) const;
     void normalize();
+    bool isTextNode() const;
 };
 
 Q_DECLARE_METATYPE(CHTMLNode)

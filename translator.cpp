@@ -177,7 +177,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     QApplication::processEvents();
 
     QStringList skipTags;
-    skipTags << "style" << "script" << "noscript" << "object" << "iframe" << "title";
+    skipTags << "style" << "title";
 
     if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
         if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
@@ -191,13 +191,11 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     }
 
     if (xmlPass==PXPreprocess) {
-/*        if (node.isElement() && node.nodeName().toLower()=="meta") {
-            if (!node.attributes().namedItem("http-equiv").isNull() &&
-                    node.attributes().namedItem("http-equiv").nodeValue().toLower()=="content-type") {
-                if (!node.attributes().namedItem("content").isNull())
-                    node.attributes().namedItem("content").setNodeValue("text/html; charset=UTF-8");
-            }
-        }*/
+        // WebEngine gives UTF-8 encoded page
+        if (node.tagName.toLower()=="meta") {
+            if (node.attributes.value("http-equiv")=="content-type")
+                node.attributes["content"] = "text/html; charset=UTF-8";
+        }
 
         // div processing
         if (node.tagName.toLower()=="div") {
@@ -228,11 +226,13 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
         }
 
-        // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
         int idx=0;
+        QStringList denyTags;
+        denyTags << "script" << "noscript" << "object" << "iframe";
         while(idx<node.children.count()) {
+            // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
             // Remove 'vtoken' inline span
-            if (node.children.at(idx).tagName=="span" &&
+            if (node.children.at(idx).tagName.toLower()=="span" &&
                     node.children.at(idx).attributes.contains("class") &&
                     node.children.at(idx).attributes.value("class").startsWith("vtoken")) {
 
@@ -244,23 +244,27 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 node.children.removeAt(idx);
                 node.normalize();
                 idx=0;
+                continue;
+            }
+
+            // Remove scripts and iframes
+            if (denyTags.contains(node.children.at(idx).tagName,Qt::CaseInsensitive)) {
+                node.children.removeAt(idx);
+                node.normalize();
+                idx = 0;
+                continue;
             }
             idx++;
         }
-
-        // remove <pre> tags
-        if (node.isTag && node.tagName=="pre") {
-            node.tagName="span";
-        }
-
     }
+
     if (xmlPass==PXPostprocess) {
         // remove duplicated <br>
         int idx=0;
         while(idx<node.children.count()) {
-            if (node.children.at(idx).tagName=="br") {
+            if (node.children.at(idx).tagName.toLower()=="br") {
                 while(idx<(node.children.count()-1) &&
-                      node.children.at(idx+1).tagName=="br") {
+                      node.children.at(idx+1).tagName.toLower()=="br") {
                     node.children.removeAt(idx+1);
                 }
             }
@@ -476,8 +480,13 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 
     attributes.clear();
 
-    for (auto& kv : it->attributes())
-        attributes.insert(QString::fromStdString(kv.first).toLower(),QString::fromStdString(kv.second).toLower());
+    for (auto& kv : it->attributes()) {
+        QString key = QString::fromStdString(kv.first).toLower();
+        if (key.trimmed().isEmpty()) continue; // skip malformed attributes from parser
+        QString val = QString::fromStdString(kv.second).toLower();
+        if (val.trimmed().isEmpty()) continue;
+        attributes.insert(key,val);
+    }
 
     children.clear();
 
@@ -529,24 +538,21 @@ bool CHTMLNode::operator!=(const CHTMLNode &s) const
 
 void CHTMLNode::normalize()
 {
-    QList<CHTMLNode> cl;
-    cl.clear();
-
-    QString acc;
-
-    for (int i=0;i<children.count();i++) {
-        if (!children.at(i).isTag && !children.at(i).isComment) {
-            // Text node
-            acc += children.at(i).text;
-        } else {
-            // Regular tag
-            if (!acc.isEmpty())
-                cl.append(CHTMLNode(acc));
-            cl.append(children.at(i));
+    int i = 0;
+    while (i<(children.count()-1)) {
+        if (children.at(i).isTextNode() &&
+                children.at(i+1).isTextNode()) {
+            if (!children.at(i+1).text.trimmed().isEmpty())
+                children[i].text += children.at(i+1).text;
+            children.removeAt(i+1);
+            i = 0;
+            continue;
         }
+        i++;
     }
-    if (!acc.isEmpty())
-        cl.append(CHTMLNode(acc));
+}
 
-    children = cl;
+bool CHTMLNode::isTextNode() const
+{
+    return (!isTag && !isComment);
 }

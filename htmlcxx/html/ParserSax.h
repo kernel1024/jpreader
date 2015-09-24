@@ -1,6 +1,7 @@
 #ifndef __HTML_PARSER_SAX_H__
 #define __HTML_PARSER_SAX_H__
 
+#include <QObject>
 #include <string>
 
 #include "Node.h"
@@ -26,9 +27,9 @@ namespace htmlcxx
 				// the parsing
 				virtual void beginParsing() {}
 
-				virtual void foundTag(Node node, bool isEnd) {}
-				virtual void foundText(Node node) {}
-				virtual void foundComment(Node node) {}
+                virtual void foundTag(Node node, bool isEnd) { Q_UNUSED(node); Q_UNUSED(isEnd); }
+                virtual void foundText(Node node) { Q_UNUSED(node); }
+                virtual void foundComment(Node node) { Q_UNUSED(node); }
 
 				virtual void endParsing() {}
 
