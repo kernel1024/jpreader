@@ -166,8 +166,9 @@
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDownloadManager"/>
     <addaction name="actionDictionary"/>
-    <addaction name="actionFullscreen"/>
     <addaction name="actionDetachTab"/>
+    <addaction name="separator"/>
+    <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
     <addaction name="actionShowLog"/>
    </widget>
