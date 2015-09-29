@@ -17,6 +17,9 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     forceFocusToEdit = false;
 
+    QWebEnginePage* wp = new QSpecWebPage(gSet->webProfile,NULL);
+    ui->viewArticles->setPage(wp);
+
     ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
 
     wordFinder = new WordFinder(this);

@@ -1,5 +1,6 @@
 #include <QTextCharFormat>
 #include <QRegExp>
+#include "goldendictmgr.h"
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
@@ -411,6 +412,33 @@ bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         qInfo() << "Net request:" << info.requestUrl();
 
     return false;
+}
+
+QSpecGDSchemeHandler::QSpecGDSchemeHandler(const QByteArray &scheme, QObject *parent)
+    : QWebEngineUrlSchemeHandler(scheme,parent)
+{
+
+}
+
+void QSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
+{
+    if (request==NULL) return;
+
+    if (request->requestUrl().scheme().toLower()!="gdlookup") {
+        request->fail(QWebEngineUrlRequestJob::UrlInvalid);
+        return;
+    }
+
+    QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(request->requestUrl()));
+
+    connect(rep, &QNetworkReply::finished, [request,rep,this](){
+        request->reply(QByteArray("text/html"),rep);
+    });
+}
+
+QByteArray QSpecGDSchemeHandler::scheme() const
+{
+    return QByteArray("gdlookup");
 }
 
 #endif

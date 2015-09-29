@@ -237,6 +237,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 #ifdef WEBENGINE_56
     webProfile->setRequestInterceptor(new QSpecUrlInterceptor());
     webProfile->setCookieStoreClient(new QWebEngineCookieStoreClient());
+    webProfile->installUrlSchemeHandler(new QSpecGDSchemeHandler(QByteArray("gdlookup")));
 
     connect(webProfile->cookieStoreClient(), SIGNAL(cookieAdded(QNetworkCookie)),
             this, SLOT(cookieAdded(QNetworkCookie)));

@@ -26,6 +26,8 @@
 #ifdef WEBENGINE_56
 #include <QWebEngineUrlRequestInterceptor>
 #include <QWebEngineUrlRequestInfo>
+#include <QWebEngineUrlSchemeHandler>
+#include <QWebEngineUrlRequestJob>
 #endif
 
 class CMainWindow;
@@ -161,6 +163,14 @@ class QSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
 public:
     QSpecUrlInterceptor(QObject *p = 0);
     bool interceptRequest(QWebEngineUrlRequestInfo &info);
+};
+
+class QSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
+    Q_OBJECT
+public:
+    QSpecGDSchemeHandler(const QByteArray& scheme, QObject* parent = 0);
+    void requestStarted(QWebEngineUrlRequestJob * request);
+    QByteArray scheme() const;
 };
 
 #endif // WEBENGINE_56
