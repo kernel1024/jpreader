@@ -233,14 +233,51 @@ void QSpecTabContainer::detachTab()
 {
     if (tabWidget->count()<=1) return;
 
-    CMainWindow* mwnd = gSet->addMainWindow(false,false);
+    QSpecTabContainer* ntab = NULL;
+
+    CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
+    if (snv!=NULL) {
+        QString url = "about://blank";
+        if (!snv->fileChanged) url=snv->urlEdit->text();
+
+        CMainWindow* mwnd = gSet->addMainWindow(false,false);
+        CSnippetViewer* sv = new CSnippetViewer(mwnd, url);
+        ntab = sv;
+
+        if (snv->fileChanged || url.isEmpty()) {
+            snv->txtBrowser->page()->toHtml([sv,snv,this](const QString& html) {
+                if (!html.isEmpty())
+                    sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
+            });
+        }
+    }
+
+    CSearchTab* stb = qobject_cast<CSearchTab *>(this);
+    if (stb!=NULL) {
+        QString query = stb->getLastQuery();
+        if (!query.isEmpty()) {
+            CMainWindow* mwnd = gSet->addMainWindow(false,false);
+            CSearchTab* st = new CSearchTab(mwnd);
+            ntab = st;
+            st->searchTerm(query,false);
+        }
+    }
+
+    if (ntab!=NULL) {
+        closeTab();
+        ntab->activateWindow();
+        ntab->parentWnd->raise();
+    }
+
+/*  failed with Qt5 openGL backend...
+ *  QSGTextureAtlas: texture atlas allocation failed, code=501
 
     tabWidget->removeTab(tabWidget->indexOf(this));
     parentWnd = mwnd;
     setParent(mwnd);
     bindToTab(mwnd->tabMain);
     activateWindow();
-    mwnd->raise();
+    mwnd->raise();*/
 }
 
 void QSpecTabContainer::closeTab(bool nowait)

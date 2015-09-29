@@ -28,7 +28,7 @@ public:
     void updateQueryHistory();
     QString getLastQuery() { return lastQuery; }
     void keyPressEvent(QKeyEvent *event);
-    void searchTerm(const QString &term);
+    void searchTerm(const QString &term, bool startSearch = true);
     QString getDocTitle();
     void setDocTitle(const QString &title);
 private:

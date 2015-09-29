@@ -266,14 +266,16 @@ void CSearchTab::doSearch()
     emit startSearch(searchTerm,fsdir);
 }
 
-void CSearchTab::searchTerm(const QString &term)
+void CSearchTab::searchTerm(const QString &term, bool startSearch)
 {
     if (engine->isWorking()) {
         QMessageBox::warning(this,tr("JPReader"),tr("Indexed search engine busy, try later."));
         return;
     }
     ui->editSearch->setEditText(term);
-    doNewSearch();
+
+    if (startSearch)
+        doNewSearch();
 }
 
 QString CSearchTab::getDocTitle()
