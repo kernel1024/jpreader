@@ -116,6 +116,7 @@ public:
     virtual bool canClose() { return true; }
     virtual void recycleTab() { }
     virtual QString getDocTitle() { return QString(); }
+    virtual void setToolbarVisibility(bool visible) { Q_UNUSED(visible); }
     void updateTabIcon(const QIcon& icon);
 public slots:
     void detachTab();

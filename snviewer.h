@@ -59,6 +59,7 @@ public:
     virtual bool canClose();
     virtual void recycleTab();
     QUrl getUrl();
+    void setToolbarVisibility(bool visible);
 public slots:
     void navByUrl(QString url);
     void navByUrl();

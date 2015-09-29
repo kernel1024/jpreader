@@ -30,270 +30,287 @@
     <number>2</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QPushButton" name="backNavButton">
-         <property name="toolTip">
-          <string>Backward</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="fwdNavButton">
-         <property name="toolTip">
-          <string>Forward</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="reloadButton">
-         <property name="toolTip">
-          <string>Reload</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="stopButton">
-         <property name="toolTip">
-          <string>Stop loading</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLineEdit" name="urlEdit">
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="navButton">
-         <property name="toolTip">
-          <string>Go by URL</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QWidget" name="searchPanel" native="true">
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
+    <widget class="QFrame" name="toolBar">
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="spacing">
          <number>2</number>
         </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
+        <item>
+         <widget class="QPushButton" name="backNavButton">
+          <property name="toolTip">
+           <string>Backward</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="fwdNavButton">
+          <property name="toolTip">
+           <string>Forward</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="reloadButton">
+          <property name="toolTip">
+           <string>Reload</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="stopButton">
+          <property name="toolTip">
+           <string>Stop loading</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="spacing">
+         <number>2</number>
         </property>
         <item>
-         <widget class="QComboBox" name="searchEdit">
+         <widget class="QLineEdit" name="urlEdit">
           <property name="minimumSize">
            <size>
             <width>150</width>
             <height>0</height>
            </size>
           </property>
-          <property name="editable">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="backButton">
+         <widget class="QPushButton" name="navButton">
           <property name="toolTip">
-           <string>Search back</string>
+           <string>Go by URL</string>
           </property>
           <property name="text">
            <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="fwdButton">
-          <property name="toolTip">
-           <string>Search forward</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="autoDefault">
-           <bool>true</bool>
-          </property>
-          <property name="default">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
        </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboZoom">
-       <property name="toolTip">
-        <string>Zoom</string>
-       </property>
-       <property name="currentIndex">
-        <number>5</number>
-       </property>
-       <property name="maxVisibleItems">
-        <number>20</number>
-       </property>
-       <item>
-        <property name="text">
-         <string>10%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>25%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>50%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>75%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>90%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>100%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>110%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>125%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>150%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>175%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>200%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>250%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>300%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>500%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>750%</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1000%</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QComboBox" name="comboSrcLang">
-         <property name="toolTip">
-          <string>Source language</string>
+      </item>
+      <item>
+       <widget class="QWidget" name="searchPanel" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <property name="spacing">
+          <number>2</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboTranEngine">
-         <property name="toolTip">
-          <string>Translation engine</string>
+         <property name="leftMargin">
+          <number>0</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="transButton">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QComboBox" name="searchEdit">
+           <property name="minimumSize">
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="backButton">
+           <property name="toolTip">
+            <string>Search back</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="fwdButton">
+           <property name="toolTip">
+            <string>Search forward</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="autoDefault">
+            <bool>true</bool>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboZoom">
+        <property name="toolTip">
+         <string>Zoom</string>
+        </property>
+        <property name="currentIndex">
+         <number>5</number>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <item>
          <property name="text">
-          <string>Translate</string>
+          <string>10%</string>
          </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
+        </item>
+        <item>
+         <property name="text">
+          <string>25%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>50%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>75%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>90%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>100%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>110%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>125%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>150%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>175%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>200%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>250%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>300%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>500%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>750%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>1000%</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="QComboBox" name="comboSrcLang">
+          <property name="toolTip">
+           <string>Source language</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboTranEngine">
+          <property name="toolTip">
+           <string>Translation engine</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="transButton">
+          <property name="text">
+           <string>Translate</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QFrame" name="barPlaceholder">

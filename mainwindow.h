@@ -45,6 +45,12 @@ private:
 	int savedTabIdx;
     int savedHelperIdx;
     int savedHelperWidth;
+    bool fullScreen;
+    bool savedMaximized;
+    int savedSplitterWidth;
+    QPoint savedPos;
+    QSize savedSize;
+
     void updateHelperList();
 
 public slots:
@@ -74,6 +80,8 @@ public slots:
     void tabBarTooltip(const QPoint& globalPos, const QPoint &localPos);
     void detachTab();
     void findText();
+    void switchFullscreen();
+    void setToolsVisibility(bool visible);
 signals:
     void aboutToClose(CMainWindow* sender);
 
@@ -81,6 +89,7 @@ protected:
     void centerWindow();
     void updateSplitters();
     void closeEvent(QCloseEvent *event);
+    bool eventFilter(QObject *obj, QEvent *ev);
 };
 
 #endif

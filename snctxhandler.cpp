@@ -108,7 +108,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
         if (snv->fileChanged || url.isEmpty()) {
             snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
-                sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
+                if (!html.isEmpty())
+                    sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
             });
         }
     });
@@ -149,6 +150,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Parse document"),
                    snv->transHandler,SLOT(reparseDocument()));
     ccm->addSeparator();
+    ccm->addAction(snv->parentWnd->actionFullscreen);
     ccm->addAction(QIcon::fromTheme("dialog-close"),tr("Close tab"),
                  snv,SLOT(closeTab()));
     ccm->addSeparator();

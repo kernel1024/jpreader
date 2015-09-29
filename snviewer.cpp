@@ -277,6 +277,11 @@ QUrl CSnippetViewer::getUrl()
     return txtBrowser->url();
 }
 
+void CSnippetViewer::setToolbarVisibility(bool visible)
+{
+    toolBar->setVisible(visible);
+}
+
 void CSnippetViewer::statusBarMsg(const QString &msg)
 {
     parentWnd->statusBar()->showMessage(msg);

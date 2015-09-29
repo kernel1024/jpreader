@@ -87,6 +87,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
     connect(actionFindText,SIGNAL(triggered()),this,SLOT(findText()));
     connect(actionDictionary,SIGNAL(triggered()),gSet,SLOT(showDictionaryWindow()));
+    connect(actionFullscreen,SIGNAL(triggered()),this,SLOT(switchFullscreen()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -117,6 +118,14 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 
     if (withSearch) createSearch();
     if (withViewer) createStartBrowser();
+
+    qApp->installEventFilter(this);
+
+    fullScreen=false;
+    savedPos=pos();
+    savedSize=size();
+    savedMaximized=isMaximized();
+    savedSplitterWidth=splitter->handleWidth();
 }
 
 CMainWindow::~CMainWindow()
@@ -204,6 +213,51 @@ void CMainWindow::findText()
         CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
         if (sn!=NULL)
             sn->searchPanel->show();
+    }
+}
+
+void CMainWindow::switchFullscreen()
+{
+    fullScreen = !fullScreen;
+
+    if (fullScreen) {
+        savedMaximized=isMaximized();
+        savedPos=pos();
+        savedSize=size();
+        savedSplitterWidth=splitter->handleWidth();
+    }
+
+    statusBar()->setVisible(!fullScreen);
+    helperFrame->setVisible(!fullScreen);
+    tabHelper->setVisible(!fullScreen);
+    splitter->setHandleWidth(fullScreen ? 0 : savedSplitterWidth);
+    if (splitter->handle(0)!=NULL)
+        splitter->handle(0)->setVisible(!fullScreen);
+
+    setToolsVisibility(!fullScreen);
+
+    if (fullScreen)
+        showFullScreen();
+    else {
+        if (savedMaximized)
+            showMaximized();
+        else {
+            showNormal();
+            move(savedPos);
+            resize(savedSize);
+        }
+    }
+    actionFullscreen->setChecked(fullScreen);
+}
+
+void CMainWindow::setToolsVisibility(bool visible)
+{
+    menuBar()->setVisible(visible);
+    tabMain->tabBar()->setVisible(visible);
+    for (int i=0;i<tabMain->count();i++) {
+        QSpecTabContainer* sc = qobject_cast<QSpecTabContainer *>(tabMain->widget(i));
+        if (sc!=NULL)
+            sc->setToolbarVisibility(visible);
     }
 }
 
@@ -677,6 +731,23 @@ void CMainWindow::closeEvent(QCloseEvent *event)
 {
     emit aboutToClose(this);
     event->accept();
+}
+
+bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+    QString cln(obj->metaObject()->className());
+    if (fullScreen && cln.contains("WebEngine",Qt::CaseInsensitive)) {
+        if (ev->type()==QEvent::MouseMove) {
+            QMouseEvent* mev = static_cast<QMouseEvent *>(ev);
+            if (mev!=NULL) {
+                if (mev->y()<20 && !tabMain->tabBar()->isVisible())
+                    setToolsVisibility(true);
+                else if (mev->y()>25 && tabMain->tabBar()->isVisible())
+                    setToolsVisibility(false);
+            }
+        }
+    }
+    return QMainWindow::eventFilter(obj,ev);
 }
 
 void CMainWindow::helpAbout()
