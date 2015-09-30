@@ -458,7 +458,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item>
-              <widget class="QHotkeyEdit" name="gctxHotkey"/>
+              <widget class="CHotkeyEdit" name="gctxHotkey"/>
              </item>
             </layout>
            </item>
@@ -1484,7 +1484,7 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QHotkeyEdit</class>
+   <class>CHotkeyEdit</class>
    <extends>QLineEdit</extends>
    <header location="global">specwidgets.h</header>
   </customwidget>

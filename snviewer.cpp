@@ -15,7 +15,7 @@
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
-    : QSpecTabContainer(parent)
+    : CSpecTabContainer(parent)
 {
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
@@ -28,7 +28,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
     txtBrowser->setUrl(QUrl("about://blank"));
     layout()->addWidget(txtBrowser);
-    QSpecWebPage *wp = new QSpecWebPage(gSet->webProfile,this);
+    CSpecWebPage *wp = new CSpecWebPage(gSet->webProfile,this);
     txtBrowser->setPage(wp);
     txtBrowser->page()->action(QWebEnginePage::Paste)->setIcon(QIcon::fromTheme("edit-paste"));
     txtBrowser->page()->action(QWebEnginePage::SelectAll)->setIcon(QIcon::fromTheme("edit-select-all"));
@@ -62,7 +62,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     waitHandler = new CSnWaitCtl(this);
 
     QCompleter *completer = new QCompleter(this);
-    completer->setModel(new QSpecUrlHistoryModel(completer));
+    completer->setModel(new CSpecUrlHistoryModel(completer));
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setFilterMode(Qt::MatchContains);
     urlEdit->setCompleter(completer);
@@ -180,7 +180,7 @@ void CSnippetViewer::navByUrl(QString url)
     QString aUrl = url;
     QUrl u = QUrl::fromUserInput(aUrl);
 
-    if (!u.isValid() || !url.contains('.')) {
+    if (u.scheme().toLower()!="gdlookup" && (!u.isValid() || !url.contains('.'))) {
         u = QUrl("http://google.com/search");
         QUrlQuery qu;
         qu.addQueryItem("q", url);

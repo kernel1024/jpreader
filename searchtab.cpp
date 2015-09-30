@@ -9,7 +9,7 @@
 #include "abstracttranslator.h"
 
 CSearchTab::CSearchTab(CMainWindow *parent) :
-    QSpecTabContainer(parent),
+    CSpecTabContainer(parent),
     ui(new Ui::SearchTab)
 {
     ui->setupUi(this);

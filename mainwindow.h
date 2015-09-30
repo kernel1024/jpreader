@@ -40,7 +40,7 @@ public:
 private:
     QMenu* recycledMenu;
     QMenu* tabsMenu;
-    QSpecTabBar* tabHelper;
+    CSpecTabBar* tabHelper;
     bool helperVisible;
 	int savedTabIdx;
     int savedHelperIdx;

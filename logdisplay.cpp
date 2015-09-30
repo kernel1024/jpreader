@@ -14,7 +14,7 @@ CLogDisplay::CLogDisplay() :
 {
     ui->setupUi(this);
     firstShow = true;
-    syntax = new QSpecLogHighlighter(ui->logView->document());
+    syntax = new CSpecLogHighlighter(ui->logView->document());
 
     ui->logView->setContextMenuPolicy(Qt::CustomContextMenu);
 

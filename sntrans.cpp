@@ -198,7 +198,7 @@ void CSnTrans::selectionShow()
 void CSnTrans::showWordTranslation(const QString &html)
 {
     if (snv->ctxHandler->menuActive.isActive()) return;
-    QSpecToolTipLabel *t = new QSpecToolTipLabel(html);
+    CSpecToolTipLabel *t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(350,350);

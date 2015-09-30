@@ -51,7 +51,7 @@ public:
     QCheckBox* overrideStdFonts;
     QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
     QCheckBox *overrideFontColor;
-    QHotkeyEdit *gctxHotkey;
+    CHotkeyEdit *gctxHotkey;
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
     QRadioButton* searchBaloo5;

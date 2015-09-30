@@ -28,7 +28,7 @@ class CSnNet;
 class CSnTrans;
 class CSnWaitCtl;
 
-class CSnippetViewer : public QSpecTabContainer, public Ui::SnippetViewer
+class CSnippetViewer : public CSpecTabContainer, public Ui::SnippetViewer
 {
 	Q_OBJECT
 public:

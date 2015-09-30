@@ -3,6 +3,7 @@
 #include <QUrlQuery>
 #include <QWebEngineView>
 #include <QKeyEvent>
+#include <QCompleter>
 
 #include "auxdictionary.h"
 #include "goldendictmgr.h"
@@ -15,19 +16,30 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    forceFocusToEdit = false;
+    layout()->removeWidget(ui->browser);
+    ui->browser->setParent(NULL);
+    delete ui->browser;
 
-    QWebEnginePage* wp = new QSpecWebPage(gSet->webProfile,NULL);
-    ui->viewArticles->setPage(wp);
+    viewArticles = new QWebEngineView(this);
+    viewArticles->setObjectName(QString::fromUtf8("viewArticles"));
+    viewArticles->setUrl(QUrl("about://blank"));
+    ui->verticalSplitter->addWidget(viewArticles);
+    CSpecWebPage *wp = new CSpecWebPage(gSet->webProfile,NULL);
+    viewArticles->setPage(wp);
+
+    forceFocusToEdit = false;
 
     ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
 
     wordFinder = new WordFinder(this);
 
-    connect(ui->editWord, SIGNAL(editTextChanged(QString const &)),
+    wordHistoryModel = new QStringListModel();
+    ui->editWord->setCompleter(new QCompleter(wordHistoryModel));
+
+    connect(ui->editWord, SIGNAL(textChanged(QString const &)),
             this, SLOT(translateInputChanged(QString const &)));
 
-    connect(ui->editWord->lineEdit(), SIGNAL(returnPressed()),
+    connect(ui->editWord, SIGNAL(returnPressed()),
             this, SLOT(translateInputFinished()));
 
     connect(ui->listWords, SIGNAL(itemSelectionChanged()),
@@ -38,7 +50,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     connect(wordFinder, SIGNAL(finished()),
             this, SLOT(prefixMatchFinished()));
 
-    connect( ui->viewArticles,SIGNAL(loadFinished(bool)),this,SLOT(articleLoadFinished(bool)));
+    connect( viewArticles,SIGNAL(loadFinished(bool)),this,SLOT(articleLoadFinished(bool)));
 
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
@@ -64,7 +76,8 @@ void CAuxDictionary::findWord(const QString &text)
 {
     restoreWindow();
     forceFocusToEdit = false;
-    ui->editWord->setEditText(text);
+    ui->editWord->setText(text);
+    translateInputFinished();
 }
 
 void CAuxDictionary::showTranslationFor(const QString &text)
@@ -76,19 +89,9 @@ void CAuxDictionary::showTranslationFor(const QString &text)
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
 
-    QNetworkReply* rpl = gSet->dictNetMan->get(QNetworkRequest(req));
-    connect(rpl,SIGNAL(finished()),this,SLOT(articleLoaded()));
+    viewArticles->load(req);
 
-    ui->viewArticles->setCursor( Qt::WaitCursor );
-}
-
-void CAuxDictionary::articleLoaded()
-{
-    QNetworkReply* rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==NULL) return;
-    QByteArray ba = rpl->readAll();
-    rpl->close();
-    ui->viewArticles->setHtml(QString::fromUtf8(ba));
+    viewArticles->setCursor( Qt::WaitCursor );
 }
 
 void CAuxDictionary::editKeyPressed(int )
@@ -176,9 +179,6 @@ void CAuxDictionary::closeEvent(QCloseEvent *event)
 
 void CAuxDictionary::translateInputChanged(const QString &text)
 {
-    if ((ui->editWord->findText(text)<0) && !text.isEmpty())
-        ui->editWord->addItem(ui->editWord->currentText());
-
     showEmptyDictPage();
 
     if ( ui->listWords->selectionModel()->hasSelection() )
@@ -213,7 +213,13 @@ void CAuxDictionary::prefixMatchFinished()
 
 void CAuxDictionary::translateInputFinished()
 {
-    QString word = ui->editWord->currentText();
+    QString word = ui->editWord->text();
+
+    if ((!(wordHistoryModel->stringList().contains(word))) && !word.isEmpty()) {
+        QStringList h = wordHistoryModel->stringList();
+        h.append(word);
+        wordHistoryModel->setStringList(h);
+    }
 
     if ( word.size() )
         showTranslationFor( word );
@@ -226,16 +232,13 @@ void CAuxDictionary::wordListSelectionChanged()
     if ( selected.size() ) {
         QString newValue = selected.front()->text();
 
-        if ((ui->editWord->findText(newValue)<0) && !newValue.isEmpty())
-            ui->editWord->addItem(newValue);
-
         showTranslationFor(newValue);
     }
 }
 
 void CAuxDictionary::articleLoadFinished(bool )
 {
-    ui->viewArticles->unsetCursor();
+    viewArticles->unsetCursor();
 
     if (forceFocusToEdit)
         ui->editWord->setFocus();
@@ -243,7 +246,7 @@ void CAuxDictionary::articleLoadFinished(bool )
 
 void CAuxDictionary::showEmptyDictPage()
 {
-    ui->viewArticles->load(QUrl("about://blank"));
+    viewArticles->load(QUrl("about://blank"));
 }
 
 void CAuxDictionary::restoreWindow()

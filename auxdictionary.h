@@ -2,7 +2,8 @@
 #define AUXDICTIONARY_H
 
 #include <QDialog>
-
+#include <QStringListModel>
+#include <QWebEngineView>
 
 namespace Ui {
 class CAuxDictionary;
@@ -36,6 +37,8 @@ private:
     Ui::CAuxDictionary *ui;
     WordFinder *wordFinder;
     CAuxDictKeyFilter* keyFilter;
+    QStringListModel* wordHistoryModel;
+    QWebEngineView* viewArticles;
     bool forceFocusToEdit;
     void showTranslationFor(const QString& text);
     void updateMatchResults(bool finished);
@@ -52,7 +55,6 @@ public slots:
     void articleLoadFinished(bool ok);
     void showEmptyDictPage();
     void restoreWindow();
-    void articleLoaded();
     void editKeyPressed(int key);
 
 };

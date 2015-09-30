@@ -235,9 +235,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
 
 #ifdef WEBENGINE_56
-    webProfile->setRequestInterceptor(new QSpecUrlInterceptor());
+    webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
     webProfile->setCookieStoreClient(new QWebEngineCookieStoreClient());
-    webProfile->installUrlSchemeHandler(new QSpecGDSchemeHandler(QByteArray("gdlookup")));
+    webProfile->installUrlSchemeHandler(new CSpecGDSchemeHandler(QByteArray("gdlookup")));
 
     connect(webProfile->cookieStoreClient(), SIGNAL(cookieAdded(QNetworkCookie)),
             this, SLOT(cookieAdded(QNetworkCookie)));
@@ -958,7 +958,7 @@ void CGlobalControl::startGlobalContextTranslate(const QString &text)
 
 void CGlobalControl::globalContextTranslateReady(const QString &text)
 {
-    QSpecToolTipLabel* t = new QSpecToolTipLabel(wordWrap(text,80));
+    CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
     t->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,NULL);

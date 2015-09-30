@@ -76,7 +76,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QSpecTabWidget" name="tabMain">
+      <widget class="CSpecTabWidget" name="tabMain">
        <property name="currentIndex">
         <number>-1</number>
        </property>
@@ -410,7 +410,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QSpecTabWidget</class>
+   <class>CSpecTabWidget</class>
    <extends>QTabWidget</extends>
    <header location="global">specwidgets.h</header>
    <container>1</container>

@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         setrlimit(RLIMIT_CORE, &rlp);
     }
 
-    app.setStyle(new QSpecMenuStyle);
+    app.setStyle(new CSpecMenuStyle);
     QApplication::setQuitOnLastWindowClosed(false);
 
     gSet->addMainWindow();

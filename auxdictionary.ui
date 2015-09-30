@@ -24,22 +24,15 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QComboBox" name="editWord">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="editable">
-            <bool>true</bool>
-           </property>
-          </widget>
+          <widget class="QLineEdit" name="editWord"/>
          </item>
          <item>
           <widget class="QPushButton" name="btnClear">
            <property name="text">
             <string/>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -50,8 +43,8 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWebEngineView" name="viewArticles">
-      <property name="url">
+     <widget class="QWebEngineView" name="browser" native="true">
+      <property name="url" stdset="0">
        <url>
         <string>about:blank</string>
        </url>
@@ -61,11 +54,17 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebEngineView</class>
+   <extends>QWidget</extends>
+   <header>qwebengineview.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>editWord</tabstop>
   <tabstop>btnClear</tabstop>
   <tabstop>listWords</tabstop>
-  <tabstop>viewArticles</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -73,15 +72,15 @@
    <sender>btnClear</sender>
    <signal>clicked()</signal>
    <receiver>editWord</receiver>
-   <slot>clearEditText()</slot>
+   <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>113</x>
-     <y>25</y>
+     <x>389</x>
+     <y>22</y>
     </hint>
     <hint type="destinationlabel">
-     <x>75</x>
-     <y>21</y>
+     <x>329</x>
+     <y>22</y>
     </hint>
    </hints>
   </connection>

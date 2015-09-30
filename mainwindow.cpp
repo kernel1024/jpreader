@@ -36,7 +36,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     statusBar()->addPermanentWidget(&stSearchStatus);
 
     helperVisible = false;
-    tabHelper = new QSpecTabBar(this);
+    tabHelper = new CSpecTabBar(this);
     tabHelper->setShape(QTabBar::RoundedWest);
 
     //splitter->insertWidget(0,tabHelper);
@@ -169,11 +169,11 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
 
-    QSpecToolTipLabel* t = NULL;
+    CSpecToolTipLabel* t = NULL;
 
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv!=NULL) {
-        t = new QSpecToolTipLabel(sv->tabTitle);
+        t = new CSpecToolTipLabel(sv->tabTitle);
 
         QPixmap pix = sv->txtBrowser->grab().scaledToWidth(250,Qt::SmoothTransformation);
         QPainter dc(&pix);
@@ -190,7 +190,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     } else {
         CSearchTab* bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt!=NULL) {
-            t = new QSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
+            t = new CSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
         }
     }
 
@@ -201,7 +201,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
 void CMainWindow::detachTab()
 {
     if (tabMain->currentWidget()!=NULL) {
-        QSpecTabContainer *bt = qobject_cast<QSpecTabContainer *>(tabMain->currentWidget());
+        CSpecTabContainer *bt = qobject_cast<CSpecTabContainer *>(tabMain->currentWidget());
         if (bt!=NULL)
             bt->detachTab();
     }
@@ -255,7 +255,7 @@ void CMainWindow::setToolsVisibility(bool visible)
     menuBar()->setVisible(visible);
     tabMain->tabBar()->setVisible(visible);
     for (int i=0;i<tabMain->count();i++) {
-        QSpecTabContainer* sc = qobject_cast<QSpecTabContainer *>(tabMain->widget(i));
+        CSpecTabContainer* sc = qobject_cast<CSpecTabContainer *>(tabMain->widget(i));
         if (sc!=NULL)
             sc->setToolbarVisibility(visible);
     }
@@ -660,7 +660,7 @@ void CMainWindow::updateTabs()
 {
     tabsMenu->clear();
     for(int i=0;i<tabMain->count();i++) {
-        QSpecTabContainer* sv = qobject_cast<QSpecTabContainer*>(tabMain->widget(i));
+        CSpecTabContainer* sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
 		if (sv==NULL) continue;
         tabsMenu->addAction(sv->getDocTitle(),this,SLOT(activateTab()))->setData(i);
     }

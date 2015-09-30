@@ -22,6 +22,7 @@
 #include <QWebEnginePage>
 #include <QSyntaxHighlighter>
 #include <QAbstractListModel>
+#include <QEventLoop>
 
 #ifdef WEBENGINE_56
 #include <QWebEngineUrlRequestInterceptor>
@@ -33,10 +34,10 @@
 class CMainWindow;
 class CSnippetViewer;
 
-class QSpecTabBar : public QTabBar {
+class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 public:
-    QSpecTabBar(QWidget *p = 0);
+    CSpecTabBar(QWidget *p = 0);
     void setBrowserTabs(bool enabled);
 private:
     int m_browserTabs;
@@ -50,16 +51,16 @@ signals:
     void tabLeftPostClicked(int index);
 };
 
-class QSpecTabWidget : public QTabWidget {
+class CSpecTabWidget : public QTabWidget {
 	Q_OBJECT
 public:
-	QSpecTabWidget(QWidget *p = 0);
-    QSpecTabBar *tabBar() const;
+    CSpecTabWidget(QWidget *p = 0);
+    CSpecTabBar *tabBar() const;
     CMainWindow* parentWnd;
     bool mainTabWidget;
 
 private:
-    QSpecTabBar* m_tabBar;
+    CSpecTabBar* m_tabBar;
 
 protected:
     virtual void mouseDoubleClickEvent( QMouseEvent * event );
@@ -77,27 +78,27 @@ signals:
     void tooltipRequested(const QPoint& globalPos, const QPoint& localPos);
 };
 
-class QSpecMenuStyle : public QProxyStyle {
+class CSpecMenuStyle : public QProxyStyle {
     Q_OBJECT
 public:
     int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0,
                             QStyleHintReturn * returnData = 0 ) const;
 };
 
-class QSpecToolTipLabel : public QLabel {
+class CSpecToolTipLabel : public QLabel {
     Q_OBJECT
 public:
-    QSpecToolTipLabel(const QString &text = QString());
+    CSpecToolTipLabel(const QString &text = QString());
 private:
     void hideEvent(QHideEvent *);
 signals:
     void labelHide();
 };
 
-class QHotkeyEdit : public QLineEdit {
+class CHotkeyEdit : public QLineEdit {
     Q_OBJECT
 public:
-    QHotkeyEdit(QWidget *parent);
+    CHotkeyEdit(QWidget *parent);
     QKeySequence keySequence() const;
     void setKeySequence(const QKeySequence &sequence);
 protected:
@@ -106,14 +107,14 @@ protected:
     void updateSequenceView();
 };
 
-class QSpecTabContainer : public QWidget {
+class CSpecTabContainer : public QWidget {
     Q_OBJECT
 public:
     CMainWindow* parentWnd;
-    QSpecTabWidget* tabWidget;
+    CSpecTabWidget* tabWidget;
     QString tabTitle;
-    QSpecTabContainer(CMainWindow *parent = 0);
-    void bindToTab(QSpecTabWidget *tabs, bool setFocused = true);
+    CSpecTabContainer(CMainWindow *parent = 0);
+    void bindToTab(CSpecTabWidget *tabs, bool setFocused = true);
 
     virtual bool canClose() { return true; }
     virtual void recycleTab() { }
@@ -125,13 +126,13 @@ public slots:
     void closeTab(bool nowait = false);
 };
 
-class QSpecWebPage : public QWebEnginePage {
+class CSpecWebPage : public QWebEnginePage {
     Q_OBJECT
 private:
     CSnippetViewer* parentViewer;
 public:
-    QSpecWebPage(CSnippetViewer* parent);
-    QSpecWebPage(QWebEngineProfile* profile, CSnippetViewer* parent);
+    CSpecWebPage(CSnippetViewer* parent);
+    CSpecWebPage(QWebEngineProfile* profile, CSnippetViewer* parent);
 protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
     bool certificateError(const QWebEngineCertificateError &certificateError);
@@ -140,10 +141,10 @@ signals:
     void linkClickedExt(const QUrl& url, const int type, const bool isMainFrame);
 };
 
-class QSpecLogHighlighter : public QSyntaxHighlighter {
+class CSpecLogHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
 public:
-    QSpecLogHighlighter(QTextDocument* parent);
+    CSpecLogHighlighter(QTextDocument* parent);
 protected:
     virtual void highlightBlock(const QString& text);
 private:
@@ -158,30 +159,58 @@ private:
 
 #ifdef WEBENGINE_56
 
-class QSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
+class CSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
     Q_OBJECT
 public:
-    QSpecUrlInterceptor(QObject *p = 0);
+    CSpecUrlInterceptor(QObject *p = 0);
     bool interceptRequest(QWebEngineUrlRequestInfo &info);
 };
 
-class QSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
+class CSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
     Q_OBJECT
 public:
-    QSpecGDSchemeHandler(const QByteArray& scheme, QObject* parent = 0);
+    CSpecGDSchemeHandler(const QByteArray& scheme, QObject* parent = 0);
     void requestStarted(QWebEngineUrlRequestJob * request);
     QByteArray scheme() const;
 };
 
 #endif // WEBENGINE_56
 
-class QSpecUrlHistoryModel : public QAbstractListModel {
+class CSpecUrlHistoryModel : public QAbstractListModel {
     Q_OBJECT
 public:
-    QSpecUrlHistoryModel(QObject *parent = 0);
+    CSpecUrlHistoryModel(QObject *parent = 0);
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+};
+
+class CMemFile : public QIODevice {
+    Q_OBJECT
+public:
+    CMemFile(const QByteArray &fileData);
+
+    virtual qint64 bytesAvailable() const;
+    virtual void close();
+
+protected:
+    virtual qint64 readData(char *data, qint64 maxlen);
+    virtual qint64 writeData(const char *buffer, qint64 maxlen);
+
+private:
+    QByteArray data;
+    const qint64 origLen;
+};
+
+class CIOEventLoop : public QEventLoop {
+    Q_OBJECT
+public:
+    CIOEventLoop(QObject* parent = 0);
+
+public slots:
+    void finished();
+    void timeout();
+    void objDestroyed(QObject *obj);
 };
 
 #endif // SPECTABWIDGET_H

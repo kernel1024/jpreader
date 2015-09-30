@@ -15,7 +15,7 @@ namespace Ui {
     class SearchTab;
 }
 
-class CSearchTab : public QSpecTabContainer
+class CSearchTab : public CSpecTabContainer
 {
     Q_OBJECT
 

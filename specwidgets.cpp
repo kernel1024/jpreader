@@ -1,48 +1,53 @@
 #include <QTextCharFormat>
 #include <QRegExp>
+#include <QUrl>
+#include <QUrlQuery>
+#include <vector>
 #include "goldendictmgr.h"
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
 #include "globalcontrol.h"
 #include "searchtab.h"
+#include "genericfuncs.h"
+#include "dictionary.hh"
 
-QSpecTabWidget::QSpecTabWidget(QWidget *p)
+CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)
 {
     parentWnd = NULL;
     mainTabWidget = true;
-    m_tabBar = new QSpecTabBar(this);
+    m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
     connect(m_tabBar,SIGNAL(tabRightClicked(int)),this,SLOT(tabRightClick(int)));
     connect(m_tabBar,SIGNAL(tabLeftClicked(int)),this,SLOT(tabLeftClick(int)));
 }
 
-QSpecTabBar *QSpecTabWidget::tabBar() const
+CSpecTabBar *CSpecTabWidget::tabBar() const
 {
     return m_tabBar;
 }
 
-void QSpecTabWidget::tabLeftClick(int index)
+void CSpecTabWidget::tabLeftClick(int index)
 {
     emit tabLeftClicked(index);
 }
 
-void QSpecTabWidget::tabRightClick(int index)
+void CSpecTabWidget::tabRightClick(int index)
 {
     emit tabRightClicked(index);
     if (mainTabWidget) {
-        QSpecTabContainer * tb = qobject_cast<QSpecTabContainer *>(widget(index));
+        CSpecTabContainer * tb = qobject_cast<CSpecTabContainer *>(widget(index));
         if (tb!=NULL) tb->closeTab();
     }
 }
 
-void QSpecTabWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void CSpecTabWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (mainTabWidget && event->button()==Qt::LeftButton) createTab();
 }
 
-bool QSpecTabWidget::event(QEvent *event)
+bool CSpecTabWidget::event(QEvent *event)
 {
     if (event->type()==QEvent::ToolTip) {
         QHelpEvent* e = dynamic_cast<QHelpEvent *>(event);
@@ -59,13 +64,13 @@ bool QSpecTabWidget::event(QEvent *event)
         return QTabWidget::event(event);
 }
 
-void QSpecTabWidget::createTab()
+void CSpecTabWidget::createTab()
 {
     if (mainTabWidget && parentWnd!=NULL)
         parentWnd->openEmptyBrowser();
 }
 
-void QSpecTabWidget::selectNextTab()
+void CSpecTabWidget::selectNextTab()
 {
     if (count()==0) return;
     if (currentIndex()==(count()-1))
@@ -74,7 +79,7 @@ void QSpecTabWidget::selectNextTab()
         setCurrentIndex(currentIndex()+1);
 }
 
-void QSpecTabWidget::selectPrevTab()
+void CSpecTabWidget::selectPrevTab()
 {
     if (count()==0) return;
     if (currentIndex()==0)
@@ -83,18 +88,18 @@ void QSpecTabWidget::selectPrevTab()
         setCurrentIndex(currentIndex()-1);
 }
 
-QSpecTabBar::QSpecTabBar(QWidget *p)
+CSpecTabBar::CSpecTabBar(QWidget *p)
     : QTabBar(p), m_browserTabs(false)
 {
 
 }
 
-void QSpecTabBar::setBrowserTabs(bool enabled)
+void CSpecTabBar::setBrowserTabs(bool enabled)
 {
     m_browserTabs = enabled;
 }
 
-void QSpecTabBar::mousePressEvent(QMouseEvent *event)
+void CSpecTabBar::mousePressEvent(QMouseEvent *event)
 {
     Qt::MouseButton btn = event->button();
     QPoint pos = event->pos();
@@ -126,7 +131,7 @@ void QSpecTabBar::mousePressEvent(QMouseEvent *event)
     }
 }
 
-QSize QSpecTabBar::minimumTabSizeHint(int index) const
+QSize CSpecTabBar::minimumTabSizeHint(int index) const
 {
     if (!m_browserTabs || count()==0)
         return QTabBar::minimumTabSizeHint(index);
@@ -137,7 +142,7 @@ QSize QSpecTabBar::minimumTabSizeHint(int index) const
     return sz;
 }
 
-int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
+int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
                                QStyleHintReturn *returnData) const
 {
     if ( hint == SH_DrawMenuBarSeparator)
@@ -146,37 +151,37 @@ int QSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
         return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
-void QSpecToolTipLabel::hideEvent(QHideEvent *)
+void CSpecToolTipLabel::hideEvent(QHideEvent *)
 {
     emit labelHide();
 }
 
-QSpecToolTipLabel::QSpecToolTipLabel(const QString &text)
+CSpecToolTipLabel::CSpecToolTipLabel(const QString &text)
     : QLabel()
 {
     setText(text);
 }
 
 
-QHotkeyEdit::QHotkeyEdit(QWidget *parent) :
+CHotkeyEdit::CHotkeyEdit(QWidget *parent) :
     QLineEdit(parent)
 {
     p_shortcut = QKeySequence();
     setReadOnly(true);
 }
 
-QKeySequence QHotkeyEdit::keySequence() const
+QKeySequence CHotkeyEdit::keySequence() const
 {
     return p_shortcut;
 }
 
-void QHotkeyEdit::setKeySequence(const QKeySequence &sequence)
+void CHotkeyEdit::setKeySequence(const QKeySequence &sequence)
 {
     p_shortcut = sequence;
     updateSequenceView();
 }
 
-void QHotkeyEdit::keyPressEvent(QKeyEvent *event)
+void CHotkeyEdit::keyPressEvent(QKeyEvent *event)
 {
     int seq = 0;
     switch ( event->modifiers())
@@ -191,20 +196,20 @@ void QHotkeyEdit::keyPressEvent(QKeyEvent *event)
     event->accept();
 }
 
-void QHotkeyEdit::updateSequenceView()
+void CHotkeyEdit::updateSequenceView()
 {
     setText(p_shortcut.toString());
 }
 
 
-QSpecTabContainer::QSpecTabContainer(CMainWindow *parent)
+CSpecTabContainer::CSpecTabContainer(CMainWindow *parent)
     : QWidget(parent)
 {
     parentWnd = parent;
     tabWidget=NULL;
 }
 
-void QSpecTabContainer::bindToTab(QSpecTabWidget *tabs, bool setFocused)
+void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 {
     tabWidget=tabs;
     if (tabWidget==NULL) return;
@@ -223,18 +228,18 @@ void QSpecTabContainer::bindToTab(QSpecTabWidget *tabs, bool setFocused)
     parentWnd->updateTabs();
 }
 
-void QSpecTabContainer::updateTabIcon(const QIcon &icon)
+void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
     if (!gSet->showFavicons) return;
     if (tabWidget==NULL) return;
     tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
 }
 
-void QSpecTabContainer::detachTab()
+void CSpecTabContainer::detachTab()
 {
     if (tabWidget->count()<=1) return;
 
-    QSpecTabContainer* ntab = NULL;
+    CSpecTabContainer* ntab = NULL;
 
     CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
     if (snv!=NULL) {
@@ -281,7 +286,7 @@ void QSpecTabContainer::detachTab()
     mwnd->raise();*/
 }
 
-void QSpecTabContainer::closeTab(bool nowait)
+void CSpecTabContainer::closeTab(bool nowait)
 {
     if (!canClose()) return;
     if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
@@ -302,19 +307,19 @@ void QSpecTabContainer::closeTab(bool nowait)
 }
 
 
-QSpecWebPage::QSpecWebPage(CSnippetViewer *parent)
+CSpecWebPage::CSpecWebPage(CSnippetViewer *parent)
     : QWebEnginePage(parent)
 {
     parentViewer = parent;
 }
 
-QSpecWebPage::QSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
+CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
     : QWebEnginePage(profile, parent)
 {
     parentViewer = parent;
 }
 
-bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
+bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
     emit linkClickedExt(url,(int)type,isMainFrame);
 
@@ -328,14 +333,14 @@ bool QSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     return !gSet->isUrlBlocked(url);
 }
 
-bool QSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)
+bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)
 {
     Q_UNUSED(certificateError);
 
     return gSet->ignoreSSLErrors;
 }
 
-QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
+QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
 {
     Q_UNUSED(type);
 
@@ -345,13 +350,13 @@ QWebEnginePage *QSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
     return sv->txtBrowser->page();
 }
 
-QSpecLogHighlighter::QSpecLogHighlighter(QTextDocument *parent)
+CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
 
 }
 
-void QSpecLogHighlighter::highlightBlock(const QString &text)
+void CSpecLogHighlighter::highlightBlock(const QString &text)
 {
     formatBlock(text,QRegExp("^\\S{,8}",Qt::CaseInsensitive),Qt::black,true);
     formatBlock(text,QRegExp("\\sDebug:\\s",Qt::CaseInsensitive),Qt::black,true);
@@ -362,7 +367,7 @@ void QSpecLogHighlighter::highlightBlock(const QString &text)
     formatBlock(text,QRegExp("\\(\\S+\\)$",Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
-void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
+void CSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
                                       const QColor &color,
                                       bool weight,
                                       bool italic,
@@ -391,13 +396,13 @@ void QSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
 
 #ifdef WEBENGINE_56
 
-QSpecUrlInterceptor::QSpecUrlInterceptor(QObject *p)
+CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
     : QWebEngineUrlRequestInterceptor(p)
 {
 
 }
 
-bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
+bool CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
     if (gSet->isUrlBlocked(info.requestUrl())) {
         if (gSet->debugNetReqLogging)
@@ -414,49 +419,87 @@ bool QSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     return false;
 }
 
-QSpecGDSchemeHandler::QSpecGDSchemeHandler(const QByteArray &scheme, QObject *parent)
+CSpecGDSchemeHandler::CSpecGDSchemeHandler(const QByteArray &scheme, QObject *parent)
     : QWebEngineUrlSchemeHandler(scheme,parent)
 {
 
 }
 
-void QSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
+void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     if (request==NULL) return;
 
+    // request->fail doesn't work as expected...
+
+    QByteArray rplb;
+    rplb.clear();
+
     if (request->requestUrl().scheme().toLower()!="gdlookup") {
-        request->fail(QWebEngineUrlRequestJob::UrlInvalid);
+        rplb = makeSimpleHtml(tr("Error"),
+                              tr("Scheme '%1' not supported for 'gdlookup' scheme handler.")
+                              .arg(request->requestUrl().scheme())).toUtf8();
+        QIODevice *reply = new CMemFile(rplb);
+        request->reply("text/html",reply);
         return;
     }
 
-    QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(request->requestUrl()));
+    CIOEventLoop ev;
+    QString mime;
+    sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(request->requestUrl(),mime);
 
-    connect(rep, &QNetworkReply::finished, [request,rep,this](){
-        request->reply(QByteArray("text/html"),rep);
-    });
+    connect(dr.get(),SIGNAL(finished()),&ev,SLOT(finished()));
+    connect(request,SIGNAL(destroyed(QObject*)),&ev,SLOT(objDestroyed(QObject*)));
+    QTimer::singleShot(15000,&ev,SLOT(timeout()));
+
+    int ret = ev.exec();
+
+    if (ret==2) { // Request destroyed
+        return;
+
+    } else if (ret==1) { // Timeout
+        rplb = makeSimpleHtml(tr("Error"),
+                              tr("Dictionary request timeout for query '%1'.")
+                              .arg(request->requestUrl().toString())).toUtf8();
+        QIODevice *reply = new CMemFile(rplb);
+        request->reply("text/html",reply);
+
+    } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
+        std::vector<char> vc = dr->getFullData();
+        QByteArray res = QByteArray(reinterpret_cast<const char*>(vc.data()), vc.size());
+        QIODevice *reply = new CMemFile(res);
+        request->reply(mime.toLatin1(),reply);
+
+    } else { // Dictionary error
+        rplb = makeSimpleHtml(tr("Error"),
+                              tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
+                              .arg(request->requestUrl().toString())
+                              .arg(dr->getErrorString())).toUtf8();
+        QIODevice *reply = new CMemFile(rplb);
+        request->reply("text/html",reply);
+    }
 }
 
-QByteArray QSpecGDSchemeHandler::scheme() const
+QByteArray CSpecGDSchemeHandler::scheme() const
 {
     return QByteArray("gdlookup");
 }
 
 #endif
 
-QSpecUrlHistoryModel::QSpecUrlHistoryModel(QObject *parent)
+CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 
 }
 
-int QSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
+int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
 
     return gSet->mainHistory.count();
 }
 
-QVariant QSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
+QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
 {
     int idx = index.row();
 
@@ -468,9 +511,70 @@ QVariant QSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-Qt::ItemFlags QSpecUrlHistoryModel::flags(const QModelIndex &index) const
+Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
 {
     Q_UNUSED(index);
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+}
+
+CMemFile::CMemFile(const QByteArray &fileData)
+    : data(fileData), origLen(fileData.length())
+{
+    setOpenMode(QIODevice::ReadOnly);
+
+    QTimer::singleShot(0, this, &QIODevice::readyRead);
+    QTimer::singleShot(0, this, &QIODevice::readChannelFinished);
+}
+
+qint64 CMemFile::bytesAvailable() const
+{
+    return data.length() + QIODevice::bytesAvailable();
+}
+
+void CMemFile::close()
+{
+    QIODevice::close();
+    deleteLater();
+}
+
+qint64 CMemFile::readData(char *buffer, qint64 maxlen)
+{
+    qint64 len = qMin(qint64(data.length()), maxlen);
+    if (len) {
+        memcpy(buffer, data.constData(), len);
+        data.remove(0, len);
+    }
+    return len;
+}
+
+qint64 CMemFile::writeData(const char *buffer, qint64 maxlen)
+{
+    Q_UNUSED(buffer);
+    Q_UNUSED(maxlen);
+
+    return 0;
+}
+
+CIOEventLoop::CIOEventLoop(QObject *parent)
+    : QEventLoop(parent)
+{
+
+}
+
+void CIOEventLoop::finished()
+{
+    exit(0);
+}
+
+void CIOEventLoop::timeout()
+{
+    exit(1);
+}
+
+void CIOEventLoop::objDestroyed(QObject *obj)
+{
+    Q_UNUSED(obj);
+
+    exit(2);
 }
