@@ -41,6 +41,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     fontOverride=ui->transFont;
     fontOverrideSize=ui->transFontSize;
     autoloadImages=ui->checkAutoloadImages;
+    enablePlugins=ui->checkEnablePlugins;
     overrideStdFonts=ui->checkStdFonts;
     fontStandard=ui->fontStandard;
     fontFixed=ui->fontFixed;
@@ -73,6 +74,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     visualShowFavicons=ui->checkTabFavicon;
     rbYandexAPI=ui->radioYandexAPI;
     yandexKey=ui->editYandexKey;
+    cacheSize=ui->spinCacheSize;
 
     cookiesList.clear();
 

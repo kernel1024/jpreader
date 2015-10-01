@@ -200,7 +200,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dbus.registerService(DBUS_NAME);
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
-    connect(parent,SIGNAL(aboutToQuit()),this,SLOT(preShutdown()));
     connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
             this,SLOT(clipboardChanged(QClipboard::Mode)));
     connect(actionUseProxy,SIGNAL(toggled(bool)),
@@ -213,8 +212,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     gctxTranHotkey = new QxtGlobalShortcut(this);
     gctxTranHotkey->setDisabled();
     connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
-
-    readSettings();
 
     webProfile = new QWebEngineProfile("jpreader",this);
 
@@ -232,6 +229,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
+    webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
+
     connect(webProfile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
             downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
 
@@ -245,6 +244,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     connect(webProfile->cookieStoreClient(), SIGNAL(cookieRemoved(QNetworkCookie)),
             this, SLOT(cookieRemoved(QNetworkCookie)));
 #endif
+
+    readSettings();
 
     dictIndexDir = fs + tr("dictIndex") + QDir::separator();
     QDir dictIndex(dictIndexDir);
@@ -350,10 +351,12 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlasPort",atlPort);
     settings.setValue("auxDir",savedAuxDir);
     settings.setValue("emptyRestore",emptyRestore);
-    settings.setValue("javascript",QWebEngineSettings::globalSettings()->
+    settings.setValue("javascript",webProfile->settings()->
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
-    settings.setValue("autoloadimages",QWebEngineSettings::globalSettings()->
+    settings.setValue("autoloadimages",webProfile->settings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
+    settings.setValue("enablePlugins",webProfile->settings()->
+                      testAttribute(QWebEngineSettings::PluginsEnabled));
     settings.setValue("recycledCount",maxRecycled);
 
     settings.setValue("useAdblock",useAdblock);
@@ -388,6 +391,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("userAgent",userAgent);
     settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
     settings.setValue("showFavicons",showFavicons);
+    settings.setValue("diskCacheSize",webProfile->httpCacheMaximumSize());
     settings.endGroup();
     bigdata.endGroup();
     settingsSaveMutex.unlock();
@@ -513,12 +517,13 @@ void CGlobalControl::readSettings()
     emptyRestore = settings.value("emptyRestore",false).toBool();
     maxRecycled = settings.value("recycledCount",20).toInt();
     bool jsstate = settings.value("javascript",true).toBool();
-    QWebEngineSettings::globalSettings()->
-            setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
+    webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
     actionJSUsage->setChecked(jsstate);
-    QWebEngineSettings::globalSettings()->
-            setAttribute(QWebEngineSettings::AutoLoadImages,
-                                                 settings.value("autoloadimages",true).toBool());
+    webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
+                                         settings.value("autoloadimages",true).toBool());
+    webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
+                                         settings.value("enablePlugins",false).toBool());
+
     useAdblock=settings.value("useAdblock",false).toBool();
     actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
     overrideFont.setFamily(settings.value("overrideFont","Verdana").toString());
@@ -554,6 +559,7 @@ void CGlobalControl::readSettings()
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
     showFavicons = settings.value("showFavicons",true).toBool();
+    webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
@@ -639,10 +645,12 @@ void CGlobalControl::settingsDlg()
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
-    dlg->useJS->setChecked(QWebEngineSettings::globalSettings()->
+    dlg->useJS->setChecked(webProfile->settings()->
                            testAttribute(QWebEngineSettings::JavascriptEnabled));
-    dlg->autoloadImages->setChecked(QWebEngineSettings::globalSettings()->
+    dlg->autoloadImages->setChecked(webProfile->settings()->
                                     testAttribute(QWebEngineSettings::AutoLoadImages));
+    dlg->enablePlugins->setChecked(webProfile->settings()->
+                                   testAttribute(QWebEngineSettings::PluginsEnabled));
 
     dlg->setBookmarks(bookmarks);
     dlg->setMainHistory(mainHistory);
@@ -728,6 +736,7 @@ void CGlobalControl::settingsDlg()
     dlg->loadedDicts.clear();
     dlg->loadedDicts.append(dictManager->getLoadedDictionaries());
 
+    dlg->cacheSize->setValue(webProfile->httpCacheMaximumSize()/(1024*1024));
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
     dlg->visualShowFavicons->setChecked(showFavicons);
     dlg->proxyHost->setText(proxyHost);
@@ -767,11 +776,14 @@ void CGlobalControl::settingsDlg()
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
         if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
 
-        QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
-                                                     dlg->useJS->isChecked());
+        webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
+                                             dlg->useJS->isChecked());
         actionJSUsage->setChecked(dlg->useJS->isChecked());
-        QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,
-                                                     dlg->autoloadImages->isChecked());
+        webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
+                                             dlg->autoloadImages->isChecked());
+        webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
+                                             dlg->enablePlugins->isChecked());
+
         if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
@@ -847,6 +859,7 @@ void CGlobalControl::settingsDlg()
             dictManager->loadDictionaries();
         }
 
+        webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);
         ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
         showFavicons = dlg->visualShowFavicons->isChecked();
         proxyHost = dlg->proxyHost->text();
@@ -887,12 +900,12 @@ void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
 
 void CGlobalControl::toggleJSUsage(bool useJS)
 {
-    QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::JavascriptEnabled,useJS);
+    webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,useJS);
 }
 
 void CGlobalControl::toggleAutoloadImages(bool loadImages)
 {
-    QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::AutoLoadImages,loadImages);
+    webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,loadImages);
 }
 
 void CGlobalControl::toggleLogNetRequests(bool logRequests)
@@ -977,13 +990,6 @@ void CGlobalControl::showDictionaryWindow(const QString &text)
         auxDictionary->findWord(text);
     else
         auxDictionary->restoreWindow();
-}
-
-void CGlobalControl::preShutdown()
-{
-    writeSettings();
-    cleanTmpFiles();
-    cleanupAndExit(false);
 }
 
 void CGlobalControl::appendSearchHistory(QStringList req)
@@ -1130,17 +1136,19 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
             activeWindow->activateWindow();
         } else {
             activeWindow=NULL;
-            cleanupAndExit(true);
+            cleanupAndExit();
         }
     }
 }
 
-void CGlobalControl::cleanupAndExit(bool appQuit)
+void CGlobalControl::cleanupAndExit()
 {
     if (cleaningState) return;
     cleaningState = true;
 
     writeTabsList(true);
+    writeSettings();
+    cleanTmpFiles();
 
     if (receivers(SIGNAL(stopTranslators()))>0)
         emit stopTranslators();
@@ -1165,8 +1173,7 @@ void CGlobalControl::cleanupAndExit(bool appQuit)
 
     webProfile=NULL;
 
-    if (appQuit)
-        QApplication::quit();
+    QApplication::quit();
 }
 
 bool CGlobalControl::isUrlBlocked(QUrl url)

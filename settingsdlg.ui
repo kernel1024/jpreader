@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>842</width>
+    <width>886</width>
     <height>408</height>
    </rect>
   </property>
@@ -26,13 +26,179 @@
       <attribute name="title">
        <string>General</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_22">
+      <layout class="QHBoxLayout" name="horizontalLayout_25">
        <item>
-        <widget class="QGroupBox" name="groupBox_5">
+        <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
-          <string>Local search engine</string>
+          <string>Browser</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <item>
+           <spacer name="verticalSpacer_18">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>19</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_8">
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="checkJS">
+              <property name="text">
+               <string>Enable JavaScript</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="checkIgnoreSSLErrors">
+              <property name="text">
+               <string>Ignore SSL errors</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="checkAutoloadImages">
+              <property name="text">
+               <string>Autoload images</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="checkEnablePlugins">
+              <property name="text">
+               <string>Enable plugins</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>M&amp;ax recycled items</string>
+              </property>
+              <property name="buddy">
+               <cstring>spinMaxRecycled</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinMaxRecycled"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <item>
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>Max history &amp;items</string>
+              </property>
+              <property name="buddy">
+               <cstring>spinMaxHistory</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinMaxHistory">
+              <property name="maximum">
+               <number>100000</number>
+              </property>
+              <property name="value">
+               <number>5000</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_18">
+            <item>
+             <widget class="QCheckBox" name="checkUserAgent">
+              <property name="text">
+               <string>Override user agent</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="editUserAgent">
+              <property name="editable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_22">
+            <item>
+             <widget class="QLabel" name="label_29">
+              <property name="text">
+               <string>Dis&amp;k cache size</string>
+              </property>
+              <property name="buddy">
+               <cstring>spinCacheSize</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinCacheSize">
+              <property name="specialValueText">
+               <string>Auto</string>
+              </property>
+              <property name="suffix">
+               <string> Mb</string>
+              </property>
+              <property name="maximum">
+               <number>999</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_17">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>19</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>Search</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item>
            <widget class="QRadioButton" name="radioSearchNone">
             <property name="text">
@@ -54,152 +220,64 @@
             </property>
            </widget>
           </item>
+          <item>
+           <spacer name="verticalSpacer_19">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>&amp;Max results count</string>
+              </property>
+              <property name="buddy">
+               <cstring>spinMaxLimit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinMaxLimit">
+              <property name="minimum">
+               <number>50</number>
+              </property>
+              <property name="maximum">
+               <number>100000</number>
+              </property>
+              <property name="singleStep">
+               <number>50</number>
+              </property>
+              <property name="value">
+               <number>1000</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_8">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>24</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_13">
-         <item>
-          <spacer name="verticalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>13</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_11">
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>&amp;Maximum search results count limit</string>
-             </property>
-             <property name="buddy">
-              <cstring>spinMaxLimit</cstring>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spinMaxLimit">
-             <property name="minimum">
-              <number>50</number>
-             </property>
-             <property name="maximum">
-              <number>100000</number>
-             </property>
-             <property name="singleStep">
-              <number>50</number>
-             </property>
-             <property name="value">
-              <number>1000</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_12">
-           <item>
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>Ma&amp;ximum recycled menu items</string>
-             </property>
-             <property name="buddy">
-              <cstring>spinMaxRecycled</cstring>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spinMaxRecycled"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
-           <item>
-            <widget class="QLabel" name="label_13">
-             <property name="text">
-              <string>Maximum history &amp;items</string>
-             </property>
-             <property name="buddy">
-              <cstring>spinMaxHistory</cstring>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spinMaxHistory">
-             <property name="maximum">
-              <number>100000</number>
-             </property>
-             <property name="value">
-              <number>5000</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
-           <item>
-            <widget class="QCheckBox" name="checkJS">
-             <property name="text">
-              <string>Enable JavaScript</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkAutoloadImages">
-             <property name="text">
-              <string>Autoload images</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkIgnoreSSLErrors">
-             <property name="text">
-              <string>Ignore SSL errors</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_18">
-           <item>
-            <widget class="QCheckBox" name="checkUserAgent">
-             <property name="text">
-              <string>Override user agent</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="editUserAgent">
-             <property name="editable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_8">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>13</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
        </item>
       </layout>
      </widget>
@@ -1490,17 +1568,19 @@ p, li { white-space: pre-wrap; }
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>checkJS</tabstop>
+  <tabstop>checkAutoloadImages</tabstop>
+  <tabstop>checkIgnoreSSLErrors</tabstop>
+  <tabstop>checkEnablePlugins</tabstop>
+  <tabstop>spinMaxRecycled</tabstop>
+  <tabstop>spinMaxHistory</tabstop>
+  <tabstop>checkUserAgent</tabstop>
+  <tabstop>editUserAgent</tabstop>
+  <tabstop>spinCacheSize</tabstop>
   <tabstop>radioSearchNone</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
   <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>spinMaxLimit</tabstop>
-  <tabstop>spinMaxRecycled</tabstop>
-  <tabstop>spinMaxHistory</tabstop>
-  <tabstop>checkJS</tabstop>
-  <tabstop>checkAutoloadImages</tabstop>
-  <tabstop>checkIgnoreSSLErrors</tabstop>
-  <tabstop>checkUserAgent</tabstop>
-  <tabstop>editUserAgent</tabstop>
   <tabstop>btnOK</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>tabWidget</tabstop>

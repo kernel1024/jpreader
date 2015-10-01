@@ -321,7 +321,7 @@ void CSnippetViewer::updateWebViewAttributes()
 {
     txtBrowser->settings()->setAttribute(
                 QWebEngineSettings::AutoLoadImages,
-                QWebEngineSettings::globalSettings()->testAttribute(
+                gSet->webProfile->settings()->testAttribute(
                     QWebEngineSettings::AutoLoadImages));
 
     if (gSet->overrideStdFonts) {

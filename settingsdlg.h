@@ -72,6 +72,8 @@ public:
     QListWidget* dictPaths;
     QCheckBox* ignoreSSLErrors;
     QCheckBox* visualShowFavicons;
+    QCheckBox* enablePlugins;
+    QSpinBox* cacheSize;
 
     QStringList loadedDicts;
 

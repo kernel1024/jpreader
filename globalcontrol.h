@@ -262,9 +262,8 @@ public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
     void settingsDlg();
     void windowDestroyed(CMainWindow* obj);
-    void cleanupAndExit(bool appQuit = true);
+    void cleanupAndExit();
     void focusChanged(QWidget* old, QWidget* now);
-    void preShutdown();
     void closeLockTimer();
     void blockTabClose();
     void clipboardChanged(QClipboard::Mode mode);
