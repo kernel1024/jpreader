@@ -681,9 +681,17 @@ void CMainWindow::forceCharset()
 {
     QAction* act = qobject_cast<QAction*>(sender());
     if (act==NULL) return;
+
     QString cs = act->data().toString();
-    if (QTextCodec::codecForName(cs.toLatin1().data())!=NULL)
-        cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
+    if (!cs.isEmpty()) {
+        if (QTextCodec::codecForName(cs.toLatin1().data())!=NULL)
+            cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
+
+        gSet->charsetHistory.removeAll(cs);
+        gSet->charsetHistory.prepend(cs);
+        if (gSet->charsetHistory.count()>10)
+            gSet->charsetHistory.removeLast();
+    }
     gSet->forcedCharset = cs;
     gSet->updateAllCharsetLists();
 
@@ -714,9 +722,13 @@ void CMainWindow::reloadCharsetList()
     for(int i=0;i<cList.count();i++) {
         midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
-            act = midx->addAction(cList.at(i).at(j),this,SLOT(forceCharset()));
-            act->setData(cList.at(i).at(j));
-            QString cname = cList.at(i).at(j);
+            if (QTextCodec::codecForName(cList.at(i).at(j).toLatin1())==NULL) {
+                qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));
+                continue;
+            }
+            QString cname = QTextCodec::codecForName(cList.at(i).at(j).toLatin1())->name();
+            act = midx->addAction(cname,this,SLOT(forceCharset()));
+            act->setData(cname);
             if (QTextCodec::codecForName(cname.toLatin1().data())!=NULL) {
                 if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->forcedCharset) {
                     act->setCheckable(true);
@@ -724,6 +736,14 @@ void CMainWindow::reloadCharsetList()
                 }
             }
         }
+    }
+    menuCharset->addSeparator();
+
+    for(int i=0;i<gSet->charsetHistory.count();i++) {
+        if (gSet->charsetHistory.at(i)==gSet->forcedCharset) continue;
+        act = menuCharset->addAction(gSet->charsetHistory.at(i),this,SLOT(forceCharset()));
+        act->setData(gSet->charsetHistory.at(i));
+        act->setCheckable(true);
     }
 }
 

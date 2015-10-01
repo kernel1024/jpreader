@@ -287,23 +287,28 @@ QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const
 QList<QStringList> encodingsByScript()
 {
     QList<QStringList> enc;
+
     enc << (QStringList() << "Western European" << "ISO 8859-1" << "ISO 8859-15" <<
-            "ISO 8859-14" << "cp 1252" << "IBM850");
-    enc << (QStringList() << "Central European" << "ISO 8859-2" << "ISO 8859-3" << "cp 1250");
+            "ISO 8859-14" << "cp 1252" << "CP850" << "x-MacRoman");
+    enc << (QStringList() << "Central European" << "ISO 8859-2" << "ISO 8859-3" << "cp 1250"
+            << "x-MacCentralEurope");
     enc << (QStringList() << "Baltic" << "ISO 8859-4" << "ISO 8859-13" << "cp 1257");
-    enc << (QStringList() << "Turkish" << "cp 1254" << "ISO 8859-9");
-    enc << (QStringList() << "Cyrillic" << "KOI8-R" << "ISO 8859-5" << "cp 1251" << "KOI8-U" << "IBM866");
-    enc << (QStringList() << "Chinese Traditional" << "Big5" << "Big5-HKSCS");
-    enc << (QStringList() << "Chinese Simplified" << "GB18030" << "GBK" << "GB2312");
-    enc << (QStringList() << "Korean" << "EUC-KR");
-    enc << (QStringList() << "Japanese" << "sjis" << "jis7" << "EUC-JP");
-    enc << (QStringList() << "Greek" << "ISO 8859-7" << "cp 1253");
+    enc << (QStringList() << "Turkish" << "cp 1254" << "ISO 8859-9" << "x-MacTurkish");
+    enc << (QStringList() << "Cyrillic" << "KOI8-R" << "ISO 8859-5" << "cp 1251" << "KOI8-U"
+            << "CP866" << "x-MacCyrillic");
+    enc << (QStringList() << "Chinese" << "HZ" << "GBK" << "GB18030" << "BIG5" << "BIG5-HKSCS"
+            << "ISO-2022-CN" << "ISO-2022-CN-EXT");
+    enc << (QStringList() << "Korean" << "CP949" << "ISO-2022-KR");
+    enc << (QStringList() << "Japanese" << "EUC-JP" << "SHIFT_JIS" << "ISO-2022-JP"
+            << "ISO-2022-JP-2" << "ISO-2022-JP-1");
+    enc << (QStringList() << "Greek" << "ISO 8859-7" << "cp 1253" << "x-MacGreek");
     enc << (QStringList() << "Arabic" << "ISO 8859-6" << "cp 1256");
-    enc << (QStringList() << "Hebrew" << "ISO 8859-8" << "ISO 8859-8-I" << "cp 1255");
-    enc << (QStringList() << "Thai" << "TIS620" << "ISO 8859-11");
-    enc << (QStringList() << "Unicode" << "UTF-8" << "UTF-16" << "utf7" << "ucs2" << "ISO 10646-UCS-2");
-    enc << (QStringList() << "Northern Saami" << "winsami2");
-    enc << (QStringList() << "Other" << "windows-1258" << "IBM874" << "TSCII");
+    enc << (QStringList() << "Hebrew" << "ISO 8859-8" << "cp 1255" << "CP862");
+    enc << (QStringList() << "Thai" << "CP874");
+    enc << (QStringList() << "Vietnamese" << "CP1258");
+    enc << (QStringList() << "Unicode" << "UTF-8" << "UTF-7" << "UTF-16" << "UTF-16BE" << "UTF-16LE"
+            << "UTF-32" << "UTF-32BE" << "UTF-32LE");
+    enc << (QStringList() << "Other" << "windows-1258" << "IBM874" << "TSCII" << "Macintosh");
     return enc;
 }
 

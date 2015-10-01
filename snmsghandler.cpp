@@ -1,3 +1,5 @@
+#include <QMessageBox>
+#include <QDebug>
 #include "snmsghandler.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
@@ -90,6 +92,38 @@ void CSnMsgHandler::hideBarLoading()
 {
     loadingBarHideTimer->start(1500);
 }
+
+#ifdef WEBENGINE_56
+void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
+                                            int exitCode)
+{
+    if (terminationStatus!=QWebEnginePage::NormalTerminationStatus) {
+        QString status;
+        status.clear();
+        switch (terminationStatus) {
+            case QWebEnginePage::NormalTerminationStatus:
+                status = tr("Normal exit");
+                break;
+            case QWebEnginePage::AbnormalTerminationStatus:
+                status = tr("Abnormal exit");
+                break;
+            case QWebEnginePage::CrashedTerminationStatus:
+                status = tr("Crashed");
+                break;
+            case QWebEnginePage::KilledTerminationStatus:
+                status = tr("Killed");
+                break;
+            default:
+                status = tr("Unknown");
+                break;
+        }
+        status = tr("Render process exited abnormally.\nExit status: %1, code: %2")
+                 .arg(status).arg(exitCode);
+        qCritical() << status;
+        QMessageBox::warning(snv,tr("JPReader"),status);
+    }
+}
+#endif
 
 void CSnMsgHandler::linkHovered(const QString &link)
 {

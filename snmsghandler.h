@@ -7,6 +7,7 @@
 #include <QAction>
 #include <QMutex>
 #include <QTimer>
+#include <QWebEnginePage>
 #include "snviewer.h"
 
 class CSnippetViewer;
@@ -31,6 +32,10 @@ public slots:
     void updateSrcLang(QAction *action);
     void updateTranEngine();
     void hideBarLoading();
+#ifdef WEBENGINE_56
+    void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
+                             int exitCode);
+#endif
 };
 
 #endif // SNMSGHANDLER_H

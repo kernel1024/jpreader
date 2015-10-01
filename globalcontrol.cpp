@@ -51,6 +51,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     ignoreSSLErrors=false;
     showFavicons=false;
     forcedCharset=""; // autodetect
+    charsetHistory.clear();
     createdFiles.clear();
     recycleBin.clear();
     mainHistory.clear();

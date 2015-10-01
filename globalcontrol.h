@@ -168,6 +168,7 @@ public:
 
     QString savedAuxDir;
     QString forcedCharset;
+    QStringList charsetHistory;
 
     bool globalContextTranslate;
     QxtGlobalShortcut* gctxTranHotkey;

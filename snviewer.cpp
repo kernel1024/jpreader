@@ -87,6 +87,11 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
     connect(txtBrowser, SIGNAL(iconUrlChanged(QUrl)), netHandler, SLOT(iconUrlChanged(QUrl)));
 
+#ifdef WEBENGINE_56
+    connect(txtBrowser, SIGNAL(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)),
+            msgHandler, SLOT(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)));
+#endif
+
     connect(txtBrowser->page(), SIGNAL(authenticationRequired(QUrl,QAuthenticator*)),
             netHandler, SLOT(authenticationRequired(QUrl,QAuthenticator*)));
     connect(txtBrowser->page(), SIGNAL(proxyAuthenticationRequired(QUrl,QAuthenticator*,QString)),

@@ -483,8 +483,11 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
     for (auto& kv : it->attributes()) {
         QString key = QString::fromStdString(kv.first).toLower();
         if (key.trimmed().isEmpty()) continue; // skip malformed attributes from parser
-        QString val = QString::fromStdString(kv.second).toLower();
+        QString val = QString::fromStdString(kv.second);
         if (val.trimmed().isEmpty()) continue;
+        QUrl ut(val);
+        if (!ut.isValid())
+            val = val.toLower();
         attributes.insert(key,val);
     }
 
