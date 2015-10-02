@@ -13,10 +13,13 @@
 #include <unicode/ucsdet.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
 using namespace std;
+
+bool syslogOpened = false;
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -26,32 +29,47 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     const char *file = "<unsupported>";
     line = context.line;
     file = context.file;
+    int logpri = LOG_NOTICE;
 
     switch (type) {
         case QtDebugMsg:
             lmsg = QString("Debug: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            logpri = LOG_DEBUG;
             break;
         case QtWarningMsg:
             lmsg = QString("Warning: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            logpri = LOG_WARNING;
             break;
         case QtCriticalMsg:
             lmsg = QString("Critical: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            logpri = LOG_CRIT;
             break;
         case QtFatalMsg:
             lmsg = QString("Fatal: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            logpri = LOG_ALERT;
             break;
         case QtInfoMsg:
             lmsg = QString("Info: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            logpri = LOG_INFO;
             break;
     }
 
     if (!lmsg.isEmpty()) {
-        lmsg = QTime::currentTime().toString("h:mm:ss") + " "+lmsg;
-        debugMessages << lmsg;
+        QString fmsg = QTime::currentTime().toString("h:mm:ss") + " "+lmsg;
+        debugMessages << fmsg;
         while (debugMessages.count()>5000)
             debugMessages.removeFirst();
-        lmsg.append('\n');
-        fprintf(stderr, lmsg.toLocal8Bit().constData());
+        fmsg.append('\n');
+
+        if (qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE"))
+            fprintf(stderr, fmsg.toLocal8Bit().constData());
+        else {
+            if (!syslogOpened) {
+                syslogOpened = true;
+                openlog("jpreader", LOG_PID, LOG_USER);
+            }
+            syslog(logpri, lmsg.toLocal8Bit().constData());
+        }
 
         if (gSet!=NULL && gSet->logWindow!=NULL)
             QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
