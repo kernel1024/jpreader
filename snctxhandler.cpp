@@ -72,10 +72,18 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
-        ac = new QAction(QIcon(":/img/nepomuk"),tr("Local search"),NULL);
+        ac = new QAction(QIcon(":/img/nepomuk"),tr("Local indexed search"),NULL);
         connect(ac, &QAction::triggered, [sText,this](){
             CSearchTab *bt = new CSearchTab(snv->parentWnd);
             bt->searchTerm(sText);
+        });
+        cm->addAction(ac);
+
+        ac = new QAction(QIcon::fromTheme("edit-find"),tr("Search on page"),NULL);
+        connect(ac, &QAction::triggered, [sText,this](){
+            snv->searchPanel->show();
+            snv->searchEdit->setEditText(sText);
+            snv->fwdButton->click();
         });
         cm->addAction(ac);
 

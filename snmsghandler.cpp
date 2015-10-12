@@ -13,12 +13,18 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
 void CSnMsgHandler::searchFwd()
 {
     if (snv->searchEdit->currentText().isEmpty()) return ;
+    if (snv->searchEdit->findText(snv->searchEdit->currentText(),
+                                  Qt::MatchExactly)<0)
+        snv->searchEdit->addItem(snv->searchEdit->currentText());
     snv->txtBrowser->findText(snv->searchEdit->currentText(), 0);
 }
 
 void CSnMsgHandler::searchBack()
 {
     if (snv->searchEdit->currentText().isEmpty()) return ;
+    if (snv->searchEdit->findText(snv->searchEdit->currentText(),
+                                  Qt::MatchExactly)<0)
+        snv->searchEdit->addItem(snv->searchEdit->currentText());
     snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebEnginePage::FindBackward);
 }
 

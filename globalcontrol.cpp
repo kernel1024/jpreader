@@ -741,6 +741,11 @@ void CGlobalControl::settingsDlg()
     dlg->cacheSize->setValue(webProfile->httpCacheMaximumSize()/(1024*1024));
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
     dlg->visualShowFavicons->setChecked(showFavicons);
+
+    // flip proxy use check, for updating controls enabling logic
+    dlg->proxyUse->setChecked(true);
+    dlg->proxyUse->setChecked(false);
+
     dlg->proxyHost->setText(proxyHost);
     dlg->proxyPort->setValue(proxyPort);
     dlg->proxyLogin->setText(proxyLogin);
