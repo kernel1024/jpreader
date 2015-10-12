@@ -405,102 +405,20 @@ void CGlobalControl::readSettings()
     settings.beginGroup("MainWindow");
     bigdata.beginGroup("main");
 
-    int cnt = 0;
-    QStringList qs;
-
-    if (settings.value("searchCnt",0).toInt()>0) {
-        cnt = settings.value("searchCnt",0).toInt();
-        QStringList qs;
-        for (int i=0;i<cnt;i++) {
-            QString s=settings.value(QString("searchTxt%1").arg(i),"").toString();
-            if (!s.isEmpty()) qs << s;
-        }
-        searchHistory.clear();
-        searchHistory.append(qs);
-    } else
-        searchHistory = bigdata.value("searchHistory",QStringList()).value<QStringList>();
+    searchHistory = bigdata.value("searchHistory",QStringList()).value<QStringList>();
 
     updateAllQueryLists();
 
-    if (settings.value("atlHost_count",0).toInt()>0) {
-        cnt = settings.value("atlHost_count",0).toInt();
-        qs.clear();
-        atlHostHistory.clear();
-        for (int i=0;i<cnt;i++) {
-            QString s=settings.value(QString("atlHost%1").arg(i),"").toString();
-            if (!s.isEmpty()) qs << s;
-        }
-        atlHostHistory.append(qs);
-    } else
-        atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
-
-    if (settings.value("scpHost_count",0).toInt()>0) {
-        cnt = settings.value("scpHost_count",0).toInt();
-        qs.clear();
-        scpHostHistory.clear();
-        for (int i=0;i<cnt;i++) {
-            QString s=settings.value(QString("scpHost%1").arg(i),"").toString();
-            if (!s.isEmpty()) qs << s;
-        }
-        scpHostHistory.append(qs);
-    } else
-        scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
-
-    int sz = settings.beginReadArray("bookmarks");
-    if (sz>0) {
-        for (int i=0; i<sz; i++) {
-            settings.setArrayIndex(i);
-            QString t = settings.value("title").toString();
-            if (!t.isEmpty())
-                bookmarks[t]=settings.value("url").toUrl();
-        }
-    } else
-        bookmarks = bigdata.value("bookmarks").value<QBookmarksMap>();
-    settings.endArray();
-
-    QByteArray ba = settings.value("history",QByteArray()).toByteArray();
-    if (!ba.isEmpty()) {
-        mainHistory.clear();
-        QDataStream hss(&ba,QIODevice::ReadOnly);
-        try {
-            hss >> mainHistory;
-        } catch (...) {
-            mainHistory.clear();
-        }
-    } else
-        mainHistory = bigdata.value("history").value<QUHList>();
+    atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
+    scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
+    bookmarks = bigdata.value("bookmarks").value<QBookmarksMap>();
+    mainHistory = bigdata.value("history").value<QUHList>();
+    userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
+    dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
 
     adblockMutex.lock();
-    if (settings.value("adblock_count",0).toInt()) {
-        cnt = settings.value("adblock_count",0).toInt();
-        adblock.clear();
-        for (int i=0;i<cnt;i++) {
-            QString at = settings.value(QString("adblock%1").arg(i),"").toString();
-            QString it = settings.value(QString("adblock_listID%1").arg(i),"").toString();
-            if (!at.isEmpty()) adblock << CAdBlockRule(at,it);
-        }
-    } else
-        adblock = bigdata.value("adblock").value<CAdBlockList>();
+    adblock = bigdata.value("adblock").value<CAdBlockList>();
     adblockMutex.unlock();
-
-    if (settings.value("userAgentHistory_count",0).toInt()>0) {
-        cnt=settings.value("userAgentHistory_count",0).toInt();
-        userAgentHistory.clear();
-        for (int i=0;i<cnt;i++) {
-            QString s = settings.value(QString("userAgentHistory%1").arg(i),QString()).toString();
-            if (!s.isEmpty())
-                userAgentHistory << s;
-        }
-    } else
-        userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
-
-    if (settings.value("dictPaths_count",0).toInt()>0) {
-        cnt=settings.value("dictPaths_count",0).toInt();
-        dictPaths.clear();
-        for (int i=0;i<cnt;i++)
-            dictPaths << settings.value(QString("dictPaths%1").arg(i)).toString();
-    } else
-        dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
 
     hostingDir = settings.value("hostingDir","").toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
