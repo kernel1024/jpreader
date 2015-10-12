@@ -192,6 +192,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionLogNetRequests->setCheckable(true);
     actionLogNetRequests->setChecked(false);
     debugNetReqLogging=false;
+    debugDumpHtml=false;
 
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
@@ -724,6 +725,7 @@ void CGlobalControl::settingsDlg()
     dlg->visualShowTabCloseButtons->setChecked(showTabCloseButtons);
 
     dlg->debugLogNetReq->setChecked(actionLogNetRequests->isChecked());
+    dlg->debugDumpHtml->setChecked(debugDumpHtml);
 
     dlg->overrideUserAgent->setChecked(overrideUserAgent);
     dlg->userAgent->setEnabled(overrideUserAgent);
@@ -835,6 +837,7 @@ void CGlobalControl::settingsDlg()
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
         actionLogNetRequests->setChecked(dlg->debugLogNetReq->isChecked());
+        debugDumpHtml = dlg->debugDumpHtml->isChecked();
 
         overrideUserAgent = dlg->overrideUserAgent->isChecked();
         if (overrideUserAgent) {

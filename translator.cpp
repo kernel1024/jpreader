@@ -112,19 +112,34 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
+    QUuid token = QUuid::createUuid();
+
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"converted",doc);
+
     translatorFailed = false;
     textNodesCnt=0;
     examineNode(doc,PXPreprocess);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"preprocessed",doc);
+
     examineNode(doc,PXCalculate);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"calculated",doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"translated",doc);
 
     if (translatorFailed) {
         dst=tran->getErrorMsg();
     } else {
         examineNode(doc,PXPostprocess);
         generateHTML(doc,dst);
+
+        if (gSet->debugDumpHtml)
+            dumpPage(token,"finalized",dst);
 
         tran->doneTran();
     }
@@ -151,15 +166,29 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
+    QUuid token = QUuid::createUuid();
+
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-converted",doc);
+
     translatorFailed=false;
     textNodesCnt=0;
     examineNode(doc,PXPreprocess);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-preprocessed",doc);
+
     examineNode(doc,PXCalculate);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-calculated",doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-translated",doc);
 
     generateHTML(doc,dst);
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-finalized",dst);
 
     return true;
 }
@@ -379,7 +408,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
 }
 
-void CTranslator::generateHTML(CHTMLNode &src, QString &html)
+void CTranslator::generateHTML(const CHTMLNode &src, QString &html)
 {
     if (src.isTag && !src.tagName.isEmpty()) {
         html.append("<"+src.tagName);
@@ -396,9 +425,36 @@ void CTranslator::generateHTML(CHTMLNode &src, QString &html)
         html.append(src.text);
 
     for (int i=0; i<src.children.count(); i++ )
-        generateHTML(src.children[i],html);
+        generateHTML(src.children.at(i),html);
 
     html.append(src.closingText);
+}
+
+void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QString &page)
+{
+    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QFile f(fname);
+    if (!f.open(QIODevice::WriteOnly)) {
+        qWarning() << "Unable to create dump file " << fname;
+        return;
+    }
+    f.write(page.toUtf8());
+    f.close();
+}
+
+void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const CHTMLNode &page)
+{
+    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QFile f(fname);
+    if (!f.open(QIODevice::WriteOnly)) {
+        qWarning() << "Unable to create dump file " << fname;
+        return;
+    }
+    QString html;
+    html.clear();
+    generateHTML(page, html);
+    f.write(html.toUtf8());
+    f.close();
 }
 
 void CTranslator::translate()

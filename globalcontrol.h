@@ -163,6 +163,7 @@ public:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
     bool debugNetReqLogging;
+    bool debugDumpHtml;
     QTimer tabsListTimer;
     bool restoreLoadChecked;
 

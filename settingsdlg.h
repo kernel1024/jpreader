@@ -56,6 +56,7 @@ public:
     QRadioButton* searchNone;
     QRadioButton* searchBaloo5;
     QCheckBox* debugLogNetReq;
+    QCheckBox* debugDumpHtml;
     QCheckBox* visualShowTabCloseButtons;
     QLineEdit *proxyHost, *proxyLogin, *proxyPassword;
     QSpinBox* proxyPort;

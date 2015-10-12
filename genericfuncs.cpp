@@ -3,6 +3,8 @@
 #include <QMimeData>
 #include <QString>
 #include <QTime>
+#include <QStandardPaths>
+#include <QFileInfo>
 
 #include <iostream>
 #include <unistd.h>
@@ -367,4 +369,13 @@ QString formatBytes(qint64 sz) {
     }
     s=QString("%1").arg(msz,0,'f',2)+" "+s;
     return s;
+}
+
+QString getTmpDir()
+{
+    QFileInfo fi(QDir::homePath() + QDir::separator() + "tmp");
+    if (fi.exists() && fi.isDir() && fi.isWritable())
+        return QDir::homePath() + QDir::separator() + "tmp";
+
+    return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 }

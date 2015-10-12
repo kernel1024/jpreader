@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QColor>
 #include <QFont>
+#include <QUuid>
 #include <netdb.h>
 #include "html/ParserDom.h"
 #include "mainwindow.h"
@@ -81,7 +82,10 @@ private:
 
     void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
     bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
-    void generateHTML(CHTMLNode & src, QString &html);
+    void generateHTML(const CHTMLNode & src, QString &html);
+
+    void dumpPage(const QUuid& token, const QString& suffix, const QString& page);
+    void dumpPage(const QUuid& token, const QString& suffix, const CHTMLNode& page);
 
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);

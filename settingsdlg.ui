@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>886</width>
-    <height>408</height>
+    <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1343,120 +1343,116 @@ p, li { white-space: pre-wrap; }
          <property name="title">
           <string>Proxy</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_14">
-          <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
            <widget class="QCheckBox" name="checkUseProxy">
             <property name="text">
              <string>Use proxy</string>
             </property>
            </widget>
           </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_19">
-            <item>
-             <layout class="QFormLayout" name="formLayout_6">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_20">
-                <property name="text">
-                 <string>P&amp;roxy address</string>
-                </property>
-                <property name="buddy">
-                 <cstring>editProxyHost</cstring>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <layout class="QHBoxLayout" name="horizontalLayout_18">
-                <item>
-                 <widget class="QLineEdit" name="editProxyHost"/>
-                </item>
-                <item>
-                 <widget class="QSpinBox" name="spinProxyPort">
-                  <property name="minimum">
-                   <number>1</number>
-                  </property>
-                  <property name="maximum">
-                   <number>65535</number>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_23">
-                <property name="text">
-                 <string>Pro&amp;xy type</string>
-                </property>
-                <property name="buddy">
-                 <cstring>listProxyType</cstring>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="listProxyType">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>HTTP proxy</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>HTTP transparent proxy</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SOCKS5 proxy</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QFormLayout" name="formLayout_5">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>&amp;Login</string>
-                </property>
-                <property name="buddy">
-                 <cstring>editProxyLogin</cstring>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="editProxyLogin"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Pass&amp;word</string>
-                </property>
-                <property name="buddy">
-                 <cstring>editProxyPassword</cstring>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="editProxyPassword"/>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QCheckBox" name="checkUseProxyTranslator">
             <property name="text">
              <string>Use proxy for translation engine connections</string>
             </property>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <layout class="QFormLayout" name="formLayout_6">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_20">
+              <property name="text">
+               <string>P&amp;roxy address</string>
+              </property>
+              <property name="buddy">
+               <cstring>editProxyHost</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_18">
+              <item>
+               <widget class="QLineEdit" name="editProxyHost"/>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinProxyPort">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>65535</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_23">
+              <property name="text">
+               <string>Pro&amp;xy type</string>
+              </property>
+              <property name="buddy">
+               <cstring>listProxyType</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="listProxyType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>HTTP proxy</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>HTTP transparent proxy</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>SOCKS5 proxy</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <layout class="QFormLayout" name="formLayout_5">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_21">
+              <property name="text">
+               <string>&amp;Login</string>
+              </property>
+              <property name="buddy">
+               <cstring>editProxyLogin</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="editProxyLogin"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_22">
+              <property name="text">
+               <string>Pass&amp;word</string>
+              </property>
+              <property name="buddy">
+               <cstring>editProxyPassword</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="editProxyPassword"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -1466,18 +1462,25 @@ p, li { white-space: pre-wrap; }
          <property name="title">
           <string>Debug tools</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_21">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
            <widget class="QCheckBox" name="checkLogNetworkRequests">
             <property name="text">
              <string>Log network requests to console</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QCheckBox" name="checkCreateCoredumps">
             <property name="text">
              <string>Create core dumps on segfaults</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkDumpHtml">
+            <property name="text">
+             <string>Dump converted and translated pages to tmp</string>
             </property>
            </widget>
           </item>
@@ -1639,13 +1642,14 @@ p, li { white-space: pre-wrap; }
   <tabstop>tableCookies</tabstop>
   <tabstop>buttonClearCookies</tabstop>
   <tabstop>checkUseProxy</tabstop>
+  <tabstop>checkUseProxyTranslator</tabstop>
   <tabstop>editProxyHost</tabstop>
   <tabstop>spinProxyPort</tabstop>
   <tabstop>listProxyType</tabstop>
   <tabstop>editProxyLogin</tabstop>
   <tabstop>editProxyPassword</tabstop>
-  <tabstop>checkUseProxyTranslator</tabstop>
   <tabstop>checkLogNetworkRequests</tabstop>
+  <tabstop>checkDumpHtml</tabstop>
   <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
   <tabstop>checkTabFavicon</tabstop>
