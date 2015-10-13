@@ -86,6 +86,7 @@ private:
 
     void dumpPage(const QUuid& token, const QString& suffix, const QString& page);
     void dumpPage(const QUuid& token, const QString& suffix, const CHTMLNode& page);
+    void dumpPage(const QUuid& token, const QString& suffix, const QByteArray& page);
 
 public:
     explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);

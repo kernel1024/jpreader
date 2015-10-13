@@ -103,10 +103,12 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     dst = "";
     if (srcUri.isEmpty()) return false;
 
-	QString src = srcUri.trimmed();
-	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
-
     QUuid token = QUuid::createUuid();
+
+	QString src = srcUri.trimmed();
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"1-source",src);
+	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
     parser.parse(src.toUtf8().toStdString());
@@ -116,28 +118,28 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"tree",QString::fromUtf8(sst.str().data(),(int)sst.str().size()));
+        dumpPage(token,"2-tree",QByteArray::fromRawData(sst.str().data(),(int)sst.str().size()));
     }
 
     CHTMLNode doc(tr);
 
     if (gSet->debugDumpHtml)
-        dumpPage(token,"converted",doc);
+        dumpPage(token,"3-converted",doc);
 
     translatorFailed = false;
     textNodesCnt=0;
     examineNode(doc,PXPreprocess);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"preprocessed",doc);
+        dumpPage(token,"4-preprocessed",doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"calculated",doc);
+        dumpPage(token,"5-calculated",doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"translated",doc);
+        dumpPage(token,"6-translated",doc);
 
     if (translatorFailed) {
         dst=tran->getErrorMsg();
@@ -146,7 +148,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
         generateHTML(doc,dst);
 
         if (gSet->debugDumpHtml)
-            dumpPage(token,"finalized",dst);
+            dumpPage(token,"7-finalized",dst);
 
         tran->doneTran();
     }
@@ -163,10 +165,12 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     dst = "";
     if (srcUri.isEmpty()) return false;
 
-    QString src = srcUri.trimmed();
-    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
-
     QUuid token = QUuid::createUuid();
+
+    QString src = srcUri.trimmed();
+    if (gSet->debugDumpHtml)
+        dumpPage(token,"parser-1-source",src);
+    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
     parser.parse(src.toUtf8().toStdString());
@@ -176,32 +180,32 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     if (gSet->debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"parser-tree",QString::fromUtf8(sst.str().data(),(int)sst.str().size()));
+        dumpPage(token,"parser-2-tree",QByteArray::fromRawData(sst.str().data(),(int)sst.str().size()));
     }
 
     CHTMLNode doc(tr);
 
     if (gSet->debugDumpHtml)
-        dumpPage(token,"parser-converted",doc);
+        dumpPage(token,"parser-3-converted",doc);
 
     translatorFailed=false;
     textNodesCnt=0;
     examineNode(doc,PXPreprocess);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"parser-preprocessed",doc);
+        dumpPage(token,"parser-4-preprocessed",doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"parser-calculated",doc);
+        dumpPage(token,"parser-5-calculated",doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"parser-translated",doc);
+        dumpPage(token,"parser-6-translated",doc);
 
     generateHTML(doc,dst);
     if (gSet->debugDumpHtml)
-        dumpPage(token,"parser-finalized",dst);
+        dumpPage(token,"parser-7-finalized",dst);
 
     return true;
 }
@@ -467,6 +471,18 @@ void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const CHTM
     html.clear();
     generateHTML(page, html);
     f.write(html.toUtf8());
+    f.close();
+}
+
+void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QByteArray &page)
+{
+    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QFile f(fname);
+    if (!f.open(QIODevice::WriteOnly)) {
+        qWarning() << "Unable to create dump file " << fname;
+        return;
+    }
+    f.write(page);
     f.close();
 }
 
