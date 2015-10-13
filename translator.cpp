@@ -2,6 +2,7 @@
 #include "translator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
+#include <sstream>
 
 using namespace htmlcxx;
 
@@ -105,14 +106,20 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 	QString src = srcUri.trimmed();
 	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
+    QUuid token = QUuid::createUuid();
+
     HTML::ParserDom parser;
     parser.parse(src.toUtf8().toStdString());
 
     tree<HTML::Node> tr = parser.getTree();
 
-    CHTMLNode doc(tr);
+    if (gSet->debugDumpHtml) {
+        std::stringstream sst;
+        sst << tr;
+        dumpPage(token,"tree",QString::fromUtf8(sst.str().data(),(int)sst.str().size()));
+    }
 
-    QUuid token = QUuid::createUuid();
+    CHTMLNode doc(tr);
 
     if (gSet->debugDumpHtml)
         dumpPage(token,"converted",doc);
@@ -159,14 +166,20 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     QString src = srcUri.trimmed();
     src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
+    QUuid token = QUuid::createUuid();
+
     HTML::ParserDom parser;
     parser.parse(src.toUtf8().toStdString());
 
     tree<HTML::Node> tr = parser.getTree();
 
-    CHTMLNode doc(tr);
+    if (gSet->debugDumpHtml) {
+        std::stringstream sst;
+        sst << tr;
+        dumpPage(token,"parser-tree",QString::fromUtf8(sst.str().data(),(int)sst.str().size()));
+    }
 
-    QUuid token = QUuid::createUuid();
+    CHTMLNode doc(tr);
 
     if (gSet->debugDumpHtml)
         dumpPage(token,"parser-converted",doc);
