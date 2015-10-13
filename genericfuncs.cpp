@@ -5,6 +5,7 @@
 #include <QTime>
 #include <QStandardPaths>
 #include <QFileInfo>
+#include <QMutex>
 
 #include <iostream>
 #include <unistd.h>
@@ -22,9 +23,12 @@
 using namespace std;
 
 bool syslogOpened = false;
+QMutex loggerMutex;
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    loggerMutex.lock();
+
     QString lmsg = QString();
 
     int line = 0;
@@ -70,12 +74,14 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
                 syslogOpened = true;
                 openlog("jpreader", LOG_PID, LOG_USER);
             }
-            syslog(logpri, lmsg.toLocal8Bit().constData());
+            syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
         }
 
         if (gSet!=NULL && gSet->logWindow!=NULL)
             QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
     }
+
+    loggerMutex.unlock();
 }
 
 QString detectMIME(QString filename)
