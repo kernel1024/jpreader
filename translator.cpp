@@ -228,7 +228,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
         if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
 
-        if (xmlPass==PXCalculate && !node.isTag && !node.isComment) { // modify node
+        if (xmlPass==PXCalculate && !node.isTag && !node.isComment) {
             translateParagraph(node,xmlPass);
         }
         if (xmlPass==PXTranslate && !node.isTag && !node.isComment) {
@@ -239,7 +239,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     if (xmlPass==PXPreprocess) {
         // WebEngine gives UTF-8 encoded page
         if (node.tagName.toLower()=="meta") {
-            if (node.attributes.value("http-equiv")=="content-type")
+            if (node.attributes.value("http-equiv").toLower().trimmed()=="content-type")
                 node.attributes["content"] = "text/html; charset=UTF-8";
         }
 
@@ -262,7 +262,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             // pixiv - unfolding novel pages to one big page
             QStringList unhide_classes { "novel-text-wrapper", "novel-pages", "novel-page" };
             if (node.attributes.contains("class") &&
-                    unhide_classes.contains(node.attributes.value("class"))) {
+                    unhide_classes.contains(node.attributes.value("class").toLower().trimmed())) {
                 if (!node.attributes.contains("style"))
                     node.attributes["style"]="";
                 if (node.attributes.value("style").isEmpty())
@@ -280,7 +280,8 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             // Remove 'vtoken' inline span
             if (node.children.at(idx).tagName.toLower()=="span" &&
                     node.children.at(idx).attributes.contains("class") &&
-                    node.children.at(idx).attributes.value("class").startsWith("vtoken")) {
+                    node.children.at(idx).attributes.value("class")
+                    .toLower().trimmed().startsWith("vtoken")) {
 
                 while (!node.children.at(idx).children.isEmpty()) {
                     node.children.insert(idx,node.children[idx].children.takeFirst());
@@ -565,16 +566,7 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 
     attributes.clear();
 
-    for (auto& kv : it->attributes()) {
-        QString key = QString::fromStdString(kv.first).toLower();
-        if (key.trimmed().isEmpty()) continue; // skip malformed attributes from parser
-        QString val = QString::fromStdString(kv.second);
-        if (val.trimmed().isEmpty()) continue;
-        QUrl ut(val);
-        if (!ut.isValid())
-            val = val.toLower();
-        attributes.insert(key,val);
-    }
+    attributes = it->attributes();
 
     children.clear();
 

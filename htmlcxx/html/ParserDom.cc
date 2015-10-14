@@ -1,11 +1,9 @@
 #include "ParserDom.h"
-#include "wincstring.h"
 
 #include <iostream>
 #include <vector>
 
-//#define DEBUG
-#include "debug.h"
+#include <QDebug>
 
 #define TAG_NAME_MAX 10
 
@@ -83,7 +81,7 @@ void ParserDom::foundTag(Node node, bool isEnd)
 
 			if (equal) 
 			{
-				DEBUGP("Found matching tag %s\n", i->tagName().c_str());
+                // qDebug() << "Found matching tag " << i->tagName().c_str();
 				//Closing tag closes this tag
 				//Set length to full range between the opening tag and
 				//closing tag
@@ -114,7 +112,7 @@ void ParserDom::foundTag(Node node, bool isEnd)
 		} 
 		else 
 		{
-			DEBUGP("Unmatched tag %s\n", node.text().c_str());
+            // qDebug() << "Unmatched tag " << node.text().c_str();
 
 			// Treat as comment
 			node.isTag(false);

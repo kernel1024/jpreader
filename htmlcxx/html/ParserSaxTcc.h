@@ -74,7 +74,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						++l;
 					}
 
-					// FIXME: Mozilla stops when it sees a /plaintext. Check
+                    // Mozilla stops when it sees a /plaintext. Check
 					// other browsers and decide what to do
 					if (!*l && strcmp(mpLiteral, "plaintext"))
 					{
@@ -233,8 +233,6 @@ void htmlcxx::HTML::ParserSax::parseComment(_Iterator b, _Iterator c)
 {
 //	DEBUGP("Creating comment node %s\n", std::string(b, c).c_str());
 	htmlcxx::HTML::Node com_node;
-	//FIXME: set_tagname shouldn't be needed, but first I must check
-	//legacy code
 	std::string comment(b, c);
 	com_node.tagName(comment);
 	com_node.text(comment);
@@ -254,8 +252,6 @@ void htmlcxx::HTML::ParserSax::parseContent(_Iterator b, _Iterator c)
 {
 //	DEBUGP("Creating text node %s\n", (std::string(b, c)).c_str());
 	htmlcxx::HTML::Node txt_node;
-	//FIXME: set_tagname shouldn't be needed, but first I must check
-	//legacy code
 	std::string text(b, c);
 	txt_node.tagName(text);
 	txt_node.text(text);

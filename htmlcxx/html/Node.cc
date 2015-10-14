@@ -1,97 +1,109 @@
 #include <iostream>
 #include <cctype>
 #include <algorithm>
-#include "wincstring.h"
+#include <QString>
+#include <QChar>
 #include "Node.h"
 
-//#define DEBUG
-#include "debug.h"
+#include <QDebug>
 
 using namespace std;
 using namespace htmlcxx;
 using namespace HTML;
 
-void Node::parseAttributes() 
+void Node::parseAttributes()
 {
-	if (!(this->isTag())) return;
+    if (!(this->isTag())) return;
 
-	const char *end;
-	const char *ptr = mText.c_str();
-	if ((ptr = strchr(ptr, '<')) == 0) return;
-	++ptr;
+    // Rewritten with QString/QChar for UTF-8 only support
 
-	// Skip initial blankspace
-	while (isspace(*ptr)) ++ptr;
+    QString lText = QString::fromUtf8(mText.c_str());
 
-	// Skip tagname
-	if (!isalpha(*ptr)) return;
-	while (!isspace(*ptr)) ++ptr;
+    mAttributes.clear();
 
-	// Skip blankspace after tagname
-	while (isspace(*ptr)) ++ptr;
+    if (!lText.contains("<")) return;
 
-	while (*ptr && *ptr != '>') 
-	{
-		string key, val;
+    QString::Iterator end;
+    QString::Iterator ptr = lText.data();
 
-		// skip unrecognized
-		while (*ptr && !isalnum(*ptr) && !isspace(*ptr)) ++ptr;
+    // Skip up to tag start
+    ptr += lText.indexOf("<");
 
-		// skip blankspace
-		while (isspace(*ptr)) ++ptr;
+    // Chop opening braces
+    ++ptr;
 
-		end = ptr;
-		while (isalnum(*end) || *end == '-') ++end;
-		key.assign(end - ptr, '\0');
-		transform(ptr, end, key.begin(), ::tolower);
-		ptr = end;
+    // Skip initial blankspace
+    while (ptr < lText.end() && ptr->isSpace()) ++ptr;
 
-		// skip blankspace
-		while (isspace(*ptr)) ++ptr;
+    // Skip tagname
+    if (!ptr->isLetter()) return;
+    while (ptr < lText.end() && !ptr->isSpace()) ++ptr;
 
-		if (*ptr == '=') 
-		{
-			++ptr;
-			while (isspace(*ptr)) ++ptr;
-			if (*ptr == '"' || *ptr == '\'') 
-			{
-				char quote = *ptr;
-//				fprintf(stderr, "Trying to find quote: %c\n", quote);
-				const char *end = strchr(ptr + 1, quote);
-				if (end == 0)
-				{
-					//b = mText.find_first_of(" >", a+1);
-					const char *end1, *end2;
-					end1 = strchr(ptr + 1, ' ');
-					end2 = strchr(ptr + 1, '>');
-					if (end1 && end1 < end2) end = end1;
-					else end = end2;
-					if (end == 0) return;
-				}
-				const char *begin = ptr + 1;
-				while (isspace(*begin) && begin < end) ++begin;
-				const char *trimmed_end = end - 1;
-				while (isspace(*trimmed_end) && trimmed_end >= begin) --trimmed_end;
-				val.assign(begin, trimmed_end + 1);
-				ptr = end + 1;
-			}
-			else 
-			{
-				end = ptr;
-				while (*end && !isspace(*end) && *end != '>') end++;
-				val.assign(ptr, end);
-				ptr = end;
-			}
+    // Skip blankspace after tagname
+    while (ptr < lText.end() && ptr->isSpace()) ++ptr;
 
-//			fprintf(stderr, "%s = %s\n", key.c_str(), val.c_str());
-			mAttributes.insert(make_pair(key, val));
-		}
-		else
-		{
-//			fprintf(stderr, "D: %s\n", key.c_str());
-			mAttributes.insert(make_pair(key, string()));
-		}
-	}
+    while (ptr < lText.end() && *ptr != '>')
+    {
+        QString key, val;
+
+        // skip unrecognized
+        while (ptr < lText.end() && !ptr->isLetterOrNumber() && !ptr->isSpace()) ++ptr;
+
+        // skip blankspace
+        while (ptr < lText.end() && ptr->isSpace()) ++ptr;
+
+        end = ptr;
+        while (end < lText.end() && (end->isLetterOrNumber() || *end == '-')) ++end;
+        key = QString(ptr, end - ptr).toLower();
+        ptr = end;
+
+        // skip blankspace
+        while (ptr < lText.end() && ptr->isSpace()) ++ptr;
+
+        if (*ptr == '=')
+        {
+            ++ptr;
+            while (ptr < lText.end() && ptr->isSpace()) ++ptr;
+            if (*ptr == '"' || *ptr == '\'')
+            {
+                QChar quote = *ptr;
+                QString::Iterator pptr = ptr;
+                pptr++;
+                QString tmp(pptr);
+                QString::Iterator end = pptr;
+                int qidx = tmp.indexOf(quote);
+                if (qidx>=0)
+                    end += qidx;
+                else {
+                    //b = mText.find_first_of(" >", a+1);
+                    int end1, end2;
+                    end1 = tmp.indexOf(' ');
+                    end2 = tmp.indexOf('>');
+                    if (end1>=0 && end1 < end2) end += end1;
+                    else if (end2>=0) end += end2;
+                    else return;
+                    if (end >= lText.end()) return;
+                }
+                QString::Iterator begin = ptr + 1;
+                while (begin < lText.end() && begin->isSpace() && begin < end) ++begin;
+                QString::Iterator trimmed_end = end - 1;
+                while (trimmed_end->isSpace() && trimmed_end >= begin) --trimmed_end;
+                val = QString(begin, trimmed_end - begin + 1);
+                ptr = end + 1;
+            } else {
+                end = ptr;
+                while (end < lText.end() && !end->isSpace() && *end != '>') end++;
+                val = QString(ptr, end - ptr);
+                ptr = end;
+            }
+
+//            qDebug() << key << " = " << val;
+            mAttributes.insert(key, val);
+        } else {
+//            qDebug() << "D: " << key;
+            mAttributes.insert(key, QString());
+        }
+    }
 }
 
 bool Node::operator==(const Node &n) const 
@@ -103,6 +115,15 @@ bool Node::operator==(const Node &n) const
 Node::operator string() const {
 	if (isTag()) return this->tagName();
 	return this->text();
+}
+
+Node::Node()
+    : mOffset(0),
+    mLength(0),
+    mIsHtmlTag(false),
+    mComment(false)
+{
+    mAttributes.clear();
 }
 
 ostream &Node::operator<<(ostream &stream) const {

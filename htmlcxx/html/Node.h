@@ -1,7 +1,9 @@
 #ifndef __HTML_PARSER_NODE_H
 #define __HTML_PARSER_NODE_H
 
-#include <map>
+//#include <map>
+#include <QMap>
+#include <QString>
 #include <string>
 #include <utility>
 
@@ -10,8 +12,7 @@ namespace htmlcxx {
 		class Node {
 
 			public:
-				Node() {}
-				//Node(const Node &rhs); //uses default
+                Node();
 				~Node() {}
 
 				inline void text(const std::string& text) { this->mText = text; }
@@ -35,20 +36,10 @@ namespace htmlcxx {
 				bool isComment() const { return this->mComment; }
 				void isComment(bool comment){ this->mComment = comment; }
 
-				std::pair<bool, std::string> attribute(const std::string &attr) const
-				{ 
-					std::map<std::string, std::string>::const_iterator i = this->mAttributes.find(attr);
-					if (i != this->mAttributes.end()) {
-						return make_pair(true, i->second);
-					} else {
-						return make_pair(false, std::string());
-					}
-				}
-
 				operator std::string() const;
 				std::ostream &operator<<(std::ostream &stream) const;
 
-				const std::map<std::string, std::string>& attributes() const { return this->mAttributes; }
+                const QMap<QString,QString>& attributes() const { return this->mAttributes; }
 				void parseAttributes();
 
 				bool operator==(const Node &rhs) const;
@@ -60,7 +51,7 @@ namespace htmlcxx {
 				unsigned int mOffset;
 				unsigned int mLength;
 				std::string mTagName;
-				std::map<std::string, std::string> mAttributes;
+                QMap<QString,QString> mAttributes;
 				bool mIsHtmlTag;
 				bool mComment;
 		};

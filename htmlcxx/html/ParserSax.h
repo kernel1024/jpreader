@@ -61,6 +61,6 @@ namespace htmlcxx
 	}//namespace HTML
 }//namespace htmlcxx
 
-#include "ParserSax.tcc"
+#include "ParserSaxTcc.h"
 
 #endif
