@@ -10,11 +10,11 @@ namespace htmlcxx
 	{
 		class ParserDom : public ParserSax
 		{
-			public:
+            public:
 				ParserDom() {}
 				~ParserDom() {}
 
-				const tree<Node> &parseTree(const std::string &html);
+                const tree<Node> &parseTree(const QString &html);
 				const tree<Node> &getTree()
 				{ return mHtmlTree; }
 
@@ -31,7 +31,8 @@ namespace htmlcxx
 				tree<Node>::iterator mCurrentState;
 		};
 
-		std::ostream &operator<<(std::ostream &stream, const tree<HTML::Node> &tr);
+        std::ostream &operator<<(std::ostream &stream, const tree<HTML::Node> &tr);
+
 	} //namespace HTML
 } //namespace htmlcxx
 

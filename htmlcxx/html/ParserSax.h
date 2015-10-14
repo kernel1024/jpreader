@@ -1,8 +1,7 @@
 #ifndef __HTML_PARSER_SAX_H__
 #define __HTML_PARSER_SAX_H__
 
-#include <QObject>
-#include <string>
+#include <QString>
 
 #include "Node.h"
 
@@ -17,7 +16,7 @@ namespace htmlcxx
 				virtual ~ParserSax() {}
 
 				/** Parse the html code */
-				void parse(const std::string &html);
+                void parse(const QString &html);
 
 				template <typename _Iterator>
 				void parse(_Iterator begin, _Iterator end);
@@ -54,7 +53,7 @@ namespace htmlcxx
 				_Iterator skipHtmlComment(_Iterator ptr, _Iterator end);
 
 				unsigned long mCurrentOffset;
-				const char *mpLiteral;
+                QChar *mpLiteral;
 				bool mCdata;
 		};
 

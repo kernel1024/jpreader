@@ -1,8 +1,5 @@
 #include <cctype>
-#include <cstring>
-#if !defined(WIN32) || defined(__MINGW32__)
-#include <strings.h>
-#endif
+#include <QString>
 
 //#define DEBUG
 //#include "debug.h"
@@ -10,7 +7,7 @@
 static
 struct literal_tag {
 	int len;
-	const char* str;
+    QString str;
 	int is_cdata;
 }   
 literal_mode_elem[] =
@@ -44,7 +41,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 
 	while (begin != end)
 	{
-		*begin; // This is for the multi_pass to release the buffer
+//		*begin; // This is for the multi_pass to release the buffer
 		iterator c(begin);
 
 		while (c != end)
@@ -67,8 +64,8 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 				if (*c == '/')
 				{
 					++c;
-					const char *l = mpLiteral;
-					while (*l && ::tolower(*c) == *l)
+                    QChar *l = mpLiteral;
+                    while (!(l->isNull()) && (c->toLower() == *l))
 					{
 						++c;
 						++l;
@@ -76,10 +73,11 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 
                     // Mozilla stops when it sees a /plaintext. Check
 					// other browsers and decide what to do
-					if (!*l && strcmp(mpLiteral, "plaintext"))
+                    QString mpl(mpLiteral);
+                    if (l->isNull() && mpl.compare("plaintext"))
 					{
 						// matched all and is not tag plaintext
-						while (isspace(*c)) ++c;
+                        while (c->isSpace()) ++c;
 
 						if (*c == '>')
 						{
@@ -122,7 +120,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 				++d;
 				if (d != end)
 				{
-					if (isalpha(*d))
+                    if (d->isLetter())
 					{
 						// beginning of tag
 						if (begin != c)
@@ -145,7 +143,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 
 						iterator e(d);
 						++e;
-						if (e != end && isalpha(*e))
+                        if (e != end && e->isLetter())
 						{
 							// end of tag
 //							DEBUGP("Parsing end of tag\n");
@@ -233,7 +231,7 @@ void htmlcxx::HTML::ParserSax::parseComment(_Iterator b, _Iterator c)
 {
 //	DEBUGP("Creating comment node %s\n", std::string(b, c).c_str());
 	htmlcxx::HTML::Node com_node;
-	std::string comment(b, c);
+    QString comment(b, c - b);
 	com_node.tagName(comment);
 	com_node.text(comment);
 	com_node.offset(mCurrentOffset);
@@ -252,7 +250,7 @@ void htmlcxx::HTML::ParserSax::parseContent(_Iterator b, _Iterator c)
 {
 //	DEBUGP("Creating text node %s\n", (std::string(b, c)).c_str());
 	htmlcxx::HTML::Node txt_node;
-	std::string text(b, c);
+    QString text(b, c - b);
 	txt_node.tagName(text);
 	txt_node.text(text);
 	txt_node.offset(mCurrentOffset);
@@ -275,28 +273,24 @@ void htmlcxx::HTML::ParserSax::parseHtmlTag(_Iterator b, _Iterator c)
 	if (is_end_tag) ++name_begin;
 
 	_Iterator name_end(name_begin);
-	while (name_end != c && isalnum(*name_end)) 
+    while (name_end != c && name_end->isLetterOrNumber())
 	{
 		++name_end;
 	}
 
-	std::string name(name_begin, name_end);
+    QString name(name_begin, name_end - name_begin);
 //	DEBUGP("Found %s tag %s\n", is_end_tag ? "closing" : "opening", name.c_str());
 
 	if (!is_end_tag) 
 	{
-		std::string::size_type tag_len = name.length();
+        int tag_len = name.length();
 		for (int i = 0; literal_mode_elem[i].len; ++i)
 		{
 			if (tag_len == literal_mode_elem[i].len)
 			{
-                                #if defined(WIN32) && !defined(__MINGW32__)
-				if (!_stricmp(name.c_str(), literal_mode_elem[i].str))
-				#else
-				if (!strcasecmp(name.c_str(), literal_mode_elem[i].str))
-				#endif
+                if (name.compare(literal_mode_elem[i].str,Qt::CaseInsensitive)==0)
 				{
-					mpLiteral = literal_mode_elem[i].str;
+                    mpLiteral = literal_mode_elem[i].str.begin();
 					break;
 				}
 			}
@@ -305,7 +299,7 @@ void htmlcxx::HTML::ParserSax::parseHtmlTag(_Iterator b, _Iterator c)
 
 	htmlcxx::HTML::Node tag_node;
 	//by now, length is just the size of the tag
-	std::string text(b, c);
+    QString text(b, c - b);
 	tag_node.length(static_cast<unsigned int>(text.length()));
 	tag_node.tagName(name);
 	tag_node.text(text);
@@ -326,7 +320,7 @@ htmlcxx::HTML::ParserSax::skipHtmlComment(_Iterator c, _Iterator end)
 		if (*c++ == '-' && c != end && *c == '-')
 		{
 			_Iterator d(c);
-			while (++c != end && isspace(*c));
+            while (++c != end && c->isSpace());
 			if (c == end || *c++ == '>') break;
 			c = d;
 		}
@@ -339,23 +333,23 @@ namespace htmlcxx { namespace HTML {
 
 template <typename _Iterator>
 static inline
-_Iterator find_next_quote(_Iterator c, _Iterator end, char quote)
+_Iterator find_next_quote(_Iterator c, _Iterator end, QChar quote)
 {
 //	std::cerr << "generic find" << std::endl;
 	while (c != end && *c != quote) ++c;
 	return c;
 }
 
-template <>
+/*template <>
 inline
-const char *find_next_quote(const char *c, const char *end, char quote)
+const char *find_next_quote(const char *c, const char *end, QChar quote)
 {
 //	std::cerr << "fast find" << std::endl;
 	const char *d = reinterpret_cast<const char*>(memchr(c, quote, end - c));
 
 	if (d) return d;
 	else return end;
-}
+}*/
 
 }}
 
@@ -371,14 +365,14 @@ _Iterator htmlcxx::HTML::ParserSax::skipHtmlTag(_Iterator c, _Iterator end)
 		else
 		{ // found an attribute
 			++c;
-			while (c != end && isspace(*c)) ++c;
+            while (c != end && c->isSpace()) ++c;
 
 			if (c == end) break;
 
 			if (*c == '\"' || *c == '\'') 
 			{
 				_Iterator save(c);
-				char quote = *c++;
+                QChar quote = *c++;
 				c = find_next_quote(c, end, quote);
 //				while (c != end && *c != quote) ++c;
 //				c = static_cast<char*>(memchr(c, quote, end - c));

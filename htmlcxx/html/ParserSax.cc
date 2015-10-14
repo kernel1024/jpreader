@@ -1,7 +1,6 @@
 #include "ParserSax.h"
 
-void htmlcxx::HTML::ParserSax::parse(const std::string &html)
+void htmlcxx::HTML::ParserSax::parse(const QString &html)
 {
-//	std::cerr << "Parsing string" << std::endl;
-	parse(html.c_str(), html.c_str() + html.length());
+    parse(html.begin(), html.end());
 }

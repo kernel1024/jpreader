@@ -21,7 +21,8 @@ public:
     QString text, tagName, closingText;
     bool isTag, isComment;
     QList<CHTMLNode> children;
-    QMap<QString,QString> attributes;
+    QHash<QString,QString> attributes;
+    QStringList attributesOrder;
     CHTMLNode();
     ~CHTMLNode();
     CHTMLNode(tree<HTML::Node> const & node);

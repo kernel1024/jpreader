@@ -1,6 +1,3 @@
-#include <iostream>
-#include <cctype>
-#include <algorithm>
 #include <QString>
 #include <QChar>
 #include "Node.h"
@@ -17,9 +14,10 @@ void Node::parseAttributes()
 
     // Rewritten with QString/QChar for UTF-8 only support
 
-    QString lText = QString::fromUtf8(mText.c_str());
+    QString lText = mText;
 
     mAttributes.clear();
+    mAttributesOrder.clear();
 
     if (!lText.contains("<")) return;
 
@@ -99,9 +97,11 @@ void Node::parseAttributes()
 
 //            qDebug() << key << " = " << val;
             mAttributes.insert(key, val);
+            mAttributesOrder.append(key);
         } else {
 //            qDebug() << "D: " << key;
             mAttributes.insert(key, QString());
+            mAttributesOrder.append(key);
         }
     }
 }
@@ -109,12 +109,18 @@ void Node::parseAttributes()
 bool Node::operator==(const Node &n) const 
 {
 	if (!isTag() || !n.isTag()) return false;
-	return !(strcasecmp(tagName().c_str(), n.tagName().c_str()));
+    return (tagName().compare(n.tagName(),Qt::CaseInsensitive) == 0);
 }
 
-Node::operator string() const {
+Node::operator QString() const {
 	if (isTag()) return this->tagName();
 	return this->text();
+}
+
+Node::operator std::string() const
+{
+    if (isTag()) return this->tagName().toStdString();
+    return this->text().toStdString();
 }
 
 Node::Node()
@@ -123,10 +129,14 @@ Node::Node()
     mIsHtmlTag(false),
     mComment(false)
 {
+    mText.clear();
+    mClosingText.clear();
+    mTagName.clear();
     mAttributes.clear();
+    mAttributesOrder.clear();
 }
 
 ostream &Node::operator<<(ostream &stream) const {
-	stream << (string)(*this);
-	return stream;
+    stream << (string)(*this);
+    return stream;
 }

@@ -1,4 +1,5 @@
 #include <QProcess>
+#include <QBuffer>
 #include "translator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
@@ -111,7 +112,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
-    parser.parse(src.toUtf8().toStdString());
+    parser.parse(src);
 
     tree<HTML::Node> tr = parser.getTree();
 
@@ -173,7 +174,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
-    parser.parse(src.toUtf8().toStdString());
+    parser.parse(src);
 
     tree<HTML::Node> tr = parser.getTree();
 
@@ -430,8 +431,8 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html)
 {
     if (src.isTag && !src.tagName.isEmpty()) {
         html.append("<"+src.tagName);
-        for (int i=0;i<src.attributes.keys().count();i++) {
-            QString key = src.attributes.keys().at(i);
+        for (int i=0;i<src.attributesOrder.count();i++) {
+            QString key = src.attributesOrder.at(i);
             QString val = src.attributes.value(key);
             if (!val.contains("\""))
                 html.append(QString(" %1=\"%2\"").arg(key).arg(val));
@@ -539,6 +540,7 @@ CHTMLNode::CHTMLNode()
 {
     children.clear();
     attributes.clear();
+    attributesOrder.clear();
     text.clear();
     tagName.clear();
     closingText.clear();
@@ -550,6 +552,7 @@ CHTMLNode::~CHTMLNode()
 {
     children.clear();
     attributes.clear();
+    attributesOrder.clear();
 }
 
 CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
@@ -558,15 +561,17 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 
     it->parseAttributes();
 
-    text = QString::fromStdString(it->text());
-    tagName = QString::fromStdString(it->tagName());
-    closingText = QString::fromStdString(it->closingText());
+    text = it->text();
+    tagName = it->tagName();
+    closingText = it->closingText();
     isTag = it->isTag();
     isComment = it->isComment();
 
     attributes.clear();
-
     attributes = it->attributes();
+
+    attributesOrder.clear();
+    attributesOrder = it->attributesOrder();
 
     children.clear();
 
@@ -584,6 +589,7 @@ CHTMLNode::CHTMLNode(const QString &innerText)
     isComment = false;
 
     attributes.clear();
+    attributesOrder.clear();
     children.clear();
 }
 
@@ -596,11 +602,12 @@ CHTMLNode &CHTMLNode::operator=(const CHTMLNode &other)
     isComment = other.isComment;
 
     attributes.clear();
-
     attributes = other.attributes;
 
-    children.clear();
+    attributesOrder.clear();
+    attributesOrder = other.attributesOrder;
 
+    children.clear();
     children = other.children;
 
     return *this;

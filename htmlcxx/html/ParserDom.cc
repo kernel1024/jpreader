@@ -10,13 +10,14 @@
 using namespace std;
 using namespace htmlcxx; 
 using namespace HTML; 
-using namespace kp; 
+using namespace kp;
 
-const tree<HTML::Node>& ParserDom::parseTree(const std::string &html)
+const tree<HTML::Node>& ParserDom::parseTree(const QString &html)
 {
-	this->parse(html);
-	return this->getTree();
+    parse(html);
+    return getTree();
 }
+
 void ParserDom::beginParsing()
 {
 	mHtmlTree.clear();
@@ -61,23 +62,15 @@ void ParserDom::foundTag(Node node, bool isEnd)
 		//Look if there is a pending open tag with that same name upwards
 		//If mCurrentState tag isn't matching tag, maybe a some of its parents
 		// matches
-		vector< tree<HTML::Node>::iterator > path;
+        std::vector< tree<HTML::Node>::iterator > path;
 		tree<HTML::Node>::iterator i = mCurrentState;
 		bool found_open = false;
 		while (i != mHtmlTree.begin())
 		{
-#ifdef DEBUG
-			cerr << "comparing " << node.tagName() << " with " << i->tagName()<<endl<<":";
-			if (!i->tagName().length()) cerr << "Tag with no name at" << i->offset()<<";"<<i->offset()+i->length();
-#endif
 			assert(i->isTag());
 			assert(i->tagName().length());
 
-			bool equal;
-			const char *open = i->tagName().c_str();
-			const char *close = node.tagName().c_str();
-			equal = !(strcasecmp(open,close));
-
+            bool equal = (i->tagName().compare(node.tagName(),Qt::CaseInsensitive)==0);
 
 			if (equal) 
 			{
@@ -122,27 +115,27 @@ void ParserDom::foundTag(Node node, bool isEnd)
 	}
 }
 
-ostream &HTML::operator<<(ostream &stream, const tree<HTML::Node> &tr) 
+ostream &HTML::operator<<(ostream &stream, const tree<HTML::Node> &tr)
 {
 
-	tree<HTML::Node>::pre_order_iterator it = tr.begin();
-	tree<HTML::Node>::pre_order_iterator end = tr.end();
+       tree<HTML::Node>::pre_order_iterator it = tr.begin();
+       tree<HTML::Node>::pre_order_iterator end = tr.end();
 
-	int rootdepth = tr.depth(it);
-	stream << "-----" << endl;
+       int rootdepth = tr.depth(it);
+       stream << "-----" << endl;
 
-	unsigned int n = 0;
-	while ( it != end ) 
-	{
+       unsigned int n = 0;
+       while ( it != end )
+       {
 
-		int cur_depth = tr.depth(it);
-		for(int i=0; i < cur_depth - rootdepth; ++i) stream << "  ";
-		stream << n << "@";
-		stream << "[" << it->offset() << ";";
-		stream << it->offset() + it->length() << ") ";
-		stream << (string)(*it) << endl;
-		++it, ++n;
-	}
-	stream << "-----" << endl;
-	return stream;
+               int cur_depth = tr.depth(it);
+               for(int i=0; i < cur_depth - rootdepth; ++i) stream << "  ";
+               stream << n << "@";
+               stream << "[" << it->offset() << ";";
+               stream << it->offset() + it->length() << ") ";
+               stream << (string)(*it) << endl;
+               ++it, ++n;
+       }
+       stream << "-----" << endl;
+       return stream;
 }
