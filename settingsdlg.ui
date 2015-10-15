@@ -1246,17 +1246,50 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_5">
+          <widget class="Line" name="line">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="sizeHint" stdset="0">
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_30">
+           <property name="text">
+            <string>S&amp;earch</string>
+           </property>
+           <property name="buddy">
+            <cstring>editAdSearch</cstring>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="editAdSearch"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAdSearchBwd">
+           <property name="maximumSize">
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>32</width>
+             <height>16777215</height>
             </size>
            </property>
-          </spacer>
+           <property name="text">
+            <string>&lt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAdSearchFwd">
+           <property name="maximumSize">
+            <size>
+             <width>32</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>&gt;</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QCheckBox" name="checkUseAd">
@@ -1638,6 +1671,9 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdDel</tabstop>
   <tabstop>buttonAdImport</tabstop>
   <tabstop>buttonAdExport</tabstop>
+  <tabstop>editAdSearch</tabstop>
+  <tabstop>buttonAdSearchBwd</tabstop>
+  <tabstop>buttonAdSearchFwd</tabstop>
   <tabstop>checkUseAd</tabstop>
   <tabstop>tableCookies</tabstop>
   <tabstop>buttonClearCookies</tabstop>

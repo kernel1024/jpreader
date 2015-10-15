@@ -19,6 +19,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    adblockSearchIdx = 0;
+
     hostingUrl=ui->editHostingUrl;
     hostingDir=ui->editHostingDir;
     maxLimit=ui->spinMaxLimit;
@@ -98,6 +100,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonEditBookmark,SIGNAL(clicked()),this,SLOT(editBkm()));
     connect(ui->buttonDelCookies,SIGNAL(clicked()),this,SLOT(delCookies()));
     connect(ui->buttonExportCookies,SIGNAL(clicked()),this,SLOT(exportCookies()));
+    connect(ui->editAdSearch,SIGNAL(textChanged(QString)),this,SLOT(adblockSearch(QString)));
+    connect(ui->buttonAdSearchBwd,SIGNAL(clicked()),this,SLOT(adblockSearchBwd()));
+    connect(ui->buttonAdSearchFwd,SIGNAL(clicked()),this,SLOT(adblockSearchFwd()));
 
 #ifndef WEBENGINE_56
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
@@ -454,6 +459,56 @@ void CSettingsDlg::exportCookies()
     fs.flush();
     f.close();
 #endif
+}
+
+void CSettingsDlg::adblockSearch(const QString &text)
+{
+    QString s = text.trimmed();
+    if (s.isEmpty()) return;
+    QList<QTreeWidgetItem *> it = ui->treeAdblock->findItems(s,Qt::MatchContains | Qt::MatchRecursive);
+    if (it.isEmpty()) return;
+    adblockSearchIdx = 0;
+    adblockFocusSearchedRule(it);
+}
+
+void CSettingsDlg::adblockSearchBwd()
+{
+    QString s = ui->editAdSearch->text();
+    if (s.isEmpty()) {
+        adblockSearchIdx = 0;
+        return;
+    }
+    QList<QTreeWidgetItem *> it = ui->treeAdblock->findItems(s,Qt::MatchContains | Qt::MatchRecursive);
+    if (it.isEmpty()) {
+        adblockSearchIdx = 0;
+        return;
+    }
+    if (adblockSearchIdx>0)
+        adblockSearchIdx--;
+    adblockFocusSearchedRule(it);
+}
+
+void CSettingsDlg::adblockSearchFwd()
+{
+    QString s = ui->editAdSearch->text();
+    if (s.isEmpty()) {
+        adblockSearchIdx = 0;
+        return;
+    }
+    QList<QTreeWidgetItem *> it = ui->treeAdblock->findItems(s,Qt::MatchContains | Qt::MatchRecursive);
+    if (it.isEmpty()) {
+        adblockSearchIdx = 0;
+        return;
+    }
+    if (adblockSearchIdx<(it.count()-1))
+        adblockSearchIdx++;
+    adblockFocusSearchedRule(it);
+}
+
+void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
+{
+    if (adblockSearchIdx>=0 && adblockSearchIdx<items.count())
+        ui->treeAdblock->setCurrentItem(items.at(adblockSearchIdx));
 }
 
 void CSettingsDlg::updateFontColorPreview(const QColor &c)

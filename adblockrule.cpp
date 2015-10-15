@@ -110,19 +110,11 @@ QString CAdBlockRule::listID() const
 
 bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
 {
-    if (m_cssRule) {
-#if defined(ADBLOCKRULE_DEBUG)
-        qDebug() << "AdBlockRule::" << __FUNCTION__ << "m_cssRule" << m_cssRule;
-#endif
+    if (m_cssRule)
         return false;
-    }
 
-    if (!m_enabled) {
-#if defined(ADBLOCKRULE_DEBUG)
-        qDebug() << "AdBlockRule::" << __FUNCTION__ << "is not enabled";
-#endif
+    if (!m_enabled)
         return false;
-    }
 
     bool matched = encodedUrl.contains(m_regExp);
 
@@ -141,22 +133,30 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
                         if (negate)
                             domainOption = domainOption.mid(1);
                         bool hostMatched = domainOption == host;
-                        if (hostMatched && !negate)
+                        if (hostMatched && !negate) {
+#if defined(ADBLOCKRULE_DEBUG)
+                            qDebug() << "CAdBlockRule::" << __FUNCTION__ << encodedUrl
+                                     << "hostMatched && !negate" << filter();
+#endif
                             return true;
-                        if (!hostMatched && negate)
+                        }
+                        if (!hostMatched && negate) {
+#if defined(ADBLOCKRULE_DEBUG)
+                            qDebug() << "CAdBlockRule::" << __FUNCTION__ << encodedUrl
+                                     << "!hostMatched && negate" << filter();
+#endif
                             return true;
+                        }
                     }
                 }
             }
         }
 
-#if defined(ADBLOCKRULE_DEBUG)
-        qDebug() << "AdBlockRule::" << __FUNCTION__ << "options are currently not supported" << m_options;
-#endif
         return false;
     }
 #if defined(ADBLOCKRULE_DEBUG)
-    //qDebug() << "AdBlockRule::" << __FUNCTION__ << encodedUrl << "MATCHED" << matched << filter();
+    if (matched)
+        qDebug() << "CAdBlockRule::" << __FUNCTION__ << encodedUrl << "MATCHED" << filter();
 #endif
 
     return matched;

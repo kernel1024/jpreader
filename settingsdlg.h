@@ -11,6 +11,7 @@
 #include <QColor>
 #include <QNetworkCookie>
 #include <QTableWidget>
+#include <QTreeWidgetItem>
 #include "specwidgets.h"
 #include "globalcontrol.h"
 #include "adblockrule.h"
@@ -86,11 +87,13 @@ private:
     QColor overridedFontColor;
     QList<QNetworkCookie> cookiesList;
     QList<CAdBlockRule> adblockList;
+    int adblockSearchIdx;
 
     void updateCookiesTable();
     void setCookies(const QByteArray& cookies);
     QList<int> getSelectedRows(QTableWidget* table);
     void updateAdblockList();
+    void adblockFocusSearchedRule(QList<QTreeWidgetItem *> items);
 
 public:
     void updateFontColorPreview(const QColor &c);
@@ -125,6 +128,9 @@ public slots:
     void getCookiesFromStore();
     void delCookies();
     void exportCookies();
+    void adblockSearch(const QString& text);
+    void adblockSearchBwd();
+    void adblockSearchFwd();
 };
 
 #endif // SETTINGSDLG_H
