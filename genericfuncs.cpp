@@ -69,7 +69,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
         fmsg.append('\n');
 
         if (qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE"))
-            fprintf(stderr, fmsg.toLocal8Bit().constData());
+            fprintf(stderr, "%s", fmsg.toLocal8Bit().constData());
         else {
             if (!syslogOpened) {
                 syslogOpened = true;
