@@ -293,6 +293,9 @@ bool CGlobalControl::setupIPC()
         ipcServer->listen(serverName);
         connect(ipcServer, SIGNAL(newConnection()), this, SLOT(ipcMessageReceived()));
     }
+    if (socket->isOpen())
+        socket->close();
+    socket->deleteLater();
     return true;
 }
 
@@ -1096,7 +1099,10 @@ void CGlobalControl::cleanupAndExit()
 
     ipcServer->close();
     QApplication::processEvents();
+    ipcServer->deleteLater();
+    QApplication::processEvents();
 
+    ipcServer=NULL;
     webProfile=NULL;
 
     QApplication::quit();

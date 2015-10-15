@@ -7,10 +7,9 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, QString aUri, CSnWaitCtl *aWaitDlg)
+CTranslator::CTranslator(QObject* parent, QString aUri)
     : QObject(parent)
 {
-    waitDlg = aWaitDlg;
     hostingDir=gSet->hostingDir;
     hostingUrl=gSet->hostingUrl;
     createdFiles=&(gSet->createdFiles);
@@ -335,7 +334,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     if (textNodesCnt>0) {
         baseProgress = 100*textNodesProgress/textNodesCnt;
     }
-    QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, baseProgress));
+    emit setProgress(baseProgress);
 
     QString ssrc = src.text;
     ssrc = ssrc.replace("\r\n","\n");
@@ -404,7 +403,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
             if (textNodesCnt>0 && i%5==0) {
                 int pr = 100*textNodesProgress/textNodesCnt;
-                QMetaObject::invokeMethod(waitDlg,"setProgressValue",Qt::QueuedConnection,Q_ARG(int, pr));
+                emit setProgress(pr);
             }
             textNodesProgress++;
         }

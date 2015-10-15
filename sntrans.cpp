@@ -36,7 +36,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     if (savedBaseUrl.hasFragment())
         savedBaseUrl.setFragment(QString());
 
-    CTranslator* ct = new CTranslator(NULL,aUri,NULL);
+    CTranslator* ct = new CTranslator(NULL,aUri);
     QString res;
     if (!ct->documentReparse(aUri,res)) {
         QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
@@ -74,14 +74,14 @@ void CSnTrans::translatePriv(const QString &aUri)
 {
     snv->calculatedUrl="";
     snv->onceTranslated=true;
-    snv->waitPanel->show();
-    snv->transButton->setEnabled(false);
 
-    CTranslator* ct = new CTranslator(NULL,aUri,snv->waitHandler);
+    CTranslator* ct = new CTranslator(NULL,aUri);
     QThread* th = new QThread();
     connect(ct,SIGNAL(calcFinished(bool,QString)),
             this,SLOT(calcFinished(bool,QString)),Qt::QueuedConnection);
     snv->waitHandler->setProgressValue(0);
+    snv->waitPanel->show();
+    snv->transButton->setEnabled(false);
     if (gSet->translatorEngine==TE_ATLAS) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
@@ -100,6 +100,8 @@ void CSnTrans::translatePriv(const QString &aUri)
             ct,SLOT(abortTranslator()),Qt::QueuedConnection);
     connect(snv->abortBtn,SIGNAL(clicked()),
             ct,SLOT(abortTranslator()),Qt::QueuedConnection);
+    connect(ct,SIGNAL(setProgress(int)),
+            snv->waitHandler,SLOT(setProgressValue(int)),Qt::QueuedConnection);
 
     ct->moveToThread(th);
     th->start();

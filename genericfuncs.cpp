@@ -14,6 +14,7 @@
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
+#include <unicode/uclean.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -135,6 +136,8 @@ QString detectEncodingName(QByteArray content) {
     if (QTextCodec::availableCodecs().contains(icu_enc)) {
         enc = QTextCodec::codecForName(icu_enc);
     }
+    ucsdet_close(csd);
+    u_cleanup();
 
     codepage = QTextCodec::codecForHtml(content,enc)->name();
 	if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage="SJIS";

@@ -58,7 +58,6 @@ private:
     QString Uri;
     QString scpParams;
     QString scpHost;
-    CSnWaitCtl* waitDlg;
     int atlTcpRetryCount;
     int atlTcpTimeout;
     bool abortFlag;
@@ -90,12 +89,13 @@ private:
     void dumpPage(const QUuid& token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, QString aUri, CSnWaitCtl* aWaitDlg);
+    explicit CTranslator(QObject* parent, QString aUri);
     ~CTranslator();
     bool documentReparse(const QString& srcUri, QString& dst);
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);
+    void setProgress(int value);
 
 public slots:
     void abortTranslator();
