@@ -404,9 +404,11 @@ CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
 
 bool CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
-    if (gSet->isUrlBlocked(info.requestUrl())) {
+    QString rule;
+    if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
         if (gSet->debugNetReqLogging)
-            qWarning() << "Net request:" << info.requestUrl() << "BLOCKED";
+            qWarning() << "Net request:" << info.requestUrl() << "BLOCKED" <<
+                          QString("(rule: '%1')").arg(rule);
 
         info.block(true);
 

@@ -1110,6 +1110,12 @@ void CGlobalControl::cleanupAndExit()
 
 bool CGlobalControl::isUrlBlocked(QUrl url)
 {
+    QString dummy = QString();
+    return isUrlBlocked(url,dummy);
+}
+
+bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
+{
     if (!useAdblock) return false;
     if (!adblockMutex.tryLock(10000)) {
         qCritical() << "Failed to lock adblock mutex";
@@ -1118,12 +1124,15 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
     QList<CAdBlockRule> adlist(adblock);
     adblockMutex.unlock();
 
+    filter.clear();
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
 
     for(int i=0;i<adlist.count();i++) {
-        if (adlist.at(i).networkMatch(u))
+        if (adlist.at(i).networkMatch(u)) {
+            filter = adlist.at(i).filter();
             return true;
+        }
     }
     return false;
 }

@@ -227,6 +227,7 @@ public:
 
     // Ad-block
     bool isUrlBlocked(QUrl url);
+    bool isUrlBlocked(QUrl url, QString& filter);
     void adblockAppend(QString url);
     void adblockAppend(CAdBlockRule url);
     void adblockAppend(QList<CAdBlockRule> urls);
