@@ -112,7 +112,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionGlobalTranslator->setChecked(false);
 
     actionSelectionDictionary = new QAction(tr("Dictionary search"),this);
-    actionSelectionDictionary->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F9));
+    actionSelectionDictionary->setShortcut(QKeySequence(Qt::Key_F9));
     actionSelectionDictionary->setCheckable(true);
     actionSelectionDictionary->setChecked(false);
 
@@ -191,6 +191,11 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     actionLogNetRequests = new QAction(tr("Log network requests"),this);
     actionLogNetRequests->setCheckable(true);
     actionLogNetRequests->setChecked(false);
+
+    actionTranslateSubSentences = new QAction(tr("Translate subsentences"),this);
+    actionTranslateSubSentences->setCheckable(true);
+    actionTranslateSubSentences->setChecked(false);
+
     debugNetReqLogging=false;
     debugDumpHtml=false;
 
@@ -1023,7 +1028,6 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionGlobalTranslator);
     mainWindow->menuTools->addAction(actionSelectionDictionary);
-    mainWindow->menuTools->addAction(actionUseProxy);
     mainWindow->menuTools->addAction(actionSnippetAutotranslate);
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(actionJSUsage);
@@ -1032,6 +1036,9 @@ CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
     mainWindow->menuSettings->addAction(actionAutoloadImages);
     mainWindow->menuSettings->addAction(actionOverrideFont);
     mainWindow->menuSettings->addAction(actionOverrideFontColor);
+    mainWindow->menuSettings->addSeparator();
+    mainWindow->menuSettings->addAction(actionUseProxy);
+    mainWindow->menuSettings->addAction(actionTranslateSubSentences);
 
     mainWindow->menuTranslationMode->addAction(actionTMAdditive);
     mainWindow->menuTranslationMode->addAction(actionTMOverwriting);

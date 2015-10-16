@@ -71,6 +71,7 @@ private:
     bool tranInited;
     bool useOverrideFont;
     bool forceFontColor;
+    bool translateSubSentences;
     int translationMode;
     QColor forcedFontColor;
     QFont overrideFont;

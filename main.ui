@@ -378,7 +378,7 @@
     <string>D&amp;ictionary</string>
    </property>
    <property name="shortcut">
-    <string>F9</string>
+    <string>Ctrl+F9</string>
    </property>
   </action>
   <action name="actionAboutQt">

@@ -201,6 +201,7 @@ public:
     QAction *actionOverrideFont;
     QAction *actionAutoloadImages;
     QAction *actionOverrideFontColor;
+    QAction *actionTranslateSubSentences;
 
     QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
     QAction *actionLSJapanese, *actionLSChineseTraditional;

@@ -29,6 +29,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri)
     translationMode=gSet->getTranslationMode();
     engine=gSet->translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
+    translateSubSentences=gSet->actionTranslateSubSentences->isChecked();
     tran=NULL;
     tranInited=false;
 }
@@ -360,12 +361,35 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
         if (xmlPass!=PXTranslate) {
             textNodesCnt++;
         } else {
-            QString srct = sl[i];
+            QString srct = sl.at(i);
 
             if (srct.trimmed().isEmpty())
                 sout += "\n";
             else {
-                QString t = tran->tranString(sl[i]);
+                QString t = QString();
+                if (translateSubSentences) {
+                    QString tacc = QString();
+                    for (int j=0;j<srct.length();j++) {
+                        QChar sc = srct.at(j);
+
+                        if (sc.isLetter())
+                            tacc += sc;
+                        else {
+                            if (!tacc.isEmpty()) {
+                                if (sc=='?' || sc==QChar(0xff1f)) {
+                                    tacc += sc;
+                                    t += tran->tranString(tacc);
+                                } else
+                                    t += tran->tranString(tacc) + sc;
+                                tacc.clear();
+                            } else
+                                t += sc;
+                        }
+                        if (!tran->getErrorMsg().isEmpty())
+                            break;
+                    }
+                } else
+                    t = tran->tranString(srct);
                 if (translationMode==TM_TOOLTIP) {
                     QString ts = srct;
                     srct = t;
