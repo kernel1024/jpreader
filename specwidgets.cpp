@@ -421,8 +421,8 @@ bool CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     return false;
 }
 
-CSpecGDSchemeHandler::CSpecGDSchemeHandler(const QByteArray &scheme, QObject *parent)
-    : QWebEngineUrlSchemeHandler(scheme,parent)
+CSpecGDSchemeHandler::CSpecGDSchemeHandler(QObject *parent)
+    : QWebEngineUrlSchemeHandler(parent)
 {
 
 }
@@ -479,11 +479,6 @@ void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         QIODevice *reply = new CMemFile(rplb);
         request->reply("text/html",reply);
     }
-}
-
-QByteArray CSpecGDSchemeHandler::scheme() const
-{
-    return QByteArray("gdlookup");
 }
 
 #endif

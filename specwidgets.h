@@ -169,9 +169,8 @@ public:
 class CSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
     Q_OBJECT
 public:
-    CSpecGDSchemeHandler(const QByteArray& scheme, QObject* parent = 0);
+    CSpecGDSchemeHandler(QObject* parent = 0);
     void requestStarted(QWebEngineUrlRequestJob * request);
-    QByteArray scheme() const;
 };
 
 #endif // WEBENGINE_56
