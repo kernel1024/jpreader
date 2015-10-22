@@ -350,6 +350,27 @@ QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
     return sv->txtBrowser->page();
 }
 
+void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
+                                            const QString &message, int lineNumber,
+                                            const QString &sourceID)
+{
+    QString lvl;
+    switch (level) {
+        case QWebEnginePage::InfoMessageLevel: lvl = QString("JS Info"); break;
+        case QWebEnginePage::WarningMessageLevel: lvl = QString("JS Warning"); break;
+        case QWebEnginePage::ErrorMessageLevel: lvl = QString("JS Error"); break;
+        default: lvl = QString("JS Message"); break;
+    }
+
+    // TODO: make this output optional
+
+    qDebug() << QString("%1: %2 (%3/%4)")
+                .arg(lvl)
+                .arg(message)
+                .arg(sourceID)
+                .arg(lineNumber);
+}
+
 CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
@@ -574,4 +595,28 @@ void CIOEventLoop::objDestroyed(QObject *obj)
     Q_UNUSED(obj);
 
     exit(2);
+}
+
+CWebHitTestResult::CWebHitTestResult()
+{
+    pos = QPoint(INT_MIN,INT_MIN);
+    title.clear();
+    tagName.clear();
+    linkUrl.clear();
+    imageUrl.clear();
+}
+
+CWebHitTestResult &CWebHitTestResult::operator=(const CWebHitTestResult &other)
+{
+    pos = other.pos;
+    title = other.title;
+    tagName = other.tagName;
+    linkUrl = other.linkUrl;
+    imageUrl = other.imageUrl;
+    return *this;
+}
+
+bool CWebHitTestResult::isNull() const
+{
+    return (tagName.isEmpty() && (pos == QPoint(INT_MIN,INT_MIN)));
 }

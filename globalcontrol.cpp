@@ -4,6 +4,7 @@
 #include <QWebEngineSettings>
 #include <QNetworkCookieJar>
 #include <QStandardPaths>
+#include <QWebEngineScriptCollection>
 
 #ifdef WEBENGINE_56
 #include <QWebEngineCookieStoreClient>
@@ -50,6 +51,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     createCoredumps=false;
     ignoreSSLErrors=false;
     showFavicons=false;
+    usePageMouseTracker=true;
     forcedCharset=""; // autodetect
     charsetHistory.clear();
     createdFiles.clear();
@@ -221,6 +223,22 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     webProfile = new QWebEngineProfile("jpreader",this);
 
+    pageMouseTracker.setSourceCode(
+                "window.onmousemove = function (e)"
+                "{"
+                "    window.mouseXPos = e.pageX;"
+                "    window.mouseYPos = e.pageY;"
+                "}");
+    pageMouseTracker.setName("jpreader-ctx-menu");
+    pageMouseTracker.setWorldId(QWebEngineScript::MainWorld);
+    pageMouseTracker.setInjectionPoint(QWebEngineScript::DocumentReady);
+    pageMouseTracker.setRunsOnSubFrames(true);
+
+    QFile qf(":/js/ctxcapture");
+    qf.open(QIODevice::ReadOnly);
+    jsGetCapture = QString::fromUtf8(qf.readAll());
+    qf.close();
+
     QString fs = QString();
     fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
@@ -309,6 +327,15 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 
     QString s = QString("%1%2").arg(msg).arg(IPC_EOF);
     socket->write(s.toUtf8());
+}
+
+void CGlobalControl::updatePageMouseTracker()
+{
+    if (usePageMouseTracker && webProfile->scripts()->findScript("jpreader-ctx-menu").isNull()) {
+        webProfile->scripts()->insert(pageMouseTracker);
+    } else if (!usePageMouseTracker && !webProfile->scripts()->findScript("jpreader-ctx-menu").isNull()) {
+        webProfile->scripts()->remove(pageMouseTracker);
+    }
 }
 
 bool CGlobalControl::useOverrideFont()
@@ -504,6 +531,7 @@ void CGlobalControl::readSettings()
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     updateAllBookmarks();
     updateProxy(proxyUse,true);
+    updatePageMouseTracker();
 }
 
 void CGlobalControl::writeTabsList(bool clearList)

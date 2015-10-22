@@ -6,6 +6,7 @@
 #include <QString>
 #include <QTimer>
 #include "snviewer.h"
+#include "specwidgets.h"
 
 class CSnippetViewer;
 
@@ -14,6 +15,7 @@ class CSnCtxHandler : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
+    void createContextMenu(const QPoint &pos, const CWebHitTestResult& hitResult);
 public:
     QTimer menuActive;
     CSnCtxHandler(CSnippetViewer *parent);

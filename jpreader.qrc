@@ -12,4 +12,7 @@
         <file alias="startpage">data/startpage.html</file>
         <file alias="article-style.css">data/article-style.css</file>
     </qresource>
+    <qresource prefix="/js">
+        <file alias="ctxcapture">ctxcapture.js</file>
+    </qresource>
 </RCC>

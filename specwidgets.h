@@ -137,6 +137,8 @@ protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
     bool certificateError(const QWebEngineCertificateError &certificateError);
     QWebEnginePage* createWindow(WebWindowType type);
+    void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
+                                  int lineNumber, const QString &sourceID);
 signals:
     void linkClickedExt(const QUrl& url, const int type, const bool isMainFrame);
 };
@@ -211,5 +213,22 @@ public slots:
     void timeout();
     void objDestroyed(QObject *obj);
 };
+
+class CWebHitTestResult {
+private:
+public:
+    CWebHitTestResult();
+    CWebHitTestResult &operator=(const CWebHitTestResult &other);
+
+    bool isNull() const;
+
+    QPoint pos;
+    QString title;
+    QString tagName;
+    QUrl linkUrl;
+    QUrl imageUrl;
+};
+
+Q_DECLARE_METATYPE(CWebHitTestResult)
 
 #endif // SPECTABWIDGET_H

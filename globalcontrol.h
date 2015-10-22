@@ -21,6 +21,7 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QWebEngineProfile>
+#include <QWebEngineScript>
 #include <QNetworkAccessManager>
 #include <QDebug>
 
@@ -167,6 +168,10 @@ public:
     QTimer tabsListTimer;
     bool restoreLoadChecked;
 
+    bool usePageMouseTracker;
+    QWebEngineScript pageMouseTracker;
+    QString jsGetCapture;
+
     QString savedAuxDir;
     QString forcedCharset;
     QStringList charsetHistory;
@@ -253,8 +258,10 @@ protected:
     void startGlobalContextTranslate(const QString& text);
 
 private:
+
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
+    void updatePageMouseTracker();
 
 signals:
     void startAuxTranslation();
