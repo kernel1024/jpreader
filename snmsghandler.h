@@ -20,6 +20,7 @@ private:
     CSnippetViewer *snv;
 public:
     QTimer *loadingBarHideTimer;
+    QUrl hoveredLink;
     CSnMsgHandler(CSnippetViewer * parent);
 public slots:
     void linkHovered(const QString &link);

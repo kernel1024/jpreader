@@ -21,7 +21,6 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QWebEngineProfile>
-#include <QWebEngineScript>
 #include <QNetworkAccessManager>
 #include <QDebug>
 
@@ -108,6 +107,7 @@ public:
     QAction* actionGlobalTranslator;
     QIcon appIcon;
     CLogDisplay* logWindow;
+    bool jsLogConsole;
     CDownloadManager* downloadManager;
 
     ArticleNetworkAccessManager * dictNetMan;
@@ -167,10 +167,6 @@ public:
     bool debugDumpHtml;
     QTimer tabsListTimer;
     bool restoreLoadChecked;
-
-    bool usePageMouseTracker;
-    QWebEngineScript pageMouseTracker;
-    QString jsGetCapture;
 
     QString savedAuxDir;
     QString forcedCharset;
@@ -261,7 +257,6 @@ private:
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
-    void updatePageMouseTracker();
 
 signals:
     void startAuxTranslation();

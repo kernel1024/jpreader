@@ -214,21 +214,4 @@ public slots:
     void objDestroyed(QObject *obj);
 };
 
-class CWebHitTestResult {
-private:
-public:
-    CWebHitTestResult();
-    CWebHitTestResult &operator=(const CWebHitTestResult &other);
-
-    bool isNull() const;
-
-    QPoint pos;
-    QString title;
-    QString tagName;
-    QUrl linkUrl;
-    QUrl imageUrl;
-};
-
-Q_DECLARE_METATYPE(CWebHitTestResult)
-
 #endif // SPECTABWIDGET_H

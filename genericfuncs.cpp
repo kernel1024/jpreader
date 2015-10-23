@@ -31,31 +31,34 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
 
     QString lmsg = QString();
 
-    int line = 0;
-    const char *file = "<unsupported>";
-    line = context.line;
-    file = context.file;
+    int line = context.line;
+    QString file = QString(context.file);
+    QString category = QString(context.category);
+    if (category==QString("default"))
+        category.clear();
+    else
+        category.append(' ');
     int logpri = LOG_NOTICE;
 
     switch (type) {
         case QtDebugMsg:
-            lmsg = QString("Debug: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Debug: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
             logpri = LOG_DEBUG;
             break;
         case QtWarningMsg:
-            lmsg = QString("Warning: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Warning: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
             logpri = LOG_WARNING;
             break;
         case QtCriticalMsg:
-            lmsg = QString("Critical: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Critical: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
             logpri = LOG_CRIT;
             break;
         case QtFatalMsg:
-            lmsg = QString("Fatal: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Fatal: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
             logpri = LOG_ALERT;
             break;
         case QtInfoMsg:
-            lmsg = QString("Info: %1 (%2:%3)").arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Info: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
             logpri = LOG_INFO;
             break;
     }

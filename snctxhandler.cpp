@@ -29,65 +29,35 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
 
 void CSnCtxHandler::contextMenu(const QPoint &pos)
 {
-    if (gSet->usePageMouseTracker) {
-        snv->txtBrowser->page()->runJavaScript(gSet->jsGetCapture, [pos,this](const QVariant &v)
-        {
-            CWebHitTestResult wh;
-            QStringList sl = v.toString().split("#ZVSP#");
-
-            // TODO: remove debug output
-            qDebug() << sl;
-
-            if (sl.count()==6) {
-
-                bool ok1, ok2;
-                int x = sl.at(0).toInt(&ok1);
-                int y = sl.at(1).toInt(&ok2);
-                if (ok1 && ok2)
-                    wh.pos = QPoint(x,y);
-                wh.tagName = sl.at(2);
-
-                QUrl baseUrl = snv->txtBrowser->page()->url();
-
-                // TODO: properly parse relative urls
-                if (sl.at(3)!="-") {
-                    QUrl hrefUrl = QUrl(sl.at(3));
-                    if (hrefUrl.isValid()) {
-                        if (hrefUrl.isRelative())
-                            hrefUrl = baseUrl.resolved(hrefUrl);
-                        wh.linkUrl = hrefUrl;
-                    }
-                }
-
-                // TODO: properly parse relative urls
-                if (sl.at(4)!="-") {
-                    QUrl hrefUrl = QUrl(sl.at(4));
-                    if (hrefUrl.isValid()) {
-                        if (hrefUrl.isRelative())
-                            hrefUrl = baseUrl.resolved(hrefUrl);
-                        wh.imageUrl = hrefUrl;
-                    }
-                }
-
-                if (sl.at(5)!="-")
-                    wh.title = sl.at(5);
-            }
-
-            createContextMenu(pos, wh);
-        });
-    } else
-        createContextMenu(pos, CWebHitTestResult());
-}
-
-void CSnCtxHandler::createContextMenu(const QPoint &pos, const CWebHitTestResult &hitResult)
-{
-    // TODO: use hitResult
-
     QString sText = snv->txtBrowser->selectedText();
+    QUrl linkUrl = snv->msgHandler->hoveredLink;
 
+    QClipboard *cb = QApplication::clipboard();
     QAction *ac;
-
     QMenu *cm = new QMenu(snv);
+
+    if (linkUrl.isValid()) {
+        ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab"),NULL);
+        connect(ac, &QAction::triggered, [linkUrl,this]() {
+            new CSnippetViewer(snv->parentWnd,linkUrl);
+        });
+        cm->addAction(ac);
+
+        ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab and translate"),NULL);
+        connect(ac, &QAction::triggered, [linkUrl,this]() {
+            CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd,linkUrl);
+            sn->requestAutotranslate = true;
+        });
+        cm->addAction(ac);
+
+        ac = new QAction(tr("Copy link url to clipboard"),NULL);
+        connect(ac, &QAction::triggered, [linkUrl,cb]() {
+            cb->setText(linkUrl.toString());
+        });
+        cm->addAction(ac);
+
+        cm->addSeparator();
+    }
 
     if (!sText.isEmpty()) {
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
@@ -113,10 +83,9 @@ void CSnCtxHandler::createContextMenu(const QPoint &pos, const CWebHitTestResult
             sn->requestAutotranslate = true;
         });
         cm->addAction(ac);
-    }
 
-    if (!sText.isEmpty()) {
         cm->addSeparator();
+
         ac = new QAction(QIcon(":/img/google"),tr("Search in Google"),NULL);
         connect(ac, &QAction::triggered, [sText,this](){
             QUrl u("http://google.com/search");
@@ -159,9 +128,10 @@ void CSnCtxHandler::createContextMenu(const QPoint &pos, const CWebHitTestResult
             gSet->showDictionaryWindow(sText);
         });
         cm->addAction(ac);
+
+        cm->addSeparator();
     }
 
-    cm->addSeparator();
     ac = new QAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),NULL);
     connect(ac, &QAction::triggered, [this](){
         QString url = "about://blank";
@@ -191,7 +161,6 @@ void CSnCtxHandler::createContextMenu(const QPoint &pos, const CWebHitTestResult
     cm->addAction(QIcon::fromTheme("view-refresh"),tr("Reload"),
                  snv->txtBrowser,SLOT(reload()),QKeySequence(Qt::CTRL + Qt::Key_R));
 
-    QClipboard *cb = QApplication::clipboard();
     if (cb->mimeData(QClipboard::Clipboard)->hasText())
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));

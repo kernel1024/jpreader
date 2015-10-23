@@ -169,5 +169,4 @@ OTHER_FILES += \
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
 
 DISTFILES += \
-    README.md \
-    ctxcapture.js
+    README.md

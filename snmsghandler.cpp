@@ -133,5 +133,6 @@ void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTermina
 
 void CSnMsgHandler::linkHovered(const QString &link)
 {
+    hoveredLink = QUrl(link);
     snv->statusBarMsg(link);
 }

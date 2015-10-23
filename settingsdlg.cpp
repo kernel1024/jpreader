@@ -78,6 +78,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     rbYandexAPI=ui->radioYandexAPI;
     yandexKey=ui->editYandexKey;
     cacheSize=ui->spinCacheSize;
+    jsLogConsole=ui->checkJSLogConsole;
 
     cookiesList.clear();
 

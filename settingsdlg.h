@@ -76,6 +76,7 @@ public:
     QCheckBox* visualShowFavicons;
     QCheckBox* enablePlugins;
     QSpinBox* cacheSize;
+    QCheckBox* jsLogConsole;
 
     QStringList loadedDicts;
 

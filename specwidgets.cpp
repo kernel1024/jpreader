@@ -2,6 +2,7 @@
 #include <QRegExp>
 #include <QUrl>
 #include <QUrlQuery>
+#include <QMessageLogger>
 #include <vector>
 #include "goldendictmgr.h"
 #include "specwidgets.h"
@@ -354,21 +355,29 @@ void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMes
                                             const QString &message, int lineNumber,
                                             const QString &sourceID)
 {
-    QString lvl;
+    if (!gSet->jsLogConsole) return;
+
+    QByteArray ssrc = sourceID.toUtf8();
+    if (ssrc.isEmpty())
+        ssrc = QByteArray("global");
+    const char* src = ssrc.constData();
+    QByteArray smsg = message.toUtf8();
+    const char* msg = smsg.constData();
+
     switch (level) {
-        case QWebEnginePage::InfoMessageLevel: lvl = QString("JS Info"); break;
-        case QWebEnginePage::WarningMessageLevel: lvl = QString("JS Warning"); break;
-        case QWebEnginePage::ErrorMessageLevel: lvl = QString("JS Error"); break;
-        default: lvl = QString("JS Message"); break;
+        case QWebEnginePage::InfoMessageLevel:
+            QMessageLogger(src, lineNumber, NULL, "JavaScript").info() << msg;
+            break;
+        case QWebEnginePage::WarningMessageLevel:
+            QMessageLogger(src, lineNumber, NULL, "JavaScript").warning() << msg;
+            break;
+        case QWebEnginePage::ErrorMessageLevel:
+            QMessageLogger(src, lineNumber, NULL, "JavaScript").critical() << msg;
+            break;
+        default:
+            QMessageLogger(src, lineNumber, NULL, "JavaScript").debug() << msg;
+            break;
     }
-
-    // TODO: make this output optional
-
-    qDebug() << QString("%1: %2 (%3/%4)")
-                .arg(lvl)
-                .arg(message)
-                .arg(sourceID)
-                .arg(lineNumber);
 }
 
 CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
@@ -380,11 +389,11 @@ CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
 void CSpecLogHighlighter::highlightBlock(const QString &text)
 {
     formatBlock(text,QRegExp("^\\S{,8}",Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp("\\sDebug:\\s",Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp("\\sWarning:\\s",Qt::CaseInsensitive),Qt::darkRed,true);
-    formatBlock(text,QRegExp("\\sCritical:\\s",Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp("\\sFatal:\\s",Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp("\\sInfo:\\s",Qt::CaseInsensitive),Qt::darkBlue,true);
+    formatBlock(text,QRegExp("\\s(\\S+\\s)?Debug:\\s",Qt::CaseInsensitive),Qt::black,true);
+    formatBlock(text,QRegExp("\\s(\\S+\\s)?Warning:\\s",Qt::CaseInsensitive),Qt::darkRed,true);
+    formatBlock(text,QRegExp("\\s(\\S+\\s)?Critical:\\s",Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp("\\s(\\S+\\s)?Fatal:\\s",Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp("\\s(\\S+\\s)?Info:\\s",Qt::CaseInsensitive),Qt::darkBlue,true);
     formatBlock(text,QRegExp("\\(\\S+\\)$",Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
@@ -595,28 +604,4 @@ void CIOEventLoop::objDestroyed(QObject *obj)
     Q_UNUSED(obj);
 
     exit(2);
-}
-
-CWebHitTestResult::CWebHitTestResult()
-{
-    pos = QPoint(INT_MIN,INT_MIN);
-    title.clear();
-    tagName.clear();
-    linkUrl.clear();
-    imageUrl.clear();
-}
-
-CWebHitTestResult &CWebHitTestResult::operator=(const CWebHitTestResult &other)
-{
-    pos = other.pos;
-    title = other.title;
-    tagName = other.tagName;
-    linkUrl = other.linkUrl;
-    imageUrl = other.imageUrl;
-    return *this;
-}
-
-bool CWebHitTestResult::isNull() const
-{
-    return (tagName.isEmpty() && (pos == QPoint(INT_MIN,INT_MIN)));
 }

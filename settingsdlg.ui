@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>886</width>
-    <height>406</height>
+    <height>378</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,181 +24,196 @@
      </property>
      <widget class="QWidget" name="widget">
       <attribute name="title">
-       <string>General</string>
+       <string>Browser</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_25">
+      <layout class="QHBoxLayout" name="horizontalLayout_19">
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
-          <string>Browser</string>
+          <string>Options</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_13">
+         <layout class="QVBoxLayout" name="verticalLayout_14">
           <item>
-           <spacer name="verticalSpacer_18">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QCheckBox" name="checkTabFavicon">
+            <property name="text">
+             <string>Show tab favicons</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>19</height>
-             </size>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkAutoloadImages">
+            <property name="text">
+             <string>Autoload images</string>
             </property>
-           </spacer>
+           </widget>
           </item>
           <item>
-           <layout class="QFormLayout" name="formLayout_8">
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="checkJS">
-              <property name="text">
-               <string>Enable JavaScript</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="checkIgnoreSSLErrors">
-              <property name="text">
-               <string>Ignore SSL errors</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QCheckBox" name="checkAutoloadImages">
-              <property name="text">
-               <string>Autoload images</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="checkEnablePlugins">
-              <property name="text">
-               <string>Enable plugins</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
-            <item>
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>M&amp;ax recycled items</string>
-              </property>
-              <property name="buddy">
-               <cstring>spinMaxRecycled</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinMaxRecycled"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
-            <item>
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>Max history &amp;items</string>
-              </property>
-              <property name="buddy">
-               <cstring>spinMaxHistory</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinMaxHistory">
-              <property name="maximum">
-               <number>100000</number>
-              </property>
-              <property name="value">
-               <number>5000</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_18">
-            <item>
-             <widget class="QCheckBox" name="checkUserAgent">
-              <property name="text">
-               <string>Override user agent</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="editUserAgent">
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_22">
-            <item>
-             <widget class="QLabel" name="label_29">
-              <property name="text">
-               <string>Dis&amp;k cache size</string>
-              </property>
-              <property name="buddy">
-               <cstring>spinCacheSize</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinCacheSize">
-              <property name="specialValueText">
-               <string>Auto</string>
-              </property>
-              <property name="suffix">
-               <string> Mb</string>
-              </property>
-              <property name="maximum">
-               <number>999</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_17">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QCheckBox" name="checkEnablePlugins">
+            <property name="text">
+             <string>Enable plugins</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>19</height>
-             </size>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkJS">
+            <property name="text">
+             <string>Enable JavaScript</string>
             </property>
-           </spacer>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkIgnoreSSLErrors">
+            <property name="text">
+             <string>Ignore SSL errors</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkLogNetworkRequests">
+            <property name="text">
+             <string>Log network requests to console</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkJSLogConsole">
+            <property name="text">
+             <string>JavaScript log console</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
        </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_22">
+         <item>
+          <spacer name="verticalSpacer_17">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <item>
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>M&amp;ax recycled items</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxRecycled</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxRecycled"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Max history &amp;items</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxHistory</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxHistory">
+             <property name="maximum">
+              <number>100000</number>
+             </property>
+             <property name="value">
+              <number>5000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_18">
+           <item>
+            <widget class="QCheckBox" name="checkUserAgent">
+             <property name="text">
+              <string>Override user agent</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="editUserAgent">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
+           <item>
+            <widget class="QLabel" name="label_29">
+             <property name="text">
+              <string>Dis&amp;k cache size</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinCacheSize</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinCacheSize">
+             <property name="specialValueText">
+              <string>Auto</string>
+             </property>
+             <property name="suffix">
+              <string> Mb</string>
+             </property>
+             <property name="maximum">
+              <number>999</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_18">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_15">
+      <attribute name="title">
+       <string>Search</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
        <item>
         <widget class="QGroupBox" name="groupBox_8">
          <property name="title">
           <string>Search</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <spacer name="verticalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QRadioButton" name="radioSearchNone">
             <property name="text">
@@ -220,64 +235,68 @@
             </property>
            </widget>
           </item>
-          <item>
-           <spacer name="verticalSpacer_19">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>&amp;Max results count</string>
-              </property>
-              <property name="buddy">
-               <cstring>spinMaxLimit</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinMaxLimit">
-              <property name="minimum">
-               <number>50</number>
-              </property>
-              <property name="maximum">
-               <number>100000</number>
-              </property>
-              <property name="singleStep">
-               <number>50</number>
-              </property>
-              <property name="value">
-               <number>1000</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_8">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>24</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_13">
+         <item>
+          <spacer name="verticalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>&amp;Max results count</string>
+             </property>
+             <property name="buddy">
+              <cstring>spinMaxLimit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinMaxLimit">
+             <property name="minimum">
+              <number>50</number>
+             </property>
+             <property name="maximum">
+              <number>100000</number>
+             </property>
+             <property name="singleStep">
+              <number>50</number>
+             </property>
+             <property name="value">
+              <number>1000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_8">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -326,7 +345,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidget_2">
          <property name="currentIndex">
-          <number>0</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="tab_11">
           <attribute name="title">
@@ -1475,7 +1494,7 @@ p, li { white-space: pre-wrap; }
             <item row="1" column="0">
              <widget class="QLabel" name="label_22">
               <property name="text">
-               <string>Pass&amp;word</string>
+               <string>P&amp;assword</string>
               </property>
               <property name="buddy">
                <cstring>editProxyPassword</cstring>
@@ -1497,9 +1516,9 @@ p, li { white-space: pre-wrap; }
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkLogNetworkRequests">
+           <widget class="QCheckBox" name="checkDumpHtml">
             <property name="text">
-             <string>Log network requests to console</string>
+             <string>Dump converted and translated pages to tmp</string>
             </property>
            </widget>
           </item>
@@ -1507,13 +1526,6 @@ p, li { white-space: pre-wrap; }
            <widget class="QCheckBox" name="checkCreateCoredumps">
             <property name="text">
              <string>Create core dumps on segfaults</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkDumpHtml">
-            <property name="text">
-             <string>Dump converted and translated pages to tmp</string>
             </property>
            </widget>
           </item>
@@ -1530,13 +1542,6 @@ p, li { white-space: pre-wrap; }
            <widget class="QCheckBox" name="checkTabCloseBtn">
             <property name="text">
              <string>Show tab close button on each tab</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkTabFavicon">
-            <property name="text">
-             <string>Show tab favicons</string>
             </property>
            </widget>
           </item>
@@ -1604,31 +1609,33 @@ p, li { white-space: pre-wrap; }
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>checkJS</tabstop>
+  <tabstop>checkTabFavicon</tabstop>
   <tabstop>checkAutoloadImages</tabstop>
-  <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkEnablePlugins</tabstop>
+  <tabstop>checkJS</tabstop>
+  <tabstop>checkIgnoreSSLErrors</tabstop>
+  <tabstop>checkLogNetworkRequests</tabstop>
+  <tabstop>checkJSLogConsole</tabstop>
   <tabstop>spinMaxRecycled</tabstop>
   <tabstop>spinMaxHistory</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
   <tabstop>spinCacheSize</tabstop>
+  <tabstop>btnOK</tabstop>
+  <tabstop>btnCancel</tabstop>
   <tabstop>radioSearchNone</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
   <tabstop>radioSearchBaloo5</tabstop>
   <tabstop>spinMaxLimit</tabstop>
-  <tabstop>btnOK</tabstop>
-  <tabstop>btnCancel</tabstop>
-  <tabstop>tabWidget</tabstop>
   <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>
   <tabstop>radioYandexAPI</tabstop>
-  <tabstop>tabWidget_2</tabstop>
   <tabstop>editHostingDir</tabstop>
   <tabstop>buttonHostingDir</tabstop>
   <tabstop>editHostingUrl</tabstop>
   <tabstop>checkSCP</tabstop>
+  <tabstop>tabWidget_2</tabstop>
   <tabstop>atlHost</tabstop>
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
@@ -1676,6 +1683,8 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAdSearchFwd</tabstop>
   <tabstop>checkUseAd</tabstop>
   <tabstop>tableCookies</tabstop>
+  <tabstop>buttonExportCookies</tabstop>
+  <tabstop>buttonDelCookies</tabstop>
   <tabstop>buttonClearCookies</tabstop>
   <tabstop>checkUseProxy</tabstop>
   <tabstop>checkUseProxyTranslator</tabstop>
@@ -1684,13 +1693,10 @@ p, li { white-space: pre-wrap; }
   <tabstop>listProxyType</tabstop>
   <tabstop>editProxyLogin</tabstop>
   <tabstop>editProxyPassword</tabstop>
-  <tabstop>checkLogNetworkRequests</tabstop>
   <tabstop>checkDumpHtml</tabstop>
   <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
-  <tabstop>checkTabFavicon</tabstop>
-  <tabstop>buttonExportCookies</tabstop>
-  <tabstop>buttonDelCookies</tabstop>
+  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -1903,22 +1909,6 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>checkUserAgent</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>editUserAgent</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>769</x>
-     <y>289</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>769</x>
-     <y>319</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>checkUseProxy</sender>
    <signal>toggled(bool)</signal>
    <receiver>checkUseProxyTranslator</receiver>
@@ -1931,6 +1921,22 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>153</x>
      <y>175</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkUserAgent</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editUserAgent</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>769</x>
+     <y>289</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>769</x>
+     <y>319</y>
     </hint>
    </hints>
   </connection>
