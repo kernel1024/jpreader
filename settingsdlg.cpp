@@ -274,7 +274,7 @@ void CSettingsDlg::goHistory()
 void CSettingsDlg::addAd()
 {
     bool ok;
-    QString s = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),
+    QString s = QInputDialog::getText(this,tr("Add AdBlock rule"),tr("Filter template"),
                                       QLineEdit::Normal,"",&ok);
     if (!ok) return;
 

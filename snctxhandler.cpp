@@ -166,6 +166,21 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     cm->addSeparator();
 
+    if (!linkUrl.isEmpty()) {
+        ac = new QAction(QIcon::fromTheme("preferences-web-browser-adblock"),
+                            tr("Add AdBlock rule for link url..."), NULL);
+        connect(ac, &QAction::triggered, [linkUrl,this](){
+            QString u = linkUrl.toString();
+            bool ok;
+            u = QInputDialog::getText(snv, tr("Add AdBlock rule"), tr("Filter template"),
+                                      QLineEdit::Normal, u, &ok);
+            if (ok)
+                gSet->adblockAppend(u);
+        });
+        cm->addAction(ac);
+        cm->addSeparator();
+    }
+
     QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show source"),
                  this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));

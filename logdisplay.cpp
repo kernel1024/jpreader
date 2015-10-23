@@ -63,8 +63,8 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
     if (su.isValid()) {
         cm->addSeparator();
 
-        QAction* ac = cm->addAction(QIcon::fromTheme("emblem-important"),
-                                    tr("Adblock this URL"),this,SLOT(addToAdblock()));
+        QAction* ac = cm->addAction(QIcon::fromTheme("preferences-web-browser-adblock"),
+                                    tr("Add AdBlock rule for url..."),this,SLOT(addToAdblock()));
         ac->setData(su);
     }
 
@@ -81,7 +81,7 @@ void CLogDisplay::addToAdblock()
     QString u = url.toString();
     bool ok;
 
-    u = QInputDialog::getText(this,tr("Add adblock filter"),tr("Filter template"),QLineEdit::Normal,u,&ok);
+    u = QInputDialog::getText(this,tr("Add AdBlock rule"),tr("Filter template"),QLineEdit::Normal,u,&ok);
     if (ok)
         gSet->adblockAppend(u);
 }

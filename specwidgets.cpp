@@ -394,6 +394,7 @@ void CSpecLogHighlighter::highlightBlock(const QString &text)
     formatBlock(text,QRegExp("\\s(\\S+\\s)?Critical:\\s",Qt::CaseInsensitive),Qt::red,true);
     formatBlock(text,QRegExp("\\s(\\S+\\s)?Fatal:\\s",Qt::CaseInsensitive),Qt::red,true);
     formatBlock(text,QRegExp("\\s(\\S+\\s)?Info:\\s",Qt::CaseInsensitive),Qt::darkBlue,true);
+    formatBlock(text,QRegExp("\\sBLOCKED\\s",Qt::CaseSensitive),Qt::darkRed,true);
     formatBlock(text,QRegExp("\\(\\S+\\)$",Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
