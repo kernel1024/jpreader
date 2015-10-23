@@ -13,7 +13,7 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
 
 void CSnMsgHandler::updateZoomFactor()
 {
-    snv->txtBrowser->setZoomFactor(zoomFactor);
+    snv->txtBrowser->page()->setZoomFactor(zoomFactor);
 }
 
 void CSnMsgHandler::searchFwd()
