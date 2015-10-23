@@ -24,6 +24,7 @@ void CSnNet::loadStarted()
 
 void CSnNet::loadFinished(bool)
 {
+    snv->msgHandler->updateZoomFactor();
     snv->msgHandler->hideBarLoading();
     snv->loading = false;
     snv->updateButtonsState();

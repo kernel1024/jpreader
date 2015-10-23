@@ -6,8 +6,14 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+    zoomFactor = 1.0;
     loadingBarHideTimer = new QTimer(this);
     connect(loadingBarHideTimer,SIGNAL(timeout()),loadingBarHideTimer,SLOT(stop()));
+}
+
+void CSnMsgHandler::updateZoomFactor()
+{
+    snv->txtBrowser->setZoomFactor(zoomFactor);
 }
 
 void CSnMsgHandler::searchFwd()
@@ -30,12 +36,11 @@ void CSnMsgHandler::searchBack()
 
 void CSnMsgHandler::setZoom(QString z)
 {
-    if (snv->txtBrowser) {
-        bool okconv;
-        int i = z.remove(QRegExp("[^0-9]")).toInt(&okconv);
-        if (okconv)
-            snv->txtBrowser->setZoomFactor(((double)i)/100);
-    }
+    bool okconv;
+    int i = z.remove(QRegExp("[^0-9]")).toInt(&okconv);
+    if (okconv)
+        zoomFactor = ((double)i)/100;
+    updateZoomFactor();
 }
 
 void CSnMsgHandler::navByClick()

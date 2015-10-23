@@ -18,10 +18,12 @@ class CSnMsgHandler : public QObject
 private:
     QMutex lockSrcLang, lockTranEngine;
     CSnippetViewer *snv;
+    qreal zoomFactor;
 public:
     QTimer *loadingBarHideTimer;
     QUrl hoveredLink;
     CSnMsgHandler(CSnippetViewer * parent);
+    void updateZoomFactor();
 public slots:
     void linkHovered(const QString &link);
     void searchFwd();
