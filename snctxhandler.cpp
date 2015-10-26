@@ -39,13 +39,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     if (linkUrl.isValid()) {
         ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab"),NULL);
         connect(ac, &QAction::triggered, [linkUrl,this]() {
-            new CSnippetViewer(snv->parentWnd,linkUrl);
+            new CSnippetViewer(snv->parentWnd,linkUrl,QStringList(),false);
         });
         cm->addAction(ac);
 
         ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab and translate"),NULL);
         connect(ac, &QAction::triggered, [linkUrl,this]() {
-            CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd,linkUrl);
+            CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd,linkUrl,QStringList(),false);
             sn->requestAutotranslate = true;
         });
         cm->addAction(ac);

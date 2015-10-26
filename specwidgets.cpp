@@ -347,7 +347,7 @@ QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
 
     if (parentViewer==NULL) return NULL;
 
-    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),false);
+    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd);
     return sv->txtBrowser->page();
 }
 
