@@ -28,9 +28,21 @@ QString bool2str2(bool value);
 QString formatBytes(qint64 sz);
 QString getTmpDir();
 
-QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, QFileDialog::Options options = QFileDialog::DontUseNativeDialog );
-QStringList getOpenFileNamesD ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, QFileDialog::Options options = QFileDialog::DontUseNativeDialog );
-QString getSaveFileNameD (QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, QFileDialog::Options options = QFileDialog::DontUseNativeDialog , QString preselectFileName = QString());
-QString	getExistingDirectoryD ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), QFileDialog::Options options = QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
+QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
+                           const QString & dir = QString(), const QString & filter = QString(),
+                           QString * selectedFilter = 0, QFileDialog::Options options = 0);
+
+QStringList getOpenFileNamesD ( QWidget * parent = 0, const QString & caption = QString(),
+                               const QString & dir = QString(), const QString & filter = QString(),
+                               QString * selectedFilter = 0, QFileDialog::Options options = 0);
+
+QString getSaveFileNameD (QWidget * parent = 0, const QString & caption = QString(),
+                          const QString & dir = QString(), const QString & filter = QString(),
+                          QString * selectedFilter = 0, QFileDialog::Options options = 0,
+                          QString preselectFileName = QString());
+
+QString	getExistingDirectoryD ( QWidget * parent = 0, const QString & caption = QString(),
+                                const QString & dir = QString(),
+                                QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
 #endif // GENERICFUNCS_H

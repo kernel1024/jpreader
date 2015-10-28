@@ -23,6 +23,7 @@
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
 #include "downloadmanager.h"
+#include "pdftotext.h"
 
 #define IPC_EOF "\n###"
 
@@ -199,6 +200,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     debugNetReqLogging=false;
     debugDumpHtml=false;
+
+    initPdfToText();
 
     auxTranslatorDBus = new CAuxTranslator(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
@@ -1101,6 +1104,7 @@ void CGlobalControl::cleanupAndExit()
         }
         QApplication::processEvents();
     }
+    freePdfToText();
     webProfile->deleteLater();
     QApplication::processEvents();
     gctxTranHotkey->setDisabled();

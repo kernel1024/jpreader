@@ -23,7 +23,7 @@ public slots:
     void translateFragment();
     void saveToFile();
     void bookmarkPage();
-    void loadKwrite();
+    void showSource();
 signals:
     void startTranslation();
     void hideTooltips();

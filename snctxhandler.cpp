@@ -183,7 +183,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show source"),
-                 this,SLOT(loadKwrite()),QKeySequence(Qt::CTRL + Qt::Key_S));
+                 this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_S));
 
     ac = new QAction(QIcon::fromTheme("download"),tr("Open in browser"),NULL);
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
@@ -305,22 +305,18 @@ void CSnCtxHandler::bookmarkPage() {
     delete dlg;
 }
 
-void CSnCtxHandler::loadKwrite()
+void CSnCtxHandler::showSource()
 {
-    QString fname = snv->getUrl().toLocalFile();
-    if (fname.isEmpty() || snv->fileChanged)
-    {
-        QString uuid = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+".html";
-        fname = QDir::temp().absoluteFilePath(uuid);
-        snv->txtBrowser->page()->toHtml([fname,this](const QString& html) {
-            QFile tfile(fname);
-            tfile.open(QIODevice::WriteOnly);
-            tfile.write(html.toUtf8());
-            tfile.close();
-            gSet->createdFiles.append(fname);
+    QString uuid = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+".html";
+    QString fname = QDir::temp().absoluteFilePath(uuid);
+    snv->txtBrowser->page()->toHtml([fname,this](const QString& html) {
+        QFile tfile(fname);
+        tfile.open(QIODevice::WriteOnly);
+        tfile.write(html.toUtf8());
+        tfile.close();
+        gSet->createdFiles.append(fname);
 
-            if (!QProcess::startDetached(gSet->sysEditor, QStringList() << fname))
-                QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
-        });
-    }
+        if (!QProcess::startDetached(gSet->sysEditor, QStringList() << fname))
+            QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
+    });
 }

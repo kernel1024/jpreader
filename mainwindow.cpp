@@ -494,15 +494,14 @@ void CMainWindow::checkTabs()
 
 void CMainWindow::openAuxFile()
 {
-    QStringList fnames = getOpenFileNamesD(this,tr("Open HTML file"),gSet->savedAuxDir);
+    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->savedAuxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->savedAuxDir = QDir(fnames.first()).absolutePath();
+    gSet->savedAuxDir = QFileInfo(fnames.first()).absolutePath();
 
     for(int i=0;i<fnames.count();i++) {
-        if (fnames.at(i).isNull() || fnames.at(i).isEmpty()) continue;
-        QString su = "file://" + fnames.at(i);
-        new CSnippetViewer(this, su);
+        if (fnames.at(i).isEmpty()) continue;
+        new CSnippetViewer(this, QUrl::fromLocalFile(fnames.at(i)));
     }
 }
 
@@ -526,15 +525,16 @@ void CMainWindow::openAuxFileInDir()
         QMessageBox::warning(this,tr("JPReader"),tr("Remote document opened. Cannot define local directory."));
         return;
     }
-    QStringList fnames = getOpenFileNamesD(this,tr("Open HTML file"),auxDir);
+    auxDir = QFileInfo(auxDir).absolutePath();
+
+    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),auxDir);
     if (fnames.isEmpty()) return;
 
     gSet->savedAuxDir = QDir(fnames.first()).absolutePath();
 
     for(int i=0;i<fnames.count();i++) {
-        if (fnames.at(i).isNull() || fnames.at(i).isEmpty()) continue;
-        QString su = "file://" + fnames.at(i);
-        new CSnippetViewer(this, su);
+        if (fnames.at(i).isEmpty()) continue;
+        new CSnippetViewer(this, QUrl::fromLocalFile(fnames.at(i)));
     }
 }
 
@@ -774,6 +774,7 @@ void CMainWindow::helpAbout()
 {
     QString recoll = tr("no");
     QString baloo5 = tr("no");
+    QString poppler = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
@@ -785,19 +786,24 @@ void CMainWindow::helpAbout()
 #ifdef WITH_BALOO5
     baloo5 = tr("yes");
 #endif
+#ifdef WITH_POPPLER
+    poppler = tr("yes");
+#endif
     QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
                      "Build: %1 %2\n"
                      "Platform: %3\n"
                      "Build date: %4\n\n"
                      "Recoll backend compiled: %5\n"
-                     "Baloo (KDE Frameworks 5) backend compiled: %6\n\n"
+                     "Baloo backend compiled: %6\n\n"
+                     "Poppler support: %7\n\n"
                      "WebEngine version.")
                     .arg(BUILD_REV)
                     .arg(debugstr)
                     .arg(BUILD_PLATFORM)
                     .arg(BUILD_DATE)
                     .arg(recoll)
-                    .arg(baloo5);
+                    .arg(baloo5)
+                    .arg(poppler);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }

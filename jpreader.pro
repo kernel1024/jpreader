@@ -30,7 +30,8 @@ HEADERS = mainwindow.h \
     multiinputdialog.h \
     adblockrule.h \
     downloadmanager.h \
-    yandextranslator.h
+    yandextranslator.h \
+    pdftotext.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -65,7 +66,8 @@ SOURCES = main.cpp \
     multiinputdialog.cpp \
     adblockrule.cpp \
     downloadmanager.cpp \
-    yandextranslator.cpp
+    yandextranslator.cpp \
+    pdftotext.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -139,6 +141,20 @@ system( which recoll > /dev/null 2>&1 ) {
     message("Recoll support: YES")
 } else {
     message("Recoll support: NO")
+}
+
+packagesExist(poppler-cpp) {
+    packagesExist(poppler) {
+        CONFIG += use_poppler
+    }
+}
+
+use_poppler {
+    DEFINES += WITH_POPPLER=1
+    PKGCONFIG += poppler-cpp poppler
+    message("Using Poppler: YES")
+} else {
+    message("Using Poppler: NO")
 }
 
 GITREV = $$system(git rev-list HEAD|head -n1|cut -c -7)

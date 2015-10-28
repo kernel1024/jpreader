@@ -5,6 +5,7 @@
 #include "snnet.h"
 #include "genericfuncs.h"
 #include "authdlg.h"
+#include "pdftotext.h"
 
 CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
@@ -86,13 +87,13 @@ void CSnNet::load(const QUrl &url)
     QString fname = url.toLocalFile();
     if (!fname.isEmpty()) {
         QFileInfo fi(fname);
-        if (!fi.exists()) {
+        if (!fi.exists() || !fi.isReadable()) {
             QString cn=makeSimpleHtml(tr("Error"),tr("Unable to find file '%1'.").arg(fname));
             snv->fileChanged = false;
             snv->translationBkgdFinished=false;
             snv->loadingBkgdFinished=false;
             snv->txtBrowser->setHtml(cn,url);
-            QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file. File not found."));
+            QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
             return;
         }
         QString MIME = detectMIME(fname);
@@ -108,6 +109,17 @@ void CSnNet::load(const QUrl &url)
                 snv->txtBrowser->setHtml(cn,url);
                 data.close();
             }
+        } else if (MIME.startsWith("application/pdf",Qt::CaseInsensitive)) { // for local pdf files
+            QString cn;
+            snv->fileChanged = false;
+            snv->translationBkgdFinished=false;
+            snv->loadingBkgdFinished=false;
+            if (!pdfToText(url,cn)) {
+                QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file '%1'.").arg(fname));
+                snv->txtBrowser->setHtml(cn,url);
+                QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
+            } else
+                snv->txtBrowser->setHtml(cn,url);
         } else { // for local html files
             snv->fileChanged = false;
             snv->txtBrowser->load(url);
