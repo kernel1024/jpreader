@@ -314,7 +314,7 @@
           <item>
            <widget class="QRadioButton" name="radioGoogle">
             <property name="text">
-             <string>Googl&amp;e</string>
+             <string>&amp;Google</string>
             </property>
            </widget>
           </item>
@@ -345,7 +345,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidget_2">
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_11">
           <attribute name="title">

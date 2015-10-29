@@ -25,6 +25,11 @@ using namespace std;
 bool syslogOpened = false;
 QMutex loggerMutex;
 
+inline bool runnedFromQtCreator()
+{
+    return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
+}
+
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     loggerMutex.lock();
@@ -70,7 +75,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
             debugMessages.removeFirst();
         fmsg.append('\n');
 
-        if (qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE"))
+        if (runnedFromQtCreator())
             fprintf(stderr, "%s", fmsg.toLocal8Bit().constData());
         else {
             if (!syslogOpened) {

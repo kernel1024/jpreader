@@ -289,11 +289,35 @@ bool CGlobalControl::setupIPC()
     socket->connectToServer(serverName);
     if (socket->waitForConnected(1000)){
         // Connected. Process is already running, send message to it
-        sendIPCMessage(socket,"newWindow");
-        socket->flush();
-        socket->close();
-        socket->deleteLater();
-        return false;
+        if (runnedFromQtCreator()) { // This is debug run, try to close old instance
+            // Send close request
+            sendIPCMessage(socket,"debugRestart");
+            socket->flush();
+            socket->close();
+            QApplication::processEvents();
+            QThread::sleep(3);
+            QApplication::processEvents();
+            // Check for closing
+            socket->connectToServer(serverName);
+            if (socket->waitForConnected(1000)) { // connected, unable to close
+                sendIPCMessage(socket,"newWindow");
+                socket->flush();
+                socket->close();
+                socket->deleteLater();
+                return false;
+            }
+            // Old instance closed, start new one
+            ipcServer = new QLocalServer();
+            ipcServer->removeServer(serverName);
+            ipcServer->listen(serverName);
+            connect(ipcServer, SIGNAL(newConnection()), this, SLOT(ipcMessageReceived()));
+        } else {
+            sendIPCMessage(socket,"newWindow");
+            socket->flush();
+            socket->close();
+            socket->deleteLater();
+            return false;
+        }
     } else {
         // New process. Startup server and gSet normally, listen for new instances
         ipcServer = new QLocalServer();
@@ -1020,6 +1044,11 @@ void CGlobalControl::ipcMessageReceived()
     QStringList cmd = QString::fromUtf8(bmsg).split('\n');
     if (cmd.first().startsWith("newWindow"))
         addMainWindow();
+    else if (cmd.first().startsWith("debugRestart")) {
+        qInfo() << QString("Closing jpreader instance (pid: %1) after debugRestart request")
+                   .arg(QApplication::applicationPid());
+        cleanupAndExit();
+    }
 }
 
 CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)

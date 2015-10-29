@@ -27,6 +27,7 @@ QString bool2str(bool value);
 QString bool2str2(bool value);
 QString formatBytes(qint64 sz);
 QString getTmpDir();
+bool runnedFromQtCreator();
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
                            const QString & dir = QString(), const QString & filter = QString(),

@@ -120,16 +120,27 @@ static void outputToString(void *stream, const char *text, int len) {
 
 QString formatPdfText(const QString& text)
 {
-    // TODO: replace rotated punctuation characters with normal ones
-
     const static QString openingQuotation = "\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
-                                      "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
+                                            "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
     // 〈《「『【〔〖〘〚 “ « ‹ ‘ " ( [
     const static QString closingQuotation = "\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
-                                      "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D";
+                                            "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D";
     //  〉》」』】〕〗〙〛” » › ’ " ) ]
-    const static QString endMarkers = "\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002";
-    // ! . ? 。
+    const static QString endMarkers = "\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026";
+    // ! . ? 。…
+    const static QString vertForm = "\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
+                                    "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
+                                    "\uFE46\uFE47\uFE48\u22EE"
+                                    "\uFE10\uFE11\uFE12\uFE13\uFE14\uFE15\uFE16\uFE17\uFE18\uFE19";
+    // ︰ ︱ ︲ ︳ ︴ ︵ ︶ ︷ ︸ ︹ ︺
+    // ︻ ︼ ︽ ︾ ︿ ﹀ ﹁ ﹂ ﹃ ﹄ ﹅
+    // ﹆ ﹇ ﹈ ⋮
+    // ︐ ︑ ︒ ︓ ︔ ︕ ︖ ︗ ︘ ︙
+    const static QString vertFormTr = "\u2025\u2014\u2013\u005F\uFE4F\uFF08\uFF09\uFF5B\uFF5D\u3014\u3015"
+                                      "\u3010\u3011\u300A\u300B\u3008\u3009\u300C\u300D\u300E\u300F\u3002"
+                                      "\u3002\uFF3B\uFF3D\u2026"
+                                      "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
+
     const static int maxParagraphLength = 150;
 
     QString s = "<p>"+text+"</p>";
@@ -141,8 +152,7 @@ QString formatPdfText(const QString& text)
     s.remove('\n');
 
     int idx = 0;
-    int clen = 0;
-    while (idx<s.length()) {
+    while (idx<s.length()) { // remove-replace pass
         QChar c = s.at(idx);
 
         if (c.unicode()<=0x1f) { // remove old control characters
@@ -150,6 +160,18 @@ QString formatPdfText(const QString& text)
             continue;
         }
 
+        int vtidx = vertForm.indexOf(c); // replace vertical forms with normal ones
+        if (vtidx>=0)
+            s.replace(idx,1,vertFormTr.at(vtidx));
+
+        idx++;
+    }
+
+    idx = 0;
+    int clen = 0;
+    bool denyNewline = false;
+    while (idx<s.length()) { // formatting pass
+        QChar c = s.at(idx);
         QChar pc(0x0000);
         if (idx>0)
             pc = s.at(idx-1);
@@ -158,18 +180,24 @@ QString formatPdfText(const QString& text)
             nc = s.at(idx+1);
 
         if (!c.isLetter()) {
-            if (openingQuotation.contains(c) &&
-                    (pc.isLetter() || closingQuotation.contains(pc) || endMarkers.contains(pc))) {
+            if (openingQuotation.contains(c) && pc.isLetter()) { // inline quotation
+                denyNewline = true;
+            } else if (openingQuotation.contains(c) && // quotation start...
+                    (closingQuotation.contains(pc) || //...after previous similar quotation block
+                     endMarkers.contains(pc) || // after sentence or paragraph
+                     pc.isPunct())) { // after punctuation separators
                 // insert newline before opening quotation
                 s.insert(idx,'\n');
                 idx++;
                 clen = 0;
-            } else if (closingQuotation.contains(c) &&
-                       (nc.isLetter() || openingQuotation.contains(nc))) {
+            } else if (closingQuotation.contains(c) && (!denyNewline)) {
+                //&& (nc.isLetter() || openingQuotation.contains(nc))) {
                 // insert newline after closing quotation
                 s.insert(idx+1,'\n');
                 idx+=2;
                 clen = 0;
+            } else if (closingQuotation.contains(c) && denyNewline) {
+                denyNewline = false;
             } else if (endMarkers.contains(c) && (clen>maxParagraphLength)) {
                 // insert newline after long sentences
                 s.insert(idx+1,'\n');
