@@ -65,6 +65,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     userAgent.clear();
     userAgentHistory.clear();
     favicons.clear();
+    savedAuxDir=QDir::homePath();
+    savedAuxSaveDir=QDir::homePath();
 
     appIcon.addFile(":/img/globe16");
     appIcon.addFile(":/img/globe32");
@@ -386,6 +388,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("atlasHost",atlHost);
     settings.setValue("atlasPort",atlPort);
     settings.setValue("auxDir",savedAuxDir);
+    settings.setValue("auxSaveDir",savedAuxSaveDir);
     settings.setValue("emptyRestore",emptyRestore);
     settings.setValue("javascript",webProfile->settings()->
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
@@ -469,6 +472,7 @@ void CGlobalControl::readSettings()
     atlHost = settings.value("atlasHost","localhost").toString();
     atlPort = settings.value("atlasPort",18000).toInt();
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
+    savedAuxSaveDir = settings.value("auxSaveDir",QDir::homePath()).toString();
     emptyRestore = settings.value("emptyRestore",false).toBool();
     maxRecycled = settings.value("recycledCount",20).toInt();
     bool jsstate = settings.value("javascript",true).toBool();

@@ -8,6 +8,7 @@
 #include "downloadmanager.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
+#include "snviewer.h"
 #include "ui_downloadmanager.h"
 
 CDownloadManager::CDownloadManager(QWidget *parent) :
@@ -46,15 +47,15 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 
     QFileInfo fi(item->path());
 
-    QString fname = getSaveFileNameD(this,tr("Save file"),QDir::homePath(),
-                                     QString(),0,QFileDialog::DontUseNativeDialog,
-                                     fi.fileName());
+    QString fname = getSaveFileNameD(this,tr("Save file"),gSet->savedAuxSaveDir,
+                                     QString(),0,0,fi.fileName());
 
     if (fname.isNull() || fname.isEmpty()) {
         item->cancel();
         item->deleteLater();
         return;
     }
+    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     connect(item, SIGNAL(finished()), model, SLOT(downloadFinished()));
     connect(item, SIGNAL(downloadProgress(qint64,qint64)),
@@ -90,7 +91,11 @@ void CDownloadManager::contextMenu(const QPoint &pos)
     if (item.state==QWebEngineDownloadItem::DownloadCompleted ||
             item.state==QWebEngineDownloadItem::DownloadInProgress) {
         cm->addSeparator();
-        acm = cm->addAction(tr("Open directory"),model,SLOT(openDirectory()));
+        acm = cm->addAction(tr("Open here"),model,SLOT(openHere()));
+        acm->setData(idx.row());
+        acm = cm->addAction(tr("Open with associated application"),model,SLOT(openXdg()));
+        acm->setData(idx.row());
+        acm = cm->addAction(tr("Open containing directory"),model,SLOT(openDirectory()));
         acm->setData(idx.row());
     }
 
@@ -350,6 +355,35 @@ void CDownloadsModel::openDirectory()
 
     if (!QProcess::startDetached("xdg-open", QStringList() << fi.path()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
+}
+
+void CDownloadsModel::openHere()
+{
+    QAction *acm = qobject_cast<QAction *>(sender());
+    if (acm==NULL) return;
+
+    int idx = acm->data().toInt();
+    if (idx<0 || idx>=downloads.count()) return;
+
+    QStringList acceptedExt = { "pdf", "htm", "html", "txt", "jpg", "jpeg", "jpe",
+                                "png", "svg", "gif", "png", "webp" };
+
+    QString fname = downloads.at(idx).fileName;
+    QFileInfo fi(fname);
+    if (acceptedExt.contains(fi.suffix().toLower()) && (gSet->activeWindow!=NULL))
+        new CSnippetViewer(gSet->activeWindow,QUrl::fromLocalFile(fname));
+}
+
+void CDownloadsModel::openXdg()
+{
+    QAction *acm = qobject_cast<QAction *>(sender());
+    if (acm==NULL) return;
+
+    int idx = acm->data().toInt();
+    if (idx<0 || idx>=downloads.count()) return;
+
+    if (!QProcess::startDetached("xdg-open", QStringList() << downloads.at(idx).fileName))
+        QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
 CDownloadItem::CDownloadItem()

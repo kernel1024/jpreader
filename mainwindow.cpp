@@ -530,7 +530,7 @@ void CMainWindow::openAuxFileInDir()
     QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),auxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->savedAuxDir = QDir(fnames.first()).absolutePath();
+    gSet->savedAuxDir = QFileInfo(fnames.first()).absolutePath();
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;

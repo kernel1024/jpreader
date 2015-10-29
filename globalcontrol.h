@@ -169,6 +169,7 @@ public:
     bool restoreLoadChecked;
 
     QString savedAuxDir;
+    QString savedAuxSaveDir;
     QString forcedCharset;
     QStringList charsetHistory;
 

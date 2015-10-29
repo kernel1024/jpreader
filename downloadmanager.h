@@ -93,6 +93,8 @@ public slots:
     void cleanDownload();
     void cleanFinishedDownloads();
     void openDirectory();
+    void openHere();
+    void openXdg();
 
 };
 

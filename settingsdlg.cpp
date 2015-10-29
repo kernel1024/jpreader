@@ -335,10 +335,11 @@ void CSettingsDlg::exportAd()
     foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
         r << i->data(0,Qt::UserRole+1).toInt();
 
-    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),QDir::homePath(),
+    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),gSet->savedAuxSaveDir,
                                      tr("Text file (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
+    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -428,10 +429,11 @@ void CSettingsDlg::exportCookies()
         return;
     }
 
-    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),QDir::homePath(),
+    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),gSet->savedAuxSaveDir,
                                      tr("Text file, Netscape format (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
+    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {

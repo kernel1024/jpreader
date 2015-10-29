@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>JPReader download manager</string>
+   <string>Download manager - JPReader</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

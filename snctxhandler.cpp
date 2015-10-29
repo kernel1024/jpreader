@@ -194,6 +194,16 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     });
     ccm->addAction(ac);
 
+    ac = new QAction(QIcon::fromTheme("system-run"),tr("Open with associated application"),NULL);
+    connect(ac, &QAction::triggered,[this](){
+        if (!QProcess::startDetached("xdg-open",
+                                     QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
+            QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start associated application."));
+    });
+    ccm->addAction(ac);
+
+    ccm->addSeparator();
+
     ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Parse document"),
                    snv->transHandler,SLOT(reparseDocument()));
     ccm->addSeparator();
@@ -257,13 +267,14 @@ void CSnCtxHandler::saveToFile()
 
     QString fname;
     if (selectedText.isEmpty())
-        fname = getSaveFileNameD(snv,tr("Save to HTML"),QDir::homePath(),
+        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->savedAuxSaveDir,
                                                  tr("HTML file (*.html);;Text file (*.txt)"));
     else
-        fname = getSaveFileNameD(snv,tr("Save to file"),QDir::homePath(),
+        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->savedAuxSaveDir,
                                                  tr("Text file (*.txt)"));
 
     if (fname.isNull() || fname.isEmpty()) return;
+    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFileInfo fi(fname);
     if (!selectedText.isEmpty()) {
