@@ -25,7 +25,7 @@ using namespace std;
 bool syslogOpened = false;
 QMutex loggerMutex;
 
-inline bool runnedFromQtCreator()
+bool runnedFromQtCreator()
 {
     return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
 }
