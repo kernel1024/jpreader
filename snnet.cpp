@@ -2,6 +2,7 @@
 #include <QPointer>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QUrlQuery>
 #include "snnet.h"
 #include "genericfuncs.h"
 #include "authdlg.h"
@@ -125,8 +126,14 @@ void CSnNet::load(const QUrl &url)
             snv->txtBrowser->load(url);
         }
     } else {
+        QUrl u = url;
+        if (u.host().endsWith("pixiv.net") && u.path().startsWith("/jump")) { // Extract jump url for pixiv
+            QUrl ju(u.query(QUrl::FullyDecoded));
+            if (ju.isValid())
+                u = ju;
+        }
         snv->fileChanged = false;
-        snv->txtBrowser->load(url);
+        snv->txtBrowser->load(u);
     }
     loadedUrl=url;
 }
