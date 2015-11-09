@@ -89,10 +89,20 @@ void CSpecTabWidget::selectPrevTab()
         setCurrentIndex(currentIndex()-1);
 }
 
+CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
+    : QTabBar(p), m_browserTabs(false)
+{
+    m_tabWidget = p;
+    m_dragStart = QPoint(0,0);
+    m_draggingTab = NULL;
+}
+
 CSpecTabBar::CSpecTabBar(QWidget *p)
     : QTabBar(p), m_browserTabs(false)
 {
-
+    m_tabWidget = NULL;
+    m_dragStart = QPoint(0,0);
+    m_draggingTab = NULL;
 }
 
 void CSpecTabBar::setBrowserTabs(bool enabled)
@@ -102,6 +112,7 @@ void CSpecTabBar::setBrowserTabs(bool enabled)
 
 void CSpecTabBar::mousePressEvent(QMouseEvent *event)
 {
+    m_draggingTab = NULL;
     Qt::MouseButton btn = event->button();
     QPoint pos = event->pos();
     int tabCount = count();
@@ -113,6 +124,10 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
             }
         } else if (event->button()==Qt::LeftButton) {
             if (tabRect(i).contains(event->pos())) {
+                if (m_tabWidget!=NULL) {
+                    m_draggingTab = qobject_cast<CSpecTabContainer *>(m_tabWidget->widget(i));
+                    m_dragStart = event->pos();
+                }
                 emit tabLeftClicked(i);
             }
         }
@@ -130,6 +145,35 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
             }
         }
     }
+}
+
+void CSpecTabBar::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_draggingTab = NULL;
+    QTabBar::mouseReleaseEvent(event);
+}
+
+void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if ((m_draggingTab!=NULL) &&
+            (m_tabWidget!=NULL) &&
+            (event->buttons() == Qt::LeftButton)) {
+
+        QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(QMargins(50,50,50,100));
+
+        if (!wr.contains(event->globalPos())) {
+
+            // finish up local drag inside QTabBar
+            QMouseEvent evr(QEvent::MouseButtonRelease, m_dragStart, Qt::LeftButton,
+                            Qt::LeftButton, Qt::NoModifier);
+            QTabBar::mouseReleaseEvent(&evr);
+
+            m_draggingTab->outsideDragStart();
+
+            m_draggingTab = NULL;
+        }
+    }
+    QTabBar::mouseMoveEvent(event);
 }
 
 QSize CSpecTabBar::minimumTabSizeHint(int index) const

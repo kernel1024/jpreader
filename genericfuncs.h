@@ -8,19 +8,18 @@
 #include <QWidget>
 #include <QFileDialog>
 
-#define UNUSED(x) (void)(x)
-
 extern QStringList debugMessages;
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
-QString detectMIME(QString filename);
-QString detectMIME(QByteArray buf);
-QTextCodec* detectEncoding(QByteArray content);
-QString detectEncodingName(QByteArray content);
-QString makeSimpleHtml(QString title, QString content);
+QString detectMIME(const QString& filename);
+QString detectMIME(const QByteArray& buf);
+QTextCodec* detectEncoding(const QByteArray &content);
+QString detectEncodingName(const QByteArray &content);
+QString detectDecodeToUnicode(const QByteArray &content);
+QString makeSimpleHtml(const QString& title, const QString& content);
 QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
-QString fixMetaEncoding(QString data_utf8);
+QString fixMetaEncoding(const QString& data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
 QList<QStringList> encodingsByScript();
 QString bool2str(bool value);

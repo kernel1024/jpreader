@@ -92,7 +92,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     loggerMutex.unlock();
 }
 
-QString detectMIME(QString filename)
+QString detectMIME(const QString &filename)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
     magic_load(myt,NULL);
@@ -108,7 +108,7 @@ QString detectMIME(QString filename)
     return mag;
 }
 
-QString detectMIME(QByteArray buf)
+QString detectMIME(const QByteArray &buf)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
     magic_load(myt,NULL);
@@ -122,7 +122,7 @@ QString detectMIME(QByteArray buf)
     return mag;
 }
 
-QString detectEncodingName(QByteArray content) {
+QString detectEncodingName(const QByteArray& content) {
     QString codepage = "";
 
     if (!gSet->forcedCharset.isEmpty() &&
@@ -150,7 +150,7 @@ QString detectEncodingName(QByteArray content) {
     return codepage;
 }
 
-QTextCodec* detectEncoding(QByteArray content) {
+QTextCodec* detectEncoding(const QByteArray& content) {
     QString codepage = detectEncodingName(content);
 
     if (!codepage.isEmpty())
@@ -163,9 +163,17 @@ QTextCodec* detectEncoding(QByteArray content) {
     }
 }
 
-QString makeSimpleHtml(QString title, QString content)
+QString detectDecodeToUnicode(const QByteArray& content)
 {
-    QString cnt = content.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
+    QTextCodec *cd = detectEncoding(content);
+    return cd->toUnicode(content);
+}
+
+
+QString makeSimpleHtml(const QString &title, const QString &content)
+{
+    QString s = content;
+    QString cnt = s.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
     QString cn="<html><head>";
     cn+="<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">";
     cn+="<title>"+title+"</title></head>";
@@ -209,7 +217,7 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
     return res;
 }
 
-QString fixMetaEncoding(QString data_utf8)
+QString fixMetaEncoding(const QString &data_utf8)
 {
     int pos;
     QString header = data_utf8.left(512);

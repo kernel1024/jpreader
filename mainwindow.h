@@ -90,6 +90,8 @@ protected:
     void updateSplitters();
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject *obj, QEvent *ev);
+    void dragEnterEvent(QDragEnterEvent *ev);
+    void dropEvent(QDropEvent *ev);
 };
 
 #endif

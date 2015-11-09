@@ -5,6 +5,7 @@
 #include <QAbstractNetworkCache>
 #include <QTextDocument>
 #include <QWebEngineSettings>
+#include <QMimeData>
 
 #include "qxttooltip.h"
 #include "mainwindow.h"
@@ -120,6 +121,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     if (withViewer) createStartBrowser();
 
     qApp->installEventFilter(this);
+
+    setAcceptDrops(true);
 
     fullScreen=false;
     savedPos=pos();
@@ -768,6 +771,62 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
         }
     }
     return QMainWindow::eventFilter(obj,ev);
+}
+
+void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
+{
+    QStringList formats = ev->mimeData()->formats();
+
+    if (formats.contains("_NETSCAPE_URL") ||
+            formats.contains("text/uri-list"))
+        ev->acceptProposedAction();
+    else if (formats.contains("text/plain")) {
+        QUrl u(ev->mimeData()->text());
+        if (u.isValid())
+            ev->acceptProposedAction();
+    }
+}
+
+void CMainWindow::dropEvent(QDropEvent *ev)
+{
+    QHash<QString,QString> data;
+    QStringList formats = ev->mimeData()->formats();
+    for (int i=0;i<formats.count();i++)
+        data[formats.at(i)] = detectDecodeToUnicode(ev->mimeData()->data(formats.at(i)));
+
+    QList<QUrl> ul;
+    bool ok = false;
+
+    if (data.contains("_NETSCAPE_URL")) {
+        QString s = data.value("_NETSCAPE_URL").split(QRegExp("\n|\r\n|\r")).first();
+        QUrl u(s);
+        if (u.isValid()) {
+            ul << u;
+            ok = true;
+        }
+    }
+    if (!ok && data.contains("text/uri-list")) {
+        QStringList sl = data.value("text/uri-list").split(QRegExp("\n|\r\n|\r"));
+        for (int i=0;i<sl.count();i++) {
+            if (sl.at(i).startsWith('#')) continue;
+            QUrl u(sl.at(i));
+            if (u.isValid()) {
+                ul << u;
+                ok = true;
+            }
+        }
+    }
+    if (!ok && data.contains("text/plain")) {
+        QUrl u(data.value("text/plain").split(QRegExp("\n|\r\n|\r")).first());
+        if (u.isValid())
+            ul << u;
+    }
+
+    if (!ul.isEmpty())
+        for (int i=0;i<ul.count();i++) {
+            CSnippetViewer* sv = new CSnippetViewer(this, ul.at(i));
+            sv->txtBrowser->setFocus(Qt::OtherFocusReason);
+        }
 }
 
 void CMainWindow::helpAbout()

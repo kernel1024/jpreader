@@ -6,6 +6,8 @@
 #include <QWebEngineHistory>
 #include <QCompleter>
 #include <QUrlQuery>
+#include <QDrag>
+#include <QMimeData>
 
 #include <math.h>
 #include "snviewer.h"
@@ -285,6 +287,18 @@ QUrl CSnippetViewer::getUrl()
 void CSnippetViewer::setToolbarVisibility(bool visible)
 {
     toolBar->setVisible(visible);
+}
+
+void CSnippetViewer::outsideDragStart()
+{
+    QDrag* drag = new QDrag(this);
+    QMimeData* mime = new QMimeData();
+
+    QString s = QString("%1\n%2").arg(getUrl().toString(),tabTitle);
+    mime->setData("_NETSCAPE_URL",s.toUtf8());
+    drag->setMimeData(mime);
+
+    drag->exec(Qt::MoveAction);
 }
 
 void CSnippetViewer::statusBarMsg(const QString &msg)

@@ -33,16 +33,24 @@
 
 class CMainWindow;
 class CSnippetViewer;
+class CSpecTabWidget;
+class CSpecTabContainer;
 
 class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 public:
+    CSpecTabBar(CSpecTabWidget *p);
     CSpecTabBar(QWidget *p = 0);
     void setBrowserTabs(bool enabled);
 private:
+    CSpecTabWidget *m_tabWidget;
     int m_browserTabs;
+    CSpecTabContainer* m_draggingTab;
+    QPoint m_dragStart;
 protected:
-	virtual void mousePressEvent( QMouseEvent * event );
+    void mousePressEvent( QMouseEvent * event );
+    void mouseReleaseEvent( QMouseEvent * event );
+    void mouseMoveEvent( QMouseEvent * event);
     QSize minimumTabSizeHint(int index) const;
 signals:
 	void tabRightClicked(int index);
@@ -63,8 +71,8 @@ private:
     CSpecTabBar* m_tabBar;
 
 protected:
-    virtual void mouseDoubleClickEvent( QMouseEvent * event );
-    virtual bool event(QEvent * event );
+    void mouseDoubleClickEvent( QMouseEvent * event );
+    bool event(QEvent * event );
 
 public slots:
 	void tabRightClick(int index);
@@ -120,6 +128,7 @@ public:
     virtual void recycleTab() { }
     virtual QString getDocTitle() { return QString(); }
     virtual void setToolbarVisibility(bool visible) { Q_UNUSED(visible); }
+    virtual void outsideDragStart() { }
     void updateTabIcon(const QIcon& icon);
 public slots:
     void detachTab();
@@ -148,7 +157,7 @@ class CSpecLogHighlighter : public QSyntaxHighlighter {
 public:
     CSpecLogHighlighter(QTextDocument* parent);
 protected:
-    virtual void highlightBlock(const QString& text);
+    void highlightBlock(const QString& text);
 private:
     void formatBlock(const QString& text,
                      const QRegExp& exp,
@@ -191,12 +200,12 @@ class CMemFile : public QIODevice {
 public:
     CMemFile(const QByteArray &fileData);
 
-    virtual qint64 bytesAvailable() const;
-    virtual void close();
+    qint64 bytesAvailable() const;
+    void close();
 
 protected:
-    virtual qint64 readData(char *data, qint64 maxlen);
-    virtual qint64 writeData(const char *buffer, qint64 maxlen);
+    qint64 readData(char *data, qint64 maxlen);
+    qint64 writeData(const char *buffer, qint64 maxlen);
 
 private:
     QByteArray data;

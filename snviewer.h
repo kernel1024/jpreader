@@ -56,10 +56,11 @@ public:
     void keyPressEvent(QKeyEvent* event);
     void updateButtonsState();
     void updateWebViewAttributes();
-    virtual bool canClose();
-    virtual void recycleTab();
+    bool canClose();
+    void recycleTab();
     QUrl getUrl();
     void setToolbarVisibility(bool visible);
+    void outsideDragStart();
 public slots:
     void navByUrl(QString url);
     void navByUrl();
