@@ -115,8 +115,8 @@ QStringList CGoldenDictMgr::getLoadedDictionaries()
 
     for( unsigned x = dictionaries.size(); x--; )
         res << tr("%1 (%2 words)")
-               .arg(QString::fromUtf8(dictionaries[x]->getName().c_str()))
-               .arg(dictionaries[x]->getWordCount());
+               .arg(QString::fromUtf8(dictionaries[x]->getName().c_str()),
+               dictionaries[x]->getWordCount());
 
     return res;
 }

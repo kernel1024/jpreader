@@ -39,7 +39,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                     ps = "%";
                 }
                 if (ok)
-                    return tr("%1%2").arg(sc).arg(ps);
+                    return tr("%1%2").arg(QString("%1").arg(sc),ps);
                 else
                     return score;
                 break;

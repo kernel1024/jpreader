@@ -68,7 +68,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
         QStringList scpp;
         scpp << scpParams.split(' ');
         scpp << filename;
-        scpp << QString("%1:%2%3").arg(scpHost).arg(wdir).arg(wname);
+        scpp << QString("%1:%2%3").arg(scpHost,wdir,wname);
         r=(QProcess::execute("scp",scpp)==0);
         if (r) calculatedUrl=hostingUrl+wname;
         return r;
@@ -414,7 +414,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                         if (forceFontColor)
                             dstyle+=tr("color: %1;").arg(forcedFontColor.name());
 
-                        sout += QString("<span style=\"%1\">%2</span>").arg(dstyle).arg(t);
+                        sout += QString("<span style=\"%1\">%2</span>").arg(dstyle,t);
                     } else
                         sout += t;
 
@@ -436,8 +436,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
         if (!srctls.isEmpty() && ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)))
             src.text = QString("<span title=\"%1\">%2</span>")
-                       .arg(srctls.join("\n").replace('"','\''))
-                       .arg(sout);
+                       .arg(srctls.join("\n").replace('"','\''),sout);
         else
             src.text = sout;
     }
@@ -458,9 +457,9 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html)
             QString key = src.attributesOrder.at(i);
             QString val = src.attributes.value(key);
             if (!val.contains("\""))
-                html.append(QString(" %1=\"%2\"").arg(key).arg(val));
+                html.append(QString(" %1=\"%2\"").arg(key,val));
             else
-                html.append(QString(" %1='%2'").arg(key).arg(val));
+                html.append(QString(" %1='%2'").arg(key,val));
         }
         html.append(">");
     } else

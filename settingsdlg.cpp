@@ -248,8 +248,7 @@ void CSettingsDlg::editBkm()
         dl.first()->setData(Qt::UserRole,data["Page title"]);
         dl.first()->setData(Qt::UserRole+1,QUrl(data["Url"]));
         dl.first()->setText(QString("%1 [ %2 ]").
-                            arg(data["Page title"]).
-                            arg(data["Url"]));
+                            arg(data["Page title"], data["Url"]));
     }
     dlg->deleteLater();
 }
@@ -530,8 +529,7 @@ void CSettingsDlg::setBookmarks(QBookmarksMap bookmarks)
 {
     foreach (const QString &t, bookmarks.keys()) {
         QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
-                                                  arg(t).
-                                                  arg(bookmarks.value(t).toString()));
+                                                  arg(t, bookmarks.value(t).toString()));
         li->setData(Qt::UserRole,t);
         li->setData(Qt::UserRole+1,bookmarks.value(t));
         ui->listBookmarks->addItem(li);
@@ -554,8 +552,7 @@ void CSettingsDlg::setAdblock(QList<CAdBlockRule> adblock)
 void CSettingsDlg::setMainHistory(QUHList history)
 {
     foreach (const UrlHolder &t, history) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title).
-                                                  arg(t.url.toString()));
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
     }

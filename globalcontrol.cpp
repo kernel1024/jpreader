@@ -337,7 +337,7 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==NULL) return;
 
-    QString s = QString("%1%2").arg(msg).arg(IPC_EOF);
+    QString s = QString("%1%2").arg(msg,IPC_EOF);
     socket->write(s.toUtf8());
 }
 

@@ -454,7 +454,7 @@ void CMainWindow::updateTitle()
         }
         CSearchTab* bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
         if (bv!=NULL && !bv->getLastQuery().isEmpty()) t =
-                tr("[%1] search - %2").arg(bv->getLastQuery()).arg(t);
+                tr("[%1] search - %2").arg(bv->getLastQuery(),t);
     }
     setWindowTitle(t);
 }
@@ -797,13 +797,13 @@ void CMainWindow::helpAbout()
                      "Baloo backend compiled: %6\n\n"
                      "Poppler support: %7\n\n"
                      "WebEngine version.")
-                    .arg(BUILD_REV)
-                    .arg(debugstr)
-                    .arg(BUILD_PLATFORM)
-                    .arg(BUILD_DATE)
-                    .arg(recoll)
-                    .arg(baloo5)
-                    .arg(poppler);
+                    .arg(BUILD_REV,
+                    debugstr,
+                    BUILD_PLATFORM,
+                    BUILD_DATE,
+                    recoll,
+                    baloo5,
+                    poppler);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }

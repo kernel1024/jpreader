@@ -47,23 +47,23 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
 
     switch (type) {
         case QtDebugMsg:
-            lmsg = QString("%1Debug: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
             logpri = LOG_DEBUG;
             break;
         case QtWarningMsg:
-            lmsg = QString("%1Warning: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
             logpri = LOG_WARNING;
             break;
         case QtCriticalMsg:
-            lmsg = QString("%1Critical: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
             logpri = LOG_CRIT;
             break;
         case QtFatalMsg:
-            lmsg = QString("%1Fatal: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
             logpri = LOG_ALERT;
             break;
         case QtInfoMsg:
-            lmsg = QString("%1Info: %2 (%3:%4)").arg(category).arg(msg).arg(file).arg(line);
+            lmsg = QString("%1Info: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
             logpri = LOG_INFO;
             break;
     }

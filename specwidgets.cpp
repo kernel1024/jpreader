@@ -505,8 +505,8 @@ void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     } else { // Dictionary error
         rplb = makeSimpleHtml(tr("Error"),
                               tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
-                              .arg(request->requestUrl().toString())
-                              .arg(dr->getErrorString())).toUtf8();
+                              .arg(request->requestUrl().toString(),
+                                   dr->getErrorString())).toUtf8();
         QIODevice *reply = new CMemFile(rplb);
         request->reply("text/html",reply);
     }
