@@ -341,7 +341,8 @@ void CSpecTabContainer::closeTab(bool nowait)
         gSet->blockTabClose();
     }
     if (tabWidget!=NULL) {
-        if (parentWnd->lastTabIdx>=0) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
+        if ((parentWnd->lastTabIdx>=0) &&
+                (parentWnd->lastTabIdx<tabWidget->count())) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
         tabWidget->removeTab(tabWidget->indexOf(this));
     }
     recycleTab();

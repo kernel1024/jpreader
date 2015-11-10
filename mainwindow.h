@@ -42,7 +42,6 @@ private:
     QMenu* tabsMenu;
     CSpecTabBar* tabHelper;
     bool helperVisible;
-	int savedTabIdx;
     int savedHelperIdx;
     int savedHelperWidth;
     bool fullScreen;

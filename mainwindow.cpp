@@ -26,7 +26,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 
     tabMain->parentWnd=this;
 	lastTabIdx=0;
-	savedTabIdx=0;
     savedHelperWidth=0;
     setWindowIcon(gSet->appIcon);
 
@@ -323,8 +322,7 @@ void CMainWindow::helperClicked(int index)
 
 void CMainWindow::tabChanged(int idx)
 {
-	lastTabIdx=savedTabIdx;
-	savedTabIdx=idx;
+    lastTabIdx=idx;
 
     tabMain->tabBar()->setTabTextColor(idx,QApplication::palette(tabMain->tabBar()).windowText().color());
     if (tabMain->widget(idx)!=NULL) {
