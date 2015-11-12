@@ -67,6 +67,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 	tabsMenu = menuBar()->addMenu(QIcon::fromTheme("tab-detach"),"");
 	recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),"");
 
+    menuBookmarks->setStyleSheet("QMenu { menu-scrollable: 1; }");
+    menuBookmarks->setToolTipsVisible(true);
+
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
     connect(actionAboutQt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(actionSettings, SIGNAL(triggered()), gSet, SLOT(settingsDlg()));
@@ -581,13 +584,13 @@ void CMainWindow::openFromClipboard()
 
 void CMainWindow::updateBookmarks()
 {
-    //menuBookmarks->clear();
     while (menuBookmarks->actions().count()>2)
         menuBookmarks->removeAction(menuBookmarks->actions().last());
     foreach (const QString &t, gSet->bookmarks.keys()) {
 		QAction* a = menuBookmarks->addAction(t,this,SLOT(openBookmark()));
         a->setData(gSet->bookmarks.value(t));
         a->setStatusTip(gSet->bookmarks.value(t).toString());
+        a->setToolTip(gSet->bookmarks.value(t).toString());
 	}
 }
 
