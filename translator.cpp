@@ -367,29 +367,44 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 sout += "\n";
             else {
                 QString t = QString();
-                if (translateSubSentences) {
-                    QString tacc = QString();
-                    for (int j=0;j<srct.length();j++) {
-                        QChar sc = srct.at(j);
 
-                        if (sc.isLetter())
-                            tacc += sc;
-                        else {
-                            if (!tacc.isEmpty()) {
-                                if (sc=='?' || sc==QChar(0xff1f)) {
-                                    tacc += sc;
-                                    t += tran->tranString(tacc);
-                                } else
-                                    t += tran->tranString(tacc) + sc;
-                                tacc.clear();
-                            } else
-                                t += sc;
-                        }
-                        if (!tran->getErrorMsg().isEmpty())
-                            break;
+                QString ttest = srct;
+                bool noText = true;
+                ttest.remove(QRegExp("&\\w+;"));
+                for (int j=0;j<ttest.length();j++) {
+                    if (ttest.at(j).isLetter()) {
+                        noText = false;
+                        break;
                     }
+                }
+
+                if (!noText) {
+                    if (translateSubSentences) {
+                        QString tacc = QString();
+                        for (int j=0;j<srct.length();j++) {
+                            QChar sc = srct.at(j);
+
+                            if (sc.isLetter())
+                                tacc += sc;
+                            else {
+                                if (!tacc.isEmpty()) {
+                                    if (sc=='?' || sc==QChar(0xff1f)) {
+                                        tacc += sc;
+                                        t += tran->tranString(tacc);
+                                    } else
+                                        t += tran->tranString(tacc) + sc;
+                                    tacc.clear();
+                                } else
+                                    t += sc;
+                            }
+                            if (!tran->getErrorMsg().isEmpty())
+                                break;
+                        }
+                    } else
+                        t = tran->tranString(srct);
                 } else
-                    t = tran->tranString(srct);
+                    t = srct;
+
                 if (translationMode==TM_TOOLTIP) {
                     QString ts = srct;
                     srct = t;
