@@ -345,7 +345,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidget_2">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_11">
           <attribute name="title">
@@ -555,7 +555,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item>
-              <widget class="CHotkeyEdit" name="gctxHotkey"/>
+              <widget class="QKeySequenceEdit" name="gctxHotkey"/>
              </item>
             </layout>
            </item>
@@ -695,7 +695,7 @@ p, li { white-space: pre-wrap; }
            <item>
             <widget class="QLabel" name="label_27">
              <property name="text">
-              <string>Sea&amp;rch paths</string>
+              <string>Searc&amp;h paths</string>
              </property>
              <property name="buddy">
               <cstring>listDictPaths</cstring>
@@ -1601,13 +1601,6 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>CHotkeyEdit</class>
-   <extends>QLineEdit</extends>
-   <header location="global">specwidgets.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>checkTabFavicon</tabstop>
   <tabstop>checkAutoloadImages</tabstop>

@@ -16,9 +16,6 @@
 #include <QString>
 #include <QLabel>
 #include <QHideEvent>
-#include <QLineEdit>
-#include <QKeySequence>
-#include <QKeyEvent>
 #include <QWebEnginePage>
 #include <QSyntaxHighlighter>
 #include <QAbstractListModel>
@@ -101,18 +98,6 @@ private:
     void hideEvent(QHideEvent *);
 signals:
     void labelHide();
-};
-
-class CHotkeyEdit : public QLineEdit {
-    Q_OBJECT
-public:
-    CHotkeyEdit(QWidget *parent);
-    QKeySequence keySequence() const;
-    void setKeySequence(const QKeySequence &sequence);
-protected:
-    QKeySequence p_shortcut;
-    void keyPressEvent(QKeyEvent *event);
-    void updateSequenceView();
 };
 
 class CSpecTabContainer : public QWidget {

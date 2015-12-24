@@ -84,7 +84,7 @@ FORMS = main.ui \
     multiinputdialog.ui \
     downloadmanager.ui
 
-QT += network xml dbus widgets webenginewidgets
+QT += network xml dbus widgets webenginewidgets x11extras
 
 CONFIG += warn_on \
     link_pkgconfig \
@@ -94,12 +94,6 @@ CONFIG += warn_on \
     c++11
 
 LIBS += -lz
-
-exists( /usr/include/X11/Xlib.h ) {
-    LIBS += -lX11
-} else {
-    error("libX11 not found.")
-}
 
 exists( /usr/include/magic.h ) {
     LIBS += -lmagic
@@ -116,7 +110,7 @@ exists( $$[QT_INSTALL_HEADERS]/QtWebEngineCore/QWebEngineUrlRequestInterceptor )
     error("icu not found.");
 }
 
-PKGCONFIG += icu-uc icu-io icu-i18n
+PKGCONFIG += icu-uc icu-io icu-i18n xcb xcb-keysyms
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5

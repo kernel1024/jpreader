@@ -31,17 +31,15 @@
 
 #define QXTGLOBALSHORTCUT_H
 
-#include "qxtglobal.h"
 #include <QObject>
+#include <QAbstractNativeEventFilter>
 #include <QKeySequence>
-class QxtGlobalShortcutPrivate;
+#include <xcb/xcb.h>
 
-class QXT_GUI_EXPORT QxtGlobalShortcut : public QObject
+class QxtGlobalShortcut : public QObject,
+        public QAbstractNativeEventFilter
 {
     Q_OBJECT
-    QXT_DECLARE_PRIVATE(QxtGlobalShortcut)
-    Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled)
-    Q_PROPERTY(QKeySequence shortcut READ shortcut WRITE setShortcut)
 
 public:
     explicit QxtGlobalShortcut(QObject* parent = 0);
@@ -53,12 +51,36 @@ public:
 
     bool isEnabled() const;
 
-public Q_SLOTS:
+public slots:
     void setEnabled(bool enabled = true);
     void setDisabled(bool disabled = true);
 
-Q_SIGNALS:
+signals:
     void activated();
+
+private:
+
+    bool m_enabled;
+    Qt::Key key;
+    Qt::KeyboardModifiers mods;
+
+    bool unsetShortcut();
+
+    static bool error;
+    static int ref;
+    virtual bool nativeEventFilter(const QByteArray & eventType, void * message, long * result);
+
+    static void activateShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
+
+private:
+    static xcb_keycode_t nativeKeycode(Qt::Key keycode, Qt::KeyboardModifiers modifiers);
+    static uint16_t nativeModifiers(Qt::KeyboardModifiers modifiers);
+
+    static bool registerShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
+    static bool unregisterShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
+
+    static QHash<QPair<xcb_keycode_t, uint16_t>, QxtGlobalShortcut*> shortcuts;
+
 };
 
 #endif // QXTGLOBALSHORTCUT_H

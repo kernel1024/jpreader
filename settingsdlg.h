@@ -12,7 +12,7 @@
 #include <QNetworkCookie>
 #include <QTableWidget>
 #include <QTreeWidgetItem>
-#include "specwidgets.h"
+#include <QKeySequenceEdit>
 #include "globalcontrol.h"
 #include "adblockrule.h"
 
@@ -52,7 +52,7 @@ public:
     QCheckBox* overrideStdFonts;
     QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
     QCheckBox *overrideFontColor;
-    CHotkeyEdit *gctxHotkey;
+    QKeySequenceEdit *gctxHotkey;
     QRadioButton* searchRecoll;
     QRadioButton* searchNone;
     QRadioButton* searchBaloo5;

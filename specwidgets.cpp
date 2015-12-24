@@ -207,46 +207,6 @@ CSpecToolTipLabel::CSpecToolTipLabel(const QString &text)
     setText(text);
 }
 
-
-CHotkeyEdit::CHotkeyEdit(QWidget *parent) :
-    QLineEdit(parent)
-{
-    p_shortcut = QKeySequence();
-    setReadOnly(true);
-}
-
-QKeySequence CHotkeyEdit::keySequence() const
-{
-    return p_shortcut;
-}
-
-void CHotkeyEdit::setKeySequence(const QKeySequence &sequence)
-{
-    p_shortcut = sequence;
-    updateSequenceView();
-}
-
-void CHotkeyEdit::keyPressEvent(QKeyEvent *event)
-{
-    int seq = 0;
-    switch ( event->modifiers())
-    {
-        case Qt::ShiftModifier : seq = Qt::SHIFT; break;
-        case Qt::ControlModifier : seq = Qt::CTRL; break;
-        case Qt::AltModifier : seq = Qt::ALT; break;
-        case Qt::MetaModifier : seq = Qt::META; break;
-    }
-    if ((event->key()!=0) && (event->key()!=Qt::Key_unknown))
-        setKeySequence(seq+event->key());
-    event->accept();
-}
-
-void CHotkeyEdit::updateSequenceView()
-{
-    setText(p_shortcut.toString());
-}
-
-
 CSpecTabContainer::CSpecTabContainer(CMainWindow *parent)
     : QWidget(parent)
 {
