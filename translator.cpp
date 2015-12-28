@@ -244,6 +244,26 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 node.attributes["content"] = "text/html; charset=UTF-8";
         }
 
+        // Unfold "1% height" divs from blog.jp/livedoor.jp
+        int idx = 0;
+        while (idx<node.children.count()) {
+            if (node.children.at(idx).tagName.toLower()=="link") {
+                // their blogs using same site.css
+                if ((node.children.at(idx).attributes.value("type").toLower().trimmed()=="text/css") &&
+                        (node.children.at(idx).attributes.value("href").contains(
+                             QRegExp("blog.*\\.jp.*site.css\\?_=",Qt::CaseInsensitive)))) {
+                    CHTMLNode st;
+                    st.tagName="style";
+                    st.closingText="</style>";
+                    st.isTag=true;
+                    st.children << CHTMLNode("* { height: auto !important; }");
+                    node.children.insert(idx+1,st);
+                    break;
+                }
+            }
+            idx++;
+        }
+
         // div processing
         if (node.tagName.toLower()=="div") {
 
@@ -273,7 +293,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
         }
 
-        int idx=0;
+        idx=0;
         QStringList denyTags;
         denyTags << "script" << "noscript" << "object" << "iframe";
         while(idx<node.children.count()) {
