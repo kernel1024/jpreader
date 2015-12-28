@@ -31,7 +31,8 @@ HEADERS = mainwindow.h \
     adblockrule.h \
     downloadmanager.h \
     yandextranslator.h \
-    pdftotext.h
+    pdftotext.h \
+    sourceviewer.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -67,7 +68,8 @@ SOURCES = main.cpp \
     adblockrule.cpp \
     downloadmanager.cpp \
     yandextranslator.cpp \
-    pdftotext.cpp
+    pdftotext.cpp \
+    sourceviewer.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -82,7 +84,8 @@ FORMS = main.ui \
     logdisplay.ui \
     auxdictionary.ui \
     multiinputdialog.ui \
-    downloadmanager.ui
+    downloadmanager.ui \
+    sourceviewer.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras
 
@@ -149,6 +152,18 @@ use_poppler {
     message("Using Poppler: YES")
 } else {
     message("Using Poppler: NO")
+}
+
+packagesExist(source-highlight) {
+    CONFIG += use_source-highlight
+}
+
+use_source-highlight {
+    DEFINES += WITH_SRCHILITE=1
+    PKGCONFIG += source-highlight
+    message("Using source-highlight: YES");
+} else {
+    message("Using source-highlight: NO");
 }
 
 GITREV = $$system(git rev-list HEAD|head -n1|cut -c -7)

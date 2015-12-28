@@ -16,6 +16,7 @@
 #include "searchtab.h"
 #include "specwidgets.h"
 #include "auxtranslator.h"
+#include "sourceviewer.h"
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -182,8 +183,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     }
 
     QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
-    ccm->addAction(QIcon::fromTheme("documentation"),tr("Show source"),
+    ccm->addAction(QIcon::fromTheme("document-edit-verify"),tr("Show source"),
                  this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_S));
+    ccm->addSeparator();
+    ccm->addAction(QIcon::fromTheme("documentation"),tr("Show in editor"),
+                 this,SLOT(showInEditor()));
 
     ac = new QAction(QIcon::fromTheme("download"),tr("Open in browser"),NULL);
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
@@ -316,7 +320,7 @@ void CSnCtxHandler::bookmarkPage() {
     delete dlg;
 }
 
-void CSnCtxHandler::showSource()
+void CSnCtxHandler::showInEditor()
 {
     QString uuid = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+".html";
     QString fname = QDir::temp().absoluteFilePath(uuid);
@@ -330,4 +334,10 @@ void CSnCtxHandler::showSource()
         if (!QProcess::startDetached(gSet->sysEditor, QStringList() << fname))
             QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
     });
+}
+
+void CSnCtxHandler::showSource()
+{
+    CSourceViewer* srcv = new CSourceViewer(snv);
+    srcv->show();
 }
