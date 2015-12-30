@@ -267,6 +267,19 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
         }
 
     dictManager = new CGoldenDictMgr(this);
+
+    connect(dictManager,&CGoldenDictMgr::showStatusBarMessage,[this](const QString& msg){
+        if (activeWindow!=NULL) {
+            if (msg.isEmpty())
+                activeWindow->statusBar()->clearMessage();
+            else
+                activeWindow->statusBar()->showMessage(msg);
+        }
+    });
+    connect(dictManager,&CGoldenDictMgr::showCriticalMessage,[this](const QString& msg){
+        QMessageBox::critical(activeWindow,tr("JPReader"),msg);
+    });
+
     dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
 
     auxNetManager = new QNetworkAccessManager(this);
@@ -279,7 +292,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
     tabsListTimer.start();
 
-    QTimer::singleShot(1500,dictManager,SLOT(loadDictionaries()));
+    QTimer::singleShot(1500,dictManager,[this](){
+        dictManager->loadDictionaries(dictPaths, dictIndexDir);
+    });
 }
 
 bool CGlobalControl::setupIPC()
@@ -825,7 +840,7 @@ void CGlobalControl::settingsDlg()
         if (compareStringLists(dictPaths,sl)!=0) {
             dictPaths.clear();
             dictPaths.append(sl);
-            dictManager->loadDictionaries();
+            dictManager->loadDictionaries(dictPaths, dictIndexDir);
         }
 
         webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);
