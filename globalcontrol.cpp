@@ -12,7 +12,7 @@
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "miniqxt/qxtglobalshortcut.h"
-#include "goldendictmgr.h"
+#include "goldendict/goldendictmgr.h"
 
 #include "globalcontrol.h"
 #include "lighttranslator.h"

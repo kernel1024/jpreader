@@ -17,10 +17,10 @@
 #include <vector>
 #include <set>
 #include <string>
-#include "goldendict/wstring.hh"
-#include "goldendict/sptr.hh"
-#include "goldendict/dictionary.hh"
-#include "goldendict/wordfinder.hh"
+#include "wstring.hh"
+#include "sptr.hh"
+#include "dictionary.hh"
+#include "wordfinder.hh"
 
 class CGlobalControl;
 

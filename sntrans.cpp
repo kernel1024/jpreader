@@ -4,7 +4,7 @@
 
 #include "sntrans.h"
 #include "globalcontrol.h"
-#include "goldendictmgr.h"
+#include "goldendict/goldendictmgr.h"
 #include "translator.h"
 #include "qxttooltip.h"
 

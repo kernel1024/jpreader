@@ -4,7 +4,7 @@
 #include <QUrlQuery>
 #include <QMessageLogger>
 #include <vector>
-#include "goldendictmgr.h"
+#include "goldendict/goldendictmgr.h"
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"

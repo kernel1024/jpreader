@@ -6,7 +6,7 @@
 #include <QCompleter>
 
 #include "auxdictionary.h"
-#include "goldendictmgr.h"
+#include "goldendict/goldendictmgr.h"
 #include "globalcontrol.h"
 #include "ui_auxdictionary.h"
 

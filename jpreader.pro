@@ -25,7 +25,6 @@ HEADERS = mainwindow.h \
     abstractthreadedsearch.h \
     abstracttranslator.h \
     bingtranslator.h \
-    goldendictmgr.h \
     auxdictionary.h \
     multiinputdialog.h \
     adblockrule.h \
@@ -62,7 +61,6 @@ SOURCES = main.cpp \
     abstracttranslator.cpp \
     bingtranslator.cpp \
     searchmodel.cpp \
-    goldendictmgr.cpp \
     auxdictionary.cpp \
     multiinputdialog.cpp \
     adblockrule.cpp \
