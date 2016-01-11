@@ -130,6 +130,21 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
+        ac = new QAction(QIcon(":/img/google_translate"),tr("Google translate"),NULL);
+        connect(ac, &QAction::triggered, [sText,this](){
+            QUrl u("https://translate.google.com/");
+            u.setFragment(QString("auto/en/%1").arg(sText));
+            new CSnippetViewer(snv->parentWnd, u);
+        });
+        cm->addAction(ac);
+
+        ac = new QAction(QIcon::fromTheme("document-edit-verify"),tr("Light translator"),NULL);
+        connect(ac, &QAction::triggered, [sText](){
+            gSet->showLightTranslator(sText);
+        });
+        cm->addAction(ac);
+
+
         cm->addSeparator();
     }
 

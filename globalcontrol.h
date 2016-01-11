@@ -248,6 +248,8 @@ public:
     QString getTranslationEngineString(int engine);
     void setTranslationEngine(int engine);
 
+    void showLightTranslator(const QString& text = QString());
+
 protected:
     CSettingsDlg* dlg;
     bool cleaningState;

@@ -616,10 +616,7 @@ void CMainWindow::addBookmark()
 
 void CMainWindow::showLightTranslator()
 {
-    if (gSet->lightTranslator==NULL)
-        gSet->lightTranslator = new CLightTranslator();
-
-    gSet->lightTranslator->restoreWindow();
+    gSet->showLightTranslator();
 }
 
 void CMainWindow::openBookmark()

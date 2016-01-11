@@ -72,3 +72,8 @@ CLightTranslator::~CLightTranslator()
 {
     delete ui;
 }
+
+void CLightTranslator::appendSourceText(const QString &text)
+{
+    ui->textSource->appendPlainText(text);
+}

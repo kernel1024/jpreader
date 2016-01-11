@@ -1326,6 +1326,17 @@ void CGlobalControl::setTranslationEngine(int engine)
     emit settingsUpdated();
 }
 
+void CGlobalControl::showLightTranslator(const QString &text)
+{
+    if (gSet->lightTranslator==NULL)
+        gSet->lightTranslator = new CLightTranslator();
+
+    gSet->lightTranslator->restoreWindow();
+
+    if (!text.isEmpty())
+        gSet->lightTranslator->appendSourceText(text);
+}
+
 UrlHolder::UrlHolder()
 {
     UrlHolder::title="";

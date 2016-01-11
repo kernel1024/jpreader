@@ -16,7 +16,8 @@ class CLightTranslator : public QDialog
 public:
     explicit CLightTranslator(QWidget *parent = 0);
     ~CLightTranslator();
-    
+    void appendSourceText(const QString& text);
+
 private:
     Ui::CLigthTranslator *ui;
     bool isTranslating;
