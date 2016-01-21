@@ -104,6 +104,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->editAdSearch,SIGNAL(textChanged(QString)),this,SLOT(adblockSearch(QString)));
     connect(ui->buttonAdSearchBwd,SIGNAL(clicked()),this,SLOT(adblockSearchBwd()));
     connect(ui->buttonAdSearchFwd,SIGNAL(clicked()),this,SLOT(adblockSearchFwd()));
+    connect(ui->buttonAddSearch,SIGNAL(clicked()),this,SLOT(addSearchEngine()));
+    connect(ui->buttonDelSearch,SIGNAL(clicked()),this,SLOT(delSearchEngine()));
 
 #ifndef WEBENGINE_56
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
@@ -507,6 +509,39 @@ void CSettingsDlg::adblockSearchFwd()
     adblockFocusSearchedRule(it);
 }
 
+void CSettingsDlg::addSearchEngine()
+{
+    QStrHash data;
+    data["Url template"]=QString();
+    data["Menu title"]=QString();
+
+    QString hlp = tr("In the url template you can use following substitutions\n"
+                     "  %s - search text\n"
+                     "  %ps - percent-encoded search text");
+
+    CMultiInputDialog *dlg = new CMultiInputDialog(this,tr("Add new search engine"),data,hlp);
+    if (dlg->exec()) {
+        data = dlg->getInputData();
+
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
+                                                  arg(data["Menu title"],
+                                                  data["Url template"]));
+        li->setData(Qt::UserRole,data["Menu title"]);
+        li->setData(Qt::UserRole+1,data["Url template"]);
+        ui->listSearch->addItem(li);
+    }
+    dlg->deleteLater();
+}
+
+void CSettingsDlg::delSearchEngine()
+{
+    QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
+    foreach (QListWidgetItem* i, dl) {
+        ui->listBookmarks->removeItemWidget(i);
+        delete i;
+    }
+}
+
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
 {
     if (adblockSearchIdx>=0 && adblockSearchIdx<items.count())
@@ -558,6 +593,17 @@ void CSettingsDlg::setMainHistory(QUHList history)
     }
 }
 
+void CSettingsDlg::setSearchEngines(QStrHash engines)
+{
+    foreach (const QString &t, engines.keys()) {
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
+                                                  arg(t, engines.value(t)));
+        li->setData(Qt::UserRole,t);
+        li->setData(Qt::UserRole+1,engines.value(t));
+        ui->listSearch->addItem(li);
+    }
+}
+
 void CSettingsDlg::setCookies(const QByteArray &cookies)
 {
     cookiesList = QNetworkCookie::parseCookies(cookies);
@@ -597,4 +643,14 @@ QStringList CSettingsDlg::getQueryHistory()
 QList<CAdBlockRule> CSettingsDlg::getAdblock()
 {
     return adblockList;
+}
+
+QStrHash CSettingsDlg::getSearchEngines()
+{
+    QStrHash engines;
+    engines.clear();
+    for (int i=0; i<ui->listSearch->count(); i++)
+        engines[ui->listSearch->item(i)->data(Qt::UserRole).toString()] =
+                ui->listSearch->item(i)->data(Qt::UserRole+1).toString();
+    return engines;
 }

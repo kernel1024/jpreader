@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<CAdBlockList>("CAdBlockList");
     qRegisterMetaTypeStreamOperators<QUHList>("QUHList");
     qRegisterMetaTypeStreamOperators<QBookmarksMap>("QBookmarksMap");
+    qRegisterMetaTypeStreamOperators<QStrHash>("QStrHash");
 
     QApplication app(argc, argv);
 

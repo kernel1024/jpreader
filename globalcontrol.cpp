@@ -65,6 +65,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     userAgent.clear();
     userAgentHistory.clear();
     favicons.clear();
+    ctxSearchEngines.clear();
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=QDir::homePath();
 
@@ -389,6 +390,7 @@ void CGlobalControl::writeSettings()
     bigdata.setValue("scpHostHistory",QVariant::fromValue(scpHostHistory));
     bigdata.setValue("userAgentHistory",QVariant::fromValue(userAgentHistory));
     bigdata.setValue("dictPaths",QVariant::fromValue(dictPaths));
+    bigdata.setValue("ctxSearchEngines",QVariant::fromValue(ctxSearchEngines));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
@@ -469,6 +471,7 @@ void CGlobalControl::readSettings()
     mainHistory = bigdata.value("history").value<QUHList>();
     userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
     dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
+    ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
 
     adblockMutex.lock();
     adblock = bigdata.value("adblock").value<CAdBlockList>();
@@ -717,6 +720,8 @@ void CGlobalControl::settingsDlg()
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
     dlg->visualShowFavicons->setChecked(showFavicons);
 
+    dlg->setSearchEngines(ctxSearchEngines);
+
     // flip proxy use check, for updating controls enabling logic
     dlg->proxyUse->setChecked(true);
     dlg->proxyUse->setChecked(false);
@@ -842,6 +847,8 @@ void CGlobalControl::settingsDlg()
             dictPaths.append(sl);
             dictManager->loadDictionaries(dictPaths, dictIndexDir);
         }
+
+        ctxSearchEngines = dlg->getSearchEngines();
 
         webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);
         ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
@@ -1410,4 +1417,63 @@ int compareStringLists(const QStringList &left, const QStringList &right)
     }
 
     return 0;
+}
+
+CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
+    : QObject(parent), m_url(url)
+{
+
+}
+
+void CFaviconLoader::queryStart(bool forceCached)
+{
+    if (gSet->favicons.keys().contains(m_url.host()+m_url.path())) {
+        emit gotIcon(gSet->favicons[m_url.host()+m_url.path()]);
+        deleteLater();
+        return;
+    } else if (gSet->favicons.keys().contains(m_url.host())) {
+        emit gotIcon(gSet->favicons[m_url.host()]);
+        deleteLater();
+        return;
+    }
+    if (forceCached) {
+        deleteLater();
+        return;
+    }
+
+    if (m_url.isLocalFile()) {
+        QIcon icon = QIcon(m_url.toLocalFile());
+        if (!icon.isNull()) {
+            emit gotIcon(icon);
+            deleteLater();
+        }
+
+    } else {
+        QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(m_url));
+        connect(rpl,SIGNAL(finished()),this,SLOT(queryFinished()));
+    }
+}
+
+void CFaviconLoader::queryFinished()
+{
+    QNetworkReply *rpl = qobject_cast<QNetworkReply*>(sender());
+    if (rpl==NULL) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QPixmap p;
+        if (p.loadFromData(rpl->readAll())) {
+            QIcon ico(p);
+            emit gotIcon(ico);
+            QString host = rpl->url().host();
+            QString path = rpl->url().path();
+            if (!host.isEmpty()) {
+                gSet->favicons[host] = ico;
+                if (!path.isEmpty())
+                    gSet->favicons[host+path] = ico;
+            }
+        }
+    }
+
+    rpl->deleteLater();
+    deleteLater();
 }

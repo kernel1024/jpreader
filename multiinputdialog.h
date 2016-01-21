@@ -18,7 +18,7 @@ class CMultiInputDialog : public QDialog
 
 public:
     explicit CMultiInputDialog(QWidget *parent, const QString &title,
-                               const QStrHash& data);
+                               const QStrHash& data, const QString &helperText = QString());
     ~CMultiInputDialog();
 
     QStrHash getInputData();

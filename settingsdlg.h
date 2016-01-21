@@ -104,9 +104,11 @@ public:
     void setQueryHistory(QStringList history);
     void setAdblock(QList<CAdBlockRule> adblock);
     void setMainHistory(QUHList history);
+    void setSearchEngines(QStrHash engines);
     QBookmarksMap getBookmarks();
     QStringList getQueryHistory();
     QList<CAdBlockRule> getAdblock();
+    QStrHash getSearchEngines();
 
 public slots:
     void selectDir();
@@ -132,6 +134,8 @@ public slots:
     void adblockSearch(const QString& text);
     void adblockSearchBwd();
     void adblockSearchFwd();
+    void addSearchEngine();
+    void delSearchEngine();
 };
 
 #endif // SETTINGSDLG_H

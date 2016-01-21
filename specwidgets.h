@@ -114,10 +114,10 @@ public:
     virtual QString getDocTitle() { return QString(); }
     virtual void setToolbarVisibility(bool visible) { Q_UNUSED(visible); }
     virtual void outsideDragStart() { }
-    void updateTabIcon(const QIcon& icon);
 public slots:
     void detachTab();
     void closeTab(bool nowait = false);
+    void updateTabIcon(const QIcon& icon);
 };
 
 class CSpecWebPage : public QWebEnginePage {

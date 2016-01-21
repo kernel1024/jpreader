@@ -91,6 +91,20 @@ typedef QHash<QString, QString> QStrHash;
 typedef QList<UrlHolder> QUHList;
 typedef QMap<QString, QUrl> QBookmarksMap;
 
+class CFaviconLoader : public QObject
+{
+    Q_OBJECT
+private:
+    QUrl m_url;
+public:
+    explicit CFaviconLoader(QObject *parent, const QUrl &url);
+public slots:
+    void queryStart(bool forceCached);
+    void queryFinished();
+signals:
+    void gotIcon(const QIcon& icon);
+};
+
 class CGlobalControl : public QObject
 {
     Q_OBJECT
@@ -118,6 +132,7 @@ public:
 
     QList<QColor> snippetColors;
 
+    QStrHash ctxSearchEngines;
     QBookmarksMap bookmarks;
     QUHList recycleBin;
     QUHList mainHistory;

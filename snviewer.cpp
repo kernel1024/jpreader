@@ -265,10 +265,9 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         urlEdit->setStyleSheet(QString());
     }
 
-    if (gSet->favicons.keys().contains(url.host()+url.path()))
-        updateTabIcon(gSet->favicons[url.host()+url.path()]);
-    else if (gSet->favicons.keys().contains(url.host()))
-        updateTabIcon(gSet->favicons[url.host()]);
+    CFaviconLoader* fl = new CFaviconLoader(this,url);
+    connect(fl,&CFaviconLoader::gotIcon,this,&CSnippetViewer::updateTabIcon);
+    fl->queryStart(true);
 }
 
 void CSnippetViewer::recycleTab()

@@ -2,7 +2,7 @@
 #include "ui_multiinputdialog.h"
 
 CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
-                                     const QStrHash& data) :
+                                     const QStrHash& data, const QString& helperText) :
     QDialog(parent),
     ui(new Ui::CMultiInputDialog)
 {
@@ -33,6 +33,13 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
     }
 
     ui->verticalLayout->insertLayout(0,formLayout);
+
+    if (!helperText.isEmpty()) {
+        QLabel* hlp = new QLabel(this);
+        hlp->setObjectName(QStringLiteral("label_helper"));
+        hlp->setText(helperText);
+        ui->verticalLayout->insertWidget(0,hlp);
+    }
 }
 
 CMultiInputDialog::~CMultiInputDialog()

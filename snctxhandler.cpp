@@ -85,17 +85,37 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
-        cm->addSeparator();
+        if (!gSet->ctxSearchEngines.isEmpty()) {
+            cm->addSeparator();
 
-        ac = new QAction(QIcon(":/img/google"),tr("Search in Google"),NULL);
-        connect(ac, &QAction::triggered, [sText,this](){
-            QUrl u("http://google.com/search");
-            QUrlQuery qu;
-            qu.addQueryItem("q", sText);
-            u.setQuery(qu);
-            new CSnippetViewer(snv->parentWnd, u);
-        });
-        cm->addAction(ac);
+            QStringList searchNames = gSet->ctxSearchEngines.keys();
+            searchNames.sort(Qt::CaseInsensitive);
+            foreach (const QString& name, searchNames) {
+                QString url = gSet->ctxSearchEngines.value(name);
+
+                url.replace("%s",sText);
+                url.replace("%ps",QUrl::toPercentEncoding(sText));
+
+                ac = new QAction(name,NULL);
+                connect(ac, &QAction::triggered, [url,this](){
+                    new CSnippetViewer(snv->parentWnd, QUrl::fromUserInput(url));
+                });
+
+                QUrl fiurl = url;
+                fiurl.setFragment(QString());
+                fiurl.setQuery(QString());
+                fiurl.setPath("/favicon.ico");
+                CFaviconLoader* fl = new CFaviconLoader(snv,fiurl);
+                connect(fl,&CFaviconLoader::gotIcon,[ac](const QIcon& icon){
+                    ac->setIcon(icon);
+                });
+                fl->queryStart(false);
+
+                cm->addAction(ac);
+            }
+        }
+
+        cm->addSeparator();
 
         ac = new QAction(QIcon(":/img/nepomuk"),tr("Local indexed search"),NULL);
         connect(ac, &QAction::triggered, [sText,this](){
@@ -112,29 +132,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
-        ac = new QAction(QIcon(":/img/jisho"),tr("Jisho word translation"),NULL);
-        connect(ac, &QAction::triggered, [sText,this](){
-            QUrl u("http://jisho.org/words");
-            QUrlQuery qu;
-            qu.addQueryItem("jap",sText);
-            qu.addQueryItem("eng=","");
-            qu.addQueryItem("dict","edict");
-            u.setQuery(qu);
-            new CSnippetViewer(snv->parentWnd, u);
-        });
-        cm->addAction(ac);
-
         ac = new QAction(QIcon::fromTheme("accessories-dictionary"),tr("Local dictionary"),NULL);
         connect(ac, &QAction::triggered, [sText](){
             gSet->showDictionaryWindow(sText);
-        });
-        cm->addAction(ac);
-
-        ac = new QAction(QIcon(":/img/google_translate"),tr("Google translate"),NULL);
-        connect(ac, &QAction::triggered, [sText,this](){
-            QUrl u("https://translate.google.com/");
-            u.setFragment(QString("auto/en/%1").arg(sText));
-            new CSnippetViewer(snv->parentWnd, u);
         });
         cm->addAction(ac);
 
