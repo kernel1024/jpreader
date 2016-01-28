@@ -451,7 +451,7 @@ p, li { white-space: pre-wrap; }
           <attribute name="title">
            <string>ATLAS</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_7">
+          <layout class="QVBoxLayout" name="verticalLayout_24">
            <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
@@ -466,73 +466,166 @@ p, li { white-space: pre-wrap; }
             </spacer>
            </item>
            <item>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_10">
-               <property name="text">
-                <string>ATLAS &amp;host</string>
-               </property>
-               <property name="buddy">
-                <cstring>atlHost</cstring>
-               </property>
-              </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_31">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_23">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_28">
+                 <item>
+                  <widget class="QLabel" name="label_10">
+                   <property name="text">
+                    <string>&amp;Host</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>atlHost</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="atlHost">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="editable">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="text">
+                    <string>&amp;Port</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>atlPort</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="atlPort">
+                   <property name="maximum">
+                    <number>65535</number>
+                   </property>
+                   <property name="value">
+                    <number>18000</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_26">
+                 <item>
+                  <widget class="QLabel" name="label_18">
+                   <property name="text">
+                    <string>TCP &amp;retry count</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>atlRetryCnt</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="atlRetryCnt">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_19">
+                   <property name="text">
+                    <string>TCP retry &amp;delay</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>atlRetryTimeout</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="atlRetryTimeout">
+                   <property name="suffix">
+                    <string> s</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_27">
+                 <item>
+                  <widget class="QLabel" name="label_31">
+                   <property name="text">
+                    <string>A&amp;uth token</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>atlToken</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="atlToken"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
              </item>
-             <item row="0" column="1">
-              <widget class="QComboBox" name="atlHost">
-               <property name="editable">
-                <bool>true</bool>
+             <item>
+              <widget class="QGroupBox" name="groupBox_9">
+               <property name="title">
+                <string>SSL/TLS protocol</string>
                </property>
+               <layout class="QVBoxLayout" name="verticalLayout_7">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_29">
+                  <item>
+                   <widget class="QLabel" name="label_33">
+                    <property name="text">
+                     <string>Forc&amp;e protocol</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>atlSSLProto</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="atlSSLProto"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="Line" name="line_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_30">
+                  <item>
+                   <widget class="QLabel" name="atlCertsLabel">
+                    <property name="text">
+                     <string>Te&amp;xtLabel</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="buttonAtlClean">
+                    <property name="text">
+                     <string>Clean</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>AT&amp;LAS port</string>
-               </property>
-               <property name="buddy">
-                <cstring>atlPort</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="atlPort">
-               <property name="maximum">
-                <number>65535</number>
-               </property>
-               <property name="value">
-                <number>18000</number>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>TCP &amp;retry count</string>
-               </property>
-               <property name="buddy">
-                <cstring>atlRetryCnt</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QSpinBox" name="atlRetryCnt">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>TCP retry &amp;delay</string>
-               </property>
-               <property name="buddy">
-                <cstring>atlRetryTimeout</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QSpinBox" name="atlRetryTimeout"/>
              </item>
             </layout>
            </item>
@@ -1663,6 +1756,9 @@ p, li { white-space: pre-wrap; }
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
   <tabstop>atlRetryTimeout</tabstop>
+  <tabstop>atlToken</tabstop>
+  <tabstop>atlSSLProto</tabstop>
+  <tabstop>buttonAtlClean</tabstop>
   <tabstop>checkEmptyRestore</tabstop>
   <tabstop>gctxHotkey</tabstop>
   <tabstop>editBingID</tabstop>

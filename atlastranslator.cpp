@@ -1,7 +1,6 @@
 #include <QRegExp>
 #include <QUrl>
 #include "atlastranslator.h"
-#include "globalcontrol.h"
 
 CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTranslateMode TranMode) :
     CAbstractTranslator(parent)
@@ -13,6 +12,23 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTr
     emptyRestore=false;
     if (gSet!=NULL)
         emptyRestore=gSet->emptyRestore;
+
+    QSslConfiguration conf = sock.sslConfiguration();
+    conf.setProtocol(gSet->atlProto);
+    sock.setSslConfiguration(conf);
+
+    QList<QSslError> expectedErrors;
+    foreach (const QSslCertificate& cert, gSet->atlCerts.keys())
+        foreach (const int errCode, gSet->atlCerts.value(cert))
+            expectedErrors << QSslError((QSslError::SslError)errCode,cert);
+    sock.ignoreSslErrors(expectedErrors);
+
+    connect(&sock,SIGNAL(sslErrors(QList<QSslError>)),this,SLOT(sslError(QList<QSslError>)));
+    connect(&sock,SIGNAL(error(QAbstractSocket::SocketError)),
+            this,SLOT(socketError(QAbstractSocket::SocketError)));
+
+    connect(this,SIGNAL(sslCertErrors(QSslCertificate,QStringList,QIntList)),
+            gSet,SLOT(atlSSLCertErrors(QSslCertificate,QStringList,QIntList)));
 }
 
 CAtlasTranslator::~CAtlasTranslator()
@@ -31,19 +47,21 @@ bool CAtlasTranslator::initTran()
     else
         sock.setProxy(QNetworkProxy::NoProxy);
 
-    sock.connectToHost(atlHost,atlPort);
-    if (!sock.waitForConnected()) {
-        qCritical() << "ATLAS: connection timeout";
+    sock.connectToHostEncrypted(atlHost,atlPort);
+    if (!sock.waitForEncrypted()) {
+        tranError = QString("ATLAS: SSL connection timeout");
+        qCritical() << "ATLAS: SSL connection timeout";
         return false;
     }
     QByteArray buf;
 
     // INIT command and response
-    buf = QString("INIT\r\n").toLatin1();
+    buf = QString("INIT:%1\r\n").arg(gSet->atlToken).toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
+            tranError = QString("ATLAS: initialization timeout");
             qCritical() << "ATLAS: initialization timeout";
             sock.close();
             return false;
@@ -51,6 +69,7 @@ bool CAtlasTranslator::initTran()
     }
     buf = sock.readLine().simplified();
     if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+        tranError = QString("ATLAS: initialization error");
         qCritical() << "ATLAS: initialization error";
         sock.close();
         return false;
@@ -67,6 +86,7 @@ bool CAtlasTranslator::initTran()
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
+            tranError = QString("ATLAS: direction timeout error");
             qCritical() << "ATLAS: direction timeout error";
             sock.close();
             return false;
@@ -74,6 +94,7 @@ bool CAtlasTranslator::initTran()
     }
     buf = sock.readLine().simplified();
     if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+        tranError = QString("ATLAS: direction error");
         qCritical() << "ATLAS: direction error";
         sock.close();
         return false;
@@ -165,5 +186,29 @@ void CAtlasTranslator::doneTran(bool lazyClose)
 bool CAtlasTranslator::isReady()
 {
     return (inited && sock.isOpen());
+}
+
+void CAtlasTranslator::sslError(const QList<QSslError> & errors)
+{
+    QHash<QSslCertificate,QStringList> errStrHash;
+    QHash<QSslCertificate,QIntList> errIntHash;
+
+    foreach (const QSslError& err, errors) {
+        if (gSet->atlCerts.contains(err.certificate()) &&
+                gSet->atlCerts.value(err.certificate()).contains((int)err.error())) continue;
+
+        qDebug() << "ATLAS SSL error: " + err.errorString();
+        errStrHash[err.certificate()].append(err.errorString());
+        errIntHash[err.certificate()].append((int)err.error());
+    }
+
+    foreach (const QSslCertificate& key, errStrHash.keys()) {
+        emit sslCertErrors(key,errStrHash.value(key),errIntHash.value(key));
+    }
+}
+
+void CAtlasTranslator::socketError(const QAbstractSocket::SocketError error)
+{
+    qCritical() << "ATLAS socket error: " << error;
 }
 

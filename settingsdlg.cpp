@@ -35,6 +35,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     atlPort=ui->atlPort;
     atlRetryCount=ui->atlRetryCnt;
     atlRetryTimeout=ui->atlRetryTimeout;
+    atlToken = ui->atlToken;
+    atlSSLProto = ui->atlSSLProto;
+
     rbAtlas=ui->radioAtlas;
     maxRecycled=ui->spinMaxRecycled;
     useJS=ui->checkJS;
@@ -106,6 +109,16 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAdSearchFwd,SIGNAL(clicked()),this,SLOT(adblockSearchFwd()));
     connect(ui->buttonAddSearch,SIGNAL(clicked()),this,SLOT(addSearchEngine()));
     connect(ui->buttonDelSearch,SIGNAL(clicked()),this,SLOT(delSearchEngine()));
+    connect(ui->buttonAtlClean,SIGNAL(clicked()),this,SLOT(cleanAtlCerts()));
+
+    ui->atlSSLProto->addItem("Secure",(int)QSsl::SecureProtocols);
+    ui->atlSSLProto->addItem("TLS 1.2",(int)QSsl::TlsV1_2);
+    ui->atlSSLProto->addItem("TLS 1.1",(int)QSsl::TlsV1_1);
+    ui->atlSSLProto->addItem("TLS 1.0",(int)QSsl::TlsV1_0);
+    ui->atlSSLProto->addItem("SSL V3",(int)QSsl::SslV3);
+    ui->atlSSLProto->addItem("SSL V2",(int)QSsl::SslV2);
+    ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
+    updateAtlCertLabel();
 
 #ifndef WEBENGINE_56
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
@@ -465,6 +478,12 @@ void CSettingsDlg::exportCookies()
 #endif
 }
 
+void CSettingsDlg::cleanAtlCerts()
+{
+    gSet->atlCerts.clear();
+    updateAtlCertLabel();
+}
+
 void CSettingsDlg::adblockSearch(const QString &text)
 {
     QString s = text.trimmed();
@@ -540,6 +559,11 @@ void CSettingsDlg::delSearchEngine()
         ui->listBookmarks->removeItemWidget(i);
         delete i;
     }
+}
+
+void CSettingsDlg::updateAtlCertLabel()
+{
+    ui->atlCertsLabel->setText(QString("Thrusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
 }
 
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)

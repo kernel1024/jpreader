@@ -2,9 +2,10 @@
 #define ATLASTRANSLATOR_H
 
 #include <QObject>
-#include <QTcpSocket>
+#include <QSslSocket>
 #include <QString>
 #include <abstracttranslator.h>
+#include "globalcontrol.h"
 
 class CAtlasTranslator : public CAbstractTranslator
 {
@@ -16,7 +17,7 @@ public:
         JpnToEngTran
     };
 private:
-    QTcpSocket sock;
+    QSslSocket sock;
     QString atlHost;
     int atlPort;
     ATTranslateMode tranMode;
@@ -32,8 +33,11 @@ public:
     bool isReady();
 
 signals:
+    void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const QIntList& errCodes);
 
 public slots:
+    void sslError(const QList<QSslError>&);
+    void socketError(const QAbstractSocket::SocketError error);
 
 };
 

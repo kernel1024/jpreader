@@ -87,6 +87,10 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     atlTcpRetryCount = 3;
     atlTcpTimeout = 2;
+    atlCerts.clear();
+    atlToken = QString();
+    atlCertErrorInteractive = false;
+    atlProto = QSsl::SecureProtocols;
     bingID = QString();
     bingKey = QString();
     yandexKey = QString();
@@ -391,6 +395,7 @@ void CGlobalControl::writeSettings()
     bigdata.setValue("userAgentHistory",QVariant::fromValue(userAgentHistory));
     bigdata.setValue("dictPaths",QVariant::fromValue(dictPaths));
     bigdata.setValue("ctxSearchEngines",QVariant::fromValue(ctxSearchEngines));
+    bigdata.setValue("atlasCertificates",QVariant::fromValue(atlCerts));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
@@ -404,6 +409,8 @@ void CGlobalControl::writeSettings()
     settings.setValue("scpparams",scpParams);
     settings.setValue("atlasHost",atlHost);
     settings.setValue("atlasPort",atlPort);
+    settings.setValue("atlasToken",atlToken);
+    settings.setValue("atlasProto",(int)atlProto);
     settings.setValue("auxDir",savedAuxDir);
     settings.setValue("auxSaveDir",savedAuxSaveDir);
     settings.setValue("emptyRestore",emptyRestore);
@@ -472,6 +479,7 @@ void CGlobalControl::readSettings()
     userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
     dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
     ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
+    atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
 
     adblockMutex.lock();
     adblock = bigdata.value("adblock").value<CAdBlockList>();
@@ -489,6 +497,8 @@ void CGlobalControl::readSettings()
     scpParams = settings.value("scpparams","").toString();
     atlHost = settings.value("atlasHost","localhost").toString();
     atlPort = settings.value("atlasPort",18000).toInt();
+    atlToken = settings.value("atlasToken","").toString();
+    atlProto = (QSsl::SslProtocol)settings.value("atlasProto",QSsl::SecureProtocols).toInt();
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     savedAuxSaveDir = settings.value("auxSaveDir",QDir::homePath()).toString();
     emptyRestore = settings.value("emptyRestore",false).toBool();
@@ -657,6 +667,12 @@ void CGlobalControl::settingsDlg()
     dlg->atlPort->setValue(atlPort);
     dlg->atlRetryCount->setValue(atlTcpRetryCount);
     dlg->atlRetryTimeout->setValue(atlTcpTimeout);
+    dlg->atlToken->setText(atlToken);
+    int idx = dlg->atlSSLProto->findData(atlProto);
+    if (idx<0 || idx>=dlg->atlSSLProto->count())
+        idx = 0;
+    dlg->atlSSLProto->setCurrentIndex(idx);
+    dlg->updateAtlCertLabel();
     dlg->bingID->setText(bingID);
     dlg->bingKey->setText(bingKey);
     dlg->yandexKey->setText(yandexKey);
@@ -783,6 +799,8 @@ void CGlobalControl::settingsDlg()
         atlPort=dlg->atlPort->value();
         atlTcpRetryCount=dlg->atlRetryCount->value();
         atlTcpTimeout=dlg->atlRetryTimeout->value();
+        atlToken=dlg->atlToken->text();
+        atlProto=(QSsl::SslProtocol)dlg->atlSSLProto->currentData().toInt();
         bingID=dlg->bingID->text();
         bingKey=dlg->bingKey->text();
         yandexKey=dlg->yandexKey->text();
@@ -914,6 +932,35 @@ void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
 {
     if (auxNetManager->cookieJar()!=NULL)
         auxNetManager->cookieJar()->deleteCookie(cookie);
+}
+
+void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QStringList &errors,
+                                      const QIntList &errCodes)
+{
+    if (atlCertErrorInteractive) return;
+
+    QMessageBox mbox;
+    mbox.setWindowTitle(tr("JPReader"));
+    mbox.setText(tr("SSL error(s) occured while connecting to ATLAS service.\n"
+                    "Add this certificate to thrusted list?"));
+    QString imsg;
+    for(int i=0;i<errors.count();i++)
+        imsg+=QString("%1. %2\n").arg(i+1).arg(errors.at(i));
+    mbox.setInformativeText(imsg);
+
+    mbox.setDetailedText(cert.toText());
+
+    mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    mbox.setDefaultButton(QMessageBox::No);
+
+    atlCertErrorInteractive = true;
+    if (mbox.exec()==QMessageBox::Yes) {
+        foreach (const int errCode, errCodes) {
+            if (!gSet->atlCerts[cert].contains(errCode))
+                gSet->atlCerts[cert].append(errCode);
+        }
+    }
+    atlCertErrorInteractive = false;
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -1476,4 +1523,20 @@ void CFaviconLoader::queryFinished()
 
     rpl->deleteLater();
     deleteLater();
+}
+
+QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj)
+{
+    out << obj.toPem();
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, QSslCertificate &obj)
+{
+    QByteArray pem;
+    in >> pem;
+    QList<QSslCertificate> slist = QSslCertificate::fromData(pem,QSsl::Pem);
+    if (!slist.isEmpty())
+        obj = slist.first();
+    return in;
 }

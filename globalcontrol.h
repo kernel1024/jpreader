@@ -22,6 +22,7 @@
 #include <QLocalSocket>
 #include <QWebEngineProfile>
 #include <QNetworkAccessManager>
+#include <QSslCertificate>
 #include <QDebug>
 
 #include "specwidgets.h"
@@ -88,8 +89,10 @@ public:
 };
 
 typedef QHash<QString, QString> QStrHash;
+typedef QList<int> QIntList;
 typedef QList<UrlHolder> QUHList;
 typedef QMap<QString, QUrl> QBookmarksMap;
+typedef QHash<QSslCertificate,QIntList> QSslCertificateHash;
 
 class CFaviconLoader : public QObject
 {
@@ -104,6 +107,9 @@ public slots:
 signals:
     void gotIcon(const QIcon& icon);
 };
+
+QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
+QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 
 class CGlobalControl : public QObject
 {
@@ -195,6 +201,10 @@ public:
 
     int atlTcpRetryCount;
     int atlTcpTimeout;
+    QSslCertificateHash atlCerts;
+    QSsl::SslProtocol atlProto;
+    bool atlCertErrorInteractive;
+    QString atlToken;
     QString bingID;
     QString bingKey;
     QString yandexKey;
@@ -307,6 +317,9 @@ public slots:
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);
     void cookieRemoved(const QNetworkCookie &cookie);
+
+    // ATLAS SSL
+    void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors, const QIntList& errCodes);
 };
 
 extern CGlobalControl* gSet;

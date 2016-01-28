@@ -42,6 +42,8 @@ public:
     QSpinBox* atlPort;
     QSpinBox* atlRetryCount;
     QSpinBox* atlRetryTimeout;
+    QLineEdit* atlToken;
+    QComboBox* atlSSLProto;
     QSpinBox* maxRecycled;
     QCheckBox* useJS;
     QCheckBox* useAd;
@@ -131,11 +133,13 @@ public slots:
     void getCookiesFromStore();
     void delCookies();
     void exportCookies();
+    void cleanAtlCerts();
     void adblockSearch(const QString& text);
     void adblockSearchBwd();
     void adblockSearchFwd();
     void addSearchEngine();
     void delSearchEngine();
+    void updateAtlCertLabel();
 };
 
 #endif // SETTINGSDLG_H

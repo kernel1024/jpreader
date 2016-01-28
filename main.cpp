@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QFile>
 #include <QStringList>
+#include <QSslCertificate>
 
 #include "specwidgets.h"
 #include "globalcontrol.h"
@@ -21,12 +22,15 @@ int main(int argc, char *argv[])
     qRegisterMetaType<UrlHolder>("UrlHolder");
     qRegisterMetaType<QBResult>("QBResult");
     qRegisterMetaType<QDir>("QDir");
+    qRegisterMetaType<QSslCertificate>("QSslCertificate");
+    qRegisterMetaType<QIntList>("QIntList");
     qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
     qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
     qRegisterMetaTypeStreamOperators<CAdBlockList>("CAdBlockList");
     qRegisterMetaTypeStreamOperators<QUHList>("QUHList");
     qRegisterMetaTypeStreamOperators<QBookmarksMap>("QBookmarksMap");
     qRegisterMetaTypeStreamOperators<QStrHash>("QStrHash");
+    qRegisterMetaTypeStreamOperators<QSslCertificateHash>("QSslCertificateHash");
 
     QApplication app(argc, argv);
 
