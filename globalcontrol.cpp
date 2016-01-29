@@ -418,8 +418,10 @@ void CGlobalControl::writeSettings()
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
     settings.setValue("autoloadimages",webProfile->settings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
+#ifdef WEBENGINE_56
     settings.setValue("enablePlugins",webProfile->settings()->
                       testAttribute(QWebEngineSettings::PluginsEnabled));
+#endif
     settings.setValue("recycledCount",maxRecycled);
 
     settings.setValue("useAdblock",useAdblock);
@@ -508,8 +510,10 @@ void CGlobalControl::readSettings()
     actionJSUsage->setChecked(jsstate);
     webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                          settings.value("autoloadimages",true).toBool());
+#ifdef WEBENGINE_56
     webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                          settings.value("enablePlugins",false).toBool());
+#endif
 
     useAdblock=settings.value("useAdblock",false).toBool();
     actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
@@ -637,8 +641,10 @@ void CGlobalControl::settingsDlg()
                            testAttribute(QWebEngineSettings::JavascriptEnabled));
     dlg->autoloadImages->setChecked(webProfile->settings()->
                                     testAttribute(QWebEngineSettings::AutoLoadImages));
+#ifdef WEBENGINE_56
     dlg->enablePlugins->setChecked(webProfile->settings()->
                                    testAttribute(QWebEngineSettings::PluginsEnabled));
+#endif
 
     dlg->setBookmarks(bookmarks);
     dlg->setMainHistory(mainHistory);
@@ -784,8 +790,10 @@ void CGlobalControl::settingsDlg()
         actionJSUsage->setChecked(dlg->useJS->isChecked());
         webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                              dlg->autoloadImages->isChecked());
+#ifdef WEBENGINE_56
         webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                              dlg->enablePlugins->isChecked());
+#endif
 
         if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;

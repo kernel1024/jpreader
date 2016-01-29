@@ -197,7 +197,7 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
         if (gSet->atlCerts.contains(err.certificate()) &&
                 gSet->atlCerts.value(err.certificate()).contains((int)err.error())) continue;
 
-        qDebug() << "ATLAS SSL error: " + err.errorString();
+        qCritical() << "ATLAS SSL error: " + err.errorString();
         errStrHash[err.certificate()].append(err.errorString());
         errIntHash[err.certificate()].append((int)err.error());
     }

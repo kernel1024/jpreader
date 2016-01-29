@@ -138,6 +138,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->buttonDelCookies->setEnabled(false);
     ui->buttonExportCookies->setEnabled(false);
     ui->buttonClearCookies->setEnabled(false);
+
+    ui->checkEnablePlugins->setEnabled(false);
+    ui->checkEnablePlugins->setToolTip(we56);
 #endif
 }
 
