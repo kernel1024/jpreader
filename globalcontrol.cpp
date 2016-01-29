@@ -942,7 +942,7 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
     QMessageBox mbox;
     mbox.setWindowTitle(tr("JPReader"));
     mbox.setText(tr("SSL error(s) occured while connecting to ATLAS service.\n"
-                    "Add this certificate to thrusted list?"));
+                    "Add this certificate to trusted list?"));
     QString imsg;
     for(int i=0;i<errors.count();i++)
         imsg+=QString("%1. %2\n").arg(i+1).arg(errors.at(i));

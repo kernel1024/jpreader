@@ -563,7 +563,7 @@ void CSettingsDlg::delSearchEngine()
 
 void CSettingsDlg::updateAtlCertLabel()
 {
-    ui->atlCertsLabel->setText(QString("Thrusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
+    ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
 }
 
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
