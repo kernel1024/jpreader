@@ -341,7 +341,8 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 
 bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)
 {
-    Q_UNUSED(certificateError);
+    qWarning() << "SSL certificate error" << certificateError.error()
+               << certificateError.errorDescription() << certificateError.url();
 
     return gSet->ignoreSSLErrors;
 }
