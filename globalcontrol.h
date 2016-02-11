@@ -139,6 +139,8 @@ public:
     QList<QColor> snippetColors;
 
     QStrHash ctxSearchEngines;
+    QString defaultSearchEngine;
+
     QBookmarksMap bookmarks;
     QUHList recycleBin;
     QUHList mainHistory;
@@ -274,6 +276,8 @@ public:
     void setTranslationEngine(int engine);
 
     void showLightTranslator(const QString& text = QString());
+
+    QUrl createSearchUrl(const QString& text, const QString& engine = QString());
 
 protected:
     CSettingsDlg* dlg;

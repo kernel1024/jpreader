@@ -110,6 +110,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonAddSearch,SIGNAL(clicked()),this,SLOT(addSearchEngine()));
     connect(ui->buttonDelSearch,SIGNAL(clicked()),this,SLOT(delSearchEngine()));
     connect(ui->buttonAtlClean,SIGNAL(clicked()),this,SLOT(cleanAtlCerts()));
+    connect(ui->buttonDefaultSearch,SIGNAL(clicked()),this,SLOT(setDefaultSearch()));
 
     ui->atlSSLProto->addItem("Secure",(int)QSsl::SecureProtocols);
     ui->atlSSLProto->addItem("TLS 1.2",(int)QSsl::TlsV1_2);
@@ -545,9 +546,10 @@ void CSettingsDlg::addSearchEngine()
     if (dlg->exec()) {
         data = dlg->getInputData();
 
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
                                                   arg(data["Menu title"],
-                                                  data["Url template"]));
+                                                  data["Url template"],
+                data["Menu title"]==gSet->defaultSearchEngine ? tr("(default)") : QString()));
         li->setData(Qt::UserRole,data["Menu title"]);
         li->setData(Qt::UserRole+1,data["Url template"]);
         ui->listSearch->addItem(li);
@@ -567,6 +569,16 @@ void CSettingsDlg::delSearchEngine()
 void CSettingsDlg::updateAtlCertLabel()
 {
     ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
+}
+
+void CSettingsDlg::setDefaultSearch()
+{
+    QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
+    if (dl.isEmpty()) return;
+
+    gSet->defaultSearchEngine = dl.first()->data(Qt::UserRole).toString();
+
+    setSearchEngines(getSearchEngines());
 }
 
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
@@ -622,9 +634,12 @@ void CSettingsDlg::setMainHistory(QUHList history)
 
 void CSettingsDlg::setSearchEngines(QStrHash engines)
 {
+    ui->listSearch->clear();
     foreach (const QString &t, engines.keys()) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
-                                                  arg(t, engines.value(t)));
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
+                                                  arg(t,
+                                                  engines.value(t),
+                t==gSet->defaultSearchEngine ? tr("(default)") : QString()));
         li->setData(Qt::UserRole,t);
         li->setData(Qt::UserRole+1,engines.value(t));
         ui->listSearch->addItem(li);

@@ -91,14 +91,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
             QStringList searchNames = gSet->ctxSearchEngines.keys();
             searchNames.sort(Qt::CaseInsensitive);
             foreach (const QString& name, searchNames) {
-                QString url = gSet->ctxSearchEngines.value(name);
-
-                url.replace("%s",sText);
-                url.replace("%ps",QUrl::toPercentEncoding(sText));
+                QUrl url = gSet->createSearchUrl(sText,name);
 
                 ac = new QAction(name,NULL);
                 connect(ac, &QAction::triggered, [url,this](){
-                    new CSnippetViewer(snv->parentWnd, QUrl::fromUserInput(url));
+                    new CSnippetViewer(snv->parentWnd, url);
                 });
 
                 QUrl fiurl = url;

@@ -186,13 +186,13 @@ void CSnippetViewer::navByUrl(QString url)
 {
     QString aUrl = url;
     QUrl u = QUrl::fromUserInput(aUrl);
+    QStringList validSpecSchemes;
+    validSpecSchemes << "gdlookup" << "about" << "chrome";
 
-    if (u.scheme().toLower()!="gdlookup" && (!u.isValid() || !url.contains('.'))) {
-        u = QUrl("http://google.com/search");
-        QUrlQuery qu;
-        qu.addQueryItem("q", url);
-        u.setQuery(qu);
-    }
+    if (!validSpecSchemes.contains(u.scheme().toLower())
+            && (!u.isValid() || !url.contains('.'))
+            && !gSet->ctxSearchEngines.isEmpty())
+        u = gSet->createSearchUrl(url);
 
     urlEdit->setStyleSheet(QString());
 

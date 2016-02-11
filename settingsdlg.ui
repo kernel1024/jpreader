@@ -301,6 +301,26 @@
              </widget>
             </item>
             <item>
+             <spacer name="horizontalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDefaultSearch">
+              <property name="text">
+               <string>Use by default</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_5">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -1742,6 +1762,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxLimit</tabstop>
   <tabstop>listSearch</tabstop>
   <tabstop>buttonAddSearch</tabstop>
+  <tabstop>buttonDefaultSearch</tabstop>
   <tabstop>buttonDelSearch</tabstop>
   <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>

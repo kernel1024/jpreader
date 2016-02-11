@@ -140,6 +140,7 @@ public slots:
     void addSearchEngine();
     void delSearchEngine();
     void updateAtlCertLabel();
+    void setDefaultSearch();
 };
 
 #endif // SETTINGSDLG_H

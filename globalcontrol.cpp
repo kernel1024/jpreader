@@ -66,6 +66,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     userAgentHistory.clear();
     favicons.clear();
     ctxSearchEngines.clear();
+    defaultSearchEngine.clear();
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=QDir::homePath();
 
@@ -458,6 +459,7 @@ void CGlobalControl::writeSettings()
     settings.setValue("showFavicons",showFavicons);
     settings.setValue("diskCacheSize",webProfile->httpCacheMaximumSize());
     settings.setValue("jsLogConsole",jsLogConsole);
+    settings.setValue("defaultSearchEngine",defaultSearchEngine);
     settings.endGroup();
     bigdata.endGroup();
     settingsSaveMutex.unlock();
@@ -551,6 +553,7 @@ void CGlobalControl::readSettings()
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
     showFavicons = settings.value("showFavicons",true).toBool();
+    defaultSearchEngine = settings.value("defaultSearchEngine",QString()).toString();
     webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
@@ -1397,6 +1400,23 @@ void CGlobalControl::showLightTranslator(const QString &text)
 
     if (!text.isEmpty())
         gSet->lightTranslator->appendSourceText(text);
+}
+
+QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)
+{
+    if (ctxSearchEngines.isEmpty())
+        return QUrl("about://blank");
+
+    QString url = ctxSearchEngines.values().first();
+    if (engine.isEmpty() && !defaultSearchEngine.isEmpty())
+        url = ctxSearchEngines.value(defaultSearchEngine);
+    if (!engine.isEmpty() && ctxSearchEngines.contains(engine))
+        url = ctxSearchEngines.value(engine);
+
+    url.replace("%s",text);
+    url.replace("%ps",QUrl::toPercentEncoding(text));
+
+    return QUrl::fromUserInput(url);
 }
 
 UrlHolder::UrlHolder()
