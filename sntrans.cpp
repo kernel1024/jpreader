@@ -199,7 +199,7 @@ void CSnTrans::selectionShow()
 
 void CSnTrans::showWordTranslation(const QString &html)
 {
-    if (snv->ctxHandler->menuActive.isActive()) return;
+    if (snv->ctxHandler->menuActive->isActive()) return;
     CSpecToolTipLabel *t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);

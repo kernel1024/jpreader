@@ -152,8 +152,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     else
         netHandler->load(AuxContent);
 
-    txtBrowser->setFocus();
-
     int idx = comboZoom->findText(zoom,Qt::MatchExactly);
     if (idx>=0) {
         comboZoom->setCurrentIndex(idx);
@@ -167,6 +165,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     if (!startPage)
         parentWnd->closeStartPage();
+
+    msgHandler->focusTimer->start();
 }
 
 void CSnippetViewer::updateButtonsState()

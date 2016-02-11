@@ -22,8 +22,9 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
-    menuActive.setSingleShot(false);
-    connect(&menuActive, &QTimer::timeout,[this](){
+    menuActive = new QTimer(this);
+    menuActive->setSingleShot(false);
+    connect(menuActive, &QTimer::timeout,[this](){
         emit hideTooltips();
     });
 }
@@ -235,11 +236,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     ccm->addAction(QIcon::fromTheme("document-save"),tr("Save to file..."),
                  this,SLOT(saveToFile()));
 
-    menuActive.setInterval(1000);
-    menuActive.start();
+    menuActive->setInterval(1000);
+    menuActive->start();
 
     connect(cm, &QMenu::aboutToHide, [this](){
-        menuActive.stop();
+        menuActive->stop();
     });
 
     cm->setAttribute(Qt::WA_DeleteOnClose,true);
@@ -259,7 +260,7 @@ void CSnCtxHandler::translateFragment()
     connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
-        if (!text.isEmpty() && !menuActive.isActive()) {
+        if (!text.isEmpty() && !menuActive->isActive()) {
             CSpecToolTipLabel* lbl = new CSpecToolTipLabel(wordWrap(text,80));
             lbl->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &CSpecToolTipLabel::close);

@@ -21,6 +21,7 @@ private:
     qreal zoomFactor;
 public:
     QTimer *loadingBarHideTimer;
+    QTimer *focusTimer;
     QUrl hoveredLink;
     CSnMsgHandler(CSnippetViewer * parent);
     void updateZoomFactor();
@@ -35,6 +36,7 @@ public slots:
     void updateSrcLang(QAction *action);
     void updateTranEngine();
     void hideBarLoading();
+    void focusSet();
 #ifdef WEBENGINE_56
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                              int exitCode);

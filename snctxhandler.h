@@ -16,7 +16,7 @@ class CSnCtxHandler : public QObject
 private:
     CSnippetViewer *snv;
 public:
-    QTimer menuActive;
+    QTimer *menuActive;
     CSnCtxHandler(CSnippetViewer *parent);
 public slots:
     void contextMenu(const QPoint &pos);

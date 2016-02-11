@@ -8,7 +8,13 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     snv = parent;
     zoomFactor = 1.0;
     loadingBarHideTimer = new QTimer(this);
-    connect(loadingBarHideTimer,SIGNAL(timeout()),loadingBarHideTimer,SLOT(stop()));
+    loadingBarHideTimer->setInterval(1500);
+    loadingBarHideTimer->setSingleShot(true);
+    focusTimer = new QTimer(this);
+    focusTimer->setInterval(1000);
+    focusTimer->setSingleShot(true);
+
+    connect(focusTimer,&QTimer::timeout,this,&CSnMsgHandler::focusSet);
 }
 
 void CSnMsgHandler::updateZoomFactor()
@@ -101,7 +107,15 @@ void CSnMsgHandler::updateTranEngine()
 
 void CSnMsgHandler::hideBarLoading()
 {
-    loadingBarHideTimer->start(1500);
+    loadingBarHideTimer->start();
+}
+
+void CSnMsgHandler::focusSet()
+{
+    if (snv->urlEdit->text().isEmpty())
+        snv->urlEdit->setFocus();
+    else
+        snv->txtBrowser->setFocus();
 }
 
 #ifdef WEBENGINE_56
