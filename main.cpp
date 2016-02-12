@@ -12,7 +12,7 @@
 
 #include <sys/resource.h>
 
-CGlobalControl* gSet;
+CGlobalControl* gSet = NULL;
 QStringList debugMessages;
 
 int main(int argc, char *argv[])

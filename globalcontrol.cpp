@@ -6,13 +6,13 @@
 #include <QStandardPaths>
 
 #ifdef WEBENGINE_56
-#include <QWebEngineCookieStoreClient>
+#include <QWebEngineCookieStore>
 #endif
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include "miniqxt/qxtglobalshortcut.h"
-#include "goldendict/goldendictmgr.h"
+#include <goldendictlib/goldendictmgr.hh>
 
 #include "globalcontrol.h"
 #include "lighttranslator.h"
@@ -256,10 +256,11 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
     webProfile->installUrlSchemeHandler(QByteArray("gdlookup"), new CSpecGDSchemeHandler());
 
-    connect(webProfile->cookieStoreClient(), SIGNAL(cookieAdded(QNetworkCookie)),
+    connect(webProfile->cookieStore(), SIGNAL(cookieAdded(QNetworkCookie)),
             this, SLOT(cookieAdded(QNetworkCookie)));
-    connect(webProfile->cookieStoreClient(), SIGNAL(cookieRemoved(QNetworkCookie)),
+    connect(webProfile->cookieStore(), SIGNAL(cookieRemoved(QNetworkCookie)),
             this, SLOT(cookieRemoved(QNetworkCookie)));
+    webProfile->cookieStore()->loadAllCookies();
 #endif
 
     readSettings();
@@ -289,6 +290,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
 
     auxNetManager = new QNetworkAccessManager(this);
+    auxNetManager->setCookieJar(new CNetworkCookieJar());
 
     settingsSaveTimer.setInterval(60000);
     connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
@@ -898,9 +900,10 @@ void CGlobalControl::settingsDlg()
         updateProxy(proxyUse,true);
         emit settingsUpdated();
     }
-    dlg->setParent(NULL);
-    delete dlg;
-    dlg=NULL;
+    connect(dlg,&CSettingsDlg::destroyed,[this](){
+        dlg=NULL;
+    });
+    dlg->deleteLater();
 }
 
 void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)

@@ -93,7 +93,6 @@ private:
     int adblockSearchIdx;
 
     void updateCookiesTable();
-    void setCookies(const QByteArray& cookies);
     QList<int> getSelectedRows(QTableWidget* table);
     void updateAdblockList();
     void adblockFocusSearchedRule(QList<QTreeWidgetItem *> items);

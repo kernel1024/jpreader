@@ -4,9 +4,9 @@
 #include <QWebEngineView>
 #include <QKeyEvent>
 #include <QCompleter>
+#include <goldendictlib/goldendictmgr.hh>
 
 #include "auxdictionary.h"
-#include "goldendict/goldendictmgr.h"
 #include "globalcontrol.h"
 #include "ui_auxdictionary.h"
 

@@ -20,6 +20,7 @@
 #include <QSyntaxHighlighter>
 #include <QAbstractListModel>
 #include <QEventLoop>
+#include <QNetworkCookieJar>
 
 #ifdef WEBENGINE_56
 #include <QWebEngineUrlRequestInterceptor>
@@ -159,7 +160,7 @@ class CSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
     Q_OBJECT
 public:
     CSpecUrlInterceptor(QObject *p = 0);
-    bool interceptRequest(QWebEngineUrlRequestInfo &info);
+    void interceptRequest(QWebEngineUrlRequestInfo &info);
 };
 
 class CSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
@@ -206,6 +207,15 @@ public slots:
     void finished();
     void timeout();
     void objDestroyed(QObject *obj);
+};
+
+class CNetworkCookieJar : public QNetworkCookieJar
+{
+    Q_OBJECT
+public:
+    explicit CNetworkCookieJar(QObject * parent = 0);
+
+    QList<QNetworkCookie> getAllCookies();
 };
 
 #endif // SPECTABWIDGET_H

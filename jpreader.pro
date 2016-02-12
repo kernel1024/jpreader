@@ -94,7 +94,7 @@ CONFIG += warn_on \
     stl \
     c++11
 
-LIBS += -lz
+LIBS += -lz -lgoldendict
 
 exists( /usr/include/magic.h ) {
     LIBS += -lmagic
@@ -174,15 +174,6 @@ DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 
 include( htmlcxx/htmlcxx.pri )
 include( miniqxt/miniqxt.pri )
-include( goldendict/goldendict.pri )
-
-# install
-sources.files = $$SOURCES \
-    $$HEADERS \
-    $$FORMS \
-    jpreader.pro
-target.path = /usr/local/bin
-INSTALLS += target
 
 OTHER_FILES += \
     data/startpage.html \

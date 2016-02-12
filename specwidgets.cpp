@@ -4,14 +4,14 @@
 #include <QUrlQuery>
 #include <QMessageLogger>
 #include <vector>
-#include "goldendict/goldendictmgr.h"
+#include <goldendictlib/goldendictmgr.hh>
+#include <goldendictlib/dictionary.hh>
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
 #include "globalcontrol.h"
 #include "searchtab.h"
 #include "genericfuncs.h"
-#include "dictionary.hh"
 
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)
@@ -439,7 +439,7 @@ CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
 
 }
 
-bool CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
+void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
     QString rule;
     if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
@@ -449,13 +449,11 @@ bool CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 
         info.block(true);
 
-        return true;
+        return;
     }
 
     if (gSet->debugNetReqLogging)
         qInfo() << "Net request:" << info.requestUrl();
-
-    return false;
 }
 
 CSpecGDSchemeHandler::CSpecGDSchemeHandler(QObject *parent)
@@ -611,4 +609,15 @@ void CIOEventLoop::objDestroyed(QObject *obj)
     Q_UNUSED(obj);
 
     exit(2);
+}
+
+CNetworkCookieJar::CNetworkCookieJar(QObject *parent)
+    : QNetworkCookieJar(parent)
+{
+
+}
+
+QList<QNetworkCookie> CNetworkCookieJar::getAllCookies()
+{
+    return allCookies();
 }

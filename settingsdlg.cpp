@@ -3,7 +3,7 @@
 #include <QColorDialog>
 
 #ifdef WEBENGINE_56
-#include <QWebEngineCookieStoreClient>
+#include <QWebEngineCookieStore>
 #endif
 
 #include "settingsdlg.h"
@@ -406,7 +406,7 @@ void CSettingsDlg::showLoadedDicts()
 void CSettingsDlg::clearCookies()
 {
 #ifdef WEBENGINE_56
-    QWebEngineCookieStoreClient* wsc = gSet->webProfile->cookieStoreClient();
+    QWebEngineCookieStore* wsc = gSet->webProfile->cookieStore();
     if (wsc!=NULL)
         wsc->deleteAllCookies();
 
@@ -417,10 +417,10 @@ void CSettingsDlg::clearCookies()
 void CSettingsDlg::getCookiesFromStore()
 {
 #ifdef WEBENGINE_56
-    if (gSet->webProfile->cookieStoreClient()!=NULL) {
-        gSet->webProfile->cookieStoreClient()->getAllCookies([this](const QByteArray& cookies) {
-            setCookies(cookies);
-        });
+    CNetworkCookieJar* cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    if (cj!=NULL) {
+        cookiesList = cj->getAllCookies();
+        updateCookiesTable();
     }
 #endif
 }
@@ -429,9 +429,9 @@ void CSettingsDlg::delCookies()
 {
 #ifdef WEBENGINE_56
     QList<int> r = getSelectedRows(ui->tableCookies);
-    if (gSet->webProfile->cookieStoreClient()!=NULL) {
+    if (gSet->webProfile->cookieStore()!=NULL) {
         foreach (const int idx, r)
-            gSet->webProfile->cookieStoreClient()->deleteCookie(cookiesList.at(idx));
+            gSet->webProfile->cookieStore()->deleteCookie(cookiesList.at(idx));
 
         getCookiesFromStore();
     }
@@ -568,7 +568,8 @@ void CSettingsDlg::delSearchEngine()
 
 void CSettingsDlg::updateAtlCertLabel()
 {
-    ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
+    if (gSet!=NULL)
+        ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
 }
 
 void CSettingsDlg::setDefaultSearch()
@@ -644,12 +645,6 @@ void CSettingsDlg::setSearchEngines(QStrHash engines)
         li->setData(Qt::UserRole+1,engines.value(t));
         ui->listSearch->addItem(li);
     }
-}
-
-void CSettingsDlg::setCookies(const QByteArray &cookies)
-{
-    cookiesList = QNetworkCookie::parseCookies(cookies);
-    updateCookiesTable();
 }
 
 QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table)

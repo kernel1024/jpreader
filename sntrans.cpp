@@ -1,10 +1,9 @@
 #include <QMessageBox>
-
 #include <QUrlQuery>
+#include <goldendictlib/goldendictmgr.hh>
 
 #include "sntrans.h"
 #include "globalcontrol.h"
-#include "goldendict/goldendictmgr.h"
 #include "translator.h"
 #include "qxttooltip.h"
 
