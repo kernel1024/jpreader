@@ -218,4 +218,19 @@ public:
     QList<QNetworkCookie> getAllCookies();
 };
 
+class CFaviconLoader : public QObject
+{
+    Q_OBJECT
+private:
+    QUrl m_url;
+public:
+    explicit CFaviconLoader(QObject *parent, const QUrl &url);
+public slots:
+    void queryStart(bool forceCached);
+    void queryFinished();
+signals:
+    void gotIcon(const QIcon& icon);
+};
+
+
 #endif // SPECTABWIDGET_H

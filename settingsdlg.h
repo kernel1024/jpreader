@@ -13,7 +13,7 @@
 #include <QTableWidget>
 #include <QTreeWidgetItem>
 #include <QKeySequenceEdit>
-#include "globalcontrol.h"
+#include "structures.h"
 #include "adblockrule.h"
 
 namespace Ui {

@@ -219,7 +219,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     tabWidget=tabs;
     if (tabWidget==NULL) return;
     int i = tabWidget->addTab(this,getDocTitle());
-    if (gSet->showTabCloseButtons) {
+    if (gSet->settings.showTabCloseButtons) {
         QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
         b->setFlat(true);
         int sz = tabWidget->tabBar()->fontMetrics().height();
@@ -235,7 +235,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 
 void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
-    if (!gSet->showFavicons) return;
+    if (!gSet->settings.showFavicons) return;
     if (tabWidget==NULL) return;
     tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
 }
@@ -329,7 +329,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 {
     emit linkClickedExt(url,(int)type,isMainFrame);
 
-    if (gSet->debugNetReqLogging) {
+    if (gSet->settings.debugNetReqLogging) {
         if (isMainFrame)
             qInfo() << "Net request (main frame):" << url;
         else
@@ -344,7 +344,7 @@ bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificat
     qWarning() << "SSL certificate error" << certificateError.error()
                << certificateError.errorDescription() << certificateError.url();
 
-    return gSet->ignoreSSLErrors;
+    return gSet->settings.ignoreSSLErrors;
 }
 
 QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
@@ -361,7 +361,7 @@ void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMes
                                             const QString &message, int lineNumber,
                                             const QString &sourceID)
 {
-    if (!gSet->jsLogConsole) return;
+    if (!gSet->settings.jsLogConsole) return;
 
     QByteArray ssrc = sourceID.toUtf8();
     if (ssrc.isEmpty())
@@ -443,7 +443,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
     QString rule;
     if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
-        if (gSet->debugNetReqLogging)
+        if (gSet->settings.debugNetReqLogging)
             qWarning() << "Net request:" << info.requestUrl() << "BLOCKED" <<
                           QString("(rule: '%1')").arg(rule);
 
@@ -452,7 +452,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         return;
     }
 
-    if (gSet->debugNetReqLogging)
+    if (gSet->settings.debugNetReqLogging)
         qInfo() << "Net request:" << info.requestUrl();
 }
 
@@ -620,4 +620,63 @@ CNetworkCookieJar::CNetworkCookieJar(QObject *parent)
 QList<QNetworkCookie> CNetworkCookieJar::getAllCookies()
 {
     return allCookies();
+}
+
+CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
+    : QObject(parent), m_url(url)
+{
+
+}
+
+void CFaviconLoader::queryStart(bool forceCached)
+{
+    if (gSet->favicons.keys().contains(m_url.host()+m_url.path())) {
+        emit gotIcon(gSet->favicons[m_url.host()+m_url.path()]);
+        deleteLater();
+        return;
+    } else if (gSet->favicons.keys().contains(m_url.host())) {
+        emit gotIcon(gSet->favicons[m_url.host()]);
+        deleteLater();
+        return;
+    }
+    if (forceCached) {
+        deleteLater();
+        return;
+    }
+
+    if (m_url.isLocalFile()) {
+        QIcon icon = QIcon(m_url.toLocalFile());
+        if (!icon.isNull()) {
+            emit gotIcon(icon);
+            deleteLater();
+        }
+
+    } else {
+        QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(m_url));
+        connect(rpl,SIGNAL(finished()),this,SLOT(queryFinished()));
+    }
+}
+
+void CFaviconLoader::queryFinished()
+{
+    QNetworkReply *rpl = qobject_cast<QNetworkReply*>(sender());
+    if (rpl==NULL) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QPixmap p;
+        if (p.loadFromData(rpl->readAll())) {
+            QIcon ico(p);
+            emit gotIcon(ico);
+            QString host = rpl->url().host();
+            QString path = rpl->url().path();
+            if (!host.isEmpty()) {
+                gSet->favicons[host] = ico;
+                if (!path.isEmpty())
+                    gSet->favicons[host+path] = ico;
+            }
+        }
+    }
+
+    rpl->deleteLater();
+    deleteLater();
 }

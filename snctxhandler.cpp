@@ -205,7 +205,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     ac = new QAction(QIcon::fromTheme("download"),tr("Open in browser"),NULL);
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
     connect(ac, &QAction::triggered,[this](){
-        if (!QProcess::startDetached(gSet->sysBrowser,
+        if (!QProcess::startDetached(gSet->settings.sysBrowser,
                                      QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
             QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start browser."));
     });
@@ -284,14 +284,14 @@ void CSnCtxHandler::saveToFile()
 
     QString fname;
     if (selectedText.isEmpty())
-        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->savedAuxSaveDir,
+        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings.savedAuxSaveDir,
                                                  tr("HTML file (*.html);;Text file (*.txt)"));
     else
-        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->savedAuxSaveDir,
+        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings.savedAuxSaveDir,
                                                  tr("Text file (*.txt)"));
 
     if (fname.isNull() || fname.isEmpty()) return;
-    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFileInfo fi(fname);
     if (!selectedText.isEmpty()) {
@@ -344,7 +344,7 @@ void CSnCtxHandler::showInEditor()
         tfile.close();
         gSet->createdFiles.append(fname);
 
-        if (!QProcess::startDetached(gSet->sysEditor, QStringList() << fname))
+        if (!QProcess::startDetached(gSet->settings.sysEditor, QStringList() << fname))
             QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
     });
 }

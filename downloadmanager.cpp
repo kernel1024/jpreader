@@ -47,7 +47,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 
     QFileInfo fi(item->path());
 
-    QString fname = getSaveFileNameD(this,tr("Save file"),gSet->savedAuxSaveDir,
+    QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
                                      QString(),0,0,fi.fileName());
 
     if (fname.isNull() || fname.isEmpty()) {
@@ -55,7 +55,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         item->deleteLater();
         return;
     }
-    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     connect(item, SIGNAL(finished()), model, SLOT(downloadFinished()));
     connect(item, SIGNAL(downloadProgress(qint64,qint64)),

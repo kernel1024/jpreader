@@ -77,7 +77,7 @@ void CSnMsgHandler::tranEngine(int engine)
     if (!lockTranEngine.tryLock()) return;
 
     if (engine>=0 && engine<TECOUNT)
-        gSet->setTranslationEngine(engine);
+        gSet->settings.setTranslationEngine(engine);
 
     lockTranEngine.unlock();
 }
@@ -99,8 +99,9 @@ void CSnMsgHandler::updateTranEngine()
 {
     if (!lockTranEngine.tryLock()) return;
 
-    if (gSet->translatorEngine>=0 && gSet->translatorEngine<snv->comboTranEngine->count())
-        snv->comboTranEngine->setCurrentIndex(gSet->translatorEngine);
+    if (gSet->settings.translatorEngine>=0
+            && gSet->settings.translatorEngine<snv->comboTranEngine->count())
+        snv->comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
 
     lockTranEngine.unlock();
 }

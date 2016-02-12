@@ -9,7 +9,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     working = false;
     result = QBResult();
     query = QString();
-    indexerSerivce = gSet->searchEngine;
+    indexerSerivce = gSet->settings.searchEngine;
     if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
@@ -51,7 +51,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig())
-                emit startThreadedSearch(query,gSet->maxLimit);
+                emit startThreadedSearch(query,gSet->settings.maxSearchLimit);
             else
                 engineFinished();
 #endif

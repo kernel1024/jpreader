@@ -31,7 +31,9 @@ HEADERS = mainwindow.h \
     downloadmanager.h \
     yandextranslator.h \
     pdftotext.h \
-    sourceviewer.h
+    sourceviewer.h \
+    structures.h \
+    settings.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -67,7 +69,9 @@ SOURCES = main.cpp \
     downloadmanager.cpp \
     yandextranslator.cpp \
     pdftotext.cpp \
-    sourceviewer.cpp
+    sourceviewer.cpp \
+    structures.cpp \
+    settings.cpp
 
 RESOURCES = \
     jpreader.qrc

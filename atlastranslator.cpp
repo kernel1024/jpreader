@@ -11,10 +11,10 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTr
     tranMode=TranMode;
     emptyRestore=false;
     if (gSet!=NULL)
-        emptyRestore=gSet->emptyRestore;
+        emptyRestore=gSet->settings.emptyRestore;
 
     QSslConfiguration conf = sock.sslConfiguration();
-    conf.setProtocol(gSet->atlProto);
+    conf.setProtocol(gSet->settings.atlProto);
     sock.setSslConfiguration(conf);
 
     QList<QSslError> expectedErrors;
@@ -42,7 +42,7 @@ bool CAtlasTranslator::initTran()
     if (inited) return true;
     if (sock.isOpen()) return true;
 
-    if (gSet->proxyUseTranslator)
+    if (gSet->settings.proxyUseTranslator)
         sock.setProxy(QNetworkProxy::DefaultProxy);
     else
         sock.setProxy(QNetworkProxy::NoProxy);
@@ -56,7 +56,7 @@ bool CAtlasTranslator::initTran()
     QByteArray buf;
 
     // INIT command and response
-    buf = QString("INIT:%1\r\n").arg(gSet->atlToken).toLatin1();
+    buf = QString("INIT:%1\r\n").arg(gSet->settings.atlToken).toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {

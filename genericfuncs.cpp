@@ -125,9 +125,9 @@ QString detectMIME(const QByteArray &buf)
 QString detectEncodingName(const QByteArray& content) {
     QString codepage = "";
 
-    if (!gSet->forcedCharset.isEmpty() &&
-            QTextCodec::availableCodecs().contains(gSet->forcedCharset.toLatin1()))
-		return gSet->forcedCharset;
+    if (!gSet->settings.forcedCharset.isEmpty() &&
+            QTextCodec::availableCodecs().contains(gSet->settings.forcedCharset.toLatin1()))
+        return gSet->settings.forcedCharset;
 
 	QTextCodec* enc = QTextCodec::codecForLocale();
     QByteArray icu_enc = "";
@@ -401,4 +401,17 @@ QString getTmpDir()
         return QDir::homePath() + QDir::separator() + "tmp";
 
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+}
+
+int compareStringLists(const QStringList &left, const QStringList &right)
+{
+    int diff = left.count()-right.count();
+    if (diff!=0) return diff;
+
+    for (int i=0;i<left.count();i++) {
+        diff = QString::compare(left.at(i),right.at(i));
+        if (diff!=0) return diff;
+    }
+
+    return 0;
 }

@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     if ((gSet==NULL) || (gSet->ipcServer==NULL))
         return 0;
 
-    if (gSet->createCoredumps) {
+    if (gSet->settings.createCoredumps) {
         // create core dumps on segfaults
         rlimit rlp;
         getrlimit(RLIMIT_CORE, &rlp);

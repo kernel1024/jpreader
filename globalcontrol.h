@@ -4,13 +4,9 @@
 #include <QObject>
 #include <QWidget>
 #include <QApplication>
-#include <QDataStream>
 #include <QString>
 #include <QUrl>
-#include <QUuid>
-#include <QList>
 #include <QAction>
-#include <QFont>
 #include <QThread>
 #include <QNetworkReply>
 #include <QNetworkProxy>
@@ -28,29 +24,8 @@
 #include "specwidgets.h"
 #include "logdisplay.h"
 #include "adblockrule.h"
-
-#define TE_GOOGLE 0
-#define TE_ATLAS 1
-#define TE_BINGAPI 2
-#define TE_YANDEX 3
-#define TECOUNT 4
-
-#define SE_NONE 0
-#define SE_RECOLL 2
-#define SE_BALOO5 3
-
-#define TM_ADDITIVE 0
-#define TM_OVERWRITING 1
-#define TM_TOOLTIP 2
-
-#define LS_JAPANESE 0
-#define LS_CHINESETRAD 1
-#define LS_CHINESESIMP 2
-#define LS_KOREAN 3
-#define LSCOUNT 4
-
-#define DBUS_NAME "org.jpreader.auxtranslator"
-#define IPC_NAME "org.jpreader.ipc.main"
+#include "structures.h"
+#include "settings.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -60,56 +35,7 @@ class CAuxDictionary;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
 class QxtGlobalShortcut;
-class CSettingsDlg;
 class CDownloadManager;
-
-class UrlHolder {
-    friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
-    friend QDataStream &operator>>(QDataStream &in, UrlHolder &obj);
-public:
-    QString title;
-    QUrl url;
-    QUuid uuid;
-    UrlHolder();
-    UrlHolder(QString title, QUrl url);
-    UrlHolder &operator=(const UrlHolder& other);
-    bool operator==(const UrlHolder &s) const;
-    bool operator!=(const UrlHolder &s) const;
-};
-
-Q_DECLARE_METATYPE(UrlHolder)
-
-class DirStruct {
-public:
-    DirStruct();
-    DirStruct(QString DirName, int Count);
-    DirStruct &operator=(const DirStruct& other);
-    QString dirName;
-    int count;
-};
-
-typedef QHash<QString, QString> QStrHash;
-typedef QList<int> QIntList;
-typedef QList<UrlHolder> QUHList;
-typedef QMap<QString, QUrl> QBookmarksMap;
-typedef QHash<QSslCertificate,QIntList> QSslCertificateHash;
-
-class CFaviconLoader : public QObject
-{
-    Q_OBJECT
-private:
-    QUrl m_url;
-public:
-    explicit CFaviconLoader(QObject *parent, const QUrl &url);
-public slots:
-    void queryStart(bool forceCached);
-    void queryFinished();
-signals:
-    void gotIcon(const QIcon& icon);
-};
-
-QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
-QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 
 class CGlobalControl : public QObject
 {
@@ -117,110 +43,49 @@ class CGlobalControl : public QObject
 public:
     explicit CGlobalControl(QApplication *parent);
 
+    CSettings settings;
+
     CMainWindow* activeWindow;
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
     CAuxTranslator* auxTranslatorDBus;
     QLocalServer* ipcServer;
 
-    QAction* actionSelectionDictionary;
-    QAction* actionGlobalTranslator;
     QIcon appIcon;
     CLogDisplay* logWindow;
-    bool jsLogConsole;
     CDownloadManager* downloadManager;
 
     ArticleNetworkAccessManager * dictNetMan;
     CGoldenDictMgr * dictManager;
-    QStringList dictPaths;
-    QString dictIndexDir;
     CAuxDictionary* auxDictionary;
 
-    QList<QColor> snippetColors;
+    QWebEngineProfile *webProfile;
+    QNetworkAccessManager *auxNetManager;
 
     QStrHash ctxSearchEngines;
-    QString defaultSearchEngine;
 
     QBookmarksMap bookmarks;
     QUHList recycleBin;
     QUHList mainHistory;
-    int maxHistory;
     QStringList searchHistory;
-    QFont overrideFont;
-    bool overrideStdFonts;
-    QString fontStandard, fontFixed, fontSerif, fontSansSerif;
-    bool showTabCloseButtons;
-    bool createCoredumps;
-    bool showFavicons;
-
-    bool overrideUserAgent;
-    QString userAgent;
-    QStringList userAgentHistory;
-
-    QWebEngineProfile *webProfile;
-
-    QNetworkAccessManager *auxNetManager;
 
     QHash<QString,QIcon> favicons;
 
     CAdBlockList adblock;
     QMutex adblockMutex;
-    bool useAdblock;
-
-    int searchEngine;
-    QString scpHost;
-    QString scpParams;
-    bool useScp;
-    QString hostingDir;
-    QString hostingUrl;
     QStringList createdFiles;
-    int maxLimit;
-    int translatorEngine;
-    QString atlHost;
-    int atlPort;
-    bool emptyRestore;
-    QString sysBrowser;
-    QString sysEditor;
-    int maxRecycled;
-    QStringList atlHostHistory;
-    QStringList scpHostHistory;
-    QTimer settingsSaveTimer;
-    QMutex settingsSaveMutex;
-    bool debugNetReqLogging;
-    bool debugDumpHtml;
+
     QTimer tabsListTimer;
-    bool restoreLoadChecked;
 
-    QString savedAuxDir;
-    QString savedAuxSaveDir;
-    QString forcedCharset;
-    QStringList charsetHistory;
-
-    bool globalContextTranslate;
     QxtGlobalShortcut* gctxTranHotkey;
     bool blockTabCloseActive;
-    QColor forcedFontColor;
 
-    int atlTcpRetryCount;
-    int atlTcpTimeout;
     QSslCertificateHash atlCerts;
-    QSsl::SslProtocol atlProto;
-    bool atlCertErrorInteractive;
-    QString atlToken;
-    QString bingID;
-    QString bingKey;
-    QString yandexKey;
 
-    QString proxyHost;
-    QString proxyLogin;
-    QString proxyPassword;
-    int proxyPort;
-    bool proxyUse;
-    QNetworkProxy::ProxyType proxyType;
     QAction *actionUseProxy;
-    bool proxyUseTranslator;
 
-    bool ignoreSSLErrors;
+    QAction* actionSelectionDictionary;
+    QAction* actionGlobalTranslator;
 
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
@@ -273,31 +138,27 @@ public:
 
     QString getSourceLanguageString(int srcLang);
     QString getTranslationEngineString(int engine);
-    void setTranslationEngine(int engine);
 
     void showLightTranslator(const QString& text = QString());
 
     QUrl createSearchUrl(const QString& text, const QString& engine = QString());
 
-protected:
-    CSettingsDlg* dlg;
-    bool cleaningState;
-    void cleanTmpFiles();
-    void startGlobalContextTranslate(const QString& text);
-
 private:
+    bool restoreLoadChecked;
+    bool cleaningState;
+    bool atlCertErrorInteractive;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
+    void cleanTmpFiles();
+    void startGlobalContextTranslate(const QString& text);
 
 signals:
     void startAuxTranslation();
     void stopTranslators();
-    void settingsUpdated();
 
 public slots:
     CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
-    void settingsDlg();
     void windowDestroyed(CMainWindow* obj);
     void cleanupAndExit();
     void focusChanged(QWidget* old, QWidget* now);
@@ -309,8 +170,6 @@ public slots:
     void showDictionaryWindow(const QString& text = QString());
 
     // Settings management
-    void writeSettings();
-    void readSettings();
     void writeTabsList(bool clearList = false);
     void checkRestoreLoad(CMainWindow* w);
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
@@ -327,7 +186,5 @@ public slots:
 };
 
 extern CGlobalControl* gSet;
-
-int compareStringLists(const QStringList& left, const QStringList& right);
 
 #endif // QGLOBALSETTINGS_H

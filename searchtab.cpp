@@ -114,7 +114,7 @@ void CSearchTab::updateQueryHistory()
 
 void CSearchTab::selectDir()
 {
-    QString dir = getExistingDirectoryD(parentWnd,tr("Search in"),gSet->savedAuxDir);
+    QString dir = getExistingDirectoryD(parentWnd,tr("Search in"),gSet->settings.savedAuxDir);
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
@@ -400,7 +400,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
                             !forceUntranslated;
             if (makeTran)
                 fspart = tran->tranString(fspart);
-            QString snpColor = gSet->snippetColors[i % gSet->snippetColors.count()].name();
+            QString snpColor = gSet->settings.snippetColors[i % gSet->settings.snippetColors.count()].name();
             if (makeTran)
                 fspart.replace(ITermT,"<font color='"+snpColor+"'>"+ITermT+"</font>",Qt::CaseInsensitive);
             else

@@ -353,11 +353,11 @@ void CSettingsDlg::exportAd()
     foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
         r << i->data(0,Qt::UserRole+1).toInt();
 
-    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),gSet->savedAuxSaveDir,
+    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),gSet->settings.savedAuxSaveDir,
                                      tr("Text file (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
-    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -447,11 +447,11 @@ void CSettingsDlg::exportCookies()
         return;
     }
 
-    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),gSet->savedAuxSaveDir,
+    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),gSet->settings.savedAuxSaveDir,
                                      tr("Text file, Netscape format (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
-    gSet->savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -549,7 +549,7 @@ void CSettingsDlg::addSearchEngine()
         QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
                                                   arg(data["Menu title"],
                                                   data["Url template"],
-                data["Menu title"]==gSet->defaultSearchEngine ? tr("(default)") : QString()));
+                data["Menu title"]==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
         li->setData(Qt::UserRole,data["Menu title"]);
         li->setData(Qt::UserRole+1,data["Url template"]);
         ui->listSearch->addItem(li);
@@ -577,7 +577,7 @@ void CSettingsDlg::setDefaultSearch()
     QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
     if (dl.isEmpty()) return;
 
-    gSet->defaultSearchEngine = dl.first()->data(Qt::UserRole).toString();
+    gSet->settings.defaultSearchEngine = dl.first()->data(Qt::UserRole).toString();
 
     setSearchEngines(getSearchEngines());
 }
@@ -640,7 +640,7 @@ void CSettingsDlg::setSearchEngines(QStrHash engines)
         QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
                                                   arg(t,
                                                   engines.value(t),
-                t==gSet->defaultSearchEngine ? tr("(default)") : QString()));
+                t==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
         li->setData(Qt::UserRole,t);
         li->setData(Qt::UserRole+1,engines.value(t));
         ui->listSearch->addItem(li);

@@ -61,7 +61,7 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
 
 void CSnNet::iconUrlChanged(const QUrl &url)
 {
-    if (!gSet->showFavicons) return;
+    if (!gSet->settings.showFavicons) return;
     if (url.isEmpty() || !url.isValid()) return;
 
     CFaviconLoader* fl = new CFaviconLoader(snv,url);

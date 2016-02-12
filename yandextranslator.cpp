@@ -30,7 +30,7 @@ bool CYandexTranslator::initTran()
     if (nam==NULL)
         nam=new QNetworkAccessManager(this);
 
-    if (gSet->proxyUseTranslator)
+    if (gSet->settings.proxyUseTranslator)
         nam->setProxy(QNetworkProxy::DefaultProxy);
     else
         nam->setProxy(QNetworkProxy::NoProxy);

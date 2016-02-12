@@ -130,11 +130,11 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     for (int i=0;i<TECOUNT;i++)
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
     comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
-    comboTranEngine->setCurrentIndex(gSet->translatorEngine);
+    comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
     connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
     connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
     connect(gSet->sourceLanguage, SIGNAL(triggered(QAction*)), msgHandler, SLOT(updateSrcLang(QAction*)));
-    connect(gSet, SIGNAL(settingsUpdated()), msgHandler, SLOT(updateTranEngine()));
+    connect(&(gSet->settings), SIGNAL(settingsUpdated()), msgHandler, SLOT(updateTranEngine()));
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
@@ -337,11 +337,11 @@ void CSnippetViewer::updateWebViewAttributes()
                 gSet->webProfile->settings()->testAttribute(
                     QWebEngineSettings::AutoLoadImages));
 
-    if (gSet->overrideStdFonts) {
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::StandardFont,gSet->fontStandard);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::FixedFont,gSet->fontFixed);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,gSet->fontSerif);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,gSet->fontSansSerif);
+    if (gSet->settings.overrideStdFonts) {
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::StandardFont,gSet->settings.fontStandard);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::FixedFont,gSet->settings.fontFixed);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,gSet->settings.fontSerif);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,gSet->settings.fontSansSerif);
     }
 }
 

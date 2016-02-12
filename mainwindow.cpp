@@ -72,7 +72,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
 
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
     connect(actionAboutQt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-    connect(actionSettings, SIGNAL(triggered()), gSet, SLOT(settingsDlg()));
+    connect(actionSettings, SIGNAL(triggered()), &(gSet->settings), SLOT(settingsDlg()));
 	connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(actionExitAll, SIGNAL(triggered()), gSet, SLOT(cleanupAndExit()));
     connect(actionOpen, SIGNAL(triggered()), this, SLOT(openAuxFile()));
@@ -84,7 +84,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
     connect(actionWnd, SIGNAL(triggered()), gSet, SLOT(addMainWindow()));
     connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
-    connect(actionSaveSettings,SIGNAL(triggered()), gSet, SLOT(writeSettings()));
+    connect(actionSaveSettings,&QAction::triggered, &(gSet->settings), &CSettings::writeSettings);
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
     connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
     connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
@@ -498,10 +498,10 @@ void CMainWindow::checkTabs()
 
 void CMainWindow::openAuxFile()
 {
-    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->savedAuxDir);
+    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;
@@ -534,7 +534,7 @@ void CMainWindow::openAuxFileInDir()
     QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),auxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;
@@ -688,12 +688,12 @@ void CMainWindow::forceCharset()
         if (QTextCodec::codecForName(cs.toLatin1().data())!=NULL)
             cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
 
-        gSet->charsetHistory.removeAll(cs);
-        gSet->charsetHistory.prepend(cs);
-        if (gSet->charsetHistory.count()>10)
-            gSet->charsetHistory.removeLast();
+        gSet->settings.charsetHistory.removeAll(cs);
+        gSet->settings.charsetHistory.prepend(cs);
+        if (gSet->settings.charsetHistory.count()>10)
+            gSet->settings.charsetHistory.removeLast();
     }
-    gSet->forcedCharset = cs;
+    gSet->settings.forcedCharset = cs;
     gSet->updateAllCharsetLists();
 
     if (gSet->webProfile!=NULL &&
@@ -707,12 +707,12 @@ void CMainWindow::reloadCharsetList()
     menuCharset->clear();
     act = menuCharset->addAction(tr("Autodetect"),this,SLOT(forceCharset()));
     act->setData(QString(""));
-    if (gSet->forcedCharset.isEmpty()) {
+    if (gSet->settings.forcedCharset.isEmpty()) {
         act->setCheckable(true);
         act->setChecked(true);
     } else {
-        act = menuCharset->addAction(gSet->forcedCharset,this,SLOT(forceCharset()));
-        act->setData(gSet->forcedCharset);
+        act = menuCharset->addAction(gSet->settings.forcedCharset,this,SLOT(forceCharset()));
+        act->setData(gSet->settings.forcedCharset);
         act->setCheckable(true);
         act->setChecked(true);
     }
@@ -731,7 +731,7 @@ void CMainWindow::reloadCharsetList()
             act = midx->addAction(cname,this,SLOT(forceCharset()));
             act->setData(cname);
             if (QTextCodec::codecForName(cname.toLatin1().data())!=NULL) {
-                if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->forcedCharset) {
+                if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->settings.forcedCharset) {
                     act->setCheckable(true);
                     act->setChecked(true);
                 }
@@ -740,10 +740,10 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    for(int i=0;i<gSet->charsetHistory.count();i++) {
-        if (gSet->charsetHistory.at(i)==gSet->forcedCharset) continue;
-        act = menuCharset->addAction(gSet->charsetHistory.at(i),this,SLOT(forceCharset()));
-        act->setData(gSet->charsetHistory.at(i));
+    for(int i=0;i<gSet->settings.charsetHistory.count();i++) {
+        if (gSet->settings.charsetHistory.at(i)==gSet->settings.forcedCharset) continue;
+        act = menuCharset->addAction(gSet->settings.charsetHistory.at(i),this,SLOT(forceCharset()));
+        act->setData(gSet->settings.charsetHistory.at(i));
         act->setCheckable(true);
     }
 }

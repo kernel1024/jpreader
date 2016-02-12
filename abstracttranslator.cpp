@@ -21,12 +21,12 @@ QString CAbstractTranslator::getErrorMsg()
 
 CAbstractTranslator *translatorFactory(QObject* parent)
 {
-    if (gSet->translatorEngine==TE_ATLAS)
-        return new CAtlasTranslator(parent,gSet->atlHost,gSet->atlPort);
-    else if (gSet->translatorEngine==TE_BINGAPI)
-        return new CBingTranslator(parent,gSet->bingID,gSet->bingKey);
-    else if (gSet->translatorEngine==TE_YANDEX)
-        return new CYandexTranslator(parent,gSet->yandexKey);
+    if (gSet->settings.translatorEngine==TE_ATLAS)
+        return new CAtlasTranslator(parent,gSet->settings.atlHost,gSet->settings.atlPort);
+    else if (gSet->settings.translatorEngine==TE_BINGAPI)
+        return new CBingTranslator(parent,gSet->settings.bingID,gSet->settings.bingKey);
+    else if (gSet->settings.translatorEngine==TE_YANDEX)
+        return new CYandexTranslator(parent,gSet->settings.yandexKey);
     else
         return NULL;
 }

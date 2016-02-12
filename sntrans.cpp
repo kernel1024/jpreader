@@ -49,9 +49,9 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
 
 void CSnTrans::translate()
 {
-    if (gSet->translatorEngine==TE_ATLAS ||
-        gSet->translatorEngine==TE_BINGAPI ||
-        gSet->translatorEngine==TE_YANDEX) {
+    if (gSet->settings.translatorEngine==TE_ATLAS ||
+        gSet->settings.translatorEngine==TE_BINGAPI ||
+        gSet->settings.translatorEngine==TE_YANDEX) {
         savedBaseUrl = snv->txtBrowser->page()->url();
         if (savedBaseUrl.hasFragment())
             savedBaseUrl.setFragment(QString());
@@ -81,13 +81,13 @@ void CSnTrans::translatePriv(const QString &aUri)
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->translatorEngine==TE_ATLAS) {
+    if (gSet->settings.translatorEngine==TE_ATLAS) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->translatorEngine==TE_BINGAPI) {
+    } else if (gSet->settings.translatorEngine==TE_BINGAPI) {
         snv->waitHandler->setText(tr("Translating text with Bing API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->translatorEngine==TE_YANDEX) {
+    } else if (gSet->settings.translatorEngine==TE_YANDEX) {
         snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
     } else {
@@ -134,7 +134,7 @@ void CSnTrans::postTranslate()
     QUrl url;
     QString cn;
     QUrlQuery qu;
-    switch (gSet->translatorEngine) {
+    switch (gSet->settings.translatorEngine) {
         case TE_GOOGLE:
             url = QUrl("http://translate.google.com/translate");
             qu.addQueryItem("sl",gSet->getSourceLanguageID());
