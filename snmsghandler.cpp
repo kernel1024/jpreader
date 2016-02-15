@@ -60,7 +60,7 @@ void CSnMsgHandler::srcLang(int lang)
 {
     if (!lockSrcLang.tryLock()) return;
 
-    foreach (QAction *ac, gSet->sourceLanguage->actions()) {
+    foreach (QAction *ac, gSet->ui.sourceLanguage->actions()) {
         bool okconv;
         int id = ac->data().toInt(&okconv);
         if (okconv && id>=0 && id<LSCOUNT && id==lang) {

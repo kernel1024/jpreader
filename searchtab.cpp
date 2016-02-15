@@ -313,17 +313,17 @@ void CSearchTab::applySnippet(const QModelIndex &index)
         if ((row < 0) || (row >= model->rowCount())) return;
         QStrHash snip = model->getSnippet(row);
         QString s = snip["Snip"];
-        QString tranState = bool2str(gSet->actionSnippetAutotranslate->isChecked());
+        QString tranState = bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
         if (s.isEmpty() || tranState!=snip.value("SnipTran")) {
             s = createSpecSnippet(snip["FullFilename"]);
             snip["Snip"]=s;
             snip["SnipUntran"]=createSpecSnippet(snip["FullFilename"],true);
-            snip["SnipTran"]=bool2str(gSet->actionSnippetAutotranslate->isChecked());
+            snip["SnipTran"]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
         s="<font size='+1'>"+s+"</font>";
         ui->snippetBrowser->setHtml(s);
-        if (gSet->actionSnippetAutotranslate->isChecked() &&
+        if (gSet->ui.actionSnippetAutotranslate->isChecked() &&
             snip.value("Snip")!=snip.value("SnipUntran"))
             ui->snippetBrowser->setToolTip(snip.value("SnipUntran"));
 
@@ -369,7 +369,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
 
     QStringList queryTermsTran = queryTerms;
     CAbstractTranslator* tran = translatorFactory(this);
-    if (gSet->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
+    if (gSet->ui.actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (tran==NULL || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
@@ -395,7 +395,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
             bool makeTran = tran!=NULL &&
-                            gSet->actionSnippetAutotranslate->isChecked() &&
+                            gSet->ui.actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
             if (makeTran)

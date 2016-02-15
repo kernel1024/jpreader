@@ -12,7 +12,6 @@
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
-#include "miniqxt/qxtglobalshortcut.h"
 #include <goldendictlib/goldendictmgr.hh>
 
 #include "globalcontrol.h"
@@ -36,7 +35,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
         return;
 
     atlCertErrorInteractive=false;
-    restoreLoadChecked=false;
 
     blockTabCloseActive=false;
     adblock.clear();
@@ -65,95 +63,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     lightTranslator = NULL;
     auxDictionary = NULL;
 
-    actionGlobalTranslator = new QAction(tr("Global context translator"),this);
-    actionGlobalTranslator->setCheckable(true);
-    actionGlobalTranslator->setChecked(false);
-
-    actionSelectionDictionary = new QAction(tr("Dictionary search"),this);
-    actionSelectionDictionary->setShortcut(QKeySequence(Qt::Key_F9));
-    actionSelectionDictionary->setCheckable(true);
-    actionSelectionDictionary->setChecked(false);
-
-    actionUseProxy = new QAction(tr("Use proxy"),this);
-    actionUseProxy->setCheckable(true);
-    actionUseProxy->setChecked(false);
-
-    actionJSUsage = new QAction(tr("Enable JavaScript"),this);
-    actionJSUsage->setCheckable(true);
-    actionJSUsage->setChecked(false);
-
-    actionSnippetAutotranslate = new QAction(tr("Autotranslate snippet text"),this);
-    actionSnippetAutotranslate->setCheckable(true);
-    actionSnippetAutotranslate->setChecked(false);
-
-    translationMode = new QActionGroup(this);
-
-    actionTMAdditive = new QAction(tr("Additive"),this);
-    actionTMAdditive->setCheckable(true);
-    actionTMAdditive->setActionGroup(translationMode);
-    actionTMAdditive->setData(TM_ADDITIVE);
-
-    actionTMOverwriting = new QAction(tr("Overwriting"),this);
-    actionTMOverwriting->setCheckable(true);
-    actionTMOverwriting->setActionGroup(translationMode);
-    actionTMOverwriting->setData(TM_OVERWRITING);
-
-    actionTMTooltip = new QAction(tr("Tooltip"),this);
-    actionTMTooltip->setCheckable(true);
-    actionTMTooltip->setActionGroup(translationMode);
-    actionTMTooltip->setData(TM_TOOLTIP);
-
-    actionTMAdditive->setChecked(true);
-
-    sourceLanguage = new QActionGroup(this);
-
-    actionLSJapanese = new QAction(tr("Japanese"),this);
-    actionLSJapanese->setCheckable(true);
-    actionLSJapanese->setActionGroup(sourceLanguage);
-    actionLSJapanese->setData(LS_JAPANESE);
-
-    actionLSChineseSimplified = new QAction(tr("Chinese simplified"),this);
-    actionLSChineseSimplified->setCheckable(true);
-    actionLSChineseSimplified->setActionGroup(sourceLanguage);
-    actionLSChineseSimplified->setData(LS_CHINESESIMP);
-
-    actionLSChineseTraditional = new QAction(tr("Chinese traditional"),this);
-    actionLSChineseTraditional->setCheckable(true);
-    actionLSChineseTraditional->setActionGroup(sourceLanguage);
-    actionLSChineseTraditional->setData(LS_CHINESETRAD);
-
-    actionLSKorean = new QAction(tr("Korean"),this);
-    actionLSKorean->setCheckable(true);
-    actionLSKorean->setActionGroup(sourceLanguage);
-    actionLSKorean->setData(LS_KOREAN);
-
-    actionLSJapanese->setChecked(true);
-
-    actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),tr("Automatic translation"),this);
-    actionAutoTranslate->setCheckable(true);
-    actionAutoTranslate->setChecked(false);
-    actionAutoTranslate->setShortcut(Qt::Key_F8);
-
-    actionOverrideFont = new QAction(QIcon::fromTheme("character-set"),tr("Override font for translated text"),this);
-    actionOverrideFont->setCheckable(true);
-    actionOverrideFont->setChecked(false);
-
-    actionAutoloadImages = new QAction(QIcon::fromTheme("view-preview"),tr("Autoload images"),this);
-    actionAutoloadImages->setCheckable(true);
-    actionAutoloadImages->setChecked(false);
-
-    actionOverrideFontColor = new QAction(QIcon::fromTheme("format-text-color"),tr("Force translated text color"),this);
-    actionOverrideFontColor->setCheckable(true);
-    actionOverrideFontColor->setChecked(false);
-
-    actionLogNetRequests = new QAction(tr("Log network requests"),this);
-    actionLogNetRequests->setCheckable(true);
-    actionLogNetRequests->setChecked(false);
-
-    actionTranslateSubSentences = new QAction(tr("Translate subsentences"),this);
-    actionTranslateSubSentences->setCheckable(true);
-    actionTranslateSubSentences->setChecked(false);
-
     initPdfToText();
 
     auxTranslatorDBus = new CAuxTranslator(this);
@@ -163,18 +72,16 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dbus.registerService(DBUS_NAME);
 
     connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
-    connect(QApplication::clipboard(),SIGNAL(changed(QClipboard::Mode)),
-            this,SLOT(clipboardChanged(QClipboard::Mode)));
-    connect(actionUseProxy,SIGNAL(toggled(bool)),
-            this,SLOT(updateProxy(bool)));
-    connect(actionJSUsage,SIGNAL(toggled(bool)),
-            this,SLOT(toggleJSUsage(bool)));
-    connect(actionLogNetRequests,SIGNAL(toggled(bool)),
-            this,SLOT(toggleLogNetRequests(bool)));
 
-    gctxTranHotkey = new QxtGlobalShortcut(this);
-    gctxTranHotkey->setDisabled();
-    connect(gctxTranHotkey,SIGNAL(activated()),actionGlobalTranslator,SLOT(toggle()));
+    connect(ui.actionUseProxy,SIGNAL(toggled(bool)),
+            this,SLOT(updateProxy(bool)));
+
+    connect(ui.actionJSUsage,&QAction::toggled,[this](bool checked){
+        webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
+    });
+    connect(ui.actionLogNetRequests,&QAction::toggled,[this](bool checked){
+        settings.debugNetReqLogging = checked;
+    });
 
     webProfile = new QWebEngineProfile("jpreader",this);
 
@@ -305,103 +212,6 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
     socket->write(s.toUtf8());
 }
 
-bool CGlobalControl::useOverrideFont()
-{
-    return actionOverrideFont->isChecked();
-}
-
-bool CGlobalControl::autoTranslate()
-{
-    return actionAutoTranslate->isChecked();
-}
-
-bool CGlobalControl::forceFontColor()
-{
-    return actionOverrideFontColor->isChecked();
-}
-
-void CGlobalControl::writeTabsList(bool clearList)
-{
-    QList<QUrl> urls;
-    urls.clear();
-    if (!clearList) {
-        for (int i=0;i<mainWindows.count();i++) {
-            for (int j=0;j<mainWindows.at(i)->tabMain->count();j++) {
-                CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(mainWindows.at(i)->tabMain->widget(j));
-                if (sn==NULL) continue;
-                QUrl url = sn->getUrl();
-                if (url.isValid() && !url.isEmpty())
-                    urls << url;
-            }
-        }
-        if (urls.isEmpty()) return;
-    }
-
-    QSettings settings("kernel1024", "jpreader-tabs");
-    settings.beginGroup("OpenedTabs");
-    settings.setValue("tabsCnt", urls.count());
-    for (int i=0;i<urls.count();i++)
-        settings.setValue(QString("tab_%1").arg(i),urls.at(i));
-    settings.endGroup();
-}
-
-void CGlobalControl::checkRestoreLoad(CMainWindow *w)
-{
-    if (restoreLoadChecked) return;
-    restoreLoadChecked = true;
-
-    QList<QUrl> urls;
-    urls.clear();
-    QSettings settings("kernel1024", "jpreader-tabs");
-    settings.beginGroup("OpenedTabs");
-    int cnt = settings.value("tabsCnt", 0).toInt();
-    for (int i=0;i<cnt;i++) {
-        QUrl u = settings.value(QString("tab_%1").arg(i),QUrl()).toUrl();
-        if (u.isValid() && !u.isEmpty())
-            urls << u;
-    }
-    settings.endGroup();
-
-    if (!urls.isEmpty()) {
-        if (QMessageBox::question(w,tr("JPReader"),tr("Program crashed in previous run. Restore all tabs?"),
-                                  QMessageBox::Yes,QMessageBox::No) == QMessageBox::Yes) {
-            for (int i=0;i<cnt;i++)
-                new CSnippetViewer(w,urls.at(i));
-        }
-    }
-}
-
-void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
-{
-    settings.proxyUse = useProxy;
-
-    QNetworkProxy proxy = QNetworkProxy();
-
-    if (settings.proxyUse && !settings.proxyHost.isEmpty())
-        proxy = QNetworkProxy(settings.proxyType,settings.proxyHost,settings.proxyPort,
-                              settings.proxyLogin,settings.proxyPassword);
-
-    QNetworkProxy::setApplicationProxy(proxy);
-
-    if (forceMenuUpdate)
-        actionUseProxy->setChecked(settings.proxyUse);
-}
-
-void CGlobalControl::toggleJSUsage(bool useJS)
-{
-    webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,useJS);
-}
-
-void CGlobalControl::toggleAutoloadImages(bool loadImages)
-{
-    webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,loadImages);
-}
-
-void CGlobalControl::toggleLogNetRequests(bool logRequests)
-{
-    settings.debugNetReqLogging = logRequests;
-}
-
 void CGlobalControl::cookieAdded(const QNetworkCookie &cookie)
 {
     if (auxNetManager->cookieJar()!=NULL)
@@ -451,49 +261,12 @@ void CGlobalControl::cleanTmpFiles()
     }
 }
 
-void CGlobalControl::closeLockTimer()
-{
-    blockTabCloseActive=false;
-}
-
 void CGlobalControl::blockTabClose()
 {
     blockTabCloseActive=true;
-    QTimer::singleShot(500,this,SLOT(closeLockTimer()));
-}
-
-void CGlobalControl::clipboardChanged(QClipboard::Mode mode)
-{
-    QClipboard *cb = QApplication::clipboard();
-
-    if (actionGlobalTranslator->isChecked() &&
-        (mode==QClipboard::Selection) &&
-        (!cb->mimeData(QClipboard::Selection)->text().isEmpty()))
-        startGlobalContextTranslate(cb->mimeData(QClipboard::Selection)->text());
-}
-
-void CGlobalControl::startGlobalContextTranslate(const QString &text)
-{
-    if (text.isEmpty()) return;
-    QThread *th = new QThread();
-    CAuxTranslator *at = new CAuxTranslator();
-    at->setParams(text);
-    connect(this,SIGNAL(startAuxTranslation()),
-            at,SLOT(startTranslation()),Qt::QueuedConnection);
-    connect(at,SIGNAL(gotTranslation(QString)),
-            this,SLOT(globalContextTranslateReady(QString)),Qt::QueuedConnection);
-    at->moveToThread(th);
-    th->start();
-
-    emit startAuxTranslation();
-}
-
-void CGlobalControl::globalContextTranslateReady(const QString &text)
-{
-    CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
-    t->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
-    QPoint p = QCursor::pos();
-    QxtToolTip::show(p,t,NULL);
+    QTimer::singleShot(500,this,[this](){
+        blockTabCloseActive=false;
+    });
 }
 
 void CGlobalControl::showDictionaryWindow(const QString &text)
@@ -616,51 +389,12 @@ void CGlobalControl::ipcMessageReceived()
 
     QStringList cmd = QString::fromUtf8(bmsg).split('\n');
     if (cmd.first().startsWith("newWindow"))
-        addMainWindow();
+        ui.addMainWindow();
     else if (cmd.first().startsWith("debugRestart")) {
         qInfo() << QString("Closing jpreader instance (pid: %1) after debugRestart request")
                    .arg(QApplication::applicationPid());
         cleanupAndExit();
     }
-}
-
-CMainWindow* CGlobalControl::addMainWindow(bool withSearch, bool withViewer)
-{
-    CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer);
-    connect(mainWindow,SIGNAL(aboutToClose(CMainWindow*)),this,SLOT(windowDestroyed(CMainWindow*)));
-
-    mainWindows.append(mainWindow);
-
-    mainWindow->show();
-
-    mainWindow->menuTools->addAction(actionLogNetRequests);
-    mainWindow->menuTools->addSeparator();
-    mainWindow->menuTools->addAction(actionGlobalTranslator);
-    mainWindow->menuTools->addAction(actionSelectionDictionary);
-    mainWindow->menuTools->addAction(actionSnippetAutotranslate);
-    mainWindow->menuTools->addSeparator();
-    mainWindow->menuTools->addAction(actionJSUsage);
-
-    mainWindow->menuSettings->addAction(actionAutoTranslate);
-    mainWindow->menuSettings->addAction(actionAutoloadImages);
-    mainWindow->menuSettings->addAction(actionOverrideFont);
-    mainWindow->menuSettings->addAction(actionOverrideFontColor);
-    mainWindow->menuSettings->addSeparator();
-    mainWindow->menuSettings->addAction(actionUseProxy);
-    mainWindow->menuSettings->addAction(actionTranslateSubSentences);
-
-    mainWindow->menuTranslationMode->addAction(actionTMAdditive);
-    mainWindow->menuTranslationMode->addAction(actionTMOverwriting);
-    mainWindow->menuTranslationMode->addAction(actionTMTooltip);
-
-    mainWindow->menuSourceLanguage->addAction(actionLSJapanese);
-    mainWindow->menuSourceLanguage->addAction(actionLSChineseSimplified);
-    mainWindow->menuSourceLanguage->addAction(actionLSChineseTraditional);
-    mainWindow->menuSourceLanguage->addAction(actionLSKorean);
-
-    checkRestoreLoad(mainWindow);
-
-    return mainWindow;
 }
 
 void CGlobalControl::focusChanged(QWidget *, QWidget *now)
@@ -691,7 +425,7 @@ void CGlobalControl::cleanupAndExit()
     if (cleaningState) return;
     cleaningState = true;
 
-    writeTabsList(true);
+    settings.writeTabsList(true);
     settings.writeSettings();
     cleanTmpFiles();
 
@@ -706,12 +440,9 @@ void CGlobalControl::cleanupAndExit()
         }
         QApplication::processEvents();
     }
+    ui.gctxTranHotkey.unsetShortcut();
     freePdfToText();
     webProfile->deleteLater();
-    QApplication::processEvents();
-    gctxTranHotkey->setDisabled();
-    QApplication::processEvents();
-    gctxTranHotkey->deleteLater();
     QApplication::processEvents();
 
     ipcServer->close();
@@ -811,8 +542,8 @@ int CGlobalControl::getTranslationMode()
 {
     bool okconv;
     int res = 0;
-    if (translationMode->checkedAction()!=NULL) {
-        res = translationMode->checkedAction()->data().toInt(&okconv);
+    if (ui.translationMode->checkedAction()!=NULL) {
+        res = ui.translationMode->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
     }
@@ -823,8 +554,8 @@ int CGlobalControl::getSourceLanguage()
 {
     bool okconv;
     int res = 0;
-    if (sourceLanguage->checkedAction()!=NULL) {
-        res = sourceLanguage->checkedAction()->data().toInt(&okconv);
+    if (ui.sourceLanguage->checkedAction()!=NULL) {
+        res = ui.sourceLanguage->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
     }
@@ -883,6 +614,23 @@ void CGlobalControl::showLightTranslator(const QString &text)
 
     if (!text.isEmpty())
         gSet->lightTranslator->appendSourceText(text);
+}
+
+void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
+{
+    settings.proxyUse = useProxy;
+
+    QNetworkProxy proxy = QNetworkProxy();
+
+    if (settings.proxyUse && !settings.proxyHost.isEmpty())
+        proxy = QNetworkProxy(settings.proxyType,settings.proxyHost,
+                              settings.proxyPort,settings.proxyLogin,
+                              settings.proxyPassword);
+
+    QNetworkProxy::setApplicationProxy(proxy);
+
+    if (forceMenuUpdate)
+         ui.actionUseProxy->setChecked(settings.proxyUse);
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)

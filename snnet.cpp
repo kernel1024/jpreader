@@ -38,7 +38,7 @@ void CSnNet::loadFinished(bool)
         snv->parentWnd->updateTabs();
     }
 
-    if ((gSet->autoTranslate() || snv->requestAutotranslate) && !snv->onceTranslated) {
+    if ((gSet->ui.autoTranslate() || snv->requestAutotranslate) && !snv->onceTranslated) {
         snv->requestAutotranslate = false;
         snv->transButton->click();
     }

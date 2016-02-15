@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     app.setStyle(new CSpecMenuStyle);
     QApplication::setQuitOnLastWindowClosed(false);
 
-    gSet->addMainWindow();
+    gSet->ui.addMainWindow();
 
     return app.exec();
 }

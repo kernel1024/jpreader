@@ -11,8 +11,10 @@
 #include <QTimer>
 
 #include "settingsdlg.h"
+#include "mainwindow.h"
 
 class CSettingsDlg;
+class CMainWindow;
 
 class CSettings : public QObject
 {
@@ -94,6 +96,7 @@ private:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
     CSettingsDlg* dlg;
+    bool restoreLoadChecked;
 
 signals:
     void settingsUpdated();
@@ -101,6 +104,10 @@ signals:
 public slots:
     void writeSettings();
     void settingsDlg();
+
+    void writeTabsList(bool clearList = false);
+    void checkRestoreLoad(CMainWindow* w);
+
 };
 
 #endif // CSETTINGS_H

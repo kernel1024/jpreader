@@ -22,14 +22,14 @@ CTranslator::CTranslator(QObject* parent, QString aUri)
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     atlTcpRetryCount=gSet->settings.atlTcpRetryCount;
     atlTcpTimeout=gSet->settings.atlTcpTimeout;
-    forceFontColor=gSet->forceFontColor();
+    forceFontColor=gSet->ui.forceFontColor();
     forcedFontColor=gSet->settings.forcedFontColor;
-    useOverrideFont=gSet->useOverrideFont();
+    useOverrideFont=gSet->ui.useOverrideFont();
     overrideFont=gSet->settings.overrideFont;
     translationMode=gSet->getTranslationMode();
     engine=gSet->settings.translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
-    translateSubSentences=gSet->actionTranslateSubSentences->isChecked();
+    translateSubSentences=gSet->ui.actionTranslateSubSentences->isChecked();
     tran=NULL;
     tranInited=false;
 }

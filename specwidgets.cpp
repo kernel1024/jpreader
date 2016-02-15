@@ -254,7 +254,7 @@ void CSpecTabContainer::detachTab()
         QString url = "about://blank";
         if (!snv->fileChanged) url=snv->urlEdit->text();
 
-        CMainWindow* mwnd = gSet->addMainWindow(false,false);
+        CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
         CSnippetViewer* sv = new CSnippetViewer(mwnd, url);
         ntab = sv;
 
@@ -270,7 +270,7 @@ void CSpecTabContainer::detachTab()
     if (stb!=NULL) {
         QString query = stb->getLastQuery();
         if (!query.isEmpty()) {
-            CMainWindow* mwnd = gSet->addMainWindow(false,false);
+            CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
             CSearchTab* st = new CSearchTab(mwnd);
             ntab = st;
             st->searchTerm(query,false);
@@ -288,7 +288,7 @@ void CSpecTabContainer::detachTab()
  *  Can caught failure with Qt5 openGL backend...
  *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
 
-    CMainWindow* mwnd = gSet->addMainWindow(false,false);
+    CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
     tabWidget->removeTab(tabWidget->indexOf(this));
     parentWnd = mwnd;
     setParent(mwnd);

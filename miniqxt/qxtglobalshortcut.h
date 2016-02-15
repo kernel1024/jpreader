@@ -48,6 +48,7 @@ public:
 
     QKeySequence shortcut() const;
     bool setShortcut(const QKeySequence& shortcut);
+    bool unsetShortcut();
 
     bool isEnabled() const;
 
@@ -63,8 +64,6 @@ private:
     bool m_enabled;
     Qt::Key key;
     Qt::KeyboardModifiers mods;
-
-    bool unsetShortcut();
 
     static bool error;
     static int ref;

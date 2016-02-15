@@ -2,12 +2,14 @@
 #include <QDir>
 #include <QApplication>
 #include <QWebEngineSettings>
+#include <QMessageBox>
 #include <QtWebEngine/QtWebEngineVersion>
 #include <goldendictlib/goldendictmgr.hh>
 #include "settings.h"
 #include "globalcontrol.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "genericfuncs.h"
+#include "snviewer.h"
 
 CSettings::CSettings(QObject *parent)
     : QObject(parent)
@@ -21,6 +23,7 @@ CSettings::CSettings(QObject *parent)
     maxHistory=5000;
     maxRecent=10;
     useAdblock=false;
+    restoreLoadChecked=false;
     globalContextTranslate=false;
     emptyRestore=false;
     createCoredumps=false;
@@ -128,7 +131,7 @@ void CSettings::writeSettings()
     settings.setValue("recycledCount",maxRecycled);
 
     settings.setValue("useAdblock",useAdblock);
-    settings.setValue("useOverrideFont",gSet->useOverrideFont());
+    settings.setValue("useOverrideFont",gSet->ui.useOverrideFont());
     settings.setValue("overrideFont",overrideFont.family());
     settings.setValue("overrideFontSize",overrideFont.pointSize());
     settings.setValue("overrideStdFonts",overrideStdFonts);
@@ -136,9 +139,9 @@ void CSettings::writeSettings()
     settings.setValue("fixedFont",fontFixed);
     settings.setValue("serifFont",fontSerif);
     settings.setValue("sansSerifFont",fontSansSerif);
-    settings.setValue("forceFontColor",gSet->forceFontColor());
+    settings.setValue("forceFontColor",gSet->ui.forceFontColor());
     settings.setValue("forcedFontColor",forcedFontColor.name());
-    settings.setValue("gctxHotkey",gSet->gctxTranHotkey->shortcut().toString());
+    settings.setValue("gctxHotkey",gSet->ui.gctxTranHotkey.shortcut().toString());
 
     settings.setValue("searchEngine",searchEngine);
     settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
@@ -216,7 +219,7 @@ void CSettings::readSettings(QObject *control)
     maxRecycled = settings.value("recycledCount",20).toInt();
     bool jsstate = settings.value("javascript",true).toBool();
     g->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
-    g->actionJSUsage->setChecked(jsstate);
+    g->ui.actionJSUsage->setChecked(jsstate);
     g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                          settings.value("autoloadimages",true).toBool());
 #if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -225,7 +228,7 @@ void CSettings::readSettings(QObject *control)
 #endif
 
     useAdblock=settings.value("useAdblock",false).toBool();
-    g->actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
+    g->ui.actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
     overrideFont.setFamily(settings.value("overrideFont","Verdana").toString());
     overrideFont.setPointSize(settings.value("overrideFontSize",12).toInt());
     overrideStdFonts=settings.value("overrideStdFonts",false).toBool();
@@ -233,13 +236,13 @@ void CSettings::readSettings(QObject *control)
     fontFixed=settings.value("fixedFont","Courier New").toString();
     fontSerif=settings.value("serifFont","Times New Roman").toString();
     fontSansSerif=settings.value("sansSerifFont","Verdana").toString();
-    g->actionOverrideFontColor->setChecked(settings.value("forceFontColor",false).toBool());
+    g->ui.actionOverrideFontColor->setChecked(settings.value("forceFontColor",false).toBool());
     forcedFontColor=QColor(settings.value("forcedFontColor","#000000").toString());
     QString hk = settings.value("gctxHotkey",QString()).toString();
     if (!hk.isEmpty()) {
-        g->gctxTranHotkey->setShortcut(QKeySequence::fromString(hk));
-        if (!g->gctxTranHotkey->shortcut().isEmpty())
-            g->gctxTranHotkey->setEnabled();
+        g->ui.gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
+        if (!g->ui.gctxTranHotkey.shortcut().isEmpty())
+            g->ui.gctxTranHotkey.setEnabled();
     }
     searchEngine = settings.value("searchEngine",SE_NONE).toInt();
     atlTcpRetryCount = settings.value("atlTcpRetryCount",3).toInt();
@@ -279,7 +282,7 @@ void CSettings::readSettings(QObject *control)
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     g->updateAllBookmarks();
-    g->updateProxy(proxyUse,true);
+    updateProxy(proxyUse,true);
 }
 
 void CSettings::settingsDlg()
@@ -347,7 +350,7 @@ void CSettings::settingsDlg()
     dlg->jsLogConsole->setChecked(jsLogConsole);
 
     dlg->useAd->setChecked(useAdblock);
-    dlg->useOverrideFont->setChecked(gSet->useOverrideFont());
+    dlg->useOverrideFont->setChecked(gSet->ui.useOverrideFont());
     dlg->overrideStdFonts->setChecked(overrideStdFonts);
     dlg->fontOverride->setCurrentFont(overrideFont);
     QFont f = QApplication::font();
@@ -360,15 +363,15 @@ void CSettings::settingsDlg()
     f.setFamily(fontSansSerif);
     dlg->fontSansSerif->setCurrentFont(f);
     dlg->fontOverrideSize->setValue(overrideFont.pointSize());
-    dlg->fontOverride->setEnabled(gSet->useOverrideFont());
-    dlg->fontOverrideSize->setEnabled(gSet->useOverrideFont());
+    dlg->fontOverride->setEnabled(gSet->ui.useOverrideFont());
+    dlg->fontOverrideSize->setEnabled(gSet->ui.useOverrideFont());
     dlg->fontStandard->setEnabled(overrideStdFonts);
     dlg->fontFixed->setEnabled(overrideStdFonts);
     dlg->fontSerif->setEnabled(overrideStdFonts);
     dlg->fontSansSerif->setEnabled(overrideStdFonts);
-    dlg->overrideFontColor->setChecked(gSet->forceFontColor());
+    dlg->overrideFontColor->setChecked(gSet->ui.forceFontColor());
     dlg->updateFontColorPreview(forcedFontColor);
-    dlg->gctxHotkey->setKeySequence(gSet->gctxTranHotkey->shortcut());
+    dlg->gctxHotkey->setKeySequence(gSet->ui.gctxTranHotkey.shortcut());
     dlg->createCoredumps->setChecked(createCoredumps);
 #ifndef WITH_RECOLL
     dlg->searchRecoll->setEnabled(false);
@@ -385,7 +388,7 @@ void CSettings::settingsDlg()
 
     dlg->visualShowTabCloseButtons->setChecked(showTabCloseButtons);
 
-    dlg->debugLogNetReq->setChecked(gSet->actionLogNetRequests->isChecked());
+    dlg->debugLogNetReq->setChecked(gSet->ui.actionLogNetRequests->isChecked());
     dlg->debugDumpHtml->setChecked(debugDumpHtml);
 
     dlg->overrideUserAgent->setChecked(overrideUserAgent);
@@ -449,7 +452,7 @@ void CSettings::settingsDlg()
 
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
                                                    dlg->useJS->isChecked());
-        gSet->actionJSUsage->setChecked(dlg->useJS->isChecked());
+        gSet->ui.actionJSUsage->setChecked(dlg->useJS->isChecked());
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                                    dlg->autoloadImages->isChecked());
 #if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -484,7 +487,7 @@ void CSettings::settingsDlg()
             atlHostHistory.move(atlHostHistory.indexOf(atlHost),0);
         else
             atlHostHistory.prepend(atlHost);
-        gSet->actionOverrideFont->setChecked(dlg->useOverrideFont->isChecked());
+        gSet->ui.actionOverrideFont->setChecked(dlg->useOverrideFont->isChecked());
         overrideStdFonts=dlg->overrideStdFonts->isChecked();
         overrideFont=dlg->fontOverride->currentFont();
         overrideFont.setPointSize(dlg->fontOverrideSize->value());
@@ -492,14 +495,14 @@ void CSettings::settingsDlg()
         fontFixed=dlg->fontFixed->currentFont().family();
         fontSerif=dlg->fontSerif->currentFont().family();
         fontSansSerif=dlg->fontSansSerif->currentFont().family();
-        gSet->actionOverrideFontColor->setChecked(dlg->overrideFontColor->isChecked());
+        gSet->ui.actionOverrideFontColor->setChecked(dlg->overrideFontColor->isChecked());
         forcedFontColor=dlg->getOverridedFontColor();
 
         useAdblock=dlg->useAd->isChecked();
 
-        gSet->gctxTranHotkey->setShortcut(dlg->gctxHotkey->keySequence());
-        if (!gSet->gctxTranHotkey->shortcut().isEmpty())
-            gSet->gctxTranHotkey->setEnabled();
+        gSet->ui.gctxTranHotkey.setShortcut(dlg->gctxHotkey->keySequence());
+        if (!gSet->ui.gctxTranHotkey.shortcut().isEmpty())
+            gSet->ui.gctxTranHotkey.setEnabled();
         createCoredumps=dlg->createCoredumps->isChecked();
         if (dlg->searchRecoll->isChecked())
             searchEngine = SE_RECOLL;
@@ -510,7 +513,7 @@ void CSettings::settingsDlg()
 
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
-        gSet->actionLogNetRequests->setChecked(dlg->debugLogNetReq->isChecked());
+        gSet->ui.actionLogNetRequests->setChecked(dlg->debugLogNetReq->isChecked());
         debugDumpHtml = dlg->debugDumpHtml->isChecked();
 
         overrideUserAgent = dlg->overrideUserAgent->isChecked();
@@ -554,7 +557,7 @@ void CSettings::settingsDlg()
             default: proxyType = QNetworkProxy::HttpCachingProxy; break;
         }
 
-        gSet->updateProxy(proxyUse,true);
+        updateProxy(proxyUse,true);
         emit settingsUpdated();
     }
     connect(dlg,&CSettingsDlg::destroyed,[this](){
@@ -567,4 +570,57 @@ void CSettings::setTranslationEngine(int engine)
 {
     translatorEngine = engine;
     emit settingsUpdated();
+}
+
+void CSettings::checkRestoreLoad(CMainWindow *w)
+{
+    if (restoreLoadChecked) return;
+    restoreLoadChecked = true;
+
+    QList<QUrl> urls;
+    urls.clear();
+    QSettings settings("kernel1024", "jpreader-tabs");
+    settings.beginGroup("OpenedTabs");
+    int cnt = settings.value("tabsCnt", 0).toInt();
+    for (int i=0;i<cnt;i++) {
+        QUrl u = settings.value(QString("tab_%1").arg(i),QUrl()).toUrl();
+        if (u.isValid() && !u.isEmpty())
+            urls << u;
+    }
+    settings.endGroup();
+
+    if (!urls.isEmpty()) {
+        if (QMessageBox::question(w,tr("JPReader"),tr("Program crashed in previous run. Restore all tabs?"),
+                                  QMessageBox::Yes,QMessageBox::No) == QMessageBox::Yes) {
+            for (int i=0;i<cnt;i++)
+                new CSnippetViewer(w,urls.at(i));
+        }
+    }
+}
+
+void CSettings::writeTabsList(bool clearList)
+{
+    if (gSet==NULL) return;
+
+    QList<QUrl> urls;
+    urls.clear();
+    if (!clearList) {
+        for (int i=0;i<gSet->mainWindows.count();i++) {
+            for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
+                CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
+                if (sn==NULL) continue;
+                QUrl url = sn->getUrl();
+                if (url.isValid() && !url.isEmpty())
+                    urls << url;
+            }
+        }
+        if (urls.isEmpty()) return;
+    }
+
+    QSettings settings("kernel1024", "jpreader-tabs");
+    settings.beginGroup("OpenedTabs");
+    settings.setValue("tabsCnt", urls.count());
+    for (int i=0;i<urls.count();i++)
+        settings.setValue(QString("tab_%1").arg(i),urls.at(i));
+    settings.endGroup();
 }

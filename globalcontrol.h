@@ -6,12 +6,10 @@
 #include <QApplication>
 #include <QString>
 #include <QUrl>
-#include <QAction>
 #include <QThread>
 #include <QNetworkReply>
 #include <QNetworkProxy>
 #include <QAuthenticator>
-#include <QClipboard>
 #include <QMutex>
 #include <QTimer>
 #include <QLocalServer>
@@ -26,6 +24,7 @@
 #include "adblockrule.h"
 #include "structures.h"
 #include "settings.h"
+#include "globalui.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -34,7 +33,6 @@ class CTranslator;
 class CAuxDictionary;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
-class QxtGlobalShortcut;
 class CDownloadManager;
 
 class CGlobalControl : public QObject
@@ -44,6 +42,7 @@ public:
     explicit CGlobalControl(QApplication *parent);
 
     CSettings settings;
+    CGlobalUI ui;
 
     CMainWindow* activeWindow;
     QList<CMainWindow*> mainWindows;
@@ -79,35 +78,9 @@ public:
 
     QTimer tabsListTimer;
 
-    QxtGlobalShortcut* gctxTranHotkey;
     bool blockTabCloseActive;
 
     QSslCertificateHash atlCerts;
-
-    QAction *actionUseProxy;
-
-    QAction* actionSelectionDictionary;
-    QAction* actionGlobalTranslator;
-
-    QAction *actionJSUsage;
-    QAction *actionSnippetAutotranslate;
-    QAction *actionLogNetRequests;
-
-    QAction *actionAutoTranslate;
-    QAction *actionOverrideFont;
-    QAction *actionAutoloadImages;
-    QAction *actionOverrideFontColor;
-    QAction *actionTranslateSubSentences;
-
-    QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
-    QAction *actionLSJapanese, *actionLSChineseTraditional;
-    QAction *actionLSChineseSimplified, *actionLSKorean;
-    QActionGroup *translationMode, *sourceLanguage;
-
-    // Actions for Settings menu
-    bool useOverrideFont();
-    bool autoTranslate();
-    bool forceFontColor();
 
     // History lists append
     void appendRecycled(QString title, QUrl url);
@@ -148,38 +121,25 @@ public:
     QUrl createSearchUrl(const QString& text, const QString& engine = QString());
 
 private:
-    bool restoreLoadChecked;
     bool cleaningState;
     bool atlCertErrorInteractive;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
     void cleanTmpFiles();
-    void startGlobalContextTranslate(const QString& text);
 
 signals:
     void startAuxTranslation();
     void stopTranslators();
 
 public slots:
-    CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
-    void windowDestroyed(CMainWindow* obj);
     void cleanupAndExit();
-    void focusChanged(QWidget* old, QWidget* now);
-    void closeLockTimer();
     void blockTabClose();
-    void clipboardChanged(QClipboard::Mode mode);
     void ipcMessageReceived();
-    void globalContextTranslateReady(const QString& text);
     void showDictionaryWindow(const QString& text = QString());
-
-    // Settings management
-    void writeTabsList(bool clearList = false);
-    void checkRestoreLoad(CMainWindow* w);
-    void updateProxy(bool useProxy, bool forceMenuUpdate = false);
-    void toggleJSUsage(bool useJS);
-    void toggleAutoloadImages(bool loadImages);
-    void toggleLogNetRequests(bool logRequests);
+    void windowDestroyed(CMainWindow* obj);
+    void focusChanged(QWidget* old, QWidget* now);
+    void updateProxy(bool useProxy, bool forceMenuUpdate);
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

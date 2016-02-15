@@ -33,7 +33,8 @@ HEADERS = mainwindow.h \
     pdftotext.h \
     sourceviewer.h \
     structures.h \
-    settings.h
+    settings.h \
+    globalui.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -71,7 +72,8 @@ SOURCES = main.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \
     structures.cpp \
-    settings.cpp
+    settings.cpp \
+    globalui.cpp
 
 RESOURCES = \
     jpreader.qrc

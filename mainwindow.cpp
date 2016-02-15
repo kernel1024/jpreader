@@ -86,7 +86,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionOpenCBPlain, SIGNAL(triggered()), this, SLOT(createFromClipboardPlain()));
     connect(actionClearCB, SIGNAL(triggered()), this, SLOT(clearClipboard()));
     connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
-    connect(actionWnd, SIGNAL(triggered()), gSet, SLOT(addMainWindow()));
+    connect(actionWnd, SIGNAL(triggered()), &(gSet->ui), SLOT(addMainWindow()));
     connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
     connect(actionSaveSettings,&QAction::triggered, &(gSet->settings), &CSettings::writeSettings);
     connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));

@@ -134,7 +134,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
     connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
     connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
-    connect(gSet->sourceLanguage, SIGNAL(triggered(QAction*)), msgHandler, SLOT(updateSrcLang(QAction*)));
+    connect(gSet->ui.sourceLanguage, SIGNAL(triggered(QAction*)), msgHandler, SLOT(updateSrcLang(QAction*)));
     connect(&(gSet->settings), SIGNAL(settingsUpdated()), msgHandler, SLOT(updateTranEngine()));
 
     QShortcut* sc;

@@ -173,7 +173,7 @@ void CSnTrans::progressLoad(int progress)
 void CSnTrans::selectionChanged()
 {
     storedSelection = snv->txtBrowser->page()->selectedText();
-    if (!storedSelection.isEmpty() && gSet->actionSelectionDictionary->isChecked())
+    if (!storedSelection.isEmpty() && gSet->ui.actionSelectionDictionary->isChecked())
         selectionTimer->start();
 }
 
