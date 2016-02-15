@@ -147,7 +147,8 @@ void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *auth
     if (dlg->exec()) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());
-    }
+    } else
+        *authenticator = QAuthenticator();
     dlg->setParent(NULL);
     delete dlg;
 }
@@ -160,7 +161,8 @@ void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator 
     if (dlg->exec()) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());
-    }
+    } else
+        *authenticator = QAuthenticator();
     dlg->setParent(NULL);
     delete dlg;
 }
