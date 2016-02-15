@@ -282,7 +282,7 @@ void CSettings::readSettings(QObject *control)
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     g->updateAllBookmarks();
-    updateProxy(proxyUse,true);
+    g->updateProxy(proxyUse,true);
 }
 
 void CSettings::settingsDlg()
@@ -557,7 +557,7 @@ void CSettings::settingsDlg()
             default: proxyType = QNetworkProxy::HttpCachingProxy; break;
         }
 
-        updateProxy(proxyUse,true);
+        gSet->updateProxy(proxyUse,true);
         emit settingsUpdated();
     }
     connect(dlg,&CSettingsDlg::destroyed,[this](){
