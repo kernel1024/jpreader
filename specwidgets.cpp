@@ -6,6 +6,7 @@
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
 #include <goldendictlib/dictionary.hh>
+#include <QtWebEngine/QtWebEngineVersion>
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
@@ -244,6 +245,8 @@ void CSpecTabContainer::detachTab()
 {
     if (tabWidget->count()<=1) return;
 
+/*  Classic method - create new tab and copy contents
+ *
     CSpecTabContainer* ntab = NULL;
 
     CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
@@ -278,17 +281,20 @@ void CSpecTabContainer::detachTab()
         closeTab();
         ntab->activateWindow();
         ntab->parentWnd->raise();
-    }
+    } */
 
-/*  failed with Qt5 openGL backend...
- *  QSGTextureAtlas: texture atlas allocation failed, code=501
+/*
+ *  Reparenting
+ *  Can caught failure with Qt5 openGL backend...
+ *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
 
+    CMainWindow* mwnd = gSet->addMainWindow(false,false);
     tabWidget->removeTab(tabWidget->indexOf(this));
     parentWnd = mwnd;
     setParent(mwnd);
     bindToTab(mwnd->tabMain);
     activateWindow();
-    mwnd->raise();*/
+    mwnd->raise();
 }
 
 void CSpecTabContainer::closeTab(bool nowait)
@@ -431,7 +437,7 @@ void CSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
     }
 }
 
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
 CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
     : QWebEngineUrlRequestInterceptor(p)

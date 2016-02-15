@@ -106,11 +106,6 @@ exists( /usr/include/magic.h ) {
     error("libmagic not found.");
 }
 
-exists( $$[QT_INSTALL_HEADERS]/QtWebEngineCore/QWebEngineUrlRequestInterceptor ) {
-    DEFINES += WEBENGINE_56
-    message("QtWebEngine is 5.6.0 or newer")
-}
-
 !packagesExist(icu-uc icu-io icu-i18n) {
     error("icu not found.");
 }

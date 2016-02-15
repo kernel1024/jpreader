@@ -2,7 +2,8 @@
 #include <QMessageBox>
 #include <QColorDialog>
 
-#ifdef WEBENGINE_56
+#include <QtWebEngine/QtWebEngineVersion>
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 #include <QWebEngineCookieStore>
 #endif
 
@@ -121,7 +122,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
     updateAtlCertLabel();
 
-#ifndef WEBENGINE_56
+#if QTWEBENGINE_VERSION < QT_VERSION_CHECK(5, 6, 0)
     QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
     ui->groupBoxProxy->setEnabled(false);
     ui->groupBoxProxy->setToolTip(we56);
@@ -405,7 +406,7 @@ void CSettingsDlg::showLoadedDicts()
 
 void CSettingsDlg::clearCookies()
 {
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QWebEngineCookieStore* wsc = gSet->webProfile->cookieStore();
     if (wsc!=NULL)
         wsc->deleteAllCookies();
@@ -416,7 +417,7 @@ void CSettingsDlg::clearCookies()
 
 void CSettingsDlg::getCookiesFromStore()
 {
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     CNetworkCookieJar* cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
     if (cj!=NULL) {
         cookiesList = cj->getAllCookies();
@@ -427,7 +428,7 @@ void CSettingsDlg::getCookiesFromStore()
 
 void CSettingsDlg::delCookies()
 {
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (gSet->webProfile->cookieStore()!=NULL) {
         foreach (const int idx, r)
@@ -440,7 +441,7 @@ void CSettingsDlg::delCookies()
 
 void CSettingsDlg::exportCookies()
 {
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (r.isEmpty()) {
         QMessageBox::information(this,tr("JPReader"),tr("Please select cookies for export."));

@@ -1,5 +1,6 @@
 #include <QMessageBox>
 #include <QDebug>
+#include <QtWebEngine/QtWebEngineVersion>
 #include "snmsghandler.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
@@ -119,7 +120,7 @@ void CSnMsgHandler::focusSet()
         snv->txtBrowser->setFocus();
 }
 
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                                             int exitCode)
 {

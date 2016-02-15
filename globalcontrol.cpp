@@ -5,7 +5,8 @@
 #include <QNetworkCookieJar>
 #include <QStandardPaths>
 
-#ifdef WEBENGINE_56
+#include <QtWebEngine/QtWebEngineVersion>
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 #include <QWebEngineCookieStore>
 #endif
 
@@ -195,7 +196,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     connect(webProfile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
             downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
 
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
     webProfile->installUrlSchemeHandler(QByteArray("gdlookup"), new CSpecGDSchemeHandler());
 

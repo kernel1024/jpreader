@@ -8,6 +8,7 @@
 #include <QUrlQuery>
 #include <QDrag>
 #include <QMimeData>
+#include <QtWebEngine/QtWebEngineVersion>
 
 #include <math.h>
 #include "snviewer.h"
@@ -89,7 +90,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
     connect(txtBrowser, SIGNAL(iconUrlChanged(QUrl)), netHandler, SLOT(iconUrlChanged(QUrl)));
 
-#ifdef WEBENGINE_56
+#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     connect(txtBrowser, SIGNAL(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)),
             msgHandler, SLOT(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)));
 #endif

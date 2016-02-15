@@ -5,6 +5,7 @@
 #include <QAbstractNetworkCache>
 #include <QTextDocument>
 #include <QWebEngineSettings>
+#include <QtWebEngine/QtWebEngineVersion>
 #include <QMimeData>
 
 #include "qxttooltip.h"
@@ -851,16 +852,17 @@ void CMainWindow::helpAbout()
                      "Platform: %3\n"
                      "Build date: %4\n\n"
                      "Recoll backend compiled: %5\n"
-                     "Baloo backend compiled: %6\n\n"
-                     "Poppler support: %7\n\n"
-                     "WebEngine version.")
+                     "Baloo backend compiled: %6\n"
+                     "Poppler support: %7\n"
+                     "QtWebEngine version: %8.")
                     .arg(BUILD_REV,
                     debugstr,
                     BUILD_PLATFORM,
                     BUILD_DATE,
                     recoll,
                     baloo5,
-                    poppler);
+                    poppler,
+                    QTWEBENGINE_VERSION_STR);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }
