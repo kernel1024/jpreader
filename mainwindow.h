@@ -36,10 +36,12 @@ public:
     void updateRecycled();
     void updateTabs();
     void updateHistoryList();
+    void updateRecentList();
 
 private:
     QMenu* recycledMenu;
     QMenu* tabsMenu;
+    QMenu* recentMenu;
     CSpecTabBar* tabHelper;
     bool helperVisible;
     int savedHelperIdx;
@@ -56,7 +58,7 @@ public slots:
 	void helpAbout();
 
 	void openBookmark();
-    void openAuxFile();
+    void openAuxFile(const QString &filename = QString());
     void openAuxFileInDir();
     void openEmptyBrowser();
     void openRecycled();

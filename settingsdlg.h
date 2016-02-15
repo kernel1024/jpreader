@@ -79,6 +79,7 @@ public:
     QCheckBox* enablePlugins;
     QSpinBox* cacheSize;
     QCheckBox* jsLogConsole;
+    QSpinBox* maxRecent;
 
     QStringList loadedDicts;
 

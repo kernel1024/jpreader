@@ -113,6 +113,8 @@
     <addaction name="actionOpenClip"/>
     <addaction name="actionOpenInDir"/>
     <addaction name="separator"/>
+    <addaction name="actionRecentDocuments"/>
+    <addaction name="separator"/>
     <addaction name="actionExitAll"/>
     <addaction name="actionExit"/>
    </widget>
@@ -322,8 +324,7 @@
   <action name="actionDetachTab">
    <property name="icon">
     <iconset theme="tab-detach">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Detach current tab</string>
@@ -371,8 +372,7 @@
   <action name="actionDictionary">
    <property name="icon">
     <iconset theme="accessories-dictionary">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>D&amp;ictionary</string>
@@ -389,8 +389,7 @@
   <action name="actionDownloadManager">
    <property name="icon">
     <iconset theme="folder-downloads">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Download &amp;manager</string>
@@ -405,6 +404,11 @@
    </property>
    <property name="shortcut">
     <string>F11</string>
+   </property>
+  </action>
+  <action name="actionRecentDocuments">
+   <property name="text">
+    <string>Recent documents</string>
    </property>
   </action>
  </widget>

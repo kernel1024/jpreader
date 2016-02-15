@@ -25,6 +25,7 @@ public:
     QString dictIndexDir;
     QString defaultSearchEngine;
     int maxHistory;
+    int maxRecent;
     bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
     bool showTabCloseButtons;

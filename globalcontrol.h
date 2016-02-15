@@ -62,6 +62,8 @@ public:
     QWebEngineProfile *webProfile;
     QNetworkAccessManager *auxNetManager;
 
+    QStringList recentFiles;
+
     QStrHash ctxSearchEngines;
 
     QBookmarksMap bookmarks;
@@ -112,6 +114,7 @@ public:
     void appendSearchHistory(QStringList req);
     void appendMainHistory(UrlHolder& item);
     bool updateMainHistoryTitle(UrlHolder& item, QString newTitle);
+    void appendRecent(QString filename);
 
     // Lists updaters
     void updateAllBookmarks();
@@ -119,6 +122,7 @@ public:
     void updateAllCharsetLists();
     void updateAllQueryLists();
     void updateAllHistoryLists();
+    void updateAllRecentLists();
 
     // Ad-block
     bool isUrlBlocked(QUrl url);

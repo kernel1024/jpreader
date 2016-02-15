@@ -19,6 +19,7 @@ CSettings::CSettings(QObject *parent)
 
     maxSearchLimit=1000;
     maxHistory=5000;
+    maxRecent=10;
     useAdblock=false;
     globalContextTranslate=false;
     emptyRestore=false;
@@ -96,11 +97,13 @@ void CSettings::writeSettings()
     bigdata.setValue("dictPaths",QVariant::fromValue(dictPaths));
     bigdata.setValue("ctxSearchEngines",QVariant::fromValue(gSet->ctxSearchEngines));
     bigdata.setValue("atlasCertificates",QVariant::fromValue(gSet->atlCerts));
+    bigdata.setValue("recentFiles",QVariant::fromValue(gSet->recentFiles));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
     settings.setValue("maxLimit",maxSearchLimit);
     settings.setValue("maxHistory",maxHistory);
+    settings.setValue("maxRecent",maxRecent);
     settings.setValue("browser",sysBrowser);
     settings.setValue("editor",sysEditor);
     settings.setValue("tr_engine",translatorEngine);
@@ -186,6 +189,7 @@ void CSettings::readSettings(QObject *control)
     dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
     g->ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
     g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
+    g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
 
     g->adblockMutex.lock();
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
@@ -194,7 +198,8 @@ void CSettings::readSettings(QObject *control)
     hostingDir = settings.value("hostingDir","").toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
     maxSearchLimit = settings.value("maxLimit",1000).toInt();
-    maxHistory = settings.value("maxHistory",5000).toInt();
+    maxHistory = settings.value("maxHistory",1000).toInt();
+    maxRecent = settings.value("maxRecent",10).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
     translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
@@ -289,6 +294,7 @@ void CSettings::settingsDlg()
     dlg->hostingUrl->setText(hostingUrl);
     dlg->maxLimit->setValue(maxSearchLimit);
     dlg->maxHistory->setValue(maxHistory);
+    dlg->maxRecent->setValue(maxRecent);
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
@@ -426,6 +432,7 @@ void CSettings::settingsDlg()
         sysEditor=dlg->editor->text();
         sysBrowser=dlg->browser->text();
         maxRecycled=dlg->maxRecycled->value();
+        maxRecent=dlg->maxRecent->value();
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());

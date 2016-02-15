@@ -47,6 +47,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     searchHistory.clear();
     favicons.clear();
     ctxSearchEngines.clear();
+    recentFiles.clear();
 
     appIcon.addFile(":/img/globe16");
     appIcon.addFile(":/img/globe32");
@@ -555,6 +556,26 @@ bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
         }
     }
     return false;
+}
+
+void CGlobalControl::appendRecent(QString filename)
+{
+    QFileInfo fi(filename);
+    if (!fi.exists()) return;
+
+    if (recentFiles.contains(filename))
+        recentFiles.removeAll(filename);
+    recentFiles.prepend(filename);
+
+    while (recentFiles.count()>settings.maxRecent)
+        recentFiles.removeLast();
+
+    updateAllRecentLists();
+}
+
+void CGlobalControl::updateAllRecentLists()
+{
+    foreach (CMainWindow* w, mainWindows) w->updateRecentList();
 }
 
 void CGlobalControl::updateAllBookmarks()

@@ -120,6 +120,7 @@ void CSnNet::load(const QUrl &url)
             snv->fileChanged = false;
             snv->txtBrowser->load(url);
         }
+        gSet->appendRecent(fname);
     } else {
         QUrl u = url;
         if (u.host().endsWith("pixiv.net") && u.path().startsWith("/jump")) { // Extract jump url for pixiv

@@ -83,6 +83,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     yandexKey=ui->editYandexKey;
     cacheSize=ui->spinCacheSize;
     jsLogConsole=ui->checkJSLogConsole;
+    maxRecent=ui->spinMaxRecent;
 
     cookiesList.clear();
 

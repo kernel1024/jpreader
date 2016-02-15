@@ -64,6 +64,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     actionWnd->setIcon(QIcon::fromTheme("window-new"));
     actionTextTranslator->setIcon(QIcon::fromTheme("document-edit-verify"));
 
+    recentMenu = new QMenu(menuFile);
+    actionRecentDocuments->setMenu(recentMenu);
+
     menuBar()->addSeparator();
 	tabsMenu = menuBar()->addMenu(QIcon::fromTheme("tab-detach"),"");
 	recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),"");
@@ -119,6 +122,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     updateBookmarks();
     updateQueryHistory();
     updateRecycled();
+    updateRecentList();
 
     if (withSearch) createSearch();
     if (withViewer) createStartBrowser();
@@ -445,6 +449,21 @@ void CMainWindow::updateHistoryList()
     }
 }
 
+void CMainWindow::updateRecentList()
+{
+    recentMenu->clear();
+    actionRecentDocuments->setEnabled(gSet->settings.maxRecent>0);
+
+    foreach(const QString& filename, gSet->recentFiles) {
+        QFileInfo fi(filename);
+        QAction* ac = recentMenu->addAction(fi.fileName());
+        ac->setToolTip(filename);
+        connect(ac,&QAction::triggered,[this,filename](){
+            openAuxFile(filename);
+        });
+    }
+}
+
 void CMainWindow::updateTitle()
 {
     QString t = tr("JPReader");
@@ -497,12 +516,16 @@ void CMainWindow::checkTabs()
     if(tabMain->count()==0) close();
 }
 
-void CMainWindow::openAuxFile()
+void CMainWindow::openAuxFile(const QString &filename)
 {
-    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
-    if (fnames.isEmpty()) return;
+    QStringList fnames;
+    if (filename.isEmpty()) {
+        fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
+        if (fnames.isEmpty()) return;
 
-    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+        gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+    } else
+        fnames << filename;
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;
