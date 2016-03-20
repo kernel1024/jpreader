@@ -42,8 +42,12 @@ void CSnNet::loadFinished(bool)
         snv->requestAutotranslate = false;
         snv->transButton->click();
     }
+    snv->pageLoaded = true;
 
-    if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+    if (snv->tabWidget->currentWidget()==snv) {
+        snv->takeScreenshot();
+        snv->txtBrowser->setFocus();
+    }
 }
 
 void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool isMainFrame)

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
+#include <QTimer>
 #include "snviewer.h"
 
 class CSnTrans : public QObject
@@ -12,6 +13,7 @@ class CSnTrans : public QObject
 private:
     CSnippetViewer *snv;
     QTimer *selectionTimer;
+    QTimer *longClickTimer;
     QString storedSelection;
     QUrl savedBaseUrl;
     void findWordTranslation(const QString& text);
@@ -19,7 +21,7 @@ public:
     CSnTrans(CSnippetViewer * parent);
 public slots:
     void translate();
-    void translatePriv(const QString& aUri);
+    void translatePriv(const QString& aUri, bool forceTranSubSentences);
     void calcFinished(const bool success, const QString &aUrl);
     void postTranslate();
     void progressLoad(int progress);
@@ -30,6 +32,7 @@ public slots:
     void dictDataReady();
     void reparseDocument();
     void reparseDocumentPriv(const QString& data);
+    void transButtonHighlight();
 };
 
 #endif // SNTRANS_H

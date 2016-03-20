@@ -90,7 +90,7 @@ private:
     void dumpPage(const QUuid& token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, QString aUri);
+    explicit CTranslator(QObject* parent, QString aUri, bool forceTranSubSentences = false);
     ~CTranslator();
     bool documentReparse(const QString& srcUri, QString& dst);
 

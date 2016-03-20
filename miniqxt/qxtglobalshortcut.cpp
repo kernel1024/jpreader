@@ -106,14 +106,16 @@ bool QxtGlobalShortcut::setShortcut(const QKeySequence& shortcut)
 bool QxtGlobalShortcut::unsetShortcut()
 {
     bool res = false;
-    const xcb_keycode_t nativeKey = nativeKeycode(key, mods);
-    const uint16_t nativeMods = nativeModifiers(mods);
-    if (shortcuts.value(qMakePair(nativeKey, nativeMods)) == this)
-        res = unregisterShortcut(nativeKey, nativeMods);
-    if (res)
-        shortcuts.remove(qMakePair(nativeKey, nativeMods));
-    else
-        qWarning() << "QxtGlobalShortcut failed to unregister:" << QKeySequence(key + mods).toString();
+    if (key!=0) {
+        const xcb_keycode_t nativeKey = nativeKeycode(key, mods);
+        const uint16_t nativeMods = nativeModifiers(mods);
+        if (shortcuts.value(qMakePair(nativeKey, nativeMods)) == this)
+            res = unregisterShortcut(nativeKey, nativeMods);
+        if (res)
+            shortcuts.remove(qMakePair(nativeKey, nativeMods));
+        else
+            qWarning() << "QxtGlobalShortcut failed to unregister:" << QKeySequence(key + mods).toString();
+    }
     key = Qt::Key(0);
     mods = Qt::KeyboardModifiers(0);
     return res;

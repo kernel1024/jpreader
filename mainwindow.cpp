@@ -185,12 +185,20 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     if (sv!=NULL) {
         t = new CSpecToolTipLabel(sv->tabTitle);
 
-        QPixmap pix = sv->txtBrowser->grab().scaledToWidth(250,Qt::SmoothTransformation);
+        QPixmap pix = sv->pageImage;
+        bool fillRect = false;
+        if (pix.isNull()) {
+            pix = QPixmap(250,100);
+            fillRect = true;
+        } else
+            pix = pix.scaledToWidth(250,Qt::SmoothTransformation);
         QPainter dc(&pix);
         QRect rx = pix.rect();
         QFont f = dc.font();
         f.setPointSize(8);
         dc.setFont(f);
+        if (fillRect)
+            dc.fillRect(rx,t->palette().window());
         rx.setHeight(dc.fontMetrics().height());
         dc.fillRect(rx,t->palette().toolTipBase());
         dc.setPen(t->palette().toolTipText().color());
@@ -339,6 +347,7 @@ void CMainWindow::tabChanged(int idx)
             sn->translationBkgdFinished=false;
             sn->loadingBkgdFinished=false;
             sn->txtBrowser->setFocus(Qt::OtherFocusReason);
+            sn->takeScreenshot();
         }
     }
 

@@ -7,7 +7,7 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, QString aUri)
+CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentences)
     : QObject(parent)
 {
     hostingDir=gSet->settings.hostingDir;
@@ -29,7 +29,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri)
     translationMode=gSet->getTranslationMode();
     engine=gSet->settings.translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
-    translateSubSentences=gSet->ui.actionTranslateSubSentences->isChecked();
+    translateSubSentences=(forceTranSubSentences || gSet->ui.actionTranslateSubSentences->isChecked());
     tran=NULL;
     tranInited=false;
 }
@@ -587,9 +587,17 @@ void CTranslator::translate()
 
 void CTranslator::abortTranslator()
 {
-    abortMutex.lock();
-    abortFlag=true;
-    abortMutex.unlock();
+    // Intermediate timer, because sometimes webengine throws segfault from its insides on widget resize event
+    QTimer* imt = new QTimer(this);
+    imt->setSingleShot(true);
+    imt->setInterval(500);
+    connect(imt,&QTimer::timeout,[this,imt](){
+        abortMutex.lock();
+        abortFlag=true;
+        abortMutex.unlock();
+        imt->deleteLater();
+    });
+    imt->start();
 }
 
 

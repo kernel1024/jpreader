@@ -45,6 +45,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     calculatedUrl="";
     onceTranslated=false;
     requestAutotranslate=false;
+    pageLoaded=false;
+    pageImage = QPixmap();
     searchList.clear();
     barLoading->setValue(0);
     barLoading->hide();
@@ -350,4 +352,17 @@ bool CSnippetViewer::canClose()
 {
     if (waitPanel->isVisible()) return false; // prevent closing while translation thread active
     return true;
+}
+
+void CSnippetViewer::takeScreenshot()
+{
+    if (!pageLoaded) return;
+    QTimer* t = new QTimer(this);
+    t->setInterval(500);
+    t->setSingleShot(true);
+    connect(t,&QTimer::timeout,[this,t](){
+        pageImage = txtBrowser->grab();
+        t->deleteLater();
+    });
+    t->start();
 }

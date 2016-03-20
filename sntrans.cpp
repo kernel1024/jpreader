@@ -15,10 +15,21 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     selectionTimer = new QTimer(this);
     selectionTimer->setInterval(1000);
     selectionTimer->setSingleShot(true);
+    longClickTimer = new QTimer(this);
+    longClickTimer->setInterval(1000);
+    longClickTimer->setSingleShot(true);
     savedBaseUrl.clear();
 
-    connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()),this,SLOT(selectionChanged()));
-    connect(selectionTimer, SIGNAL(timeout()),this,SLOT(selectionShow()));
+    connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+    connect(selectionTimer, SIGNAL(timeout()), this, SLOT(selectionShow()));
+    connect(snv->transButton, SIGNAL(pressed()), longClickTimer, SLOT(start()));
+    connect(longClickTimer, SIGNAL(timeout()), this, SLOT(transButtonHighlight()));
+    connect(snv->transButton, &QPushButton::released, [this](){
+        if (longClickTimer->isActive())
+            longClickTimer->stop();
+        else
+            snv->transButton->setStyleSheet(QString());
+    });
 }
 
 void CSnTrans::reparseDocument()
@@ -47,34 +58,40 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     snv->parentWnd->updateTabs();
 }
 
+void CSnTrans::transButtonHighlight()
+{
+    snv->transButton->setStyleSheet("QPushButton { background: #d7ffd7; }");
+}
+
 void CSnTrans::translate()
 {
+    bool tranSubSentences = !longClickTimer->isActive();
     if (gSet->settings.translatorEngine==TE_ATLAS ||
         gSet->settings.translatorEngine==TE_BINGAPI ||
         gSet->settings.translatorEngine==TE_YANDEX) {
         savedBaseUrl = snv->txtBrowser->page()->url();
         if (savedBaseUrl.hasFragment())
             savedBaseUrl.setFragment(QString());
-        snv->txtBrowser->page()->toHtml([this](const QString& html) {
-            translatePriv(html);
+        snv->txtBrowser->page()->toHtml([this,tranSubSentences](const QString& html) {
+            translatePriv(html,tranSubSentences);
         });
     } else {
         QString aUri = snv->txtBrowser->page()->url().toString();
         if (!aUri.isEmpty())
-            translatePriv(aUri);
+            translatePriv(aUri,tranSubSentences);
         else
-            snv->txtBrowser->page()->toHtml([this](const QString& html) {
-                translatePriv(html);
+            snv->txtBrowser->page()->toHtml([this,tranSubSentences](const QString& html) {
+                translatePriv(html,tranSubSentences);
             });
     }
 }
 
-void CSnTrans::translatePriv(const QString &aUri)
+void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
 {
     snv->calculatedUrl="";
     snv->onceTranslated=true;
 
-    CTranslator* ct = new CTranslator(NULL,aUri);
+    CTranslator* ct = new CTranslator(NULL,aUri,forceTranSubSentences);
     QThread* th = new QThread();
     connect(ct,SIGNAL(calcFinished(bool,QString)),
             this,SLOT(calcFinished(bool,QString)),Qt::QueuedConnection);

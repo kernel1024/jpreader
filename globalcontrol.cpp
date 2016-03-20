@@ -145,7 +145,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     auxNetManager->setCookieJar(new CNetworkCookieJar());
 
     tabsListTimer.setInterval(30000);
-    connect(&tabsListTimer,SIGNAL(timeout()),this,SLOT(writeTabsList()));
+    connect(&tabsListTimer,SIGNAL(timeout()),&settings,SLOT(writeTabsList()));
     tabsListTimer.start();
 
     QTimer::singleShot(1500,dictManager,[this](){

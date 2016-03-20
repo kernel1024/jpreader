@@ -302,6 +302,10 @@
         </item>
         <item>
          <widget class="QPushButton" name="transButton">
+          <property name="toolTip">
+           <string>Translate document.
+Long press forces subsentences mode.</string>
+          </property>
           <property name="text">
            <string>Translate</string>
           </property>

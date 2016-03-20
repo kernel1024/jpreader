@@ -38,6 +38,7 @@ public:
     CSnTrans *transHandler;
     CSnWaitCtl *waitHandler;
     QWebEngineView *txtBrowser;
+    QPixmap pageImage;
 
     QStringList searchList;
 	QString calculatedUrl;
@@ -48,6 +49,7 @@ public:
     bool onceTranslated;
     bool loading;
     bool requestAutotranslate;
+    bool pageLoaded;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
                    bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),
@@ -67,6 +69,7 @@ public slots:
     void titleChanged(const QString & title);
     void urlChanged(const QUrl & url);
     void statusBarMsg(const QString & msg);
+    void takeScreenshot();
 };
 
 #endif

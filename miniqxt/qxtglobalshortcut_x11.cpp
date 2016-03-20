@@ -170,6 +170,8 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
 {
     xcb_keycode_t ret = 0;
 
+    if (key==0) return ret;
+
     xcb_connection_t* c = QX11Info::connection();
     if (c==NULL) return ret;
 

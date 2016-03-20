@@ -139,7 +139,7 @@ public slots:
     void showDictionaryWindow(const QString& text = QString());
     void windowDestroyed(CMainWindow* obj);
     void focusChanged(QWidget* old, QWidget* now);
-    void updateProxy(bool useProxy, bool forceMenuUpdate);
+    void updateProxy(bool useProxy, bool forceMenuUpdate = false);
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

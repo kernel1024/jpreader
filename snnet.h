@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QPixmap>
 #include "snviewer.h"
 
 class CSnNet : public QObject
