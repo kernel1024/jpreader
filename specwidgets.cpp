@@ -6,7 +6,6 @@
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
 #include <goldendictlib/dictionary.hh>
-#include <QtWebEngine/QtWebEngineVersion>
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
@@ -437,8 +436,6 @@ void CSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
     }
 }
 
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-
 CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
     : QWebEngineUrlRequestInterceptor(p)
 {
@@ -521,8 +518,6 @@ void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         request->reply("text/html",reply);
     }
 }
-
-#endif
 
 CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)
     : QAbstractListModel(parent)

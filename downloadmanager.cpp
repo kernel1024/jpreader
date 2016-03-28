@@ -365,12 +365,18 @@ void CDownloadsModel::openHere()
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
+    QStringList acceptedMime = { "text/plain", "text/html", "application/pdf",
+                                 "image/jpeg", "image/png", "image/gif",
+                                 "image/svg+xml", "image/webp" };
     QStringList acceptedExt = { "pdf", "htm", "html", "txt", "jpg", "jpeg", "jpe",
                                 "png", "svg", "gif", "png", "webp" };
 
     QString fname = downloads.at(idx).fileName;
+    QString mime = downloads.at(idx).mimeType;
     QFileInfo fi(fname);
-    if (acceptedExt.contains(fi.suffix().toLower()) && (gSet->activeWindow!=NULL))
+    if ((acceptedMime.contains(mime,Qt::CaseInsensitive) ||
+         acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
+            && (gSet->activeWindow!=NULL))
         new CSnippetViewer(gSet->activeWindow,QUrl::fromLocalFile(fname));
 }
 
@@ -390,6 +396,7 @@ CDownloadItem::CDownloadItem()
 {
     id = 0;
     fileName.clear();
+    mimeType.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
@@ -402,6 +409,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
 {
     id = itemId;
     fileName.clear();
+    mimeType.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
@@ -415,6 +423,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
     if (item==NULL) {
         id = 0;
         fileName.clear();
+        mimeType.clear();
         state = QWebEngineDownloadItem::DownloadRequested;
         received = 0;
         total = 0;
@@ -424,6 +433,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
     } else {
         id = item->id();
         fileName = item->path();
+        mimeType = item->mimeType();
         state = item->state();
         received = item->receivedBytes();
         total = item->totalBytes();
@@ -437,6 +447,7 @@ CDownloadItem &CDownloadItem::operator=(const CDownloadItem &other)
 {
     id = other.id;
     fileName = other.fileName;
+    mimeType = other.mimeType;
     state = other.state;
     received = other.received;
     total = other.total;

@@ -1,6 +1,5 @@
 #include <QMessageBox>
 #include <QDebug>
-#include <QtWebEngine/QtWebEngineVersion>
 #include "snmsghandler.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
@@ -120,7 +119,6 @@ void CSnMsgHandler::focusSet()
         snv->txtBrowser->setFocus();
 }
 
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                                             int exitCode)
 {
@@ -150,7 +148,6 @@ void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTermina
         QMessageBox::warning(snv,tr("JPReader"),status);
     }
 }
-#endif
 
 void CSnMsgHandler::linkHovered(const QString &link)
 {

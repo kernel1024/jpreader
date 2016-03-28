@@ -2,10 +2,7 @@
 #include <QMessageBox>
 #include <QColorDialog>
 
-#include <QtWebEngine/QtWebEngineVersion>
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 #include <QWebEngineCookieStore>
-#endif
 
 #include "settingsdlg.h"
 #include "ui_settingsdlg.h"
@@ -122,29 +119,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->atlSSLProto->addItem("SSL V2",(int)QSsl::SslV2);
     ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
     updateAtlCertLabel();
-
-#if QTWEBENGINE_VERSION < QT_VERSION_CHECK(5, 6, 0)
-    QString we56 = tr("QtWebEngine 5.6 or above need for this feature");
-    ui->groupBoxProxy->setEnabled(false);
-    ui->groupBoxProxy->setToolTip(we56);
-
-    ui->treeAdblock->setEnabled(false);
-    ui->treeAdblock->setToolTip(we56);
-    ui->buttonAdAdd->setEnabled(false);
-    ui->buttonAdDel->setEnabled(false);
-    ui->buttonAdImport->setEnabled(false);
-    ui->buttonAdExport->setEnabled(false);
-    ui->checkUseAd->setEnabled(false);
-
-    ui->tableCookies->setEnabled(false);
-    ui->tableCookies->setToolTip(we56);
-    ui->buttonDelCookies->setEnabled(false);
-    ui->buttonExportCookies->setEnabled(false);
-    ui->buttonClearCookies->setEnabled(false);
-
-    ui->checkEnablePlugins->setEnabled(false);
-    ui->checkEnablePlugins->setToolTip(we56);
-#endif
 }
 
 CSettingsDlg::~CSettingsDlg()
@@ -407,29 +381,24 @@ void CSettingsDlg::showLoadedDicts()
 
 void CSettingsDlg::clearCookies()
 {
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QWebEngineCookieStore* wsc = gSet->webProfile->cookieStore();
     if (wsc!=NULL)
         wsc->deleteAllCookies();
 
     getCookiesFromStore();
-#endif
 }
 
 void CSettingsDlg::getCookiesFromStore()
 {
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     CNetworkCookieJar* cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
     if (cj!=NULL) {
         cookiesList = cj->getAllCookies();
         updateCookiesTable();
     }
-#endif
 }
 
 void CSettingsDlg::delCookies()
 {
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (gSet->webProfile->cookieStore()!=NULL) {
         foreach (const int idx, r)
@@ -437,12 +406,10 @@ void CSettingsDlg::delCookies()
 
         getCookiesFromStore();
     }
-#endif
 }
 
 void CSettingsDlg::exportCookies()
 {
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (r.isEmpty()) {
         QMessageBox::information(this,tr("JPReader"),tr("Please select cookies for export."));
@@ -481,7 +448,6 @@ void CSettingsDlg::exportCookies()
     }
     fs.flush();
     f.close();
-#endif
 }
 
 void CSettingsDlg::cleanAtlCerts()

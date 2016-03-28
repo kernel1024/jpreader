@@ -21,7 +21,7 @@ private:
     bool autoDelete;
 public:
     quint32 id;
-    QString fileName;
+    QString fileName, mimeType;
     QWebEngineDownloadItem::DownloadState state;
     qint64 received, total;
     QWebEngineDownloadItem* ptr;

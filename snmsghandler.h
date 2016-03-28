@@ -8,7 +8,6 @@
 #include <QMutex>
 #include <QTimer>
 #include <QWebEnginePage>
-#include <QtWebEngine/QtWebEngineVersion>
 #include "snviewer.h"
 
 class CSnippetViewer;
@@ -38,10 +37,8 @@ public slots:
     void updateTranEngine();
     void hideBarLoading();
     void focusSet();
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                              int exitCode);
-#endif
 };
 
 #endif // SNMSGHANDLER_H

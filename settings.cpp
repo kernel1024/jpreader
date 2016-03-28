@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QWebEngineSettings>
 #include <QMessageBox>
-#include <QtWebEngine/QtWebEngineVersion>
 #include <goldendictlib/goldendictmgr.hh>
 #include "settings.h"
 #include "globalcontrol.h"
@@ -124,10 +123,8 @@ void CSettings::writeSettings()
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
     settings.setValue("autoloadimages",gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     settings.setValue("enablePlugins",gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::PluginsEnabled));
-#endif
     settings.setValue("recycledCount",maxRecycled);
 
     settings.setValue("useAdblock",useAdblock);
@@ -222,10 +219,8 @@ void CSettings::readSettings(QObject *control)
     g->ui.actionJSUsage->setChecked(jsstate);
     g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                          settings.value("autoloadimages",true).toBool());
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     g->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                          settings.value("enablePlugins",false).toBool());
-#endif
 
     useAdblock=settings.value("useAdblock",false).toBool();
     g->ui.actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
@@ -305,10 +300,8 @@ void CSettings::settingsDlg()
                            testAttribute(QWebEngineSettings::JavascriptEnabled));
     dlg->autoloadImages->setChecked(gSet->webProfile->settings()->
                                     testAttribute(QWebEngineSettings::AutoLoadImages));
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     dlg->enablePlugins->setChecked(gSet->webProfile->settings()->
                                    testAttribute(QWebEngineSettings::PluginsEnabled));
-#endif
 
     dlg->setBookmarks(gSet->bookmarks);
     dlg->setMainHistory(gSet->mainHistory);
@@ -455,10 +448,8 @@ void CSettings::settingsDlg()
         gSet->ui.actionJSUsage->setChecked(dlg->useJS->isChecked());
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                                    dlg->autoloadImages->isChecked());
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                                    dlg->enablePlugins->isChecked());
-#endif
 
         if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;

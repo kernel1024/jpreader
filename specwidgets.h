@@ -22,13 +22,10 @@
 #include <QEventLoop>
 #include <QNetworkCookieJar>
 
-#include <QtWebEngine/QtWebEngineVersion>
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 #include <QWebEngineUrlRequestInterceptor>
 #include <QWebEngineUrlRequestInfo>
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineUrlRequestJob>
-#endif
 
 class CMainWindow;
 class CSnippetViewer;
@@ -155,8 +152,6 @@ private:
                      bool strikeout = false);
 };
 
-#if QTWEBENGINE_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-
 class CSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
     Q_OBJECT
 public:
@@ -170,8 +165,6 @@ public:
     CSpecGDSchemeHandler(QObject* parent = 0);
     void requestStarted(QWebEngineUrlRequestJob * request);
 };
-
-#endif  // QTWEBENGINE_VERSION
 
 class CSpecUrlHistoryModel : public QAbstractListModel {
     Q_OBJECT
