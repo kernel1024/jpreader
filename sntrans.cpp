@@ -23,12 +23,14 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
     connect(selectionTimer, SIGNAL(timeout()), this, SLOT(selectionShow()));
     connect(snv->transButton, SIGNAL(pressed()), longClickTimer, SLOT(start()));
-    connect(longClickTimer, SIGNAL(timeout()), this, SLOT(transButtonHighlight()));
+    connect(longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
     connect(snv->transButton, &QPushButton::released, [this](){
-        if (longClickTimer->isActive())
+        bool ta = longClickTimer->isActive();
+        if (ta)
             longClickTimer->stop();
         else
             snv->transButton->setStyleSheet(QString());
+        translate(!ta);
     });
 }
 
@@ -63,9 +65,8 @@ void CSnTrans::transButtonHighlight()
     snv->transButton->setStyleSheet("QPushButton { background: #d7ffd7; }");
 }
 
-void CSnTrans::translate()
+void CSnTrans::translate(bool tranSubSentences)
 {
-    bool tranSubSentences = !longClickTimer->isActive();
     if (gSet->settings.translatorEngine==TE_ATLAS ||
         gSet->settings.translatorEngine==TE_BINGAPI ||
         gSet->settings.translatorEngine==TE_YANDEX) {

@@ -74,7 +74,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(backButton, SIGNAL(clicked()), msgHandler, SLOT(searchBack()));
     connect(fwdButton, SIGNAL(clicked()), msgHandler, SLOT(searchFwd()));
     connect(comboZoom,SIGNAL(currentIndexChanged(QString)), msgHandler, SLOT(setZoom(QString)));
-    connect(transButton, SIGNAL(clicked()), transHandler, SLOT(translate()));
     connect(stopButton, SIGNAL(clicked()), txtBrowser, SLOT(stop()));
     connect(reloadButton, SIGNAL(clicked()), txtBrowser, SLOT(reload()));
     connect(searchEdit->lineEdit(), SIGNAL(returnPressed()), fwdButton, SLOT(click()));

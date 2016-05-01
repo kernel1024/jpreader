@@ -406,13 +406,17 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
                             if (sc.isLetter())
                                 tacc += sc;
-                            else {
+                            if (!sc.isLetter() || (j==(srct.length()-1))) {
                                 if (!tacc.isEmpty()) {
-                                    if (sc=='?' || sc==QChar(0xff1f)) {
-                                        tacc += sc;
+                                    if (sc.isLetter())
                                         t += tran->tranString(tacc);
-                                    } else
-                                        t += tran->tranString(tacc) + sc;
+                                    else {
+                                        if (sc=='?' || sc==QChar(0xff1f)) {
+                                            tacc += sc;
+                                            t += tran->tranString(tacc);
+                                        } else
+                                            t += tran->tranString(tacc) + sc;
+                                    }
                                     tacc.clear();
                                 } else
                                     t += sc;

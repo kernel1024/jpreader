@@ -19,8 +19,8 @@ private:
     void findWordTranslation(const QString& text);
 public:
     CSnTrans(CSnippetViewer * parent);
+    void translate(bool tranSubSentences);
 public slots:
-    void translate();
     void translatePriv(const QString& aUri, bool forceTranSubSentences);
     void calcFinished(const bool success, const QString &aUrl);
     void postTranslate();
