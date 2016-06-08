@@ -335,8 +335,7 @@ void CSnCtxHandler::bookmarkPage() {
 
 void CSnCtxHandler::showInEditor()
 {
-    QString uuid = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+".html";
-    QString fname = QDir::temp().absoluteFilePath(uuid);
+    QString fname = gSet->makeTmpFileName("html",true);
     snv->txtBrowser->page()->toHtml([fname,this](const QString& html) {
         QFile tfile(fname);
         tfile.open(QIODevice::WriteOnly);

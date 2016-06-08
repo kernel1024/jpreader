@@ -14,8 +14,6 @@
 #include "globalcontrol.h"
 #include "snwaitctl.h"
 
-using namespace htmlcxx;
-
 class CHTMLNode {
 public:
     QString text, tagName, closingText;
@@ -25,7 +23,7 @@ public:
     QStringList attributesOrder;
     CHTMLNode();
     ~CHTMLNode();
-    CHTMLNode(tree<HTML::Node> const & node);
+    CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
     CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other);
     bool operator==(const CHTMLNode &s) const;
@@ -83,7 +81,6 @@ private:
 
     void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
     bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
-    void generateHTML(const CHTMLNode & src, QString &html);
 
     void dumpPage(const QUuid& token, const QString& suffix, const QString& page);
     void dumpPage(const QUuid& token, const QString& suffix, const CHTMLNode& page);

@@ -256,6 +256,16 @@ void CGlobalControl::cleanTmpFiles()
     }
 }
 
+QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
+{
+    QString res = QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"));
+    if (!suffix.isEmpty())
+        res.append(QString(".%1").arg(suffix));
+    if (withDir)
+        res = QDir().temp().absoluteFilePath(res);
+    return res;
+}
+
 void CGlobalControl::blockTabClose()
 {
     blockTabCloseActive=true;

@@ -120,6 +120,7 @@ public:
 
     QUrl createSearchUrl(const QString& text, const QString& engine = QString());
 
+    QString makeTmpFileName(const QString &suffix, bool withDir = false);
 private:
     bool cleaningState;
     bool atlCertErrorInteractive;

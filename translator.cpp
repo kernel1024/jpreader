@@ -59,7 +59,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
         }
     }
     QFileInfo fi(filename);
-    QString wname=QUuid::createUuid().toString().remove(QRegExp("[^a-z,A-Z,0,1-9,-]"))+"."+fi.completeSuffix();
+    QString wname=gSet->makeTmpFileName(fi.completeSuffix());
 
     calculatedUrl="";
 
@@ -486,28 +486,6 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
     return true;
 
-}
-
-void CTranslator::generateHTML(const CHTMLNode &src, QString &html)
-{
-    if (src.isTag && !src.tagName.isEmpty()) {
-        html.append("<"+src.tagName);
-        for (int i=0;i<src.attributesOrder.count();i++) {
-            QString key = src.attributesOrder.at(i);
-            QString val = src.attributes.value(key);
-            if (!val.contains("\""))
-                html.append(QString(" %1=\"%2\"").arg(key,val));
-            else
-                html.append(QString(" %1='%2'").arg(key,val));
-        }
-        html.append(">");
-    } else
-        html.append(src.text);
-
-    for (int i=0; i<src.children.count(); i++ )
-        generateHTML(src.children.at(i),html);
-
-    html.append(src.closingText);
 }
 
 void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QString &page)

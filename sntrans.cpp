@@ -6,6 +6,9 @@
 #include "globalcontrol.h"
 #include "translator.h"
 #include "qxttooltip.h"
+#include "genericfuncs.h"
+
+using namespace htmlcxx;
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
     : QObject(parent)
@@ -166,10 +169,13 @@ void CSnTrans::postTranslate()
         case TE_BINGAPI:
         case TE_YANDEX:
             cn = snv->calculatedUrl;
-            snv->fileChanged = true;
-            snv->onceTranslated = true;
-            snv->txtBrowser->setHtml(cn,savedBaseUrl);
-            if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            if (cn.toUtf8().size()<1500*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
+                snv->fileChanged = true;
+                snv->onceTranslated = true;
+                snv->txtBrowser->setHtml(cn,savedBaseUrl);
+                if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            } else
+                openSeparateTranslationTab(cn, savedBaseUrl);
             break;
         default:
             QMessageBox::warning(snv,tr("JPReader"),tr("Unknown translation engine selected"));
@@ -178,8 +184,10 @@ void CSnTrans::postTranslate()
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->loadingBkgdFinished) { // tab is inactive
         snv->translationBkgdFinished=true;
-        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::red);
-        snv->parentWnd->updateTabs();
+        if (snv->fileChanged) {
+            snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::red);
+            snv->parentWnd->updateTabs();
+        }
     }
 }
 
@@ -205,6 +213,44 @@ void CSnTrans::findWordTranslation(const QString &text)
     req.setQuery(requ);
     QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
     connect(rep,SIGNAL(finished()),this,SLOT(dictDataReady()));
+}
+
+void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
+{
+    if (node.tagName.toLower()=="a") {
+        if (node.attributes.contains("href")) {
+            QUrl ref = QUrl(node.attributes.value("href"));
+            if (ref.isRelative())
+                node.attributes["href"]=baseUrl.resolved(ref).toString();
+        }
+    }
+
+    for(int i=0;i<node.children.count();i++) {
+        replaceLocalHrefs(node.children[i],baseUrl);
+    }
+}
+
+void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
+{
+    HTML::ParserDom parser;
+    parser.parse(html);
+    tree<HTML::Node> tree = parser.getTree();
+    CHTMLNode doc(tree);
+    replaceLocalHrefs(doc, baseUrl);
+    QString dst;
+    generateHTML(doc,dst);
+
+    QByteArray ba = dst.toUtf8();
+    QString fname = gSet->makeTmpFileName("html",true);
+    QFile f(fname);
+    if (f.open(QIODevice::WriteOnly)) {
+        f.write(ba);
+        f.close();
+        gSet->createdFiles.append(fname);
+        new CSnippetViewer(snv->parentWnd,QUrl::fromLocalFile(fname));
+    } else
+        QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
+                                                   "for translated document."));
 }
 
 void CSnTrans::selectionShow()
