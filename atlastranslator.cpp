@@ -2,13 +2,12 @@
 #include <QUrl>
 #include "atlastranslator.h"
 
-CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, ATTranslateMode TranMode) :
-    CAbstractTranslator(parent)
+CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, const QString &SrcLang) :
+    CAbstractTranslator(parent, SrcLang)
 {
     atlHost=host;
     atlPort=port;
     inited=false;
-    tranMode=TranMode;
     emptyRestore=false;
     if (gSet!=NULL)
         emptyRestore=gSet->settings.emptyRestore;
@@ -77,9 +76,9 @@ bool CAtlasTranslator::initTran()
 
     // DIR command and response
     QString trandir = QString("DIR:AUTO\r\n");
-    if (tranMode == EngToJpnTran)
+    if (srcLang.startsWith("en"))
         trandir = QString("DIR:EJ\r\n");
-    if (tranMode == JpnToEngTran)
+    if (srcLang.startsWith("ja"))
         trandir = QString("DIR:JE\r\n");
     buf = trandir.toLatin1();
     sock.write(buf);

@@ -3,14 +3,16 @@
 
 #include <QObject>
 #include <QString>
+#include "globalcontrol.h"
 
 class CAbstractTranslator : public QObject
 {
     Q_OBJECT
 protected:
     QString tranError;
+    QString srcLang;
 public:
-    explicit CAbstractTranslator(QObject *parent = 0);
+    explicit CAbstractTranslator(QObject *parent, const QString& SrcLang);
     ~CAbstractTranslator();
 
     virtual bool initTran()=0;
@@ -24,6 +26,6 @@ signals:
 public slots:
 };
 
-CAbstractTranslator* translatorFactory(QObject *parent);
+CAbstractTranslator* translatorFactory(QObject *parent, int tranDirection = LS_GLOBAL);
 
 #endif // CABSTRACTTRANSLATOR_H

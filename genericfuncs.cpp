@@ -129,7 +129,7 @@ QString detectEncodingName(const QByteArray& content) {
             QTextCodec::availableCodecs().contains(gSet->settings.forcedCharset.toLatin1()))
         return gSet->settings.forcedCharset;
 
-	QTextCodec* enc = QTextCodec::codecForLocale();
+    QTextCodec* enc = QTextCodec::codecForLocale();
     QByteArray icu_enc = "";
     UErrorCode status = U_ZERO_ERROR;
     UCharsetDetector* csd = ucsdet_open(&status);
@@ -146,7 +146,7 @@ QString detectEncodingName(const QByteArray& content) {
     ucsdet_close(csd);
 
     codepage = QTextCodec::codecForHtml(content,enc)->name();
-	if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage="SJIS";
+    if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage="SJIS";
     return codepage;
 }
 
@@ -306,7 +306,7 @@ QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QStr
         d.setDefaultSuffix(sl.first());
 
     if (selectedFilter && !selectedFilter->isEmpty())
-            d.selectNameFilter(*selectedFilter);
+        d.selectNameFilter(*selectedFilter);
 
     if (!preselectFileName.isEmpty())
         d.selectFile(preselectFileName);

@@ -10,14 +10,13 @@ class CYandexTranslator : public CAbstractTranslator
 private:
     QNetworkAccessManager *nam;
     QString clientKey;
-    QString srcLang;
 
     bool waitForReply(QNetworkReply* reply);
 
     QString tranStringInternal(QString src);
 
 public:
-    CYandexTranslator(QObject *parent, const QString& yandexKey);
+    CYandexTranslator(QObject *parent, const QString& SrcLang, const QString& yandexKey);
     ~CYandexTranslator();
 
     bool initTran();

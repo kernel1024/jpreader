@@ -13,8 +13,8 @@
 #include "globalcontrol.h"
 #include "yandextranslator.h"
 
-CYandexTranslator::CYandexTranslator(QObject *parent, const QString &yandexKey)
-    : CAbstractTranslator(parent)
+CYandexTranslator::CYandexTranslator(QObject *parent, const QString &SrcLang, const QString &yandexKey)
+    : CAbstractTranslator(parent, SrcLang)
 {
     clientKey = yandexKey;
     nam = NULL;
@@ -35,7 +35,6 @@ bool CYandexTranslator::initTran()
     else
         nam->setProxy(QNetworkProxy::NoProxy);
 
-    srcLang = gSet->getSourceLanguageID(TE_YANDEX);
     tranError.clear();
     return true;
 }

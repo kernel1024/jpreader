@@ -15,8 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset theme="document-edit-verify">
-    <normaloff/>
-   </iconset>
+    <normaloff>.</normaloff>.</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -125,6 +124,42 @@
         </spacer>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Translate from</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QRadioButton" name="radioJap">
+            <property name="text">
+             <string>&amp;Japanese</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioEng">
+            <property name="text">
+             <string>&amp;English</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QPushButton" name="btnClose">
          <property name="text">
           <string>Close</string>
@@ -142,6 +177,8 @@
   <tabstop>textResult</tabstop>
   <tabstop>btnTranslate</tabstop>
   <tabstop>btnClear</tabstop>
+  <tabstop>radioJap</tabstop>
+  <tabstop>radioEng</tabstop>
   <tabstop>btnClose</tabstop>
  </tabstops>
  <resources/>

@@ -10,14 +10,13 @@ private:
     QNetworkAccessManager *nam;
     QString clientID, clientKey;
     QString authHeader;
-    QString srcLang;
 
     bool waitForReply(QNetworkReply* reply);
 
     QString tranStringInternal(QString src);
 
 public:
-    CBingTranslator(QObject *parent, const QString& bingID, const QString& bingKey);
+    CBingTranslator(QObject *parent, const QString& SrcLang, const QString& bingID, const QString& bingKey);
     ~CBingTranslator();
 
     bool initTran();

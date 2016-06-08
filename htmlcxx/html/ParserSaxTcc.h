@@ -320,7 +320,8 @@ htmlcxx::HTML::ParserSax::skipHtmlComment(_Iterator c, _Iterator end)
 		if (*c++ == '-' && c != end && *c == '-')
 		{
 			_Iterator d(c);
-            while (++c != end && c->isSpace());
+            while (++c != end && c->isSpace())
+                ;
 			if (c == end || *c++ == '>') break;
 			c = d;
 		}

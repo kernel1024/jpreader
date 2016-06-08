@@ -91,7 +91,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortMutex.unlock();
 
     if (tran==NULL && !tranInited) {
-        tran = translatorFactory(this);
+        tran = translatorFactory(this, LS_GLOBAL);
         tranInited = true;
     }
 
@@ -106,10 +106,10 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     QUuid token = QUuid::createUuid();
 
-	QString src = srcUri.trimmed();
+    QString src = srcUri.trimmed();
     if (gSet->settings.debugDumpHtml)
         dumpPage(token,"1-source",src);
-	src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
+    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
     parser.parse(src);

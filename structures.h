@@ -24,6 +24,9 @@
 #define TM_OVERWRITING 1
 #define TM_TOOLTIP 2
 
+#define LS_AUTO -3
+#define LS_GLOBAL -2
+#define LS_ENGLISH -1
 #define LS_JAPANESE 0
 #define LS_CHINESETRAD 1
 #define LS_CHINESESIMP 2

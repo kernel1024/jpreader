@@ -3,6 +3,7 @@
 #include "ui_lighttranslator.h"
 #include "globalcontrol.h"
 #include "auxtranslator.h"
+#include "structures.h"
 
 CLightTranslator::CLightTranslator(QWidget *parent) :
     QDialog(parent),
@@ -13,6 +14,7 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     ui->setupUi(this);
 
     ui->barTranslating->hide();
+    ui->radioJap->setChecked(true);
 
     connect(ui->btnTranslate,SIGNAL(clicked()),this,SLOT(translate()));
 }
@@ -44,6 +46,10 @@ void CLightTranslator::translate()
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
     at->setParams(s);
+    if (ui->radioJap->isChecked())
+        at->setSrcLang(LS_JAPANESE);
+    if (ui->radioEng->isChecked())
+        at->setSrcLang(LS_ENGLISH);
     connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
     connect(at,SIGNAL(gotTranslation(QString)),this,SLOT(gotTranslation(QString)),Qt::QueuedConnection);
     at->moveToThread(th);

@@ -14,13 +14,13 @@
 #include "bingtranslator.h"
 #include "globalcontrol.h"
 
-CBingTranslator::CBingTranslator(QObject *parent, const QString &bingID, const QString &bingKey)
-    : CAbstractTranslator(parent)
+CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang, const QString &bingID,
+                                 const QString &bingKey)
+    : CAbstractTranslator(parent, SrcLang)
 {
     clientID = bingID;
     clientKey = bingKey;
     authHeader.clear();
-    srcLang.clear();
     nam = NULL;
 }
 
@@ -99,7 +99,6 @@ bool CBingTranslator::initTran()
     }
 
     authHeader = QString("Bearer %1").arg(token);
-    srcLang = gSet->getSourceLanguageID(TE_BINGAPI);
     return true;
 }
 
