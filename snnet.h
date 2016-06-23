@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QPixmap>
+#include <QWebEngineScript>
 #include "snviewer.h"
 
 class CSnNet : public QObject
@@ -11,6 +12,8 @@ class CSnNet : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
+    void injectUserScripts();
+    QList<QWebEngineScript> loadMatchingJS(const QUrl &url);
 public:
     QUrl loadedUrl;
     CSnNet(CSnippetViewer * parent);

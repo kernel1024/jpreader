@@ -184,4 +184,5 @@ OTHER_FILES += \
 DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
 
 DISTFILES += \
-    README.md
+    README.md \
+    data/pixiv-built-in.js

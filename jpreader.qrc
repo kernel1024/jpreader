@@ -10,4 +10,7 @@
         <file alias="startpage">data/startpage.html</file>
         <file alias="article-style.css">data/article-style.css</file>
     </qresource>
+    <qresource prefix="/js">
+        <file alias="www.pixiv.net">data/pixiv-built-in.js</file>
+    </qresource>
 </RCC>
