@@ -29,7 +29,7 @@ QString formatBytes(qint64 sz);
 QString getTmpDir();
 bool runnedFromQtCreator();
 int compareStringLists(const QStringList& left, const QStringList& right);
-void generateHTML(const CHTMLNode &src, QString &html);
+void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false, int depth = 0);
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
                            const QString & dir = QString(), const QString & filter = QString(),

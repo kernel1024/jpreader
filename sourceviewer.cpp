@@ -5,7 +5,10 @@
 #endif
 
 #include "sourceviewer.h"
+#include "genericfuncs.h"
 #include "ui_sourceviewer.h"
+
+using namespace htmlcxx;
 
 CSourceViewer::CSourceViewer(CSnippetViewer *origin) :
     QDialog(origin->parentWnd),
@@ -30,12 +33,23 @@ CSourceViewer::~CSourceViewer()
     delete ui;
 }
 
+QString CSourceViewer::reformatSource(const QString& html)
+{
+    HTML::ParserDom parser;
+    parser.parse(html);
+    tree<HTML::Node> tree = parser.getTree();
+    CHTMLNode doc(tree);
+    QString dst;
+    generateHTML(doc,dst,true,0);
+    return dst;
+}
+
 void CSourceViewer::updateSource(const QString &src)
 {
 #ifdef WITH_SRCHILITE
     srchilite::SourceHighlight sourceHighlight;
     std::stringstream sin, sout;
-    sin << src.toStdString();
+    sin << reformatSource(src).toStdString();
     sourceHighlight.highlight(sin, sout, "html.lang");
 
     ui->editSource->setHtml(QString::fromStdString(sout.str()));

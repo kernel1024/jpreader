@@ -416,7 +416,7 @@ int compareStringLists(const QStringList &left, const QStringList &right)
     return 0;
 }
 
-void generateHTML(const CHTMLNode &src, QString &html)
+void generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
 {
     if (src.isTag && !src.tagName.isEmpty()) {
         html.append("<"+src.tagName);
@@ -429,11 +429,22 @@ void generateHTML(const CHTMLNode &src, QString &html)
                 html.append(QString(" %1='%2'").arg(key,val));
         }
         html.append(">");
-    } else
-        html.append(src.text);
+    } else {
+        QString txt = src.text;
+        // fix incorrect nested comments - pixiv
+        if (src.isComment) {
+            if ((txt.count("<!--")>1) || (txt.count("-->")>1))
+                txt.clear();
+            if ((txt.count("<")>1 || txt.count(">")>1) && (txt.count("<")!=txt.count(">")))
+                txt.clear();
+        }
+        html.append(txt);
+    }
 
     for (int i=0; i<src.children.count(); i++ )
-        generateHTML(src.children.at(i),html);
+        generateHTML(src.children.at(i),html,reformat,depth+1);
 
     html.append(src.closingText);
+    if (reformat)
+        html.append("\n");
 }

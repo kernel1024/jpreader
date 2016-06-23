@@ -20,6 +20,7 @@ private:
     Ui::CSourceViewer *ui;
 
     void updateSource(const QString& src);
+    QString reformatSource(const QString &html);
 };
 
 #endif // SOURCEVIEWER_H
