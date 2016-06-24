@@ -9,6 +9,7 @@
 #include "miniqxt/qxtglobalshortcut.h"
 #include "genericfuncs.h"
 #include "snviewer.h"
+#include "userscript.h"
 
 CSettings::CSettings(QObject *parent)
     : QObject(parent)
@@ -100,6 +101,7 @@ void CSettings::writeSettings()
     bigdata.setValue("ctxSearchEngines",QVariant::fromValue(gSet->ctxSearchEngines));
     bigdata.setValue("atlasCertificates",QVariant::fromValue(gSet->atlCerts));
     bigdata.setValue("recentFiles",QVariant::fromValue(gSet->recentFiles));
+    bigdata.setValue("userScripts",QVariant::fromValue(gSet->getUserScripts()));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
@@ -190,6 +192,7 @@ void CSettings::readSettings(QObject *control)
     g->ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
     g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
     g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
+    g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
 
     g->adblockMutex.lock();
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
@@ -307,6 +310,7 @@ void CSettings::settingsDlg()
     dlg->setMainHistory(gSet->mainHistory);
     dlg->setQueryHistory(gSet->searchHistory);
     dlg->setAdblock(gSet->adblock);
+    dlg->setUserScripts(gSet->getUserScripts());
 
     switch (translatorEngine) {
         case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
@@ -439,6 +443,7 @@ void CSettings::settingsDlg()
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
         gSet->adblockMutex.unlock();
+        gSet->initUserScripts(dlg->getUserScripts());
 
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
         if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";

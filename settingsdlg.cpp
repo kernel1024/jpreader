@@ -10,6 +10,8 @@
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 #include "multiinputdialog.h"
+#include "userscript.h"
+#include "ui_userscriptdlg.h"
 
 CSettingsDlg::CSettingsDlg(QWidget *parent) :
     QDialog(parent),
@@ -110,6 +112,10 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonDelSearch,SIGNAL(clicked()),this,SLOT(delSearchEngine()));
     connect(ui->buttonAtlClean,SIGNAL(clicked()),this,SLOT(cleanAtlCerts()));
     connect(ui->buttonDefaultSearch,SIGNAL(clicked()),this,SLOT(setDefaultSearch()));
+    connect(ui->buttonUserScriptAdd,SIGNAL(clicked()),this,SLOT(addUserScript()));
+    connect(ui->buttonUserScriptEdit,SIGNAL(clicked()),this,SLOT(editUserScript()));
+    connect(ui->buttonUserScriptDelete,SIGNAL(clicked()),this,SLOT(deleteUserScript()));
+    connect(ui->buttonUserScriptImport,SIGNAL(clicked()),this,SLOT(importUserScript()));
 
     ui->atlSSLProto->addItem("Secure",(int)QSsl::SecureProtocols);
     ui->atlSSLProto->addItem("TLS 1.2",(int)QSsl::TlsV1_2);
@@ -119,6 +125,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->atlSSLProto->addItem("SSL V2",(int)QSsl::SslV2);
     ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
     updateAtlCertLabel();
+
+    ui->tabWidget->setCurrentIndex(0);
 }
 
 CSettingsDlg::~CSettingsDlg()
@@ -550,6 +558,93 @@ void CSettingsDlg::setDefaultSearch()
     setSearchEngines(getSearchEngines());
 }
 
+void CSettingsDlg::addUserScript()
+{
+    QDialog *dlg = new QDialog(this);
+    Ui::UserScriptEditorDlg dui;
+    dui.setupUi(dlg);
+
+    if (dlg->exec()==QDialog::Accepted) {
+        QListWidgetItem *itm = new QListWidgetItem(dui.editTitle->text());
+        itm->setData(Qt::UserRole,dui.editSource->toPlainText());
+        ui->listUserScripts->addItem(itm);
+    }
+    dlg->setParent(NULL);
+    dlg->deleteLater();
+}
+
+void CSettingsDlg::editUserScript()
+{
+    if (ui->listUserScripts->selectedItems().isEmpty()) return;
+    QListWidgetItem *itm = ui->listUserScripts->selectedItems().first();
+
+    QDialog *dlg = new QDialog(this);
+    Ui::UserScriptEditorDlg dui;
+    dui.setupUi(dlg);
+
+    dui.editTitle->setText(itm->text());
+    dui.editSource->setPlainText(itm->data(Qt::UserRole).toString());
+    if (dlg->exec()==QDialog::Accepted) {
+        itm->setText(dui.editTitle->text());
+        itm->setData(Qt::UserRole,dui.editSource->toPlainText());
+    }
+    dlg->setParent(NULL);
+    dlg->deleteLater();
+}
+
+void CSettingsDlg::deleteUserScript()
+{
+    QList<QListWidgetItem *> dl = ui->listUserScripts->selectedItems();
+    foreach (QListWidgetItem* i, dl) {
+        ui->listUserScripts->removeItemWidget(i);
+        delete i;
+    }
+}
+
+void CSettingsDlg::importUserScript()
+{
+    QString fname = getOpenFileNameD(this,tr("Import user script from text file"),QDir::homePath(),
+                                     tr("JavaScript files (*.js);;All files (*)"));
+    if (fname.isEmpty()) return;
+
+    QFile f(fname);
+    if (!f.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
+        return;
+    }
+    QTextStream fs(&f);
+    QString src = fs.readAll();
+    f.close();
+
+    CUserScript us("loader",src);
+
+    QListWidgetItem *itm = new QListWidgetItem(us.getTitle());
+    itm->setData(Qt::UserRole,src);
+    ui->listUserScripts->addItem(itm);
+}
+
+void CSettingsDlg::setUserScripts(const QStrHash& scripts)
+{
+    ui->listUserScripts->clear();
+
+    QStrHash::const_iterator iterator;
+    for (iterator = scripts.begin(); iterator != scripts.end(); ++iterator) {
+        QListWidgetItem *itm = new QListWidgetItem(iterator.key());
+        itm->setData(Qt::UserRole,iterator.value());
+        ui->listUserScripts->addItem(itm);
+    }
+}
+
+QStrHash CSettingsDlg::getUserScripts()
+{
+    QStrHash res;
+    for (int i=0;i<ui->listUserScripts->count();i++) {
+        QListWidgetItem *itm = ui->listUserScripts->item(i);
+        res[itm->text()]=itm->data(Qt::UserRole).toString();
+    }
+    return res;
+}
+
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
 {
     if (adblockSearchIdx>=0 && adblockSearchIdx<items.count())
@@ -579,7 +674,7 @@ void CSettingsDlg::setBookmarks(QBookmarksMap bookmarks)
     }
 }
 
-void CSettingsDlg::setQueryHistory(QStringList history)
+void CSettingsDlg::setQueryHistory(const QStringList& history)
 {
     ui->listQr->clear();
     for (int i=0;i<history.count();i++)
@@ -601,7 +696,7 @@ void CSettingsDlg::setMainHistory(QUHList history)
     }
 }
 
-void CSettingsDlg::setSearchEngines(QStrHash engines)
+void CSettingsDlg::setSearchEngines(const QStrHash& engines)
 {
     ui->listSearch->clear();
     foreach (const QString &t, engines.keys()) {

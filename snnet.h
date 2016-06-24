@@ -12,8 +12,6 @@ class CSnNet : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-    void injectUserScripts();
-    QList<QWebEngineScript> loadMatchingJS(const QUrl &url);
 public:
     QUrl loadedUrl;
     CSnNet(CSnippetViewer * parent);

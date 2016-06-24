@@ -50,44 +50,6 @@ void CSnNet::loadFinished(bool)
         snv->takeScreenshot();
         snv->txtBrowser->setFocus();
     }
-
-    if (!snv->requestAutotranslate)
-        injectUserScripts();
-}
-
-void CSnNet::injectUserScripts()
-{
-    QUrl url = snv->getUrl();
-    if (!url.isValid() || url.isLocalFile()) return;
-
-    QList<QWebEngineScript> sc = loadMatchingJS(url);
-
-    if (sc.isEmpty()) return;
-
-    //snv->txtBrowser->page()->scripts().insert(sc);
-}
-
-QList<QWebEngineScript> CSnNet::loadMatchingJS(const QUrl& url)
-{
-    QList<QWebEngineScript> res;
-
-    QDirIterator it(":/js");
-    while (it.hasNext()) {
-        if (url.host().contains(it.fileName())) {
-            QFile f(it.next());
-            if (f.open(QIODevice::ReadOnly)) {
-                QWebEngineScript sc;
-                sc.setSourceCode(QString::fromUtf8(f.readAll()));
-                sc.setInjectionPoint(QWebEngineScript::Deferred);
-                res << sc;
-                f.close();
-            }
-            continue;
-        }
-        it.next();
-    }
-
-    return res;
 }
 
 void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool isMainFrame)

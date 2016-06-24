@@ -21,6 +21,7 @@
 #include "auxdictionary.h"
 #include "downloadmanager.h"
 #include "pdftotext.h"
+#include "userscript.h"
 
 #define IPC_EOF "\n###"
 
@@ -49,7 +50,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     appIcon.addFile(":/img/globe48");
     appIcon.addFile(":/img/globe128");
 
-
+    userScripts.clear();
     logWindow = new CLogDisplay();
 
     downloadManager = new CDownloadManager();
@@ -541,6 +542,49 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     settings.setValue(QString("%1-user").arg(key),user);
     settings.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
     settings.endGroup();
+}
+
+QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url)
+{
+    userScriptsMutex.lock();
+
+    QList<CUserScript> scripts;
+    QHash<QString, CUserScript>::iterator iterator;
+
+    for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
+        if (iterator.value().isEnabledForUrl(url))
+            scripts.append(iterator.value());
+
+    userScriptsMutex.unlock();
+
+    return scripts;
+}
+
+void CGlobalControl::initUserScripts(const QStrHash &scripts)
+{
+    userScriptsMutex.lock();
+
+    userScripts.clear();
+    QStrHash::const_iterator iterator;
+    for (iterator = scripts.begin(); iterator != scripts.end(); ++iterator)
+        userScripts[iterator.key()] = CUserScript(iterator.key(), iterator.value());
+
+    userScriptsMutex.unlock();
+}
+
+QStrHash CGlobalControl::getUserScripts()
+{
+    userScriptsMutex.lock();
+
+    QStrHash res;
+    QHash<QString, CUserScript>::iterator iterator;
+
+    for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
+        res[iterator.key()] = iterator.value().getSource();
+
+    userScriptsMutex.unlock();
+
+    return res;
 }
 
 int CGlobalControl::getTranslationMode()

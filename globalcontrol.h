@@ -25,6 +25,7 @@
 #include "structures.h"
 #include "settings.h"
 #include "globalui.h"
+#include "userscript.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -37,6 +38,8 @@ class CDownloadManager;
 
 class CGlobalControl : public QObject
 {
+    friend class CSettings;
+
     Q_OBJECT
 public:
     explicit CGlobalControl(QApplication *parent);
@@ -108,22 +111,28 @@ public:
     void readPassword(const QUrl &origin, QString &user, QString &password);
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
 
+    // Userscripts
+    QList<CUserScript> getUserScriptsForUrl(const QUrl &url);
+    void initUserScripts(const QStrHash& scripts);
+    QStrHash getUserScripts();
+
+    // Translation languages selection
     int getTranslationMode();
     int getSourceLanguage();
     QString getSourceLanguageID(int engineStd = TE_GOOGLE);
     QString getSourceLanguageIDStr(int engine, int engineStd = TE_GOOGLE);
-
     QString getSourceLanguageString(int srcLang);
     QString getTranslationEngineString(int engine);
-
     void showLightTranslator(const QString& text = QString());
 
+    // Misc
     QUrl createSearchUrl(const QString& text, const QString& engine = QString());
-
     QString makeTmpFileName(const QString &suffix, bool withDir = false);
 private:
     bool cleaningState;
     bool atlCertErrorInteractive;
+    QHash<QString, CUserScript> userScripts;
+    QMutex userScriptsMutex;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);

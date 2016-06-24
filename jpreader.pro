@@ -34,7 +34,8 @@ HEADERS = mainwindow.h \
     sourceviewer.h \
     structures.h \
     settings.h \
-    globalui.h
+    globalui.h \
+    userscript.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -73,7 +74,8 @@ SOURCES = main.cpp \
     sourceviewer.cpp \
     structures.cpp \
     settings.cpp \
-    globalui.cpp
+    globalui.cpp \
+    userscript.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -89,7 +91,8 @@ FORMS = main.ui \
     auxdictionary.ui \
     multiinputdialog.ui \
     downloadmanager.ui \
-    sourceviewer.ui
+    sourceviewer.ui \
+    userscriptdlg.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras
 

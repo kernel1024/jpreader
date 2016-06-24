@@ -92,6 +92,7 @@ public:
 
     void readSettings(QObject *control = 0);
     void setTranslationEngine(int engine);
+
 private:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;

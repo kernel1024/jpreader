@@ -3,6 +3,7 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <QMessageLogger>
+#include <QWebEngineScriptCollection>
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
 #include <goldendictlib/dictionary.hh>
@@ -12,6 +13,7 @@
 #include "globalcontrol.h"
 #include "searchtab.h"
 #include "genericfuncs.h"
+#include "userscript.h"
 
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)
@@ -341,7 +343,33 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
             qInfo() << "Net request (sub frame):" << url;
     }
 
-    return !gSet->isUrlBlocked(url);
+    bool blocked = gSet->isUrlBlocked(url);
+
+    if (!blocked && isMainFrame) {
+
+        // Userscripts
+        //scripts().clear();
+        const QList<CUserScript> sl(gSet->getUserScriptsForUrl(url));
+
+        for (int i = 0; i < sl.count(); ++i)
+        {
+            QWebEngineScript::InjectionPoint injectionPoint(QWebEngineScript::DocumentReady);
+
+            if (sl.at(i).getInjectionTime() == CUserScript::DocumentCreationTime)
+                injectionPoint = QWebEngineScript::DocumentCreation;
+            else if (sl.at(i).getInjectionTime() == CUserScript::DeferredTime)
+                injectionPoint = QWebEngineScript::Deferred;
+
+            QWebEngineScript script;
+            script.setSourceCode(sl.at(i).getSource());
+            script.setRunsOnSubFrames(sl.at(i).shouldRunOnSubFrames());
+            script.setInjectionPoint(injectionPoint);
+
+            scripts().insert(script);
+        }
+    }
+
+    return !blocked;
 }
 
 bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)

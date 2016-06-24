@@ -448,3 +448,21 @@ void generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
     if (reformat)
         html.append("\n");
 }
+
+// for url rules
+QString convertPatternToRegExp(const QString &wildcardPattern) {
+    QString pattern = wildcardPattern;
+    return pattern.replace(QRegExp(QLatin1String("\\*+")), QLatin1String("*"))   // remove multiple wildcards
+            .replace(QRegExp(QLatin1String("\\^\\|$")), QLatin1String("^"))        // remove anchors following separator placeholder
+            .replace(QRegExp(QLatin1String("^(\\*)")), QLatin1String(""))          // remove leading wildcards
+            .replace(QRegExp(QLatin1String("(\\*)$")), QLatin1String(""))          // remove trailing wildcards
+            .replace(QRegExp(QLatin1String("(\\W)")), QLatin1String("\\\\1"))      // escape special symbols
+            .replace(QRegExp(QLatin1String("^\\\\\\|\\\\\\|")),
+                     QLatin1String("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
+            .replace(QRegExp(QLatin1String("\\\\\\^")),
+                     QLatin1String("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
+            .replace(QRegExp(QLatin1String("^\\\\\\|")), QLatin1String("^"))       // process anchor at expression start
+            .replace(QRegExp(QLatin1String("\\\\\\|$")), QLatin1String("$"))       // process anchor at expression end
+            .replace(QRegExp(QLatin1String("\\\\\\*")), QLatin1String(".*"))       // replace wildcards by .*
+            ;
+}

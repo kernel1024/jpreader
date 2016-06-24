@@ -103,14 +103,16 @@ public:
     QColor getOverridedFontColor();
 
     void setBookmarks(QBookmarksMap bookmarks);
-    void setQueryHistory(QStringList history);
+    void setQueryHistory(const QStringList &history);
     void setAdblock(QList<CAdBlockRule> adblock);
     void setMainHistory(QUHList history);
-    void setSearchEngines(QStrHash engines);
+    void setSearchEngines(const QStrHash &engines);
+    void setUserScripts(const QStrHash &scripts);
     QBookmarksMap getBookmarks();
     QStringList getQueryHistory();
     QList<CAdBlockRule> getAdblock();
     QStrHash getSearchEngines();
+    QStrHash getUserScripts();
 
 public slots:
     void selectDir();
@@ -141,6 +143,10 @@ public slots:
     void delSearchEngine();
     void updateAtlCertLabel();
     void setDefaultSearch();
+    void addUserScript();
+    void deleteUserScript();
+    void importUserScript();
+    void editUserScript();
 };
 
 #endif // SETTINGSDLG_H
