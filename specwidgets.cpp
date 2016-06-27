@@ -348,7 +348,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     if (!blocked && isMainFrame) {
 
         // Userscripts
-        //scripts().clear();
+        scripts().clear();
         const QList<CUserScript> sl(gSet->getUserScriptsForUrl(url));
 
         for (int i = 0; i < sl.count(); ++i)
