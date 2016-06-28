@@ -544,7 +544,7 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     settings.endGroup();
 }
 
-QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url)
+QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool isMainFrame)
 {
     userScriptsMutex.lock();
 
@@ -552,7 +552,9 @@ QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url)
     QHash<QString, CUserScript>::iterator iterator;
 
     for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
-        if (iterator.value().isEnabledForUrl(url))
+        if (iterator.value().isEnabledForUrl(url) &&
+                (isMainFrame ||
+                 (!isMainFrame && iterator.value().shouldRunOnSubFrames())))
             scripts.append(iterator.value());
 
     userScriptsMutex.unlock();

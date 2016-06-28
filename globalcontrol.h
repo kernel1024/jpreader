@@ -112,7 +112,7 @@ public:
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
 
     // Userscripts
-    QList<CUserScript> getUserScriptsForUrl(const QUrl &url);
+    QList<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame);
     void initUserScripts(const QStrHash& scripts);
     QStrHash getUserScripts();
 

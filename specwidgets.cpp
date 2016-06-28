@@ -345,11 +345,13 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 
     bool blocked = gSet->isUrlBlocked(url);
 
-    if (!blocked && isMainFrame) {
+    if (!blocked) {
 
         // Userscripts
-        scripts().clear();
-        const QList<CUserScript> sl(gSet->getUserScriptsForUrl(url));
+        const QList<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame));
+
+        if (!sl.isEmpty())
+            scripts().clear();
 
         for (int i = 0; i < sl.count(); ++i)
         {
