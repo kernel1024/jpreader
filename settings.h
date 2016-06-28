@@ -98,6 +98,7 @@ private:
     QMutex settingsSaveMutex;
     CSettingsDlg* dlg;
     bool restoreLoadChecked;
+    int settingsDlgWidth, settingsDlgHeight;
 
 signals:
     void settingsUpdated();

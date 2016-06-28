@@ -117,6 +117,10 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonUserScriptDelete,SIGNAL(clicked()),this,SLOT(deleteUserScript()));
     connect(ui->buttonUserScriptImport,SIGNAL(clicked()),this,SLOT(importUserScript()));
 
+    connect(ui->listTabs,&QListWidget::currentRowChanged,[this](int row){
+        ui->tabWidget->setCurrentIndex(row);
+    });
+
     ui->atlSSLProto->addItem("Secure",(int)QSsl::SecureProtocols);
     ui->atlSSLProto->addItem("TLS 1.2",(int)QSsl::TlsV1_2);
     ui->atlSSLProto->addItem("TLS 1.1",(int)QSsl::TlsV1_1);
@@ -126,12 +130,62 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
     updateAtlCertLabel();
 
-    ui->tabWidget->setCurrentIndex(0);
+    populateTabList();
+    ui->listTabs->setCurrentRow(0);
 }
 
 CSettingsDlg::~CSettingsDlg()
 {
     delete ui;
+}
+
+void CSettingsDlg::populateTabList()
+{
+    ui->listTabs->clear();
+
+    QListWidgetItem* itm;
+
+    itm = new QListWidgetItem(QIcon::fromTheme("internet-web-browser"),tr("Browser"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("document-preview"),tr("Search"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("document-edit-decrypt-verify"),tr("Translator"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("format-text-color"),tr("Fonts"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("system-run"),tr("Programs"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon(":/img/nepomuk"),tr("Query history"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("bookmarks"),tr("Bookmarks"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("view-history"),tr("History"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("preferences-web-browser-adblock"),tr("AdBlock"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("preferences-web-browser-cookies"),tr("Cookies"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("folder-script"),tr("User scripts"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("server-database"),tr("Network & logging"));
+    ui->listTabs->addItem(itm);
+
+    int maxw = 0;
+    QFontMetrics fm(ui->listTabs->item(0)->font());
+    for(int i=0;i<ui->listTabs->count();i++)
+        if (fm.width(ui->listTabs->item(i)->text())>maxw)
+            maxw=fm.width(ui->listTabs->item(i)->text());
+
+    int maxiconsz = 256;
+    QList<int> sz = {8,16,22,32,48,64,128,256};
+    for (int i=1;i<sz.count();i++)
+        if (sz.at(i)>(5*fm.height()/3)) {
+            maxiconsz=sz.at(i-1);
+            break;
+        }
+
+    ui->listTabs->setIconSize(QSize(maxiconsz,maxiconsz));
+    ui->listTabs->setMaximumWidth(maxw+maxiconsz+32);
 }
 
 void CSettingsDlg::updateCookiesTable()

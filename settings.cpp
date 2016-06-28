@@ -53,6 +53,8 @@ CSettings::CSettings(QObject *parent)
     debugNetReqLogging=false;
     debugDumpHtml=false;
     dlg=NULL;
+    settingsDlgWidth=850;
+    settingsDlgHeight=380;
 
     charsetHistory.clear();
     scpHostHistory.clear();
@@ -164,6 +166,8 @@ void CSettings::writeSettings()
     settings.setValue("diskCacheSize",gSet->webProfile->httpCacheMaximumSize());
     settings.setValue("jsLogConsole",jsLogConsole);
     settings.setValue("defaultSearchEngine",defaultSearchEngine);
+    settings.setValue("settingsDlgWidth",settingsDlgWidth);
+    settings.setValue("settingsDlgHeight",settingsDlgHeight);
     settings.endGroup();
     bigdata.endGroup();
     settingsSaveMutex.unlock();
@@ -263,6 +267,8 @@ void CSettings::readSettings(QObject *control)
     showFavicons = settings.value("showFavicons",true).toBool();
     defaultSearchEngine = settings.value("defaultSearchEngine",QString()).toString();
     g->webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
+    settingsDlgWidth=settings.value("settingsDlgWidth",850).toInt();
+    settingsDlgHeight=settings.value("settingsDlgHeight",380).toInt();
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
@@ -424,6 +430,8 @@ void CSettings::settingsDlg()
 
     dlg->getCookiesFromStore();
 
+    dlg->resize(settingsDlgWidth,settingsDlgHeight);
+
     if (dlg->exec()==QDialog::Accepted) {
         hostingDir=dlg->hostingDir->text();
         hostingUrl=dlg->hostingUrl->text();
@@ -555,6 +563,9 @@ void CSettings::settingsDlg()
 
         gSet->updateProxy(proxyUse,true);
         emit settingsUpdated();
+
+        settingsDlgWidth=dlg->width();
+        settingsDlgHeight=dlg->height();
     }
     connect(dlg,&CSettingsDlg::destroyed,[this](){
         dlg=NULL;

@@ -98,6 +98,7 @@ private:
     void updateAdblockList();
     void adblockFocusSearchedRule(QList<QTreeWidgetItem *> items);
 
+    void populateTabList();
 public:
     void updateFontColorPreview(const QColor &c);
     QColor getOverridedFontColor();
