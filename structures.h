@@ -7,6 +7,7 @@
 #include <QUuid>
 #include <QMap>
 #include <QHash>
+#include <QPair>
 #include <QList>
 #include <QSslCertificate>
 
@@ -65,6 +66,7 @@ typedef QHash<QString, QString> QStrHash;
 typedef QList<int> QIntList;
 typedef QList<UrlHolder> QUHList;
 typedef QMap<QString, QUrl> QBookmarksMap;
+typedef QList<QPair<QString, QUrl>> QBookmarks;
 typedef QHash<QSslCertificate,QIntList> QSslCertificateHash;
 
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);

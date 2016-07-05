@@ -22,6 +22,7 @@ CSettings::CSettings(QObject *parent)
     maxSearchLimit=1000;
     maxHistory=5000;
     maxRecent=10;
+    maxBookmarksCnt=10;
     useAdblock=false;
     restoreLoadChecked=false;
     globalContextTranslate=false;
@@ -93,7 +94,7 @@ void CSettings::writeSettings()
     bigdata.remove("");
 
     bigdata.setValue("searchHistory",QVariant::fromValue(gSet->searchHistory));
-    bigdata.setValue("bookmarks",QVariant::fromValue(gSet->bookmarks));
+    bigdata.setValue("bookmarks_list",QVariant::fromValue(gSet->bookmarks));
     bigdata.setValue("history",QVariant::fromValue(gSet->mainHistory));
     bigdata.setValue("adblock",QVariant::fromValue(gSet->adblock));
     bigdata.setValue("atlHostHistory",QVariant::fromValue(atlHostHistory));
@@ -110,6 +111,7 @@ void CSettings::writeSettings()
     settings.setValue("maxLimit",maxSearchLimit);
     settings.setValue("maxHistory",maxHistory);
     settings.setValue("maxRecent",maxRecent);
+    settings.setValue("maxBookmarksCnt",maxBookmarksCnt);
     settings.setValue("browser",sysBrowser);
     settings.setValue("editor",sysEditor);
     settings.setValue("tr_engine",translatorEngine);
@@ -189,7 +191,6 @@ void CSettings::readSettings(QObject *control)
 
     atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
     scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
-    g->bookmarks = bigdata.value("bookmarks").value<QBookmarksMap>();
     g->mainHistory = bigdata.value("history").value<QUHList>();
     userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
     dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
@@ -197,6 +198,14 @@ void CSettings::readSettings(QObject *control)
     g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
     g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
     g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
+
+    if (bigdata.contains("bookmarks")) {
+        g->bookmarks.clear();
+        QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
+        foreach (const QString title, bm.keys())
+            g->bookmarks << qMakePair(title, bm.value(title).toString());
+    } else
+        g->bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
 
     g->adblockMutex.lock();
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
@@ -207,6 +216,7 @@ void CSettings::readSettings(QObject *control)
     maxSearchLimit = settings.value("maxLimit",1000).toInt();
     maxHistory = settings.value("maxHistory",1000).toInt();
     maxRecent = settings.value("maxRecent",10).toInt();
+    maxBookmarksCnt = settings.value("maxBookmarksCnt",15).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
     translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
@@ -302,6 +312,7 @@ void CSettings::settingsDlg()
     dlg->maxLimit->setValue(maxSearchLimit);
     dlg->maxHistory->setValue(maxHistory);
     dlg->maxRecent->setValue(maxRecent);
+    dlg->maxBookmarksCnt->setValue(maxBookmarksCnt);
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
@@ -441,6 +452,7 @@ void CSettings::settingsDlg()
         sysBrowser=dlg->browser->text();
         maxRecycled=dlg->maxRecycled->value();
         maxRecent=dlg->maxRecent->value();
+        maxBookmarksCnt=dlg->maxBookmarksCnt->value();
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());
@@ -624,10 +636,11 @@ void CSettings::writeTabsList(bool clearList)
         if (urls.isEmpty()) return;
     }
 
-    QSettings settings("kernel1024", "jpreader-tabs");
-    settings.beginGroup("OpenedTabs");
-    settings.setValue("tabsCnt", urls.count());
+    QSettings tabs("kernel1024", "jpreader-tabs");
+    tabs.beginGroup("OpenedTabs");
+    tabs.remove("");
+    tabs.setValue("tabsCnt", urls.count());
     for (int i=0;i<urls.count();i++)
-        settings.setValue(QString("tab_%1").arg(i),urls.at(i));
-    settings.endGroup();
+        tabs.setValue(QString("tab_%1").arg(i),urls.at(i));
+    tabs.endGroup();
 }

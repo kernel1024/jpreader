@@ -83,6 +83,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     cacheSize=ui->spinCacheSize;
     jsLogConsole=ui->checkJSLogConsole;
     maxRecent=ui->spinMaxRecent;
+    maxBookmarksCnt=ui->spinMaxBookmarksCnt;
 
     cookiesList.clear();
 
@@ -717,13 +718,14 @@ QColor CSettingsDlg::getOverridedFontColor()
     return overridedFontColor;
 }
 
-void CSettingsDlg::setBookmarks(QBookmarksMap bookmarks)
+void CSettingsDlg::setBookmarks(QBookmarks bookmarks)
 {
-    foreach (const QString &t, bookmarks.keys()) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").
-                                                  arg(t, bookmarks.value(t).toString()));
+    for (int i=0;i<bookmarks.count();i++) {
+        QString t = bookmarks.at(i).first;
+        QString u = bookmarks.at(i).second.toString();
+        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t, u));
         li->setData(Qt::UserRole,t);
-        li->setData(Qt::UserRole+1,bookmarks.value(t));
+        li->setData(Qt::UserRole+1,u);
         ui->listBookmarks->addItem(li);
     }
 }
@@ -775,13 +777,13 @@ QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table)
     return res;
 }
 
-QBookmarksMap CSettingsDlg::getBookmarks()
+QBookmarks CSettingsDlg::getBookmarks()
 {
-    QBookmarksMap bookmarks;
+    QBookmarks bookmarks;
     bookmarks.clear();
     for (int i=0; i<ui->listBookmarks->count(); i++)
-        bookmarks[ui->listBookmarks->item(i)->data(Qt::UserRole).toString()] =
-                ui->listBookmarks->item(i)->data(Qt::UserRole+1).toUrl();
+        bookmarks << qMakePair(ui->listBookmarks->item(i)->data(Qt::UserRole).toString(),
+                               ui->listBookmarks->item(i)->data(Qt::UserRole+1).toUrl());
     return bookmarks;
 }
 

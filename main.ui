@@ -140,6 +140,7 @@
     <addaction name="actionOpenCBPlain"/>
     <addaction name="separator"/>
     <addaction name="actionClearCB"/>
+    <addaction name="actionClearCache"/>
     <addaction name="separator"/>
     <addaction name="actionFindText"/>
    </widget>
@@ -408,7 +409,12 @@
   </action>
   <action name="actionRecentDocuments">
    <property name="text">
-    <string>Recent documents</string>
+    <string>Recent &amp;documents</string>
+   </property>
+  </action>
+  <action name="actionClearCache">
+   <property name="text">
+    <string>Clear cache</string>
    </property>
   </action>
  </widget>

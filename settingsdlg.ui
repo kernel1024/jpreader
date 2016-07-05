@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>813</width>
+    <width>815</width>
     <height>380</height>
    </rect>
   </property>
@@ -34,7 +34,7 @@
         <number>0</number>
        </property>
        <widget class="QWidget" name="widget">
-        <layout class="QHBoxLayout" name="horizontalLayout_32">
+        <layout class="QHBoxLayout" name="horizontalLayout_35">
          <item>
           <widget class="QGroupBox" name="groupBox_2">
            <property name="title">
@@ -161,6 +161,27 @@
                </property>
                <property name="value">
                 <number>5000</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_32">
+             <item>
+              <widget class="QLabel" name="label_34">
+               <property name="text">
+                <string>&amp;Max visible bookmarks items</string>
+               </property>
+               <property name="buddy">
+                <cstring>spinMaxBookmarksCnt</cstring>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinMaxBookmarksCnt">
+               <property name="minimum">
+                <number>1</number>
                </property>
               </widget>
              </item>
@@ -1820,6 +1841,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxRecent</tabstop>
   <tabstop>spinMaxRecycled</tabstop>
   <tabstop>spinMaxHistory</tabstop>
+  <tabstop>spinMaxBookmarksCnt</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
   <tabstop>spinCacheSize</tabstop>

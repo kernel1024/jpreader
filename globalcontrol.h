@@ -68,7 +68,7 @@ public:
 
     QStrHash ctxSearchEngines;
 
-    QBookmarksMap bookmarks;
+    QBookmarks bookmarks;
     QUHList recycleBin;
     QUHList mainHistory;
     QStringList searchHistory;
@@ -150,6 +150,7 @@ public slots:
     void windowDestroyed(CMainWindow* obj);
     void focusChanged(QWidget* old, QWidget* now);
     void updateProxy(bool useProxy, bool forceMenuUpdate = false);
+    void clearCaches();
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

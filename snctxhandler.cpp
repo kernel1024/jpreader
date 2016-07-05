@@ -321,13 +321,8 @@ void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
     CBookmarkDlg *dlg = new CBookmarkDlg(snv,lf->title(),lf->requestedUrl().toString());
     if (dlg->exec()) {
-        QString t = dlg->getBkTitle();
-        if (!t.isEmpty() && !gSet->bookmarks.contains(t)) {
-            gSet->bookmarks[t]=QUrl::fromUserInput(dlg->getBkUrl());
-            gSet->updateAllBookmarks();
-        } else
-            QMessageBox::warning(snv,tr("JPReader"),
-                                 tr("Unable to add bookmark (frame is empty or duplicate title). Try again."));
+        gSet->bookmarks.append(qMakePair(dlg->getBkTitle(),dlg->getBkUrl()));
+        gSet->updateAllBookmarks();
     }
     dlg->setParent(NULL);
     delete dlg;

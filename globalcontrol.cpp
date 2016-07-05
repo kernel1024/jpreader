@@ -681,7 +681,12 @@ void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
     QNetworkProxy::setApplicationProxy(proxy);
 
     if (forceMenuUpdate)
-         ui.actionUseProxy->setChecked(settings.proxyUse);
+        ui.actionUseProxy->setChecked(settings.proxyUse);
+}
+
+void CGlobalControl::clearCaches()
+{
+    webProfile->clearHttpCache();
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)

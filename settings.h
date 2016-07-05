@@ -53,6 +53,7 @@ public:
     QString sysBrowser;
     QString sysEditor;
     int maxRecycled;
+    int maxBookmarksCnt;
 
     bool debugNetReqLogging;
     bool debugDumpHtml;

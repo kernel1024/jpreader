@@ -84,6 +84,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionOpenCB, SIGNAL(triggered()), this, SLOT(createFromClipboard()));
     connect(actionOpenCBPlain, SIGNAL(triggered()), this, SLOT(createFromClipboardPlain()));
     connect(actionClearCB, SIGNAL(triggered()), this, SLOT(clearClipboard()));
+    connect(actionClearCache, SIGNAL(triggered()), gSet, SLOT(clearCaches()));
     connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
     connect(actionWnd, SIGNAL(triggered()), &(gSet->ui), SLOT(addMainWindow()));
     connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
@@ -618,11 +619,25 @@ void CMainWindow::updateBookmarks()
 {
     while (menuBookmarks->actions().count()>2)
         menuBookmarks->removeAction(menuBookmarks->actions().last());
-    foreach (const QString &t, gSet->bookmarks.keys()) {
-		QAction* a = menuBookmarks->addAction(t,this,SLOT(openBookmark()));
-        a->setData(gSet->bookmarks.value(t));
-        a->setStatusTip(gSet->bookmarks.value(t).toString());
-        a->setToolTip(gSet->bookmarks.value(t).toString());
+    QMenu* menu = NULL;
+    for(int i=0;i<gSet->bookmarks.count();i++) {
+        if (i>=gSet->settings.maxBookmarksCnt && menu==NULL) {
+            menuBookmarks->addSeparator();
+            menu = menuBookmarks->addMenu(tr("Other bookmarks"));
+            menu->setStyleSheet("QMenu { menu-scrollable: 1; }");
+            menu->setToolTipsVisible(true);
+        }
+
+        QString t = gSet->bookmarks.at(i).first;
+        QUrl u = gSet->bookmarks.at(i).second;
+        QAction* a;
+        if (menu==NULL)
+            a = menuBookmarks->addAction(t,this,SLOT(openBookmark()));
+        else
+            a = menu->addAction(t,this,SLOT(openBookmark()));
+        a->setData(i);
+        a->setStatusTip(u.toString());
+        a->setToolTip(u.toString());
 	}
 }
 
@@ -634,13 +649,8 @@ void CMainWindow::addBookmark()
 
     CBookmarkDlg *dlg = new CBookmarkDlg(sv,sv->tabTitle,sv->getUrl().toString());
     if (dlg->exec()) {
-        QString t = dlg->getBkTitle();
-        if (!t.isEmpty() && !gSet->bookmarks.contains(t)) {
-            gSet->bookmarks[t]=QUrl::fromUserInput(dlg->getBkUrl());
-            gSet->updateAllBookmarks();
-        } else
-            QMessageBox::warning(this,tr("JPReader"),
-                                 tr("Unable to add bookmark (frame is empty or duplicate title). Try again."));
+        gSet->bookmarks.append(qMakePair(dlg->getBkTitle(),dlg->getBkUrl()));
+        gSet->updateAllBookmarks();
     }
     dlg->setParent(NULL);
     delete dlg;
@@ -656,9 +666,15 @@ void CMainWindow::openBookmark()
 	QAction* a = qobject_cast<QAction *>(sender());
 	if (a==NULL) return;
 
-	QUrl u = a->data().toUrl();
-	if (!u.isValid()) return;
+    bool ok;
+    int idx = a->data().toInt(&ok);
+    if (!ok || idx<0 || idx>=gSet->bookmarks.count()) return;
+
+    QUrl u = gSet->bookmarks.at(idx).second;
     new CSnippetViewer(this, u);
+
+    gSet->bookmarks.move(idx,0);
+    gSet->updateAllBookmarks();
 }
 
 void CMainWindow::openRecycled()
