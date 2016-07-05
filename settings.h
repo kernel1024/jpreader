@@ -32,7 +32,6 @@ public:
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
     bool showTabCloseButtons;
     bool createCoredumps;
-    bool showFavicons;
 
     bool overrideUserAgent;
     QString userAgent;

@@ -24,7 +24,6 @@ public slots:
     void loadStarted();
     void loadFinished(bool);
     void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
-    void iconUrlChanged(const QUrl &url);
 
 };
 

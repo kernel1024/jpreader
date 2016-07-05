@@ -65,16 +65,6 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
     }
 }
 
-void CSnNet::iconUrlChanged(const QUrl &url)
-{
-    if (!gSet->settings.showFavicons) return;
-    if (url.isEmpty() || !url.isValid()) return;
-
-    CFaviconLoader* fl = new CFaviconLoader(snv,url);
-    connect(fl,&CFaviconLoader::gotIcon,snv,&CSnippetViewer::updateTabIcon);
-    fl->queryStart(false);
-}
-
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {

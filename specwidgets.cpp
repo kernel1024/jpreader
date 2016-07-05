@@ -4,6 +4,7 @@
 #include <QUrlQuery>
 #include <QMessageLogger>
 #include <QWebEngineScriptCollection>
+#include <QWebEngineSettings>
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
 #include <goldendictlib/dictionary.hh>
@@ -237,7 +238,8 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 
 void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
-    if (!gSet->settings.showFavicons) return;
+    if (!gSet->webProfile->settings()->
+            testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
     if (tabWidget==NULL) return;
     tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
 }

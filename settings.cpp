@@ -29,7 +29,6 @@ CSettings::CSettings(QObject *parent)
     emptyRestore=false;
     createCoredumps=false;
     ignoreSSLErrors=false;
-    showFavicons=false;
     jsLogConsole=true;
     forcedCharset=QString(); // autodetect
     overrideUserAgent=false;
@@ -164,7 +163,8 @@ void CSettings::writeSettings()
     settings.setValue("overrideUserAgent",overrideUserAgent);
     settings.setValue("userAgent",userAgent);
     settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
-    settings.setValue("showFavicons",showFavicons);
+    settings.setValue("showFavicons",gSet->webProfile->settings()->
+                      testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
     settings.setValue("diskCacheSize",gSet->webProfile->httpCacheMaximumSize());
     settings.setValue("jsLogConsole",jsLogConsole);
     settings.setValue("defaultSearchEngine",defaultSearchEngine);
@@ -274,7 +274,8 @@ void CSettings::readSettings(QObject *control)
     jsLogConsole = settings.value("jsLogConsole",true).toBool();
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
-    showFavicons = settings.value("showFavicons",true).toBool();
+    g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
+                                            settings.value("showFavicons",true).toBool());
     defaultSearchEngine = settings.value("defaultSearchEngine",QString()).toString();
     g->webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
     settingsDlgWidth=settings.value("settingsDlgWidth",850).toInt();
@@ -418,7 +419,8 @@ void CSettings::settingsDlg()
 
     dlg->cacheSize->setValue(gSet->webProfile->httpCacheMaximumSize()/(1024*1024));
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
-    dlg->visualShowFavicons->setChecked(showFavicons);
+    dlg->visualShowFavicons->setChecked(gSet->webProfile->settings()->
+                                        testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
 
     dlg->setSearchEngines(gSet->ctxSearchEngines);
 
@@ -559,7 +561,8 @@ void CSettings::settingsDlg()
 
         gSet->webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);
         ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
-        showFavicons = dlg->visualShowFavicons->isChecked();
+        gSet->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
+                                                   dlg->visualShowFavicons->isChecked());
         proxyHost = dlg->proxyHost->text();
         proxyPort = dlg->proxyPort->value();
         proxyLogin = dlg->proxyLogin->text();

@@ -88,7 +88,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(txtBrowser, SIGNAL(loadStarted()), netHandler, SLOT(loadStarted()));
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
     connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
-    connect(txtBrowser, SIGNAL(iconUrlChanged(QUrl)), netHandler, SLOT(iconUrlChanged(QUrl)));
+    connect(txtBrowser, SIGNAL(iconChanged(QIcon)), this, SLOT(updateTabIcon(QIcon)));
 
     connect(txtBrowser, SIGNAL(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)),
             msgHandler, SLOT(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)));
@@ -263,10 +263,6 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         urlEdit->setToolTip(tr("Displayed URL"));
         urlEdit->setStyleSheet(QString());
     }
-
-    CFaviconLoader* fl = new CFaviconLoader(this,url);
-    connect(fl,&CFaviconLoader::gotIcon,this,&CSnippetViewer::updateTabIcon);
-    fl->queryStart(true);
 }
 
 void CSnippetViewer::recycleTab()

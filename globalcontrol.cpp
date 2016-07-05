@@ -98,6 +98,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
     webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
+    webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
 
     connect(webProfile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
             downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
