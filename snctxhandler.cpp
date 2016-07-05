@@ -31,6 +31,8 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
 
 void CSnCtxHandler::contextMenu(const QPoint &pos)
 {
+    // TODO: use new Qt 5.7 API for context menu
+
     QString sText = snv->txtBrowser->selectedText();
     QUrl linkUrl = snv->msgHandler->hoveredLink;
 

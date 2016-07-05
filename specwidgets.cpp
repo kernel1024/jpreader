@@ -386,11 +386,10 @@ bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificat
 
 QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
 {
-    Q_UNUSED(type);
-
     if (parentViewer==NULL) return NULL;
 
-    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd);
+    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),
+                                            (type!=QWebEnginePage::WebBrowserBackgroundTab));
     return sv->txtBrowser->page();
 }
 
