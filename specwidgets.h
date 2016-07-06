@@ -21,6 +21,7 @@
 #include <QAbstractListModel>
 #include <QEventLoop>
 #include <QNetworkCookieJar>
+#include <QWebEngineView>
 
 #include <QWebEngineUrlRequestInterceptor>
 #include <QWebEngineUrlRequestInfo>
@@ -121,19 +122,31 @@ public slots:
 
 class CSpecWebPage : public QWebEnginePage {
     Q_OBJECT
-private:
-    CSnippetViewer* parentViewer;
 public:
     CSpecWebPage(CSnippetViewer* parent);
     CSpecWebPage(QWebEngineProfile* profile, CSnippetViewer* parent);
 protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
     bool certificateError(const QWebEngineCertificateError &certificateError);
-    QWebEnginePage* createWindow(WebWindowType type);
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
                                   int lineNumber, const QString &sourceID);
 signals:
     void linkClickedExt(const QUrl& url, const int type, const bool isMainFrame);
+};
+
+class CSpecWebView : public QWebEngineView {
+    Q_OBJECT
+private:
+    CSnippetViewer* parentViewer;
+    CSpecWebPage* m_page;
+public:
+    CSpecWebView(QWidget* parent);
+    CSpecWebView(CSnippetViewer* parent);
+    CSpecWebPage* customPage() const;
+protected:
+    QWebEngineView* createWindow(QWebEnginePage::WebWindowType type);
+    void contextMenuEvent(QContextMenuEvent* event);
+
 };
 
 class CSpecLogHighlighter : public QSyntaxHighlighter {

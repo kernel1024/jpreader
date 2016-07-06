@@ -53,7 +53,8 @@ signals:
 public slots:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
-    CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true);
+    CMainWindow* addMainWindow(bool withSearch = false, bool withViewer = true,
+                               const QUrl &withViewerUrl = QUrl());
 
 };
 

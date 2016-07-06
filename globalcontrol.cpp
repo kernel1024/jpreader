@@ -268,6 +268,16 @@ QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
     return res;
 }
 
+QUrl CGlobalControl::getInspectorUrl() const
+{
+    QUrl res;
+    if (inspectorPort<=0 || !qEnvironmentVariableIsSet("QTWEBENGINE_REMOTE_DEBUGGING"))
+        return res;
+
+    res = QUrl::fromUserInput(QString::fromUtf8(qgetenv("QTWEBENGINE_REMOTE_DEBUGGING")));
+    return res;
+}
+
 void CGlobalControl::blockTabClose()
 {
     blockTabCloseActive=true;

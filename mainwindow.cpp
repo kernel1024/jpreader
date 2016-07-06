@@ -19,7 +19,7 @@
 #include "lighttranslator.h"
 #include "downloadmanager.h"
 
-CMainWindow::CMainWindow(bool withSearch, bool withViewer)
+CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
         : MainWindow()
 {
 	setupUi(this);
@@ -95,6 +95,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     connect(actionFindText,SIGNAL(triggered()),this,SLOT(findText()));
     connect(actionDictionary,SIGNAL(triggered()),gSet,SLOT(showDictionaryWindow()));
     connect(actionFullscreen,SIGNAL(triggered()),this,SLOT(switchFullscreen()));
+    connect(actionInspector,SIGNAL(triggered()),this,SLOT(openBookmark()));
+    connect(actionPrint,SIGNAL(triggered()),this,SLOT(printPage()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -102,6 +104,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
             this, SLOT(helperItemClicked(QListWidgetItem*,QListWidgetItem*)));
     connect(splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(splitterMoved(int,int)));
     connect(tabMain, SIGNAL(tooltipRequested(QPoint,QPoint)), this, SLOT(tabBarTooltip(QPoint,QPoint)));
+
+    actionInspector->setData(gSet->getInspectorUrl());
 
     if (gSet->logWindow!=NULL)
         connect(actionShowLog,SIGNAL(triggered()),gSet->logWindow,SLOT(show()));
@@ -125,7 +129,12 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer)
     updateRecentList();
 
     if (withSearch) createSearch();
-    if (withViewer) createStartBrowser();
+    if (withViewer) {
+        if (withViewerUrl.isEmpty())
+            createStartBrowser();
+        else
+            new CSnippetViewer(this,withViewerUrl);
+    }
 
     qApp->installEventFilter(this);
 
@@ -279,6 +288,15 @@ void CMainWindow::setToolsVisibility(bool visible)
     }
 }
 
+void CMainWindow::printPage()
+{
+    if (tabMain->currentWidget()==NULL) return;
+    CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    if (sn==NULL) return;
+
+    sn->printPage();
+}
+
 void CMainWindow::splitterMoved(int, int)
 {
     helperVisible=(helperFrame->width()>0);
@@ -358,6 +376,18 @@ void CMainWindow::tabChanged(int idx)
         CSnippetViewer* bt = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
         actionAddBM->setEnabled(bt!=NULL);
     }
+}
+
+CSnippetViewer* CMainWindow::getOpenedInspectorTab()
+{
+    for (int i=0;i<tabMain->count();i++) {
+        CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
+        if (sv==NULL) continue;
+
+        if (sv->isInspector())
+            return sv;
+    }
+    return NULL;
 }
 
 void CMainWindow::updateHelperList()
@@ -663,18 +693,27 @@ void CMainWindow::showLightTranslator()
 
 void CMainWindow::openBookmark()
 {
-	QAction* a = qobject_cast<QAction *>(sender());
-	if (a==NULL) return;
+    QAction* a = qobject_cast<QAction *>(sender());
+    if (a==NULL) return;
 
-    bool ok;
-    int idx = a->data().toInt(&ok);
-    if (!ok || idx<0 || idx>=gSet->bookmarks.count()) return;
+    QUrl u;
+    int idx = -1;
+    if (a->data().canConvert<QUrl>()) {
+        u = a->data().toUrl();
+    } else {
+        bool ok;
+        idx = a->data().toInt(&ok);
+        if (!ok || idx<0 || idx>=gSet->bookmarks.count()) return;
+        u = gSet->bookmarks.at(idx).second;
+    }
+    if (!u.isValid()) return;
 
-    QUrl u = gSet->bookmarks.at(idx).second;
     new CSnippetViewer(this, u);
 
-    gSet->bookmarks.move(idx,0);
-    gSet->updateAllBookmarks();
+    if (idx>=0) {
+        gSet->bookmarks.move(idx,0);
+        gSet->updateAllBookmarks();
+    }
 }
 
 void CMainWindow::openRecycled()

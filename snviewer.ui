@@ -452,7 +452,7 @@ Long press forces subsentences mode.</string>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="browser" native="true">
+    <widget class="CSpecWebView" name="txtBrowser" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -463,6 +463,14 @@ Long press forces subsentences mode.</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CSpecWebView</class>
+   <extends>QWidget</extends>
+   <header>specwidgets.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>backNavButton</tabstop>
   <tabstop>fwdNavButton</tabstop>

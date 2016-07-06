@@ -115,6 +115,8 @@
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
     <addaction name="actionExitAll"/>
     <addaction name="actionExit"/>
    </widget>
@@ -170,6 +172,7 @@
     <addaction name="actionDownloadManager"/>
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
+    <addaction name="actionInspector"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -414,7 +417,17 @@
   </action>
   <action name="actionClearCache">
    <property name="text">
-    <string>Clear cache</string>
+    <string>C&amp;lear cache</string>
+   </property>
+  </action>
+  <action name="actionInspector">
+   <property name="text">
+    <string>&amp;Chromium Inspector</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>Print...</string>
    </property>
   </action>
  </widget>

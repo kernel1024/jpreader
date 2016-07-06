@@ -29,23 +29,24 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     });
 }
 
-void CSnCtxHandler::contextMenu(const QPoint &pos)
+void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuData& data)
 {
-    // TODO: use new Qt 5.7 API for context menu
-
-    QString sText = snv->txtBrowser->selectedText();
-    QUrl linkUrl = snv->msgHandler->hoveredLink;
+    QString sText;
+    QUrl linkUrl, imageUrl;
+    if (data.isValid()) {
+        sText = data.selectedText();
+        linkUrl = data.linkUrl();;
+        if (data.mediaType()==QWebEngineContextMenuData::MediaTypeImage)
+            imageUrl = data.mediaUrl();
+    }
 
     QClipboard *cb = QApplication::clipboard();
     QAction *ac;
     QMenu *cm = new QMenu(snv);
 
     if (linkUrl.isValid()) {
-        ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab"),NULL);
-        connect(ac, &QAction::triggered, [linkUrl,this]() {
-            new CSnippetViewer(snv->parentWnd,linkUrl,QStringList(),false);
-        });
-        cm->addAction(ac);
+        cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewTab));
+        cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewBackgroundTab));
 
         ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab and translate"),NULL);
         connect(ac, &QAction::triggered, [linkUrl,this]() {
@@ -54,12 +55,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
-        ac = new QAction(tr("Copy link url to clipboard"),NULL);
-        connect(ac, &QAction::triggered, [linkUrl,cb]() {
-            cb->setText(linkUrl.toString());
-        });
-        cm->addAction(ac);
-
+        cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
         cm->addSeparator();
     }
 
@@ -144,7 +140,23 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
         });
         cm->addAction(ac);
 
+        cm->addSeparator();
+    }
 
+    if (imageUrl.isValid()) {
+        QMenu* icm = cm->addMenu(QIcon::fromTheme("view-preview"),tr("Image"));
+
+        icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyImageToClipboard));
+        icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyImageUrlToClipboard));
+        icm->addSeparator();
+
+        ac = icm->addAction(tr("Open image in new tab"));
+        connect(ac,&QAction::triggered,[this,imageUrl](){
+            new CSnippetViewer(snv->parentWnd,imageUrl);
+        });
+        icm->addAction(ac);
+
+        icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::DownloadImageToDisk));
         cm->addSeparator();
     }
 
@@ -200,6 +212,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
     QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("document-edit-verify"),tr("Show source"),
                  this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_S));
+    ccm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::InspectElement));
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show in editor"),
                  this,SLOT(showInEditor()));
@@ -247,6 +260,23 @@ void CSnCtxHandler::contextMenu(const QPoint &pos)
 
     cm->setAttribute(Qt::WA_DeleteOnClose,true);
     cm->popup(snv->txtBrowser->mapToGlobal(pos));
+}
+
+void CSnCtxHandler::reconfigureDefaultActions()
+{
+    QWebEnginePage* p = snv->txtBrowser->page();
+    if (p==NULL) return;
+
+    p->action(QWebEnginePage::Paste)->setIcon(QIcon::fromTheme("edit-paste"));
+    p->action(QWebEnginePage::SelectAll)->setIcon(QIcon::fromTheme("edit-select-all"));
+    p->action(QWebEnginePage::OpenLinkInNewTab)->setIcon(QIcon::fromTheme("tab-new"));
+    p->action(QWebEnginePage::OpenLinkInNewTab)->setText(tr("Open in new tab"));
+    p->action(QWebEnginePage::OpenLinkInNewBackgroundTab)->setIcon(QIcon::fromTheme("tab-new"));
+    p->action(QWebEnginePage::OpenLinkInNewBackgroundTab)->setText(tr("Open in new background tab"));
+    p->action(QWebEnginePage::CopyLinkToClipboard)->setText(tr("Copy link url to clipboard"));
+    p->action(QWebEnginePage::CopyImageToClipboard)->setText(tr("Copy image to clipboard"));
+    p->action(QWebEnginePage::CopyImageUrlToClipboard)->setText(tr("Copy image url to clipboard"));
+    p->action(QWebEnginePage::DownloadImageToDisk)->setText(tr("Save image to file..."));
 }
 
 void CSnCtxHandler::translateFragment()

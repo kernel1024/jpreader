@@ -17,6 +17,11 @@ QStringList debugMessages;
 
 int main(int argc, char *argv[])
 {
+    int dbgport = getRandomTCPPort();
+    if (dbgport>0) {
+        QString url = QString("127.0.0.1:%1").arg(dbgport);
+        setenv("QTWEBENGINE_REMOTE_DEBUGGING",url.toUtf8().constData(),1);
+    }
     debugMessages.clear();
     qInstallMessageHandler(stdConsoleOutput);
     qRegisterMetaType<UrlHolder>("UrlHolder");
@@ -36,6 +41,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     gSet = new CGlobalControl(&app);
+    gSet->inspectorPort = dbgport;
     if ((gSet==NULL) || (gSet->ipcServer==NULL))
         return 0;
 

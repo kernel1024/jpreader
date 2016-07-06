@@ -37,7 +37,6 @@ public:
     CSnNet *netHandler;
     CSnTrans *transHandler;
     CSnWaitCtl *waitHandler;
-    QWebEngineView *txtBrowser;
     QPixmap pageImage;
 
     QStringList searchList;
@@ -63,9 +62,12 @@ public:
     QUrl getUrl();
     void setToolbarVisibility(bool visible);
     void outsideDragStart();
+    bool isInspector();
+    void printPage();
 public slots:
-    void navByUrl(QString url);
     void navByUrl();
+    void navByUrl(QUrl url);
+    void navByUrl(QString url);
     void titleChanged(const QString & title);
     void urlChanged(const QUrl & url);
     void statusBarMsg(const QString & msg);

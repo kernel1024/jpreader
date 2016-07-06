@@ -16,7 +16,8 @@ class CMainWindow : public QMainWindow, public Ui::MainWindow
 {
 	Q_OBJECT
 public:
-    CMainWindow(bool withSearch = false, bool withViewer = true);
+    CMainWindow(bool withSearch = false, bool withViewer = true,
+                const QUrl &withViewerUrl = QUrl());
     virtual ~CMainWindow();
 	int lastTabIdx;
 
@@ -38,6 +39,7 @@ public:
     void updateHistoryList();
     void updateRecentList();
 
+    CSnippetViewer *getOpenedInspectorTab();
 private:
     QMenu* recycledMenu;
     QMenu* tabsMenu;
@@ -83,6 +85,7 @@ public slots:
     void findText();
     void switchFullscreen();
     void setToolsVisibility(bool visible);
+    void printPage();
 signals:
     void aboutToClose(CMainWindow* sender);
 

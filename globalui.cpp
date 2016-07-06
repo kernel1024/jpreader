@@ -170,11 +170,11 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     QxtToolTip::show(p,t,NULL);
 }
 
-CMainWindow* CGlobalUI::addMainWindow(bool withSearch, bool withViewer)
+CMainWindow* CGlobalUI::addMainWindow(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
 {
     if (gSet==NULL) return NULL;
 
-    CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer);
+    CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer,withViewerUrl);
     connect(mainWindow,&CMainWindow::aboutToClose,
             gSet,&CGlobalControl::windowDestroyed);
 

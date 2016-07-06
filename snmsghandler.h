@@ -2,7 +2,6 @@
 #define SNMSGHANDLER_H
 
 #include <QObject>
-#include <QUrl>
 #include <QString>
 #include <QAction>
 #include <QMutex>
@@ -22,7 +21,6 @@ private:
 public:
     QTimer *loadingBarHideTimer;
     QTimer *focusTimer;
-    QUrl hoveredLink;
     CSnMsgHandler(CSnippetViewer * parent);
     void updateZoomFactor();
 public slots:

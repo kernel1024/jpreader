@@ -5,6 +5,7 @@
 #include <QPoint>
 #include <QString>
 #include <QTimer>
+#include <QWebEngineContextMenuData>
 #include "snviewer.h"
 #include "specwidgets.h"
 
@@ -18,8 +19,9 @@ private:
 public:
     QTimer *menuActive;
     CSnCtxHandler(CSnippetViewer *parent);
+    void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
+    void reconfigureDefaultActions();
 public slots:
-    void contextMenu(const QPoint &pos);
     void translateFragment();
     void saveToFile();
     void bookmarkPage();

@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QMutex>
+#include <QTcpServer>
 
 #include <iostream>
 #include <unistd.h>
@@ -28,6 +29,21 @@ QMutex loggerMutex;
 bool runnedFromQtCreator()
 {
     return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
+}
+
+int getRandomTCPPort()
+{
+    QTcpServer srv;
+    int res = -1;
+    for (int i=20000;i<40000;i++) {
+        if (srv.listen(QHostAddress(QHostAddress(QHostAddress::LocalHost)),i)) {
+            res = i;
+            break;
+        }
+    }
+    if (srv.isListening())
+        srv.close();
+    return res;
 }
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)

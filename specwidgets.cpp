@@ -321,17 +321,54 @@ void CSpecTabContainer::closeTab(bool nowait)
     deleteLater();
 }
 
+CSpecWebView::CSpecWebView(QWidget *parent)
+    : QWebEngineView(parent)
+{
+    parentViewer = qobject_cast<CSnippetViewer *>(parent);
+    if (parentViewer==NULL)
+        qFatal("parentViewer is NULL");
+    m_page = new CSpecWebPage(gSet->webProfile, parentViewer);
+    setPage(m_page);
+}
+
+CSpecWebView::CSpecWebView(CSnippetViewer *parent)
+    : QWebEngineView(parent)
+{
+    parentViewer = parent;
+    m_page = new CSpecWebPage(gSet->webProfile, parent);
+    setPage(m_page);
+}
+
+CSpecWebPage *CSpecWebView::customPage() const
+{
+    return m_page;
+}
+
+QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
+{
+    if (parentViewer==NULL) return NULL;
+
+    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),
+                                            (type!=QWebEnginePage::WebBrowserBackgroundTab));
+    return sv->txtBrowser;
+}
+
+void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
+{
+    if (parentViewer!=NULL)
+        parentViewer->ctxHandler->contextMenu(event->pos(), m_page->contextMenuData());
+}
 
 CSpecWebPage::CSpecWebPage(CSnippetViewer *parent)
     : QWebEnginePage(parent)
 {
-    parentViewer = parent;
+
 }
 
 CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
     : QWebEnginePage(profile, parent)
 {
-    parentViewer = parent;
+
 }
 
 bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
@@ -382,15 +419,6 @@ bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificat
                << certificateError.errorDescription() << certificateError.url();
 
     return gSet->settings.ignoreSSLErrors;
-}
-
-QWebEnginePage *CSpecWebPage::createWindow(QWebEnginePage::WebWindowType type)
-{
-    if (parentViewer==NULL) return NULL;
-
-    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),
-                                            (type!=QWebEnginePage::WebBrowserBackgroundTab));
-    return sv->txtBrowser->page();
 }
 
 void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,

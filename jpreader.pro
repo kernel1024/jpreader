@@ -94,7 +94,7 @@ FORMS = main.ui \
     sourceviewer.ui \
     userscriptdlg.ui
 
-QT += network xml dbus widgets webenginewidgets x11extras
+QT += network xml dbus widgets webenginewidgets x11extras printsupport
 
 CONFIG += warn_on \
     link_pkgconfig \

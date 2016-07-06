@@ -8,6 +8,8 @@
 #include <QUrlQuery>
 #include <QDrag>
 #include <QMimeData>
+#include <QPrinter>
+#include <QPrintDialog>
 
 #include <math.h>
 #include "snviewer.h"
@@ -21,19 +23,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 {
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
-
-    layout()->removeWidget(browser);
-    browser->setParent(NULL);
-    delete browser;
-
-    txtBrowser = new QWebEngineView(this);
-    txtBrowser->setObjectName(QString::fromUtf8("txtBrowser"));
-    txtBrowser->setUrl(QUrl("about://blank"));
-    layout()->addWidget(txtBrowser);
-    CSpecWebPage *wp = new CSpecWebPage(gSet->webProfile,this);
-    txtBrowser->setPage(wp);
-    txtBrowser->page()->action(QWebEnginePage::Paste)->setIcon(QIcon::fromTheme("edit-paste"));
-    txtBrowser->page()->action(QWebEnginePage::SelectAll)->setIcon(QIcon::fromTheme("edit-select-all"));
 
     tabTitle="";
     isStartPage = startPage;
@@ -56,8 +45,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         searchEdit->setCurrentIndex(0);
 	}
     bindToTab(parent->tabMain, setFocused);
-
-    txtBrowser->setContextMenuPolicy(Qt::CustomContextMenu);
 
     netHandler = new CSnNet(this);
     ctxHandler = new CSnCtxHandler(this);
@@ -83,7 +70,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(backNavButton, SIGNAL(clicked()), txtBrowser, SLOT(back()));
 
     connect(txtBrowser, SIGNAL(loadProgress(int)), transHandler, SLOT(progressLoad(int)));
-    connect(txtBrowser, SIGNAL(customContextMenuRequested(QPoint)), ctxHandler,SLOT(contextMenu(QPoint)));
     connect(txtBrowser, SIGNAL(loadFinished(bool)), netHandler, SLOT(loadFinished(bool)));
     connect(txtBrowser, SIGNAL(loadStarted()), netHandler, SLOT(loadStarted()));
     connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
@@ -103,7 +89,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     connect(txtBrowser->page(), SIGNAL(linkHovered(QString)), msgHandler,
             SLOT(linkHovered(QString)));
-    connect(wp, SIGNAL(linkClickedExt(QUrl,int,bool)), netHandler,
+    connect(txtBrowser->customPage(), SIGNAL(linkClickedExt(QUrl,int,bool)), netHandler,
             SLOT(userNavigationRequest(QUrl,int,bool)));
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
@@ -162,6 +148,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     int mv = round((70*parentWnd->height()/100)/(urlEdit->fontMetrics().height()));
     completer->setMaxVisibleItems(mv);
 
+    ctxHandler->reconfigureDefaultActions();
+
     if (!startPage)
         parentWnd->closeStartPage();
 
@@ -181,6 +169,15 @@ void CSnippetViewer::navByUrl()
     navByUrl(urlEdit->text());
 }
 
+void CSnippetViewer::navByUrl(QUrl url)
+{
+    urlEdit->setStyleSheet(QString());
+
+    fileChanged=false;
+
+    netHandler->load(url);
+}
+
 void CSnippetViewer::navByUrl(QString url)
 {
     QString aUrl = url;
@@ -193,11 +190,7 @@ void CSnippetViewer::navByUrl(QString url)
             && !gSet->ctxSearchEngines.isEmpty())
         u = gSet->createSearchUrl(url);
 
-    urlEdit->setStyleSheet(QString());
-
-    fileChanged=false;
-
-    netHandler->load(u);
+    navByUrl(u);
 }
 
 void CSnippetViewer::titleChanged(const QString & title)
@@ -293,6 +286,32 @@ void CSnippetViewer::outsideDragStart()
     drag->setMimeData(mime);
 
     drag->exec(Qt::MoveAction);
+}
+
+bool CSnippetViewer::isInspector()
+{
+    QUrl u = gSet->getInspectorUrl();
+    QUrl uc = txtBrowser->url();
+    u.setFragment(QString());
+    u.setQuery(QString());
+    u.setPath(QString());
+    uc.setFragment(QString());
+    uc.setQuery(QString());
+    uc.setPath(QString());
+
+    return (u==uc);
+}
+
+void CSnippetViewer::printPage()
+{
+    // TODO: add full print support
+    QPrinter printer;
+    QPrintDialog *dialog = new QPrintDialog(&printer, this);
+    dialog->setWindowTitle(tr("Print Document"));
+    if (dialog->exec() != QDialog::Accepted || printer.outputFileName().isEmpty())
+        return;
+
+    txtBrowser->page()->printToPdf(printer.outputFileName(), printer.pageLayout());
 }
 
 void CSnippetViewer::statusBarMsg(const QString &msg)

@@ -85,6 +85,8 @@ public:
 
     QSslCertificateHash atlCerts;
 
+    int inspectorPort;
+
     // History lists append
     void appendRecycled(QString title, QUrl url);
     void appendSearchHistory(QStringList req);
@@ -128,6 +130,10 @@ public:
     // Misc
     QUrl createSearchUrl(const QString& text, const QString& engine = QString());
     QString makeTmpFileName(const QString &suffix, bool withDir = false);
+
+    // Chromium Inspector console
+    QUrl getInspectorUrl() const;
+
 private:
     bool cleaningState;
     bool atlCertErrorInteractive;
