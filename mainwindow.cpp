@@ -57,6 +57,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     actionOpen->setIcon(QIcon::fromTheme("document-open"));
     actionOpenInDir->setIcon(QIcon::fromTheme("document-open-folder"));
     actionNew->setIcon(QIcon::fromTheme("document-new"));
+    actionPrintPDF->setIcon(QIcon::fromTheme("document-print"));
     actionOpenCB->setIcon(QIcon::fromTheme("edit-paste"));
     actionClearCB->setIcon(QIcon::fromTheme("edit-clear"));
     actionOpenClip->setIcon(QIcon::fromTheme("document-open-remote"));
@@ -96,7 +97,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     connect(actionDictionary,SIGNAL(triggered()),gSet,SLOT(showDictionaryWindow()));
     connect(actionFullscreen,SIGNAL(triggered()),this,SLOT(switchFullscreen()));
     connect(actionInspector,SIGNAL(triggered()),this,SLOT(openBookmark()));
-    connect(actionPrint,SIGNAL(triggered()),this,SLOT(printPage()));
+    connect(actionPrintPDF,SIGNAL(triggered()),this,SLOT(printToPDF()));
     connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
     connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
@@ -288,13 +289,13 @@ void CMainWindow::setToolsVisibility(bool visible)
     }
 }
 
-void CMainWindow::printPage()
+void CMainWindow::printToPDF()
 {
     if (tabMain->currentWidget()==NULL) return;
     CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sn==NULL) return;
 
-    sn->printPage();
+    sn->printToPDF();
 }
 
 void CMainWindow::splitterMoved(int, int)

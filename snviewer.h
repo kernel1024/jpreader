@@ -63,7 +63,7 @@ public:
     void setToolbarVisibility(bool visible);
     void outsideDragStart();
     bool isInspector();
-    void printPage();
+    void printToPDF();
 public slots:
     void navByUrl();
     void navByUrl(QUrl url);

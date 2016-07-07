@@ -9,13 +9,14 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QPrinter>
-#include <QPrintDialog>
+#include <QPageSetupDialog>
 
 #include <math.h>
 #include "snviewer.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
+#include "genericfuncs.h"
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
@@ -302,16 +303,19 @@ bool CSnippetViewer::isInspector()
     return (u==uc);
 }
 
-void CSnippetViewer::printPage()
+void CSnippetViewer::printToPDF()
 {
-    // TODO: add full print support
     QPrinter printer;
-    QPrintDialog *dialog = new QPrintDialog(&printer, this);
-    dialog->setWindowTitle(tr("Print Document"));
-    if (dialog->exec() != QDialog::Accepted || printer.outputFileName().isEmpty())
-        return;
+    QPageSetupDialog dlg(&printer,this);
+    if (dlg.exec() != QDialog::Accepted)
+            return;
 
-    txtBrowser->page()->printToPdf(printer.outputFileName(), printer.pageLayout());
+    QString fname = getSaveFileNameD(this,tr("Save to PDF"),gSet->settings.savedAuxSaveDir,
+                                                 tr("PDF file (*.pdf)"));
+    if (fname.isEmpty()) return;
+    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
+
+    txtBrowser->page()->printToPdf(fname, printer.pageLayout());
 }
 
 void CSnippetViewer::statusBarMsg(const QString &msg)

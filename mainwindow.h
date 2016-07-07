@@ -85,7 +85,7 @@ public slots:
     void findText();
     void switchFullscreen();
     void setToolsVisibility(bool visible);
-    void printPage();
+    void printToPDF();
 signals:
     void aboutToClose(CMainWindow* sender);
 

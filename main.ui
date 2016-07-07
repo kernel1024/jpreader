@@ -115,7 +115,7 @@
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
-    <addaction name="actionPrint"/>
+    <addaction name="actionPrintPDF"/>
     <addaction name="separator"/>
     <addaction name="actionExitAll"/>
     <addaction name="actionExit"/>
@@ -425,9 +425,9 @@
     <string>&amp;Chromium Inspector</string>
    </property>
   </action>
-  <action name="actionPrint">
+  <action name="actionPrintPDF">
    <property name="text">
-    <string>Print...</string>
+    <string>Print to PDF...</string>
    </property>
   </action>
  </widget>
