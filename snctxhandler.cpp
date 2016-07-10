@@ -45,10 +45,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QMenu *cm = new QMenu(snv);
 
     if (linkUrl.isValid()) {
-        cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewTab));
         cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewBackgroundTab));
+        cm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewTab));
 
-        ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab and translate"),NULL);
+        ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new background tab and translate"),NULL);
         connect(ac, &QAction::triggered, [linkUrl,this]() {
             CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd,linkUrl,QStringList(),false);
             sn->requestAutotranslate = true;
