@@ -806,10 +806,9 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    QMenu* midx = menuCharset;
     QList<QStringList> cList = encodingsByScript();
     for(int i=0;i<cList.count();i++) {
-        midx = menuCharset->addMenu(cList.at(i).at(0));
+        QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
             if (QTextCodec::codecForName(cList.at(i).at(j).toLatin1())==NULL) {
                 qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));

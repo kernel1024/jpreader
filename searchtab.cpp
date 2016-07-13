@@ -440,7 +440,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     QStringList rdSnippet;
     int maxcnt = sumCount;
     if (maxSnippets<sumCount) maxcnt = maxSnippets;
-    for (int i=0;i<maxcnt;i++) {
+    for (int i=0;i<maxcnt && isumWeight>0;i++) {
         int rnd = qrand() % isumWeight;
         int itm = 0;
         for (int j=0;j<queryTerms.count();j++) {

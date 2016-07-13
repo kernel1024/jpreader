@@ -30,7 +30,8 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             text = tran->tranString(text);
             tran->doneTran();
         }
-        tran->deleteLater();
+        if (tran!=NULL)
+            tran->deleteLater();
     }
     emit gotTranslation(text);
     if (deleteAfter)
