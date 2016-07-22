@@ -487,9 +487,9 @@ bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
 
-    for(int i=0;i<adblock.count();i++) {
-        if (adblock.at(i).networkMatch(u)) {
-            filter = adblock.at(i).filter();
+    foreach (const CAdBlockRule rule, adblock) {
+        if (rule.networkMatch(u)) {
+            filter = rule.filter();
             return true;
         }
     }
