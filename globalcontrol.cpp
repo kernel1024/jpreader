@@ -482,20 +482,14 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
 bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
 {
     if (!settings.useAdblock) return false;
-    if (!adblockMutex.tryLock(10000)) {
-        qCritical() << "Failed to lock adblock mutex";
-        return false;
-    }
-    QList<CAdBlockRule> adlist(adblock);
-    adblockMutex.unlock();
 
     filter.clear();
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
 
-    for(int i=0;i<adlist.count();i++) {
-        if (adlist.at(i).networkMatch(u)) {
-            filter = adlist.at(i).filter();
+    for(int i=0;i<adblock.count();i++) {
+        if (adblock.at(i).networkMatch(u)) {
+            filter = adblock.at(i).filter();
             return true;
         }
     }
@@ -509,16 +503,12 @@ void CGlobalControl::adblockAppend(QString url)
 
 void CGlobalControl::adblockAppend(CAdBlockRule url)
 {
-    adblockMutex.lock();
     adblock.append(url);
-    adblockMutex.unlock();
 }
 
 void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
 {
-    adblockMutex.lock();
     adblock.append(urls);
-    adblockMutex.unlock();
 }
 
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)

@@ -207,9 +207,7 @@ void CSettings::readSettings(QObject *control)
     } else
         g->bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
 
-    g->adblockMutex.lock();
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
-    g->adblockMutex.unlock();
 
     hostingDir = settings.value("hostingDir","").toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
@@ -461,10 +459,8 @@ void CSettings::settingsDlg()
         gSet->updateAllQueryLists();
         gSet->bookmarks = dlg->getBookmarks();
         gSet->updateAllBookmarks();
-        gSet->adblockMutex.lock();
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
-        gSet->adblockMutex.unlock();
         gSet->initUserScripts(dlg->getUserScripts());
 
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";

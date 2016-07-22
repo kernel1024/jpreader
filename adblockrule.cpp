@@ -66,13 +66,14 @@ void CAdBlockRule::setFilter(const QString &filter)
     m_cssRule = false;
     m_enabled = true;
     m_exception = false;
+    m_plainRule.clear();
     bool regExpRule = false;
 
     if (filter.startsWith(QLatin1String("!"))
             || filter.trimmed().isEmpty())
         m_enabled = false;
 
-    if (filter.contains(QLatin1String("##")))
+    if (filter.contains(QLatin1String("##")) || filter.contains(QLatin1String("#@#")))
         m_cssRule = true;
 
     QString parsedLine = filter;
@@ -91,6 +92,16 @@ void CAdBlockRule::setFilter(const QString &filter)
     if (options >= 0) {
         m_options = parsedLine.mid(options + 1).split(QLatin1Char(','));
         parsedLine = parsedLine.left(options);
+    }
+
+    bool hasWildcards = parsedLine.contains(QRegExp("[\*\$]"));
+    if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
+        (!parsedLine.contains("^") || parsedLine.endsWith("^"))) {
+        m_plainRule = parsedLine;
+        if (m_plainRule.startsWith("||"))
+            m_plainRule = m_plainRule.mid(2);
+        if (m_plainRule.endsWith("^"))
+            m_plainRule = m_plainRule.left(m_plainRule.length()-1);
     }
 
     setPattern(parsedLine, regExpRule);
@@ -116,6 +127,10 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
 
     if (!m_enabled)
         return false;
+
+    if (!m_plainRule.isEmpty())
+        if (encodedUrl.contains(m_plainRule,Qt::CaseInsensitive))
+            return true;
 
     bool matched = encodedUrl.contains(m_regExp);
 

@@ -55,6 +55,7 @@ private:
     bool m_exception;
     bool m_enabled;
     QRegExp m_regExp;
+    QString m_plainRule;
     QStringList m_options;
 };
 

@@ -370,15 +370,21 @@ void CSettingsDlg::importAd()
     QFileInfo fi(fname);
 
     int psz = adblockList.count();
+    int cssRule = 0;
     while (!fs.atEnd()) {
-        adblockList << CAdBlockRule(fs.readLine(),fi.fileName());
+        CAdBlockRule rule = CAdBlockRule(fs.readLine(),fi.fileName());
+        // skip CSS rules for speedup search, anyway we do not support CSS rules now.
+        if (!rule.isCSSRule())
+            adblockList << rule;
+        else
+            cssRule++;
     }
     f.close();
 
     updateAdblockList();
 
     psz = adblockList.count() - psz;
-    QMessageBox::information(this,tr("JPReader"),tr("%1 rules imported.").arg(psz));
+    QMessageBox::information(this,tr("JPReader"),tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));
 }
 
 void CSettingsDlg::exportAd()
