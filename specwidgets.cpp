@@ -588,7 +588,10 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
 
-    return gSet->mainHistory.count();
+    if (gSet->mainHistory.count()>100)
+        return 100;
+    else
+        return gSet->mainHistory.count();
 }
 
 QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const

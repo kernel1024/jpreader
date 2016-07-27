@@ -325,6 +325,8 @@ void CGlobalControl::appendRecycled(QString title, QUrl url)
 
 void CGlobalControl::appendMainHistory(UrlHolder &item)
 {
+    if (item.url.toString().startsWith("data:",Qt::CaseInsensitive)) return;
+
     if (mainHistory.contains(item))
         mainHistory.removeOne(item);
     mainHistory.prepend(item);

@@ -199,6 +199,14 @@ void CSettings::readSettings(QObject *control)
     g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
     g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
 
+    int idx=0;
+    while (idx<g->mainHistory.count()) {
+        if (g->mainHistory.at(idx).url.toString().startsWith("data:",Qt::CaseInsensitive))
+            g->mainHistory.removeAt(idx);
+        else
+            idx++;
+    }
+
     if (bigdata.contains("bookmarks")) {
         g->bookmarks.clear();
         QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
