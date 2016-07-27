@@ -27,6 +27,7 @@ QString bool2str(bool value);
 QString bool2str2(bool value);
 QString formatBytes(qint64 sz);
 QString getTmpDir();
+bool checkAndUnpackUrl(QUrl& url);
 int getRandomTCPPort();
 bool runnedFromQtCreator();
 int compareStringLists(const QStringList& left, const QStringList& right);

@@ -108,6 +108,21 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     loggerMutex.unlock();
 }
 
+bool checkAndUnpackUrl(QUrl& url)
+{
+    // Extract jump url for pixiv
+    if (url.host().endsWith("pixiv.net") && url.path().startsWith("/jump")) {
+        QUrl ju(url.query(QUrl::FullyDecoded));
+        if (ju.isValid()) {
+            url = ju;
+            return true;
+        }
+    }
+
+    // Url not modified
+    return false;
+}
+
 QString detectMIME(const QString &filename)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
