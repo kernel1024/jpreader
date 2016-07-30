@@ -31,11 +31,11 @@ CAbstractTranslator *translatorFactory(QObject* parent, int tranDirection)
         }
         return new CAtlasTranslator(parent,gSet->settings.atlHost,gSet->settings.atlPort, dir);
     } else if (gSet->settings.translatorEngine==TE_BINGAPI)
-        return new CBingTranslator(parent,gSet->settings.bingID,gSet->settings.bingKey,
-                                   gSet->getSourceLanguageID(TE_BINGAPI));
+        return new CBingTranslator(parent,gSet->getSourceLanguageID(TE_BINGAPI),
+                                   gSet->settings.bingID,gSet->settings.bingKey);
     else if (gSet->settings.translatorEngine==TE_YANDEX)
-        return new CYandexTranslator(parent,gSet->settings.yandexKey,
-                                     gSet->getSourceLanguageID(TE_YANDEX));
+        return new CYandexTranslator(parent,gSet->getSourceLanguageID(TE_YANDEX),
+                                     gSet->settings.yandexKey);
     else
         return NULL;
 }
