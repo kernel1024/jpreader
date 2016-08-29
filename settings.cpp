@@ -144,6 +144,7 @@ void CSettings::writeSettings()
     settings.setValue("forceFontColor",gSet->ui.forceFontColor());
     settings.setValue("forcedFontColor",forcedFontColor.name());
     settings.setValue("gctxHotkey",gSet->ui.gctxTranHotkey.shortcut().toString());
+    settings.setValue("translateSubSentences",gSet->ui.translateSubSentences());
 
     settings.setValue("searchEngine",searchEngine);
     settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
@@ -257,6 +258,7 @@ void CSettings::readSettings(QObject *control)
     g->ui.actionOverrideFontColor->setChecked(settings.value("forceFontColor",false).toBool());
     forcedFontColor=QColor(settings.value("forcedFontColor","#000000").toString());
     QString hk = settings.value("gctxHotkey",QString()).toString();
+    g->ui.actionTranslateSubSentences->setChecked(settings.value("translateSubSentences",false).toBool());
     if (!hk.isEmpty()) {
         g->ui.gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
         if (!g->ui.gctxTranHotkey.shortcut().isEmpty())

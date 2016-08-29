@@ -40,6 +40,7 @@ public:
     bool autoTranslate();
     bool forceFontColor();
     void startGlobalContextTranslate();
+    bool translateSubSentences();
 
     explicit CGlobalUI(QObject *parent = 0);
 

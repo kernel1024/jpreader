@@ -94,7 +94,7 @@ void CAdBlockRule::setFilter(const QString &filter)
         parsedLine = parsedLine.left(options);
     }
 
-    bool hasWildcards = parsedLine.contains(QRegExp("[\*\$]"));
+    bool hasWildcards = parsedLine.contains(QRegExp("[\\*\\$]"));
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
         (!parsedLine.contains("^") || parsedLine.endsWith("^"))) {
         m_plainRule = parsedLine;

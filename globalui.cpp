@@ -162,6 +162,11 @@ void CGlobalUI::startGlobalContextTranslate()
     gctxSelection.clear();
 }
 
+bool CGlobalUI::translateSubSentences()
+{
+    return actionTranslateSubSentences->isChecked();
+}
+
 void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));

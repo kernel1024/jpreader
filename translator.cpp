@@ -29,7 +29,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     translationMode=gSet->getTranslationMode();
     engine=gSet->settings.translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
-    translateSubSentences=(forceTranSubSentences || gSet->ui.actionTranslateSubSentences->isChecked());
+    translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
     tran=NULL;
     tranInited=false;
 }
