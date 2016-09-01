@@ -75,6 +75,7 @@ private:
     QFont overrideFont;
     int engine;
     QString srcLanguage;
+    QUrl metaSrcUrl;
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateDocument(const QString& srcUri, QString& dst);

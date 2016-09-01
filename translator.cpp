@@ -32,6 +32,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
     tran=NULL;
     tranInited=false;
+    metaSrcUrl.clear();
 }
 
 CTranslator::~CTranslator()
@@ -129,6 +130,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     translatorFailed = false;
     textNodesCnt=0;
+    metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings.debugDumpHtml)
         dumpPage(token,"4-preprocessed",doc);
@@ -191,6 +193,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 
     translatorFailed=false;
     textNodesCnt=0;
+    metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings.debugDumpHtml)
         dumpPage(token,"parser-4-preprocessed",doc);
@@ -245,13 +248,25 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // Unfold "1% height" divs from blog.jp/livedoor.jp
+        // their blogs using same site.css
+        // Also for blog.goo.ne.jp (same CSS as static.css)
         int idx = 0;
         while (idx<node.children.count()) {
+            if (node.children.at(idx).tagName.toLower()=="meta") {
+                if (node.children.at(idx).attributes.value("property").toLower().trimmed()=="og:url")
+                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value("content").toLower().trimmed());
+            }
+
             if (node.children.at(idx).tagName.toLower()=="link") {
-                // their blogs using same site.css
+                if (node.children.at(idx).attributes.value("rel").toLower().trimmed()=="canonical")
+                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value("href").toLower().trimmed());
+
                 if ((node.children.at(idx).attributes.value("type").toLower().trimmed()=="text/css") &&
                         (node.children.at(idx).attributes.value("href").contains(
-                             QRegExp("blog.*\\.jp.*site.css\\?_=",Qt::CaseInsensitive)))) {
+                             QRegExp("blog.*\\.jp.*site.css\\?_=",Qt::CaseInsensitive)) ||
+                         (node.children.at(idx).attributes.value("href").contains(
+                             QRegExp("/css/.*static.css\\?",Qt::CaseInsensitive)) &&
+                          metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive))))) {
                     CHTMLNode st;
                     st.tagName="style";
                     st.closingText="</style>";
@@ -309,6 +324,20 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                     idx++;
                 }
 
+                node.children.removeAt(idx);
+                node.normalize();
+                idx=0;
+                continue;
+            }
+
+            QStringList denyDivs;
+            denyDivs << "sh_fc2blogheadbar" << "fc2_bottom_bnr" << "global-header";
+            // remove floating headers for fc2 and goo blogs
+            if (metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive)) &&
+                    node.children.at(idx).tagName.toLower()=="div" &&
+                    node.children.at(idx).attributes.contains("id") &&
+                    denyDivs.contains(node.children.at(idx).attributes.value("id"),
+                                      Qt::CaseInsensitive)) {
                 node.children.removeAt(idx);
                 node.normalize();
                 idx=0;
