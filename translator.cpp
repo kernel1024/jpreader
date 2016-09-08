@@ -120,7 +120,8 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->settings.debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"2-tree",QByteArray::fromRawData(sst.str().data(),(int)sst.str().size()));
+        dumpPage(token,"2-tree",QByteArray::fromRawData(sst.str().data(),
+                                                        static_cast<int>(sst.str().size())));
     }
 
     CHTMLNode doc(tr);
@@ -183,7 +184,8 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     if (gSet->settings.debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"parser-2-tree",QByteArray::fromRawData(sst.str().data(),(int)sst.str().size()));
+        dumpPage(token,"parser-2-tree",QByteArray::fromRawData(sst.str().data(),
+                                                               static_cast<int>(sst.str().size())));
     }
 
     CHTMLNode doc(tr);
@@ -569,7 +571,7 @@ void CTranslator::translate()
                 break;
             } else
                 lastAtlasError = tran->getErrorMsg();
-            QThread::sleep(atlTcpTimeout);
+            QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
             if (tran!=NULL)
                 tran->doneTran(true);
         }
@@ -629,6 +631,24 @@ CHTMLNode::~CHTMLNode()
     children.clear();
     attributes.clear();
     attributesOrder.clear();
+}
+
+CHTMLNode::CHTMLNode(const CHTMLNode &other)
+{
+    text = other.text;
+    tagName = other.tagName;
+    closingText = other.closingText;
+    isTag = other.isTag;
+    isComment = other.isComment;
+
+    attributes.clear();
+    attributes = other.attributes;
+
+    attributesOrder.clear();
+    attributesOrder = other.attributesOrder;
+
+    children.clear();
+    children = other.children;
 }
 
 CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)

@@ -20,11 +20,9 @@ public:
 signals:
     Q_SCRIPTABLE void gotTranslation(const QString& text);
     
-protected slots:
-    void startTranslation(bool deleteAfter = true);
-
 public slots:
     void startAuxTranslation(const QString& text);
+    void startTranslation(bool deleteAfter);
 
 };
 

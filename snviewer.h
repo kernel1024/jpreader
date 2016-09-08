@@ -65,7 +65,7 @@ public:
     bool isInspector();
     void printToPDF();
 public slots:
-    void navByUrl();
+    void navByUrlDefault();
     void navByUrl(QUrl url);
     void navByUrl(QString url);
     void titleChanged(const QString & title);

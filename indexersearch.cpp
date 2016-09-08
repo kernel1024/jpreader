@@ -21,12 +21,14 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
             engine = new CRecollSearch();
         else
             engine = new CBaloo5Search();
-        connect(engine,SIGNAL(addHit(QString)),this,SLOT(auxAddHit(QString)),Qt::QueuedConnection);
-        connect(engine,SIGNAL(addHitFull(QString,QString,float)),
-                this,SLOT(auxAddHit(QString,QString,float)),Qt::QueuedConnection);
-        connect(engine,SIGNAL(finished()),this,SLOT(engineFinished()),Qt::QueuedConnection);
-        connect(this,SIGNAL(startThreadedSearch(QString,int)),
-                engine,SLOT(doSearch(QString,int)),Qt::QueuedConnection);
+        connect(engine,&CAbstractThreadedSearch::addHit,
+                this,&CIndexerSearch::auxAddHit,Qt::QueuedConnection);
+        connect(engine,&CAbstractThreadedSearch::addHitFull,
+                this,&CIndexerSearch::auxAddHitFull,Qt::QueuedConnection);
+        connect(engine,&CAbstractThreadedSearch::finished,
+                this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
+        connect(this,&CIndexerSearch::startThreadedSearch,
+                engine,&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
         engine->moveToThread(th);
         th->start();
 #endif
@@ -81,7 +83,7 @@ int CIndexerSearch::getCurrentIndexerService()
     return indexerSerivce;
 }
 
-void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, const float rel)
+void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double rel)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
@@ -120,8 +122,8 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, const 
     result.snippets.last()["FullFilename"] = w;
     result.snippets.last()["DisplayFilename"] = w;
     result.snippets.last()["FilePath"] = hit.path();
-    double sz = (double)(hit.size()) / 1024;
-    result.snippets.last()["FileSize"] = QString("%L1 Kb").arg(sz, 0, 'f', 1);
+    result.snippets.last()["FileSize"] = QString("%L1 Kb")
+                                         .arg(static_cast<double>(hit.size())/1024.0, 0, 'f', 1);
     result.snippets.last()["FileSizeNum"] = QString("%1").arg(hit.size());
     result.snippets.last()["OnlyFilename"] = hit.fileName();
     result.snippets.last()["Dir"] = QDir(hit.dir()).dirName();
@@ -226,7 +228,12 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
     }
 }
 
-void CIndexerSearch::auxAddHit(const QString &fileName, const QString &title, const float rel)
+void CIndexerSearch::auxAddHit(const QString &fileName)
+{
+    auxAddHitFull(fileName, QString(), -1.0);
+}
+
+void CIndexerSearch::auxAddHitFull(const QString &fileName, const QString &title, double rel)
 {
     QFileInfo fi(fileName);
     addHitFS(fi,title,rel);
@@ -237,7 +244,8 @@ void CIndexerSearch::engineFinished()
     if (!working) return;
     working = false;
     if (!result.snippets.isEmpty()) {
-        result.stats["Elapsed time"] = QString("%1").arg(((double)searchTimer.elapsed())/1000,1,'f',3);
+        result.stats["Elapsed time"] = QString("%1")
+                                       .arg((static_cast<double>(searchTimer.elapsed()))/1000,1,'f',3);
         result.stats["Total hits"] = QString("%1").arg(result.snippets.count());
         result.presented = true;
     }

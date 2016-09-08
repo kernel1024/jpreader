@@ -163,7 +163,6 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
                     return QIcon::fromTheme("arrow-right").pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadInterrupted:
                     return QIcon::fromTheme("task-attention").pixmap(QSize(16,16));
-                default: return QVariant();
             }
             return QVariant();
         }
@@ -177,7 +176,6 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
                         .arg(formatBytes(t.total));
             default: return QVariant();
         }
-        return QVariant();
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         return t.fileName;
     } else if (role == Qt::UserRole+1) {
@@ -199,7 +197,6 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
             case 3: return tr("Downloaded");
             default: return QVariant();
         }
-        return QVariant();
     }
     return QVariant();
 

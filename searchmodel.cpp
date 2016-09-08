@@ -33,22 +33,20 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                 score = snippets[idx]["Score"];
                 ps.clear();
                 if (snippets[idx]["relMode"]=="count")
-                    sc = ceil(score.toFloat(&ok));
+                    sc = static_cast<int>(ceil(score.toDouble(&ok)));
                 else {
-                    sc = score.toFloat(&ok)*100;
+                    sc = static_cast<int>(score.toDouble(&ok)*100.0);
                     ps = "%";
                 }
                 if (ok)
                     return tr("%1%2").arg(QString("%1").arg(sc),ps);
                 else
                     return score;
-                break;
             case 2: return snippets[idx]["Dir"];
             case 3: return snippets[idx]["FileSize"];
             case 4: return snippets[idx]["OnlyFilename"];
             default: return QVariant();
         }
-        return QVariant();
 
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (index.column()==2) // show full path in tooltips
@@ -65,7 +63,6 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                     return sf;
                 else
                     return score;
-                break;
             case 2: return snippets[idx]["FilePath"];
             case 3:
                 score = snippets[idx]["FileSizeNum"];
@@ -77,7 +74,6 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 4: return snippets[idx]["OnlyFilename"];
             default: return QVariant();
         }
-        return QVariant();
 
     } else if (role == Qt::UserRole + cpFilterRole) {
         // column calculation removed - filtering only by directory
@@ -98,7 +94,6 @@ QVariant CSearchModel::headerData(int section, Qt::Orientation orientation, int 
                 case 4: return tr("Filename");
                 default: return QVariant();
             }
-            return QVariant();
         }
         return QVariant();
     }

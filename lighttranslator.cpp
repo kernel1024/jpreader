@@ -16,7 +16,7 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     ui->barTranslating->hide();
     ui->radioJap->setChecked(true);
 
-    connect(ui->btnTranslate,SIGNAL(clicked()),this,SLOT(translate()));
+    connect(ui->btnTranslate,&QPushButton::clicked,this,&CLightTranslator::translate);
 }
 
 void CLightTranslator::closeEvent(QCloseEvent *event)
@@ -50,14 +50,14 @@ void CLightTranslator::translate()
         at->setSrcLang(LS_JAPANESE);
     if (ui->radioEng->isChecked())
         at->setSrcLang(LS_ENGLISH);
-    connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
-    connect(at,SIGNAL(gotTranslation(QString)),this,SLOT(gotTranslation(QString)),Qt::QueuedConnection);
+    connect(this,&CLightTranslator::startTranslation,at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
+    connect(at,&CAuxTranslator::gotTranslation,this,&CLightTranslator::gotTranslation,Qt::QueuedConnection);
     at->moveToThread(th);
     th->start();
 
     ui->barTranslating->show();
 
-    emit startTranslation();
+    emit startTranslation(true);
 }
 
 void CLightTranslator::gotTranslation(const QString &text)

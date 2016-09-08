@@ -123,13 +123,13 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
         ui->tabWidget->setCurrentIndex(row);
     });
 
-    ui->atlSSLProto->addItem("Secure",(int)QSsl::SecureProtocols);
-    ui->atlSSLProto->addItem("TLS 1.2",(int)QSsl::TlsV1_2);
-    ui->atlSSLProto->addItem("TLS 1.1",(int)QSsl::TlsV1_1);
-    ui->atlSSLProto->addItem("TLS 1.0",(int)QSsl::TlsV1_0);
-    ui->atlSSLProto->addItem("SSL V3",(int)QSsl::SslV3);
-    ui->atlSSLProto->addItem("SSL V2",(int)QSsl::SslV2);
-    ui->atlSSLProto->addItem("Any",(int)QSsl::AnyProtocol);
+    ui->atlSSLProto->addItem("Secure",static_cast<int>(QSsl::SecureProtocols));
+    ui->atlSSLProto->addItem("TLS 1.2",static_cast<int>(QSsl::TlsV1_2));
+    ui->atlSSLProto->addItem("TLS 1.1",static_cast<int>(QSsl::TlsV1_1));
+    ui->atlSSLProto->addItem("TLS 1.0",static_cast<int>(QSsl::TlsV1_0));
+    ui->atlSSLProto->addItem("SSL V3",static_cast<int>(QSsl::SslV3));
+    ui->atlSSLProto->addItem("SSL V2",static_cast<int>(QSsl::SslV2));
+    ui->atlSSLProto->addItem("Any",static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
     populateTabList();

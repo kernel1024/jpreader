@@ -101,7 +101,7 @@ CONFIG += warn_on \
     exceptions \
     rtti \
     stl \
-    c++11
+    c++14
 
 LIBS += -lz -lgoldendict
 

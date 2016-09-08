@@ -303,7 +303,8 @@ void CSnCtxHandler::translateFragment()
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
     at->setParams(s);
-    connect(this,SIGNAL(startTranslation()),at,SLOT(startTranslation()),Qt::QueuedConnection);
+    connect(this,&CSnCtxHandler::startTranslation,
+            at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
         if (!text.isEmpty() && !menuActive->isActive()) {
@@ -317,7 +318,7 @@ void CSnCtxHandler::translateFragment()
     at->moveToThread(th);
     th->start();
 
-    emit startTranslation();
+    emit startTranslation(true);
 }
 
 void CSnCtxHandler::saveToFile()

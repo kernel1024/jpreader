@@ -121,7 +121,7 @@ void CSettings::writeSettings()
     settings.setValue("atlasHost",atlHost);
     settings.setValue("atlasPort",atlPort);
     settings.setValue("atlasToken",atlToken);
-    settings.setValue("atlasProto",(int)atlProto);
+    settings.setValue("atlasProto",static_cast<int>(atlProto));
     settings.setValue("auxDir",savedAuxDir);
     settings.setValue("auxSaveDir",savedAuxSaveDir);
     settings.setValue("emptyRestore",emptyRestore);
@@ -233,9 +233,9 @@ void CSettings::readSettings(QObject *control)
     scpHost = settings.value("scphost","").toString();
     scpParams = settings.value("scpparams","").toString();
     atlHost = settings.value("atlasHost","localhost").toString();
-    atlPort = settings.value("atlasPort",18000).toInt();
+    atlPort = static_cast<quint16>(settings.value("atlasPort",18000).toUInt());
     atlToken = settings.value("atlasToken","").toString();
-    atlProto = (QSsl::SslProtocol)settings.value("atlasProto",QSsl::SecureProtocols).toInt();
+    atlProto = static_cast<QSsl::SslProtocol>(settings.value("atlasProto",QSsl::SecureProtocols).toInt());
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     savedAuxSaveDir = settings.value("auxSaveDir",QDir::homePath()).toString();
     emptyRestore = settings.value("emptyRestore",false).toBool();
@@ -271,7 +271,7 @@ void CSettings::readSettings(QObject *control)
     atlTcpTimeout = settings.value("atlTcpTimeout",2).toInt();
     showTabCloseButtons = settings.value("showTabCloseButtons",true).toBool();
     proxyHost = settings.value("proxyHost",QString()).toString();
-    proxyPort = settings.value("proxyPort",3128).toInt();
+    proxyPort = static_cast<quint16>(settings.value("proxyPort",3128).toUInt());
     proxyType = static_cast<QNetworkProxy::ProxyType>(settings.value("proxyType",
                                                                      QNetworkProxy::HttpCachingProxy).toInt());
     proxyLogin = settings.value("proxyLogin",QString()).toString();
@@ -450,7 +450,11 @@ void CSettings::settingsDlg()
         case QNetworkProxy::HttpCachingProxy: dlg->proxyType->setCurrentIndex(0); break;
         case QNetworkProxy::HttpProxy: dlg->proxyType->setCurrentIndex(1); break;
         case QNetworkProxy::Socks5Proxy: dlg->proxyType->setCurrentIndex(2); break;
-        default: dlg->proxyType->setCurrentIndex(0); break;
+        case QNetworkProxy::NoProxy:
+        case QNetworkProxy::DefaultProxy:
+        case QNetworkProxy::FtpCachingProxy:
+            dlg->proxyType->setCurrentIndex(0);
+            break;
     }
 
     dlg->getCookiesFromStore();
@@ -497,11 +501,11 @@ void CSettings::settingsDlg()
         scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();
         atlHost=dlg->atlHost->lineEdit()->text();
-        atlPort=dlg->atlPort->value();
+        atlPort=static_cast<quint16>(dlg->atlPort->value());
         atlTcpRetryCount=dlg->atlRetryCount->value();
         atlTcpTimeout=dlg->atlRetryTimeout->value();
         atlToken=dlg->atlToken->text();
-        atlProto=(QSsl::SslProtocol)dlg->atlSSLProto->currentData().toInt();
+        atlProto=static_cast<QSsl::SslProtocol>(dlg->atlSSLProto->currentData().toInt());
         bingID=dlg->bingID->text();
         bingKey=dlg->bingKey->text();
         yandexKey=dlg->yandexKey->text();
@@ -575,7 +579,7 @@ void CSettings::settingsDlg()
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
                                                    dlg->visualShowFavicons->isChecked());
         proxyHost = dlg->proxyHost->text();
-        proxyPort = dlg->proxyPort->value();
+        proxyPort = static_cast<quint16>(dlg->proxyPort->value());
         proxyLogin = dlg->proxyLogin->text();
         proxyPassword = dlg->proxyPassword->text();
         proxyUse = dlg->proxyUse->isChecked();

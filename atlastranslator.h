@@ -19,11 +19,11 @@ public:
 private:
     QSslSocket sock;
     QString atlHost;
-    int atlPort;
+    quint16 atlPort;
     bool inited;
     bool emptyRestore;
 public:
-    explicit CAtlasTranslator(QObject *parent, QString host, int port, const QString& SrcLang);
+    explicit CAtlasTranslator(QObject *parent, QString host, quint16 port, const QString& SrcLang);
     virtual ~CAtlasTranslator();
 
     bool initTran();

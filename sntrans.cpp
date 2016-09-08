@@ -23,10 +23,12 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     longClickTimer->setSingleShot(true);
     savedBaseUrl.clear();
 
-    connect(snv->txtBrowser->page(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
-    connect(selectionTimer, SIGNAL(timeout()), this, SLOT(selectionShow()));
-    connect(snv->transButton, SIGNAL(pressed()), longClickTimer, SLOT(start()));
+    connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
+    connect(selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
     connect(longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
+    connect(snv->transButton, &QPushButton::pressed, [this](){
+        longClickTimer->start();
+    });
     connect(snv->transButton, &QPushButton::released, [this](){
         bool ta = longClickTimer->isActive();
         if (ta)
@@ -97,8 +99,8 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
 
     CTranslator* ct = new CTranslator(NULL,aUri,forceTranSubSentences);
     QThread* th = new QThread();
-    connect(ct,SIGNAL(calcFinished(bool,QString)),
-            this,SLOT(calcFinished(bool,QString)),Qt::QueuedConnection);
+    connect(ct,&CTranslator::calcFinished,
+            this,&CSnTrans::calcFinished,Qt::QueuedConnection);
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
@@ -116,12 +118,12 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
         snv->waitHandler->setProgressEnabled(false);
     }
 
-    connect(gSet,SIGNAL(stopTranslators()),
-            ct,SLOT(abortTranslator()),Qt::QueuedConnection);
-    connect(snv->abortBtn,SIGNAL(clicked()),
-            ct,SLOT(abortTranslator()),Qt::QueuedConnection);
-    connect(ct,SIGNAL(setProgress(int)),
-            snv->waitHandler,SLOT(setProgressValue(int)),Qt::QueuedConnection);
+    connect(gSet,&CGlobalControl::stopTranslators,
+            ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
+    connect(snv->abortBtn,&QPushButton::clicked,
+            ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
+    connect(ct,&CTranslator::setProgress,
+            snv->waitHandler,&CSnWaitCtl::setProgressValue,Qt::QueuedConnection);
 
     ct->moveToThread(th);
     th->start();
@@ -212,7 +214,7 @@ void CSnTrans::findWordTranslation(const QString &text)
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
     QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
-    connect(rep,SIGNAL(finished()),this,SLOT(dictDataReady()));
+    connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
 }
 
 void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
@@ -269,8 +271,8 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setMaximumSize(350,350);
     t->setStyleSheet("QLabel { background: #fefdeb; }");
 
-    connect(t,SIGNAL(linkActivated(QString)),this,SLOT(showSuggestedTranslation(QString)));
-    connect(snv->ctxHandler,SIGNAL(hideTooltips()),t,SLOT(close()));
+    connect(t,&CSpecToolTipLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
+    connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&CSpecToolTipLabel::close);
 
     QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true);
 }

@@ -23,8 +23,8 @@ CSpecTabWidget::CSpecTabWidget(QWidget *p)
     mainTabWidget = true;
     m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
-    connect(m_tabBar,SIGNAL(tabRightClicked(int)),this,SLOT(tabRightClick(int)));
-    connect(m_tabBar,SIGNAL(tabLeftClicked(int)),this,SLOT(tabLeftClick(int)));
+    connect(m_tabBar, &CSpecTabBar::tabRightClicked,this,&CSpecTabWidget::tabRightClick);
+    connect(m_tabBar, &CSpecTabBar::tabLeftClicked,this,&CSpecTabWidget::tabLeftClick);
 }
 
 CSpecTabBar *CSpecTabWidget::tabBar() const
@@ -227,7 +227,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
         b->setFlat(true);
         int sz = tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
-        connect(b,SIGNAL(clicked()),this,SLOT(closeTab()));
+        connect(b, &QPushButton::clicked,this,&CSpecTabContainer::closeTab);
         tabWidget->tabBar()->setTabButton(i,QTabBar::RightSide,b);
     }
     tabTitle = getDocTitle();
@@ -373,7 +373,7 @@ CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
 
 bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
-    emit linkClickedExt(url,(int)type,isMainFrame);
+    emit linkClickedExt(url,static_cast<int>(type),isMainFrame);
 
     if (gSet->settings.debugNetReqLogging) {
         if (isMainFrame)
@@ -443,9 +443,6 @@ void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMes
             break;
         case QWebEnginePage::ErrorMessageLevel:
             QMessageLogger(src, lineNumber, NULL, "JavaScript").critical() << msg;
-            break;
-        default:
-            QMessageLogger(src, lineNumber, NULL, "JavaScript").debug() << msg;
             break;
     }
 }
@@ -546,8 +543,8 @@ void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     QString mime;
     sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(request->requestUrl(),mime);
 
-    connect(dr.get(),SIGNAL(finished()),&ev,SLOT(finished()));
-    connect(request,SIGNAL(destroyed(QObject*)),&ev,SLOT(objDestroyed(QObject*)));
+    connect(dr.get(),&Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
+    connect(request,&QWebEngineUrlRequestJob::destroyed,&ev,&CIOEventLoop::objDestroyed);
     QTimer::singleShot(15000,&ev,SLOT(timeout()));
 
     int ret = ev.exec();
@@ -564,7 +561,8 @@ void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 
     } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
         std::vector<char> vc = dr->getFullData();
-        QByteArray res = QByteArray(reinterpret_cast<const char*>(vc.data()), vc.size());
+        QByteArray res = QByteArray(reinterpret_cast<const char*>(vc.data()),
+                                    static_cast<int>(vc.size()));
         QIODevice *reply = new CMemFile(res);
         request->reply(mime.toLatin1(),reply);
 
@@ -635,10 +633,10 @@ void CMemFile::close()
 
 qint64 CMemFile::readData(char *buffer, qint64 maxlen)
 {
-    qint64 len = qMin(qint64(data.length()), maxlen);
+    qint64 len = qMin(static_cast<qint64>(data.length()), maxlen);
     if (len) {
-        memcpy(buffer, data.constData(), len);
-        data.remove(0, len);
+        memcpy(buffer, data.constData(), static_cast<size_t>(len));
+        data.remove(0, static_cast<int>(len));
     }
     return len;
 }
@@ -716,7 +714,7 @@ void CFaviconLoader::queryStart(bool forceCached)
 
     } else {
         QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(m_url));
-        connect(rpl,SIGNAL(finished()),this,SLOT(queryFinished()));
+        connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }
 

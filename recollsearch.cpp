@@ -35,7 +35,7 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
 
         QString fname = QString();
         QString title = QString();
-        float rel = 0.0;
+        double rel = 0.0;
 
         QUrl u = QUrl(strFromBase64(sl.at(0)));
         if (u.isValid() && u.isLocalFile())
@@ -48,7 +48,7 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
         bool ok;
         int ip = p.toInt(&ok);
         if (ok)
-            rel = (float)ip/100.0;
+            rel = static_cast<double>(ip)/100.0;
 
         emit addHitFull(fname,title,rel);
     }

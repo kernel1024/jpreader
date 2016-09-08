@@ -70,7 +70,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
     ui->buttonDir->setIcon(QIcon::fromTheme("folder-sync"));
 
-    int mv = round((70* parentWnd->height()/100)/(ui->editSearch->fontMetrics().height()));
+    int mv = (70*parentWnd->height())/(ui->editSearch->fontMetrics().height()*100);
     ui->editSearch->setMaxVisibleItems(mv);
     updateQueryHistory();
 
@@ -417,12 +417,12 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
 
     // *** Weighted sorting ***
     // calculate term weights
-    QList<float> fweights;
-    float fsumWeight = 0.0;
-    float fminWeight = 1.0;
+    QList<double> fweights;
+    double fsumWeight = 0.0;
+    double fminWeight = 1.0;
     int sumCount = 0;
     for (int i=0;i<queryTerms.count();i++) {
-        float wght = 1.0/(float)(snippets[i].count());
+        double wght = 1.0/static_cast<double>(snippets[i].count());
         if (wght < fminWeight) fminWeight = wght;
         fsumWeight += wght;
         fweights << wght;
@@ -432,7 +432,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     QList<int> iweights;
     int isumWeight = 0;
     for (int i=0;i<queryTerms.count();i++) {
-        int wght = fweights[i]/fminWeight;
+        int wght = static_cast<int>(fweights[i]/fminWeight);
         iweights << wght;
         isumWeight += wght;
     }

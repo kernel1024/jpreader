@@ -16,7 +16,7 @@ void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
 
     Baloo::Query baloo;
     baloo.setSearchString(qr);
-    baloo.setLimit(maxLimit);
+    baloo.setLimit(static_cast<uint>(maxLimit));
 
     Baloo::ResultIterator i = baloo.exec();
     while (i.next()) {

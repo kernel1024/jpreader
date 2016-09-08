@@ -59,39 +59,39 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     completer->setFilterMode(Qt::MatchContains);
     urlEdit->setCompleter(completer);
 
-    connect(backButton, SIGNAL(clicked()), msgHandler, SLOT(searchBack()));
-    connect(fwdButton, SIGNAL(clicked()), msgHandler, SLOT(searchFwd()));
-    connect(comboZoom,SIGNAL(currentIndexChanged(QString)), msgHandler, SLOT(setZoom(QString)));
-    connect(stopButton, SIGNAL(clicked()), txtBrowser, SLOT(stop()));
-    connect(reloadButton, SIGNAL(clicked()), txtBrowser, SLOT(reload()));
-    connect(searchEdit->lineEdit(), SIGNAL(returnPressed()), fwdButton, SLOT(click()));
-    connect(urlEdit, SIGNAL(returnPressed()), this, SLOT(navByUrl()));
-    connect(navButton, SIGNAL(clicked()), msgHandler, SLOT(navByClick()));
-    connect(fwdNavButton, SIGNAL(clicked()), txtBrowser, SLOT(forward()));
-    connect(backNavButton, SIGNAL(clicked()), txtBrowser, SLOT(back()));
+    connect(backButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::searchBack);
+    connect(fwdButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::searchFwd);
+    connect(stopButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::stop);
+    connect(reloadButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::reload);
+    connect(urlEdit, &QLineEdit::returnPressed, this, &CSnippetViewer::navByUrlDefault);
+    connect(navButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::navByClick);
+    connect(fwdNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::forward);
+    connect(backNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::back);
+    connect(comboZoom, &QComboBox::currentTextChanged, msgHandler, &CSnMsgHandler::setZoom);
+    connect(searchEdit->lineEdit(), &QLineEdit::returnPressed, fwdButton, &QPushButton::click);
 
-    connect(txtBrowser, SIGNAL(loadProgress(int)), transHandler, SLOT(progressLoad(int)));
-    connect(txtBrowser, SIGNAL(loadFinished(bool)), netHandler, SLOT(loadFinished(bool)));
-    connect(txtBrowser, SIGNAL(loadStarted()), netHandler, SLOT(loadStarted()));
-    connect(txtBrowser, SIGNAL(titleChanged(QString)), this, SLOT(titleChanged(QString)));
-    connect(txtBrowser, SIGNAL(urlChanged(QUrl)), this, SLOT(urlChanged(QUrl)));
-    connect(txtBrowser, SIGNAL(iconChanged(QIcon)), this, SLOT(updateTabIcon(QIcon)));
+    connect(txtBrowser, &QWebEngineView::loadProgress, transHandler, &CSnTrans::progressLoad);
+    connect(txtBrowser, &QWebEngineView::loadFinished, netHandler, &CSnNet::loadFinished);
+    connect(txtBrowser, &QWebEngineView::loadStarted, netHandler, &CSnNet::loadStarted);
+    connect(txtBrowser, &QWebEngineView::titleChanged, this, &CSnippetViewer::titleChanged);
+    connect(txtBrowser, &QWebEngineView::urlChanged, this, &CSnippetViewer::urlChanged);
+    connect(txtBrowser, &QWebEngineView::iconChanged, this, &CSnippetViewer::updateTabIcon);
 
-    connect(txtBrowser, SIGNAL(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)),
-            msgHandler, SLOT(renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus,int)));
+    connect(txtBrowser, &QWebEngineView::renderProcessTerminated,
+            msgHandler, &CSnMsgHandler::renderProcessTerminated);
 
-    connect(txtBrowser->page(), SIGNAL(authenticationRequired(QUrl,QAuthenticator*)),
-            netHandler, SLOT(authenticationRequired(QUrl,QAuthenticator*)));
-    connect(txtBrowser->page(), SIGNAL(proxyAuthenticationRequired(QUrl,QAuthenticator*,QString)),
-            netHandler, SLOT(proxyAuthenticationRequired(QUrl,QAuthenticator*,QString)));
+    connect(txtBrowser->page(), &QWebEnginePage::authenticationRequired,
+            netHandler, &CSnNet::authenticationRequired);
+    connect(txtBrowser->page(), &QWebEnginePage::proxyAuthenticationRequired,
+            netHandler, &CSnNet::proxyAuthenticationRequired);
 
-    connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barLoading, SLOT(hide()));
-    connect(msgHandler->loadingBarHideTimer, SIGNAL(timeout()), barPlaceholder, SLOT(show()));
+    connect(msgHandler->loadingBarHideTimer, &QTimer::timeout, barLoading, &QProgressBar::hide);
+    connect(msgHandler->loadingBarHideTimer, &QTimer::timeout, barPlaceholder, &QFrame::show);
 
-    connect(txtBrowser->page(), SIGNAL(linkHovered(QString)), msgHandler,
-            SLOT(linkHovered(QString)));
-    connect(txtBrowser->customPage(), SIGNAL(linkClickedExt(QUrl,int,bool)), netHandler,
-            SLOT(userNavigationRequest(QUrl,int,bool)));
+    connect(txtBrowser->page(), &QWebEnginePage::linkHovered,
+            msgHandler, &CSnMsgHandler::linkHovered);
+    connect(txtBrowser->customPage(), &CSpecWebPage::linkClickedExt,
+            netHandler, &CSnNet::userNavigationRequest);
 
     backNavButton->setIcon(QIcon::fromTheme("go-previous"));
     fwdNavButton->setIcon(QIcon::fromTheme("go-next"));
@@ -117,16 +117,18 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
     comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
-    connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
-    connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
-    connect(gSet->ui.sourceLanguage, SIGNAL(triggered(QAction*)), msgHandler, SLOT(updateSrcLang(QAction*)));
-    connect(&(gSet->settings), SIGNAL(settingsUpdated()), msgHandler, SLOT(updateTranEngine()));
+    connect(comboSrcLang, qOverload<int>(&QComboBox::currentIndexChanged),
+            msgHandler, &CSnMsgHandler::srcLang);
+    connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
+            msgHandler, &CSnMsgHandler::tranEngine);
+    connect(gSet->ui.sourceLanguage, &QActionGroup::triggered, msgHandler, &CSnMsgHandler::updateSrcLang);
+    connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
-    connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
+    connect(sc, &QShortcut::activated,searchPanel, &QWidget::show);
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
-    connect(sc,SIGNAL(activated()),searchPanel,SLOT(show()));
+    connect(sc,&QShortcut::activated,searchPanel, &QWidget::show);
 
     waitPanel->hide();
     errorPanel->hide();
@@ -146,7 +148,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         comboZoom->setCurrentIndex(comboZoom->findText(zoom,Qt::MatchExactly));
     }
 
-    int mv = round((70*parentWnd->height()/100)/(urlEdit->fontMetrics().height()));
+    int mv = (70*parentWnd->height()/(urlEdit->fontMetrics().height()*100));
     completer->setMaxVisibleItems(mv);
 
     ctxHandler->reconfigureDefaultActions();
@@ -165,7 +167,7 @@ void CSnippetViewer::updateButtonsState()
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
 }
 
-void CSnippetViewer::navByUrl()
+void CSnippetViewer::navByUrlDefault()
 {
     navByUrl(urlEdit->text());
 }

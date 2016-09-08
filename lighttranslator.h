@@ -26,7 +26,7 @@ protected:
     void closeEvent(QCloseEvent * event);
 
 signals:
-    void startTranslation();
+    void startTranslation(bool deleteAfter);
 
 public slots:
     void restoreWindow();

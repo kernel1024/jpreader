@@ -23,9 +23,6 @@
 
 using namespace std;
 
-bool syslogOpened = false;
-QMutex loggerMutex;
-
 bool runnedFromQtCreator()
 {
     return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
@@ -35,7 +32,7 @@ int getRandomTCPPort()
 {
     QTcpServer srv;
     int res = -1;
-    for (int i=20000;i<40000;i++) {
+    for (quint16 i=20000;i<40000;i++) {
         if (srv.listen(QHostAddress(QHostAddress(QHostAddress::LocalHost)),i)) {
             res = i;
             break;
@@ -48,6 +45,9 @@ int getRandomTCPPort()
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    static bool syslogOpened = false;
+    static QMutex loggerMutex;
+
     loggerMutex.lock();
 
     QString lmsg = QString();
@@ -143,7 +143,7 @@ QString detectMIME(const QByteArray &buf)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
     magic_load(myt,NULL);
-    const char* mg = magic_buffer(myt,buf.data(),buf.length());
+    const char* mg = magic_buffer(myt,buf.data(),static_cast<size_t>(buf.length()));
     if (mg==NULL) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QString("text/plain");
@@ -418,7 +418,7 @@ QString bool2str2(bool value)
 
 QString formatBytes(qint64 sz) {
     QString s;
-    float msz;
+    double msz;
     if (sz<1024.0) {
         msz=sz;
         s="b";

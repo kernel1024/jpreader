@@ -77,8 +77,9 @@ void metaString(QString& out, Dict *infoDict, const char* key,
         QString acc;
         while (i < obj.getString()->getLength()) {
             if (isUnicode) {
-                u = ((s1->getChar(i) & 0xff) << 8) |
-                    (s1->getChar(i+1) & 0xff);
+                unsigned int hi = s1->getChar(i) & 0xff << 8;
+                unsigned int lo = s1->getChar(i+1) & 0xff;
+                u = hi | lo;
                 i += 2;
             } else {
                 u = pdfDocEncoding[s1->getChar(i) & 0xff];
@@ -115,7 +116,11 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 }
 
 static void outputToString(void *stream, const char *text, int len) {
-    ((QString *)stream)->append(QString::fromUtf8(text,len));
+    if (stream==NULL) return;
+    // FIXME: QString* str = qobject_cast<QString *>(static_cast<QObject *>(stream));
+    QString* str = (QString *)(stream);
+    if (str!=NULL)
+        str->append(QString::fromUtf8(text,len));
 }
 
 QString formatPdfText(const QString& text)
@@ -284,7 +289,7 @@ bool pdfToText(const QUrl& pdf, QString& result)
     QString text;
 
     // write text
-    textOut = new TextOutputDev(&outputToString,(void*)&text,
+    textOut = new TextOutputDev(&outputToString,static_cast<void*>(&text),
                                 physLayout, fixedPitch, rawOrder);
     if (textOut->isOk()) {
         doc->displayPages(textOut, 1, lastPage, resolution, resolution, 0,
@@ -318,30 +323,32 @@ static void popplerError(void *data, ErrorCategory category, Goffset pos, char *
     if (loggedPopplerErrors>100) return;
     loggedPopplerErrors++;
 
+    int ipos = static_cast<int>(pos);
+
     switch (category) {
         case ErrorCategory::errSyntaxError:
-            QMessageLogger(NULL, pos, NULL, "Poppler").critical() << "Syntax:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "Syntax:" << msg;
             break;
         case ErrorCategory::errSyntaxWarning:
-            QMessageLogger(NULL, pos, NULL, "Poppler").warning() << "Syntax:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Syntax:" << msg;
             break;
         case ErrorCategory::errConfig:
-            QMessageLogger(NULL, pos, NULL, "Poppler").warning() << "Config:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Config:" << msg;
             break;
         case ErrorCategory::errIO:
-            QMessageLogger(NULL, pos, NULL, "Poppler").critical() << "IO:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "IO:" << msg;
             break;
         case ErrorCategory::errNotAllowed:
-            QMessageLogger(NULL, pos, NULL, "Poppler").warning() << "Permissions and DRM:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Permissions and DRM:" << msg;
             break;
         case ErrorCategory::errUnimplemented:
-            QMessageLogger(NULL, pos, NULL, "Poppler").info() << "Unimplemented:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").info() << "Unimplemented:" << msg;
             break;
         case ErrorCategory::errInternal:
-            QMessageLogger(NULL, pos, NULL, "Poppler").critical() << "Internal:" << msg;
+            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "Internal:" << msg;
             break;
-        default:
-            QMessageLogger(NULL, pos, NULL, "Poppler").info() << msg;
+        case ErrorCategory::errCommandLine:
+            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Incorrect parameters:" << msg;
             break;
     }
 }

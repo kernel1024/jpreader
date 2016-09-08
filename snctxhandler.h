@@ -28,7 +28,7 @@ public slots:
     void showInEditor();
     void showSource();
 signals:
-    void startTranslation();
+    void startTranslation(bool deleteAfter);
     void hideTooltips();
 };
 

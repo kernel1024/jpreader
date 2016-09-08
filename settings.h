@@ -48,7 +48,7 @@ public:
     int maxSearchLimit;
     int translatorEngine;
     QString atlHost;
-    int atlPort;
+    quint16 atlPort;
     bool emptyRestore;
     QString sysBrowser;
     QString sysEditor;
@@ -74,7 +74,7 @@ public:
     QString proxyHost;
     QString proxyLogin;
     QString proxyPassword;
-    int proxyPort;
+    quint16 proxyPort;
     bool proxyUse;
     QNetworkProxy::ProxyType proxyType;
     bool proxyUseTranslator;

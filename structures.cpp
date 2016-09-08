@@ -7,6 +7,13 @@ UrlHolder::UrlHolder()
     UrlHolder::uuid=QUuid::createUuid();
 }
 
+UrlHolder::UrlHolder(const UrlHolder &other)
+{
+    title=other.title;
+    url=other.url;
+    uuid=other.uuid;
+}
+
 UrlHolder::UrlHolder(QString title, QUrl url)
 {
     UrlHolder::title=title;
@@ -36,6 +43,12 @@ DirStruct::DirStruct()
 {
     DirStruct::dirName="";
     DirStruct::count=-1;
+}
+
+DirStruct::DirStruct(const DirStruct &other)
+{
+    dirName=other.dirName;
+    count=other.count;
 }
 
 DirStruct::DirStruct(QString DirName, int Count)

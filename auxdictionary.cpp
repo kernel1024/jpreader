@@ -107,7 +107,7 @@ void CAuxDictionary::updateMatchResults(bool finished)
 
     for( unsigned x = 0; x < results.size(); ++x )
     {
-        QListWidgetItem * i = ui->listWords->item( x );
+        QListWidgetItem * i = ui->listWords->item( static_cast<int>(x) );
 
         if ( !i )
         {
@@ -139,7 +139,7 @@ void CAuxDictionary::updateMatchResults(bool finished)
             i->setTextAlignment(Qt::AlignLeft);
     }
 
-    while ( ui->listWords->count() > (int) results.size() )
+    while ( ui->listWords->count() > static_cast<int>(results.size()) )
     {
         // Chop off any extra items that were there
         QListWidgetItem * i = ui->listWords->takeItem( ui->listWords->count() - 1 );

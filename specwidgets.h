@@ -131,7 +131,7 @@ protected:
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
                                   int lineNumber, const QString &sourceID);
 signals:
-    void linkClickedExt(const QUrl& url, const int type, const bool isMainFrame);
+    void linkClickedExt(const QUrl& url, int type, bool isMainFrame);
 };
 
 class CSpecWebView : public QWebEngineView {

@@ -17,12 +17,13 @@
 class CHTMLNode {
 public:
     QString text, tagName, closingText;
-    bool isTag, isComment;
     QList<CHTMLNode> children;
     QHash<QString,QString> attributes;
     QStringList attributesOrder;
+    bool isTag, isComment;
     CHTMLNode();
     ~CHTMLNode();
+    CHTMLNode(const CHTMLNode& other);
     CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
     CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other);

@@ -45,7 +45,7 @@ void CSnMsgHandler::setZoom(QString z)
     bool okconv;
     int i = z.remove(QRegExp("[^0-9]")).toInt(&okconv);
     if (okconv)
-        zoomFactor = ((double)i)/100;
+        zoomFactor = static_cast<double>(i)/100.0;
     updateZoomFactor();
 }
 
@@ -123,7 +123,7 @@ void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTermina
                                             int exitCode)
 {
     if (terminationStatus!=QWebEnginePage::NormalTerminationStatus) {
-        QString status;
+        QString status = tr("Unknown");
         status.clear();
         switch (terminationStatus) {
             case QWebEnginePage::NormalTerminationStatus:
@@ -137,9 +137,6 @@ void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTermina
                 break;
             case QWebEnginePage::KilledTerminationStatus:
                 status = tr("Killed");
-                break;
-            default:
-                status = tr("Unknown");
                 break;
         }
         status = tr("Render process exited abnormally.\nExit status: %1, code: %2")

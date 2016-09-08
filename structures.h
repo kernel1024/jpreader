@@ -45,6 +45,7 @@ public:
     QUrl url;
     QUuid uuid;
     UrlHolder();
+    UrlHolder(const UrlHolder& other);
     UrlHolder(QString title, QUrl url);
     UrlHolder &operator=(const UrlHolder& other);
     bool operator==(const UrlHolder &s) const;
@@ -56,6 +57,7 @@ Q_DECLARE_METATYPE(UrlHolder)
 class DirStruct {
 public:
     DirStruct();
+    DirStruct(const DirStruct& other);
     DirStruct(QString DirName, int Count);
     DirStruct &operator=(const DirStruct& other);
     QString dirName;

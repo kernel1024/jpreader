@@ -2,7 +2,7 @@
 #include <QUrl>
 #include "atlastranslator.h"
 
-CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, const QString &SrcLang) :
+CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, const QString &SrcLang) :
     CAbstractTranslator(parent, SrcLang)
 {
     atlHost=host;
@@ -19,7 +19,7 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, int port, cons
     QList<QSslError> expectedErrors;
     foreach (const QSslCertificate& cert, gSet->atlCerts.keys())
         foreach (const int errCode, gSet->atlCerts.value(cert))
-            expectedErrors << QSslError((QSslError::SslError)errCode,cert);
+            expectedErrors << QSslError(static_cast<QSslError::SslError>(errCode),cert);
     sock.ignoreSslErrors(expectedErrors);
 
     connect(&sock,SIGNAL(sslErrors(QList<QSslError>)),this,SLOT(sslError(QList<QSslError>)));
@@ -194,11 +194,11 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
 
     foreach (const QSslError& err, errors) {
         if (gSet->atlCerts.contains(err.certificate()) &&
-                gSet->atlCerts.value(err.certificate()).contains((int)err.error())) continue;
+                gSet->atlCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
 
         qCritical() << "ATLAS SSL error: " + err.errorString();
         errStrHash[err.certificate()].append(err.errorString());
-        errIntHash[err.certificate()].append((int)err.error());
+        errIntHash[err.certificate()].append(static_cast<int>(err.error()));
     }
 
     foreach (const QSslCertificate& key, errStrHash.keys()) {
