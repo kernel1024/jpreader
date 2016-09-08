@@ -1772,6 +1772,13 @@ p, li { white-space: pre-wrap; }
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="checkDontUseNativeFileDialogs">
+              <property name="text">
+               <string>Dont use native file dialogs</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -1932,6 +1939,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkDumpHtml</tabstop>
   <tabstop>checkCreateCoredumps</tabstop>
   <tabstop>checkTabCloseBtn</tabstop>
+  <tabstop>checkDontUseNativeFileDialogs</tabstop>
   <tabstop>listTabs</tabstop>
  </tabstops>
  <resources/>

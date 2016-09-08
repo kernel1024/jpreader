@@ -290,14 +290,20 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
-QString getOpenFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
+QString getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
-    return QFileDialog::getOpenFileName(parent,caption,dir,filter,selectedFilter,options);
+    QFileDialog::Options opts = 0;
+    if (gSet->settings.dontUseNativeFileDialog)
+        opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
+    return QFileDialog::getOpenFileName(parent,caption,dir,filter,selectedFilter,opts);
 }
 
-QStringList getOpenFileNamesD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options )
+QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
-    return QFileDialog::getOpenFileNames(parent,caption,dir,filter,selectedFilter,options);
+    QFileDialog::Options opts = 0;
+    if (gSet->settings.dontUseNativeFileDialog)
+        opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
+    return QFileDialog::getOpenFileNames(parent,caption,dir,filter,selectedFilter,opts);
 }
 
 QStringList getSuffixesFromFilter(const QString& filter)
@@ -321,11 +327,15 @@ QStringList getSuffixesFromFilter(const QString& filter)
     return res;
 }
 
-QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QFileDialog::Options options, QString preselectFileName )
+QString getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QString preselectFileName )
 {
+    QFileDialog::Options opts = 0;
+    if (gSet->settings.dontUseNativeFileDialog)
+        opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
+
     QFileDialog d(parent,caption,dir,filter);
     d.setFileMode(QFileDialog::AnyFile);
-    d.setOptions(options);
+    d.setOptions(opts);
     d.setAcceptMode(QFileDialog::AcceptSave);
 
     QStringList sl;
@@ -355,7 +365,11 @@ QString getSaveFileNameD ( QWidget * parent, const QString & caption, const QStr
 
 QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
 {
-    return QFileDialog::getExistingDirectory(parent,caption,dir,options);
+    QFileDialog::Options opts = options;
+    if (gSet->settings.dontUseNativeFileDialog)
+        opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
+
+    return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
 }
 
 QList<QStringList> encodingsByScript()

@@ -84,6 +84,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     jsLogConsole=ui->checkJSLogConsole;
     maxRecent=ui->spinMaxRecent;
     maxBookmarksCnt=ui->spinMaxBookmarksCnt;
+    dontUseNativeFileDialogs=ui->checkDontUseNativeFileDialogs;
 
     cookiesList.clear();
 

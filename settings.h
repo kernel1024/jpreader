@@ -23,6 +23,7 @@ public:
     QList<QColor> snippetColors;
 
     bool jsLogConsole;
+    bool dontUseNativeFileDialog;
     QStringList dictPaths;
     QString dictIndexDir;
     QString defaultSearchEngine;

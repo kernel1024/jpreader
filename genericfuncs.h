@@ -36,16 +36,15 @@ QString convertPatternToRegExp(const QString &wildcardPattern);
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
                            const QString & dir = QString(), const QString & filter = QString(),
-                           QString * selectedFilter = 0, QFileDialog::Options options = 0);
+                           QString * selectedFilter = 0);
 
 QStringList getOpenFileNamesD ( QWidget * parent = 0, const QString & caption = QString(),
                                const QString & dir = QString(), const QString & filter = QString(),
-                               QString * selectedFilter = 0, QFileDialog::Options options = 0);
+                               QString * selectedFilter = 0);
 
 QString getSaveFileNameD (QWidget * parent = 0, const QString & caption = QString(),
                           const QString & dir = QString(), const QString & filter = QString(),
-                          QString * selectedFilter = 0, QFileDialog::Options options = 0,
-                          QString preselectFileName = QString());
+                          QString * selectedFilter = 0, QString preselectFileName = QString());
 
 QString	getExistingDirectoryD ( QWidget * parent = 0, const QString & caption = QString(),
                                 const QString & dir = QString(),

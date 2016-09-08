@@ -81,6 +81,7 @@ public:
     QCheckBox* jsLogConsole;
     QSpinBox* maxRecent;
     QSpinBox* maxBookmarksCnt;
+    QCheckBox* dontUseNativeFileDialogs;
 
     QStringList loadedDicts;
 

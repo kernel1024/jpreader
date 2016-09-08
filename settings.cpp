@@ -30,6 +30,7 @@ CSettings::CSettings(QObject *parent)
     createCoredumps=false;
     ignoreSSLErrors=false;
     jsLogConsole=true;
+    dontUseNativeFileDialog=false;
     forcedCharset=QString(); // autodetect
     overrideUserAgent=false;
     overrideStdFonts=false;
@@ -168,6 +169,7 @@ void CSettings::writeSettings()
                       testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
     settings.setValue("diskCacheSize",gSet->webProfile->httpCacheMaximumSize());
     settings.setValue("jsLogConsole",jsLogConsole);
+    settings.setValue("dontUseNativeFileDialog",dontUseNativeFileDialog);
     settings.setValue("defaultSearchEngine",defaultSearchEngine);
     settings.setValue("settingsDlgWidth",settingsDlgWidth);
     settings.setValue("settingsDlgHeight",settingsDlgHeight);
@@ -280,6 +282,7 @@ void CSettings::readSettings(QObject *control)
     bingKey = settings.value("bingKey",QString()).toString();
     yandexKey = settings.value("yandexKey",QString()).toString();
     jsLogConsole = settings.value("jsLogConsole",true).toBool();
+    dontUseNativeFileDialog = settings.value("dontUseNativeFileDialog",false).toBool();
     createCoredumps = settings.value("createCoredumps",false).toBool();
     ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
     g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
@@ -425,6 +428,7 @@ void CSettings::settingsDlg()
     dlg->loadedDicts.clear();
     dlg->loadedDicts.append(gSet->dictManager->getLoadedDictionaries());
 
+    dlg->dontUseNativeFileDialogs->setChecked(dontUseNativeFileDialog);
     dlg->cacheSize->setValue(gSet->webProfile->httpCacheMaximumSize()/(1024*1024));
     dlg->ignoreSSLErrors->setChecked(ignoreSSLErrors);
     dlg->visualShowFavicons->setChecked(gSet->webProfile->settings()->
@@ -565,6 +569,7 @@ void CSettings::settingsDlg()
 
         gSet->ctxSearchEngines = dlg->getSearchEngines();
 
+        dontUseNativeFileDialog = dlg->dontUseNativeFileDialogs->isChecked();
         gSet->webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);
         ignoreSSLErrors = dlg->ignoreSSLErrors->isChecked();
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
