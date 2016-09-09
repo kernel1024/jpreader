@@ -175,7 +175,12 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     QxtToolTip::show(p,t,NULL);
 }
 
-CMainWindow* CGlobalUI::addMainWindow(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
+CMainWindow* CGlobalUI::addMainWindow()
+{
+     return addMainWindowEx(false, true);
+}
+
+CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
 {
     if (gSet==NULL) return NULL;
 

@@ -40,12 +40,12 @@ QHash<QPair<xcb_keycode_t, uint16_t>, QxtGlobalShortcut*> QxtGlobalShortcut::sho
     Example usage:
 
     QxtGlobalShortcut* shortcut = new QxtGlobalShortcut(window);
-    connect(shortcut, SIGNAL(activated()), window, SLOT(toggleVisibility()));
+    connect(shortcut, &QxtGlobalShortcut::activated, window, &QWidget::toggleVisibility);
     shortcut->setShortcut(QKeySequence("Ctrl+Shift+F12"));
 */
 
 QxtGlobalShortcut::QxtGlobalShortcut(QObject* parent)
-        : QObject(parent), m_enabled(false), key(Qt::Key(0)), mods(Qt::NoModifier)
+        : QObject(parent), key(Qt::Key(0)), mods(Qt::NoModifier), m_enabled(false)
 {
     if (ref == 0) {
         QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
@@ -54,7 +54,7 @@ QxtGlobalShortcut::QxtGlobalShortcut(QObject* parent)
 }
 
 QxtGlobalShortcut::QxtGlobalShortcut(const QKeySequence& shortcut, QObject* parent)
-        : QObject(parent), m_enabled(true), key(Qt::Key(0)), mods(Qt::NoModifier)
+        : QObject(parent), key(Qt::Key(0)), mods(Qt::NoModifier), m_enabled(true)
 {
     if (ref == 0) {
         QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
@@ -87,7 +87,7 @@ bool QxtGlobalShortcut::setShortcut(const QKeySequence& shortcut)
 
     key = Qt::Key(0);
     if (!shortcut.isEmpty())
-        key = Qt::Key((shortcut[0] ^ allMods) & shortcut[0]);
+        key = static_cast<Qt::Key>((shortcut[0] ^ allMods) & shortcut[0]);
 
     mods = Qt::KeyboardModifiers(0);
     if (!shortcut.isEmpty())
@@ -99,7 +99,8 @@ bool QxtGlobalShortcut::setShortcut(const QKeySequence& shortcut)
     if (res)
         shortcuts.insert(qMakePair(nativeKey, nativeMods), this);
     else
-        qWarning() << "QxtGlobalShortcut failed to register:" << QKeySequence(key + mods).toString();
+        qWarning() << "QxtGlobalShortcut failed to register:" <<
+                      QKeySequence(static_cast<int>(key + mods)).toString();
     return res;
 }
 
@@ -114,7 +115,8 @@ bool QxtGlobalShortcut::unsetShortcut()
         if (res)
             shortcuts.remove(qMakePair(nativeKey, nativeMods));
         else
-            qWarning() << "QxtGlobalShortcut failed to unregister:" << QKeySequence(key + mods).toString();
+            qWarning() << "QxtGlobalShortcut failed to unregister:" <<
+                          QKeySequence(static_cast<int>(key + mods)).toString();
     }
     key = Qt::Key(0);
     mods = Qt::KeyboardModifiers(0);
@@ -130,7 +132,7 @@ void QxtGlobalShortcut::activateShortcut(xcb_keycode_t nativeKey, uint16_t nativ
 
 QKeySequence QxtGlobalShortcut::shortcut() const
 {
-    return QKeySequence(key | mods);
+    return QKeySequence(static_cast<int>(key | mods));
 }
 
 bool QxtGlobalShortcut::isEnabled() const

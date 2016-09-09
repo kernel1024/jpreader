@@ -117,10 +117,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
     comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
-    connect(comboSrcLang, qOverload<int>(&QComboBox::currentIndexChanged),
-            msgHandler, &CSnMsgHandler::srcLang);
-    connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
-            msgHandler, &CSnMsgHandler::tranEngine);
+    connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
+    connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
     connect(gSet->ui.sourceLanguage, &QActionGroup::triggered, msgHandler, &CSnMsgHandler::updateSrcLang);
     connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
 

@@ -45,14 +45,14 @@ private:
     QMenu* tabsMenu;
     QMenu* recentMenu;
     CSpecTabBar* tabHelper;
-    bool helperVisible;
     int savedHelperIdx;
     int savedHelperWidth;
-    bool fullScreen;
-    bool savedMaximized;
     int savedSplitterWidth;
     QPoint savedPos;
     QSize savedSize;
+    bool fullScreen;
+    bool savedMaximized;
+    bool helperVisible;
 
     void updateHelperList();
 
@@ -60,7 +60,8 @@ public slots:
 	void helpAbout();
 
 	void openBookmark();
-    void openAuxFile(const QString &filename = QString());
+    void openAuxFiles(const QStringList &filenames);
+    void openAuxFileWithDialog();
     void openAuxFileInDir();
     void openEmptyBrowser();
     void openRecycled();

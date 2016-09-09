@@ -21,28 +21,14 @@ class QBResult
 {
 public:
     int sortMode;
-    bool presented;
     QStrHash stats;
     QList<QStrHash> snippets;
-    QBResult() { presented=false; stats.clear(); snippets.clear(); sortMode = -2; }
-    QBResult(QStrHash stats, QList<QStrHash> snippets) {
-        QBResult::presented = true;
-        QBResult::sortMode = -2;
-        QBResult::stats=stats;
-        foreach (QStrHash h, snippets) {
-            QBResult::snippets.append(h);
-        }
-    }
-    inline QBResult& operator=(const QBResult& other) {
-        presented = other.presented;
-        stats=other.stats;
-        sortMode=other.sortMode;
-        snippets.clear();
-        foreach (QStrHash h, other.snippets) {
-            snippets.append(h);
-        }
-        return *this;
-    }
+    bool presented;
+    bool dummy[3];
+    QBResult();
+    QBResult(const QBResult& other);
+    QBResult(QStrHash stats, QList<QStrHash> snippets);
+    QBResult& operator=(const QBResult& other);
 };
 
 Q_DECLARE_METATYPE(QBResult)
@@ -60,11 +46,11 @@ private:
 #ifdef WITH_THREADED_SEARCH
     CAbstractThreadedSearch *engine;
 #endif
-    bool working;
     QBResult result;
     QString query;
     QTime searchTimer;
     int indexerSerivce;
+    bool working;
     void addHitFS(const QFileInfo &hit, const QString &title=QString(), double rel=-1.0);
     void processFile(const QString &filename, double &hitRate, QString &title);
     QString extractFileTitle(const QString& fc);

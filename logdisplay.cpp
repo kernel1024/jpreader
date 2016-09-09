@@ -18,8 +18,8 @@ CLogDisplay::CLogDisplay() :
 
     ui->logView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(ui->logView,SIGNAL(customContextMenuRequested(QPoint)),
-            this,SLOT(logCtxMenu(QPoint)));
+    connect(ui->logView, &QTextEdit::customContextMenuRequested,
+            this, &CLogDisplay::logCtxMenu);
 
     updateMessages();
 }

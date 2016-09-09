@@ -26,8 +26,7 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, 
     connect(&sock,SIGNAL(error(QAbstractSocket::SocketError)),
             this,SLOT(socketError(QAbstractSocket::SocketError)));
 
-    connect(this,SIGNAL(sslCertErrors(QSslCertificate,QStringList,QIntList)),
-            gSet,SLOT(atlSSLCertErrors(QSslCertificate,QStringList,QIntList)));
+    connect(this,&CAtlasTranslator::sslCertErrors,gSet,&CGlobalControl::atlSSLCertErrors);
 }
 
 CAtlasTranslator::~CAtlasTranslator()

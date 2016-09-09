@@ -10,5 +10,4 @@ HEADERS += \
 SOURCES += \
     $$PWD/qxttooltip.cpp \
     $$PWD/qxtglobalshortcut.cpp \
-    $$PWD/qxtglobalshortcut_x11.cpp \
-    $$PWD/qxtglobal.cpp
+    $$PWD/qxtglobalshortcut_x11.cpp

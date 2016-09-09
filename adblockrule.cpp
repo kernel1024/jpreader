@@ -18,6 +18,12 @@ CAdBlockRule::CAdBlockRule()
     setFilter(QString());
 }
 
+CAdBlockRule::CAdBlockRule(const CAdBlockRule &other)
+{
+    m_listID = other.m_listID;
+    setFilter(other.filter());
+}
+
 CAdBlockRule::CAdBlockRule(const QString &filter, const QString &listID)
 {
     m_listID = listID;

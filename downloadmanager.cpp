@@ -27,10 +27,11 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
     ui->tableDownloads->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,model));
 
-    connect(ui->tableDownloads, SIGNAL(customContextMenuRequested(QPoint)),
-            this, SLOT(contextMenu(QPoint)));
+    connect(ui->tableDownloads, &QTableView::customContextMenuRequested,
+            this, &CDownloadManager::contextMenu);
 
-    connect(ui->buttonClearFinished, SIGNAL(clicked()), model, SLOT(cleanFinishedDownloads()));
+    connect(ui->buttonClearFinished, &QPushButton::clicked,
+            model, &CDownloadsModel::cleanFinishedDownloads);
 }
 
 CDownloadManager::~CDownloadManager()
@@ -57,9 +58,10 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     }
     gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
-    connect(item, SIGNAL(finished()), model, SLOT(downloadFinished()));
-    connect(item, SIGNAL(downloadProgress(qint64,qint64)),
-            model, SLOT(downloadProgress(qint64,qint64)));
+    connect(item, &QWebEngineDownloadItem::finished,
+            model, &CDownloadsModel::downloadFinished);
+    connect(item, &QWebEngineDownloadItem::downloadProgress,
+            model, &CDownloadsModel::downloadProgress);
     connect(item, &QWebEngineDownloadItem::stateChanged,
             model, &CDownloadsModel::downloadStateChanged);
 
@@ -400,6 +402,19 @@ CDownloadItem::CDownloadItem()
     ptr = NULL;
     autoDelete = false;
     m_empty = true;
+}
+
+CDownloadItem::CDownloadItem(const CDownloadItem &other)
+{
+    id = other.id;
+    fileName = other.fileName;
+    mimeType = other.mimeType;
+    state = other.state;
+    received = other.received;
+    total = other.total;
+    ptr = other.ptr;
+    autoDelete = other.autoDelete;
+    m_empty = false;
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)

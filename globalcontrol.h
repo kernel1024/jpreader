@@ -80,11 +80,10 @@ public:
 
     QTimer tabsListTimer;
 
-    bool blockTabCloseActive;
-
     QSslCertificateHash atlCerts;
 
     int inspectorPort;
+    bool blockTabCloseActive;
 
     // History lists append
     void appendRecycled(QString title, QUrl url);
@@ -134,10 +133,10 @@ public:
     QUrl getInspectorUrl() const;
 
 private:
-    bool cleaningState;
-    bool atlCertErrorInteractive;
     QHash<QString, CUserScript> userScripts;
     QMutex userScriptsMutex;
+    bool cleaningState;
+    bool atlCertErrorInteractive;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
@@ -151,10 +150,12 @@ public slots:
     void cleanupAndExit();
     void blockTabClose();
     void ipcMessageReceived();
-    void showDictionaryWindow(const QString& text = QString());
+    void showDictionaryWindow();
+    void showDictionaryWindowEx(const QString& text);
     void windowDestroyed(CMainWindow* obj);
     void focusChanged(QWidget* old, QWidget* now);
-    void updateProxy(bool useProxy, bool forceMenuUpdate = false);
+    void updateProxy(bool useProxy);
+    void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
     void clearCaches();
 
     // Cookies sync

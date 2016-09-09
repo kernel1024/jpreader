@@ -25,8 +25,8 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm) :
         ui->linePassword->setText(pass);
     }
 
-    connect(ui->OKBtn,SIGNAL(clicked()),this,SLOT(acceptPass()));
-    connect(ui->CancelBtn,SIGNAL(clicked()),this,SLOT(reject()));
+    connect(ui->OKBtn,&QPushButton::clicked,this,&CAuthDlg::acceptPass);
+    connect(ui->CancelBtn,&QPushButton::clicked,this,&CAuthDlg::reject);
 }
 
 CAuthDlg::~CAuthDlg()

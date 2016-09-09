@@ -61,12 +61,13 @@ signals:
 
 private:
 
-    bool m_enabled;
     Qt::Key key;
     Qt::KeyboardModifiers mods;
+    bool m_enabled;
 
     static bool error;
     static int ref;
+
     virtual bool nativeEventFilter(const QByteArray & eventType, void * message, long * result);
 
     static void activateShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);

@@ -22,6 +22,7 @@ class CAdBlockRule
 
 public:
     CAdBlockRule();
+    CAdBlockRule(const CAdBlockRule& other);
     CAdBlockRule(const QString &filter, const QString &listID);
     CAdBlockRule &operator=(const CAdBlockRule& other);
     bool operator==(const CAdBlockRule &s) const;
@@ -51,12 +52,14 @@ private:
 
     QString m_listID;
 
-    bool m_cssRule;
-    bool m_exception;
-    bool m_enabled;
     QRegExp m_regExp;
     QString m_plainRule;
     QStringList m_options;
+
+    bool m_cssRule;
+    bool m_exception;
+    bool m_enabled;
+    bool m_dummy;
 };
 
 typedef QList<CAdBlockRule> CAdBlockList;

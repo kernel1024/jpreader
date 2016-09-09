@@ -36,6 +36,7 @@ public:
     };
 
     CUserScript();
+    CUserScript(const CUserScript& other);
     CUserScript(const QString &name, const QString &source = QString());
     CUserScript &operator=(const CUserScript& other);
 
@@ -70,6 +71,7 @@ private:
     QStringList m_matchRules;
     InjectionTime m_injectionTime;
     bool m_shouldRunOnSubFrames;
+    bool m_dummy[3];
 
 };
 

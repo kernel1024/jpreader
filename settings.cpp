@@ -78,7 +78,7 @@ CSettings::CSettings(QObject *parent)
 #endif
 
     settingsSaveTimer.setInterval(60000);
-    connect(&settingsSaveTimer,SIGNAL(timeout()),this,SLOT(writeSettings()));
+    connect(&settingsSaveTimer, &QTimer::timeout, this, &CSettings::writeSettings);
     settingsSaveTimer.start();
 }
 
@@ -308,7 +308,7 @@ void CSettings::readSettings(QObject *control)
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
     g->updateAllBookmarks();
-    g->updateProxy(proxyUse,true);
+    g->updateProxyWithMenuUpdate(proxyUse,true);
 }
 
 void CSettings::settingsDlg()
@@ -591,7 +591,7 @@ void CSettings::settingsDlg()
             default: proxyType = QNetworkProxy::HttpCachingProxy; break;
         }
 
-        gSet->updateProxy(proxyUse,true);
+        gSet->updateProxyWithMenuUpdate(proxyUse,true);
         emit settingsUpdated();
 
         settingsDlgWidth=dlg->width();
@@ -635,30 +635,42 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     }
 }
 
-void CSettings::writeTabsList(bool clearList)
+QList<QUrl> CSettings::getTabsList() const
 {
-    if (gSet==NULL) return;
+    QList<QUrl> res;
+    if (gSet==NULL) return res;
 
-    QList<QUrl> urls;
-    urls.clear();
-    if (!clearList) {
-        for (int i=0;i<gSet->mainWindows.count();i++) {
-            for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
-                CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
-                if (sn==NULL) continue;
-                QUrl url = sn->getUrl();
-                if (url.isValid() && !url.isEmpty())
-                    urls << url;
-            }
+    for (int i=0;i<gSet->mainWindows.count();i++) {
+        for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
+            CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
+            if (sn==NULL) continue;
+            QUrl url = sn->getUrl();
+            if (url.isValid() && !url.isEmpty())
+                res << url;
         }
-        if (urls.isEmpty()) return;
     }
 
+    return res;
+}
+
+void CSettings::writeTabsListPrivate(const QList<QUrl> tabList)
+{
     QSettings tabs("kernel1024", "jpreader-tabs");
     tabs.beginGroup("OpenedTabs");
     tabs.remove("");
-    tabs.setValue("tabsCnt", urls.count());
-    for (int i=0;i<urls.count();i++)
-        tabs.setValue(QString("tab_%1").arg(i),urls.at(i));
+    tabs.setValue("tabsCnt", tabList.count());
+    for (int i=0;i<tabList.count();i++)
+        tabs.setValue(QString("tab_%1").arg(i),tabList.at(i));
     tabs.endGroup();
+}
+
+void CSettings::clearTabsList()
+{
+    QList<QUrl> tabs;
+    writeTabsListPrivate(tabs);
+}
+
+void CSettings::writeTabsList()
+{
+    writeTabsListPrivate(getTabsList());
 }

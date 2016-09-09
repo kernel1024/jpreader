@@ -34,8 +34,8 @@ bool CBingTranslator::waitForReply(QNetworkReply *reply)
     QEventLoop eventLoop;
     QTimer *timer = new QTimer(this);
 
-    connect(reply,SIGNAL(finished()), &eventLoop, SLOT(quit()));
-    connect(timer, SIGNAL(timeout()), &eventLoop, SLOT(quit()));
+    connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+    connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
     timer->setSingleShot(true);
     timer->start(30000);
 

@@ -36,26 +36,20 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     wordHistoryModel = new QStringListModel();
     ui->editWord->setCompleter(new QCompleter(wordHistoryModel));
 
-    connect(ui->editWord, SIGNAL(textChanged(QString const &)),
-            this, SLOT(translateInputChanged(QString const &)));
+    connect(ui->editWord, &QLineEdit::textChanged, this, &CAuxDictionary::translateInputChanged);
+    connect(ui->editWord, &QLineEdit::returnPressed, this, &CAuxDictionary::translateInputFinished);
 
-    connect(ui->editWord, SIGNAL(returnPressed()),
-            this, SLOT(translateInputFinished()));
+    connect(ui->listWords, &QListWidget::itemSelectionChanged,
+            this, &CAuxDictionary::wordListSelectionChanged);
 
-    connect(ui->listWords, SIGNAL(itemSelectionChanged()),
-            this, SLOT(wordListSelectionChanged()));
+    connect(wordFinder, &WordFinder::updated, this, &CAuxDictionary::prefixMatchUpdated);
+    connect(wordFinder, &WordFinder::finished, this, &CAuxDictionary::prefixMatchFinished);
 
-    connect(wordFinder, SIGNAL(updated()),
-            this, SLOT(prefixMatchUpdated()));
-    connect(wordFinder, SIGNAL(finished()),
-            this, SLOT(prefixMatchFinished()));
-
-    connect( viewArticles,SIGNAL(loadFinished(bool)),this,SLOT(articleLoadFinished(bool)));
+    connect( viewArticles, &QWebEngineView::loadFinished, this, &CAuxDictionary::articleLoadFinished);
 
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
-    connect(keyFilter, SIGNAL(keyPressed(int)),
-            this, SLOT(editKeyPressed(int)));
+    connect(keyFilter, &CAuxDictKeyFilter::keyPressed, this, &CAuxDictionary::editKeyPressed);
 
     wordFinder->clear();
 }

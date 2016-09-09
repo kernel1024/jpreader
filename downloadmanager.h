@@ -19,6 +19,7 @@ class CDownloadItem
 private:
     bool m_empty;
     bool autoDelete;
+    bool m_dummy[2];
 public:
     quint32 id;
     QString fileName, mimeType;
@@ -27,6 +28,7 @@ public:
     QWebEngineDownloadItem* ptr;
 
     CDownloadItem();
+    CDownloadItem(const CDownloadItem& other);
     CDownloadItem(quint32 itemId);
     CDownloadItem(QWebEngineDownloadItem* item);
     CDownloadItem &operator=(const CDownloadItem& other);

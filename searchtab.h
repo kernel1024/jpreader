@@ -52,7 +52,7 @@ signals:
 
 public slots:
     void doNewSearch();
-    void applySnippet(const QModelIndex& index);
+    void applySnippetIdx(const QModelIndex& index);
     void showSnippet();
     void execSnippet(const QModelIndex& index);
     void selectDir();

@@ -115,12 +115,11 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     obj.free();
 }
 
-static void outputToString(void *stream, const char *text, int len) {
+static void outputToString(void *stream, const char *text, int len)
+{
     if (stream==NULL) return;
-    // FIXME: QString* str = qobject_cast<QString *>(static_cast<QObject *>(stream));
-    QString* str = (QString *)(stream);
-    if (str!=NULL)
-        str->append(QString::fromUtf8(text,len));
+    QString* str = reinterpret_cast<QString *>(stream);
+    str->append(QString::fromUtf8(text,len));
 }
 
 QString formatPdfText(const QString& text)

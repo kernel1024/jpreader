@@ -144,7 +144,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         ac = new QAction(QIcon::fromTheme("accessories-dictionary"),tr("Local dictionary"),NULL);
         connect(ac, &QAction::triggered, [sText](){
-            gSet->showDictionaryWindow(sText);
+            gSet->showDictionaryWindowEx(sText);
         });
         cm->addAction(ac);
 

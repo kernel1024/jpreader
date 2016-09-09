@@ -291,7 +291,7 @@ void CSpecTabContainer::detachTab()
  *  Can caught failure with Qt5 openGL backend...
  *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
 
-    CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
+    CMainWindow* mwnd = gSet->ui.addMainWindowEx(false,false);
     tabWidget->removeTab(tabWidget->indexOf(this));
     parentWnd = mwnd;
     setParent(mwnd);

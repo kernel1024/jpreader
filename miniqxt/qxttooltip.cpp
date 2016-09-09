@@ -134,65 +134,63 @@ void QxtToolTipPrivate::paintEvent(QPaintEvent* event)
 
 bool QxtToolTipPrivate::eventFilter(QObject* object, QEvent* event)
 {
+    QKeyEvent* keyEvent;
+    int key;
+    Qt::KeyboardModifiers mods;
+    QPoint pos;
+    QWidget* widget;
+    QHelpEvent* helpEvent;
+    QRect area;
+
     switch (event->type())
     {
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-    {
-        // accept only modifiers
-        const QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        const int key = keyEvent->key();
-        const Qt::KeyboardModifiers mods = keyEvent->modifiers();
-        if ((mods & Qt::KeyboardModifierMask) ||
-                (key == Qt::Key_Shift || key == Qt::Key_Control ||
-                 key == Qt::Key_Alt || key == Qt::Key_Meta))
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+            // accept only modifiers
+            keyEvent = static_cast<QKeyEvent*>(event);
+            key = keyEvent->key();
+            mods = keyEvent->modifiers();
+            if ((mods & Qt::KeyboardModifierMask) ||
+                    (key == Qt::Key_Shift || key == Qt::Key_Control ||
+                     key == Qt::Key_Alt || key == Qt::Key_Meta))
+                break;
+            hideLater();
             break;
-    }
-    case QEvent::Leave:
-    {
+        case QEvent::Leave:
             if (!ignoreEnterEvent)
                 hideLater();
             break;
-    }
-    case QEvent::WindowActivate:
-    case QEvent::WindowDeactivate:
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonRelease:
-    case QEvent::MouseButtonDblClick:
-    case QEvent::FocusIn:
-    case QEvent::FocusOut:
-    case QEvent::Wheel:
-        hideLater();
-        break;
-
-    case QEvent::MouseMove:
-    {
-        const QPoint pos = static_cast<QMouseEvent*>(event)->pos();
-        if (!currentRect.isNull() && !currentRect.contains(pos))
-        {
+        case QEvent::WindowActivate:
+        case QEvent::WindowDeactivate:
+        case QEvent::MouseButtonPress:
+        case QEvent::MouseButtonRelease:
+        case QEvent::MouseButtonDblClick:
+        case QEvent::FocusIn:
+        case QEvent::FocusOut:
+        case QEvent::Wheel:
             hideLater();
-        }
-        break;
-    }
-
-    case QEvent::ToolTip:
-    {
-        // eat appropriate tooltip events
-        QWidget* widget = static_cast<QWidget*>(object);
-        if (tooltips.contains(widget))
-        {
-            QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
-            const QRect area = tooltips.value(widget).second;
-            if (area.isNull() || area.contains(helpEvent->pos()))
+            break;
+        case QEvent::MouseMove:
+            pos = static_cast<QMouseEvent*>(event)->pos();
+            if (!currentRect.isNull() && !currentRect.contains(pos))
+                hideLater();
+            break;
+        case QEvent::ToolTip:
+            // eat appropriate tooltip events
+            widget = qobject_cast<QWidget*>(object);
+            if (widget!=NULL && tooltips.contains(widget))
             {
-                show(helpEvent->globalPos(), tooltips.value(widget).first, widget, area);
-                return true;
+                helpEvent = static_cast<QHelpEvent*>(event);
+                area = tooltips.value(widget).second;
+                if (area.isNull() || area.contains(helpEvent->pos()))
+                {
+                    show(helpEvent->globalPos(), tooltips.value(widget).first, widget, area);
+                    return true;
+                }
             }
-        }
-    }
-
-    default:
-        break;
+            break;
+        default:
+            break;
     }
     return false;
 }
@@ -236,62 +234,21 @@ QPoint QxtToolTipPrivate::calculatePos(int scr, const QPoint& eventPos) const
     return p;
 }
 
-/*!
-    \class QxtToolTip
-    \inmodule QxtWidgets
-    \brief The QxtToolTip class provides means for showing any arbitrary widget as a tooltip.
-
-    QxtToolTip provides means for showing any arbitrary widget as a tooltip.
-
-    \bold {Note:} The rich text support of QToolTip already makes it possible to
-    show heavily customized tooltips with lists, tables, embedded images
-    and such. However, for example dynamically created images like
-    thumbnails cause problems. Basically the only way is to dump the
-    thumbnail to a temporary file to be able to embed it into HTML. This
-    is where QxtToolTip steps in. A generated thumbnail may simply be set
-    on a QLabel which is then shown as a tooltip. Yet another use case
-    is a tooltip with dynamically changing content.
-
-    \image qxttooltip.png "QxtToolTip in action."
-
-    \warning Added tooltip widgets remain in the memory for the lifetime
-    of the application or until they are removed/deleted. Do NOT flood your
-    application up with lots of complex tooltip widgets or it will end up
-    being a resource hog. QToolTip is sufficient for most of the cases!
- */
-
-/*!
-    \internal
- */
 QxtToolTip::QxtToolTip()
 {
 }
 
-/*!
-    Shows the \a tooltip at \a pos for \a parent at \a rect.
-
-    \sa hide()
-*/
-void QxtToolTip::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect, const bool allowMouseEnter)
+void QxtToolTip::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect,
+                      const bool allowMouseEnter)
 {
     QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect, allowMouseEnter);
 }
 
-/*!
-    Hides the tooltip.
-
-    \sa show()
-*/
 void QxtToolTip::hide()
 {
     QxtToolTipPrivate::instance()->hide();
 }
 
-/*!
-    Returns the tooltip for \a parent.
-
-    \sa setToolTip()
-*/
 QWidget* QxtToolTip::toolTip(QWidget* parent)
 {
     Q_ASSERT(parent);
@@ -303,12 +260,6 @@ QWidget* QxtToolTip::toolTip(QWidget* parent)
     return tooltip;
 }
 
-/*!
-    Sets the \a tooltip to be shown for \a parent.
-    An optional \a rect may also be passed.
-
-    \sa toolTip()
-*/
 void QxtToolTip::setToolTip(QWidget* parent, QWidget* tooltip, const QRect& rect)
 {
     Q_ASSERT(parent);
@@ -328,11 +279,6 @@ void QxtToolTip::setToolTip(QWidget* parent, QWidget* tooltip, const QRect& rect
     }
 }
 
-/*!
-    Returns the rect on which tooltip is shown for \a parent.
-
-    \sa setToolTipRect()
-*/
 QRect QxtToolTip::toolTipRect(QWidget* parent)
 {
     Q_ASSERT(parent);
@@ -344,11 +290,6 @@ QRect QxtToolTip::toolTipRect(QWidget* parent)
     return rect;
 }
 
-/*!
-    Sets the \a rect on which tooltip is shown for \a parent.
-
-    \sa toolTipRect()
-*/
 void QxtToolTip::setToolTipRect(QWidget* parent, const QRect& rect)
 {
     Q_ASSERT(parent);
@@ -358,45 +299,21 @@ void QxtToolTip::setToolTipRect(QWidget* parent, const QRect& rect)
         QxtToolTipPrivate::instance()->tooltips[parent].second = rect;
 }
 
-/*!
-    Returns the margin of the tooltip.
-
-    \sa setMargin()
-*/
 int QxtToolTip::margin()
 {
     return QxtToolTipPrivate::instance()->layout()->margin();
 }
 
-/*!
-    Sets the \a margin of the tooltip.
-
-    The default value is QStyle::PM_ToolTipLabelFrameWidth.
-
-    \sa margin()
-*/
 void QxtToolTip::setMargin(int margin)
 {
     QxtToolTipPrivate::instance()->layout()->setMargin(margin);
 }
 
-/*!
-    Returns the opacity level of the tooltip.
-
-    \sa QWidget::windowOpacity()
-*/
 qreal QxtToolTip::opacity()
 {
     return QxtToolTipPrivate::instance()->windowOpacity();
 }
 
-/*!
-    Sets the opacity \a level of the tooltip.
-
-    The default value is QStyle::SH_ToolTipLabel_Opacity.
-
-    \sa QWidget::setWindowOpacity()
-*/
 void QxtToolTip::setOpacity(qreal level)
 {
     QxtToolTipPrivate::instance()->setWindowOpacity(level);

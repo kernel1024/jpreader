@@ -34,37 +34,37 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     sort->setFilterRole(Qt::UserRole + cpFilterRole);
     ui->listResults->setModel(sort);
 
-    connect(model, SIGNAL(itemContentsUpdated()), sort, SLOT(invalidate()));
+    connect(model, &CSearchModel::itemContentsUpdated, sort, &QSortFilterProxyModel::invalidate);
 
     QHeaderView *hh = ui->listResults->horizontalHeader();
     if (hh!=NULL) {
         hh->setToolTip(tr("Right click for advanced commands on results list"));
         hh->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(hh,SIGNAL(customContextMenuRequested(QPoint)),
-                this,SLOT(headerMenu(QPoint)));
+        connect(hh, &QHeaderView::customContextMenuRequested,
+                this, &CSearchTab::headerMenu);
     }
 
-    connect(ui->buttonSearch, SIGNAL(clicked()), this, SLOT(doNewSearch()));
-    connect(ui->listResults->selectionModel(),SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-            this,SLOT(applySnippet(QItemSelection,QItemSelection)));
-    connect(ui->buttonOpen, SIGNAL(clicked()), this, SLOT(showSnippet()));
-    connect(ui->listResults, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(execSnippet(QModelIndex)));
-    connect(ui->editSearch->lineEdit(), SIGNAL(returnPressed()), ui->buttonSearch, SLOT(click()));
-    connect(ui->buttonDir, SIGNAL(clicked()), this, SLOT(selectDir()));
+    connect(ui->buttonSearch, &QPushButton::clicked, this, &CSearchTab::doNewSearch);
+    connect(ui->buttonOpen, &QPushButton::clicked, this, &CSearchTab::showSnippet);
+    connect(ui->buttonDir, &QPushButton::clicked, this, &CSearchTab::selectDir);
+    connect(ui->listResults->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &CSearchTab::applySnippet);
+    connect(ui->listResults, &QTableView::doubleClicked, this, &CSearchTab::execSnippet);
+    connect(ui->editSearch->lineEdit(), &QLineEdit::returnPressed, ui->buttonSearch, &QPushButton::click);
 
-    connect(engine,SIGNAL(searchFinished(QBResult,QString)),
-            this,SLOT(searchFinished(QBResult,QString)),Qt::QueuedConnection);
-    connect(this,SIGNAL(startSearch(QString,QDir)),
-            engine,SLOT(doSearch(QString,QDir)),Qt::QueuedConnection);
+    connect(engine, &CIndexerSearch::searchFinished,
+            this, &CSearchTab::searchFinished,Qt::QueuedConnection);
+    connect(this, &CSearchTab::startSearch,
+            engine, &CIndexerSearch::doSearch,Qt::QueuedConnection);
 
-    connect(titleTran,SIGNAL(gotTranslation(QStringList)),
-            this,SLOT(gotTitleTranslation(QStringList)),Qt::QueuedConnection);
-    connect(titleTran,SIGNAL(updateProgress(int)),
-            this,SLOT(updateProgress(int)),Qt::QueuedConnection);
-    connect(ui->translateStopBtn,SIGNAL(clicked()),
-            titleTran,SLOT(stop()),Qt::QueuedConnection);
-    connect(this,SIGNAL(translateTitlesSrc(QStringList)),
-            titleTran,SLOT(translateTitles(QStringList)),Qt::QueuedConnection);
+    connect(titleTran, &CTitlesTranslator::gotTranslation,
+            this, &CSearchTab::gotTitleTranslation,Qt::QueuedConnection);
+    connect(titleTran, &CTitlesTranslator::updateProgress,
+            this, &CSearchTab::updateProgress,Qt::QueuedConnection);
+    connect(ui->translateStopBtn, &QPushButton::clicked,
+            titleTran, &CTitlesTranslator::stop,Qt::QueuedConnection);
+    connect(this, &CSearchTab::translateTitlesSrc,
+            titleTran, &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
 
     ui->buttonSearch->setIcon(QIcon::fromTheme("document-preview"));
     ui->buttonOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -236,7 +236,7 @@ void CSearchTab::applyFilter()
 void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &)
 {
     if (selected.isEmpty()) return;
-    applySnippet(selected.indexes().first());
+    applySnippetIdx(selected.indexes().first());
 }
 
 void CSearchTab::doSearch()
@@ -301,7 +301,7 @@ void CSearchTab::doNewSearch()
     doSearch();
 }
 
-void CSearchTab::applySnippet(const QModelIndex &index)
+void CSearchTab::applySnippetIdx(const QModelIndex &index)
 {
     if (stats.isEmpty() || !index.isValid()) return;
     if (model->rowCount()==0) {
@@ -529,7 +529,7 @@ void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)
 
 void CSearchTab::execSnippet(const QModelIndex &index)
 {
-    applySnippet(index);
+    applySnippetIdx(index);
     showSnippet();
 }
 

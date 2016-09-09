@@ -22,49 +22,24 @@ class CSettings : public QObject
 public:
     QList<QColor> snippetColors;
 
-    bool jsLogConsole;
-    bool dontUseNativeFileDialog;
     QStringList dictPaths;
     QString dictIndexDir;
     QString defaultSearchEngine;
-    int maxHistory;
-    int maxRecent;
-    bool overrideStdFonts;
     QString fontStandard, fontFixed, fontSerif, fontSansSerif;
-    bool showTabCloseButtons;
-    bool createCoredumps;
-
-    bool overrideUserAgent;
     QString userAgent;
 
-    bool useAdblock;
-
-    int searchEngine;
     QString scpHost;
     QString scpParams;
-    bool useScp;
     QString hostingDir;
     QString hostingUrl;
-    int maxSearchLimit;
-    int translatorEngine;
     QString atlHost;
-    quint16 atlPort;
-    bool emptyRestore;
     QString sysBrowser;
     QString sysEditor;
-    int maxRecycled;
-    int maxBookmarksCnt;
-
-    bool debugNetReqLogging;
-    bool debugDumpHtml;
 
     QString savedAuxDir;
     QString savedAuxSaveDir;
     QString forcedCharset;
-    bool globalContextTranslate;
 
-    int atlTcpRetryCount;
-    int atlTcpTimeout;
     QSsl::SslProtocol atlProto;
     QString atlToken;
     QString bingID;
@@ -74,12 +49,7 @@ public:
     QString proxyHost;
     QString proxyLogin;
     QString proxyPassword;
-    quint16 proxyPort;
-    bool proxyUse;
     QNetworkProxy::ProxyType proxyType;
-    bool proxyUseTranslator;
-
-    bool ignoreSSLErrors;
 
     QFont overrideFont;
     QColor forcedFontColor;
@@ -88,6 +58,34 @@ public:
     QStringList atlHostHistory;
     QStringList scpHostHistory;
     QStringList charsetHistory;
+
+    int maxHistory;
+    int maxRecent;
+    int searchEngine;
+    int maxSearchLimit;
+    int translatorEngine;
+    int maxRecycled;
+    int maxBookmarksCnt;
+    int atlTcpRetryCount;
+    int atlTcpTimeout;
+    quint16 atlPort;
+    quint16 proxyPort;
+
+    bool jsLogConsole;
+    bool dontUseNativeFileDialog;
+    bool overrideStdFonts;
+    bool showTabCloseButtons;
+    bool createCoredumps;
+    bool overrideUserAgent;
+    bool useAdblock;
+    bool useScp;
+    bool emptyRestore;
+    bool debugNetReqLogging;
+    bool debugDumpHtml;
+    bool globalContextTranslate;
+    bool proxyUse;
+    bool proxyUseTranslator;
+    bool ignoreSSLErrors;
 
     explicit CSettings(QObject *parent = 0);
 
@@ -98,8 +96,10 @@ private:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
     CSettingsDlg* dlg;
-    bool restoreLoadChecked;
     int settingsDlgWidth, settingsDlgHeight;
+    bool restoreLoadChecked;
+    QList<QUrl> getTabsList() const;
+    void writeTabsListPrivate(const QList<QUrl> tabList);
 
 signals:
     void settingsUpdated();
@@ -108,7 +108,9 @@ public slots:
     void writeSettings();
     void settingsDlg();
 
-    void writeTabsList(bool clearList = false);
+    void clearTabsList();
+    void writeTabsList();
+
     void checkRestoreLoad(CMainWindow* w);
 
 };

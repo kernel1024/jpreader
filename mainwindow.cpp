@@ -74,52 +74,51 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     menuBookmarks->setStyleSheet("QMenu { menu-scrollable: 1; }");
     menuBookmarks->setToolTipsVisible(true);
 
-	connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
-    connect(actionAboutQt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-    connect(actionSettings, SIGNAL(triggered()), &(gSet->settings), SLOT(settingsDlg()));
-	connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(actionExitAll, SIGNAL(triggered()), gSet, SLOT(cleanupAndExit()));
-    connect(actionOpen, SIGNAL(triggered()), this, SLOT(openAuxFile()));
-    connect(actionNew, SIGNAL(triggered()), this, SLOT(openEmptyBrowser()));
-    connect(actionOpenInDir, SIGNAL(triggered()), this, SLOT(openAuxFileInDir()));
-    connect(actionOpenCB, SIGNAL(triggered()), this, SLOT(createFromClipboard()));
-    connect(actionOpenCBPlain, SIGNAL(triggered()), this, SLOT(createFromClipboardPlain()));
-    connect(actionClearCB, SIGNAL(triggered()), this, SLOT(clearClipboard()));
-    connect(actionClearCache, SIGNAL(triggered()), gSet, SLOT(clearCaches()));
-    connect(actionOpenClip, SIGNAL(triggered()), this, SLOT(openFromClipboard()));
-    connect(actionWnd, SIGNAL(triggered()), &(gSet->ui), SLOT(addMainWindow()));
-    connect(actionNewSearch, SIGNAL(triggered()), this, SLOT(createSearch()));
+    connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
+    connect(actionAboutQt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(actionSettings, &QAction::triggered, &(gSet->settings), &CSettings::settingsDlg);
+    connect(actionExit, &QAction::triggered, this, &CMainWindow::close);
+    connect(actionExitAll, &QAction::triggered, gSet, &CGlobalControl::cleanupAndExit);
+    connect(actionOpen, &QAction::triggered, this, &CMainWindow::openAuxFileWithDialog);
+    connect(actionNew, &QAction::triggered, this, &CMainWindow::openEmptyBrowser);
+    connect(actionOpenInDir, &QAction::triggered, this, &CMainWindow::openAuxFileInDir);
+    connect(actionOpenCB, &QAction::triggered, this, &CMainWindow::createFromClipboard);
+    connect(actionOpenCBPlain, &QAction::triggered, this, &CMainWindow::createFromClipboardPlain);
+    connect(actionClearCB, &QAction::triggered, this, &CMainWindow::clearClipboard);
+    connect(actionClearCache, &QAction::triggered, gSet, &CGlobalControl::clearCaches);
+    connect(actionOpenClip, &QAction::triggered, this, &CMainWindow::openFromClipboard);
+    connect(actionWnd, &QAction::triggered, &(gSet->ui), &CGlobalUI::addMainWindow);
+    connect(actionNewSearch, &QAction::triggered, this, &CMainWindow::createSearch);
+    connect(actionAddBM, &QAction::triggered, this, &CMainWindow::addBookmark);
+    connect(actionTextTranslator, &QAction::triggered, this, &CMainWindow::showLightTranslator);
+    connect(actionDetachTab, &QAction::triggered, this, &CMainWindow::detachTab);
+    connect(actionFindText, &QAction::triggered, this, &CMainWindow::findText);
+    connect(actionDictionary, &QAction::triggered, gSet, &CGlobalControl::showDictionaryWindow);
+    connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
+    connect(actionInspector, &QAction::triggered, this, &CMainWindow::openBookmark);
+    connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, &(gSet->settings), &CSettings::writeSettings);
-    connect(actionAddBM,SIGNAL(triggered()),this, SLOT(addBookmark()));
-    connect(actionTextTranslator,SIGNAL(triggered()),this,SLOT(showLightTranslator()));
-    connect(actionDetachTab,SIGNAL(triggered()),this,SLOT(detachTab()));
-    connect(actionFindText,SIGNAL(triggered()),this,SLOT(findText()));
-    connect(actionDictionary,SIGNAL(triggered()),gSet,SLOT(showDictionaryWindow()));
-    connect(actionFullscreen,SIGNAL(triggered()),this,SLOT(switchFullscreen()));
-    connect(actionInspector,SIGNAL(triggered()),this,SLOT(openBookmark()));
-    connect(actionPrintPDF,SIGNAL(triggered()),this,SLOT(printToPDF()));
-    connect(tabMain, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
-    connect(tabHelper, SIGNAL(tabLeftPostClicked(int)), this, SLOT(helperClicked(int)));
-    connect(tabHelper, SIGNAL(tabLeftClicked(int)), this, SLOT(helperPreClicked(int)));
-    connect(helperList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)),
-            this, SLOT(helperItemClicked(QListWidgetItem*,QListWidgetItem*)));
-    connect(splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(splitterMoved(int,int)));
-    connect(tabMain, SIGNAL(tooltipRequested(QPoint,QPoint)), this, SLOT(tabBarTooltip(QPoint,QPoint)));
+    connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
+    connect(tabHelper, &CSpecTabBar::tabLeftPostClicked, this, &CMainWindow::helperClicked);
+    connect(tabHelper, &CSpecTabBar::tabLeftClicked, this, &CMainWindow::helperPreClicked);
+    connect(helperList, &QListWidget::currentItemChanged, this, &CMainWindow::helperItemClicked);
+    connect(splitter, &QSplitter::splitterMoved, this, &CMainWindow::splitterMoved);
+    connect(tabMain, &CSpecTabWidget::tooltipRequested, this, &CMainWindow::tabBarTooltip);
 
     actionInspector->setData(gSet->getInspectorUrl());
 
     if (gSet->logWindow!=NULL)
-        connect(actionShowLog,SIGNAL(triggered()),gSet->logWindow,SLOT(show()));
+        connect(actionShowLog, &QAction::triggered, gSet->logWindow, &CLogDisplay::show);
     if (gSet->downloadManager!=NULL)
-        connect(actionDownloadManager,SIGNAL(triggered()),gSet->downloadManager,SLOT(show()));
+        connect(actionDownloadManager, &QAction::triggered, gSet->downloadManager, &CDownloadManager::show);
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);
     sc->setContext(Qt::WindowShortcut);
-    connect(sc,SIGNAL(activated()),tabMain,SLOT(selectPrevTab()));
+    connect(sc, &QShortcut::activated, tabMain, &CSpecTabWidget::selectPrevTab);
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Right),this);
     sc->setContext(Qt::WindowShortcut);
-    connect(sc,SIGNAL(activated()),tabMain,SLOT(selectNextTab()));
+    connect(sc, &QShortcut::activated, tabMain, &CSpecTabWidget::selectNextTab);
 
     centerWindow();
 
@@ -499,7 +498,7 @@ void CMainWindow::updateRecentList()
         QAction* ac = recentMenu->addAction(fi.fileName());
         ac->setToolTip(filename);
         connect(ac,&QAction::triggered,[this,filename](){
-            openAuxFile(filename);
+            openAuxFiles(QStringList() << filename);
         });
     }
 }
@@ -556,21 +555,21 @@ void CMainWindow::checkTabs()
     if(tabMain->count()==0) close();
 }
 
-void CMainWindow::openAuxFile(const QString &filename)
+void CMainWindow::openAuxFiles(const QStringList &filenames)
 {
-    QStringList fnames;
-    if (filename.isEmpty()) {
-        fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
-        if (fnames.isEmpty()) return;
+    foreach(const QString& fname, filenames)
+        if (!fname.isEmpty())
+            new CSnippetViewer(this, QUrl::fromLocalFile(fname));
+}
 
-        gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
-    } else
-        fnames << filename;
+void CMainWindow::openAuxFileWithDialog()
+{
+    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
+    if (fnames.isEmpty()) return;
 
-    for(int i=0;i<fnames.count();i++) {
-        if (fnames.at(i).isEmpty()) continue;
-        new CSnippetViewer(this, QUrl::fromLocalFile(fnames.at(i)));
-    }
+    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+
+    openAuxFiles(fnames);
 }
 
 void CMainWindow::openEmptyBrowser()

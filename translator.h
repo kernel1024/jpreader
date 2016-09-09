@@ -21,6 +21,7 @@ public:
     QHash<QString,QString> attributes;
     QStringList attributesOrder;
     bool isTag, isComment;
+    bool dummy[2];
     CHTMLNode();
     ~CHTMLNode();
     CHTMLNode(const CHTMLNode& other);
@@ -49,34 +50,34 @@ private:
     };
 
 
-    bool localHosting;
     QString hostingDir;
     QString hostingUrl;
-    QStringList* createdFiles;
-    bool useSCP;
     QString Uri;
     QString scpParams;
     QString scpHost;
+    QString translatorError;
+    QMutex abortMutex;
+    CAbstractTranslator* tran;
+    QColor forcedFontColor;
+    QFont overrideFont;
+    QString srcLanguage;
+    QUrl metaSrcUrl;
+    QStringList* createdFiles;
     int atlTcpRetryCount;
     int atlTcpTimeout;
-    bool abortFlag;
-    bool translatorFailed;
-    QString translatorError;
     int translationEngine;
-    QMutex abortMutex;
     int textNodesCnt;
     int textNodesProgress;
-    CAbstractTranslator* tran;
+    int translationMode;
+    int engine;
+    bool localHosting;
+    bool useSCP;
+    bool abortFlag;
+    bool translatorFailed;
     bool tranInited;
     bool useOverrideFont;
     bool forceFontColor;
     bool translateSubSentences;
-    int translationMode;
-    QColor forcedFontColor;
-    QFont overrideFont;
-    int engine;
-    QString srcLanguage;
-    QUrl metaSrcUrl;
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateDocument(const QString& srcUri, QString& dst);

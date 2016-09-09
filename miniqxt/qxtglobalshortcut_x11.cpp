@@ -141,8 +141,8 @@ bool QxtGlobalShortcut::nativeEventFilter(const QByteArray & eventType,
     }
 
     if (kev != 0) {
-        unsigned int keycode = kev->detail;
-        unsigned int keystate = kev->state & (XCB_MOD_MASK_1 | XCB_MOD_MASK_CONTROL |
+        xcb_keycode_t keycode = kev->detail;
+        uint16_t keystate = kev->state & (XCB_MOD_MASK_1 | XCB_MOD_MASK_CONTROL |
                                               XCB_MOD_MASK_4 | XCB_MOD_MASK_SHIFT);
         // Mod1Mask == Alt, Mod4Mask == Meta
         activateShortcut(keycode, keystate);

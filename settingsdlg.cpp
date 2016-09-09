@@ -88,40 +88,39 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
 
     cookiesList.clear();
 
-    connect(ui->buttonHostingDir,SIGNAL(clicked()),this,SLOT(selectDir()));
-    connect(ui->buttonBrowser,SIGNAL(clicked()),this,SLOT(selectBrowser()));
-    connect(ui->buttonEditor,SIGNAL(clicked()),this,SLOT(selectEditor()));
-	connect(ui->buttonDelQr,SIGNAL(clicked()),this,SLOT(delQrs()));
-	connect(ui->buttonDelBookmark,SIGNAL(clicked()),this,SLOT(delBkm()));
-    connect(ui->buttonCleanHistory,SIGNAL(clicked()),this,SLOT(clearHistory()));
-    connect(ui->buttonGoHistory,SIGNAL(clicked()),this,SLOT(goHistory()));
-    connect(ui->buttonAdAdd,SIGNAL(clicked()),this,SLOT(addAd()));
-    connect(ui->buttonAdDel,SIGNAL(clicked()),this,SLOT(delAd()));
-    connect(ui->buttonAdImport,SIGNAL(clicked()),this,SLOT(importAd()));
-    connect(ui->buttonAdExport,SIGNAL(clicked()),this,SLOT(exportAd()));
-    connect(ui->buttonFontColorOverride,SIGNAL(clicked()),this,SLOT(fontColorDlg()));
-    connect(ui->buttonAddDictPath,SIGNAL(clicked()),this,SLOT(addDictPath()));
-    connect(ui->buttonDelDictPath,SIGNAL(clicked()),this,SLOT(delDictPath()));
-    connect(ui->buttonLoadedDicts,SIGNAL(clicked()),this,SLOT(showLoadedDicts()));
-    connect(ui->buttonClearCookies,SIGNAL(clicked()),this,SLOT(clearCookies()));
-    connect(ui->buttonEditBookmark,SIGNAL(clicked()),this,SLOT(editBkm()));
-    connect(ui->buttonDelCookies,SIGNAL(clicked()),this,SLOT(delCookies()));
-    connect(ui->buttonExportCookies,SIGNAL(clicked()),this,SLOT(exportCookies()));
-    connect(ui->editAdSearch,SIGNAL(textChanged(QString)),this,SLOT(adblockSearch(QString)));
-    connect(ui->buttonAdSearchBwd,SIGNAL(clicked()),this,SLOT(adblockSearchBwd()));
-    connect(ui->buttonAdSearchFwd,SIGNAL(clicked()),this,SLOT(adblockSearchFwd()));
-    connect(ui->buttonAddSearch,SIGNAL(clicked()),this,SLOT(addSearchEngine()));
-    connect(ui->buttonDelSearch,SIGNAL(clicked()),this,SLOT(delSearchEngine()));
-    connect(ui->buttonAtlClean,SIGNAL(clicked()),this,SLOT(cleanAtlCerts()));
-    connect(ui->buttonDefaultSearch,SIGNAL(clicked()),this,SLOT(setDefaultSearch()));
-    connect(ui->buttonUserScriptAdd,SIGNAL(clicked()),this,SLOT(addUserScript()));
-    connect(ui->buttonUserScriptEdit,SIGNAL(clicked()),this,SLOT(editUserScript()));
-    connect(ui->buttonUserScriptDelete,SIGNAL(clicked()),this,SLOT(deleteUserScript()));
-    connect(ui->buttonUserScriptImport,SIGNAL(clicked()),this,SLOT(importUserScript()));
+    connect(ui->buttonHostingDir, &QPushButton::clicked, this, &CSettingsDlg::selectDir);
+    connect(ui->buttonBrowser, &QPushButton::clicked, this, &CSettingsDlg::selectBrowser);
+    connect(ui->buttonEditor, &QPushButton::clicked, this, &CSettingsDlg::selectEditor);
+    connect(ui->buttonDelQr, &QPushButton::clicked, this, &CSettingsDlg::delQrs);
+    connect(ui->buttonDelBookmark, &QPushButton::clicked, this, &CSettingsDlg::delBkm);
+    connect(ui->buttonCleanHistory, &QPushButton::clicked, this, &CSettingsDlg::clearHistory);
+    connect(ui->buttonGoHistory, &QPushButton::clicked, this, &CSettingsDlg::goHistory);
+    connect(ui->buttonAdAdd, &QPushButton::clicked, this, &CSettingsDlg::addAd);
+    connect(ui->buttonAdDel, &QPushButton::clicked, this, &CSettingsDlg::delAd);
+    connect(ui->buttonAdImport, &QPushButton::clicked, this, &CSettingsDlg::importAd);
+    connect(ui->buttonAdExport, &QPushButton::clicked, this, &CSettingsDlg::exportAd);
+    connect(ui->buttonFontColorOverride, &QPushButton::clicked, this, &CSettingsDlg::fontColorDlg);
+    connect(ui->buttonAddDictPath, &QPushButton::clicked, this, &CSettingsDlg::addDictPath);
+    connect(ui->buttonDelDictPath, &QPushButton::clicked, this, &CSettingsDlg::delDictPath);
+    connect(ui->buttonLoadedDicts, &QPushButton::clicked, this, &CSettingsDlg::showLoadedDicts);
+    connect(ui->buttonClearCookies, &QPushButton::clicked, this, &CSettingsDlg::clearCookies);
+    connect(ui->buttonEditBookmark, &QPushButton::clicked, this, &CSettingsDlg::editBkm);
+    connect(ui->buttonDelCookies, &QPushButton::clicked, this, &CSettingsDlg::delCookies);
+    connect(ui->buttonExportCookies, &QPushButton::clicked, this, &CSettingsDlg::exportCookies);
+    connect(ui->buttonAdSearchBwd, &QPushButton::clicked, this, &CSettingsDlg::adblockSearchBwd);
+    connect(ui->buttonAdSearchFwd, &QPushButton::clicked, this, &CSettingsDlg::adblockSearchFwd);
+    connect(ui->buttonAddSearch, &QPushButton::clicked, this, &CSettingsDlg::addSearchEngine);
+    connect(ui->buttonDelSearch, &QPushButton::clicked, this, &CSettingsDlg::delSearchEngine);
+    connect(ui->buttonAtlClean, &QPushButton::clicked, this, &CSettingsDlg::cleanAtlCerts);
+    connect(ui->buttonDefaultSearch, &QPushButton::clicked, this, &CSettingsDlg::setDefaultSearch);
+    connect(ui->buttonUserScriptAdd, &QPushButton::clicked, this, &CSettingsDlg::addUserScript);
+    connect(ui->buttonUserScriptEdit, &QPushButton::clicked, this, &CSettingsDlg::editUserScript);
+    connect(ui->buttonUserScriptDelete, &QPushButton::clicked, this, &CSettingsDlg::deleteUserScript);
+    connect(ui->buttonUserScriptImport, &QPushButton::clicked, this, &CSettingsDlg::importUserScript);
 
-    connect(ui->listTabs,&QListWidget::currentRowChanged,[this](int row){
-        ui->tabWidget->setCurrentIndex(row);
-    });
+    connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsDlg::adblockSearch);
+
+    connect(ui->listTabs, &QListWidget::currentRowChanged, ui->tabWidget, &QStackedWidget::setCurrentIndex);
 
     ui->atlSSLProto->addItem("Secure",static_cast<int>(QSsl::SecureProtocols));
     ui->atlSSLProto->addItem("TLS 1.2",static_cast<int>(QSsl::TlsV1_2));

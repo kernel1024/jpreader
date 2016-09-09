@@ -69,10 +69,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dbus.registerObject("/",auxTranslatorDBus);
     dbus.registerService(DBUS_NAME);
 
-    connect(parent,SIGNAL(focusChanged(QWidget*,QWidget*)),this,SLOT(focusChanged(QWidget*,QWidget*)));
+    connect(parent, &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
 
-    connect(ui.actionUseProxy,SIGNAL(toggled(bool)),
-            this,SLOT(updateProxy(bool)));
+    connect(ui.actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
 
     connect(ui.actionJSUsage,&QAction::toggled,[this](bool checked){
         webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
@@ -100,16 +99,16 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
     webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
 
-    connect(webProfile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
-            downloadManager, SLOT(handleDownload(QWebEngineDownloadItem*)));
+    connect(webProfile, &QWebEngineProfile::downloadRequested,
+            downloadManager, &CDownloadManager::handleDownload);
 
     webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
     webProfile->installUrlSchemeHandler(QByteArray("gdlookup"), new CSpecGDSchemeHandler());
 
-    connect(webProfile->cookieStore(), SIGNAL(cookieAdded(QNetworkCookie)),
-            this, SLOT(cookieAdded(QNetworkCookie)));
-    connect(webProfile->cookieStore(), SIGNAL(cookieRemoved(QNetworkCookie)),
-            this, SLOT(cookieRemoved(QNetworkCookie)));
+    connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
+            this, &CGlobalControl::cookieAdded);
+    connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
+            this, &CGlobalControl::cookieRemoved);
     webProfile->cookieStore()->loadAllCookies();
 
     settings.readSettings(this);
@@ -142,7 +141,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     auxNetManager->setCookieJar(new CNetworkCookieJar());
 
     tabsListTimer.setInterval(30000);
-    connect(&tabsListTimer,SIGNAL(timeout()),&settings,SLOT(writeTabsList()));
+    connect(&tabsListTimer, &QTimer::timeout, &settings, &CSettings::writeTabsList);
     tabsListTimer.start();
 
     QTimer::singleShot(1500,dictManager,[this](){
@@ -180,7 +179,7 @@ bool CGlobalControl::setupIPC()
             ipcServer = new QLocalServer();
             ipcServer->removeServer(serverName);
             ipcServer->listen(serverName);
-            connect(ipcServer, SIGNAL(newConnection()), this, SLOT(ipcMessageReceived()));
+            connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
         } else {
             sendIPCMessage(socket,"newWindow");
             socket->flush();
@@ -193,7 +192,7 @@ bool CGlobalControl::setupIPC()
         ipcServer = new QLocalServer();
         ipcServer->removeServer(serverName);
         ipcServer->listen(serverName);
-        connect(ipcServer, SIGNAL(newConnection()), this, SLOT(ipcMessageReceived()));
+        connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
     }
     if (socket->isOpen())
         socket->close();
@@ -286,7 +285,12 @@ void CGlobalControl::blockTabClose()
     });
 }
 
-void CGlobalControl::showDictionaryWindow(const QString &text)
+void CGlobalControl::showDictionaryWindow()
+{
+    showDictionaryWindowEx(QString());
+}
+
+void CGlobalControl::showDictionaryWindowEx(const QString &text)
 {
     if (auxDictionary==NULL) {
         auxDictionary = new CAuxDictionary();
@@ -444,12 +448,11 @@ void CGlobalControl::cleanupAndExit()
     if (cleaningState) return;
     cleaningState = true;
 
-    settings.writeTabsList(true);
+    settings.clearTabsList();
     settings.writeSettings();
     cleanTmpFiles();
 
-    if (receivers(SIGNAL(stopTranslators()))>0)
-        emit stopTranslators();
+    emit stopTranslators();
 
     if (mainWindows.count()>0) {
         foreach (CMainWindow* w, mainWindows) {
@@ -670,7 +673,12 @@ void CGlobalControl::showLightTranslator(const QString &text)
         gSet->lightTranslator->appendSourceText(text);
 }
 
-void CGlobalControl::updateProxy(bool useProxy, bool forceMenuUpdate)
+void CGlobalControl::updateProxy(bool useProxy)
+{
+    updateProxyWithMenuUpdate(useProxy, false);
+}
+
+void CGlobalControl::updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate)
 {
     settings.proxyUse = useProxy;
 

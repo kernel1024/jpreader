@@ -251,3 +251,42 @@ void CIndexerSearch::engineFinished()
     }
     emit searchFinished(result,query);
 }
+
+QBResult::QBResult()
+{
+    presented=false;
+    stats.clear();
+    snippets.clear();
+    sortMode = -2;
+}
+
+QBResult::QBResult(const QBResult &other)
+{
+    presented = other.presented;
+    stats=other.stats;
+    sortMode=other.sortMode;
+    snippets.clear();
+    foreach (QStrHash h, other.snippets)
+        snippets.append(h);
+}
+
+QBResult::QBResult(QStrHash stats, QList<QStrHash> snippets)
+{
+    QBResult::presented = true;
+    QBResult::sortMode = -2;
+    QBResult::stats=stats;
+    foreach (QStrHash h, snippets)
+        QBResult::snippets.append(h);
+}
+
+QBResult &QBResult::operator=(const QBResult &other)
+{
+    presented = other.presented;
+    stats=other.stats;
+    sortMode=other.sortMode;
+    snippets.clear();
+    foreach (QStrHash h, other.snippets)
+        snippets.append(h);
+
+    return *this;
+}
