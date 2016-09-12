@@ -82,6 +82,7 @@ public:
     QSpinBox* maxRecent;
     QSpinBox* maxBookmarksCnt;
     QCheckBox* dontUseNativeFileDialogs;
+    QSpinBox* adblockMaxWhiteListItems;
 
     QStringList loadedDicts;
 

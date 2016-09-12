@@ -27,7 +27,6 @@ public:
     bool dummy[3];
     QBResult();
     QBResult(const QBResult& other);
-    QBResult(QStrHash stats, QList<QStrHash> snippets);
     QBResult& operator=(const QBResult& other);
 };
 

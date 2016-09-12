@@ -76,6 +76,9 @@ public:
     QHash<QString,QIcon> favicons;
 
     CAdBlockList adblock;
+    QStringList adblockWhiteList;
+    QMutex adblockWhiteListMutex;
+
     QStringList createdFiles;
 
     QTimer tabsListTimer;

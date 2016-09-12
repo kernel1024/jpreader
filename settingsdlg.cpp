@@ -85,6 +85,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     maxRecent=ui->spinMaxRecent;
     maxBookmarksCnt=ui->spinMaxBookmarksCnt;
     dontUseNativeFileDialogs=ui->checkDontUseNativeFileDialogs;
+    adblockMaxWhiteListItems=ui->spinMaxWhiteListItems;
 
     cookiesList.clear();
 
@@ -253,6 +254,7 @@ void CSettingsDlg::updateAdblockList()
         item->setText(0,adblockList.at(i).filter());
         item->setData(0,Qt::UserRole+1,i);
     }
+    ui->lblAdblockTotalRules->setText(QString("Total rules: %1.").arg(adblockList.count()));
 }
 
 void CSettingsDlg::selectDir()

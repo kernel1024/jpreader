@@ -68,6 +68,7 @@ public:
     int maxBookmarksCnt;
     int atlTcpRetryCount;
     int atlTcpTimeout;
+    int maxAdblockWhiteList;
     quint16 atlPort;
     quint16 proxyPort;
 

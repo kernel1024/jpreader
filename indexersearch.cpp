@@ -266,17 +266,8 @@ QBResult::QBResult(const QBResult &other)
     stats=other.stats;
     sortMode=other.sortMode;
     snippets.clear();
-    foreach (QStrHash h, other.snippets)
+    foreach (const QStrHash &h, other.snippets)
         snippets.append(h);
-}
-
-QBResult::QBResult(QStrHash stats, QList<QStrHash> snippets)
-{
-    QBResult::presented = true;
-    QBResult::sortMode = -2;
-    QBResult::stats=stats;
-    foreach (QStrHash h, snippets)
-        QBResult::snippets.append(h);
 }
 
 QBResult &QBResult::operator=(const QBResult &other)
@@ -285,7 +276,7 @@ QBResult &QBResult::operator=(const QBResult &other)
     stats=other.stats;
     sortMode=other.sortMode;
     snippets.clear();
-    foreach (QStrHash h, other.snippets)
+    foreach (const QStrHash &h, other.snippets)
         snippets.append(h);
 
     return *this;

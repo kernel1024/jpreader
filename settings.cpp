@@ -23,6 +23,7 @@ CSettings::CSettings(QObject *parent)
     maxHistory=5000;
     maxRecent=10;
     maxBookmarksCnt=10;
+    maxAdblockWhiteList=5000;
     useAdblock=false;
     restoreLoadChecked=false;
     globalContextTranslate=false;
@@ -112,6 +113,7 @@ void CSettings::writeSettings()
     settings.setValue("maxHistory",maxHistory);
     settings.setValue("maxRecent",maxRecent);
     settings.setValue("maxBookmarksCnt",maxBookmarksCnt);
+    settings.setValue("maxAdblockWhiteList",maxAdblockWhiteList);
     settings.setValue("browser",sysBrowser);
     settings.setValue("editor",sysEditor);
     settings.setValue("tr_engine",translatorEngine);
@@ -213,7 +215,7 @@ void CSettings::readSettings(QObject *control)
     if (bigdata.contains("bookmarks")) {
         g->bookmarks.clear();
         QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
-        foreach (const QString title, bm.keys())
+        foreach (const QString &title, bm.keys())
             g->bookmarks << qMakePair(title, bm.value(title).toString());
     } else
         g->bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
@@ -226,6 +228,7 @@ void CSettings::readSettings(QObject *control)
     maxHistory = settings.value("maxHistory",1000).toInt();
     maxRecent = settings.value("maxRecent",10).toInt();
     maxBookmarksCnt = settings.value("maxBookmarksCnt",15).toInt();
+    maxAdblockWhiteList = settings.value("maxAdblockWhiteList",5000).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
     translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
@@ -328,6 +331,7 @@ void CSettings::settingsDlg()
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
+    dlg->adblockMaxWhiteListItems->setValue(maxAdblockWhiteList);
     dlg->useJS->setChecked(gSet->webProfile->settings()->
                            testAttribute(QWebEngineSettings::JavascriptEnabled));
     dlg->autoloadImages->setChecked(gSet->webProfile->settings()->
@@ -471,6 +475,7 @@ void CSettings::settingsDlg()
         maxRecycled=dlg->maxRecycled->value();
         maxRecent=dlg->maxRecent->value();
         maxBookmarksCnt=dlg->maxBookmarksCnt->value();
+        maxAdblockWhiteList=dlg->adblockMaxWhiteListItems->value();
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());

@@ -44,6 +44,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     favicons.clear();
     ctxSearchEngines.clear();
     recentFiles.clear();
+    adblockWhiteList.clear();
 
     appIcon.addFile(":/img/globe16");
     appIcon.addFile(":/img/globe32");
@@ -492,12 +493,22 @@ bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
                              QUrl::RemoveFragment | QUrl::StripTrailingSlash);
 
-    foreach (const CAdBlockRule rule, adblock) {
+    if (adblockWhiteList.contains(u)) return false;
+
+    foreach (const CAdBlockRule& rule, adblock) {
         if (rule.networkMatch(u)) {
             filter = rule.filter();
             return true;
         }
     }
+
+    // append unblocked url to cache
+    adblockWhiteListMutex.lock();
+    adblockWhiteList.append(u);
+    while(adblockWhiteList.count()>settings.maxAdblockWhiteList)
+        adblockWhiteList.removeFirst();
+    adblockWhiteListMutex.unlock();
+
     return false;
 }
 
