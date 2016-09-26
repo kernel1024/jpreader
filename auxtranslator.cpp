@@ -27,8 +27,24 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             qCritical() << tr("Unable to initialize translation engine.");
             text = "ERROR";
         } else {
-            text = tran->tranString(text);
+            QString ssrc = text;
+            QString res;
+            ssrc = ssrc.replace("\r\n","\n");
+            ssrc = ssrc.replace('\r','\n');
+            QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
+            foreach (const QString &s, sl) {
+                if (s.trimmed().isEmpty())
+                    res += "\n";
+                else {
+                    QString r = tran->tranString(s);
+                    if (r.trimmed().isEmpty())
+                        res += s + "\n";
+                    else
+                        res += r + "\n";
+                }
+            }
             tran->doneTran();
+            text = res;
         }
         if (tran!=NULL)
             tran->deleteLater();
