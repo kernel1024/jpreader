@@ -371,6 +371,8 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
     }
 
+    if (translatorFailed) return;
+
     for(int i=0;i<node.children.count();i++) {
         examineNode(node.children[i],xmlPass);
     }
@@ -571,9 +573,9 @@ void CTranslator::translate()
                 break;
             } else
                 lastAtlasError = tran->getErrorMsg();
-            QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
             if (tran!=NULL)
                 tran->doneTran(true);
+            QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
         }
         if (!oktrans) {
             emit calcFinished(false,lastAtlasError);

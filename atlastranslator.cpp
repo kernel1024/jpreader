@@ -157,6 +157,8 @@ QString CAtlasTranslator::tranString(QString src)
 
 void CAtlasTranslator::doneTran(bool lazyClose)
 {
+    inited = false;
+
     if (!sock.isOpen()) return;
 
     if (!lazyClose) {
@@ -178,6 +180,7 @@ void CAtlasTranslator::doneTran(bool lazyClose)
             return;
         }
     }
+
     sock.close();
 }
 
