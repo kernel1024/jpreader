@@ -34,6 +34,7 @@ public slots:
     void reparseDocument();
     void reparseDocumentPriv(const QString& data);
     void transButtonHighlight();
+    void getImgUrlsAndParse();
 };
 
 #endif // SNTRANS_H

@@ -92,6 +92,31 @@ void CSnTrans::translate(bool tranSubSentences)
     }
 }
 
+void CSnTrans::getImgUrlsAndParse()
+{
+    snv->txtBrowser->page()->toHtml([this](const QString& result) {
+
+        CTranslator* ct = new CTranslator(NULL,result);
+        QString res;
+        if (!ct->documentReparse(result,res)) {
+            QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed. Unable to get image urls."));
+            return;
+        }
+
+        QUrl baseUrl = snv->txtBrowser->page()->url();
+        if (baseUrl.hasFragment())
+            baseUrl.setFragment(QString());
+        QStringList urls;
+        foreach (const QString& s, ct->getImgUrls()) {
+            QUrl u = QUrl(s);
+            if (u.isRelative())
+                u = baseUrl.resolved(u);
+            urls << u.toString();
+        }
+        snv->netHandler->multiImgDownload(urls, baseUrl);
+    });
+}
+
 void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
 {
     snv->calculatedUrl="";

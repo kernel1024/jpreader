@@ -15,6 +15,7 @@ private:
 public:
     QUrl loadedUrl;
     CSnNet(CSnippetViewer * parent);
+    void multiImgDownload(const QStringList& urls, const QUrl &referer);
 public slots:
     void load(const QUrl & url);
     void load(const QString & html, const QUrl& loadedUrl = QUrl());

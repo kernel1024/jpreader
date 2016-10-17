@@ -5,16 +5,40 @@
 #include <QUrlQuery>
 #include <QWebEngineScriptCollection>
 #include <QDirIterator>
+#include <QDialog>
 #include "snnet.h"
 #include "genericfuncs.h"
 #include "authdlg.h"
 #include "pdftotext.h"
+#include "downloadmanager.h"
+#include "ui_selectablelistdlg.h"
 
 CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
     loadedUrl.clear();
+}
+
+void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
+{
+    QDialog *dlg = new QDialog(snv);
+    Ui::SelectableListDlg ui;
+    ui.setupUi(dlg);
+
+    ui.label->setText(tr("Detected image URLs from page"));
+    ui.list->addItems(urls);
+    ui.list->selectAll();
+    dlg->setWindowTitle(tr("Multiple images download"));
+
+    if (dlg->exec()==QDialog::Accepted) {
+        QString dir = getExistingDirectoryD(snv,tr("Save images to directory"),getTmpDir());
+        foreach(const QListWidgetItem* itm, ui.list->selectedItems()){
+            gSet->downloadManager->handleAuxDownload(itm->text(),dir,referer);
+        }
+    }
+    dlg->setParent(NULL);
+    dlg->deleteLater();
 }
 
 void CSnNet::loadStarted()

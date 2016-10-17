@@ -33,6 +33,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     tran=NULL;
     tranInited=false;
     metaSrcUrl.clear();
+    imgUrls.clear();
 }
 
 CTranslator::~CTranslator()
@@ -216,6 +217,11 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     return true;
 }
 
+QStringList CTranslator::getImgUrls()
+{
+    return imgUrls;
+}
+
 void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 {
     if (translatorFailed) return;
@@ -354,6 +360,15 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 continue;
             }
             idx++;
+        }
+
+        // collecting image urls
+        if (node.tagName.toLower()=="img") {
+            if (node.attributes.contains("src")) {
+                QString src = node.attributes.value("src").trimmed();
+                if (!src.isEmpty())
+                    imgUrls << src;
+            }
         }
     }
 

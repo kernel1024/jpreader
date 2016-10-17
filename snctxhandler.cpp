@@ -250,6 +250,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ccm->addSeparator();
 
+    ccm->addAction(QIcon::fromTheme("download-later"),tr("Download all images"),
+                   snv->transHandler,SLOT(getImgUrlsAndParse()));
+    ccm->addSeparator();
+
     ccm->addAction(QIcon::fromTheme("document-edit-decrypt"),tr("Parse document"),
                    snv->transHandler,SLOT(reparseDocument()));
     ccm->addSeparator();

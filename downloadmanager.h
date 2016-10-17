@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QWebEngineDownloadItem>
 #include <QAbstractItemDelegate>
+#include <QNetworkReply>
 
 namespace Ui {
 class CDownloadManager;
@@ -20,6 +21,8 @@ private:
     bool m_empty;
     bool autoDelete;
     bool m_dummy[2];
+    bool m_aux;
+    QNetworkReply* m_rpl;
 public:
     quint32 id;
     QString fileName, mimeType;
@@ -30,7 +33,9 @@ public:
     CDownloadItem();
     CDownloadItem(const CDownloadItem& other);
     CDownloadItem(quint32 itemId);
+    CDownloadItem(QNetworkReply* rpl);
     CDownloadItem(QWebEngineDownloadItem* item);
+    CDownloadItem(QNetworkReply* rpl, const QString& fname);
     CDownloadItem &operator=(const CDownloadItem& other);
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
@@ -48,7 +53,7 @@ class CDownloadManager : public QDialog
 public:
     explicit CDownloadManager(QWidget *parent = 0);
     ~CDownloadManager();
-
+    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer);
 public slots:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);
@@ -88,6 +93,7 @@ public slots:
     void appendItem(const CDownloadItem& item);
 
     void downloadFinished();
+    void downloadFailed(QNetworkReply::NetworkError code);
     void downloadStateChanged(QWebEngineDownloadItem::DownloadState state);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 

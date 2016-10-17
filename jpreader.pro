@@ -92,7 +92,8 @@ FORMS = main.ui \
     multiinputdialog.ui \
     downloadmanager.ui \
     sourceviewer.ui \
-    userscriptdlg.ui
+    userscriptdlg.ui \
+    selectablelistdlg.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras printsupport
 

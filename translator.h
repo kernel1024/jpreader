@@ -63,6 +63,7 @@ private:
     QString srcLanguage;
     QUrl metaSrcUrl;
     QStringList* createdFiles;
+    QStringList imgUrls;
     int atlTcpRetryCount;
     int atlTcpTimeout;
     int translationEngine;
@@ -93,6 +94,7 @@ public:
     explicit CTranslator(QObject* parent, QString aUri, bool forceTranSubSentences = false);
     ~CTranslator();
     bool documentReparse(const QString& srcUri, QString& dst);
+    QStringList getImgUrls();
 
 signals:
     void calcFinished(const bool success, const QString &aUrl);
