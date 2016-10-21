@@ -484,6 +484,9 @@ void CSettings::settingsDlg()
         gSet->updateAllBookmarks();
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
+        gSet->adblockWhiteListMutex.lock();
+        gSet->adblockWhiteList.clear();
+        gSet->adblockWhiteListMutex.unlock();
         gSet->initUserScripts(dlg->getUserScripts());
 
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";

@@ -519,12 +519,18 @@ void CGlobalControl::adblockAppend(QString url)
 
 void CGlobalControl::adblockAppend(CAdBlockRule url)
 {
-    adblock.append(url);
+    QList<CAdBlockRule> list;
+    list << url;
+    adblockAppend(list);
 }
 
 void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
 {
     adblock.append(urls);
+
+    adblockWhiteListMutex.lock();
+    adblockWhiteList.clear();
+    adblockWhiteListMutex.unlock();
 }
 
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
