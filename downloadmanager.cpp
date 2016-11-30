@@ -290,15 +290,19 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
     QNetworkReply* rpl = qobject_cast<QNetworkReply *>(sender());
 
     int idx = -1;
+    QUrl url;
 
-    if (rpl!=NULL)
+    if (rpl!=NULL) {
         idx = downloads.indexOf(CDownloadItem(rpl));
+        url = rpl->url();
+    }
     if (idx<0 || idx>=downloads.count()) return;
 
     downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
     downloads[idx].ptr = NULL;
 
-    qWarning() << "Download failed for " << rpl->url() << ", error code " << code;
+
+    qWarning() << "Download failed for " << url << ", error code " << code;
 
     if (rpl!=NULL) {
         rpl->deleteLater();

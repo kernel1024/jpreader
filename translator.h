@@ -21,7 +21,6 @@ public:
     QHash<QString,QString> attributes;
     QStringList attributesOrder;
     bool isTag, isComment;
-    bool dummy[2];
     CHTMLNode();
     ~CHTMLNode();
     CHTMLNode(const CHTMLNode& other);

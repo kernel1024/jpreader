@@ -218,12 +218,12 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
     QString cbContentsUnformatted = "";
 
     QClipboard *cb = QApplication::clipboard();
-    if (cb->mimeData(QClipboard::Clipboard)->hasHtml()) {
-        cbContents = cb->mimeData(QClipboard::Clipboard)->html();
+    if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
         cbContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-    } else if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
-        cbContents = cb->mimeData(QClipboard::Clipboard)->text();
-        cbContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
+        if (cb->mimeData(QClipboard::Clipboard)->hasHtml())
+            cbContents = cb->mimeData(QClipboard::Clipboard)->html();
+        else
+            cbContents = cb->mimeData(QClipboard::Clipboard)->text();
     }
 
     if (plainpre && !cbContentsUnformatted.isEmpty()) {

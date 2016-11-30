@@ -87,7 +87,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
-    double nhits = 0.0;
+    double nhits = -1.0;
     QString ftitle;
     bool relPercent = false;
 
@@ -99,10 +99,12 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
     } else
         processFile(w,nhits,ftitle);
 
-    if (nhits==0.0) return;
+    if (nhits<=0.01) return;
+
+    QString fileName = hit.fileName();
 
     if (ftitle.isEmpty())
-        ftitle = hit.fileName();
+        ftitle = fileName;
 
     // scan existing snippets and add new empty snippet
     for(int i=0;i<result.snippets.count();i++) {
@@ -125,7 +127,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
     result.snippets.last()["FileSize"] = QString("%L1 Kb")
                                          .arg(static_cast<double>(hit.size())/1024.0, 0, 'f', 1);
     result.snippets.last()["FileSizeNum"] = QString("%1").arg(hit.size());
-    result.snippets.last()["OnlyFilename"] = hit.fileName();
+    result.snippets.last()["OnlyFilename"] = fileName;
     result.snippets.last()["Dir"] = QDir(hit.dir()).dirName();
 
     // extract base properties (score, type etc)
@@ -138,8 +140,8 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
     result.snippets.last()["Time"]=dtm.toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
 
     result.snippets.last()["dc:title"]=ftitle;
-    result.snippets.last()["Filename"]=hit.fileName();
-    result.snippets.last()["FileTitle"] = hit.fileName();
+    result.snippets.last()["Filename"]= fileName;
+    result.snippets.last()["FileTitle"] = fileName;
 
     if (relPercent)
         result.snippets.last()["relMode"]=tr("percent");
@@ -152,7 +154,7 @@ void CIndexerSearch::processFile(const QString &filename, double &hitRate, QStri
     QFileInfo fi(filename);
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        hitRate = 0.0;
+        hitRate = -1.0;
         title = fi.fileName();
         return;
     }

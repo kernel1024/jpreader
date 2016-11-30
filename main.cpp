@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
     gSet = new CGlobalControl(&app);
     gSet->inspectorPort = dbgport;
-    if ((gSet==NULL) || (gSet->ipcServer==NULL))
+    if (gSet->ipcServer==NULL)
         return 0;
 
     if (gSet->settings.createCoredumps) {

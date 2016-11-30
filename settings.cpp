@@ -66,7 +66,7 @@ CSettings::CSettings(QObject *parent)
     userAgentHistory.clear();
     defaultSearchEngine.clear();
     savedAuxDir=QDir::homePath();
-    savedAuxSaveDir=QDir::homePath();
+    savedAuxSaveDir=savedAuxDir;
     overrideFont=QApplication::font();
     fontStandard=QApplication::font().family();
 

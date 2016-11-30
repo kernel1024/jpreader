@@ -24,7 +24,6 @@ public:
     QStrHash stats;
     QList<QStrHash> snippets;
     bool presented;
-    bool dummy[3];
     QBResult();
     QBResult(const QBResult& other);
     QBResult& operator=(const QBResult& other);

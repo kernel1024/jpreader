@@ -34,6 +34,11 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     tranInited=false;
     metaSrcUrl.clear();
     imgUrls.clear();
+    textNodesCnt = 0;
+    textNodesProgress = 0;
+    localHosting = false;
+    abortFlag = false;
+    translatorFailed = false;
 }
 
 CTranslator::~CTranslator()
@@ -586,8 +591,10 @@ void CTranslator::translate()
             if (translateDocument(Uri,aUrl)) {
                 oktrans = true;
                 break;
-            } else
+            } else if (tran!=NULL)
                 lastAtlasError = tran->getErrorMsg();
+            else
+                lastAtlasError = tr("ATLAS translator failed.");
             if (tran!=NULL)
                 tran->doneTran(true);
             QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));

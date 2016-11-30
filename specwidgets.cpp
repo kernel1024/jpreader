@@ -194,7 +194,7 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
                                QStyleHintReturn *returnData) const
 {
     if ( hint == SH_DrawMenuBarSeparator)
-        return true;
+        return static_cast<int>(true);
     else
         return QProxyStyle::styleHint(hint, option, widget, returnData);
 }

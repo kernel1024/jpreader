@@ -41,11 +41,8 @@ bool CBingTranslator::waitForReply(QNetworkReply *reply)
 
     eventLoop.exec();
 
-    if (timer != NULL)
-    {
-        timer->stop();
-        timer->deleteLater();
-    }
+    timer->stop();
+    timer->deleteLater();
 
     return reply->isFinished() && reply->bytesAvailable()>0;
 }

@@ -20,7 +20,6 @@ class CDownloadItem
 private:
     bool m_empty;
     bool autoDelete;
-    bool m_dummy[2];
     bool m_aux;
     QNetworkReply* m_rpl;
 public:

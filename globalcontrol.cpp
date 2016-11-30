@@ -83,8 +83,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     webProfile = new QWebEngineProfile("jpreader",this);
 
-    QString fs = QString();
-    fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
     if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
@@ -576,8 +575,7 @@ QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool is
 
     for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
         if (iterator.value().isEnabledForUrl(url) &&
-                (isMainFrame ||
-                 (!isMainFrame && iterator.value().shouldRunOnSubFrames())))
+                (isMainFrame || iterator.value().shouldRunOnSubFrames()))
             scripts.append(iterator.value());
 
     userScriptsMutex.unlock();

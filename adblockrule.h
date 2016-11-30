@@ -59,7 +59,6 @@ private:
     bool m_cssRule;
     bool m_exception;
     bool m_enabled;
-    bool m_dummy;
 };
 
 typedef QList<CAdBlockRule> CAdBlockList;

@@ -117,7 +117,7 @@ bool grabKey(xcb_keycode_t keycode, uint16_t modifiers, xcb_window_t window)
     xcb_connection_t* c = QX11Info::connection();
     if (c==NULL) return false;
 
-    xcb_void_cookie_t vc = xcb_grab_key(c, true, window, modifiers, keycode,
+    xcb_void_cookie_t vc = xcb_grab_key(c, 1, window, modifiers, keycode,
                                         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 
     if (xcb_request_check(c, vc)) {
