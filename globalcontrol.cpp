@@ -535,12 +535,12 @@ void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader");
-    settings.beginGroup("passwords");
+    QSettings params("kernel1024", "jpreader");
+    params.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
 
-    QString u = settings.value(QString("%1-user").arg(key),QString()).toString();
-    QByteArray ba = settings.value(QString("%1-pass").arg(key),QByteArray()).toByteArray();
+    QString u = params.value(QString("%1-user").arg(key),QString()).toString();
+    QByteArray ba = params.value(QString("%1-pass").arg(key),QByteArray()).toByteArray();
     QString p = "";
     if (!ba.isEmpty()) {
         p = QString::fromUtf8(QByteArray::fromBase64(ba));
@@ -552,18 +552,18 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
         user = u;
         password = p;
     }
-    settings.endGroup();
+    params.endGroup();
 }
 
 void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password)
 {
     if (!origin.isValid()) return;
-    QSettings settings("kernel1024", "jpreader");
-    settings.beginGroup("passwords");
+    QSettings params("kernel1024", "jpreader");
+    params.beginGroup("passwords");
     QString key = QString::fromLatin1(origin.toEncoded().toBase64());
-    settings.setValue(QString("%1-user").arg(key),user);
-    settings.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
-    settings.endGroup();
+    params.setValue(QString("%1-user").arg(key),user);
+    params.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
+    params.endGroup();
 }
 
 QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool isMainFrame)

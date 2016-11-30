@@ -12,7 +12,7 @@ namespace htmlcxx
 		class ParserSax
 		{
 			public:
-				ParserSax() : mpLiteral(0), mCdata(false) {}
+                ParserSax() : mCurrentOffset(0), mpLiteral(0), mCdata(false) {}
 				virtual ~ParserSax() {}
 
 				/** Parse the html code */

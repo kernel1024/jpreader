@@ -34,14 +34,13 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
         if (sl.count() != 3) continue; // must be 3 elements
 
         QString fname = QString();
-        QString title = QString();
         double rel = 0.0;
 
         QUrl u = QUrl(strFromBase64(sl.at(0)));
         if (u.isValid() && u.isLocalFile())
             fname = u.toLocalFile();
 
-        title = strFromBase64(sl.at(1));
+        QString title = strFromBase64(sl.at(1));
 
         QString p = strFromBase64(sl.at(2)).trimmed();
         p.remove('%');

@@ -99,7 +99,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
     } else
         processFile(w,nhits,ftitle);
 
-    if (nhits<=0.01) return;
+    if (nhits<0.01) return;
 
     QString fileName = hit.fileName();
 
