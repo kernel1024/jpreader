@@ -332,10 +332,25 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                     node.children.at(idx).attributes.value("class")
                     .toLower().trimmed().startsWith("vtoken")) {
 
-                while (!node.children.at(idx).children.isEmpty()) {
-                    node.children.insert(idx,node.children[idx].children.takeFirst());
-                    idx++;
-                }
+                QList<CHTMLNode> subnodes = node.children.at(idx).children;
+                for(int si=0;si<subnodes.count();si++)
+                    node.children.insert(idx+si+1,subnodes.at(si));
+
+                node.children.removeAt(idx);
+                node.normalize();
+                idx=0;
+                continue;
+            }
+
+            // remove ruby annotation (superscript), unfold main text block
+            if (node.children.at(idx).tagName.toLower()=="ruby") {
+                QList<CHTMLNode> subnodes;
+                foreach (const CHTMLNode& rnode, node.children.at(idx).children)
+                    if (rnode.tagName.toLower()=="rb")
+                        subnodes << rnode.children;
+
+                for(int si=0;si<subnodes.count();si++)
+                    node.children.insert(idx+si+1,subnodes.at(si));
 
                 node.children.removeAt(idx);
                 node.normalize();
