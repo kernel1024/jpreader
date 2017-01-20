@@ -86,11 +86,6 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionOverrideFont->setCheckable(true);
     actionOverrideFont->setChecked(false);
 
-    actionAutoloadImages = new QAction(QIcon::fromTheme("view-preview"),
-                                       tr("Autoload images"),this);
-    actionAutoloadImages->setCheckable(true);
-    actionAutoloadImages->setChecked(false);
-
     actionOverrideFontColor = new QAction(QIcon::fromTheme("format-text-color"),
                                           tr("Force translated text color"),this);
     actionOverrideFontColor->setCheckable(true);
@@ -201,7 +196,6 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const 
     mainWindow->menuTools->addAction(actionJSUsage);
 
     mainWindow->menuSettings->addAction(actionAutoTranslate);
-    mainWindow->menuSettings->addAction(actionAutoloadImages);
     mainWindow->menuSettings->addAction(actionOverrideFont);
     mainWindow->menuSettings->addAction(actionOverrideFontColor);
     mainWindow->menuSettings->addSeparator();

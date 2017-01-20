@@ -26,7 +26,6 @@ public:
 
     QAction *actionAutoTranslate;
     QAction *actionOverrideFont;
-    QAction *actionAutoloadImages;
     QAction *actionOverrideFontColor;
     QAction *actionTranslateSubSentences;
 
