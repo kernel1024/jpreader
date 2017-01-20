@@ -14,7 +14,7 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     focusTimer->setInterval(1000);
     focusTimer->setSingleShot(true);
 
-    connect(focusTimer,&QTimer::timeout,this,&CSnMsgHandler::focusSet);
+    connect(focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
 }
 
 void CSnMsgHandler::updateZoomFactor()
@@ -29,6 +29,7 @@ void CSnMsgHandler::searchFwd()
                                   Qt::MatchExactly)<0)
         snv->searchEdit->addItem(snv->searchEdit->currentText());
     snv->txtBrowser->findText(snv->searchEdit->currentText(), 0);
+    snv->txtBrowser->setFocus();
 }
 
 void CSnMsgHandler::searchBack()
@@ -38,6 +39,13 @@ void CSnMsgHandler::searchBack()
                                   Qt::MatchExactly)<0)
         snv->searchEdit->addItem(snv->searchEdit->currentText());
     snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebEnginePage::FindBackward);
+    snv->txtBrowser->setFocus();
+}
+
+void CSnMsgHandler::searchFocus()
+{
+    snv->searchPanel->show();
+    snv->searchEdit->setFocus();
 }
 
 void CSnMsgHandler::setZoom(QString z)
@@ -111,7 +119,7 @@ void CSnMsgHandler::hideBarLoading()
     loadingBarHideTimer->start();
 }
 
-void CSnMsgHandler::focusSet()
+void CSnMsgHandler::urlEditSetFocus()
 {
     if (snv->urlEdit->text().isEmpty())
         snv->urlEdit->setFocus();

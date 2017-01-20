@@ -27,6 +27,7 @@ public slots:
     void linkHovered(const QString &link);
     void searchFwd();
     void searchBack();
+    void searchFocus();
     void setZoom(QString z);
     void navByClick();
     void srcLang(int lang);
@@ -34,7 +35,7 @@ public slots:
     void updateSrcLang(QAction *action);
     void updateTranEngine();
     void hideBarLoading();
-    void focusSet();
+    void urlEditSetFocus();
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                              int exitCode);
 };

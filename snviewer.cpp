@@ -124,9 +124,9 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
-    connect(sc, &QShortcut::activated,searchPanel, &QWidget::show);
+    connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
-    connect(sc,&QShortcut::activated,searchPanel, &QWidget::show);
+    connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::searchFocus);
 
     waitPanel->hide();
     errorPanel->hide();
