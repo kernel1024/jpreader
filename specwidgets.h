@@ -172,13 +172,6 @@ public:
     void interceptRequest(QWebEngineUrlRequestInfo &info);
 };
 
-class CSpecGDSchemeHandler : public QWebEngineUrlSchemeHandler {
-    Q_OBJECT
-public:
-    CSpecGDSchemeHandler(QObject* parent = 0);
-    void requestStarted(QWebEngineUrlRequestJob * request);
-};
-
 class CSpecUrlHistoryModel : public QAbstractListModel {
     Q_OBJECT
 public:
@@ -186,34 +179,6 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-};
-
-class CMemFile : public QIODevice {
-    Q_OBJECT
-public:
-    CMemFile(const QByteArray &fileData);
-
-    qint64 bytesAvailable() const;
-    void close();
-
-protected:
-    qint64 readData(char *data, qint64 maxlen);
-    qint64 writeData(const char *buffer, qint64 maxlen);
-
-private:
-    QByteArray data;
-    const qint64 origLen;
-};
-
-class CIOEventLoop : public QEventLoop {
-    Q_OBJECT
-public:
-    CIOEventLoop(QObject* parent = 0);
-
-public slots:
-    void finished();
-    void timeout();
-    void objDestroyed(QObject *obj);
 };
 
 class CNetworkCookieJar : public QNetworkCookieJar

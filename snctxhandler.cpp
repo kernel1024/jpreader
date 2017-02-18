@@ -144,13 +144,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         ac = new QAction(QIcon::fromTheme("accessories-dictionary"),tr("Local dictionary"),NULL);
         connect(ac, &QAction::triggered, [sText](){
-            // Unknown memory management bug - segfaulting on mouse event handling after creating dict window with
-            // webengine instance. Workaround.
-            // Maybe related to QTBUG-58473
-//            gSet->showDictionaryWindowEx(sText);
-            QTimer::singleShot(250,[sText](){
-                gSet->showDictionaryWindowEx(sText);
-            });
+            gSet->showDictionaryWindowEx(sText);
         });
         cm->addAction(ac);
 

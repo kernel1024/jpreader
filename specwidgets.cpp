@@ -515,67 +515,6 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         qInfo() << "Net request:" << info.requestUrl();
 }
 
-CSpecGDSchemeHandler::CSpecGDSchemeHandler(QObject *parent)
-    : QWebEngineUrlSchemeHandler(parent)
-{
-
-}
-
-void CSpecGDSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
-{
-    if (request==NULL) return;
-
-    // request->fail doesn't work as expected...
-
-    QByteArray rplb;
-    rplb.clear();
-
-    if (request->requestUrl().scheme().toLower()!="gdlookup") {
-        rplb = makeSimpleHtml(tr("Error"),
-                              tr("Scheme '%1' not supported for 'gdlookup' scheme handler.")
-                              .arg(request->requestUrl().scheme())).toUtf8();
-        QIODevice *reply = new CMemFile(rplb);
-        request->reply("text/html",reply);
-        return;
-    }
-
-    CIOEventLoop ev;
-    QString mime;
-    sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(request->requestUrl(),mime);
-
-    connect(dr.get(),&Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
-    connect(request,&QWebEngineUrlRequestJob::destroyed,&ev,&CIOEventLoop::objDestroyed);
-    QTimer::singleShot(15000,&ev,SLOT(timeout()));
-
-    int ret = ev.exec();
-
-    if (ret==2) { // Request destroyed
-        return;
-
-    } else if (ret==1) { // Timeout
-        rplb = makeSimpleHtml(tr("Error"),
-                              tr("Dictionary request timeout for query '%1'.")
-                              .arg(request->requestUrl().toString())).toUtf8();
-        QIODevice *reply = new CMemFile(rplb);
-        request->reply("text/html",reply);
-
-    } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
-        std::vector<char> vc = dr->getFullData();
-        QByteArray res = QByteArray(reinterpret_cast<const char*>(vc.data()),
-                                    static_cast<int>(vc.size()));
-        QIODevice *reply = new CMemFile(res);
-        request->reply(mime.toLatin1(),reply);
-
-    } else { // Dictionary error
-        rplb = makeSimpleHtml(tr("Error"),
-                              tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
-                              .arg(request->requestUrl().toString(),
-                                   dr->getErrorString())).toUtf8();
-        QIODevice *reply = new CMemFile(rplb);
-        request->reply("text/html",reply);
-    }
-}
-
 CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)
     : QAbstractListModel(parent)
 {
@@ -609,67 +548,6 @@ Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
     Q_UNUSED(index);
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-}
-
-CMemFile::CMemFile(const QByteArray &fileData)
-    : data(fileData), origLen(fileData.length())
-{
-    setOpenMode(QIODevice::ReadOnly);
-
-    QTimer::singleShot(0, this, &QIODevice::readyRead);
-    QTimer::singleShot(0, this, &QIODevice::readChannelFinished);
-}
-
-qint64 CMemFile::bytesAvailable() const
-{
-    return data.length() + QIODevice::bytesAvailable();
-}
-
-void CMemFile::close()
-{
-    QIODevice::close();
-    deleteLater();
-}
-
-qint64 CMemFile::readData(char *buffer, qint64 maxlen)
-{
-    qint64 len = qMin(static_cast<qint64>(data.length()), maxlen);
-    if (len) {
-        memcpy(buffer, data.constData(), static_cast<size_t>(len));
-        data.remove(0, static_cast<int>(len));
-    }
-    return len;
-}
-
-qint64 CMemFile::writeData(const char *buffer, qint64 maxlen)
-{
-    Q_UNUSED(buffer);
-    Q_UNUSED(maxlen);
-
-    return 0;
-}
-
-CIOEventLoop::CIOEventLoop(QObject *parent)
-    : QEventLoop(parent)
-{
-
-}
-
-void CIOEventLoop::finished()
-{
-    exit(0);
-}
-
-void CIOEventLoop::timeout()
-{
-    exit(1);
-}
-
-void CIOEventLoop::objDestroyed(QObject *obj)
-{
-    Q_UNUSED(obj);
-
-    exit(2);
 }
 
 CNetworkCookieJar::CNetworkCookieJar(QObject *parent)

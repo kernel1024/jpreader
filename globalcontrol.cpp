@@ -103,7 +103,6 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
             downloadManager, &CDownloadManager::handleDownload);
 
     webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
-    webProfile->installUrlSchemeHandler(QByteArray("gdlookup"), new CSpecGDSchemeHandler());
 
     connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
             this, &CGlobalControl::cookieAdded);

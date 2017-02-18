@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QStringListModel>
-#include <QWebEngineView>
+#include <QTextBrowser>
 
 namespace Ui {
 class CAuxDictionary;
@@ -38,7 +38,7 @@ private:
     WordFinder *wordFinder;
     CAuxDictKeyFilter* keyFilter;
     QStringListModel* wordHistoryModel;
-    QWebEngineView* viewArticles;
+    QTextBrowser* viewArticles;
     bool forceFocusToEdit;
     void showTranslationFor(const QString& text);
     void updateMatchResults(bool finished);
@@ -52,10 +52,11 @@ public slots:
     void wordListSelectionChanged();
     void prefixMatchUpdated();
     void prefixMatchFinished();
-    void articleLoadFinished(bool ok);
+    void articleLoadFinished();
     void showEmptyDictPage();
     void restoreWindow();
     void editKeyPressed(int key);
+    void dictLoadUrl(const QUrl& url);
 
 };
 

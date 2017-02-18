@@ -1,12 +1,12 @@
 #include <QMessageBox>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QWebEngineView>
 #include <QKeyEvent>
 #include <QCompleter>
 #include <goldendictlib/goldendictmgr.hh>
 
 #include "auxdictionary.h"
+#include "genericfuncs.h"
 #include "globalcontrol.h"
 #include "ui_auxdictionary.h"
 
@@ -16,17 +16,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    layout()->removeWidget(ui->browser);
-    ui->browser->setParent(NULL);
-    delete ui->browser;
-
-    viewArticles = new QWebEngineView(this);
-    viewArticles->setObjectName(QString::fromUtf8("viewArticles"));
-    viewArticles->setUrl(QUrl("about://blank"));
-    ui->verticalSplitter->addWidget(viewArticles);
-    CSpecWebPage *wp = new CSpecWebPage(gSet->webProfile,NULL);
-    viewArticles->setPage(wp);
-
+    viewArticles = ui->browser;
     forceFocusToEdit = false;
 
     ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
@@ -45,7 +35,8 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     connect(wordFinder, &WordFinder::updated, this, &CAuxDictionary::prefixMatchUpdated);
     connect(wordFinder, &WordFinder::finished, this, &CAuxDictionary::prefixMatchFinished);
 
-    connect( viewArticles, &QWebEngineView::loadFinished, this, &CAuxDictionary::articleLoadFinished);
+    connect(viewArticles, &QTextBrowser::textChanged, this, &CAuxDictionary::articleLoadFinished);
+    connect(viewArticles, &QTextBrowser::anchorClicked, this, &CAuxDictionary::dictLoadUrl);
 
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
@@ -82,8 +73,7 @@ void CAuxDictionary::showTranslationFor(const QString &text)
     QUrlQuery requ;
     requ.addQueryItem( "word", text );
     req.setQuery(requ);
-
-    viewArticles->load(req);
+    dictLoadUrl(req);
 
     viewArticles->setCursor( Qt::WaitCursor );
 }
@@ -91,6 +81,25 @@ void CAuxDictionary::showTranslationFor(const QString &text)
 void CAuxDictionary::editKeyPressed(int )
 {
     forceFocusToEdit = true;
+}
+
+void CAuxDictionary::dictLoadUrl(const QUrl &url)
+{
+    QNetworkRequest rq(url);
+    QNetworkReply* rpl = gSet->dictNetMan->get(rq);
+
+    connect(rpl,&QNetworkReply::finished,[this,rpl](){
+        QByteArray rplb;
+        if (rpl->error()==QNetworkReply::NoError)
+            rplb = rpl->readAll();
+        else
+            rplb = makeSimpleHtml(tr("Error"),
+                                  tr("Dictionary request failed for query '%1'.")
+                                  .arg(rpl->url().toString())).toUtf8();
+        viewArticles->setHtml(rplb);
+        rpl->deleteLater();
+    });
+
 }
 
 void CAuxDictionary::updateMatchResults(bool finished)
@@ -230,7 +239,7 @@ void CAuxDictionary::wordListSelectionChanged()
     }
 }
 
-void CAuxDictionary::articleLoadFinished(bool )
+void CAuxDictionary::articleLoadFinished()
 {
     viewArticles->unsetCursor();
 
@@ -240,7 +249,7 @@ void CAuxDictionary::articleLoadFinished(bool )
 
 void CAuxDictionary::showEmptyDictPage()
 {
-    viewArticles->load(QUrl("about://blank"));
+    viewArticles->clear();
 }
 
 void CAuxDictionary::restoreWindow()

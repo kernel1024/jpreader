@@ -43,24 +43,18 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWebEngineView" name="browser" native="true">
-      <property name="url" stdset="0">
-       <url>
-        <string>about:blank</string>
-       </url>
+     <widget class="QTextBrowser" name="browser">
+      <property name="openExternalLinks">
+       <bool>false</bool>
+      </property>
+      <property name="openLinks">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebEngineView</class>
-   <extends>QWidget</extends>
-   <header>qwebengineview.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>editWord</tabstop>
   <tabstop>btnClear</tabstop>
