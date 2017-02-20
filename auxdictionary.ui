@@ -43,18 +43,18 @@
        </item>
       </layout>
      </widget>
-     <widget class="QTextBrowser" name="browser">
-      <property name="openExternalLinks">
-       <bool>false</bool>
-      </property>
-      <property name="openLinks">
-       <bool>false</bool>
-      </property>
-     </widget>
+     <widget class="CGDTextBrowser" name="browser"/>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CGDTextBrowser</class>
+   <extends>QTextBrowser</extends>
+   <header>specwidgets.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>editWord</tabstop>
   <tabstop>btnClear</tabstop>

@@ -12,7 +12,6 @@
 #include <QUrl>
 #include <QMap>
 #include <QVariant>
-#include <QIODevice>
 #include <QString>
 #include <QLabel>
 #include <QHideEvent>
@@ -20,6 +19,7 @@
 #include <QSyntaxHighlighter>
 #include <QAbstractListModel>
 #include <QEventLoop>
+#include <QTextBrowser>
 #include <QNetworkCookieJar>
 #include <QWebEngineView>
 
@@ -179,6 +179,27 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+};
+
+class CGDTextBrowser : public QTextBrowser
+{
+    Q_OBJECT
+public:
+    explicit CGDTextBrowser(QWidget* parent = Q_NULLPTR);
+
+protected:
+    QVariant loadResource(int type, const QUrl &url);
+
+};
+
+class CIOEventLoop : public QEventLoop {
+    Q_OBJECT
+public:
+    CIOEventLoop(QObject* parent = 0);
+
+public slots:
+    void finished();
+    void timeout();
 };
 
 class CNetworkCookieJar : public QNetworkCookieJar

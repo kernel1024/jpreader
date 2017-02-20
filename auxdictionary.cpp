@@ -36,7 +36,6 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     connect(wordFinder, &WordFinder::finished, this, &CAuxDictionary::prefixMatchFinished);
 
     connect(viewArticles, &QTextBrowser::textChanged, this, &CAuxDictionary::articleLoadFinished);
-    connect(viewArticles, &QTextBrowser::anchorClicked, this, &CAuxDictionary::dictLoadUrl);
 
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
@@ -85,21 +84,7 @@ void CAuxDictionary::editKeyPressed(int )
 
 void CAuxDictionary::dictLoadUrl(const QUrl &url)
 {
-    QNetworkRequest rq(url);
-    QNetworkReply* rpl = gSet->dictNetMan->get(rq);
-
-    connect(rpl,&QNetworkReply::finished,[this,rpl](){
-        QByteArray rplb;
-        if (rpl->error()==QNetworkReply::NoError)
-            rplb = rpl->readAll();
-        else
-            rplb = makeSimpleHtml(tr("Error"),
-                                  tr("Dictionary request failed for query '%1'.")
-                                  .arg(rpl->url().toString())).toUtf8();
-        viewArticles->setHtml(rplb);
-        rpl->deleteLater();
-    });
-
+    viewArticles->setSource(url);
 }
 
 void CAuxDictionary::updateMatchResults(bool finished)

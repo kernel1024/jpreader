@@ -550,6 +550,69 @@ Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
+CGDTextBrowser::CGDTextBrowser(QWidget *parent)
+    : QTextBrowser(parent)
+{
+
+}
+
+QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
+{
+    if (gSet!=NULL && url.scheme().toLower()=="gdlookup") {
+        QByteArray rplb;
+
+        CIOEventLoop ev;
+        QString mime;
+
+        QUrlQuery qr(url);
+        if ( qr.queryItemValue( "blank" ) == "1" ) {
+            rplb = makeSimpleHtml(QString(),QString()).toUtf8();
+            return rplb;
+        }
+
+        sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(url,mime);
+
+        connect(dr.get(),SIGNAL(finished()),&ev,SLOT(finished()));
+        QTimer::singleShot(15000,&ev,SLOT(timeout()));
+
+        int ret = ev.exec();
+
+        if (ret==1) { // Timeout
+            rplb = makeSimpleHtml(tr("Error"),
+                                  tr("Dictionary request timeout for query '%1'.")
+                                  .arg(url.toString())).toUtf8();
+
+        } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
+            std::vector<char> vc = dr->getFullData();
+            rplb = QByteArray(reinterpret_cast<const char*>(vc.data()), vc.size());
+
+        } else { // Dictionary error
+            rplb = makeSimpleHtml(tr("Error"),
+                                  tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
+                                  .arg(url.toString(),dr->getErrorString())).toUtf8();
+        }
+        return rplb;
+    }
+
+    return QTextBrowser::loadResource(type,url);
+}
+
+CIOEventLoop::CIOEventLoop(QObject *parent)
+    : QEventLoop(parent)
+{
+
+}
+
+void CIOEventLoop::finished()
+{
+    exit(0);
+}
+
+void CIOEventLoop::timeout()
+{
+    exit(1);
+}
+
 CNetworkCookieJar::CNetworkCookieJar(QObject *parent)
     : QNetworkCookieJar(parent)
 {
