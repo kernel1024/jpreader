@@ -649,9 +649,9 @@ void CMainWindow::updateBookmarks()
 {
     while (menuBookmarks->actions().count()>2)
         menuBookmarks->removeAction(menuBookmarks->actions().last());
-    QMenu* menu = NULL;
+    QMenu* menu = menuBookmarks;
     for(int i=0;i<gSet->bookmarks.count();i++) {
-        if (i>=gSet->settings.maxBookmarksCnt && menu==NULL) {
+        if (i==gSet->settings.maxBookmarksCnt) {
             menuBookmarks->addSeparator();
             menu = menuBookmarks->addMenu(tr("Other bookmarks"));
             menu->setStyleSheet("QMenu { menu-scrollable: 1; }");
@@ -660,15 +660,16 @@ void CMainWindow::updateBookmarks()
 
         QString t = gSet->bookmarks.at(i).first;
         QUrl u = gSet->bookmarks.at(i).second;
-        QAction* a;
-        if (menu==NULL)
-            a = menuBookmarks->addAction(t,this,SLOT(openBookmark()));
-        else
-            a = menu->addAction(t,this,SLOT(openBookmark()));
+        QAction* a = menu->addAction(t,this,SLOT(openBookmark()));
         a->setData(i);
         a->setStatusTip(u.toString());
         a->setToolTip(u.toString());
 	}
+
+    if (!gSet->bookmarks.isEmpty()) {
+        menu->addSeparator();
+        menu->addAction(tr("Open all bookmarks"),this,SLOT(openAllBookmarks()));
+    }
 }
 
 void CMainWindow::addBookmark()
@@ -713,6 +714,18 @@ void CMainWindow::openBookmark()
     if (idx>=0) {
         gSet->bookmarks.move(idx,0);
         gSet->updateAllBookmarks();
+    }
+}
+
+void CMainWindow::openAllBookmarks()
+{
+    for (int i=0;i<gSet->bookmarks.count();i++) {
+        QUrl u = gSet->bookmarks.at(i).second;
+        if (!u.isValid()) continue;
+
+        new CSnippetViewer(this, u, QStringList(), false);
+
+        qApp->processEvents();
     }
 }
 

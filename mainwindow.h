@@ -60,6 +60,7 @@ public slots:
 	void helpAbout();
 
 	void openBookmark();
+    void openAllBookmarks();
     void openAuxFiles(const QStringList &filenames);
     void openAuxFileWithDialog();
     void openAuxFileInDir();
