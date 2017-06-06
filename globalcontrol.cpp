@@ -85,12 +85,13 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
-    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + tr(".config");
+    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QStringLiteral(".cache")
+                           + QDir::separator() + QStringLiteral("jpreader");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
 
-    QString fcache = fs + tr("cache") + QDir::separator();
+    QString fcache = fs + QStringLiteral("cache") + QDir::separator();
     webProfile->setCachePath(fcache);
-    QString fdata = fs + tr("local_storage") + QDir::separator();
+    QString fdata = fs + QStringLiteral("local_storage") + QDir::separator();
     webProfile->setPersistentStoragePath(fdata);
 
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
@@ -112,7 +113,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     settings.readSettings(this);
 
-    settings.dictIndexDir = fs + tr("dictIndex") + QDir::separator();
+    settings.dictIndexDir = fs + QStringLiteral("dictIndex") + QDir::separator();
     QDir dictIndex(settings.dictIndexDir);
     if (!dictIndex.exists())
         if (!dictIndex.mkpath(settings.dictIndexDir)) {
