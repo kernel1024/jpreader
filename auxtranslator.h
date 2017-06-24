@@ -8,7 +8,7 @@
 class CAuxTranslator : public QObject
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.jpreader.auxtranslator")
+    Q_CLASSINFO("D-Bus Interface", "org.kernel1024.jpreader.auxtranslator")
 private:
     QString text;
     int srcLang;

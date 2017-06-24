@@ -17,6 +17,7 @@
 #include "translator.h"
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
+#include "browsercontroller_adaptor.h"
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
 #include "downloadmanager.h"
@@ -65,10 +66,16 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     initPdfToText();
 
     auxTranslatorDBus = new CAuxTranslator(this);
+    browserControllerDBus = new CBrowserController(this);
     new AuxtranslatorAdaptor(auxTranslatorDBus);
+    new BrowsercontrollerAdaptor(browserControllerDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    dbus.registerObject("/",auxTranslatorDBus);
-    dbus.registerService(DBUS_NAME);
+    if (!dbus.registerObject("/auxTranslator",auxTranslatorDBus))
+        qCritical() << dbus.lastError().name() << dbus.lastError().message();
+    if (!dbus.registerObject("/browserController",browserControllerDBus))
+        qCritical() << dbus.lastError().name() << dbus.lastError().message();
+    if (!dbus.registerService(DBUS_NAME))
+        qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
     connect(parent, &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
 

@@ -20,6 +20,9 @@ Debug/
 Release/
 *.log
 .*.stash
+*_adaptor.*
+*_interface.*
+moc_*.h
 
 # QtCreator project files
 *.pro.user
@@ -30,5 +33,3 @@ Release/
 # Project specific
 jpreader
 jpreader_*.pro
-auxtranslator_adaptor.*
-dictionary_interface.*

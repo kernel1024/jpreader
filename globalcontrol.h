@@ -26,6 +26,7 @@
 #include "settings.h"
 #include "globalui.h"
 #include "userscript.h"
+#include "browsercontroller.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -51,6 +52,7 @@ public:
     QList<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
     CAuxTranslator* auxTranslatorDBus;
+    CBrowserController* browserControllerDBus;
     QLocalServer* ipcServer;
 
     QIcon appIcon;

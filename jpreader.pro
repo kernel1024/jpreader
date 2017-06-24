@@ -35,7 +35,8 @@ HEADERS = mainwindow.h \
     structures.h \
     settings.h \
     globalui.h \
-    userscript.h
+    userscript.h \
+    browsercontroller.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -75,7 +76,8 @@ SOURCES = main.cpp \
     structures.cpp \
     settings.cpp \
     globalui.cpp \
-    userscript.cpp
+    userscript.cpp \
+    browsercontroller.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -182,11 +184,13 @@ include( miniqxt/miniqxt.pri )
 
 OTHER_FILES += \
     data/startpage.html \
-    data/article-style.css \
-    org.jpreader.auxtranslator.xml
+    data/article-style.css
 
-DBUS_ADAPTORS = org.jpreader.auxtranslator.xml
+DBUS_ADAPTORS = org.kernel1024.jpreader.auxtranslator.xml \
+    org.kernel1024.jpreader.browsercontroller.xml
 
 DISTFILES += \
     README.md \
-    data/pixiv-built-in.js
+    data/pixiv-built-in.js \
+    org.kernel1024.jpreader.auxtranslator.xml \
+    org.kernel1024.jpreader.browsercontroller.xml

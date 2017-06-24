@@ -34,8 +34,8 @@
 #define LS_KOREAN 3
 #define LSCOUNT 4
 
-#define DBUS_NAME "org.jpreader.auxtranslator"
-#define IPC_NAME "org.jpreader.ipc.main"
+#define DBUS_NAME "org.kernel1024.jpreader"
+#define IPC_NAME "org.kernel1024.jpreader.ipc.main"
 
 class UrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
