@@ -154,6 +154,31 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
         cm->addAction(ac);
 
+        QUrl selectedUrl = QUrl::fromUserInput(sText);
+        if (selectedUrl.isValid() && !selectedUrl.isLocalFile() && !selectedUrl.isRelative()) {
+            cm->addSeparator();
+
+            QMenu* icm = cm->addMenu(QIcon::fromTheme("go-jump-locationbar"),tr("Open selected link"));
+
+            ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new background tab"),NULL);
+            connect(ac, &QAction::triggered, [selectedUrl,this]() {
+                new CSnippetViewer(snv->parentWnd,selectedUrl,QStringList(),false);
+            });
+            icm->addAction(ac);
+            ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new tab"),NULL);
+            connect(ac, &QAction::triggered, [selectedUrl,this]() {
+                new CSnippetViewer(snv->parentWnd,selectedUrl,QStringList());
+            });
+            icm->addAction(ac);
+
+            ac = new QAction(QIcon::fromTheme("tab-new"),tr("Open in new background tab and translate"),NULL);
+            connect(ac, &QAction::triggered, [selectedUrl,this]() {
+                CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd,selectedUrl,QStringList(),false);
+                sn->requestAutotranslate = true;
+            });
+            icm->addAction(ac);
+        }
+
         cm->addSeparator();
     }
 
