@@ -24,7 +24,7 @@ private:
     QNetworkReply* m_rpl;
 public:
     quint32 id;
-    QString fileName, mimeType;
+    QString fileName, mimeType, errorString;
     QWebEngineDownloadItem::DownloadState state;
     qint64 received, total;
     QWebEngineDownloadItem* ptr;

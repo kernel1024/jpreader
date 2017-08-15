@@ -103,6 +103,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+    webProfile->setSpellCheckEnabled(false);
 
     webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
     webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);

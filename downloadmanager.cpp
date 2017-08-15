@@ -205,12 +205,17 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
             case 2:
                 if (t.total==0) return QString("0%");
                 return QString("%1%").arg(100*t.received/t.total);
-            case 3: return QString("%1 / %2")
+            case 3:
+                if (!t.errorString.isEmpty())
+                    return t.errorString;
+                return QString("%1 / %2")
                         .arg(formatBytes(t.received))
                         .arg(formatBytes(t.total));
             default: return QVariant();
         }
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
+        if (!t.errorString.isEmpty() && index.column()==0)
+            return t.errorString;
         return t.fileName;
     } else if (role == Qt::UserRole+1) {
         if (t.total==0)
@@ -298,11 +303,9 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
     }
     if (idx<0 || idx>=downloads.count()) return;
 
-    downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+    downloads[idx].state = QWebEngineDownloadItem::DownloadInterrupted;
+    downloads[idx].errorString = tr("Error %1: %2").arg(code).arg(rpl->errorString());
     downloads[idx].ptr = NULL;
-
-
-    qWarning() << "Download failed for " << url << ", error code " << code;
 
     if (rpl!=NULL) {
         rpl->deleteLater();
@@ -365,8 +368,10 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     if (idx<0 || idx>=downloads.count()) return;
 
     downloads[idx].state = state;
+    if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
+        downloads[idx].errorString = item->interruptReasonString();
 
-    emit dataChanged(index(idx,0),index(idx,0));
+    emit dataChanged(index(idx,0),index(idx,3));
 }
 
 void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -503,6 +508,7 @@ CDownloadItem::CDownloadItem()
     id = 0;
     fileName.clear();
     mimeType.clear();
+    errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
@@ -518,6 +524,7 @@ CDownloadItem::CDownloadItem(const CDownloadItem &other)
     id = other.id;
     fileName = other.fileName;
     mimeType = other.mimeType;
+    errorString = other.errorString;
     state = other.state;
     received = other.received;
     total = other.total;
@@ -533,6 +540,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
     id = itemId;
     fileName.clear();
     mimeType.clear();
+    errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
@@ -548,6 +556,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl)
     id = 0;
     fileName.clear();
     mimeType.clear();
+    errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
@@ -564,6 +573,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         id = 0;
         fileName.clear();
         mimeType.clear();
+        errorString.clear();
         state = QWebEngineDownloadItem::DownloadRequested;
         received = 0;
         total = 0;
@@ -576,6 +586,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         id = item->id();
         fileName = item->path();
         mimeType = item->mimeType();
+        errorString.clear();
         state = item->state();
         received = item->receivedBytes();
         total = item->totalBytes();
@@ -592,6 +603,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
     id = 0;
     fileName = fname;
     mimeType = QString("application/download");
+    errorString.clear();
     state = QWebEngineDownloadItem::DownloadInProgress;
     received = 0;
     total = 0;
@@ -607,6 +619,7 @@ CDownloadItem &CDownloadItem::operator=(const CDownloadItem &other)
     id = other.id;
     fileName = other.fileName;
     mimeType = other.mimeType;
+    errorString = other.errorString;
     state = other.state;
     received = other.received;
     total = other.total;
