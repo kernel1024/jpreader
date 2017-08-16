@@ -76,17 +76,21 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     if (!isVisible())
         show();
 
-    QFileInfo fi(item->path());
+    if (item->savePageFormat()==QWebEngineDownloadItem::UnknownSaveFormat) { // Async save request from user, not full html page
+        QFileInfo fi(item->path());
 
-    QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
-                                     QString(),0,fi.fileName());
+        QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
+                                         QString(),0,fi.fileName());
 
-    if (fname.isNull() || fname.isEmpty()) {
-        item->cancel();
-        item->deleteLater();
-        return;
+        if (fname.isNull() || fname.isEmpty()) {
+            item->cancel();
+            item->deleteLater();
+            return;
+        }
+        gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
+
+        item->setPath(fname);
     }
-    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
 
     connect(item, &QWebEngineDownloadItem::finished,
             model, &CDownloadsModel::downloadFinished);
@@ -94,8 +98,6 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
             model, &CDownloadsModel::downloadProgress);
     connect(item, &QWebEngineDownloadItem::stateChanged,
             model, &CDownloadsModel::downloadStateChanged);
-
-    item->setPath(fname);
 
     model->appendItem(CDownloadItem(item));
 

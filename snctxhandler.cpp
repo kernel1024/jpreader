@@ -250,7 +250,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("document-edit-verify"),tr("Show source"),
-                 this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_S));
+                 this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_E));
     ccm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::InspectElement));
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show in editor"),
@@ -361,7 +361,8 @@ void CSnCtxHandler::saveToFile()
     QString fname;
     if (selectedText.isEmpty())
         fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings.savedAuxSaveDir,
-                                                 tr("HTML file (*.html);;Text file (*.txt)"));
+                                                 tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
+                                                    "Text file (*.txt);;MHTML archive (*.mht)"));
     else
         fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings.savedAuxSaveDir,
                                                  tr("Text file (*.txt)"));
@@ -383,14 +384,12 @@ void CSnCtxHandler::saveToFile()
             f.write(result.toUtf8());
             f.close();
         });
+    else if (fi.suffix().toLower().startsWith("mht"))
+        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
+    else if (fi.suffix().toLower()=="htm")
+        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
     else
-        snv->txtBrowser->page()->toHtml([fname](const QString& result)
-        {
-            QFile f(fname);
-            f.open(QIODevice::WriteOnly|QIODevice::Truncate);
-            f.write(result.toUtf8());
-            f.close();
-        });
+        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
 }
 
 void CSnCtxHandler::bookmarkPage() {

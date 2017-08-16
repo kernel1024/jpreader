@@ -50,20 +50,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     tabHelper->addTab(tr("History"));
     updateSplitters();
 
-	actionExit->setIcon(QIcon::fromTheme("application-exit"));
-    actionExitAll->setIcon(QIcon::fromTheme("application-exit"));
-    actionSettings->setIcon(QIcon::fromTheme("configure"));
-	actionAbout->setIcon(QIcon::fromTheme("help-about"));
-    actionOpen->setIcon(QIcon::fromTheme("document-open"));
-    actionOpenInDir->setIcon(QIcon::fromTheme("document-open-folder"));
-    actionNew->setIcon(QIcon::fromTheme("document-new"));
-    actionPrintPDF->setIcon(QIcon::fromTheme("document-print"));
-    actionOpenCB->setIcon(QIcon::fromTheme("edit-paste"));
-    actionClearCB->setIcon(QIcon::fromTheme("edit-clear"));
-    actionOpenClip->setIcon(QIcon::fromTheme("document-open-remote"));
-    actionWnd->setIcon(QIcon::fromTheme("window-new"));
-    actionTextTranslator->setIcon(QIcon::fromTheme("document-edit-verify"));
-
     recentMenu = new QMenu(menuFile);
     actionRecentDocuments->setMenu(recentMenu);
 
@@ -84,6 +70,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     connect(actionOpenInDir, &QAction::triggered, this, &CMainWindow::openAuxFileInDir);
     connect(actionOpenCB, &QAction::triggered, this, &CMainWindow::createFromClipboard);
     connect(actionOpenCBPlain, &QAction::triggered, this, &CMainWindow::createFromClipboardPlain);
+    connect(actionSave, &QAction::triggered, this, &CMainWindow::save);
     connect(actionClearCB, &QAction::triggered, this, &CMainWindow::clearClipboard);
     connect(actionClearCache, &QAction::triggered, gSet, &CGlobalControl::clearCaches);
     connect(actionOpenClip, &QAction::triggered, this, &CMainWindow::openFromClipboard);
@@ -295,6 +282,15 @@ void CMainWindow::printToPDF()
     if (sn==NULL) return;
 
     sn->printToPDF();
+}
+
+void CMainWindow::save()
+{
+    if (tabMain->currentWidget()==NULL) return;
+    CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    if (sv==NULL) return;
+
+    sv->ctxHandler->saveToFile();
 }
 
 void CMainWindow::splitterMoved(int, int)

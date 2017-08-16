@@ -312,17 +312,19 @@ QStringList getSuffixesFromFilter(const QString& filter)
     res.clear();
     if (filter.isEmpty()) return res;
 
-    res = filter.split(";;",QString::SkipEmptyParts);
-    if (res.isEmpty()) return res;
-    QString ex = res.first();
-    res.clear();
+    QStringList filters = filter.split(";;",QString::SkipEmptyParts);
+    if (filters.isEmpty()) return res;
 
-    if (ex.isEmpty()) return res;
+    for (int i=0;i<filters.count();i++) {
+        QString ex = filters.at(i);
 
-    ex.remove(QRegExp("^.*\\("));
-    ex.remove(QRegExp("\\).*$"));
-    ex.remove(QRegExp("^.*\\."));
-    res = ex.split(" ");
+        if (ex.isEmpty()) continue;
+
+        ex.remove(QRegExp("^.*\\("));
+        ex.remove(QRegExp("\\).*$"));
+        ex.remove(QRegExp("^.*\\."));
+        res.append(ex.split(" "));
+    }
 
     return res;
 }
@@ -338,14 +340,6 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
     d.setOptions(opts);
     d.setAcceptMode(QFileDialog::AcceptSave);
 
-    QStringList sl;
-    if (selectedFilter!=NULL && !selectedFilter->isEmpty())
-        sl=getSuffixesFromFilter(*selectedFilter);
-    else
-        sl=getSuffixesFromFilter(filter);
-    if (!sl.isEmpty())
-        d.setDefaultSuffix(sl.first());
-
     if (selectedFilter && !selectedFilter->isEmpty())
         d.selectNameFilter(*selectedFilter);
 
@@ -353,8 +347,12 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
         d.selectFile(preselectFileName);
 
     if (d.exec()==QDialog::Accepted) {
+        QString userFilter = d.selectedNameFilter();
         if (selectedFilter!=NULL)
-            *selectedFilter=d.selectedNameFilter();
+            *selectedFilter=userFilter;
+        if (!userFilter.isEmpty())
+            d.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());
+
         if (!d.selectedFiles().isEmpty())
             return d.selectedFiles().first();
         else
