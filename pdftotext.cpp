@@ -35,7 +35,10 @@
  * ========================================================================*/
 
 #include "pdftotext.h"
+#include "genericfuncs.h"
+#include "structures.h"
 #include <QByteArray>
+#include <QMutex>
 #include <QDebug>
 
 #ifdef WITH_POPPLER
@@ -55,48 +58,24 @@
 #include <QMessageLogger>
 
 void metaString(QString& out, Dict *infoDict, const char* key,
-                const QString& fmt, UnicodeMap *uMap)
+                const QString& fmt)
 {
     Object obj;
     GooString *s1;
-    GBool isUnicode;
-    Unicode u;
-    char buf[9];
-    int i, n;
+    QString res;
 
     if (infoDict->lookup(key, &obj)->isString()) {
         s1 = obj.getString();
-        if ((s1->getChar(0) & 0xff) == 0xfe &&
-                (s1->getChar(1) & 0xff) == 0xff) {
-            isUnicode = gTrue;
-            i = 2;
-        } else {
-            isUnicode = gFalse;
-            i = 0;
-        }
-        QString acc;
-        while (i < obj.getString()->getLength()) {
-            if (isUnicode) {
-                unsigned int hi = s1->getChar(i) & 0xff << 8;
-                unsigned int lo = s1->getChar(i+1) & 0xff;
-                u = hi | lo;
-                i += 2;
-            } else {
-                u = pdfDocEncoding[s1->getChar(i) & 0xff];
-                ++i;
-            }
-            n = uMap->mapUnicode(u, buf, sizeof(buf));
-            buf[n] = '\0';
-            QString myString(buf);
-            myString.replace("&",  "&amp;");
-            myString.replace("'",  "&apos;" );
-            myString.replace("\"", "&quot;" );
-            myString.replace("<",  "&lt;" );
-            myString.replace(">",  "&gt;" );
-            acc.append(myString);
-        }
-        out.append(QString(fmt).arg(acc));
+        QByteArray ba(s1->getCString());
+        res = detectDecodeToUnicode(ba);
+        res.replace("&",  "&amp;");
+        res.replace("'",  "&apos;" );
+        res.replace("\"", "&quot;" );
+        res.replace("<",  "&lt;" );
+        res.replace(">",  "&gt;" );
     }
+    if (!res.isEmpty())
+        out.append(QString(fmt).arg(res));
     obj.free();
 }
 
@@ -115,23 +94,12 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     obj.free();
 }
 
+static QIntList outLengths;
+static QMutex pdfInterlock;
+
 static void outputToString(void *stream, const char *text, int len)
 {
-    if (stream==NULL) return;
-    QString* str = reinterpret_cast<QString *>(stream);
-    str->append(QString::fromUtf8(text,len));
-}
-
-QString formatPdfText(const QString& text)
-{
-    const static QString openingQuotation = "\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
-                                            "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
-    // 〈《「『【〔〖〘〚 “ « ‹ ‘ " ( [
-    const static QString closingQuotation = "\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
-                                            "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D";
-    //  〉》」』】〕〗〙〛” » › ’ " ) ]
-    const static QString endMarkers = "\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026";
-    // ! . ? 。…
+    static bool prevblock = false;
     const static QString vertForm = "\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
                                     "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
                                     "\uFE46\uFE47\uFE48\u22EE"
@@ -145,15 +113,71 @@ QString formatPdfText(const QString& text)
                                       "\u3002\uFF3B\uFF3D\u2026"
                                       "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
 
+    if (stream==NULL) return;
+    QString* str = reinterpret_cast<QString *>(stream);
+    QString tx = QString::fromUtf8(text,len);
+
+    for (int i=0;i<tx.length();i++) {
+        int vtidx = vertForm.indexOf(tx.at(i)); // replace vertical forms with normal ones
+        if (vtidx>=0)
+            tx.replace(i,1,vertFormTr.at(vtidx));
+    }
+
+    str->append(tx);
+    outLengths.append(tx.length());
+
+    if (tx.length()==1 && (tx.at(0).isLetter() || tx.at(0).isPunct() || tx.at(0).isSymbol())) {
+        prevblock = true;
+    } else {
+        if (!prevblock) str->append("\n");
+        prevblock = false;
+    }
+}
+
+QString formatPdfText(const QString& text)
+{
+    const static QString openingQuotation = "\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
+                                            "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
+    // 〈《「『【〔〖〘〚 “ « ‹ ‘ " ( [
+    const static QString closingQuotation = "\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
+                                            "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D";
+    //  〉》」』】〕〗〙〛” » › ’ " ) ]
+    const static QString endMarkers = "\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026";
+    // ! . ? 。…
+
     const static int maxParagraphLength = 150;
 
-    QString s = "<p>"+text+"</p>";
+    int sumlen = 0;
+    for (int i=0;i<outLengths.count();i++)
+        sumlen += outLengths.at(i);
+    double avglen = (double)sumlen/outLengths.count();
+    bool isVerticalText = (avglen<2.0);
+
+    QString s = text;
 
     // replace multi-newlines with paragraph markers
-    s = s.replace(QRegExp("\n{2,}"),"</p><p>");
+    QRegExp exp("\n{2,}");
+    int pos = 0;
+    while ((pos=exp.indexIn(s,pos)) != -1) {
+        int length = exp.matchedLength();
+        s.remove(pos,length);
+        if (pos>0) {
+            QChar pm = s.at(pos-1);
+            if (!((pm.isLetter() && !isVerticalText) ||
+                  (pm.isLetterOrNumber() && isVerticalText) ||
+                  (pm.isPunct() && !endMarkers.contains(pm))))
+                s.insert(pos,"</p><p>");
+        }
+    }
+
 
     // delete remaining newlines
     s.remove('\n');
+
+    // replace page separators
+    s = s.replace('\f',"</p><hr><p>");
+
+    s = "<p>" + s + "</p>";
 
     int idx = 0;
     while (idx<s.length()) { // remove-replace pass
@@ -163,10 +187,6 @@ QString formatPdfText(const QString& text)
             s.remove(idx,1);
             continue;
         }
-
-        int vtidx = vertForm.indexOf(c); // replace vertical forms with normal ones
-        if (vtidx>=0)
-            s.replace(idx,1,vertFormTr.at(vtidx));
 
         idx++;
     }
@@ -234,13 +254,17 @@ bool pdfToText(const QUrl& pdf, QString& result)
     UnicodeMap *uMap;
     Object info;
 
+    pdfInterlock.lock();
+
     result.clear();
+    outLengths.clear();
 
     globalParams->setTextEncoding(textEncoding);
 
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding())) {
         qCritical() << "pdfToText: Couldn't get text encoding";
+        pdfInterlock.unlock();
         return false;
     }
 
@@ -250,6 +274,7 @@ bool pdfToText(const QUrl& pdf, QString& result)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
+        pdfInterlock.unlock();
         return false;
     }
 
@@ -259,21 +284,21 @@ bool pdfToText(const QUrl& pdf, QString& result)
     if (info.isDict()) {
         Object obj;
         if (info.getDict()->lookup("Title", &obj)->isString()) {
-            metaString(result, info.getDict(), "Title", "<title>%1</title>\n", uMap);
+            metaString(result, info.getDict(), "Title", "<title>%1</title>\n");
         } else {
             result.append("<title></title>\n");
         }
         obj.free();
         metaString(result, info.getDict(), "Subject",
-                   "<meta name=\"Subject\" content=\"%1\"/>\n", uMap);
+                   "<meta name=\"Subject\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Keywords",
-                   "<meta name=\"Keywords\" content=\"%1\"/>\n", uMap);
+                   "<meta name=\"Keywords\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Author",
-                   "<meta name=\"Author\" content=\"%1\"/>\n", uMap);
+                   "<meta name=\"Author\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Creator",
-                   "<meta name=\"Creator\" content=\"%1\"/>\n", uMap);
+                   "<meta name=\"Creator\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Producer",
-                   "<meta name=\"Producer\" content=\"%1\"/>\n", uMap);
+                   "<meta name=\"Producer\" content=\"%1\"/>\n");
         metaDate(result, info.getDict(), "CreationDate",
                  "<meta name=\"CreationDate\" content=\"%1\"/>\n");
         metaDate(result, info.getDict(), "LastModifiedDate",
@@ -298,6 +323,7 @@ bool pdfToText(const QUrl& pdf, QString& result)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
+        pdfInterlock.unlock();
         return false;
     }
 
@@ -310,6 +336,7 @@ bool pdfToText(const QUrl& pdf, QString& result)
     delete doc;
     uMap->decRefCnt();
 
+    pdfInterlock.unlock();
     return true;
 }
 
