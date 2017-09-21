@@ -35,6 +35,7 @@ public:
     QRadioButton* rbAtlas;
     QRadioButton* rbBingAPI;
     QRadioButton* rbYandexAPI;
+    QRadioButton* rbGoogleGTX;
     QCheckBox* cbSCP;
     QLineEdit* scpParams;
     QComboBox* scpHost;

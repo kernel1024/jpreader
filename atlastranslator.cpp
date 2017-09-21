@@ -102,7 +102,7 @@ bool CAtlasTranslator::initTran()
     return true;
 }
 
-QString CAtlasTranslator::tranString(QString src)
+QString CAtlasTranslator::tranString(const QString &src)
 {
     if (!sock.isOpen()) {
         tranError = QString("ERROR: ATLAS socket not opened");

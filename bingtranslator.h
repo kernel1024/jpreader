@@ -1,28 +1,22 @@
 #ifndef CBINGTRANSLATOR_H
 #define CBINGTRANSLATOR_H
 
-#include <QNetworkAccessManager>
-#include "abstracttranslator.h"
+#include "webapiabstracttranslator.h"
 
-class CBingTranslator : public CAbstractTranslator
+class CBingTranslator : public CWebAPIAbstractTranslator
 {
-private:
-    QNetworkAccessManager *nam;
+protected:
     QString clientID, clientKey;
     QString authHeader;
 
-    bool waitForReply(QNetworkReply* reply);
-
-    QString tranStringInternal(QString src);
+    QString tranStringInternal(const QString& src);
+    void clearCredentials();
+    bool isValidCredentials();
 
 public:
     CBingTranslator(QObject *parent, const QString& SrcLang, const QString& bingID, const QString& bingKey);
-    ~CBingTranslator();
 
     bool initTran();
-    QString tranString(QString src);
-    void doneTran(bool lazyClose = false);
-    bool isReady();
 
 };
 

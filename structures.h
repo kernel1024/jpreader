@@ -15,7 +15,8 @@
 #define TE_ATLAS 1
 #define TE_BINGAPI 2
 #define TE_YANDEX 3
-#define TECOUNT 4
+#define TE_GOOGLE_GTX 4
+#define TECOUNT 5
 
 #define SE_NONE 0
 #define SE_RECOLL 2

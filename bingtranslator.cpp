@@ -1,7 +1,5 @@
 #include <QUrl>
 
-#include <QEventLoop>
-#include <QTimer>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,35 +14,11 @@
 
 CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang, const QString &bingID,
                                  const QString &bingKey)
-    : CAbstractTranslator(parent, SrcLang)
+    : CWebAPIAbstractTranslator(parent, SrcLang)
 {
     clientID = bingID;
     clientKey = bingKey;
-    authHeader.clear();
-    nam = NULL;
-}
-
-CBingTranslator::~CBingTranslator()
-{
-    doneTran();
-}
-
-bool CBingTranslator::waitForReply(QNetworkReply *reply)
-{
-    QEventLoop eventLoop;
-    QTimer *timer = new QTimer(this);
-
-    connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
-    connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
-    timer->setSingleShot(true);
-    timer->start(30000);
-
-    eventLoop.exec();
-
-    timer->stop();
-    timer->deleteLater();
-
-    return reply->isFinished() && reply->bytesAvailable()>0;
+    clearCredentials();
 }
 
 bool CBingTranslator::initTran()
@@ -74,6 +48,7 @@ bool CBingTranslator::initTran()
     QByteArray ra = rpl->readAll();
 
     if (rpl->error()!=QNetworkReply::NoError) {
+        tranError = tr("Bing auth error");
         qCritical() << "Bing auth error: " << rpl->error();
         qCritical() << "Response: " << ra;
         return false;
@@ -82,6 +57,7 @@ bool CBingTranslator::initTran()
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
     if (jdoc.isNull() || jdoc.isEmpty()) {
+        tranError = tr("Bing auth error: incorrect JSON auth response");
         qCritical() << "Bing auth: incorrect JSON auth response";
         qCritical() << "Response: " << ra;
         return false;
@@ -90,53 +66,18 @@ bool CBingTranslator::initTran()
     QJsonObject jroot = jdoc.object();
     QString token = jroot.value("access_token").toString();
     if (token.isEmpty()) {
+        tranError = tr("Bing auth error: empty JSON token");
         qCritical() << "Bing auth: empty JSON token";
         qCritical() << "Response: " << ra;
         return false;
     }
 
     authHeader = QString("Bearer %1").arg(token);
+    tranError.clear();
     return true;
 }
 
-QString CBingTranslator::tranString(QString src)
-{
-    if (!isReady()) {
-        tranError = QString("ERROR: Bing translator not ready");
-        return QString("ERROR:TRAN_NOT_READY");
-    }
-
-    if (src.length()>=10000) {
-        // Split by separator chars
-        QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
-        QStringList srcl = src.split(rx);
-        // Check for max length
-        QStringList srout;
-        srout.clear();
-        for (int i=0;i<srcl.count();i++) {
-            QString s = srcl.at(i);
-            while (!s.isEmpty()) {
-                srout << s.left(9990);
-                s.remove(0,9990);
-            }
-        }
-        srcl.clear();
-        QString res;
-        res.clear();
-        for (int i=0;i<srout.count();i++) {
-            QString s = tranStringInternal(srout.at(i));
-            if (!tranError.isEmpty()) {
-                res=s;
-                break;
-            }
-            res+=s;
-        }
-        return res;
-    } else
-        return tranStringInternal(src);
-}
-
-QString CBingTranslator::tranStringInternal(QString src)
+QString CBingTranslator::tranStringInternal(const QString &src)
 {
     QUrl rqurl = QUrl("http://api.microsofttranslator.com/v2/Http.svc/Translate");
 
@@ -177,15 +118,12 @@ QString CBingTranslator::tranStringInternal(QString src)
     return res;
 }
 
-void CBingTranslator::doneTran(bool)
+void CBingTranslator::clearCredentials()
 {
     authHeader.clear();
-    if (nam!=NULL)
-        nam->deleteLater();
-    nam=NULL;
 }
 
-bool CBingTranslator::isReady()
+bool CBingTranslator::isValidCredentials()
 {
-    return !authHeader.isEmpty() && nam!=NULL;
+    return !authHeader.isEmpty();
 }

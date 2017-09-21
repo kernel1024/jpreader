@@ -1,7 +1,5 @@
 #include <QUrl>
 
-#include <QEventLoop>
-#include <QTimer>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -14,15 +12,9 @@
 #include "yandextranslator.h"
 
 CYandexTranslator::CYandexTranslator(QObject *parent, const QString &SrcLang, const QString &yandexKey)
-    : CAbstractTranslator(parent, SrcLang)
+    : CWebAPIAbstractTranslator(parent, SrcLang)
 {
     clientKey = yandexKey;
-    nam = NULL;
-}
-
-CYandexTranslator::~CYandexTranslator()
-{
-    doneTran();
 }
 
 bool CYandexTranslator::initTran()
@@ -39,75 +31,7 @@ bool CYandexTranslator::initTran()
     return true;
 }
 
-QString CYandexTranslator::tranString(QString src)
-{
-    if (!isReady()) {
-        tranError = QString("ERROR: Yandex translator not ready");
-        return QString("ERROR:TRAN_NOT_READY");
-    }
-
-    if (src.length()>=10000) {
-        // Split by separator chars
-        QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
-        QStringList srcl = src.split(rx);
-        // Check for max length
-        QStringList srout;
-        srout.clear();
-        for (int i=0;i<srcl.count();i++) {
-            QString s = srcl.at(i);
-            while (!s.isEmpty()) {
-                srout << s.left(9990);
-                s.remove(0,9990);
-            }
-        }
-        srcl.clear();
-        QString res;
-        res.clear();
-        for (int i=0;i<srout.count();i++) {
-            QString s = tranStringInternal(srout.at(i));
-            if (!tranError.isEmpty()) {
-                res=s;
-                break;
-            }
-            res+=s;
-        }
-        return res;
-    } else
-        return tranStringInternal(src);
-}
-
-void CYandexTranslator::doneTran(bool lazyClose)
-{
-    Q_UNUSED(lazyClose);
-    if (nam!=NULL)
-        nam->deleteLater();
-    nam=NULL;
-}
-
-bool CYandexTranslator::isReady()
-{
-    return !clientKey.isEmpty() && nam!=NULL;
-}
-
-bool CYandexTranslator::waitForReply(QNetworkReply *reply)
-{
-    QEventLoop eventLoop;
-    QTimer *timer = new QTimer(this);
-
-    connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
-    connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
-    timer->setSingleShot(true);
-    timer->start(30000);
-
-    eventLoop.exec();
-
-    timer->stop();
-    timer->deleteLater();
-
-    return reply->isFinished() && reply->bytesAvailable()>0;
-}
-
-QString CYandexTranslator::tranStringInternal(QString src)
+QString CYandexTranslator::tranStringInternal(const QString &src)
 {
     QUrl rqurl = QUrl("https://translate.yandex.net/api/v1.5/tr.json/translate");
 
@@ -153,5 +77,14 @@ QString CYandexTranslator::tranStringInternal(QString src)
         res += value.toString();
 
     return res;
+}
+
+void CYandexTranslator::clearCredentials()
+{
+}
+
+bool CYandexTranslator::isValidCredentials()
+{
+    return !clientKey.isEmpty();
 }
 

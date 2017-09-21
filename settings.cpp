@@ -350,6 +350,7 @@ void CSettings::settingsDlg()
         case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
         case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
         case TE_YANDEX: dlg->rbYandexAPI->setChecked(true); break;
+        case TE_GOOGLE_GTX: dlg->rbGoogleGTX->setChecked(true); break;
         default: dlg->rbAtlas->setChecked(true); break;
     }
     dlg->scpHost->clear();
@@ -504,6 +505,7 @@ void CSettings::settingsDlg()
         else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
         else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
         else if (dlg->rbYandexAPI->isChecked()) translatorEngine=TE_YANDEX;
+        else if (dlg->rbGoogleGTX->isChecked()) translatorEngine=TE_GOOGLE_GTX;
         else translatorEngine=TE_ATLAS;
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();

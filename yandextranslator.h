@@ -1,28 +1,21 @@
 #ifndef CYANDEXTRANSLATOR_H
 #define CYANDEXTRANSLATOR_H
 
-#include <QNetworkAccessManager>
-#include <QString>
-#include "abstracttranslator.h"
+#include "webapiabstracttranslator.h"
 
-class CYandexTranslator : public CAbstractTranslator
+class CYandexTranslator : public CWebAPIAbstractTranslator
 {
 private:
-    QNetworkAccessManager *nam;
     QString clientKey;
 
-    bool waitForReply(QNetworkReply* reply);
-
-    QString tranStringInternal(QString src);
+    QString tranStringInternal(const QString& src);
+    void clearCredentials();
+    bool isValidCredentials();
 
 public:
     CYandexTranslator(QObject *parent, const QString& SrcLang, const QString& yandexKey);
-    ~CYandexTranslator();
 
     bool initTran();
-    QString tranString(QString src);
-    void doneTran(bool lazyClose = false);
-    bool isReady();
 
 };
 

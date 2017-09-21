@@ -681,6 +681,7 @@ QString CGlobalControl::getTranslationEngineString(int engine)
         case TE_ATLAS: return QString("ATLAS");
         case TE_BINGAPI: return QString("Bing API");
         case TE_YANDEX: return QString("Yandex API");
+        case TE_GOOGLE_GTX: return QString("Google GTX");
         default: return QString("<unknown engine>");
     }
 }

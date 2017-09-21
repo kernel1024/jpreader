@@ -36,7 +36,9 @@ HEADERS = mainwindow.h \
     settings.h \
     globalui.h \
     userscript.h \
-    browsercontroller.h
+    browsercontroller.h \
+    googlegtxtranslator.h \
+    webapiabstracttranslator.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -77,7 +79,9 @@ SOURCES = main.cpp \
     settings.cpp \
     globalui.cpp \
     userscript.cpp \
-    browsercontroller.cpp
+    browsercontroller.cpp \
+    googlegtxtranslator.cpp \
+    webapiabstracttranslator.cpp
 
 RESOURCES = \
     jpreader.qrc

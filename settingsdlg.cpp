@@ -72,6 +72,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     rbBingAPI=ui->radioBingAPI;
     bingID=ui->editBingID;
     bingKey=ui->editBingKey;
+    rbGoogleGTX=ui->radioGoogleGTX;
     createCoredumps=ui->checkCreateCoredumps;
     overrideUserAgent=ui->checkUserAgent;
     userAgent=ui->editUserAgent;

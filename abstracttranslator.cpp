@@ -2,6 +2,7 @@
 #include "atlastranslator.h"
 #include "bingtranslator.h"
 #include "yandextranslator.h"
+#include "googlegtxtranslator.h"
 
 CAbstractTranslator::CAbstractTranslator(QObject *parent, const QString &SrcLang) : QObject(parent)
 {
@@ -36,6 +37,8 @@ CAbstractTranslator *translatorFactory(QObject* parent, int tranDirection)
     else if (gSet->settings.translatorEngine==TE_YANDEX)
         return new CYandexTranslator(parent,gSet->getSourceLanguageID(TE_YANDEX),
                                      gSet->settings.yandexKey);
+    else if (gSet->settings.translatorEngine==TE_GOOGLE_GTX)
+        return new CGoogleGTXTranslator(parent,gSet->getSourceLanguageID(TE_GOOGLE_GTX));
     else
         return NULL;
 }

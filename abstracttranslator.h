@@ -16,7 +16,7 @@ public:
     ~CAbstractTranslator();
 
     virtual bool initTran()=0;
-    virtual QString tranString(QString src)=0;
+    virtual QString tranString(const QString& src)=0;
     virtual void doneTran(bool lazyClose = false)=0;
     virtual bool isReady()=0;
     QString getErrorMsg();

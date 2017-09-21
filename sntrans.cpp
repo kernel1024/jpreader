@@ -74,7 +74,8 @@ void CSnTrans::translate(bool tranSubSentences)
 {
     if (gSet->settings.translatorEngine==TE_ATLAS ||
         gSet->settings.translatorEngine==TE_BINGAPI ||
-        gSet->settings.translatorEngine==TE_YANDEX) {
+        gSet->settings.translatorEngine==TE_YANDEX ||
+        gSet->settings.translatorEngine==TE_GOOGLE_GTX) {
         savedBaseUrl = snv->txtBrowser->page()->url();
         if (savedBaseUrl.hasFragment())
             savedBaseUrl.setFragment(QString());
@@ -138,6 +139,9 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     } else if (gSet->settings.translatorEngine==TE_YANDEX) {
         snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
+    } else if (gSet->settings.translatorEngine==TE_GOOGLE_GTX) {
+        snv->waitHandler->setText(tr("Translating text with Google GTX..."));
+        snv->waitHandler->setProgressEnabled(true);
     } else {
         snv->waitHandler->setText(tr("Copying file to hosting..."));
         snv->waitHandler->setProgressEnabled(false);
@@ -195,6 +199,7 @@ void CSnTrans::postTranslate()
         case TE_ATLAS: // Url contains translated file itself
         case TE_BINGAPI:
         case TE_YANDEX:
+        case TE_GOOGLE_GTX:
             cn = snv->calculatedUrl;
             if (cn.toUtf8().size()<1500*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
                 snv->fileChanged = true;

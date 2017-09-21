@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>815</width>
+    <width>827</width>
     <height>380</height>
    </rect>
   </property>
@@ -438,6 +438,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QRadioButton" name="radioGoogleGTX">
+              <property name="text">
+               <string>Google GT&amp;X</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -596,7 +603,7 @@ p, li { white-space: pre-wrap; }
                    <item>
                     <widget class="QLabel" name="label_18">
                      <property name="text">
-                      <string>&amp;Retries</string>
+                      <string>Retrie&amp;s</string>
                      </property>
                      <property name="buddy">
                       <cstring>atlRetryCnt</cstring>
@@ -1907,6 +1914,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>
   <tabstop>radioYandexAPI</tabstop>
+  <tabstop>radioGoogleGTX</tabstop>
   <tabstop>editHostingDir</tabstop>
   <tabstop>buttonHostingDir</tabstop>
   <tabstop>editHostingUrl</tabstop>

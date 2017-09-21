@@ -620,7 +620,8 @@ void CTranslator::translate()
             return;
         }
     } else if (translationEngine==TE_BINGAPI ||
-               translationEngine==TE_YANDEX) {
+               translationEngine==TE_YANDEX ||
+               translationEngine==TE_GOOGLE_GTX) {
         if (!translateDocument(Uri,aUrl)) {
             emit calcFinished(false,tran->getErrorMsg());
             deleteLater();

@@ -27,7 +27,7 @@ public:
     virtual ~CAtlasTranslator();
 
     bool initTran();
-    QString tranString(QString src);
+    QString tranString(const QString& src);
     void doneTran(bool lazyClose = false);
     bool isReady();
 
