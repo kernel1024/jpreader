@@ -42,7 +42,10 @@ void CSpecTabWidget::tabRightClick(int index)
     emit tabRightClicked(index);
     if (mainTabWidget) {
         CSpecTabContainer * tb = qobject_cast<CSpecTabContainer *>(widget(index));
-        if (tb!=NULL) tb->closeTab();
+        if (tb!=NULL && tb->parentWnd!=NULL) {
+            if (!tb->parentWnd->titleRenamedLock.isActive())
+                tb->closeTab();
+        }
     }
 }
 

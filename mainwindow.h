@@ -8,6 +8,7 @@
 #include <QListWidgetItem>
 #include <QPoint>
 #include <QCloseEvent>
+#include <QTimer>
 #include "ui_main.h"
 
 class CSnippetViewer;
@@ -23,6 +24,7 @@ public:
 
     // -------- Global settings and objects --------
     QLabel stSearchStatus;
+    QTimer titleRenamedLock;
 
     // -------------------------------------
 

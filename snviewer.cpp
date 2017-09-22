@@ -218,6 +218,8 @@ void CSnippetViewer::titleChanged(const QString & title)
         tabTitle = title.trimmed();
     else
         tabTitle = s;
+
+    parentWnd->titleRenamedLock.start();
     tabWidget->setTabText(i,tabWidget->fontMetrics().elidedText(s,Qt::ElideRight,150));
 
     if (!title.isEmpty()) {

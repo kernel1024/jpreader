@@ -288,6 +288,7 @@ void CSearchTab::setDocTitle(const QString& title)
     tabTitle = title;
     int idx = parentWnd->tabMain->indexOf(this);
     if (idx>=0 && idx<parentWnd->tabMain->count()) {
+        parentWnd->titleRenamedLock.start();
         parentWnd->tabMain->setTabText(idx,tabTitle);
     }
 }
