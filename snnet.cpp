@@ -22,9 +22,13 @@ CSnNet::CSnNet(CSnippetViewer *parent)
 
 void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
 {
+    static QSize multiImgDialogSize = QSize();
+
     QDialog *dlg = new QDialog(snv);
     Ui::SelectableListDlg ui;
     ui.setupUi(dlg);
+    if (multiImgDialogSize.isValid())
+        dlg->resize(multiImgDialogSize);
 
     ui.label->setText(tr("Detected image URLs from page"));
     ui.list->addItems(urls);
@@ -37,6 +41,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
             gSet->downloadManager->handleAuxDownload(itm->text(),dir,referer);
         }
     }
+    multiImgDialogSize=dlg->size();
     dlg->setParent(NULL);
     dlg->deleteLater();
 }

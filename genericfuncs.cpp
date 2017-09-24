@@ -23,6 +23,9 @@
 
 using namespace std;
 
+static QSize openFileDialogSize = QSize();
+static QSize saveFileDialogSize = QSize();
+
 bool runnedFromQtCreator()
 {
     return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
@@ -295,7 +298,26 @@ QString getOpenFileNameD (QWidget * parent, const QString & caption, const QStri
     QFileDialog::Options opts = 0;
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
-    return QFileDialog::getOpenFileName(parent,caption,dir,filter,selectedFilter,opts);
+
+    QFileDialog dialog(parent,caption,dir,filter);
+    dialog.setOptions(opts);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    if (openFileDialogSize.isValid())
+        dialog.resize(openFileDialogSize);
+
+    QString res;
+    if (selectedFilter && !selectedFilter->isEmpty())
+        dialog.selectNameFilter(*selectedFilter);
+    if (dialog.exec() == QDialog::Accepted) {
+        if (selectedFilter)
+            *selectedFilter = dialog.selectedNameFilter();
+        if (!dialog.selectedFiles().isEmpty())
+            res = dialog.selectedFiles().first();
+    }
+
+    openFileDialogSize = dialog.size();
+    return res;
 }
 
 QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
@@ -303,7 +325,25 @@ QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const 
     QFileDialog::Options opts = 0;
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
-    return QFileDialog::getOpenFileNames(parent,caption,dir,filter,selectedFilter,opts);
+
+    QFileDialog dialog(parent,caption,dir,filter);
+    dialog.setOptions(opts);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+    if (openFileDialogSize.isValid())
+        dialog.resize(openFileDialogSize);
+
+    QStringList res;
+    if (selectedFilter && !selectedFilter->isEmpty())
+        dialog.selectNameFilter(*selectedFilter);
+    if (dialog.exec() == QDialog::Accepted) {
+        if (selectedFilter)
+            *selectedFilter = dialog.selectedNameFilter();
+         res = dialog.selectedFiles();
+    }
+
+    openFileDialogSize = dialog.size();
+    return res;
 }
 
 QStringList getSuffixesFromFilter(const QString& filter)
@@ -335,30 +375,33 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    QFileDialog d(parent,caption,dir,filter);
-    d.setFileMode(QFileDialog::AnyFile);
-    d.setOptions(opts);
-    d.setAcceptMode(QFileDialog::AcceptSave);
+    QFileDialog dialog(parent,caption,dir,filter);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setOptions(opts);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    if (saveFileDialogSize.isValid())
+        dialog.resize(saveFileDialogSize);
 
     if (selectedFilter && !selectedFilter->isEmpty())
-        d.selectNameFilter(*selectedFilter);
+        dialog.selectNameFilter(*selectedFilter);
 
     if (!preselectFileName.isEmpty())
-        d.selectFile(preselectFileName);
+        dialog.selectFile(preselectFileName);
 
-    if (d.exec()==QDialog::Accepted) {
-        QString userFilter = d.selectedNameFilter();
+    QString res;
+    if (dialog.exec()==QDialog::Accepted) {
+        QString userFilter = dialog.selectedNameFilter();
         if (selectedFilter!=NULL)
             *selectedFilter=userFilter;
         if (!userFilter.isEmpty())
-            d.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());
+            dialog.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());
 
-        if (!d.selectedFiles().isEmpty())
-            return d.selectedFiles().first();
-        else
-            return QString();
-    } else
-        return QString();
+        if (!dialog.selectedFiles().isEmpty())
+            res = dialog.selectedFiles().first();
+    }
+
+    saveFileDialogSize = dialog.size();
+    return res;
 }
 
 QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
