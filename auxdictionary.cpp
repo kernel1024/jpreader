@@ -254,7 +254,7 @@ bool CAuxDictKeyFilter::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type()==QEvent::KeyPress) {
         QKeyEvent *ev = static_cast<QKeyEvent *>(event);
-        if (ev!=NULL)
+        if (ev!=nullptr)
             emit keyPressed(ev->key());
     }
     return QObject::eventFilter(obj,event);

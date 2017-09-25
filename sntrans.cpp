@@ -53,7 +53,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     if (savedBaseUrl.hasFragment())
         savedBaseUrl.setFragment(QString());
 
-    CTranslator* ct = new CTranslator(NULL,aUri);
+    CTranslator* ct = new CTranslator(nullptr,aUri);
     QString res;
     if (!ct->documentReparse(aUri,res)) {
         QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
@@ -97,7 +97,7 @@ void CSnTrans::getImgUrlsAndParse()
 {
     snv->txtBrowser->page()->toHtml([this](const QString& result) {
 
-        CTranslator* ct = new CTranslator(NULL,result);
+        CTranslator* ct = new CTranslator(nullptr,result);
         QString res;
         if (!ct->documentReparse(result,res)) {
             QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed. Unable to get image urls."));
@@ -123,7 +123,7 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     snv->calculatedUrl="";
     snv->onceTranslated=true;
 
-    CTranslator* ct = new CTranslator(NULL,aUri,forceTranSubSentences);
+    CTranslator* ct = new CTranslator(nullptr,aUri,forceTranSubSentences);
     QThread* th = new QThread();
     connect(ct,&CTranslator::calcFinished,
             this,&CSnTrans::calcFinished,Qt::QueuedConnection);
@@ -324,7 +324,7 @@ void CSnTrans::dictDataReady()
 {
     QString res = QString();
     QNetworkReply* rep = qobject_cast<QNetworkReply *>(sender());
-    if (rep!=NULL) {
+    if (rep!=nullptr) {
         res = QString::fromUtf8(rep->readAll());
         rep->deleteLater();
     }

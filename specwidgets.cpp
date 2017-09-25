@@ -19,7 +19,7 @@
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)
 {
-    parentWnd = NULL;
+    parentWnd = nullptr;
     mainTabWidget = true;
     m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
@@ -42,7 +42,7 @@ void CSpecTabWidget::tabRightClick(int index)
     emit tabRightClicked(index);
     if (mainTabWidget) {
         CSpecTabContainer * tb = qobject_cast<CSpecTabContainer *>(widget(index));
-        if (tb!=NULL && tb->parentWnd!=NULL) {
+        if (tb!=nullptr && tb->parentWnd!=nullptr) {
             if (!tb->parentWnd->titleRenamedLock.isActive())
                 tb->closeTab();
         }
@@ -60,7 +60,7 @@ bool CSpecTabWidget::event(QEvent *event)
         QHelpEvent* e = dynamic_cast<QHelpEvent *>(event);
         QPoint gpos = QPoint();
         QPoint lpos = QPoint();
-        if (e!=NULL) {
+        if (e!=nullptr) {
             gpos = e->globalPos();
             lpos = e->pos();
         }
@@ -73,7 +73,7 @@ bool CSpecTabWidget::event(QEvent *event)
 
 void CSpecTabWidget::createTab()
 {
-    if (mainTabWidget && parentWnd!=NULL)
+    if (mainTabWidget && parentWnd!=nullptr)
         parentWnd->openEmptyBrowser();
 }
 
@@ -100,15 +100,15 @@ CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
 {
     m_tabWidget = p;
     m_dragStart = QPoint(0,0);
-    m_draggingTab = NULL;
+    m_draggingTab = nullptr;
 }
 
 CSpecTabBar::CSpecTabBar(QWidget *p)
     : QTabBar(p), m_browserTabs(false)
 {
-    m_tabWidget = NULL;
+    m_tabWidget = nullptr;
     m_dragStart = QPoint(0,0);
-    m_draggingTab = NULL;
+    m_draggingTab = nullptr;
 }
 
 void CSpecTabBar::setBrowserTabs(bool enabled)
@@ -118,7 +118,7 @@ void CSpecTabBar::setBrowserTabs(bool enabled)
 
 void CSpecTabBar::mousePressEvent(QMouseEvent *event)
 {
-    m_draggingTab = NULL;
+    m_draggingTab = nullptr;
     Qt::MouseButton btn = event->button();
     QPoint pos = event->pos();
     int tabCount = count();
@@ -130,7 +130,7 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
             }
         } else if (event->button()==Qt::LeftButton) {
             if (tabRect(i).contains(event->pos())) {
-                if (m_tabWidget!=NULL) {
+                if (m_tabWidget!=nullptr) {
                     m_draggingTab = qobject_cast<CSpecTabContainer *>(m_tabWidget->widget(i));
                     m_dragStart = event->pos();
                 }
@@ -155,14 +155,14 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
 
 void CSpecTabBar::mouseReleaseEvent(QMouseEvent *event)
 {
-    m_draggingTab = NULL;
+    m_draggingTab = nullptr;
     QTabBar::mouseReleaseEvent(event);
 }
 
 void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
 {
-    if ((m_draggingTab!=NULL) &&
-            (m_tabWidget!=NULL) &&
+    if ((m_draggingTab!=nullptr) &&
+            (m_tabWidget!=nullptr) &&
             (event->buttons() == Qt::LeftButton)) {
 
         QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(QMargins(50,50,50,100));
@@ -176,7 +176,7 @@ void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
 
             m_draggingTab->outsideDragStart();
 
-            m_draggingTab = NULL;
+            m_draggingTab = nullptr;
         }
     }
     QTabBar::mouseMoveEvent(event);
@@ -217,13 +217,13 @@ CSpecTabContainer::CSpecTabContainer(CMainWindow *parent)
     : QWidget(parent)
 {
     parentWnd = parent;
-    tabWidget=NULL;
+    tabWidget=nullptr;
 }
 
 void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 {
     tabWidget=tabs;
-    if (tabWidget==NULL) return;
+    if (tabWidget==nullptr) return;
     int i = tabWidget->addTab(this,getDocTitle());
     if (gSet->settings.showTabCloseButtons) {
         QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
@@ -243,7 +243,7 @@ void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
     if (!gSet->webProfile->settings()->
             testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
-    if (tabWidget==NULL) return;
+    if (tabWidget==nullptr) return;
     tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
 }
 
@@ -253,10 +253,10 @@ void CSpecTabContainer::detachTab()
 
 /*  Classic method - create new tab and copy contents
  *
-    CSpecTabContainer* ntab = NULL;
+    CSpecTabContainer* ntab = nullptr;
 
     CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
-    if (snv!=NULL) {
+    if (snv!=nullptr) {
         QString url = "about://blank";
         if (!snv->fileChanged) url=snv->urlEdit->text();
 
@@ -273,7 +273,7 @@ void CSpecTabContainer::detachTab()
     }
 
     CSearchTab* stb = qobject_cast<CSearchTab *>(this);
-    if (stb!=NULL) {
+    if (stb!=nullptr) {
         QString query = stb->getLastQuery();
         if (!query.isEmpty()) {
             CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
@@ -283,7 +283,7 @@ void CSpecTabContainer::detachTab()
         }
     }
 
-    if (ntab!=NULL) {
+    if (ntab!=nullptr) {
         closeTab();
         ntab->activateWindow();
         ntab->parentWnd->raise();
@@ -312,7 +312,7 @@ void CSpecTabContainer::closeTab(bool nowait)
         if (gSet->blockTabCloseActive) return;
         gSet->blockTabClose();
     }
-    if (tabWidget!=NULL) {
+    if (tabWidget!=nullptr) {
         if ((parentWnd->lastTabIdx>=0) &&
                 (parentWnd->lastTabIdx<tabWidget->count())) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
         tabWidget->removeTab(tabWidget->indexOf(this));
@@ -328,8 +328,8 @@ CSpecWebView::CSpecWebView(QWidget *parent)
     : QWebEngineView(parent)
 {
     parentViewer = qobject_cast<CSnippetViewer *>(parent);
-    if (parentViewer==NULL)
-        qFatal("parentViewer is NULL");
+    if (parentViewer==nullptr)
+        qFatal("parentViewer is nullptr");
     m_page = new CSpecWebPage(gSet->webProfile, parentViewer);
     setPage(m_page);
 }
@@ -349,7 +349,7 @@ CSpecWebPage *CSpecWebView::customPage() const
 
 QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
-    if (parentViewer==NULL) return NULL;
+    if (parentViewer==nullptr) return nullptr;
 
     CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),
                                             (type!=QWebEnginePage::WebBrowserBackgroundTab));
@@ -358,7 +358,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 
 void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (parentViewer!=NULL)
+    if (parentViewer!=nullptr)
         parentViewer->ctxHandler->contextMenu(event->pos(), m_page->contextMenuData());
 }
 
@@ -439,13 +439,13 @@ void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMes
 
     switch (level) {
         case QWebEnginePage::InfoMessageLevel:
-            QMessageLogger(src, lineNumber, NULL, "JavaScript").info() << msg;
+            QMessageLogger(src, lineNumber, nullptr, "JavaScript").info() << msg;
             break;
         case QWebEnginePage::WarningMessageLevel:
-            QMessageLogger(src, lineNumber, NULL, "JavaScript").warning() << msg;
+            QMessageLogger(src, lineNumber, nullptr, "JavaScript").warning() << msg;
             break;
         case QWebEnginePage::ErrorMessageLevel:
-            QMessageLogger(src, lineNumber, NULL, "JavaScript").critical() << msg;
+            QMessageLogger(src, lineNumber, nullptr, "JavaScript").critical() << msg;
             break;
     }
 }
@@ -561,7 +561,7 @@ CGDTextBrowser::CGDTextBrowser(QWidget *parent)
 
 QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
-    if (gSet!=NULL && url.scheme().toLower()=="gdlookup") {
+    if (gSet!=nullptr && url.scheme().toLower()=="gdlookup") {
         QByteArray rplb;
 
         CIOEventLoop ev;
@@ -665,7 +665,7 @@ void CFaviconLoader::queryStart(bool forceCached)
 void CFaviconLoader::queryFinished()
 {
     QNetworkReply *rpl = qobject_cast<QNetworkReply*>(sender());
-    if (rpl==NULL) return;
+    if (rpl==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QPixmap p;

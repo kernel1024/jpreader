@@ -12,7 +12,7 @@
 
 #include <sys/resource.h>
 
-CGlobalControl* gSet = NULL;
+CGlobalControl* gSet = nullptr;
 QStringList debugMessages;
 
 int main(int argc, char *argv[])
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
     gSet = new CGlobalControl(&app);
     gSet->inspectorPort = dbgport;
-    if (gSet->ipcServer==NULL)
+    if (gSet->ipcServer==nullptr)
         return 0;
 
     if (gSet->settings.createCoredumps) {

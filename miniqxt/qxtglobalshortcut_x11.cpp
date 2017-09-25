@@ -105,17 +105,17 @@ xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
 bool ungrabKey(xcb_keycode_t keycode, uint16_t modifiers, xcb_window_t window)
 {
     xcb_connection_t* c = QX11Info::connection();
-    if (c==NULL) return false;
+    if (c==nullptr) return false;
 
     xcb_void_cookie_t vc = xcb_ungrab_key(c, keycode, window, modifiers);
 
-    return (xcb_request_check(c, vc)==NULL);
+    return (xcb_request_check(c, vc)==nullptr);
 }
 
 bool grabKey(xcb_keycode_t keycode, uint16_t modifiers, xcb_window_t window)
 {
     xcb_connection_t* c = QX11Info::connection();
-    if (c==NULL) return false;
+    if (c==nullptr) return false;
 
     xcb_void_cookie_t vc = xcb_grab_key(c, 1, window, modifiers, keycode,
                                         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
@@ -173,14 +173,14 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
     if (key==0) return ret;
 
     xcb_connection_t* c = QX11Info::connection();
-    if (c==NULL) return ret;
+    if (c==nullptr) return ret;
 
     xcb_keysym_t sym = qtKeyToKeysym(key, modifiers);
 
     xcb_key_symbols_t *syms = xcb_key_symbols_alloc(c);
-    if (syms!=NULL) {
+    if (syms!=nullptr) {
         xcb_keycode_t *keyCodes = xcb_key_symbols_get_keycode(syms, sym);
-        if (keyCodes!=NULL) {
+        if (keyCodes!=nullptr) {
             ret = keyCodes[0];
             free(keyCodes);
         }

@@ -9,7 +9,7 @@
 #include "ui_logdisplay.h"
 
 CLogDisplay::CLogDisplay() :
-    QDialog(NULL, Qt::Tool | Qt::CustomizeWindowHint | Qt::WindowTitleHint),
+    QDialog(nullptr, Qt::Tool | Qt::CustomizeWindowHint | Qt::WindowTitleHint),
     ui(new Ui::CLogDisplay)
 {
     ui->setupUi(this);
@@ -35,7 +35,7 @@ void CLogDisplay::updateMessages()
     if (!isVisible()) return;
     int fr = -1;
     int sv = -1;
-    if (ui->logView->verticalScrollBar()!=NULL)
+    if (ui->logView->verticalScrollBar()!=nullptr)
         sv = ui->logView->verticalScrollBar()->value();
 
     if (!savedMessages.isEmpty())
@@ -47,7 +47,7 @@ void CLogDisplay::updateMessages()
         savedMessages = debugMessages;
 
     updateText(savedMessages.join('\n'));
-    if (ui->logView->verticalScrollBar()!=NULL) {
+    if (ui->logView->verticalScrollBar()!=nullptr) {
         if (!ui->checkScrollLock->isChecked())
             ui->logView->verticalScrollBar()->setValue(ui->logView->verticalScrollBar()->maximum());
         else if (sv!=-1)
@@ -75,7 +75,7 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
 void CLogDisplay::addToAdblock()
 {
     QAction* nt = qobject_cast<QAction *>(sender());
-    if (nt==NULL) return;
+    if (nt==nullptr) return;
     QUrl url = nt->data().toUrl();
     if (url.isEmpty() || !url.isValid()) return;
     QString u = url.toString();
@@ -94,7 +94,7 @@ void CLogDisplay::updateText(const QString &text)
 void CLogDisplay::showEvent(QShowEvent *)
 {
     updateMessages();
-    if (firstShow && gSet!=NULL && !gSet->mainWindows.isEmpty()) {
+    if (firstShow && gSet!=nullptr && !gSet->mainWindows.isEmpty()) {
         QPoint p = gSet->mainWindows.first()->pos();
         p.rx()+=200;
         p.ry()+=100;

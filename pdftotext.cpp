@@ -137,7 +137,7 @@ static void outputToString(void *stream, const char *text, int len)
                                       "\u3002\uFF3B\uFF3D\u2026"
                                       "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
 
-    if (stream==NULL) return;
+    if (stream==nullptr) return;
     QString* str = reinterpret_cast<QString *>(stream);
     QString tx = QString::fromUtf8(text,len);
 
@@ -393,28 +393,28 @@ static void popplerError(void *data, ErrorCategory category, Goffset pos, char *
 
     switch (category) {
         case ErrorCategory::errSyntaxError:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "Syntax:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Syntax:" << msg;
             break;
         case ErrorCategory::errSyntaxWarning:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Syntax:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Syntax:" << msg;
             break;
         case ErrorCategory::errConfig:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Config:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Config:" << msg;
             break;
         case ErrorCategory::errIO:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "IO:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "IO:" << msg;
             break;
         case ErrorCategory::errNotAllowed:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Permissions and DRM:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Permissions and DRM:" << msg;
             break;
         case ErrorCategory::errUnimplemented:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").info() << "Unimplemented:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").info() << "Unimplemented:" << msg;
             break;
         case ErrorCategory::errInternal:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").critical() << "Internal:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Internal:" << msg;
             break;
         case ErrorCategory::errCommandLine:
-            QMessageLogger(NULL, ipos, NULL, "Poppler").warning() << "Incorrect parameters:" << msg;
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Incorrect parameters:" << msg;
             break;
     }
 }
@@ -422,7 +422,7 @@ static void popplerError(void *data, ErrorCategory category, Goffset pos, char *
 void initPdfToText()
 {
     globalParams = new GlobalParams();
-    setErrorCallback(&popplerError,NULL);
+    setErrorCallback(&popplerError,nullptr);
 }
 
 void freePdfToText()

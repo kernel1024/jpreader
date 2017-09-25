@@ -41,7 +41,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     //splitter->insertWidget(0,tabHelper);
     QHBoxLayout *hbx = qobject_cast<QHBoxLayout *>(centralWidget()->layout());
-    if (hbx!=NULL)
+    if (hbx!=nullptr)
         hbx->insertWidget(0,tabHelper,0,Qt::AlignTop);
     else
         qCritical() << "Main HBox layout not found. Check form design, update source.";
@@ -97,9 +97,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     actionInspector->setData(gSet->getInspectorUrl());
 
-    if (gSet->logWindow!=NULL)
+    if (gSet->logWindow!=nullptr)
         connect(actionShowLog, &QAction::triggered, gSet->logWindow, &CLogDisplay::show);
-    if (gSet->downloadManager!=NULL)
+    if (gSet->downloadManager!=nullptr)
         connect(actionDownloadManager, &QAction::triggered, gSet->downloadManager, &CDownloadManager::show);
 
     QShortcut* sc;
@@ -160,15 +160,15 @@ void CMainWindow::updateSplitters()
 
 void CMainWindow::closeStartPage()
 {
-    CSnippetViewer* pt = NULL;
+    CSnippetViewer* pt = nullptr;
     for (int i=0;i<tabMain->count();i++) {
         CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->widget(i));
-        if (sn==NULL) continue;
+        if (sn==nullptr) continue;
         if (!sn->isStartPage) continue;
         pt = sn;
         break;
     }
-    if (pt!=NULL)
+    if (pt!=nullptr)
         pt->closeTab(true);
 }
 
@@ -178,10 +178,10 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
     int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
 
-    CSpecToolTipLabel* t = NULL;
+    CSpecToolTipLabel* t = nullptr;
 
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
-    if (sv!=NULL) {
+    if (sv!=nullptr) {
         t = new CSpecToolTipLabel(sv->tabTitle);
 
         QPixmap pix = sv->pageImage;
@@ -206,29 +206,29 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
         t->setPixmap(pix);
     } else {
         CSearchTab* bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
-        if (bt!=NULL) {
+        if (bt!=nullptr) {
             t = new CSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
         }
     }
 
-    if (t!=NULL)
+    if (t!=nullptr)
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
 }
 
 void CMainWindow::detachTab()
 {
-    if (tabMain->currentWidget()!=NULL) {
+    if (tabMain->currentWidget()!=nullptr) {
         CSpecTabContainer *bt = qobject_cast<CSpecTabContainer *>(tabMain->currentWidget());
-        if (bt!=NULL)
+        if (bt!=nullptr)
             bt->detachTab();
     }
 }
 
 void CMainWindow::findText()
 {
-    if (tabMain->currentWidget()!=NULL) {
+    if (tabMain->currentWidget()!=nullptr) {
         CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-        if (sn!=NULL)
+        if (sn!=nullptr)
             sn->searchPanel->show();
     }
 }
@@ -248,7 +248,7 @@ void CMainWindow::switchFullscreen()
     helperFrame->setVisible(!fullScreen);
     tabHelper->setVisible(!fullScreen);
     splitter->setHandleWidth(fullScreen ? 0 : savedSplitterWidth);
-    if (splitter->handle(0)!=NULL)
+    if (splitter->handle(0)!=nullptr)
         splitter->handle(0)->setVisible(!fullScreen);
 
     setToolsVisibility(!fullScreen);
@@ -273,25 +273,25 @@ void CMainWindow::setToolsVisibility(bool visible)
     tabMain->tabBar()->setVisible(visible);
     for (int i=0;i<tabMain->count();i++) {
         CSpecTabContainer* sc = qobject_cast<CSpecTabContainer *>(tabMain->widget(i));
-        if (sc!=NULL)
+        if (sc!=nullptr)
             sc->setToolbarVisibility(visible);
     }
 }
 
 void CMainWindow::printToPDF()
 {
-    if (tabMain->currentWidget()==NULL) return;
+    if (tabMain->currentWidget()==nullptr) return;
     CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-    if (sn==NULL) return;
+    if (sn==nullptr) return;
 
     sn->printToPDF();
 }
 
 void CMainWindow::save()
 {
-    if (tabMain->currentWidget()==NULL) return;
+    if (tabMain->currentWidget()==nullptr) return;
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-    if (sv==NULL) return;
+    if (sv==nullptr) return;
 
     sv->ctxHandler->saveToFile();
 }
@@ -323,8 +323,8 @@ void CMainWindow::centerWindow()
              rect.height()/2 - frameGeometry().height()/2);
     } else {
         CMainWindow* w = gSet->mainWindows.last();
-        if (QApplication::activeWindow()!=NULL)
-            if (qobject_cast<CMainWindow *>(QApplication::activeWindow())!=NULL)
+        if (QApplication::activeWindow()!=nullptr)
+            if (qobject_cast<CMainWindow *>(QApplication::activeWindow())!=nullptr)
                 w = qobject_cast<CMainWindow *>(QApplication::activeWindow());
         move(w->pos().x()+25,w->pos().y()+25);
     }
@@ -334,7 +334,7 @@ void CMainWindow::updateQueryHistory()
 {
     for(int i=0;i<tabMain->count();i++) {
         CSearchTab* t = qobject_cast<CSearchTab*>(tabMain->widget(i));
-        if (t!=NULL) t->updateQueryHistory();
+        if (t!=nullptr) t->updateQueryHistory();
     }
 }
 
@@ -358,9 +358,9 @@ void CMainWindow::tabChanged(int idx)
     lastTabIdx=idx;
 
     tabMain->tabBar()->setTabTextColor(idx,QApplication::palette(tabMain->tabBar()).windowText().color());
-    if (tabMain->widget(idx)!=NULL) {
+    if (tabMain->widget(idx)!=nullptr) {
         CSnippetViewer *sn = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
-        if (sn!=NULL) {
+        if (sn!=nullptr) {
             sn->translationBkgdFinished=false;
             sn->loadingBkgdFinished=false;
             sn->txtBrowser->setFocus(Qt::OtherFocusReason);
@@ -371,9 +371,9 @@ void CMainWindow::tabChanged(int idx)
     updateTitle();
     updateHelperList();
 
-    if (tabMain->currentWidget()!=NULL) {
+    if (tabMain->currentWidget()!=nullptr) {
         CSnippetViewer* bt = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-        actionAddBM->setEnabled(bt!=NULL);
+        actionAddBM->setEnabled(bt!=nullptr);
     }
 }
 
@@ -381,12 +381,12 @@ CSnippetViewer* CMainWindow::getOpenedInspectorTab()
 {
     for (int i=0;i<tabMain->count();i++) {
         CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
-        if (sv==NULL) continue;
+        if (sv==nullptr) continue;
 
         if (sv->isInspector())
             return sv;
     }
-    return NULL;
+    return nullptr;
 }
 
 void CMainWindow::updateHelperList()
@@ -399,7 +399,7 @@ void CMainWindow::updateHelperList()
                 it->setData(Qt::UserRole,0);
                 it->setData(Qt::UserRole+1,i);
                 CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
-                if (sv!=NULL) {
+                if (sv!=nullptr) {
                     it->setText(sv->tabTitle);
                     it->setStatusTip(sv->getUrl().toString());
                     it->setToolTip(sv->getUrl().toString());
@@ -411,7 +411,7 @@ void CMainWindow::updateHelperList()
                         it->setForeground(QApplication::palette(helperList).text());
                 }
                 CSearchTab* bv = qobject_cast<CSearchTab*>(tabMain->widget(i));
-                if (bv!=NULL) {
+                if (bv!=nullptr) {
                     QString qr = bv->getLastQuery();
                     if (qr.isEmpty()) qr = tr("(empty)");
                     it->setText(tr("Search: %1").arg(qr));
@@ -444,7 +444,7 @@ void CMainWindow::updateHelperList()
 
 void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
 {
-    if (current==NULL) return;
+    if (current==nullptr) return;
     bool okconv;
     int idx = current->data(Qt::UserRole+1).toInt(&okconv);
     if (!okconv) return;
@@ -505,9 +505,9 @@ void CMainWindow::updateRecentList()
 void CMainWindow::updateTitle()
 {
     QString t = tr("JPReader");
-    if (tabMain->currentWidget()!=NULL) {
+    if (tabMain->currentWidget()!=nullptr) {
         CSnippetViewer* sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
-        if (sv!=NULL && !sv->tabTitle.isEmpty()) {
+        if (sv!=nullptr && !sv->tabTitle.isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle);
             t = doc.toPlainText() + " - " + t;
@@ -515,7 +515,7 @@ void CMainWindow::updateTitle()
             t.remove("\n");
         }
         CSearchTab* bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
-        if (bv!=NULL && !bv->getLastQuery().isEmpty()) t =
+        if (bv!=nullptr && !bv->getLastQuery().isEmpty()) t =
                 tr("[%1] search - %2").arg(bv->getLastQuery(),t);
     }
     setWindowTitle(t);
@@ -581,7 +581,7 @@ void CMainWindow::openAuxFileInDir()
 {
     QWidget* t = tabMain->currentWidget();
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(t);
-    if (sv==NULL) {
+    if (sv==nullptr) {
         QMessageBox::warning(this,tr("JPReader"),
                              tr("Active document viewer tab not found."));
         return;
@@ -673,16 +673,16 @@ void CMainWindow::updateBookmarks()
 
 void CMainWindow::addBookmark()
 {
-    if (tabMain->currentWidget()==NULL) return;
+    if (tabMain->currentWidget()==nullptr) return;
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-    if (sv==NULL) return;
+    if (sv==nullptr) return;
 
     CBookmarkDlg *dlg = new CBookmarkDlg(sv,sv->tabTitle,sv->getUrl().toString());
     if (dlg->exec()) {
         gSet->bookmarks.append(qMakePair(dlg->getBkTitle(),dlg->getBkUrl()));
         gSet->updateAllBookmarks();
     }
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     delete dlg;
 }
 
@@ -694,7 +694,7 @@ void CMainWindow::showLightTranslator()
 void CMainWindow::openBookmark()
 {
     QAction* a = qobject_cast<QAction *>(sender());
-    if (a==NULL) return;
+    if (a==nullptr) return;
 
     QUrl u;
     int idx = -1;
@@ -731,7 +731,7 @@ void CMainWindow::openAllBookmarks()
 void CMainWindow::openRecycled()
 {
     QAction* a = qobject_cast<QAction *>(sender());
-    if (a==NULL) return;
+    if (a==nullptr) return;
 
     bool okconv;
     int idx = a->data().toInt(&okconv);
@@ -761,7 +761,7 @@ void CMainWindow::updateTabs()
     tabsMenu->clear();
     for(int i=0;i<tabMain->count();i++) {
         CSpecTabContainer* sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
-		if (sv==NULL) continue;
+		if (sv==nullptr) continue;
         tabsMenu->addAction(sv->getDocTitle(),this,SLOT(activateTab()))->setData(i);
     }
     updateHelperList();
@@ -770,7 +770,7 @@ void CMainWindow::updateTabs()
 void CMainWindow::activateTab()
 {
     QAction* act = qobject_cast<QAction*>(sender());
-    if(act==NULL) return;
+    if(act==nullptr) return;
     bool okconv;
     int idx = act->data().toInt(&okconv);
     if (!okconv) return;
@@ -780,11 +780,11 @@ void CMainWindow::activateTab()
 void CMainWindow::forceCharset()
 {
     QAction* act = qobject_cast<QAction*>(sender());
-    if (act==NULL) return;
+    if (act==nullptr) return;
 
     QString cs = act->data().toString();
     if (!cs.isEmpty()) {
-        if (QTextCodec::codecForName(cs.toLatin1().data())!=NULL)
+        if (QTextCodec::codecForName(cs.toLatin1().data())!=nullptr)
             cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
 
         gSet->settings.charsetHistory.removeAll(cs);
@@ -795,8 +795,8 @@ void CMainWindow::forceCharset()
     gSet->settings.forcedCharset = cs;
     gSet->updateAllCharsetLists();
 
-    if (gSet->webProfile!=NULL &&
-            gSet->webProfile->settings()!=NULL)
+    if (gSet->webProfile!=nullptr &&
+            gSet->webProfile->settings()!=nullptr)
         gSet->webProfile->settings()->setDefaultTextEncoding(cs);
 }
 
@@ -821,14 +821,14 @@ void CMainWindow::reloadCharsetList()
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
-            if (QTextCodec::codecForName(cList.at(i).at(j).toLatin1())==NULL) {
+            if (QTextCodec::codecForName(cList.at(i).at(j).toLatin1())==nullptr) {
                 qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));
                 continue;
             }
             QString cname = QTextCodec::codecForName(cList.at(i).at(j).toLatin1())->name();
             act = midx->addAction(cname,this,SLOT(forceCharset()));
             act->setData(cname);
-            if (QTextCodec::codecForName(cname.toLatin1().data())!=NULL) {
+            if (QTextCodec::codecForName(cname.toLatin1().data())!=nullptr) {
                 if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->settings.forcedCharset) {
                     act->setCheckable(true);
                     act->setChecked(true);
@@ -858,7 +858,7 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
     if (fullScreen && cln.contains("WebEngine",Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
             QMouseEvent* mev = static_cast<QMouseEvent *>(ev);
-            if (mev!=NULL) {
+            if (mev!=nullptr) {
                 if (mev->y()<20 && !tabMain->tabBar()->isVisible())
                     setToolsVisibility(true);
                 else if (mev->y()>25 && tabMain->tabBar()->isVisible())

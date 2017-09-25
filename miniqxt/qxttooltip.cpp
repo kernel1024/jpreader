@@ -178,7 +178,7 @@ bool QxtToolTipPrivate::eventFilter(QObject* object, QEvent* event)
         case QEvent::ToolTip:
             // eat appropriate tooltip events
             widget = qobject_cast<QWidget*>(object);
-            if (widget!=NULL && tooltips.contains(widget))
+            if (widget!=nullptr && tooltips.contains(widget))
             {
                 helpEvent = static_cast<QHelpEvent*>(event);
                 area = tooltips.value(widget).second;

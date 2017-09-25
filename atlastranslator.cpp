@@ -9,7 +9,7 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, 
     atlPort=port;
     inited=false;
     emptyRestore=false;
-    if (gSet!=NULL)
+    if (gSet!=nullptr)
         emptyRestore=gSet->settings.emptyRestore;
 
     QSslConfiguration conf = sock.sslConfiguration();

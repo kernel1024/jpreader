@@ -42,7 +42,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
         }
     }
     multiImgDialogSize=dlg->size();
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     dlg->deleteLater();
 }
 
@@ -170,7 +170,7 @@ void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *auth
         authenticator->setPassword(dlg->getPassword());
     } else
         *authenticator = QAuthenticator();
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     delete dlg;
 }
 
@@ -184,6 +184,6 @@ void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator 
         authenticator->setPassword(dlg->getPassword());
     } else
         *authenticator = QAuthenticator();
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     delete dlg;
 }

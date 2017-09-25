@@ -23,7 +23,7 @@ CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang, const 
 
 bool CBingTranslator::initTran()
 {
-    if (nam==NULL)
+    if (nam==nullptr)
         nam=new QNetworkAccessManager(this);
 
     if (gSet->settings.proxyUseTranslator)

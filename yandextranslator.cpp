@@ -19,7 +19,7 @@ CYandexTranslator::CYandexTranslator(QObject *parent, const QString &SrcLang, co
 
 bool CYandexTranslator::initTran()
 {
-    if (nam==NULL)
+    if (nam==nullptr)
         nam=new QNetworkAccessManager(this);
 
     if (gSet->settings.proxyUseTranslator)

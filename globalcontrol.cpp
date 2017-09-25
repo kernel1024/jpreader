@@ -29,7 +29,7 @@
 CGlobalControl::CGlobalControl(QApplication *parent) :
     QObject(parent)
 {
-    ipcServer = NULL;
+    ipcServer = nullptr;
     if (!setupIPC())
         return;
 
@@ -59,9 +59,9 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     atlCerts.clear();
 
-    activeWindow = NULL;
-    lightTranslator = NULL;
-    auxDictionary = NULL;
+    activeWindow = nullptr;
+    lightTranslator = nullptr;
+    auxDictionary = nullptr;
 
     initPdfToText();
 
@@ -132,7 +132,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     dictManager = new CGoldenDictMgr(this);
 
     connect(dictManager,&CGoldenDictMgr::showStatusBarMessage,[this](const QString& msg){
-        if (activeWindow!=NULL) {
+        if (activeWindow!=nullptr) {
             if (msg.isEmpty())
                 activeWindow->statusBar()->clearMessage();
             else
@@ -210,7 +210,7 @@ bool CGlobalControl::setupIPC()
 
 void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
-    if (socket==NULL) return;
+    if (socket==nullptr) return;
 
     QString s = QString("%1%2").arg(msg,IPC_EOF);
     socket->write(s.toUtf8());
@@ -218,13 +218,13 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 
 void CGlobalControl::cookieAdded(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar()!=NULL)
+    if (auxNetManager->cookieJar()!=nullptr)
         auxNetManager->cookieJar()->insertCookie(cookie);
 }
 
 void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar()!=NULL)
+    if (auxNetManager->cookieJar()!=nullptr)
         auxNetManager->cookieJar()->deleteCookie(cookie);
 }
 
@@ -300,7 +300,7 @@ void CGlobalControl::showDictionaryWindow()
 
 void CGlobalControl::showDictionaryWindowEx(const QString &text)
 {
-    if (auxDictionary==NULL) {
+    if (auxDictionary==nullptr) {
         auxDictionary = new CAuxDictionary();
         auxDictionary->show();
         auxDictionary->adjustSplitters();
@@ -430,22 +430,22 @@ void CGlobalControl::ipcMessageReceived()
 
 void CGlobalControl::focusChanged(QWidget *, QWidget *now)
 {
-    if (now==NULL) return;
+    if (now==nullptr) return;
     CMainWindow* mw = qobject_cast<CMainWindow*>(now->window());
-    if (mw==NULL) return;
+    if (mw==nullptr) return;
     activeWindow=mw;
 }
 
 void CGlobalControl::windowDestroyed(CMainWindow *obj)
 {
-    if (obj==NULL) return;
+    if (obj==nullptr) return;
     mainWindows.removeOne(obj);
     if (activeWindow==obj) {
         if (mainWindows.count()>0) {
             activeWindow=mainWindows.first();
             activeWindow->activateWindow();
         } else {
-            activeWindow=NULL;
+            activeWindow=nullptr;
             cleanupAndExit();
         }
     }
@@ -464,7 +464,7 @@ void CGlobalControl::cleanupAndExit()
 
     if (mainWindows.count()>0) {
         foreach (CMainWindow* w, mainWindows) {
-            if (w!=NULL)
+            if (w!=nullptr)
                 w->close();
             QApplication::processEvents();
         }
@@ -480,8 +480,8 @@ void CGlobalControl::cleanupAndExit()
     ipcServer->deleteLater();
     QApplication::processEvents();
 
-    ipcServer=NULL;
-    webProfile=NULL;
+    ipcServer=nullptr;
+    webProfile=nullptr;
 
     QApplication::quit();
 }
@@ -622,7 +622,7 @@ int CGlobalControl::getTranslationMode()
 {
     bool okconv;
     int res = 0;
-    if (ui.translationMode->checkedAction()!=NULL) {
+    if (ui.translationMode->checkedAction()!=nullptr) {
         res = ui.translationMode->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
@@ -634,7 +634,7 @@ int CGlobalControl::getSourceLanguage()
 {
     bool okconv;
     int res = 0;
-    if (ui.sourceLanguage->checkedAction()!=NULL) {
+    if (ui.sourceLanguage->checkedAction()!=nullptr) {
         res = ui.sourceLanguage->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
@@ -688,7 +688,7 @@ QString CGlobalControl::getTranslationEngineString(int engine)
 
 void CGlobalControl::showLightTranslator(const QString &text)
 {
-    if (gSet->lightTranslator==NULL)
+    if (gSet->lightTranslator==nullptr)
         gSet->lightTranslator = new CLightTranslator();
 
     gSet->lightTranslator->restoreWindow();

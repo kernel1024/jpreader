@@ -37,7 +37,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(model, &CSearchModel::itemContentsUpdated, sort, &QSortFilterProxyModel::invalidate);
 
     QHeaderView *hh = ui->listResults->horizontalHeader();
-    if (hh!=NULL) {
+    if (hh!=nullptr) {
         hh->setToolTip(tr("Right click for advanced commands on results list"));
         hh->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(hh, &QHeaderView::customContextMenuRequested,
@@ -194,7 +194,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
 {
     if (model->rowCount()==0) return;
     QHeaderView* hh = qobject_cast<QHeaderView *>(sender());
-    if (hh==NULL) return;
+    if (hh==nullptr) return;
 
     int column = hh->logicalIndexAt(pos);
 
@@ -222,7 +222,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
 void CSearchTab::applyFilter()
 {
     QAction *ac = qobject_cast<QAction *>(sender());
-    if (ac==NULL) return;
+    if (ac==nullptr) return;
 
     QString dir = ac->data().toString();
     if (dir.isEmpty())
@@ -371,7 +371,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     QStringList queryTermsTran = queryTerms;
     CAbstractTranslator* tran = translatorFactory(this, LS_AUTO);
     if (gSet->ui.actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
-        if (tran==NULL || !tran->initTran()) {
+        if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
         } else {
@@ -395,7 +395,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = tran!=NULL &&
+            bool makeTran = tran!=nullptr &&
                             gSet->ui.actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
@@ -410,7 +410,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
             snippets[i] << fspart;
         }
     }
-    if (tran!=NULL) {
+    if (tran!=nullptr) {
         if (tran->isReady())
             tran->doneTran();
         tran->deleteLater();

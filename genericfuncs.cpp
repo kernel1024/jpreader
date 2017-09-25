@@ -104,7 +104,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
             syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
         }
 
-        if (gSet!=NULL && gSet->logWindow!=NULL)
+        if (gSet!=nullptr && gSet->logWindow!=nullptr)
             QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
     }
 
@@ -129,11 +129,11 @@ bool checkAndUnpackUrl(QUrl& url)
 QString detectMIME(const QString &filename)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
-    magic_load(myt,NULL);
+    magic_load(myt,nullptr);
     QByteArray bma = filename.toUtf8();
     const char* bm = bma.data();
     const char* mg = magic_file(myt,bm);
-    if (mg==NULL) {
+    if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QString("text/plain");
     }
@@ -145,9 +145,9 @@ QString detectMIME(const QString &filename)
 QString detectMIME(const QByteArray &buf)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
-    magic_load(myt,NULL);
+    magic_load(myt,nullptr);
     const char* mg = magic_buffer(myt,buf.data(),static_cast<size_t>(buf.length()));
-    if (mg==NULL) {
+    if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QString("text/plain");
     }
@@ -170,7 +170,7 @@ QString detectEncodingName(const QByteArray& content) {
     ucsdet_setText(csd, content.constData(), content.length(), &status);
     const UCharsetMatch *ucm;
     ucm = ucsdet_detect(csd, &status);
-    if (status==U_ZERO_ERROR && ucm!=NULL) {
+    if (status==U_ZERO_ERROR && ucm!=nullptr) {
         const char* cname = ucsdet_getName(ucm,&status);
         if (status==U_ZERO_ERROR) icu_enc = QByteArray(cname);
     }
@@ -391,7 +391,7 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
     QString res;
     if (dialog.exec()==QDialog::Accepted) {
         QString userFilter = dialog.selectedNameFilter();
-        if (selectedFilter!=NULL)
+        if (selectedFilter!=nullptr)
             *selectedFilter=userFilter;
         if (!userFilter.isEmpty())
             dialog.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());

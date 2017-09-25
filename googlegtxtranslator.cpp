@@ -14,7 +14,7 @@ CGoogleGTXTranslator::CGoogleGTXTranslator(QObject *parent, const QString& SrcLa
 
 bool CGoogleGTXTranslator::initTran()
 {
-    if (nam==NULL)
+    if (nam==nullptr)
         nam=new QNetworkAccessManager(this);
 
     if (gSet->settings.proxyUseTranslator)

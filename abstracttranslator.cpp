@@ -40,5 +40,5 @@ CAbstractTranslator *translatorFactory(QObject* parent, int tranDirection)
     else if (gSet->settings.translatorEngine==TE_GOOGLE_GTX)
         return new CGoogleGTXTranslator(parent,gSet->getSourceLanguageID(TE_GOOGLE_GTX));
     else
-        return NULL;
+        return nullptr;
 }

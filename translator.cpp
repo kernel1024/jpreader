@@ -30,7 +30,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     engine=gSet->settings.translatorEngine;
     srcLanguage=gSet->getSourceLanguageID();
     translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
-    tran=NULL;
+    tran=nullptr;
     tranInited=false;
     metaSrcUrl.clear();
     imgUrls.clear();
@@ -43,7 +43,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
 
 CTranslator::~CTranslator()
 {
-    if (tran!=NULL)
+    if (tran!=nullptr)
         tran->deleteLater();
 }
 
@@ -82,7 +82,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     } else {
         r=QFile(filename).copy(wdir+wname);
         if (r) {
-            if (createdFiles!=NULL) createdFiles->append(wdir+wname);
+            if (createdFiles!=nullptr) createdFiles->append(wdir+wname);
             calculatedUrl=hostingUrl+wname;
             b = true;
         } else
@@ -97,12 +97,12 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortFlag=false;
     abortMutex.unlock();
 
-    if (tran==NULL && !tranInited) {
+    if (tran==nullptr && !tranInited) {
         tran = translatorFactory(this, LS_GLOBAL);
         tranInited = true;
     }
 
-    if (tran==NULL || !tran->initTran()) {
+    if (tran==nullptr || !tran->initTran()) {
         dst=tr("Unable to initialize translation engine.");
         qCritical() << tr("Unable to initialize translation engine.");
         return false;
@@ -415,7 +415,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
 bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xmlPass)
 {
-    if (tran==NULL) return false;
+    if (tran==nullptr) return false;
 
     bool failure = false;
 
@@ -606,11 +606,11 @@ void CTranslator::translate()
             if (translateDocument(Uri,aUrl)) {
                 oktrans = true;
                 break;
-            } else if (tran!=NULL)
+            } else if (tran!=nullptr)
                 lastAtlasError = tran->getErrorMsg();
             else
                 lastAtlasError = tr("ATLAS translator failed.");
-            if (tran!=NULL)
+            if (tran!=nullptr)
                 tran->doneTran(true);
             QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
         }

@@ -13,7 +13,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
-            engine = NULL;
+            engine = nullptr;
             return;
         }
         QThread* th = new QThread();

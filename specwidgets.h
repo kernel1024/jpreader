@@ -185,7 +185,7 @@ class CGDTextBrowser : public QTextBrowser
 {
     Q_OBJECT
 public:
-    explicit CGDTextBrowser(QWidget* parent = Q_NULLPTR);
+    explicit CGDTextBrowser(QWidget* parent = nullptr);
 
 protected:
     QVariant loadResource(int type, const QUrl &url);

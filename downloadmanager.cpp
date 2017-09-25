@@ -71,7 +71,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
 
 void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 {
-    if (item==NULL) return;
+    if (item==nullptr) return;
 
     if (!isVisible())
         show();
@@ -299,7 +299,7 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
     int idx = -1;
     QUrl url;
 
-    if (rpl!=NULL) {
+    if (rpl!=nullptr) {
         idx = downloads.indexOf(CDownloadItem(rpl));
         url = rpl->url();
     }
@@ -307,11 +307,11 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
 
     downloads[idx].state = QWebEngineDownloadItem::DownloadInterrupted;
     downloads[idx].errorString = tr("Error %1: %2").arg(code).arg(rpl->errorString());
-    downloads[idx].ptr = NULL;
+    downloads[idx].ptr = nullptr;
 
-    if (rpl!=NULL) {
+    if (rpl!=nullptr) {
         rpl->deleteLater();
-        downloads[idx].m_rpl = NULL;
+        downloads[idx].m_rpl = nullptr;
     }
 
     emit dataChanged(index(idx,0),index(idx,3));
@@ -327,20 +327,20 @@ void CDownloadsModel::downloadFinished()
 
     int idx = -1;
 
-    if (item!=NULL)
+    if (item!=nullptr)
         idx = downloads.indexOf(CDownloadItem(item->id()));
-    else if (rpl!=NULL)
+    else if (rpl!=nullptr)
         idx = downloads.indexOf(CDownloadItem(rpl));
     if (idx<0 || idx>=downloads.count()) return;
 
-    if (item!=NULL)
+    if (item!=nullptr)
         downloads[idx].state = item->state();
     else
         downloads[idx].state = QWebEngineDownloadItem::DownloadCompleted;
 
-    downloads[idx].ptr = NULL;
+    downloads[idx].ptr = nullptr;
 
-    if (rpl!=NULL) {
+    if (rpl!=nullptr) {
         QFile f(downloads[idx].fileName);
         if (f.open(QIODevice::WriteOnly)) {
             f.write(rpl->readAll());
@@ -349,12 +349,12 @@ void CDownloadsModel::downloadFinished()
             downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
 
         rpl->deleteLater();
-        downloads[idx].m_rpl = NULL;
+        downloads[idx].m_rpl = nullptr;
     }
 
     emit dataChanged(index(idx,0),index(idx,3));
 
-    if (item!=NULL)
+    if (item!=nullptr)
         item->deleteLater();
 
     if (downloads[idx].autoDelete)
@@ -364,7 +364,7 @@ void CDownloadsModel::downloadFinished()
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
 {
     QWebEngineDownloadItem* item = qobject_cast<QWebEngineDownloadItem *>(sender());
-    if (item==NULL) return;
+    if (item==nullptr) return;
 
     int idx = downloads.indexOf(CDownloadItem(item->id()));
     if (idx<0 || idx>=downloads.count()) return;
@@ -383,9 +383,9 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
     int idx = -1;
 
-    if (item!=NULL)
+    if (item!=nullptr)
         idx = downloads.indexOf(CDownloadItem(item->id()));
-    else if (rpl!=NULL)
+    else if (rpl!=nullptr)
         idx = downloads.indexOf(CDownloadItem(rpl));
     if (idx<0 || idx>=downloads.count()) return;
 
@@ -398,17 +398,17 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 void CDownloadsModel::abortDownload()
 {
     QAction *acm = qobject_cast<QAction *>(sender());
-    if (acm==NULL) return;
+    if (acm==nullptr) return;
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
     bool ok = false;
     if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(idx).ptr!=NULL) {
+        if (downloads.at(idx).ptr!=nullptr) {
             downloads[idx].ptr->cancel();
             ok = true;
-        } else if (downloads.at(idx).m_rpl!=NULL) {
+        } else if (downloads.at(idx).m_rpl!=nullptr) {
             downloads[idx].m_rpl->abort();
             ok = true;
         }
@@ -421,18 +421,18 @@ void CDownloadsModel::abortDownload()
 void CDownloadsModel::cleanDownload()
 {
     QAction *acm = qobject_cast<QAction *>(sender());
-    if (acm==NULL) return;
+    if (acm==nullptr) return;
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
     bool ok = false;
     if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(idx).ptr!=NULL) {
+        if (downloads.at(idx).ptr!=nullptr) {
             downloads[idx].autoDelete = true;
             downloads[idx].ptr->cancel();
             ok = true;
-        } else if (downloads.at(idx).m_rpl!=NULL) {
+        } else if (downloads.at(idx).m_rpl!=nullptr) {
             downloads[idx].autoDelete = true;
             downloads[idx].m_rpl->abort();
             ok = true;
@@ -459,7 +459,7 @@ void CDownloadsModel::cleanFinishedDownloads()
 void CDownloadsModel::openDirectory()
 {
     QAction *acm = qobject_cast<QAction *>(sender());
-    if (acm==NULL) return;
+    if (acm==nullptr) return;
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
@@ -473,7 +473,7 @@ void CDownloadsModel::openDirectory()
 void CDownloadsModel::openHere()
 {
     QAction *acm = qobject_cast<QAction *>(sender());
-    if (acm==NULL) return;
+    if (acm==nullptr) return;
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
@@ -489,14 +489,14 @@ void CDownloadsModel::openHere()
     QFileInfo fi(fname);
     if ((acceptedMime.contains(mime,Qt::CaseInsensitive) ||
          acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
-            && (gSet->activeWindow!=NULL))
+            && (gSet->activeWindow!=nullptr))
         new CSnippetViewer(gSet->activeWindow,QUrl::fromLocalFile(fname));
 }
 
 void CDownloadsModel::openXdg()
 {
     QAction *acm = qobject_cast<QAction *>(sender());
-    if (acm==NULL) return;
+    if (acm==nullptr) return;
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
@@ -514,11 +514,11 @@ CDownloadItem::CDownloadItem()
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
-    ptr = NULL;
+    ptr = nullptr;
     autoDelete = false;
     m_empty = true;
     m_aux = false;
-    m_rpl = NULL;
+    m_rpl = nullptr;
 }
 
 CDownloadItem::CDownloadItem(const CDownloadItem &other)
@@ -546,11 +546,11 @@ CDownloadItem::CDownloadItem(quint32 itemId)
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
-    ptr = NULL;
+    ptr = nullptr;
     autoDelete = false;
     m_aux = false;
     m_empty = false;
-    m_rpl = NULL;
+    m_rpl = nullptr;
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl)
@@ -562,7 +562,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl)
     state = QWebEngineDownloadItem::DownloadRequested;
     received = 0;
     total = 0;
-    ptr = NULL;
+    ptr = nullptr;
     autoDelete = false;
     m_aux = false;
     m_empty = false;
@@ -571,7 +571,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
 {
-    if (item==NULL) {
+    if (item==nullptr) {
         id = 0;
         fileName.clear();
         mimeType.clear();
@@ -579,11 +579,11 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         state = QWebEngineDownloadItem::DownloadRequested;
         received = 0;
         total = 0;
-        ptr = NULL;
+        ptr = nullptr;
         autoDelete = false;
         m_aux = false;
         m_empty = true;
-        m_rpl = NULL;
+        m_rpl = nullptr;
     } else {
         id = item->id();
         fileName = item->path();
@@ -596,7 +596,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         autoDelete = false;
         m_aux = false;
         m_empty = false;
-        m_rpl = NULL;
+        m_rpl = nullptr;
     }
 }
 
@@ -609,7 +609,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
     state = QWebEngineDownloadItem::DownloadInProgress;
     received = 0;
     total = 0;
-    ptr = NULL;
+    ptr = nullptr;
     autoDelete = false;
     m_aux = true;
     m_empty = false;

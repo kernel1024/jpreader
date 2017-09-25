@@ -6,7 +6,7 @@
 CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const QString &SrcLang)
     : CAbstractTranslator (parent, SrcLang)
 {
-    nam = NULL;
+    nam = nullptr;
 }
 
 CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
@@ -71,9 +71,9 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 
 void CWebAPIAbstractTranslator::deleteNAM()
 {
-    if (nam!=NULL)
+    if (nam!=nullptr)
         nam->deleteLater();
-    nam=NULL;
+    nam=nullptr;
 }
 
 void CWebAPIAbstractTranslator::doneTran(bool)
@@ -84,5 +84,5 @@ void CWebAPIAbstractTranslator::doneTran(bool)
 
 bool CWebAPIAbstractTranslator::isReady()
 {
-    return isValidCredentials() && nam!=NULL;
+    return isValidCredentials() && nam!=nullptr;
 }

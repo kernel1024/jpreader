@@ -54,7 +54,7 @@ CSettings::CSettings(QObject *parent)
     proxyType=QNetworkProxy::HttpCachingProxy;
     debugNetReqLogging=false;
     debugDumpHtml=false;
-    dlg=NULL;
+    dlg=nullptr;
     settingsDlgWidth=850;
     settingsDlgHeight=380;
 
@@ -85,7 +85,7 @@ CSettings::CSettings(QObject *parent)
 
 void CSettings::writeSettings()
 {
-    if (gSet==NULL) return;
+    if (gSet==nullptr) return;
     if (!settingsSaveMutex.tryLock(1000)) return;
     QSettings settings("kernel1024", "jpreader");
     QSettings bigdata("kernel1024", "jpreader-bigdata");
@@ -183,7 +183,7 @@ void CSettings::writeSettings()
 void CSettings::readSettings(QObject *control)
 {
     CGlobalControl* g = qobject_cast<CGlobalControl *>(control);
-    if (g==NULL) return;
+    if (g==nullptr) return;
 
     QSettings settings("kernel1024", "jpreader");
     QSettings bigdata("kernel1024", "jpreader-bigdata");
@@ -316,8 +316,8 @@ void CSettings::readSettings(QObject *control)
 
 void CSettings::settingsDlg()
 {
-    if (gSet==NULL) return;
-    if (dlg!=NULL) {
+    if (gSet==nullptr) return;
+    if (dlg!=nullptr) {
         dlg->activateWindow();
         return;
     }
@@ -608,7 +608,7 @@ void CSettings::settingsDlg()
         settingsDlgHeight=dlg->height();
     }
     connect(dlg,&CSettingsDlg::destroyed,[this](){
-        dlg=NULL;
+        dlg=nullptr;
     });
     dlg->deleteLater();
 }
@@ -648,12 +648,12 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
 QList<QUrl> CSettings::getTabsList() const
 {
     QList<QUrl> res;
-    if (gSet==NULL) return res;
+    if (gSet==nullptr) return res;
 
     for (int i=0;i<gSet->mainWindows.count();i++) {
         for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
             CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
-            if (sn==NULL) continue;
+            if (sn==nullptr) continue;
             QUrl url = sn->getUrl();
             if (url.isValid() && !url.isEmpty())
                 res << url;

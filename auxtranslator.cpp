@@ -23,7 +23,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
 {
     if (!text.isEmpty()) {
         CAbstractTranslator* tran=translatorFactory(this, srcLang);
-        if (tran==NULL || !tran->initTran()) {
+        if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             text = "ERROR";
         } else {
@@ -46,7 +46,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             tran->doneTran();
             text = res;
         }
-        if (tran!=NULL)
+        if (tran!=nullptr)
             tran->deleteLater();
     }
     emit gotTranslation(text);

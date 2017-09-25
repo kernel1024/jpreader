@@ -167,7 +167,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
     t->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
     QPoint p = QCursor::pos();
-    QxtToolTip::show(p,t,NULL);
+    QxtToolTip::show(p,t,nullptr);
 }
 
 CMainWindow* CGlobalUI::addMainWindow()
@@ -177,7 +177,7 @@ CMainWindow* CGlobalUI::addMainWindow()
 
 CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
 {
-    if (gSet==NULL) return NULL;
+    if (gSet==nullptr) return nullptr;
 
     CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer,withViewerUrl);
     connect(mainWindow,&CMainWindow::aboutToClose,

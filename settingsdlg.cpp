@@ -241,7 +241,7 @@ void CSettingsDlg::updateAdblockList()
     QHash<QString,QTreeWidgetItem*> cats;
     ui->treeAdblock->clear();
     for (int i=0;i<adblockList.count();i++) {
-        QTreeWidgetItem* tli = NULL;
+        QTreeWidgetItem* tli = nullptr;
         QString cat = adblockList.at(i).listID();
         if (cats.keys().contains(cat))
             tli = cats.value(cat);
@@ -316,7 +316,7 @@ void CSettingsDlg::editBkm()
 
 void CSettingsDlg::clearHistory()
 {
-    if (gSet!=NULL) {
+    if (gSet!=nullptr) {
         gSet->mainHistory.clear();
         gSet->updateAllHistoryLists();
     }
@@ -326,7 +326,7 @@ void CSettingsDlg::clearHistory()
 void CSettingsDlg::goHistory()
 {
     QListWidgetItem* it = ui->listHistory->currentItem();
-    if (it==NULL || gSet->activeWindow==NULL) return;
+    if (it==nullptr || gSet->activeWindow==nullptr) return;
     QUuid idx(it->data(Qt::UserRole).toString());
     gSet->activeWindow->goHistory(idx);
 }
@@ -454,7 +454,7 @@ void CSettingsDlg::showLoadedDicts()
 void CSettingsDlg::clearCookies()
 {
     QWebEngineCookieStore* wsc = gSet->webProfile->cookieStore();
-    if (wsc!=NULL)
+    if (wsc!=nullptr)
         wsc->deleteAllCookies();
 
     getCookiesFromStore();
@@ -463,7 +463,7 @@ void CSettingsDlg::clearCookies()
 void CSettingsDlg::getCookiesFromStore()
 {
     CNetworkCookieJar* cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
-    if (cj!=NULL) {
+    if (cj!=nullptr) {
         cookiesList = cj->getAllCookies();
         updateCookiesTable();
     }
@@ -472,7 +472,7 @@ void CSettingsDlg::getCookiesFromStore()
 void CSettingsDlg::delCookies()
 {
     QList<int> r = getSelectedRows(ui->tableCookies);
-    if (gSet->webProfile->cookieStore()!=NULL) {
+    if (gSet->webProfile->cookieStore()!=nullptr) {
         foreach (const int idx, r)
             gSet->webProfile->cookieStore()->deleteCookie(cookiesList.at(idx));
 
@@ -608,7 +608,7 @@ void CSettingsDlg::delSearchEngine()
 
 void CSettingsDlg::updateAtlCertLabel()
 {
-    if (gSet!=NULL)
+    if (gSet!=nullptr)
         ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
 }
 
@@ -633,7 +633,7 @@ void CSettingsDlg::addUserScript()
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
         ui->listUserScripts->addItem(itm);
     }
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     dlg->deleteLater();
 }
 
@@ -652,7 +652,7 @@ void CSettingsDlg::editUserScript()
         itm->setText(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
     }
-    dlg->setParent(NULL);
+    dlg->setParent(nullptr);
     dlg->deleteLater();
 }
 

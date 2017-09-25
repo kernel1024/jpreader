@@ -23,12 +23,12 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     stopReq=false;
 
     CAbstractTranslator* tran=translatorFactory(this, LS_JAPANESE);
-    if (tran==NULL || !tran->initTran()) {
+    if (tran==nullptr || !tran->initTran()) {
         qCritical() << tr("Unable to initialize ATLAS.");
         res.clear();
         res << "ERROR";
         emit gotTranslation(res);
-        if (tran!=NULL)
+        if (tran!=nullptr)
             tran->deleteLater();
         return;
     }
