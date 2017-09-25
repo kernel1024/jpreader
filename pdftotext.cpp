@@ -44,6 +44,7 @@
 #ifdef WITH_POPPLER
 
 #include <poppler-config.h>
+#include <poppler-version.h>
 #include <GlobalParams.h>
 #include <Object.h>
 #include <Dict.h>
@@ -57,14 +58,23 @@
 #include <PDFDocEncoding.h>
 #include <QMessageLogger>
 
+#if POPPLER_VERSION_MAJOR==0
+    #if POPPLER_VERSION_MINOR<58
+        #define JPDF_PRE058_OBJECT_API 1
+    #endif
+#endif
+
 void metaString(QString& out, Dict *infoDict, const char* key,
                 const QString& fmt)
 {
     Object obj;
     GooString *s1;
     QString res;
-
+#ifdef JPDF_PRE058_OBJECT_API
     if (infoDict->lookup(key, &obj)->isString()) {
+#else
+    if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
+#endif
         s1 = obj.getString();
         QByteArray ba(s1->getCString());
         res = detectDecodeToUnicode(ba);
@@ -76,7 +86,12 @@ void metaString(QString& out, Dict *infoDict, const char* key,
     }
     if (!res.isEmpty())
         out.append(QString(fmt).arg(res));
+
+#ifdef JPDF_PRE058_OBJECT_API
     obj.free();
+#else
+    obj.setToNull();
+#endif
 }
 
 void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
@@ -84,14 +99,23 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     Object obj;
     char *s;
 
+#ifdef JPDF_PRE058_OBJECT_API
     if (infoDict->lookup(key, &obj)->isString()) {
+#else
+    if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
+#endif
         s = obj.getString()->getCString();
         if (s[0] == 'D' && s[1] == ':') {
             s += 2;
         }
         out.append(QString(fmt).arg(s));
     }
+
+#ifdef JPDF_PRE058_OBJECT_API
     obj.free();
+#else
+    obj.setToNull();
+#endif
 }
 
 static QIntList outLengths;
@@ -280,15 +304,27 @@ bool pdfToText(const QUrl& pdf, QString& result)
 
     // write HTML header
     result.append("<html><head>\n");
+#ifdef JPDF_PRE058_OBJECT_API
     doc->getDocInfo(&info);
+#else
+    info = doc->getDocInfo();
+#endif
     if (info.isDict()) {
         Object obj;
+#ifdef JPDF_PRE058_OBJECT_API
         if (info.getDict()->lookup("Title", &obj)->isString()) {
+#else
+        if (static_cast<void>(obj = info.getDict()->lookup("Title")), obj.isString()) {
+#endif
             metaString(result, info.getDict(), "Title", "<title>%1</title>\n");
         } else {
             result.append("<title></title>\n");
         }
+#ifdef JPDF_PRE058_OBJECT_API
         obj.free();
+#else
+        obj.setToNull();
+#endif
         metaString(result, info.getDict(), "Subject",
                    "<meta name=\"Subject\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Keywords",
@@ -304,7 +340,11 @@ bool pdfToText(const QUrl& pdf, QString& result)
         metaDate(result, info.getDict(), "LastModifiedDate",
                  "<meta name=\"ModDate\" content=\"%1\"/>\n");
     }
+#ifdef JPDF_PRE058_OBJECT_API
     info.free();
+#else
+    info.setToNull();
+#endif
     result.append("</head>\n");
     result.append("<body>\n");
 
