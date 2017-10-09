@@ -209,6 +209,7 @@ public:
     explicit CNetworkCookieJar(QObject * parent = 0);
 
     QList<QNetworkCookie> getAllCookies();
+    void initAllCookies(const QList<QNetworkCookie> cookies);
 };
 
 class CFaviconLoader : public QObject

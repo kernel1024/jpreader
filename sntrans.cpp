@@ -160,7 +160,7 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     QMetaObject::invokeMethod(ct,"translate",Qt::QueuedConnection);
 }
 
-void CSnTrans::calcFinished(const bool success, const QString& aUrl)
+void CSnTrans::calcFinished(const bool success, const QString& aUrl, const QString& error)
 {
     snv->waitPanel->hide();
     snv->transButton->setEnabled(true);
@@ -171,8 +171,10 @@ void CSnTrans::calcFinished(const bool success, const QString& aUrl)
     } else {
         if (aUrl.startsWith("ERROR:"))
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(aUrl));
+        else if (!error.isEmpty())
+            QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(error));
         else
-            QMessageBox::warning(snv,tr("JPReader"),tr("Url not calculated. Network error occured."));
+            QMessageBox::warning(snv,tr("JPReader"),tr("Translation failed. Network error occured."));
     }
 }
 

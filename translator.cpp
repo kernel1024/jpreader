@@ -151,17 +151,13 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->settings.debugDumpHtml)
         dumpPage(token,"6-translated",doc);
 
-    if (translatorFailed) {
-        dst=tran->getErrorMsg();
-    } else {
-        examineNode(doc,PXPostprocess);
-        generateHTML(doc,dst);
+    examineNode(doc,PXPostprocess);
+    generateHTML(doc,dst);
 
-        if (gSet->settings.debugDumpHtml)
-            dumpPage(token,"7-finalized",dst);
+    if (gSet->settings.debugDumpHtml)
+        dumpPage(token,"7-finalized",dst);
 
-        tran->doneTran();
-    }
+    tran->doneTran();
 
     return !translatorFailed;
 }
@@ -615,7 +611,7 @@ void CTranslator::translate()
             QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
         }
         if (!oktrans) {
-            emit calcFinished(false,lastAtlasError);
+            emit calcFinished(false,aUrl,lastAtlasError);
             deleteLater();
             return;
         }
@@ -623,18 +619,18 @@ void CTranslator::translate()
                translationEngine==TE_YANDEX ||
                translationEngine==TE_GOOGLE_GTX) {
         if (!translateDocument(Uri,aUrl)) {
-            emit calcFinished(false,tran->getErrorMsg());
+            emit calcFinished(false,aUrl,tran->getErrorMsg());
             deleteLater();
             return;
         }
     } else {
         if (!calcLocalUrl(Uri,aUrl)) {
-            emit calcFinished(false,"");
+            emit calcFinished(false,QString(),QString("ERROR: Url calculation error"));
             deleteLater();
             return;
         }
     }
-    emit calcFinished(true,aUrl);
+    emit calcFinished(true,aUrl,QString());
     deleteLater();
 }
 

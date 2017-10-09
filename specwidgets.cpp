@@ -627,6 +627,11 @@ QList<QNetworkCookie> CNetworkCookieJar::getAllCookies()
     return allCookies();
 }
 
+void CNetworkCookieJar::initAllCookies(const QList<QNetworkCookie> cookies)
+{
+    setAllCookies(cookies);
+}
+
 CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
     : QObject(parent), m_url(url)
 {

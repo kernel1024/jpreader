@@ -43,7 +43,11 @@ bool CBingTranslator::initTran()
 
     QNetworkReply *rpl = nam->post(rq,rqdata);
 
-    if (!waitForReply(rpl)) return false;
+    if (!waitForReply(rpl)) {
+        tranError = tr("Bing connection error");
+        qCritical() << "Bing connection error: " << rpl->error();
+        return false;
+    }
 
     QByteArray ra = rpl->readAll();
 

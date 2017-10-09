@@ -23,7 +23,7 @@ public:
     void translate(bool tranSubSentences);
 public slots:
     void translatePriv(const QString& aUri, bool forceTranSubSentences);
-    void calcFinished(const bool success, const QString &aUrl);
+    void calcFinished(const bool success, const QString &aUrl, const QString &error);
     void postTranslate();
     void progressLoad(int progress);
     void selectionChanged();

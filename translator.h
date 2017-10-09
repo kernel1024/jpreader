@@ -96,7 +96,7 @@ public:
     QStringList getImgUrls();
 
 signals:
-    void calcFinished(const bool success, const QString &aUrl);
+    void calcFinished(const bool success, const QString &aUrl, const QString &error);
     void setProgress(int value);
 
 public slots:

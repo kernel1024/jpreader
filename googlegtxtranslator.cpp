@@ -14,8 +14,15 @@ CGoogleGTXTranslator::CGoogleGTXTranslator(QObject *parent, const QString& SrcLa
 
 bool CGoogleGTXTranslator::initTran()
 {
-    if (nam==nullptr)
+    if (nam==nullptr) {
         nam=new QNetworkAccessManager(this);
+        CNetworkCookieJar *cj = new CNetworkCookieJar();
+        nam->setCookieJar(cj);
+    }
+
+    CNetworkCookieJar *cj = qobject_cast<CNetworkCookieJar *>(nam->cookieJar());
+    CNetworkCookieJar *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    cj->initAllCookies(mj->getAllCookies());
 
     if (gSet->settings.proxyUseTranslator)
         nam->setProxy(QNetworkProxy::DefaultProxy);
@@ -46,6 +53,7 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 
     if (!waitForReply(rpl)) {
         tranError = QString("ERROR: Google GTX translator network error");
+        qWarning() << rpl->errorString();
         return QString("ERROR:TRAN_GOOGLE_GTX_NETWORK_ERROR");
     }
 
@@ -55,6 +63,7 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 
     if (jdoc.isNull() || jdoc.isEmpty() || !jdoc.isArray()) {
         tranError = QString("ERROR: Google GTX translator JSON error");
+        qWarning() << ra;
         return QString("ERROR:TRAN_GOOGLE_GTX_JSON_ERROR");
     }
 
