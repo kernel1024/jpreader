@@ -15,7 +15,6 @@
 #include "globalcontrol.h"
 #include "specwidgets.h"
 #include "searchtab.h"
-#include "bookmarkdlg.h"
 #include "lighttranslator.h"
 #include "downloadmanager.h"
 
@@ -80,6 +79,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     connect(actionWnd, &QAction::triggered, &(gSet->ui), &CGlobalUI::addMainWindow);
     connect(actionNewSearch, &QAction::triggered, this, &CMainWindow::createSearch);
     connect(actionAddBM, &QAction::triggered, this, &CMainWindow::addBookmark);
+    connect(actionManageBM, &QAction::triggered, this, &CMainWindow::manageBookmarks);
     connect(actionTextTranslator, &QAction::triggered, this, &CMainWindow::showLightTranslator);
     connect(actionDetachTab, &QAction::triggered, this, &CMainWindow::detachTab);
     connect(actionFindText, &QAction::triggered, this, &CMainWindow::findText);
@@ -646,29 +646,10 @@ void CMainWindow::openFromClipboard()
 
 void CMainWindow::updateBookmarks()
 {
-    while (menuBookmarks->actions().count()>2)
+    while (menuBookmarks->actions().count()>3)
         menuBookmarks->removeAction(menuBookmarks->actions().last());
-    QMenu* menu = menuBookmarks;
-    for(int i=0;i<gSet->bookmarks.count();i++) {
-        if (i==gSet->settings.maxBookmarksCnt) {
-            menuBookmarks->addSeparator();
-            menu = menuBookmarks->addMenu(tr("Other bookmarks"));
-            menu->setStyleSheet("QMenu { menu-scrollable: 1; }");
-            menu->setToolTipsVisible(true);
-        }
 
-        QString t = gSet->bookmarks.at(i).first;
-        QUrl u = gSet->bookmarks.at(i).second;
-        QAction* a = menu->addAction(t,this,SLOT(openBookmark()));
-        a->setData(i);
-        a->setStatusTip(u.toString());
-        a->setToolTip(u.toString());
-	}
-
-    if (!gSet->bookmarks.isEmpty()) {
-        menu->addSeparator();
-        menu->addAction(tr("Open all bookmarks"),this,SLOT(openAllBookmarks()));
-    }
+    gSet->bookmarksManager->populateBookmarksMenu(menuBookmarks, this);
 }
 
 void CMainWindow::addBookmark()
@@ -677,13 +658,23 @@ void CMainWindow::addBookmark()
     CSnippetViewer* sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sv==nullptr) return;
 
-    CBookmarkDlg *dlg = new CBookmarkDlg(sv,sv->tabTitle,sv->getUrl().toString());
-    if (dlg->exec()) {
-        gSet->bookmarks.append(qMakePair(dlg->getBkTitle(),dlg->getBkUrl()));
+    AddBookmarkDialog *dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle,this);
+    if (dlg->exec())
         gSet->updateAllBookmarks();
-    }
+
     dlg->setParent(nullptr);
     delete dlg;
+}
+
+void CMainWindow::manageBookmarks()
+{
+    BookmarksDialog *dialog = new BookmarksDialog(this);
+    connect(dialog, &BookmarksDialog::openUrl,[this](const QUrl& url){
+        new CSnippetViewer(this, url);
+    });
+
+    dialog->exec();
+    gSet->updateAllBookmarks();
 }
 
 void CMainWindow::showLightTranslator()
@@ -696,35 +687,22 @@ void CMainWindow::openBookmark()
     QAction* a = qobject_cast<QAction *>(sender());
     if (a==nullptr) return;
 
-    QUrl u;
-    int idx = -1;
     if (a->data().canConvert<QUrl>()) {
-        u = a->data().toUrl();
-    } else {
-        bool ok;
-        idx = a->data().toInt(&ok);
-        if (!ok || idx<0 || idx>=gSet->bookmarks.count()) return;
-        u = gSet->bookmarks.at(idx).second;
-    }
-    if (!u.isValid()) return;
+        QUrl u = a->data().toUrl();
+        if (!u.isValid()) {
+            QMessageBox::warning(this,tr("JPReader"),
+                                 tr("Unable to open inconsistently loaded bookmark."));
+            return;
+        }
 
-    new CSnippetViewer(this, u);
-
-    if (idx>=0) {
-        gSet->bookmarks.move(idx,0);
-        gSet->updateAllBookmarks();
-    }
-}
-
-void CMainWindow::openAllBookmarks()
-{
-    for (int i=0;i<gSet->bookmarks.count();i++) {
-        QUrl u = gSet->bookmarks.at(i).second;
-        if (!u.isValid()) continue;
-
-        new CSnippetViewer(this, u, QStringList(), false);
-
-        qApp->processEvents();
+        new CSnippetViewer(this, u);
+    } else if (a->data().canConvert<QStringList>()) {
+        QStringList sl = a->data().toStringList();
+        foreach (const QString &s, sl) {
+            QUrl u(s);
+            if (u.isValid())
+                new CSnippetViewer(this, u);
+        }
     }
 }
 

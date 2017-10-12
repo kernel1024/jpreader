@@ -12,11 +12,11 @@
 #include "qxttooltip.h"
 #include "snctxhandler.h"
 #include "genericfuncs.h"
-#include "bookmarkdlg.h"
 #include "searchtab.h"
 #include "specwidgets.h"
 #include "auxtranslator.h"
 #include "sourceviewer.h"
+#include "bookmarks.h"
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -394,11 +394,9 @@ void CSnCtxHandler::saveToFile()
 
 void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
-    CBookmarkDlg *dlg = new CBookmarkDlg(snv,lf->title(),lf->requestedUrl().toString());
-    if (dlg->exec()) {
-        gSet->bookmarks.append(qMakePair(dlg->getBkTitle(),dlg->getBkUrl()));
+    AddBookmarkDialog *dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
+    if (dlg->exec())
         gSet->updateAllBookmarks();
-    }
     dlg->setParent(nullptr);
     delete dlg;
 }

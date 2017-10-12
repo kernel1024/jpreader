@@ -56,6 +56,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     logWindow = new CLogDisplay();
 
     downloadManager = new CDownloadManager();
+    bookmarksManager = new BookmarksManager(this);
 
     atlCerts.clear();
 

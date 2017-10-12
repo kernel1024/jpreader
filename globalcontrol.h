@@ -27,6 +27,7 @@
 #include "globalui.h"
 #include "userscript.h"
 #include "browsercontroller.h"
+#include "bookmarks.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -36,6 +37,7 @@ class CAuxDictionary;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
 class CDownloadManager;
+class BookmarksManager;
 
 class CGlobalControl : public QObject
 {
@@ -66,11 +68,12 @@ public:
     QWebEngineProfile *webProfile;
     QNetworkAccessManager *auxNetManager;
 
+    BookmarksManager *bookmarksManager;
+
     QStringList recentFiles;
 
     QStrHash ctxSearchEngines;
 
-    QBookmarks bookmarks;
     QUHList recycleBin;
     QUHList mainHistory;
     QStringList searchHistory;

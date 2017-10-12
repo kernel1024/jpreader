@@ -84,7 +84,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     cacheSize=ui->spinCacheSize;
     jsLogConsole=ui->checkJSLogConsole;
     maxRecent=ui->spinMaxRecent;
-    maxBookmarksCnt=ui->spinMaxBookmarksCnt;
     dontUseNativeFileDialogs=ui->checkDontUseNativeFileDialogs;
     adblockMaxWhiteListItems=ui->spinMaxWhiteListItems;
 
@@ -94,7 +93,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonBrowser, &QPushButton::clicked, this, &CSettingsDlg::selectBrowser);
     connect(ui->buttonEditor, &QPushButton::clicked, this, &CSettingsDlg::selectEditor);
     connect(ui->buttonDelQr, &QPushButton::clicked, this, &CSettingsDlg::delQrs);
-    connect(ui->buttonDelBookmark, &QPushButton::clicked, this, &CSettingsDlg::delBkm);
     connect(ui->buttonCleanHistory, &QPushButton::clicked, this, &CSettingsDlg::clearHistory);
     connect(ui->buttonGoHistory, &QPushButton::clicked, this, &CSettingsDlg::goHistory);
     connect(ui->buttonAdAdd, &QPushButton::clicked, this, &CSettingsDlg::addAd);
@@ -106,7 +104,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonDelDictPath, &QPushButton::clicked, this, &CSettingsDlg::delDictPath);
     connect(ui->buttonLoadedDicts, &QPushButton::clicked, this, &CSettingsDlg::showLoadedDicts);
     connect(ui->buttonClearCookies, &QPushButton::clicked, this, &CSettingsDlg::clearCookies);
-    connect(ui->buttonEditBookmark, &QPushButton::clicked, this, &CSettingsDlg::editBkm);
     connect(ui->buttonDelCookies, &QPushButton::clicked, this, &CSettingsDlg::delCookies);
     connect(ui->buttonExportCookies, &QPushButton::clicked, this, &CSettingsDlg::exportCookies);
     connect(ui->buttonAdSearchBwd, &QPushButton::clicked, this, &CSettingsDlg::adblockSearchBwd);
@@ -159,8 +156,6 @@ void CSettingsDlg::populateTabList()
     itm = new QListWidgetItem(QIcon::fromTheme("system-run"),tr("Programs"));
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(QIcon(":/img/nepomuk"),tr("Query history"));
-    ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("bookmarks"),tr("Bookmarks"));
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(QIcon::fromTheme("view-history"),tr("History"));
     ui->listTabs->addItem(itm);
@@ -283,35 +278,6 @@ void CSettingsDlg::delQrs()
         ui->listQr->removeItemWidget(i);
 		delete i;
 	}
-}
-
-void CSettingsDlg::delBkm()
-{
-    QList<QListWidgetItem *> dl = ui->listBookmarks->selectedItems();
-	foreach (QListWidgetItem* i, dl) {
-        ui->listBookmarks->removeItemWidget(i);
-		delete i;
-    }
-}
-
-void CSettingsDlg::editBkm()
-{
-    QList<QListWidgetItem *> dl = ui->listBookmarks->selectedItems();
-    if (dl.isEmpty()) return;
-
-    QStrHash data;
-    data["Page title"]=dl.first()->data(Qt::UserRole).toString();
-    data["Url"]=dl.first()->data(Qt::UserRole+1).toUrl().toString();
-
-    CMultiInputDialog *dlg = new CMultiInputDialog(this,tr("Edit bookmark"),data);
-    if (dlg->exec()) {
-        data = dlg->getInputData();
-        dl.first()->setData(Qt::UserRole,data["Page title"]);
-        dl.first()->setData(Qt::UserRole+1,QUrl(data["Url"]));
-        dl.first()->setText(QString("%1 [ %2 ]").
-                            arg(data["Page title"], data["Url"]));
-    }
-    dlg->deleteLater();
 }
 
 void CSettingsDlg::clearHistory()
@@ -601,7 +567,7 @@ void CSettingsDlg::delSearchEngine()
 {
     QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
     foreach (QListWidgetItem* i, dl) {
-        ui->listBookmarks->removeItemWidget(i);
+        ui->listSearch->removeItemWidget(i);
         delete i;
     }
 }
@@ -727,18 +693,6 @@ QColor CSettingsDlg::getOverridedFontColor()
     return overridedFontColor;
 }
 
-void CSettingsDlg::setBookmarks(QBookmarks bookmarks)
-{
-    for (int i=0;i<bookmarks.count();i++) {
-        QString t = bookmarks.at(i).first;
-        QString u = bookmarks.at(i).second.toString();
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t, u));
-        li->setData(Qt::UserRole,t);
-        li->setData(Qt::UserRole+1,u);
-        ui->listBookmarks->addItem(li);
-    }
-}
-
 void CSettingsDlg::setQueryHistory(const QStringList& history)
 {
     ui->listQr->clear();
@@ -784,16 +738,6 @@ QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table)
             res << i->data(Qt::UserRole+1).toInt();
     }
     return res;
-}
-
-QBookmarks CSettingsDlg::getBookmarks()
-{
-    QBookmarks bookmarks;
-    bookmarks.clear();
-    for (int i=0; i<ui->listBookmarks->count(); i++)
-        bookmarks << qMakePair(ui->listBookmarks->item(i)->data(Qt::UserRole).toString(),
-                               ui->listBookmarks->item(i)->data(Qt::UserRole+1).toUrl());
-    return bookmarks;
 }
 
 QStringList CSettingsDlg::getQueryHistory()
