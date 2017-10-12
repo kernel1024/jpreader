@@ -62,7 +62,6 @@ public slots:
 	void helpAbout();
 
 	void openBookmark();
-    void openAllBookmarks();
     void openAuxFiles(const QStringList &filenames);
     void openAuxFileWithDialog();
     void openAuxFileInDir();
@@ -82,6 +81,7 @@ public slots:
     void helperItemClicked(QListWidgetItem* current, QListWidgetItem* previous);
     void splitterMoved(int pos, int index);
     void addBookmark();
+    void manageBookmarks();
     void showLightTranslator();
     void closeStartPage();
     void tabBarTooltip(const QPoint& globalPos, const QPoint &localPos);

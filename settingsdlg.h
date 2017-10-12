@@ -81,7 +81,6 @@ public:
     QSpinBox* cacheSize;
     QCheckBox* jsLogConsole;
     QSpinBox* maxRecent;
-    QSpinBox* maxBookmarksCnt;
     QCheckBox* dontUseNativeFileDialogs;
     QSpinBox* adblockMaxWhiteListItems;
 
@@ -107,13 +106,11 @@ public:
     void updateFontColorPreview(const QColor &c);
     QColor getOverridedFontColor();
 
-    void setBookmarks(QBookmarks bookmarks);
     void setQueryHistory(const QStringList &history);
     void setAdblock(QList<CAdBlockRule> adblock);
     void setMainHistory(QUHList history);
     void setSearchEngines(const QStrHash &engines);
     void setUserScripts(const QStrHash &scripts);
-    QBookmarks getBookmarks();
     QStringList getQueryHistory();
     QList<CAdBlockRule> getAdblock();
     QStrHash getSearchEngines();
@@ -124,8 +121,6 @@ public slots:
     void selectBrowser();
     void selectEditor();
 	void delQrs();
-	void delBkm();
-    void editBkm();
     void goHistory();
     void clearHistory();
     void addAd();

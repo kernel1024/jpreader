@@ -10,6 +10,7 @@
 #include "genericfuncs.h"
 #include "snviewer.h"
 #include "userscript.h"
+#include "bookmarks.h"
 
 CSettings::CSettings(QObject *parent)
     : QObject(parent)
@@ -22,7 +23,6 @@ CSettings::CSettings(QObject *parent)
     maxSearchLimit=1000;
     maxHistory=5000;
     maxRecent=10;
-    maxBookmarksCnt=10;
     maxAdblockWhiteList=5000;
     useAdblock=false;
     restoreLoadChecked=false;
@@ -95,7 +95,6 @@ void CSettings::writeSettings()
     bigdata.remove("");
 
     bigdata.setValue("searchHistory",QVariant::fromValue(gSet->searchHistory));
-    bigdata.setValue("bookmarks_list",QVariant::fromValue(gSet->bookmarks));
     bigdata.setValue("history",QVariant::fromValue(gSet->mainHistory));
     bigdata.setValue("adblock",QVariant::fromValue(gSet->adblock));
     bigdata.setValue("atlHostHistory",QVariant::fromValue(atlHostHistory));
@@ -106,13 +105,13 @@ void CSettings::writeSettings()
     bigdata.setValue("atlasCertificates",QVariant::fromValue(gSet->atlCerts));
     bigdata.setValue("recentFiles",QVariant::fromValue(gSet->recentFiles));
     bigdata.setValue("userScripts",QVariant::fromValue(gSet->getUserScripts()));
+    bigdata.setValue("bookmarks2",QVariant::fromValue(gSet->bookmarksManager->save()));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
     settings.setValue("maxLimit",maxSearchLimit);
     settings.setValue("maxHistory",maxHistory);
     settings.setValue("maxRecent",maxRecent);
-    settings.setValue("maxBookmarksCnt",maxBookmarksCnt);
     settings.setValue("maxAdblockWhiteList",maxAdblockWhiteList);
     settings.setValue("browser",sysBrowser);
     settings.setValue("editor",sysEditor);
@@ -203,6 +202,7 @@ void CSettings::readSettings(QObject *control)
     g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
     g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
     g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
+    g->bookmarksManager->load(bigdata.value("bookmarks2",QByteArray()).value<QByteArray>());
 
     int idx=0;
     while (idx<g->mainHistory.count()) {
@@ -212,13 +212,17 @@ void CSettings::readSettings(QObject *control)
             idx++;
     }
 
+    // read legacy bookmarks
+    QBookmarks bookmarks;
     if (bigdata.contains("bookmarks")) {
-        g->bookmarks.clear();
         QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
         foreach (const QString &title, bm.keys())
-            g->bookmarks << qMakePair(title, bm.value(title).toString());
-    } else
-        g->bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
+            bookmarks << qMakePair(title, bm.value(title).toString());
+    } else if (bigdata.contains("bookmarks_list")) {
+        bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
+    }
+    if (!bookmarks.isEmpty())
+        g->bookmarksManager->importOldBookmarks(bookmarks);
 
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
 
@@ -227,7 +231,6 @@ void CSettings::readSettings(QObject *control)
     maxSearchLimit = settings.value("maxLimit",1000).toInt();
     maxHistory = settings.value("maxHistory",1000).toInt();
     maxRecent = settings.value("maxRecent",10).toInt();
-    maxBookmarksCnt = settings.value("maxBookmarksCnt",15).toInt();
     maxAdblockWhiteList = settings.value("maxAdblockWhiteList",5000).toInt();
     sysBrowser = settings.value("browser","konqueror").toString();
     sysEditor = settings.value("editor","kwrite").toString();
@@ -310,6 +313,7 @@ void CSettings::readSettings(QObject *control)
     bigdata.endGroup();
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
+
     g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
 }
@@ -327,7 +331,6 @@ void CSettings::settingsDlg()
     dlg->maxLimit->setValue(maxSearchLimit);
     dlg->maxHistory->setValue(maxHistory);
     dlg->maxRecent->setValue(maxRecent);
-    dlg->maxBookmarksCnt->setValue(maxBookmarksCnt);
     dlg->editor->setText(sysEditor);
     dlg->browser->setText(sysBrowser);
     dlg->maxRecycled->setValue(maxRecycled);
@@ -339,7 +342,6 @@ void CSettings::settingsDlg()
     dlg->enablePlugins->setChecked(gSet->webProfile->settings()->
                                    testAttribute(QWebEngineSettings::PluginsEnabled));
 
-    dlg->setBookmarks(gSet->bookmarks);
     dlg->setMainHistory(gSet->mainHistory);
     dlg->setQueryHistory(gSet->searchHistory);
     dlg->setAdblock(gSet->adblock);
@@ -475,14 +477,11 @@ void CSettings::settingsDlg()
         sysBrowser=dlg->browser->text();
         maxRecycled=dlg->maxRecycled->value();
         maxRecent=dlg->maxRecent->value();
-        maxBookmarksCnt=dlg->maxBookmarksCnt->value();
         maxAdblockWhiteList=dlg->adblockMaxWhiteListItems->value();
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());
         gSet->updateAllQueryLists();
-        gSet->bookmarks = dlg->getBookmarks();
-        gSet->updateAllBookmarks();
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
         gSet->adblockWhiteListMutex.lock();

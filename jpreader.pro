@@ -10,7 +10,6 @@ HEADERS = mainwindow.h \
     sntrans.h \
     snnet.h \
     authdlg.h \
-    bookmarkdlg.h \
     searchtab.h \
     lighttranslator.h \
     auxtranslator.h \
@@ -38,7 +37,10 @@ HEADERS = mainwindow.h \
     userscript.h \
     browsercontroller.h \
     googlegtxtranslator.h \
-    webapiabstracttranslator.h
+    webapiabstracttranslator.h \
+    bookmarks.h \
+    edittreeview.h \
+    xbel.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -53,7 +55,6 @@ SOURCES = main.cpp \
     sntrans.cpp \
     snnet.cpp \
     authdlg.cpp \
-    bookmarkdlg.cpp \
     searchtab.cpp \
     lighttranslator.cpp \
     auxtranslator.cpp \
@@ -81,7 +82,10 @@ SOURCES = main.cpp \
     userscript.cpp \
     browsercontroller.cpp \
     googlegtxtranslator.cpp \
-    webapiabstracttranslator.cpp
+    webapiabstracttranslator.cpp \
+    bookmarks.cpp \
+    edittreeview.cpp \
+    xbel.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -89,7 +93,6 @@ RESOURCES = \
 FORMS = main.ui \
     settingsdlg.ui \
     authdlg.ui \
-    bookmarkdlg.ui \
     snviewer.ui \
     searchtab.ui \
     lighttranslator.ui \
@@ -99,7 +102,9 @@ FORMS = main.ui \
     downloadmanager.ui \
     sourceviewer.ui \
     userscriptdlg.ui \
-    selectablelistdlg.ui
+    selectablelistdlg.ui \
+    bookmarks.ui \
+    addbookmarkdialog.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras printsupport
 

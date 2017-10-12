@@ -126,6 +126,7 @@
      <string>&amp;Bookmarks</string>
     </property>
     <addaction name="actionAddBM"/>
+    <addaction name="actionManageBM"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -493,6 +494,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionManageBM">
+   <property name="text">
+    <string>Manage bookmarks</string>
    </property>
   </action>
  </widget>

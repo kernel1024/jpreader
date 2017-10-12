@@ -65,7 +65,6 @@ public:
     int maxSearchLimit;
     int translatorEngine;
     int maxRecycled;
-    int maxBookmarksCnt;
     int atlTcpRetryCount;
     int atlTcpTimeout;
     int maxAdblockWhiteList;

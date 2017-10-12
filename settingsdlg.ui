@@ -167,27 +167,6 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_32">
-             <item>
-              <widget class="QLabel" name="label_34">
-               <property name="text">
-                <string>&amp;Max visible bookmarks items</string>
-               </property>
-               <property name="buddy">
-                <cstring>spinMaxBookmarksCnt</cstring>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="spinMaxBookmarksCnt">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QVBoxLayout" name="verticalLayout_18">
              <item>
               <widget class="QCheckBox" name="checkUserAgent">
@@ -1308,48 +1287,6 @@ p, li { white-space: pre-wrap; }
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_3">
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QListWidget" name="listBookmarks">
-           <property name="selectionMode">
-            <enum>QAbstractItemView::ExtendedSelection</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_10">
-           <item>
-            <widget class="QPushButton" name="buttonEditBookmark">
-             <property name="text">
-              <string>Edit...</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="buttonDelBookmark">
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="tab_5">
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
@@ -1896,7 +1833,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>spinMaxRecent</tabstop>
   <tabstop>spinMaxRecycled</tabstop>
   <tabstop>spinMaxHistory</tabstop>
-  <tabstop>spinMaxBookmarksCnt</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
   <tabstop>spinCacheSize</tabstop>
@@ -1954,9 +1890,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>editScpParams</tabstop>
   <tabstop>listQr</tabstop>
   <tabstop>buttonDelQr</tabstop>
-  <tabstop>listBookmarks</tabstop>
-  <tabstop>buttonEditBookmark</tabstop>
-  <tabstop>buttonDelBookmark</tabstop>
   <tabstop>listHistory</tabstop>
   <tabstop>buttonCleanHistory</tabstop>
   <tabstop>buttonGoHistory</tabstop>
