@@ -443,7 +443,7 @@ QVariant BookmarksModel::data(const QModelIndex &index, int role) const
         if (index.column() == 0) {
             if (bookmarkNode->type() == BookmarkNode::Folder)
                 return QApplication::style()->standardIcon(QStyle::SP_DirIcon);
-            return QApplication::style()->standardIcon(QStyle::SP_FileLinkIcon);
+            return QApplication::style()->standardIcon(QStyle::SP_FileIcon);
         }
     }
 
@@ -692,14 +692,22 @@ void AddBookmarkDialog::accept()
     QDialog::accept();
 }
 
-TreeProxyModel::TreeProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
+TreeProxyModel::TreeProxyModel(QObject *parent, BookmarksModel *sourceModel)
+    : QSortFilterProxyModel(parent)
+    , m_sourceModel(sourceModel)
 {
-//    setSortRole(HistoryModel::DateTimeRole);
     setFilterCaseSensitivity(Qt::CaseInsensitive);
 }
 
 bool TreeProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
+    QModelIndex idx = m_sourceModel->index(source_row,0,source_parent);
+    if (!idx.isValid()) return false;
+
+    BookmarkNode* node = m_sourceModel->node(idx);
+    if (node->type()==BookmarkNode::Root || node->type()==BookmarkNode::Folder)
+        return true; // show all folders
+
     return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }
 
@@ -716,7 +724,7 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     tree->setSelectionMode(QAbstractItemView::ContiguousSelection);
     tree->setTextElideMode(Qt::ElideMiddle);
     m_bookmarksModel = m_bookmarksManager->bookmarksModel();
-    m_proxyModel = new TreeProxyModel(this);
+    m_proxyModel = new TreeProxyModel(this, m_bookmarksModel);
     connect(search, &QLineEdit::textChanged,
             m_proxyModel, &TreeProxyModel::setFilterFixedString);
     connect(removeButton, &QPushButton::clicked, tree, &EditTreeView::removeOne);
@@ -738,6 +746,8 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
             this, &BookmarksDialog::removeNode);
     connect(addFolderButton, &QPushButton::clicked,
             this, &BookmarksDialog::newFolder);
+    connect(addSeparatorButton, &QPushButton::clicked,
+            this, &BookmarksDialog::newSeparator);
     expandNodes(m_bookmarksManager->bookmarks());
     setAttribute(Qt::WA_DeleteOnClose);
 }
@@ -774,7 +784,9 @@ void BookmarksDialog::removeNode(const QModelIndex &node)
     if (!idx.isValid()) return;
 
     BookmarkNode *childNode = m_bookmarksModel->node(idx);
-    m_bookmarksManager->removeBookmark(childNode);
+
+    if (*childNode!=*(gSet->bookmarksManager->menu())) // this is not predefined folder
+        m_bookmarksManager->removeBookmark(childNode);
 }
 
 void BookmarksDialog::expandNodes(BookmarkNode *node)
@@ -815,13 +827,47 @@ void BookmarksDialog::newFolder()
 {
     QModelIndex currentIndex = tree->currentIndex();
     QModelIndex idx = currentIndex;
-    if (idx.isValid() && !idx.model()->hasChildren(idx))
-        idx = idx.parent();
-    if (!idx.isValid())
+
+    int row;
+    if (idx.isValid()) {
+        if (!idx.model()->hasChildren(idx)) {
+            idx = idx.parent();
+            row = currentIndex.row() + 1;
+        } else {
+            row = 0;
+        }
+    } else {
         idx = tree->rootIndex();
+        row = 0;
+    }
+
     idx = m_proxyModel->mapToSource(idx);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(idx);
     BookmarkNode *node = new BookmarkNode(BookmarkNode::Folder);
     node->title = tr("New Folder");
-    m_bookmarksManager->addBookmark(parent, node, currentIndex.row() + 1);
+    m_bookmarksManager->addBookmark(parent, node, row);
+}
+
+void BookmarksDialog::newSeparator()
+{
+    QModelIndex currentIndex = tree->currentIndex();
+    QModelIndex idx = currentIndex;
+
+    int row;
+    if (idx.isValid()) {
+        if (!idx.model()->hasChildren(idx)) {
+            idx = idx.parent();
+            row = currentIndex.row() + 1;
+        } else {
+            row = 0;
+        }
+    } else {
+        idx = tree->rootIndex();
+        row = 0;
+    }
+
+    idx = m_proxyModel->mapToSource(idx);
+    BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(idx);
+    BookmarkNode *node = new BookmarkNode(BookmarkNode::Separator);
+    m_bookmarksManager->addBookmark(parent, node, row);
 }

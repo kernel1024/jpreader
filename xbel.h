@@ -67,6 +67,7 @@ public:
     BookmarkNode(Type type = Root, BookmarkNode *parent = 0);
     ~BookmarkNode();
     bool operator==(const BookmarkNode &other);
+    bool operator!=(const BookmarkNode &other);
 
     Type type() const;
     void setType(Type type);

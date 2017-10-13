@@ -86,6 +86,11 @@ bool BookmarkNode::operator==(const BookmarkNode &other)
     return true;
 }
 
+bool BookmarkNode::operator!=(const BookmarkNode &other)
+{
+    return !operator==(other);
+}
+
 BookmarkNode::Type BookmarkNode::type() const
 {
     return m_type;

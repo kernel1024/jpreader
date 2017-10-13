@@ -194,18 +194,18 @@ private:
 };
 
 #include "ui_bookmarks.h"
-// A modified QSortFilterProxyModel that always accepts the root nodes in the tree
-// so filtering is only done on the children.
-// Used in the HistoryDialog
 class TreeProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    TreeProxyModel(QObject *parent = 0);
+    TreeProxyModel(QObject *parent, BookmarksModel *sourceModel);
 
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+
+private:
+    BookmarksModel *m_sourceModel;
 };
 
 
@@ -224,6 +224,7 @@ private slots:
     void customContextMenuRequested(const QPoint &pos);
     void open();
     void newFolder();
+    void newSeparator();
 
 private:
     void expandNodes(BookmarkNode *node);
