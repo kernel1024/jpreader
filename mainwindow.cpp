@@ -59,7 +59,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     menuBookmarks->setStyleSheet("QMenu { menu-scrollable: 1; }");
     menuBookmarks->setToolTipsVisible(true);
 
-    titleRenamedLock.setInterval(1500);
+    titleRenamedLock.setInterval(500);
     titleRenamedLock.setSingleShot(true);
 
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
