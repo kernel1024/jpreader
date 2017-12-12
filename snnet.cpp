@@ -94,6 +94,44 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
     }
 }
 
+void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate)
+{
+    QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(url));
+    qApp->setOverrideCursor(Qt::BusyCursor);
+
+    connect(rpl,SIGNAL(error(QNetworkReply::NetworkError)),
+            this,SLOT(pixivNovelError(QNetworkReply::NetworkError)));
+    connect(rpl,&QNetworkReply::finished,[this,rpl,title,translate](){
+        qApp->restoreOverrideCursor();
+        if (rpl==nullptr) return;
+
+        if (rpl->error() == QNetworkReply::NoError) {
+            QString html = QString::fromUtf8(rpl->readAll());
+            QRegExp rx("<textarea[^>]*id=\"novel_text\"[^>]*>",Qt::CaseInsensitive);
+            int idx = rx.indexIn(html);
+            if (idx<0) return;
+            html.remove(0,idx+rx.matchedLength());
+            idx = html.indexOf(QString("</textarea>"),0,Qt::CaseInsensitive);
+            if (idx>=0)
+                html.truncate(idx);
+
+            CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
+                                                    true,makeSimpleHtml(title,html));
+            sv->requestAutotranslate = translate;
+        }
+        rpl->deleteLater();
+    });
+}
+
+void CSnNet::pixivNovelError(QNetworkReply::NetworkError )
+{
+    QString msg("Unable to load pixiv novel.");
+    QNetworkReply* rpl = qobject_cast<QNetworkReply *>(sender());
+    if (rpl!=nullptr)
+        msg.append(QString(" %1").arg(rpl->errorString()));
+    QMessageBox::warning(snv->parentWnd,tr("JPReader"),msg);
+}
+
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {

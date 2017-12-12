@@ -199,6 +199,34 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         cm->addSeparator();
     }
 
+    if (!snv->fileChanged && snv->urlEdit->text().contains(QString("pixiv.net/novel/show.php"),
+                                                           Qt::CaseInsensitive)) {
+        QUrl purl = QUrl::fromUserInput(snv->urlEdit->text());
+        purl.setFragment(QString());
+        ac = new QAction(tr("Extract pixiv novel"),nullptr);
+        connect(ac, &QAction::triggered, [this,purl](){
+            snv->netHandler->processPixivNovel(purl,snv->txtBrowser->page()->title(),false);
+        });
+
+        QAction* ac2 = new QAction(tr("Extract pixiv novel and translate"),nullptr);
+                connect(ac2, &QAction::triggered, [this,purl](){
+            snv->netHandler->processPixivNovel(purl,snv->txtBrowser->page()->title(),true);
+        });
+
+        QUrl fiurl("http://www.pixiv.net/favicon.ico");
+        fiurl.setScheme(purl.scheme());
+        CFaviconLoader* fl = new CFaviconLoader(snv,fiurl);
+        connect(fl,&CFaviconLoader::gotIcon,[ac,ac2](const QIcon& icon){
+            ac->setIcon(icon);
+            ac2->setIcon(icon);
+        });
+        fl->queryStart(false);
+
+        cm->addAction(ac);
+        cm->addAction(ac2);
+        cm->addSeparator();
+    }
+
     ac = new QAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),nullptr);
     connect(ac, &QAction::triggered, [this](){
         QString url = "about://blank";
