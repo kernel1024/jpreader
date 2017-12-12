@@ -54,10 +54,13 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     if (!waitForReply(rpl)) {
         tranError = QString("ERROR: Google GTX translator network error");
         qWarning() << rpl->errorString();
+        rpl->deleteLater();
         return QString("ERROR:TRAN_GOOGLE_GTX_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
+
+    rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 

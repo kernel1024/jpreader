@@ -46,6 +46,7 @@ bool CBingTranslator::initTran()
     if (!waitForReply(rpl)) {
         tranError = tr("Bing connection error");
         qCritical() << "Bing connection error: " << rpl->error();
+        rpl->deleteLater();
         return false;
     }
 
@@ -55,8 +56,11 @@ bool CBingTranslator::initTran()
         tranError = tr("Bing auth error");
         qCritical() << "Bing auth error: " << rpl->error();
         qCritical() << "Response: " << ra;
+        rpl->deleteLater();
         return false;
     }
+
+    rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
@@ -102,6 +106,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     }
 
     QByteArray ra = rpl->readAll();
+
+    rpl->deleteLater();
 
     QDomDocument xdoc;
     if (!xdoc.setContent(ra)) {

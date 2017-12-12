@@ -48,10 +48,13 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
 
     if (!waitForReply(rpl)) {
         tranError = QString("ERROR: Yandex translator network error");
+        rpl->deleteLater();
         return QString("ERROR:TRAN_YANDEX_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
+
+    rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
