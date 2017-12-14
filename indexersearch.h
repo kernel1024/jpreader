@@ -51,7 +51,6 @@ private:
     bool working;
     void addHitFS(const QFileInfo &hit, const QString &title=QString(), double rel=-1.0);
     void processFile(const QString &filename, double &hitRate, QString &title);
-    QString extractFileTitle(const QString& fc);
     double calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);
 

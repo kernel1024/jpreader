@@ -183,29 +183,6 @@ void CIndexerSearch::processFile(const QString &filename, double &hitRate, QStri
     fc.clear();
 }
 
-QString CIndexerSearch::extractFileTitle(const QString& fc)
-{
-    int pos;
-    int start = -1;
-    int stop = -1;
-    if ((pos = fc.indexOf(QRegExp("<title {0,}>",Qt::CaseInsensitive))) != -1) {
-        start = pos;
-        if ((pos = fc.indexOf(QRegExp("</title {0,}>", Qt::CaseInsensitive))) != -1) {
-            stop = pos;
-            if (stop>start) {
-                if ((stop-start)>255)
-                    stop = start + 255;
-                QString s = fc.mid(start,stop-start);
-                s.remove(QRegExp("^<title {0,}>",Qt::CaseInsensitive));
-                s.remove("\r");
-                s.remove("\n");
-                return s;
-            }
-        }
-    }
-    return QString();
-}
-
 double CIndexerSearch::calculateHitRate(const QString &fc)
 {
 

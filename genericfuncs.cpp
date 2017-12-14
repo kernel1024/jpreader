@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QMutex>
 #include <QTcpServer>
+#include <QRegExp>
 
 #include <iostream>
 #include <unistd.h>
@@ -533,6 +534,29 @@ void generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
     html.append(src.closingText);
     if (reformat)
         html.append("\n");
+}
+
+QString extractFileTitle(const QString& fileContents)
+{
+    int pos;
+    int start = -1;
+    int stop = -1;
+    if ((pos = fileContents.indexOf(QRegExp("<title {0,}>",Qt::CaseInsensitive))) != -1) {
+        start = pos;
+        if ((pos = fileContents.indexOf(QRegExp("</title {0,}>", Qt::CaseInsensitive))) != -1) {
+            stop = pos;
+            if (stop>start) {
+                if ((stop-start)>255)
+                    stop = start + 255;
+                QString s = fileContents.mid(start,stop-start);
+                s.remove(QRegExp("^<title {0,}>",Qt::CaseInsensitive));
+                s.remove("\r");
+                s.remove("\n");
+                return s;
+            }
+        }
+    }
+    return QString();
 }
 
 // for url rules

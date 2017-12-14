@@ -73,6 +73,40 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         cm->addSeparator();
     }
 
+    if ((linkUrl.isValid() && linkUrl.toString().contains(QString("pixiv.net/novel/show.php"), Qt::CaseInsensitive))
+            || (!snv->fileChanged && snv->urlEdit->text().contains(QString("pixiv.net/novel/show.php"), Qt::CaseInsensitive))) {
+        QUrl purl = QUrl::fromUserInput(snv->urlEdit->text());
+        QString title = snv->txtBrowser->page()->title();
+        if (linkUrl.isValid()) {
+            purl = linkUrl;
+            title.clear();
+        }
+
+        purl.setFragment(QString());
+        ac = new QAction(tr("Extract pixiv novel in new tab"),nullptr);
+        connect(ac, &QAction::triggered, [this,purl,title](){
+            snv->netHandler->processPixivNovel(purl,title,false);
+        });
+
+        QAction* ac2 = new QAction(tr("Extract pixiv novel in new tab and translate"),nullptr);
+                connect(ac2, &QAction::triggered, [this,purl,title](){
+            snv->netHandler->processPixivNovel(purl,title,true);
+        });
+
+        QUrl fiurl("http://www.pixiv.net/favicon.ico");
+        fiurl.setScheme(purl.scheme());
+        CFaviconLoader* fl = new CFaviconLoader(snv,fiurl);
+        connect(fl,&CFaviconLoader::gotIcon,[ac,ac2](const QIcon& icon){
+            ac->setIcon(icon);
+            ac2->setIcon(icon);
+        });
+        fl->queryStart(false);
+
+        cm->addAction(ac);
+        cm->addAction(ac2);
+        cm->addSeparator();
+    }
+
     if (!sText.isEmpty()) {
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
 
@@ -196,34 +230,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         icm->addAction(ac);
 
         icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::DownloadImageToDisk));
-        cm->addSeparator();
-    }
-
-    if (!snv->fileChanged && snv->urlEdit->text().contains(QString("pixiv.net/novel/show.php"),
-                                                           Qt::CaseInsensitive)) {
-        QUrl purl = QUrl::fromUserInput(snv->urlEdit->text());
-        purl.setFragment(QString());
-        ac = new QAction(tr("Extract pixiv novel"),nullptr);
-        connect(ac, &QAction::triggered, [this,purl](){
-            snv->netHandler->processPixivNovel(purl,snv->txtBrowser->page()->title(),false);
-        });
-
-        QAction* ac2 = new QAction(tr("Extract pixiv novel and translate"),nullptr);
-                connect(ac2, &QAction::triggered, [this,purl](){
-            snv->netHandler->processPixivNovel(purl,snv->txtBrowser->page()->title(),true);
-        });
-
-        QUrl fiurl("http://www.pixiv.net/favicon.ico");
-        fiurl.setScheme(purl.scheme());
-        CFaviconLoader* fl = new CFaviconLoader(snv,fiurl);
-        connect(fl,&CFaviconLoader::gotIcon,[ac,ac2](const QIcon& icon){
-            ac->setIcon(icon);
-            ac2->setIcon(icon);
-        });
-        fl->queryStart(false);
-
-        cm->addAction(ac);
-        cm->addAction(ac2);
         cm->addSeparator();
     }
 

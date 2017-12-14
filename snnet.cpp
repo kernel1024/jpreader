@@ -11,6 +11,7 @@
 #include "authdlg.h"
 #include "pdftotext.h"
 #include "downloadmanager.h"
+#include "genericfuncs.h"
 #include "ui_selectablelistdlg.h"
 
 CSnNet::CSnNet(CSnippetViewer *parent)
@@ -107,6 +108,11 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
 
         if (rpl->error() == QNetworkReply::NoError) {
             QString html = QString::fromUtf8(rpl->readAll());
+
+            QString wtitle = title;
+            if (wtitle.isEmpty())
+                wtitle = extractFileTitle(html);
+
             QRegExp rx("<textarea[^>]*id=\"novel_text\"[^>]*>",Qt::CaseInsensitive);
             int idx = rx.indexIn(html);
             if (idx<0) return;
@@ -116,7 +122,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
                 html.truncate(idx);
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
-                                                    true,makeSimpleHtml(title,html));
+                                                    true,makeSimpleHtml(wtitle,html));
             sv->requestAutotranslate = translate;
         }
         rpl->deleteLater();

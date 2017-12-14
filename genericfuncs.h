@@ -32,6 +32,7 @@ int getRandomTCPPort();
 bool runnedFromQtCreator();
 int compareStringLists(const QStringList& left, const QStringList& right);
 void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false, int depth = 0);
+QString extractFileTitle(const QString& fileContents);
 QString convertPatternToRegExp(const QString &wildcardPattern);
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
