@@ -83,27 +83,34 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         }
 
         purl.setFragment(QString());
-        ac = new QAction(tr("Extract pixiv novel in new tab"),nullptr);
+        ac = new QAction(tr("Extract pixiv novel in new background tab"),nullptr);
         connect(ac, &QAction::triggered, [this,purl,title](){
-            snv->netHandler->processPixivNovel(purl,title,false);
+            snv->netHandler->processPixivNovel(purl,title,false,false);
         });
 
-        QAction* ac2 = new QAction(tr("Extract pixiv novel in new tab and translate"),nullptr);
-                connect(ac2, &QAction::triggered, [this,purl,title](){
-            snv->netHandler->processPixivNovel(purl,title,true);
+        QAction* ac2 = new QAction(tr("Extract pixiv novel in new tab"),nullptr);
+        connect(ac2, &QAction::triggered, [this,purl,title](){
+            snv->netHandler->processPixivNovel(purl,title,false,true);
+        });
+
+        QAction* ac3 = new QAction(tr("Extract pixiv novel in new background tab and translate"),nullptr);
+                connect(ac3, &QAction::triggered, [this,purl,title](){
+            snv->netHandler->processPixivNovel(purl,title,true,false);
         });
 
         QUrl fiurl("http://www.pixiv.net/favicon.ico");
         fiurl.setScheme(purl.scheme());
         CFaviconLoader* fl = new CFaviconLoader(snv,fiurl);
-        connect(fl,&CFaviconLoader::gotIcon,[ac,ac2](const QIcon& icon){
+        connect(fl,&CFaviconLoader::gotIcon,[ac,ac2,ac3](const QIcon& icon){
             ac->setIcon(icon);
             ac2->setIcon(icon);
+            ac3->setIcon(icon);
         });
         fl->queryStart(false);
 
         cm->addAction(ac);
         cm->addAction(ac2);
+        cm->addAction(ac3);
         cm->addSeparator();
     }
 

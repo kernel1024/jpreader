@@ -95,14 +95,14 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
     }
 }
 
-void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate)
+void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate, bool focus)
 {
     QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(url));
     qApp->setOverrideCursor(Qt::BusyCursor);
 
     connect(rpl,SIGNAL(error(QNetworkReply::NetworkError)),
             this,SLOT(pixivNovelError(QNetworkReply::NetworkError)));
-    connect(rpl,&QNetworkReply::finished,[this,rpl,title,translate](){
+    connect(rpl,&QNetworkReply::finished,[this,rpl,title,translate,focus](){
         qApp->restoreOverrideCursor();
         if (rpl==nullptr) return;
 
@@ -122,7 +122,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
                 html.truncate(idx);
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
-                                                    true,makeSimpleHtml(wtitle,html));
+                                                    focus,makeSimpleHtml(wtitle,html));
             sv->requestAutotranslate = translate;
         }
         rpl->deleteLater();

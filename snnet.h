@@ -25,7 +25,7 @@ public slots:
     void loadStarted();
     void loadFinished(bool);
     void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
-    void processPixivNovel(const QUrl& url, const QString &title, bool translate);
+    void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void pixivNovelError(QNetworkReply::NetworkError error);
 
 };
