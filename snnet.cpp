@@ -47,6 +47,18 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
     dlg->deleteLater();
 }
 
+bool CSnNet::isValidLoadedUrl(const QUrl& url)
+{
+    // loadedUrl points to non-empty page
+    QUrl u = url;
+    if (u.isEmpty())
+        u = loadedUrl;
+    if (!u.isValid()) return false;
+    if (!u.toLocalFile().isEmpty()) return true;
+    if (u.scheme().startsWith("http",Qt::CaseInsensitive)) return true;
+    return false;
+}
+
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
@@ -56,12 +68,14 @@ void CSnNet::loadStarted()
     snv->updateButtonsState();
 }
 
-void CSnNet::loadFinished(bool)
+void CSnNet::loadFinished(bool ok)
 {
     snv->msgHandler->updateZoomFactor();
     snv->msgHandler->hideBarLoading();
     snv->loading = false;
     snv->updateButtonsState();
+    if (isValidLoadedUrl(snv->txtBrowser->url()) && ok)
+        loadedUrl = snv->txtBrowser->url();
 
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->translationBkgdFinished) { // tab is inactive
@@ -70,11 +84,14 @@ void CSnNet::loadFinished(bool)
         snv->parentWnd->updateTabs();
     }
 
-    if ((gSet->ui.autoTranslate() || snv->requestAutotranslate) && !snv->onceTranslated) {
-        snv->requestAutotranslate = false;
+    bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->requestAutotranslate) ||
+                            (!gSet->ui.autoTranslate() && snv->requestAutotranslate);
+
+    if (xorAutotranslate && !snv->onceTranslated && isValidLoadedUrl())
         snv->transButton->click();
-    }
+
     snv->pageLoaded = true;
+    snv->requestAutotranslate = false;
 
     if (snv->tabWidget->currentWidget()==snv) {
         snv->takeScreenshot();

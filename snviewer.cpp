@@ -244,9 +244,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
                 url.scheme().startsWith("file",Qt::CaseInsensitive))
             urlEdit->setText(aUrl.toString());
-        else if (netHandler->loadedUrl.isValid() &&
-                 (netHandler->loadedUrl.scheme().startsWith("http",Qt::CaseInsensitive) ||
-                                 netHandler->loadedUrl.scheme().startsWith("file",Qt::CaseInsensitive)))
+        else if (netHandler->isValidLoadedUrl())
             urlEdit->setText(netHandler->loadedUrl.toString());
         else
             urlEdit->clear();

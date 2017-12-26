@@ -16,6 +16,7 @@ public:
     QUrl loadedUrl;
     CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
+    bool isValidLoadedUrl(const QUrl& url = QUrl());
 public slots:
     void load(const QUrl & url);
     void load(const QString & html, const QUrl& loadedUrl = QUrl());
@@ -23,7 +24,7 @@ public slots:
     void proxyAuthenticationRequired(const QUrl & requestUrl, QAuthenticator * authenticator,
                                      const QString & proxyHost);
     void loadStarted();
-    void loadFinished(bool);
+    void loadFinished(bool ok);
     void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void pixivNovelError(QNetworkReply::NetworkError error);

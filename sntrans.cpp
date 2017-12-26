@@ -208,6 +208,7 @@ void CSnTrans::postTranslate()
                 snv->onceTranslated = true;
                 snv->txtBrowser->setHtml(cn,savedBaseUrl);
                 if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+                snv->urlChanged(snv->netHandler->loadedUrl);
             } else
                 openSeparateTranslationTab(cn, savedBaseUrl);
             break;
