@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QMimeData>
+#include <QToolTip>
 #include "globalui.h"
 #include "structures.h"
 #include "globalcontrol.h"
@@ -14,11 +15,13 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
     actionGlobalTranslator->setCheckable(true);
     actionGlobalTranslator->setChecked(false);
+    addActionNotification(actionGlobalTranslator);
 
     actionSelectionDictionary = new QAction(tr("Dictionary search"),this);
     actionSelectionDictionary->setShortcut(QKeySequence(Qt::Key_F9));
     actionSelectionDictionary->setCheckable(true);
     actionSelectionDictionary->setChecked(false);
+    addActionNotification(actionSelectionDictionary);
 
     actionUseProxy = new QAction(tr("Use proxy"),this);
     actionUseProxy->setCheckable(true);
@@ -80,6 +83,7 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionAutoTranslate->setCheckable(true);
     actionAutoTranslate->setChecked(false);
     actionAutoTranslate->setShortcut(Qt::Key_F8);
+    addActionNotification(actionAutoTranslate);
 
     actionOverrideFont = new QAction(QIcon::fromTheme("character-set"),
                                      tr("Override font for translated text"),this);
@@ -162,6 +166,11 @@ bool CGlobalUI::translateSubSentences()
     return actionTranslateSubSentences->isChecked();
 }
 
+void CGlobalUI::addActionNotification(QAction *action)
+{
+    connect(action,&QAction::toggled,this,&CGlobalUI::actionToggled);
+}
+
 void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
@@ -214,4 +223,41 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const 
     gSet->settings.checkRestoreLoad(mainWindow);
 
     return mainWindow;
+}
+
+void CGlobalUI::showGlobalTooltip(const QString &text)
+{
+    if (gSet->activeWindow==nullptr) return;
+
+    int sz = 5*qApp->font().pointSize()/4;
+
+    QString msg = QString("<span style='font-size:%1pt;white-space:nowrap;'>%2</span>").arg(sz).arg(text);
+    QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
+
+    QTimer::singleShot(100,[msg,pos](){
+        if (gSet->activeWindow==nullptr) return;
+        QToolTip::showText(pos,msg,gSet->activeWindow);
+
+        QTimer::singleShot(3000,[](){
+            if (gSet->activeWindow!=nullptr)
+                QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow);
+        });
+    });
+}
+
+void CGlobalUI::actionToggled()
+{
+    QAction* ac = qobject_cast<QAction *>(sender());
+    if (ac==nullptr) return;
+
+    QString msg = ac->text();
+    msg.remove('&');
+    if (ac->isCheckable()) {
+        if (ac->isChecked())
+            msg.append(tr(" is ON"));
+        else
+            msg.append(tr(" is OFF"));
+    }
+
+    showGlobalTooltip(msg);
 }

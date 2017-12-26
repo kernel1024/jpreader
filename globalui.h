@@ -40,6 +40,7 @@ public:
     bool forceFontColor();
     void startGlobalContextTranslate();
     bool translateSubSentences();
+    void addActionNotification(QAction* action);
 
     explicit CGlobalUI(QObject *parent = 0);
 
@@ -56,6 +57,10 @@ public slots:
     CMainWindow* addMainWindow();
     CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
                                  const QUrl &withViewerUrl = QUrl());
+    void showGlobalTooltip(const QString& text);
+
+private slots:
+    void actionToggled();
 
 };
 
