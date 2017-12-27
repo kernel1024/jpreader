@@ -35,6 +35,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     onceTranslated=false;
     requestAutotranslate=false;
     pageLoaded=false;
+    auxContentLoaded=false;
     pageImage = QPixmap();
     searchList.clear();
     barLoading->setValue(0);

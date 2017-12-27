@@ -49,6 +49,7 @@ public:
     bool loading;
     bool requestAutotranslate;
     bool pageLoaded;
+    bool auxContentLoaded;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
                    bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),

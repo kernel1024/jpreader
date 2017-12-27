@@ -50,13 +50,15 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
 bool CSnNet::isValidLoadedUrl(const QUrl& url)
 {
     // loadedUrl points to non-empty page
-    QUrl u = url;
-    if (u.isEmpty())
-        u = loadedUrl;
-    if (!u.isValid()) return false;
-    if (!u.toLocalFile().isEmpty()) return true;
-    if (u.scheme().startsWith("http",Qt::CaseInsensitive)) return true;
+    if (!url.isValid()) return false;
+    if (!url.toLocalFile().isEmpty()) return true;
+    if (url.scheme().startsWith("http",Qt::CaseInsensitive)) return true;
     return false;
+}
+
+bool CSnNet::isValidLoadedUrl()
+{
+    return isValidLoadedUrl(loadedUrl);
 }
 
 void CSnNet::loadStarted()
@@ -74,8 +76,11 @@ void CSnNet::loadFinished(bool ok)
     snv->msgHandler->hideBarLoading();
     snv->loading = false;
     snv->updateButtonsState();
-    if (isValidLoadedUrl(snv->txtBrowser->url()) && ok)
+
+    if (isValidLoadedUrl(snv->txtBrowser->url()) && ok) {
+        snv->auxContentLoaded=false;
         loadedUrl = snv->txtBrowser->url();
+    }
 
     if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
             !snv->translationBkgdFinished) { // tab is inactive
@@ -87,7 +92,7 @@ void CSnNet::loadFinished(bool ok)
     bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->requestAutotranslate) ||
                             (!gSet->ui.autoTranslate() && snv->requestAutotranslate);
 
-    if (xorAutotranslate && !snv->onceTranslated && isValidLoadedUrl())
+    if (xorAutotranslate && !snv->onceTranslated && (isValidLoadedUrl() || snv->auxContentLoaded))
         snv->transButton->click();
 
     snv->pageLoaded = true;
@@ -105,6 +110,7 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
 
     snv->onceTranslated = false;
     snv->fileChanged = false;
+    snv->auxContentLoaded=false;
 
     if (isMainFrame) {
         UrlHolder uh(QString("(blank)"),url);
@@ -189,6 +195,7 @@ void CSnNet::load(const QUrl &url)
                 snv->translationBkgdFinished=false;
                 snv->loadingBkgdFinished=false;
                 snv->txtBrowser->setHtml(cn,url);
+                snv->auxContentLoaded=false;
                 data.close();
             }
         } else if (MIME.startsWith("application/pdf",Qt::CaseInsensitive)) { // for local pdf files
@@ -200,11 +207,14 @@ void CSnNet::load(const QUrl &url)
                 QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file '%1'.").arg(fname));
                 snv->txtBrowser->setHtml(cn,url);
                 QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
-            } else
+            } else {
                 snv->txtBrowser->setHtml(cn,url);
+                snv->auxContentLoaded=false;
+            }
         } else { // for local html files
             snv->fileChanged = false;
             snv->txtBrowser->load(url);
+            snv->auxContentLoaded=false;
         }
         gSet->appendRecent(fname);
     } else {
@@ -212,6 +222,7 @@ void CSnNet::load(const QUrl &url)
         checkAndUnpackUrl(u);
         snv->fileChanged = false;
         snv->txtBrowser->load(u);
+        snv->auxContentLoaded=false;
     }
     loadedUrl=url;
 }
@@ -221,6 +232,7 @@ void CSnNet::load(const QString &html, const QUrl &baseUrl)
     snv->updateWebViewAttributes();
     snv->txtBrowser->setHtml(html,baseUrl);
     loadedUrl.clear();
+    snv->auxContentLoaded=true;
 }
 
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
