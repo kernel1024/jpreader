@@ -496,6 +496,7 @@ bool CGlobalControl::isUrlBlocked(QUrl url)
 bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
 {
     if (!settings.useAdblock) return false;
+    if (!url.scheme().startsWith("http",Qt::CaseInsensitive)) return false;
 
     filter.clear();
     QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
