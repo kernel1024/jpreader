@@ -22,8 +22,6 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
-using namespace std;
-
 static QSize openFileDialogSize = QSize();
 static QSize saveFileDialogSize = QSize();
 
@@ -205,14 +203,17 @@ QString detectDecodeToUnicode(const QByteArray& content)
 }
 
 
-QString makeSimpleHtml(const QString &title, const QString &content)
+QString makeSimpleHtml(const QString &title, const QString &content, bool integratedTitle)
 {
     QString s = content;
     QString cnt = s.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
     QString cn="<html><head>";
     cn+="<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">";
     cn+="<title>"+title+"</title></head>";
-    cn+="<body>"+cnt+"</body></html>";
+    cn+="<body>";
+    if (integratedTitle)
+        cn+="<h3>"+title+"</h3>";
+    cn+=cnt+"</body></html>";
     return cn;
 }
 

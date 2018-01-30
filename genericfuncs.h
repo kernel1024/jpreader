@@ -18,7 +18,7 @@ QString detectMIME(const QByteArray& buf);
 QTextCodec* detectEncoding(const QByteArray &content);
 QString detectEncodingName(const QByteArray &content);
 QString detectDecodeToUnicode(const QByteArray &content);
-QString makeSimpleHtml(const QString& title, const QString& content);
+QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false);
 QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
 QString fixMetaEncoding(const QString& data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
