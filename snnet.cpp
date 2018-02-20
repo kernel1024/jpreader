@@ -5,6 +5,7 @@
 #include <QUrlQuery>
 #include <QWebEngineScriptCollection>
 #include <QDirIterator>
+#include <QRegExp>
 #include <QDialog>
 #include "snnet.h"
 #include "genericfuncs.h"
@@ -143,6 +144,21 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
             idx = html.indexOf(QString("</textarea>"),0,Qt::CaseInsensitive);
             if (idx>=0)
                 html.truncate(idx);
+
+            QRegExp rbrx("\\[\\[rb\\:.*\\]\\]");
+            rbrx.setMinimal(true);
+            int pos = 0;
+            while ((pos = rbrx.indexIn(html,pos)) != -1) {
+                QString rb = rbrx.cap(0);
+                rb.replace("&gt;", ">");
+                rb.remove(QRegExp("^.*rb\\:"));
+                rb.remove(QRegExp("\\>.*"));
+                rb = rb.trimmed();
+                if (!rb.isEmpty())
+                    html.replace(pos,rbrx.matchedLength(),rb);
+                else
+                    pos += rbrx.matchedLength();
+            }
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
                                                     focus,makeSimpleHtml(wtitle,html,true));
