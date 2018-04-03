@@ -203,7 +203,7 @@ void CSnTrans::postTranslate()
         case TE_YANDEX:
         case TE_GOOGLE_GTX:
             cn = snv->calculatedUrl;
-            if (cn.toUtf8().size()<1500*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
+            if (cn.toUtf8().size()<1024*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
                 snv->fileChanged = true;
                 snv->onceTranslated = true;
                 snv->txtBrowser->setHtml(cn,savedBaseUrl);
@@ -275,17 +275,7 @@ void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseU
     QString dst;
     generateHTML(doc,dst);
 
-    QByteArray ba = dst.toUtf8();
-    QString fname = gSet->makeTmpFileName("html",true);
-    QFile f(fname);
-    if (f.open(QIODevice::WriteOnly)) {
-        f.write(ba);
-        f.close();
-        gSet->createdFiles.append(fname);
-        new CSnippetViewer(snv->parentWnd,QUrl::fromLocalFile(fname));
-    } else
-        QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
-                                                   "for translated document."));
+    snv->netHandler->loadWithTempFile(dst, true);
 }
 
 void CSnTrans::selectionShow()

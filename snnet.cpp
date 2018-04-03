@@ -62,6 +62,29 @@ bool CSnNet::isValidLoadedUrl()
     return isValidLoadedUrl(loadedUrl);
 }
 
+bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
+{
+    QByteArray ba = html.toUtf8();
+    QString fname = gSet->makeTmpFileName("html",true);
+    QFile f(fname);
+    if (f.open(QIODevice::WriteOnly)) {
+        f.write(ba);
+        f.close();
+        gSet->createdFiles.append(fname);
+        if (createNewTab)
+            new CSnippetViewer(snv->parentWnd,QUrl::fromLocalFile(fname));
+        else {
+            snv->fileChanged = false;
+            snv->txtBrowser->load(QUrl::fromLocalFile(fname));
+            snv->auxContentLoaded=false;
+        }
+        return true;
+    } else
+        QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
+                                                   "for document."));
+    return false;
+}
+
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
@@ -201,7 +224,8 @@ void CSnNet::load(const QUrl &url)
             return;
         }
         QString MIME = detectMIME(fname);
-        if (MIME.startsWith("text/plain",Qt::CaseInsensitive)) { // for local txt files
+        if (MIME.startsWith("text/plain",Qt::CaseInsensitive) &&
+                fi.size()<1024*1024) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
                 QByteArray ba = data.readAll();
@@ -219,13 +243,15 @@ void CSnNet::load(const QUrl &url)
             snv->fileChanged = false;
             snv->translationBkgdFinished=false;
             snv->loadingBkgdFinished=false;
-            if (!pdfToText(url,cn)) {
+            if (!pdfToText(url,cn)) { // PDF error
                 QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file '%1'.").arg(fname));
                 snv->txtBrowser->setHtml(cn,url);
                 QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
-            } else {
+            } else if (cn.length()<1024*1024) { // Small PDF files
                 snv->txtBrowser->setHtml(cn,url);
                 snv->auxContentLoaded=false;
+            } else { // Big PDF files
+                loadWithTempFile(cn,false);
             }
         } else { // for local html files
             snv->fileChanged = false;

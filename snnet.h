@@ -18,6 +18,7 @@ public:
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
+    bool loadWithTempFile(const QString & html, bool createNewTab);
 public slots:
     void load(const QUrl & url);
     void load(const QString & html, const QUrl& loadedUrl = QUrl());
