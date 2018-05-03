@@ -96,14 +96,13 @@ void metaString(QString& out, Dict *infoDict, const char* key,
 void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 {
     Object obj;
-    char *s;
 
 #ifdef JPDF_PRE058_OBJECT_API
     if (infoDict->lookup(key, &obj)->isString()) {
 #else
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
 #endif
-        s = obj.getString()->getCString();
+        const char *s = obj.getString()->getCString();
         if (s[0] == 'D' && s[1] == ':') {
             s += 2;
         }
