@@ -68,14 +68,13 @@ void metaString(QString& out, Dict *infoDict, const char* key,
                 const QString& fmt)
 {
     Object obj;
-    GooString *s1;
     QString res;
 #ifdef JPDF_PRE058_OBJECT_API
     if (infoDict->lookup(key, &obj)->isString()) {
 #else
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
 #endif
-        s1 = obj.getString();
+        const GooString *s1 = obj.getString();
         QByteArray ba(s1->getCString());
         res = detectDecodeToUnicode(ba);
         res.replace("&",  "&amp;");
