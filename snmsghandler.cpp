@@ -1,6 +1,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include "snmsghandler.h"
+#include "genericfuncs.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -46,6 +47,27 @@ void CSnMsgHandler::searchFocus()
 {
     snv->searchPanel->show();
     snv->searchEdit->setFocus();
+}
+
+void CSnMsgHandler::pastePassword()
+{
+    QString user, pass;
+    if (!gSet->haveSavedPassword(snv->txtBrowser->page()->url())) return;
+
+    gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
+    QString inp = QString("%1%2%3").arg(user,QChar(0x9),pass);
+
+    QAction* ac = qobject_cast<QAction *>(sender());
+    if (ac!=nullptr) {
+        bool ok;
+        int idx = ac->data().toInt(&ok);
+        if (ok) {
+            if (idx==2) inp = user;
+            else if (idx==3) inp = pass;
+        }
+    }
+    if (!inp.isEmpty())
+        sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
 }
 
 void CSnMsgHandler::setZoom(QString z)

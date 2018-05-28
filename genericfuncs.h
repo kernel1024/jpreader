@@ -34,6 +34,7 @@ int compareStringLists(const QStringList& left, const QStringList& right);
 void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false, int depth = 0);
 QString extractFileTitle(const QString& fileContents);
 QString convertPatternToRegExp(const QString &wildcardPattern);
+void sendKeyboardInputToView(QWidget *widget, const QString& s);
 
 QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
                            const QString & dir = QString(), const QString & filter = QString(),

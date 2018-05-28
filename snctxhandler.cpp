@@ -17,6 +17,7 @@
 #include "auxtranslator.h"
 #include "sourceviewer.h"
 #include "bookmarks.h"
+#include "authdlg.h"
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -289,7 +290,35 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         cm->addSeparator();
     }
 
-    QMenu *ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
+    QMenu *ccm = cm->addMenu(QIcon::fromTheme("dialog-password"),tr("Form autofill"));
+    QUrl origin = snv->txtBrowser->page()->url();
+    if (gSet->haveSavedPassword(origin)) {
+        ac = ccm->addAction(QIcon::fromTheme("tools-wizard"),tr("Insert username and password"),
+                            snv->msgHandler,SLOT(pastePassword()));
+        ac->setData(1);
+        ac = ccm->addAction(tr("Insert username"),snv->msgHandler,SLOT(pastePassword()));
+        ac->setData(2);
+        ac = ccm->addAction(tr("Insert password"),snv->msgHandler,SLOT(pastePassword()));
+        ac->setData(3);
+        ccm->addSeparator();
+        ac = ccm->addAction(QIcon::fromTheme("edit-delete"),tr("Delete saved username and password"));
+        connect(ac, &QAction::triggered, [origin](){
+            gSet->removePassword(origin);
+        });
+    } else {
+        ac = ccm->addAction(QIcon::fromTheme("edit-rename"),tr("Save username and password"));
+        connect(ac, &QAction::triggered, [origin](){
+            QString realm = gSet->cleanUrlForRealm(origin).toString();
+            if (realm.length()>60) realm = QString("...%1").arg(realm.right(60));
+            CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),origin,realm,true);
+            dlg->exec();
+            dlg->setParent(nullptr);
+            delete dlg;
+        });
+    }
+    cm->addSeparator();
+
+    ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("document-edit-verify"),tr("Show source"),
                  this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_E));
     ccm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::InspectElement));

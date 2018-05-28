@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QTcpServer>
 #include <QRegExp>
+#include <QtTest>
 
 #include <iostream>
 #include <unistd.h>
@@ -576,4 +577,27 @@ QString convertPatternToRegExp(const QString &wildcardPattern) {
             .replace(QRegExp(QLatin1String("\\\\\\|$")), QLatin1String("$"))       // process anchor at expression end
             .replace(QRegExp(QLatin1String("\\\\\\*")), QLatin1String(".*"))       // replace wildcards by .*
             ;
+}
+
+void sendStringToWidget(QWidget *widget, const QString& s)
+{
+    if (widget==nullptr) return;
+    for (int i=0;i<s.length();i++) {
+        Qt::KeyboardModifiers mod = Qt::NoModifier;
+        const QChar c = s.at(i);
+        if (c.isLetter() && c.isUpper()) mod = Qt::ShiftModifier;
+        QTest::sendKeyEvent(QTest::KeyAction::Click,widget,Qt::Key_A,c,mod);
+    }
+}
+
+void sendKeyboardInputToView(QWidget *widget, const QString& s)
+{
+    if (widget==nullptr) return;
+
+    widget->setFocus();
+    Q_FOREACH(QObject* obj, widget->children()) {
+        QWidget *w = qobject_cast<QWidget*>(obj);
+        sendStringToWidget(w,s);
+    }
+    sendStringToWidget(widget,s);
 }

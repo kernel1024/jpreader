@@ -118,6 +118,9 @@ public:
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
     void savePassword(const QUrl &origin, const QString &user, const QString &password);
+    bool haveSavedPassword(const QUrl &origin);
+    void removePassword(const QUrl &origin);
+    QUrl cleanUrlForRealm(const QUrl &origin) const;
 
     // Userscripts
     QList<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame);

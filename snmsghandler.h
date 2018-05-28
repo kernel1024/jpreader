@@ -28,6 +28,7 @@ public slots:
     void searchFwd();
     void searchBack();
     void searchFocus();
+    void pastePassword();
     void setZoom(QString z);
     void navByClick();
     void srcLang(int lang);

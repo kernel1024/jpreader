@@ -634,7 +634,7 @@ void CMainWindow::clearClipboard()
 void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(getClipboardContent(true));
-    url.setFragment("");
+    url.setFragment(QString());
     QString uri = url.toString().remove(QRegExp("#$"));
     if (uri.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));

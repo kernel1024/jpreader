@@ -106,7 +106,7 @@ FORMS = main.ui \
     bookmarks.ui \
     addbookmarkdialog.ui
 
-QT += network xml dbus widgets webenginewidgets x11extras printsupport
+QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
 
 CONFIG += warn_on \
     link_pkgconfig \

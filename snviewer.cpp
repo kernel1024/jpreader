@@ -70,6 +70,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     connect(backNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::back);
     connect(comboZoom, &QComboBox::currentTextChanged, msgHandler, &CSnMsgHandler::setZoom);
     connect(searchEdit->lineEdit(), &QLineEdit::returnPressed, fwdButton, &QPushButton::click);
+    connect(passwordButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::pastePassword);
 
     connect(txtBrowser, &QWebEngineView::loadProgress, transHandler, &CSnTrans::progressLoad);
     connect(txtBrowser, &QWebEngineView::loadFinished, netHandler, &CSnNet::loadFinished);
@@ -101,6 +102,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 	reloadButton->setIcon(QIcon::fromTheme("view-refresh"));
     stopButton->setIcon(QIcon::fromTheme("process-stop"));
     navButton->setIcon(QIcon::fromTheme("arrow-right"));
+    passwordButton->setIcon(QIcon::fromTheme("dialog-password"));
 
     for (int i=0;i<LSCOUNT;i++) {
         QString s = gSet->getSourceLanguageIDStr(i,TE_GOOGLE);
@@ -164,6 +166,9 @@ void CSnippetViewer::updateButtonsState()
     reloadButton->setEnabled(!loading);
     fwdNavButton->setEnabled(txtBrowser->history()->canGoForward());
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
+    passwordButton->setEnabled((!loading) &&
+                               (txtBrowser->page()!=nullptr) &&
+                               (gSet->haveSavedPassword(txtBrowser->page()->url())));
 }
 
 void CSnippetViewer::navByUrlDefault()

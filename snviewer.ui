@@ -275,6 +275,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="passwordButton">
+        <property name="toolTip">
+         <string>Insert login and password</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Vertical</enum>

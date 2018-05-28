@@ -14,7 +14,8 @@ class CAuthDlg : public QDialog
     Q_OBJECT
     
 public:
-    explicit CAuthDlg(QWidget *parent = 0, const QUrl & origin = QUrl(), const QString & realm = QString());
+    explicit CAuthDlg(QWidget *parent = 0, const QUrl & origin = QUrl(), const QString & realm = QString(),
+                      bool autofillLogin = false);
     ~CAuthDlg();
     QString getUser();
     QString getPassword();
@@ -22,6 +23,7 @@ public:
 private:
     Ui::AuthDlg *ui;
     QUrl u_origin;
+    bool m_autofillLogin;
 
 public slots:
     void acceptPass();

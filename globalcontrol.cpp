@@ -542,12 +542,40 @@ void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
     adblockWhiteListMutex.unlock();
 }
 
+bool CGlobalControl::haveSavedPassword(const QUrl &origin)
+{
+    QString user, pass;
+    readPassword(origin, user, pass);
+    return (!user.isEmpty() || !pass.isEmpty());
+}
+
+QUrl CGlobalControl::cleanUrlForRealm(const QUrl &origin) const
+{
+    QUrl res = origin;
+    if (res.isEmpty() || !res.isValid() || res.isLocalFile() || res.isRelative()) {
+        res = QUrl();
+        return res;
+    }
+
+    if (res.hasFragment())
+        res.setFragment(QString());
+    if (res.hasQuery())
+        res.setQuery(QString());
+
+    return res;
+}
+
 void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
 {
-    if (!origin.isValid()) return;
+    user = QString();
+    password = QString();
+
+    QUrl url = cleanUrlForRealm(origin);
+    if (!url.isValid() || url.isEmpty()) return;
+
     QSettings params("kernel1024", "jpreader");
     params.beginGroup("passwords");
-    QString key = QString::fromLatin1(origin.toEncoded().toBase64());
+    QString key = QString::fromLatin1(url.toEncoded().toBase64());
 
     QString u = params.value(QString("%1-user").arg(key),QString()).toString();
     QByteArray ba = params.value(QString("%1-pass").arg(key),QByteArray()).toByteArray();
@@ -556,8 +584,6 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
         p = QString::fromUtf8(QByteArray::fromBase64(ba));
     }
 
-    user = "";
-    password = "";
     if (!u.isNull() && !p.isNull()) {
         user = u;
         password = p;
@@ -567,12 +593,27 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
 
 void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password)
 {
-    if (!origin.isValid()) return;
+    QUrl url = cleanUrlForRealm(origin);
+    if (!url.isValid() || url.isEmpty()) return;
+
     QSettings params("kernel1024", "jpreader");
     params.beginGroup("passwords");
-    QString key = QString::fromLatin1(origin.toEncoded().toBase64());
+    QString key = QString::fromLatin1(url.toEncoded().toBase64());
     params.setValue(QString("%1-user").arg(key),user);
     params.setValue(QString("%1-pass").arg(key),password.toUtf8().toBase64());
+    params.endGroup();
+}
+
+void CGlobalControl::removePassword(const QUrl &origin)
+{
+    QUrl url = cleanUrlForRealm(origin);
+    if (!url.isValid() || url.isEmpty()) return;
+
+    QSettings params("kernel1024", "jpreader");
+    params.beginGroup("passwords");
+    QString key = QString::fromLatin1(url.toEncoded().toBase64());
+    params.remove(QString("%1-user").arg(key));
+    params.remove(QString("%1-pass").arg(key));
     params.endGroup();
 }
 
