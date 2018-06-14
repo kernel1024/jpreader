@@ -204,7 +204,7 @@ QString detectDecodeToUnicode(const QByteArray& content)
 }
 
 
-QString makeSimpleHtml(const QString &title, const QString &content, bool integratedTitle)
+QString makeSimpleHtml(const QString &title, const QString &content, bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
     QString cnt = s.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
@@ -212,8 +212,15 @@ QString makeSimpleHtml(const QString &title, const QString &content, bool integr
     cn+="<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">";
     cn+="<title>"+title+"</title></head>";
     cn+="<body>";
-    if (integratedTitle)
-        cn+="<h3>"+title+"</h3>";
+    if (integratedTitle) {
+        cn+="<h3>";
+        if (!origin.isEmpty())
+            cn+="<a href=\""+origin.toString(QUrl::FullyEncoded)+"\">";
+        cn+=title;
+        if (!origin.isEmpty())
+            cn+="</a>";
+        cn+="</h3>";
+    }
     cn+=cnt+"</body></html>";
     return cn;
 }

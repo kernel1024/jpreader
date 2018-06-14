@@ -184,7 +184,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
             }
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
-                                                    focus,makeSimpleHtml(wtitle,html,true));
+                                                    focus,makeSimpleHtml(wtitle,html,true,rpl->url()));
             sv->requestAutotranslate = translate;
         }
         rpl->deleteLater();
