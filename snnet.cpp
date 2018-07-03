@@ -132,6 +132,8 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
 {
     Q_UNUSED(type);
 
+    if (!isValidLoadedUrl(url)) return;
+
     snv->onceTranslated = false;
     snv->fileChanged = false;
     snv->auxContentLoaded=false;
