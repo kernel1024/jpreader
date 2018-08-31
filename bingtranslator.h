@@ -6,7 +6,7 @@
 class CBingTranslator : public CWebAPIAbstractTranslator
 {
 protected:
-    QString clientID, clientKey;
+    QString clientKey;
     QString authHeader;
 
     QString tranStringInternal(const QString& src);
@@ -14,7 +14,7 @@ protected:
     bool isValidCredentials();
 
 public:
-    CBingTranslator(QObject *parent, const QString& SrcLang, const QString& bingID, const QString& bingKey);
+    CBingTranslator(QObject *parent, const QString& SrcLang, const QString& bingKey);
 
     bool initTran();
 

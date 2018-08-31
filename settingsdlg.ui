@@ -776,19 +776,6 @@ p, li { white-space: pre-wrap; }
              <item>
               <layout class="QFormLayout" name="formLayout_7">
                <item row="0" column="0">
-                <widget class="QLabel" name="label_25">
-                 <property name="text">
-                  <string>&amp;Client ID</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>editBingID</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="editBingID"/>
-               </item>
-               <item row="1" column="0">
                 <widget class="QLabel" name="label_26">
                  <property name="text">
                   <string>Client &amp;key</string>
@@ -798,7 +785,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="0" column="1">
                 <widget class="QLineEdit" name="editBingKey"/>
                </item>
               </layout>
@@ -1865,7 +1852,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAtlClean</tabstop>
   <tabstop>checkEmptyRestore</tabstop>
   <tabstop>gctxHotkey</tabstop>
-  <tabstop>editBingID</tabstop>
   <tabstop>editBingKey</tabstop>
   <tabstop>editYandexKey</tabstop>
   <tabstop>listDictPaths</tabstop>

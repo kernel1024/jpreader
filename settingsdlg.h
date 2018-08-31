@@ -68,7 +68,6 @@ public:
     QComboBox* proxyType;
     QCheckBox* proxyUseTranslator;
     QCheckBox* emptyRestore;
-    QLineEdit* bingID;
     QLineEdit* bingKey;
     QLineEdit* yandexKey;
     QCheckBox* createCoredumps;

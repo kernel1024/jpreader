@@ -42,7 +42,6 @@ public:
 
     QSsl::SslProtocol atlProto;
     QString atlToken;
-    QString bingID;
     QString bingKey;
     QString yandexKey;
 

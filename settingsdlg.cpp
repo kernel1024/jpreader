@@ -70,7 +70,6 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     proxyUseTranslator=ui->checkUseProxyTranslator;
     emptyRestore=ui->checkEmptyRestore;
     rbBingAPI=ui->radioBingAPI;
-    bingID=ui->editBingID;
     bingKey=ui->editBingKey;
     rbGoogleGTX=ui->radioGoogleGTX;
     createCoredumps=ui->checkCreateCoredumps;

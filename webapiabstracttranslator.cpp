@@ -21,7 +21,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         return QString("ERROR:TRAN_NOT_READY");
     }
 
-    if (src.length()>=10000) {
+    if (src.length()>=5000) {
         // Split by separator chars
         QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
@@ -31,8 +31,8 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         for (int i=0;i<srcl.count();i++) {
             QString s = srcl.at(i);
             while (!s.isEmpty()) {
-                srout << s.left(9990);
-                s.remove(0,9990);
+                srout << s.left(4990);
+                s.remove(0,4990);
             }
         }
         srcl.clear();

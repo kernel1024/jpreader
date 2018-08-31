@@ -42,7 +42,6 @@ CSettings::CSettings(QObject *parent)
     atlTcpTimeout=2;
     atlToken=QString();
     atlProto=QSsl::SecureProtocols;
-    bingID=QString();
     bingKey=QString();
     yandexKey=QString();
     proxyHost=QString();
@@ -159,7 +158,6 @@ void CSettings::writeSettings()
     settings.setValue("proxyUse",proxyUse);
     settings.setValue("proxyType",proxyType);
     settings.setValue("proxyUseTranslator",proxyUseTranslator);
-    settings.setValue("bingID",bingID);
     settings.setValue("bingKey",bingKey);
     settings.setValue("yandexKey",yandexKey);
     settings.setValue("createCoredumps",createCoredumps);
@@ -284,7 +282,6 @@ void CSettings::readSettings(QObject *control)
     proxyPassword = settings.value("proxyPassword",QString()).toString();
     proxyUse = settings.value("proxyUse",false).toBool();
     proxyUseTranslator = settings.value("proxyUseTranslator",false).toBool();
-    bingID = settings.value("bingID",QString()).toString();
     bingKey = settings.value("bingKey",QString()).toString();
     yandexKey = settings.value("yandexKey",QString()).toString();
     jsLogConsole = settings.value("jsLogConsole",true).toBool();
@@ -376,7 +373,6 @@ void CSettings::settingsDlg()
         idx = 0;
     dlg->atlSSLProto->setCurrentIndex(idx);
     dlg->updateAtlCertLabel();
-    dlg->bingID->setText(bingID);
     dlg->bingKey->setText(bingKey);
     dlg->yandexKey->setText(yandexKey);
     dlg->emptyRestore->setChecked(emptyRestore);
@@ -515,7 +511,6 @@ void CSettings::settingsDlg()
         atlTcpTimeout=dlg->atlRetryTimeout->value();
         atlToken=dlg->atlToken->text();
         atlProto=static_cast<QSsl::SslProtocol>(dlg->atlSSLProto->currentData().toInt());
-        bingID=dlg->bingID->text();
         bingKey=dlg->bingKey->text();
         yandexKey=dlg->yandexKey->text();
         emptyRestore=dlg->emptyRestore->isChecked();

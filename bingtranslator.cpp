@@ -3,20 +3,17 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QRegExp>
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomNode>
 #include <QUrlQuery>
 
 #include "bingtranslator.h"
 #include "globalcontrol.h"
 
-CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang, const QString &bingID,
+CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang,
                                  const QString &bingKey)
     : CWebAPIAbstractTranslator(parent, SrcLang)
 {
-    clientID = bingID;
     clientKey = bingKey;
     clearCredentials();
 }
@@ -31,17 +28,13 @@ bool CBingTranslator::initTran()
     else
         nam->setProxy(QNetworkProxy::NoProxy);
 
-    QUrlQuery postData;
-    postData.addQueryItem("grant_type","client_credentials");
-    postData.addQueryItem("client_id",QUrl::toPercentEncoding(clientID));
-    postData.addQueryItem("client_secret",QUrl::toPercentEncoding(clientKey));
-    postData.addQueryItem("scope",QUrl::toPercentEncoding("http://api.microsofttranslator.com"));
-    QByteArray rqdata = postData.toString(QUrl::FullyEncoded).toUtf8();
+    QUrlQuery uq;
+    uq.addQueryItem("Subscription-Key",clientKey);
+    QUrl rqurl = QUrl("https://api.cognitive.microsoft.com/sts/v1.0/issueToken");
+    rqurl.setQuery(uq);
+    QNetworkRequest rq(rqurl);
 
-    QNetworkRequest rq(QUrl("https://datamarket.accesscontrol.windows.net/v2/OAuth2-13"));
-    rq.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QNetworkReply *rpl = nam->post(rq,rqdata);
+    QNetworkReply *rpl = nam->post(rq,QByteArray());
 
     if (!waitForReply(rpl)) {
         tranError = tr("Bing connection error");
@@ -62,43 +55,35 @@ bool CBingTranslator::initTran()
 
     rpl->deleteLater();
 
-    QJsonDocument jdoc = QJsonDocument::fromJson(ra);
-
-    if (jdoc.isNull() || jdoc.isEmpty()) {
-        tranError = tr("Bing auth error: incorrect JSON auth response");
-        qCritical() << "Bing auth: incorrect JSON auth response";
-        qCritical() << "Response: " << ra;
-        return false;
-    }
-
-    QJsonObject jroot = jdoc.object();
-    QString token = jroot.value("access_token").toString();
-    if (token.isEmpty()) {
-        tranError = tr("Bing auth error: empty JSON token");
-        qCritical() << "Bing auth: empty JSON token";
-        qCritical() << "Response: " << ra;
-        return false;
-    }
-
-    authHeader = QString("Bearer %1").arg(token);
+    authHeader = QString("Bearer %1").arg(QString::fromUtf8(ra));
     tranError.clear();
     return true;
 }
 
 QString CBingTranslator::tranStringInternal(const QString &src)
 {
-    QUrl rqurl = QUrl("http://api.microsofttranslator.com/v2/Http.svc/Translate");
+    QUrl rqurl = QUrl("https://api.cognitive.microsofttranslator.com/translate");
 
     QUrlQuery rqData;
-    rqData.addQueryItem("text",QUrl::toPercentEncoding(src));
+    rqData.addQueryItem("textType","plain");
     rqData.addQueryItem("from",srcLang);
     rqData.addQueryItem("to","en");
+    rqData.addQueryItem("api-version","3.0");
     rqurl.setQuery(rqData);
+
+    QJsonObject obj = QJsonObject();
+    QJsonObject reqtext;
+    reqtext["Text"] = src;
+    QJsonArray reqlist({ reqtext });
+    QJsonDocument doc(reqlist);
+    QByteArray body = doc.toJson(QJsonDocument::Compact);
 
     QNetworkRequest rq(rqurl);
     rq.setRawHeader("Authorization",authHeader.toUtf8());
+    rq.setRawHeader("Content-Type","application/json");
+    rq.setRawHeader("Content-Length",authHeader.toUtf8());
 
-    QNetworkReply *rpl = nam->get(rq);
+    QNetworkReply *rpl = nam->post(rq,body);
 
     if (!waitForReply(rpl)) {
         tranError = QString("ERROR: Bing translator network error");
@@ -109,20 +94,38 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     rpl->deleteLater();
 
-    QDomDocument xdoc;
-    if (!xdoc.setContent(ra)) {
-        tranError = QString("ERROR: Bing translator XML error");
-        return QString("ERROR:TRAN_BING_XML_ERROR");
+    doc = QJsonDocument::fromJson(ra);
+    if (doc.isNull()) {
+        tranError = QString("ERROR: Bing translator JSON error");
+        return QString("ERROR:TRAN_BING_JSON_ERROR");
+    }
+
+    if (doc.isObject()) {
+        QJsonObject obj = doc.object();
+        QJsonValue err = obj.value("error");
+        if (err.isObject()) {
+            tranError = QString("ERROR: Bing translator JSON error #%1: %2")
+                    .arg(err.toObject().value("code").toInt())
+                    .arg(err.toObject().value("message").toString());
+            return QString("ERROR:TRAN_BING_JSON_ERROR");
+        }
+        tranError = QString("ERROR: Bing translator JSON generic error");
+        return QString("ERROR:TRAN_BING_JSON_ERROR");
     }
 
     QString res;
-    res.clear();
-    QDomNodeList xlist = xdoc.elementsByTagName("string");
-    for (int i=0;i<xlist.count();i++) {
-        QDomNode xnode = xlist.item(i);
-        if (xnode.isElement()) {
-            QDomElement xelem = xnode.toElement();
-            res+=xelem.text();
+    QJsonArray rootlist = doc.array();
+    foreach (const QJsonValue &rv, rootlist) {
+        if (!rv.isObject() ||
+                !rv.toObject().contains("translations") ||
+                !rv.toObject().value("translations").isArray()) continue;
+        QJsonArray translist = rv.toObject().value("translations").toArray();
+        foreach (const QJsonValue &tv, translist) {
+            if (tv.isObject() &&
+                    tv.toObject().contains("text")) {
+                res+=tv.toObject().value("text").toString();
+            }
+
         }
     }
     return res;
