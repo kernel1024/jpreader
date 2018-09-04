@@ -13,12 +13,54 @@
 #include <QTableWidget>
 #include <QTreeWidgetItem>
 #include <QKeySequenceEdit>
+#include <QStyledItemDelegate>
 #include "structures.h"
 #include "adblockrule.h"
 
 namespace Ui {
     class SettingsDlg;
 }
+
+class CLangPairModel : public QAbstractTableModel
+{
+    Q_OBJECT
+private:
+    CLangPairList m_list;
+    QTableView* m_table;
+
+public:
+    CLangPairModel(QObject * parent, const CLangPairList& list, QTableView* table);
+    CLangPairList getLangPairList();
+private:
+    int rowCount(const QModelIndex &parent) const;
+    int columnCount(const QModelIndex &parent) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+public slots:
+    void addItem();
+    void deleteItem();
+};
+
+class CLangPairDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+public:
+    CLangPairDelegate(QObject *parent = nullptr);
+private:
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const override;
+
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const override;
+
+    void updateEditorGeometry(QWidget *editor,
+        const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+};
 
 class CSettingsDlg : public QDialog
 {
@@ -85,7 +127,7 @@ public:
 
     QStringList loadedDicts;
 
-    explicit CSettingsDlg(QWidget *parent = 0);
+    explicit CSettingsDlg(QWidget *parent = nullptr);
     virtual ~CSettingsDlg();
 
 private:
@@ -93,14 +135,17 @@ private:
     QColor overridedFontColor;
     QList<QNetworkCookie> cookiesList;
     QList<CAdBlockRule> adblockList;
+    CLangPairModel *transModel;
     int adblockSearchIdx;
+
+    void resizeEvent(QResizeEvent *event);
 
     void updateCookiesTable();
     QList<int> getSelectedRows(QTableWidget* table);
     void updateAdblockList();
     void adblockFocusSearchedRule(QList<QTreeWidgetItem *> items);
-
     void populateTabList();
+
 public:
     void updateFontColorPreview(const QColor &c);
     QColor getOverridedFontColor();
@@ -114,6 +159,7 @@ public:
     QList<CAdBlockRule> getAdblock();
     QStrHash getSearchEngines();
     QStrHash getUserScripts();
+    CLangPairList getLangPairList();
 
 public slots:
     void selectDir();

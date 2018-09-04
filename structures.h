@@ -10,6 +10,7 @@
 #include <QPair>
 #include <QList>
 #include <QSslCertificate>
+#include <QLocale>
 
 #define TE_GOOGLE 0
 #define TE_ATLAS 1
@@ -25,15 +26,6 @@
 #define TM_ADDITIVE 0
 #define TM_OVERWRITING 1
 #define TM_TOOLTIP 2
-
-#define LS_AUTO -3
-#define LS_GLOBAL -2
-#define LS_ENGLISH -1
-#define LS_JAPANESE 0
-#define LS_CHINESETRAD 1
-#define LS_CHINESESIMP 2
-#define LS_KOREAN 3
-#define LSCOUNT 4
 
 #define DBUS_NAME "org.kernel1024.jpreader"
 #define IPC_NAME "org.kernel1024.jpreader.ipc.main"
@@ -65,14 +57,39 @@ public:
     int count;
 };
 
+class CLangPair {
+    friend QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
+    friend QDataStream &operator>>(QDataStream &in, CLangPair &obj);
+public:
+    QLocale langFrom, langTo;
+    CLangPair();
+    CLangPair(const CLangPair& other);
+    CLangPair(const QString& hash);
+    CLangPair(const QString& fromName, const QString &toName);
+    CLangPair &operator=(const CLangPair& other);
+    bool isValid() const;
+    bool isAtlasAcceptable() const;
+    QString getHash() const;
+    bool operator==(const CLangPair &s) const;
+    bool operator!=(const CLangPair &s) const;
+private:
+    void nullify();
+};
+
+Q_DECLARE_METATYPE(CLangPair)
+
 typedef QHash<QString, QString> QStrHash;
 typedef QList<int> QIntList;
 typedef QList<UrlHolder> QUHList;
 typedef QMap<QString, QUrl> QBookmarksMap;
 typedef QList<QPair<QString, QUrl>> QBookmarks;
 typedef QHash<QSslCertificate,QIntList> QSslCertificateHash;
+typedef QList<CLangPair> CLangPairList;
 
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
 QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
+
+QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
+QDataStream &operator>>(QDataStream &in, CLangPair &obj);
 
 #endif // STRUCTURES_H

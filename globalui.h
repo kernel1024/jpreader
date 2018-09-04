@@ -30,9 +30,7 @@ public:
     QAction *actionTranslateSubSentences;
 
     QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
-    QAction *actionLSJapanese, *actionLSChineseTraditional;
-    QAction *actionLSChineseSimplified, *actionLSKorean;
-    QActionGroup *translationMode, *sourceLanguage;
+    QActionGroup *translationMode, *languageSelector;
 
     // Actions for Settings menu
     bool useOverrideFont();
@@ -42,8 +40,10 @@ public:
     bool translateSubSentences();
     void addActionNotification(QAction* action);
 
-    explicit CGlobalUI(QObject *parent = 0);
+    explicit CGlobalUI(QObject *parent = nullptr);
 
+    int getTranslationMode();
+    QString getActiveLangPair() const;
 private:
     QTimer gctxTimer;
     QString gctxSelection;
@@ -58,6 +58,7 @@ public slots:
     CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
                                  const QUrl &withViewerUrl = QUrl());
     void showGlobalTooltip(const QString& text);
+    void rebuildLanguageActions(QObject *control = nullptr);
 
 private slots:
     void actionToggled();

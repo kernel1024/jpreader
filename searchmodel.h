@@ -18,7 +18,7 @@ private:
     QTableView *table;
 
 public:
-    CSearchModel(QObject *parent = 0, QTableView *view = 0);
+    CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
     ~CSearchModel();
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;

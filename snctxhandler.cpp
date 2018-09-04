@@ -398,10 +398,14 @@ void CSnCtxHandler::translateFragment()
     if (nt==nullptr) return;
     QString s = nt->data().toString();
     if (s.isEmpty()) return;
+    CLangPair lp = gSet->ui.getActiveLangPair();
+    if (!lp.isValid()) return;
 
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
-    at->setParams(s);
+    at->setText(s);
+    at->setSrcLang(lp.langFrom.bcp47Name());
+    at->setDestLang(lp.langTo.bcp47Name());
     connect(this,&CSnCtxHandler::startTranslation,
             at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
 
@@ -466,7 +470,7 @@ void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
     AddBookmarkDialog *dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
     if (dlg->exec())
-        gSet->updateAllBookmarks();
+        emit gSet->updateAllBookmarks();
     dlg->setParent(nullptr);
     delete dlg;
 }

@@ -58,7 +58,7 @@ class EditTreeView : public QTreeView
     Q_OBJECT
 
 public:
-    EditTreeView(QWidget *parent = 0);
+    EditTreeView(QWidget *parent = nullptr);
     void keyPressEvent(QKeyEvent *event);
 
 signals:

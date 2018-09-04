@@ -11,8 +11,8 @@
 #include "globalcontrol.h"
 #include "yandextranslator.h"
 
-CYandexTranslator::CYandexTranslator(QObject *parent, const QString &SrcLang, const QString &yandexKey)
-    : CWebAPIAbstractTranslator(parent, SrcLang)
+CYandexTranslator::CYandexTranslator(QObject *parent, const CLangPair &lang, const QString &yandexKey)
+    : CWebAPIAbstractTranslator(parent, lang)
 {
     clientKey = yandexKey;
 }
@@ -37,7 +37,9 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
 
     QUrlQuery rqData;
     rqData.addQueryItem("key",clientKey);
-    rqData.addQueryItem("lang",QString("%1-en").arg(srcLang));
+    rqData.addQueryItem("lang",QString("%1-%2").arg(
+                            m_lang.langFrom.bcp47Name(),
+                            m_lang.langTo.bcp47Name()));
     rqData.addQueryItem("text",QUrl::toPercentEncoding(src));
 
     QNetworkRequest rq(rqurl);

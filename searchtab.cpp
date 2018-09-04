@@ -369,7 +369,7 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     QHash<int,QStringList> snippets;
 
     QStringList queryTermsTran = queryTerms;
-    CAbstractTranslator* tran = translatorFactory(this, LS_AUTO);
+    CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
     if (gSet->ui.actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");

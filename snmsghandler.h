@@ -15,7 +15,7 @@ class CSnMsgHandler : public QObject
 {
     Q_OBJECT
 private:
-    QMutex lockSrcLang, lockTranEngine;
+    QMutex lockTranEngine;
     CSnippetViewer *snv;
     qreal zoomFactor;
 public:
@@ -31,14 +31,12 @@ public slots:
     void pastePassword();
     void setZoom(QString z);
     void navByClick();
-    void srcLang(int lang);
     void tranEngine(int engine);
-    void updateSrcLang(QAction *action);
     void updateTranEngine();
     void hideBarLoading();
     void urlEditSetFocus();
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
-                             int exitCode);
+                                 int exitCode);
 };
 
 #endif // SNMSGHANDLER_H

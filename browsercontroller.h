@@ -10,7 +10,7 @@ class CBrowserController : public QObject
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.kernel1024.jpreader.browsercontroller")
 public:
-    explicit CBrowserController(QObject *parent = 0);
+    explicit CBrowserController(QObject *parent = nullptr);
 
 public slots:
     void openUrl(const QString& url);

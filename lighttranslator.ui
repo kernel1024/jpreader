@@ -124,27 +124,17 @@
         </spacer>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Translate from</string>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>&amp;Language</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QRadioButton" name="radioJap">
-            <property name="text">
-             <string>&amp;Japanese</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioEng">
-            <property name="text">
-             <string>&amp;English</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="buddy">
+          <cstring>comboLanguage</cstring>
+         </property>
         </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboLanguage"/>
        </item>
        <item>
         <spacer name="verticalSpacer_5">
@@ -177,8 +167,7 @@
   <tabstop>textResult</tabstop>
   <tabstop>btnTranslate</tabstop>
   <tabstop>btnClear</tabstop>
-  <tabstop>radioJap</tabstop>
-  <tabstop>radioEng</tabstop>
+  <tabstop>comboLanguage</tabstop>
   <tabstop>btnClose</tabstop>
  </tabstops>
  <resources/>

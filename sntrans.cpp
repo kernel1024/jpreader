@@ -188,15 +188,20 @@ void CSnTrans::postTranslate()
     QUrl url;
     QString cn;
     QUrlQuery qu;
+    CLangPair lp;
     switch (gSet->settings.translatorEngine) {
         case TE_GOOGLE:
             url = QUrl("http://translate.google.com/translate");
-            qu.addQueryItem("sl",gSet->getSourceLanguageID());
-            qu.addQueryItem("tl","en");
-            qu.addQueryItem("u",snv->calculatedUrl);
-            url.setQuery(qu);
-            snv->txtBrowser->load(url);
-            if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            lp = CLangPair(gSet->ui.getActiveLangPair());
+            if (lp.isValid()) {
+                qu.addQueryItem("sl",lp.langFrom.bcp47Name());
+                qu.addQueryItem("tl",lp.langTo.bcp47Name());
+                qu.addQueryItem("u",snv->calculatedUrl);
+                url.setQuery(qu);
+                snv->txtBrowser->load(url);
+                if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+            } else
+                QMessageBox::warning(snv,tr("JPReader"),tr("No active language pair selected"));
             break;
         case TE_ATLAS: // Url contains translated file itself
         case TE_BINGAPI:

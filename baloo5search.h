@@ -7,7 +7,7 @@ class CBaloo5Search : public CAbstractThreadedSearch
 {
     Q_OBJECT
 public:
-    explicit CBaloo5Search(QObject *parent = 0);
+    explicit CBaloo5Search(QObject *parent = nullptr);
 
 signals:
 

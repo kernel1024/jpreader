@@ -13,7 +13,7 @@ protected:
     bool working;
 
 public:
-    explicit CAbstractThreadedSearch(QObject *parent = 0);
+    explicit CAbstractThreadedSearch(QObject *parent = nullptr);
 
 signals:
     void addHit(const QString &fileName);

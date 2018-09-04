@@ -2,32 +2,37 @@
 #include "specwidgets.h"
 #include "globalcontrol.h"
 
-void CAuxTranslator::setSrcLang(int value)
-{
-    srcLang = value;
-}
-
 CAuxTranslator::CAuxTranslator(QObject *parent) :
     QObject(parent)
 {
-    text = QString();
-    srcLang = LS_AUTO;
+    m_text = QString();
+    m_lang = CLangPair("ja","en");
 }
 
-void CAuxTranslator::setParams(const QString &Text)
+void CAuxTranslator::setText(const QString &text)
 {
-    text = Text;
+    m_text = text;
+}
+
+void CAuxTranslator::setSrcLang(const QString &lang)
+{
+    m_lang.langFrom = QLocale(lang);
+}
+
+void CAuxTranslator::setDestLang(const QString &lang)
+{
+    m_lang.langTo = QLocale(lang);
 }
 
 void CAuxTranslator::startTranslation(bool deleteAfter)
 {
-    if (!text.isEmpty()) {
-        CAbstractTranslator* tran=translatorFactory(this, srcLang);
+    if (!m_text.isEmpty()) {
+        CAbstractTranslator* tran=translatorFactory(this, m_lang);
         if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
-            text = "ERROR";
+            m_text = "ERROR";
         } else {
-            QString ssrc = text;
+            QString ssrc = m_text;
             QString res;
             ssrc = ssrc.replace("\r\n","\n");
             ssrc = ssrc.replace('\r','\n');
@@ -44,19 +49,19 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
                 }
             }
             tran->doneTran();
-            text = res;
+            m_text = res;
         }
         if (tran!=nullptr)
             tran->deleteLater();
     }
-    emit gotTranslation(text);
+    emit gotTranslation(m_text);
     if (deleteAfter)
         deleteLater();
 }
 
 void CAuxTranslator::startAuxTranslation(const QString &text)
 {
-    setParams(text);
+    setText(text);
     startTranslation(false);
 }
 

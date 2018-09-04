@@ -2,8 +2,8 @@
 #include <QUrl>
 #include "atlastranslator.h"
 
-CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, const QString &SrcLang) :
-    CAbstractTranslator(parent, SrcLang)
+CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, const CLangPair &lang) :
+    CAbstractTranslator(parent, lang)
 {
     atlHost=host;
     atlPort=port;
@@ -40,6 +40,12 @@ bool CAtlasTranslator::initTran()
     if (inited) return true;
     if (sock.isOpen()) return true;
 
+    if (!m_lang.isValid() || !m_lang.isAtlasAcceptable()) {
+        tranError = QString("ATLAS: Unacceptable language pair. Only english and japanese is supported.");
+        qCritical() << "ATLAS: Unacceptable language pair";
+        return false;
+    }
+
     if (gSet->settings.proxyUseTranslator)
         sock.setProxy(QNetworkProxy::DefaultProxy);
     else
@@ -75,10 +81,10 @@ bool CAtlasTranslator::initTran()
 
     // DIR command and response
     QString trandir = QString("DIR:AUTO\r\n");
-    if (srcLang.startsWith("en"))
-        trandir = QString("DIR:EJ\r\n");
-    if (srcLang.startsWith("ja"))
+    if (m_lang.langTo.bcp47Name().startsWith("en"))
         trandir = QString("DIR:JE\r\n");
+    if (m_lang.langTo.bcp47Name().startsWith("ja"))
+        trandir = QString("DIR:EJ\r\n");
     buf = trandir.toLatin1();
     sock.write(buf);
     sock.flush();

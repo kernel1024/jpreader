@@ -117,6 +117,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     updateQueryHistory();
     updateRecycled();
     updateRecentList();
+    reloadLanguagesList();
 
     if (withSearch) createSearch();
     if (withViewer) {
@@ -660,7 +661,7 @@ void CMainWindow::addBookmark()
 
     AddBookmarkDialog *dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle,this);
     if (dlg->exec())
-        gSet->updateAllBookmarks();
+        emit gSet->updateAllBookmarks();
 
     dlg->setParent(nullptr);
     delete dlg;
@@ -674,7 +675,7 @@ void CMainWindow::manageBookmarks()
     });
 
     dialog->exec();
-    gSet->updateAllBookmarks();
+    emit gSet->updateAllBookmarks();
 }
 
 void CMainWindow::showLightTranslator()
@@ -771,11 +772,17 @@ void CMainWindow::forceCharset()
             gSet->settings.charsetHistory.removeLast();
     }
     gSet->settings.forcedCharset = cs;
-    gSet->updateAllCharsetLists();
+    emit gSet->updateAllCharsetLists();
 
     if (gSet->webProfile!=nullptr &&
             gSet->webProfile->settings()!=nullptr)
         gSet->webProfile->settings()->setDefaultTextEncoding(cs);
+}
+
+void CMainWindow::reloadLanguagesList()
+{
+    menuTranslationLanguages->clear();
+    menuTranslationLanguages->addActions(gSet->ui.languageSelector->actions());
 }
 
 void CMainWindow::reloadCharsetList()

@@ -8,7 +8,7 @@ class CTitlesTranslator : public QObject
     Q_OBJECT
 public:
     bool inProgress;
-    explicit CTitlesTranslator(QObject *parent = 0);
+    explicit CTitlesTranslator(QObject *parent = nullptr);
 
 private:
     bool stopReq;

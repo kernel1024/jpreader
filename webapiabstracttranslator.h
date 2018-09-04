@@ -20,7 +20,7 @@ private:
     void deleteNAM();
 
 public:
-    CWebAPIAbstractTranslator(QObject *parent, const QString &SrcLang);
+    CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang);
     ~CWebAPIAbstractTranslator();
 
     QString tranString(const QString& src);

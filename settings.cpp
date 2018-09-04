@@ -105,6 +105,7 @@ void CSettings::writeSettings()
     bigdata.setValue("recentFiles",QVariant::fromValue(gSet->recentFiles));
     bigdata.setValue("userScripts",QVariant::fromValue(gSet->getUserScripts()));
     bigdata.setValue("bookmarks2",QVariant::fromValue(gSet->bookmarksManager->save()));
+    bigdata.setValue("translatorPairs",QVariant::fromValue(translatorPairs));
 
     settings.setValue("hostingDir",hostingDir);
     settings.setValue("hostingUrl",hostingUrl);
@@ -189,7 +190,7 @@ void CSettings::readSettings(QObject *control)
 
     g->searchHistory = bigdata.value("searchHistory",QStringList()).value<QStringList>();
 
-    g->updateAllQueryLists();
+    emit g->updateAllQueryLists();
 
     atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
     scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
@@ -201,6 +202,7 @@ void CSettings::readSettings(QObject *control)
     g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
     g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
     g->bookmarksManager->load(bigdata.value("bookmarks2",QByteArray()).value<QByteArray>());
+    translatorPairs = bigdata.value("translatorPairs").value<CLangPairList>();
 
     int idx=0;
     while (idx<g->mainHistory.count()) {
@@ -311,8 +313,9 @@ void CSettings::readSettings(QObject *control)
     if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
     if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
 
-    g->updateAllBookmarks();
+    emit g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
+    g->ui.rebuildLanguageActions(g);
 }
 
 void CSettings::settingsDlg()
@@ -477,13 +480,16 @@ void CSettings::settingsDlg()
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());
-        gSet->updateAllQueryLists();
+        emit gSet->updateAllQueryLists();
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
         gSet->adblockWhiteListMutex.lock();
         gSet->adblockWhiteList.clear();
         gSet->adblockWhiteListMutex.unlock();
         gSet->initUserScripts(dlg->getUserScripts());
+
+        translatorPairs = dlg->getLangPairList();
+        gSet->ui.rebuildLanguageActions();
 
         if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
         if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";

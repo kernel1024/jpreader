@@ -36,19 +36,19 @@ QString extractFileTitle(const QString& fileContents);
 QString convertPatternToRegExp(const QString &wildcardPattern);
 void sendKeyboardInputToView(QWidget *widget, const QString& s);
 
-QString getOpenFileNameD ( QWidget * parent = 0, const QString & caption = QString(),
+QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
                            const QString & dir = QString(), const QString & filter = QString(),
-                           QString * selectedFilter = 0);
+                           QString * selectedFilter = nullptr);
 
-QStringList getOpenFileNamesD ( QWidget * parent = 0, const QString & caption = QString(),
+QStringList getOpenFileNamesD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                const QString & dir = QString(), const QString & filter = QString(),
-                               QString * selectedFilter = 0);
+                               QString * selectedFilter = nullptr);
 
-QString getSaveFileNameD (QWidget * parent = 0, const QString & caption = QString(),
+QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = QString(),
                           const QString & dir = QString(), const QString & filter = QString(),
-                          QString * selectedFilter = 0, QString preselectFileName = QString());
+                          QString * selectedFilter = nullptr, QString preselectFileName = QString());
 
-QString	getExistingDirectoryD ( QWidget * parent = 0, const QString & caption = QString(),
+QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                 const QString & dir = QString(),
                                 QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 

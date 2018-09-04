@@ -7,7 +7,7 @@ class CRecollSearch : public CAbstractThreadedSearch
 {
     Q_OBJECT
 public:
-    explicit CRecollSearch(QObject *parent = 0);
+    explicit CRecollSearch(QObject *parent = nullptr);
 
 private:
     QString strFromBase64(const QString &src);

@@ -64,7 +64,7 @@ public:
         Separator
     };
 
-    BookmarkNode(Type type = Root, BookmarkNode *parent = 0);
+    BookmarkNode(Type type = Root, BookmarkNode *parent = nullptr);
     ~BookmarkNode();
     bool operator==(const BookmarkNode &other);
     bool operator!=(const BookmarkNode &other);

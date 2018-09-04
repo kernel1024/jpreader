@@ -11,7 +11,7 @@ protected:
     bool isValidCredentials();
 
 public:
-    CGoogleGTXTranslator(QObject *parent, const QString& SrcLang);
+    CGoogleGTXTranslator(QObject *parent, const CLangPair &lang);
 
     bool initTran();
 };

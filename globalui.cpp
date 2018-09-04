@@ -35,6 +35,8 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionSnippetAutotranslate->setCheckable(true);
     actionSnippetAutotranslate->setChecked(false);
 
+    languageSelector = new QActionGroup(this);
+
     translationMode = new QActionGroup(this);
 
     actionTMAdditive = new QAction(tr("Additive"),this);
@@ -53,30 +55,6 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionTMTooltip->setData(TM_TOOLTIP);
 
     actionTMAdditive->setChecked(true);
-
-    sourceLanguage = new QActionGroup(this);
-
-    actionLSJapanese = new QAction(tr("Japanese"),this);
-    actionLSJapanese->setCheckable(true);
-    actionLSJapanese->setActionGroup(sourceLanguage);
-    actionLSJapanese->setData(LS_JAPANESE);
-
-    actionLSChineseSimplified = new QAction(tr("Chinese simplified"),this);
-    actionLSChineseSimplified->setCheckable(true);
-    actionLSChineseSimplified->setActionGroup(sourceLanguage);
-    actionLSChineseSimplified->setData(LS_CHINESESIMP);
-
-    actionLSChineseTraditional = new QAction(tr("Chinese traditional"),this);
-    actionLSChineseTraditional->setCheckable(true);
-    actionLSChineseTraditional->setActionGroup(sourceLanguage);
-    actionLSChineseTraditional->setData(LS_CHINESETRAD);
-
-    actionLSKorean = new QAction(tr("Korean"),this);
-    actionLSKorean->setCheckable(true);
-    actionLSKorean->setActionGroup(sourceLanguage);
-    actionLSKorean->setData(LS_KOREAN);
-
-    actionLSJapanese->setChecked(true);
 
     actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),
                                       tr("Automatic translation"),this);
@@ -215,12 +193,15 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const 
     mainWindow->menuTranslationMode->addAction(actionTMOverwriting);
     mainWindow->menuTranslationMode->addAction(actionTMTooltip);
 
-    mainWindow->menuSourceLanguage->addAction(actionLSJapanese);
-    mainWindow->menuSourceLanguage->addAction(actionLSChineseSimplified);
-    mainWindow->menuSourceLanguage->addAction(actionLSChineseTraditional);
-    mainWindow->menuSourceLanguage->addAction(actionLSKorean);
-
     gSet->settings.checkRestoreLoad(mainWindow);
+
+    connect(gSet,&CGlobalControl::updateAllBookmarks,mainWindow,&CMainWindow::updateBookmarks);
+    connect(gSet,&CGlobalControl::updateAllRecentLists,mainWindow,&CMainWindow::updateRecentList);
+    connect(gSet,&CGlobalControl::updateAllCharsetLists,mainWindow,&CMainWindow::reloadCharsetList);
+    connect(gSet,&CGlobalControl::updateAllHistoryLists,mainWindow,&CMainWindow::updateHistoryList);
+    connect(gSet,&CGlobalControl::updateAllQueryLists,mainWindow,&CMainWindow::updateQueryHistory);
+    connect(gSet,&CGlobalControl::updateAllRecycleBins,mainWindow,&CMainWindow::updateRecycled);
+    connect(gSet,&CGlobalControl::updateAllLanguagesLists,mainWindow,&CMainWindow::reloadLanguagesList);
 
     return mainWindow;
 }
@@ -245,6 +226,46 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
     });
 }
 
+void CGlobalUI::rebuildLanguageActions(QObject * control)
+{
+    QObject* cg = control;
+    if (cg==nullptr) cg = gSet;
+    if (cg==nullptr) return;
+
+    CGlobalControl* g = qobject_cast<CGlobalControl *>(cg);
+    if (g==nullptr) return;
+
+    QString selectedHash;
+    bool first = (languageSelector->checkedAction()==nullptr);
+    if (!first)
+        selectedHash = languageSelector->checkedAction()->data().toString();
+
+    languageSelector->deleteLater();
+    languageSelector = new QActionGroup(this);
+
+
+    foreach (const CLangPair& pair, g->settings.translatorPairs) {
+        QAction *ac = languageSelector->addAction(QString("%1 - %2").arg(
+                                      g->getLanguageName(pair.langFrom.bcp47Name()),
+                                      g->getLanguageName(pair.langTo.bcp47Name())));
+        ac->setCheckable(true);
+        QString hash = pair.getHash();
+        ac->setData(hash);
+
+        if (first || hash==selectedHash) {
+            ac->setChecked(true);
+            first = false;
+        }
+    }
+
+    if (languageSelector->actions().isEmpty()) {
+        QAction *ac = languageSelector->addAction(QString("(empty)"));
+        ac->setEnabled(false);
+    }
+
+    emit g->updateAllLanguagesLists();
+}
+
 void CGlobalUI::actionToggled()
 {
     QAction* ac = qobject_cast<QAction *>(sender());
@@ -260,4 +281,29 @@ void CGlobalUI::actionToggled()
     }
 
     showGlobalTooltip(msg);
+}
+
+int CGlobalUI::getTranslationMode()
+{
+    bool okconv;
+    int res = 0;
+    if (translationMode->checkedAction()!=nullptr) {
+        res = translationMode->checkedAction()->data().toInt(&okconv);
+        if (!okconv)
+            res = 0;
+    }
+    return res;
+}
+
+QString CGlobalUI::getActiveLangPair() const
+{
+    QString res;
+    if (languageSelector->checkedAction()!=nullptr) {
+        res = languageSelector->checkedAction()->data().toString();
+    } else if (!languageSelector->actions().isEmpty()) {
+        QAction* ac = languageSelector->actions().first();
+        if (ac->isEnabled())
+            res = ac->data().toString();
+    }
+    return res;
 }

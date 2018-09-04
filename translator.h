@@ -59,7 +59,6 @@ private:
     CAbstractTranslator* tran;
     QColor forcedFontColor;
     QFont overrideFont;
-    QString srcLanguage;
     QUrl metaSrcUrl;
     QStringList* createdFiles;
     QStringList imgUrls;

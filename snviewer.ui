@@ -297,13 +297,6 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="QComboBox" name="comboSrcLang">
-          <property name="toolTip">
-           <string>Source language</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QComboBox" name="comboTranEngine">
           <property name="toolTip">
            <string>Translation engine</string>
@@ -492,11 +485,11 @@ Long press forces subsentences mode.</string>
   <tabstop>backButton</tabstop>
   <tabstop>fwdButton</tabstop>
   <tabstop>comboZoom</tabstop>
-  <tabstop>comboSrcLang</tabstop>
   <tabstop>comboTranEngine</tabstop>
   <tabstop>transButton</tabstop>
   <tabstop>abortBtn</tabstop>
   <tabstop>hideErrorButton</tabstop>
+  <tabstop>passwordButton</tabstop>
  </tabstops>
  <resources/>
  <connections>

@@ -26,9 +26,8 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     forcedFontColor=gSet->settings.forcedFontColor;
     useOverrideFont=gSet->ui.useOverrideFont();
     overrideFont=gSet->settings.overrideFont;
-    translationMode=gSet->getTranslationMode();
+    translationMode=gSet->ui.getTranslationMode();
     engine=gSet->settings.translatorEngine;
-    srcLanguage=gSet->getSourceLanguageID();
     translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
     tran=nullptr;
     tranInited=false;
@@ -98,8 +97,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortMutex.unlock();
 
     if (tran==nullptr && !tranInited) {
-        tran = translatorFactory(this, LS_GLOBAL);
-        tranInited = true;
+        tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
     }
 
     if (tran==nullptr || !tran->initTran()) {
@@ -107,6 +105,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
         qCritical() << tr("Unable to initialize translation engine.");
         return false;
     }
+    tranInited = true;
 
     dst = "";
     if (srcUri.isEmpty()) return false;
@@ -594,24 +593,34 @@ void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QByt
 void CTranslator::translate()
 {
     QString aUrl;
+    QString lastError;
+    CLangPair lp = gSet->ui.getActiveLangPair();
+    if (!lp.isValid()) {
+        lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
+        emit calcFinished(false,aUrl,lastError);
+    }
+
     if (translationEngine==TE_ATLAS) {
         bool oktrans = false;
-        QString lastAtlasError;
-        lastAtlasError.clear();
-        for (int i=0;i<atlTcpRetryCount;i++) {
-            if (translateDocument(Uri,aUrl)) {
-                oktrans = true;
-                break;
-            } else if (tran!=nullptr)
-                lastAtlasError = tran->getErrorMsg();
-            else
-                lastAtlasError = tr("ATLAS translator failed.");
-            if (tran!=nullptr)
-                tran->doneTran(true);
-            QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
+
+        if (!lp.isAtlasAcceptable()) {
+            lastError = tr("ATLAS error: Unacceptable translation pair. Only English and Japanese is supported.");
+        } else {
+            for (int i=0;i<atlTcpRetryCount;i++) {
+                if (translateDocument(Uri,aUrl)) {
+                    oktrans = true;
+                    break;
+                } else if (tran!=nullptr)
+                    lastError = tran->getErrorMsg();
+                else
+                    lastError = tr("ATLAS translator failed.");
+                if (tran!=nullptr)
+                    tran->doneTran(true);
+                QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
+            }
         }
         if (!oktrans) {
-            emit calcFinished(false,aUrl,lastAtlasError);
+            emit calcFinished(false,aUrl,lastError);
             deleteLater();
             return;
         }
@@ -619,7 +628,10 @@ void CTranslator::translate()
                translationEngine==TE_YANDEX ||
                translationEngine==TE_GOOGLE_GTX) {
         if (!translateDocument(Uri,aUrl)) {
-            emit calcFinished(false,aUrl,tran->getErrorMsg());
+            QString lastError = tr("Translator initialization error");
+            if (tran!=nullptr)
+                lastError = tran->getErrorMsg();
+            emit calcFinished(false,aUrl,lastError);
             deleteLater();
             return;
         }

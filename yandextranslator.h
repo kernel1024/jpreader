@@ -13,7 +13,7 @@ private:
     bool isValidCredentials();
 
 public:
-    CYandexTranslator(QObject *parent, const QString& SrcLang, const QString& yandexKey);
+    CYandexTranslator(QObject *parent, const CLangPair &lang, const QString& yandexKey);
 
     bool initTran();
 

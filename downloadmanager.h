@@ -50,7 +50,7 @@ class CDownloadManager : public QDialog
     Q_OBJECT
 
 public:
-    explicit CDownloadManager(QWidget *parent = 0);
+    explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager();
     void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer);
 public slots:

@@ -3,8 +3,10 @@
 #include <QTimer>
 #include "webapiabstracttranslator.h"
 
-CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const QString &SrcLang)
-    : CAbstractTranslator (parent, SrcLang)
+#define MAX_BLOCK_LENGTH 5000
+
+CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang)
+    : CAbstractTranslator (parent, lang)
 {
     nam = nullptr;
 }
@@ -21,7 +23,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         return QString("ERROR:TRAN_NOT_READY");
     }
 
-    if (src.length()>=5000) {
+    if (src.length()>=MAX_BLOCK_LENGTH) {
         // Split by separator chars
         QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
@@ -31,8 +33,8 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         for (int i=0;i<srcl.count();i++) {
             QString s = srcl.at(i);
             while (!s.isEmpty()) {
-                srout << s.left(4990);
-                s.remove(0,4990);
+                srout << s.left(MAX_BLOCK_LENGTH-10);
+                s.remove(0,MAX_BLOCK_LENGTH-10);
             }
         }
         srcl.clear();

@@ -35,7 +35,7 @@ class CIndexerSearch : public QObject
 {
     Q_OBJECT
 public:
-    explicit CIndexerSearch(QObject *parent = 0);
+    explicit CIndexerSearch(QObject *parent = nullptr);
     bool isValidConfig();
     bool isWorking();
     int getCurrentIndexerService();

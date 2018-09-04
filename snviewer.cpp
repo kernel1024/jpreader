@@ -104,25 +104,10 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     navButton->setIcon(QIcon::fromTheme("arrow-right"));
     passwordButton->setIcon(QIcon::fromTheme("dialog-password"));
 
-    for (int i=0;i<LSCOUNT;i++) {
-        QString s = gSet->getSourceLanguageIDStr(i,TE_GOOGLE);
-        if (s.startsWith("ja"))
-            s=QString("jp");
-        comboSrcLang->addItem(s,i);
-        switch (i) {
-            case LS_JAPANESE: comboSrcLang->setItemData(i,"Japanese",Qt::ToolTipRole); break;
-            case LS_CHINESESIMP: comboSrcLang->setItemData(i,"Chinese simplified",Qt::ToolTipRole); break;
-            case LS_CHINESETRAD: comboSrcLang->setItemData(i,"Chinese traditional",Qt::ToolTipRole); break;
-            case LS_KOREAN: comboSrcLang->setItemData(i,"Korean",Qt::ToolTipRole); break;
-        }
-    }
     for (int i=0;i<TECOUNT;i++)
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
-    comboSrcLang->setCurrentIndex(gSet->getSourceLanguage());
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
-    connect(comboSrcLang, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(srcLang(int)));
     connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
-    connect(gSet->ui.sourceLanguage, &QActionGroup::triggered, msgHandler, &CSnMsgHandler::updateSrcLang);
     connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;

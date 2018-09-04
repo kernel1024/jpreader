@@ -86,6 +86,10 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     dontUseNativeFileDialogs=ui->checkDontUseNativeFileDialogs;
     adblockMaxWhiteListItems=ui->spinMaxWhiteListItems;
 
+    transModel = new CLangPairModel(this, gSet->settings.translatorPairs, ui->listTransDirections);
+    ui->listTransDirections->setModel(transModel);
+    ui->listTransDirections->setItemDelegate(new CLangPairDelegate());
+
     cookiesList.clear();
 
     connect(ui->buttonHostingDir, &QPushButton::clicked, this, &CSettingsDlg::selectDir);
@@ -115,6 +119,8 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonUserScriptEdit, &QPushButton::clicked, this, &CSettingsDlg::editUserScript);
     connect(ui->buttonUserScriptDelete, &QPushButton::clicked, this, &CSettingsDlg::deleteUserScript);
     connect(ui->buttonUserScriptImport, &QPushButton::clicked, this, &CSettingsDlg::importUserScript);
+    connect(ui->buttonAddTrDir, &QPushButton::clicked, transModel, &CLangPairModel::addItem);
+    connect(ui->buttonDelTrDir, &QPushButton::clicked, transModel, &CLangPairModel::deleteItem);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsDlg::adblockSearch);
 
@@ -138,6 +144,14 @@ CSettingsDlg::~CSettingsDlg()
     delete ui;
 }
 
+void CSettingsDlg::resizeEvent(QResizeEvent *event)
+{
+    ui->listTransDirections->setColumnWidth(0, 3*event->size().width()/10);
+    ui->listTransDirections->setColumnWidth(1, 3*event->size().width()/10);
+
+    QDialog::resizeEvent(event);
+}
+
 void CSettingsDlg::populateTabList()
 {
     ui->listTabs->clear();
@@ -153,6 +167,8 @@ void CSettingsDlg::populateTabList()
     itm = new QListWidgetItem(QIcon::fromTheme("format-text-color"),tr("Fonts"));
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(QIcon::fromTheme("system-run"),tr("Programs"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(QIcon::fromTheme("document-edit-decrypt"),tr("Translation pairs"));
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(QIcon(":/img/nepomuk"),tr("Query history"));
     ui->listTabs->addItem(itm);
@@ -283,7 +299,7 @@ void CSettingsDlg::clearHistory()
 {
     if (gSet!=nullptr) {
         gSet->mainHistory.clear();
-        gSet->updateAllHistoryLists();
+        emit gSet->updateAllHistoryLists();
     }
     ui->listHistory->clear();
 }
@@ -674,6 +690,11 @@ QStrHash CSettingsDlg::getUserScripts()
     return res;
 }
 
+CLangPairList CSettingsDlg::getLangPairList()
+{
+    return transModel->getLangPairList();
+}
+
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
 {
     if (adblockSearchIdx>=0 && adblockSearchIdx<items.count())
@@ -761,4 +782,148 @@ QStrHash CSettingsDlg::getSearchEngines()
         engines[ui->listSearch->item(i)->data(Qt::UserRole).toString()] =
                 ui->listSearch->item(i)->data(Qt::UserRole+1).toString();
     return engines;
+}
+
+CLangPairDelegate::CLangPairDelegate(QObject *parent) :
+    QStyledItemDelegate (parent)
+{
+
+}
+
+QWidget *CLangPairDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
+{
+    QComboBox *editor = new QComboBox(parent);
+    editor->setFrame(false);
+    const QStringList sl = gSet->getLanguageCodes();
+    foreach (const QString& bcp, sl) {
+        editor->addItem(gSet->getLanguageName(bcp),QVariant::fromValue(bcp));
+    }
+    return editor;
+}
+
+void CLangPairDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    QString bcp = index.model()->data(index, Qt::EditRole).toString();
+
+    QComboBox *cb = static_cast<QComboBox *>(editor);
+
+    int idx = cb->findData(QVariant::fromValue(bcp));
+    if (idx>=0)
+        cb->setCurrentIndex(idx);
+}
+
+void CLangPairDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    QComboBox *cb = static_cast<QComboBox *>(editor);
+
+    model->setData(index, cb->currentData().toString(), Qt::EditRole);
+}
+
+void CLangPairDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
+{
+    editor->setGeometry(option.rect);
+}
+
+CLangPairModel::CLangPairModel(QObject *parent, const CLangPairList &list, QTableView *table) :
+    QAbstractTableModel (parent)
+{
+    m_list = list;
+    m_table = table;
+}
+
+CLangPairList CLangPairModel::getLangPairList()
+{
+    return m_list;
+}
+
+int CLangPairModel::rowCount(const QModelIndex &) const
+{
+    return m_list.count();
+}
+
+int CLangPairModel::columnCount(const QModelIndex &) const
+{
+    return 2;
+}
+
+QVariant CLangPairModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        switch (section) {
+            case 0: return QVariant(QString("Source language"));
+            case 1: return QVariant(QString("Destination language"));
+        }
+    }
+    return QVariant();
+}
+
+QVariant CLangPairModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid() || index.row()<0 || index.row()>=m_list.count()) return QVariant();
+
+    if (role == Qt::DisplayRole) {
+        switch (index.column()) {
+            case 0: return QVariant(gSet->getLanguageName(m_list.at(index.row()).langFrom.bcp47Name()));
+            case 1: return QVariant(gSet->getLanguageName(m_list.at(index.row()).langTo.bcp47Name()));
+            default: return QVariant();
+        }
+    }
+    if (role == Qt::EditRole) {
+        switch (index.column()) {
+            case 0: return QVariant(m_list.at(index.row()).langFrom.bcp47Name());
+            case 1: return QVariant(m_list.at(index.row()).langTo.bcp47Name());
+            default: return QVariant();
+        }
+    }
+    return QVariant();
+}
+
+Qt::ItemFlags CLangPairModel::flags(const QModelIndex &) const
+{
+    return (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+}
+
+bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.row()<0 || index.row()>=m_list.count()) return false;
+    if (role == Qt::EditRole) {
+        switch (index.column()) {
+            case 0: m_list[index.row()].langFrom = QLocale(value.toString()); break;
+            case 1: m_list[index.row()].langTo = QLocale(value.toString()); break;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(parent, row, row+count-1);
+    for (int i=0;i<count;i++)
+        m_list.insert(row, CLangPair("ja","en"));
+    endInsertRows();
+    return true;
+}
+
+bool CLangPairModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    beginRemoveRows(parent, row, row+count-1);
+    for (int i=0;i<count;i++)
+        m_list.removeAt(row);
+    endRemoveRows();
+    return true;
+}
+
+void CLangPairModel::addItem()
+{
+    int row = 0;
+    if (m_table->currentIndex().isValid())
+        row = m_table->currentIndex().row();
+    insertRows(row,1);
+}
+
+void CLangPairModel::deleteItem()
+{
+    if (m_table->currentIndex().isValid())
+        removeRows(m_table->currentIndex().row(),1);
 }

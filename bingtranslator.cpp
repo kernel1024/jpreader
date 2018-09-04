@@ -10,9 +10,9 @@
 #include "bingtranslator.h"
 #include "globalcontrol.h"
 
-CBingTranslator::CBingTranslator(QObject *parent, const QString &SrcLang,
+CBingTranslator::CBingTranslator(QObject *parent, const CLangPair &lang,
                                  const QString &bingKey)
-    : CWebAPIAbstractTranslator(parent, SrcLang)
+    : CWebAPIAbstractTranslator(parent, lang)
 {
     clientKey = bingKey;
     clearCredentials();
@@ -66,8 +66,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     QUrlQuery rqData;
     rqData.addQueryItem("textType","plain");
-    rqData.addQueryItem("from",srcLang);
-    rqData.addQueryItem("to","en");
+    rqData.addQueryItem("from",m_lang.langFrom.bcp47Name());
+    rqData.addQueryItem("to",m_lang.langTo.bcp47Name());
     rqData.addQueryItem("api-version","3.0");
     rqurl.setQuery(rqData);
 

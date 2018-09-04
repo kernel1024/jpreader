@@ -14,13 +14,14 @@ class CLightTranslator : public QDialog
     Q_OBJECT
     
 public:
-    explicit CLightTranslator(QWidget *parent = 0);
+    explicit CLightTranslator(QWidget *parent = nullptr);
     ~CLightTranslator();
     void appendSourceText(const QString& text);
 
 private:
     Ui::CLigthTranslator *ui;
     bool isTranslating;
+    void reloadLanguageList();
 
 protected:
     void closeEvent(QCloseEvent * event);

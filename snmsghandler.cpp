@@ -29,7 +29,7 @@ void CSnMsgHandler::searchFwd()
     if (snv->searchEdit->findText(snv->searchEdit->currentText(),
                                   Qt::MatchExactly)<0)
         snv->searchEdit->addItem(snv->searchEdit->currentText());
-    snv->txtBrowser->findText(snv->searchEdit->currentText(), 0);
+    snv->txtBrowser->findText(snv->searchEdit->currentText());
     snv->txtBrowser->setFocus();
 }
 
@@ -85,23 +85,6 @@ void CSnMsgHandler::navByClick()
     snv->navByUrl(snv->urlEdit->text());
 }
 
-void CSnMsgHandler::srcLang(int lang)
-{
-    if (!lockSrcLang.tryLock()) return;
-
-    foreach (QAction *ac, gSet->ui.sourceLanguage->actions()) {
-        bool okconv;
-        int id = ac->data().toInt(&okconv);
-        if (okconv && id>=0 && id<LSCOUNT && id==lang) {
-            ac->setChecked(true);
-            ac->trigger();
-            break;
-        }
-    }
-
-    lockSrcLang.unlock();
-}
-
 void CSnMsgHandler::tranEngine(int engine)
 {
     if (!lockTranEngine.tryLock()) return;
@@ -110,19 +93,6 @@ void CSnMsgHandler::tranEngine(int engine)
         gSet->settings.setTranslationEngine(engine);
 
     lockTranEngine.unlock();
-}
-
-void CSnMsgHandler::updateSrcLang(QAction *action)
-{
-    if (!lockSrcLang.tryLock()) return;
-
-    bool okconv;
-    int id = action->data().toInt(&okconv);
-    if (okconv && id>=0 && id<LSCOUNT) {
-        snv->comboSrcLang->setCurrentIndex(id);
-    }
-
-    lockSrcLang.unlock();
 }
 
 void CSnMsgHandler::updateTranEngine()

@@ -10,19 +10,20 @@ class CAuxTranslator : public QObject
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.kernel1024.jpreader.auxtranslator")
 private:
-    QString text;
-    int srcLang;
+    QString m_text;
+    CLangPair m_lang;
 public:
-    explicit CAuxTranslator(QObject *parent = 0);
-    void setParams(const QString& Text);
-    void setSrcLang(int value);
+    explicit CAuxTranslator(QObject *parent = nullptr);
 
 signals:
     Q_SCRIPTABLE void gotTranslation(const QString& text);
     
 public slots:
-    void startAuxTranslation(const QString& text);
+    void setText(const QString& text);
+    void setSrcLang(const QString& lang);
+    void setDestLang(const QString& lang);
     void startTranslation(bool deleteAfter);
+    void startAuxTranslation(const QString& text);
 
 };
 

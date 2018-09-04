@@ -100,14 +100,6 @@ public:
     bool updateMainHistoryTitle(UrlHolder& item, QString newTitle);
     void appendRecent(QString filename);
 
-    // Lists updaters
-    void updateAllBookmarks();
-    void updateAllRecycleBins();
-    void updateAllCharsetLists();
-    void updateAllQueryLists();
-    void updateAllHistoryLists();
-    void updateAllRecentLists();
-
     // Ad-block
     bool isUrlBlocked(QUrl url);
     bool isUrlBlocked(QUrl url, QString& filter);
@@ -128,11 +120,8 @@ public:
     QStrHash getUserScripts();
 
     // Translation languages selection
-    int getTranslationMode();
-    int getSourceLanguage();
-    QString getSourceLanguageID(int engineStd = TE_GOOGLE);
-    QString getSourceLanguageIDStr(int engine, int engineStd = TE_GOOGLE);
-    QString getSourceLanguageString(int srcLang);
+    QStringList getLanguageCodes() const;
+    QString getLanguageName(const QString &bcp47Name);
     QString getTranslationEngineString(int engine);
     void showLightTranslator(const QString& text = QString());
 
@@ -149,13 +138,25 @@ private:
     bool cleaningState;
     bool atlCertErrorInteractive;
 
+    QMap<QString,QString> langSortedBCP47List;  // names -> bcp (for sorting)
+    QHash<QString,QString> langNamesList;       // bcp -> names
+
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
     void cleanTmpFiles();
+    void initLanguagesList();
 
 signals:
     void startAuxTranslation();
     void stopTranslators();
+
+    void updateAllBookmarks();
+    void updateAllRecycleBins();
+    void updateAllCharsetLists();
+    void updateAllQueryLists();
+    void updateAllHistoryLists();
+    void updateAllRecentLists();
+    void updateAllLanguagesLists();
 
 public slots:
     void cleanupAndExit();

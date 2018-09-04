@@ -10,9 +10,9 @@ class CAbstractTranslator : public QObject
     Q_OBJECT
 protected:
     QString tranError;
-    QString srcLang;
+    CLangPair m_lang;
 public:
-    explicit CAbstractTranslator(QObject *parent, const QString& SrcLang);
+    explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);
     ~CAbstractTranslator();
 
     virtual bool initTran()=0;
@@ -26,6 +26,6 @@ signals:
 public slots:
 };
 
-CAbstractTranslator* translatorFactory(QObject *parent, int tranDirection = LS_GLOBAL);
+CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection);
 
 #endif // CABSTRACTTRANSLATOR_H

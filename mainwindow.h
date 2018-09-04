@@ -31,17 +31,9 @@ public:
     void goHistory(QUuid idx);
     void updateTitle();
     void checkTabs();
-
-    // Menu updaters
-    void reloadCharsetList();
-    void updateBookmarks();
-    void updateQueryHistory();
-    void updateRecycled();
     void updateTabs();
-    void updateHistoryList();
-    void updateRecentList();
-
     CSnippetViewer *getOpenedInspectorTab();
+
 private:
     QMenu* recycledMenu;
     QMenu* tabsMenu;
@@ -91,6 +83,16 @@ public slots:
     void setToolsVisibility(bool visible);
     void printToPDF();
     void save();
+
+    // Menu updaters
+    void updateBookmarks();
+    void updateRecentList();
+    void reloadCharsetList();
+    void updateHistoryList();
+    void updateQueryHistory();
+    void updateRecycled();
+    void reloadLanguagesList();
+
 signals:
     void aboutToClose(CMainWindow* sender);
 

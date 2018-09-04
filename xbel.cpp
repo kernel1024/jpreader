@@ -66,7 +66,7 @@ BookmarkNode::~BookmarkNode()
     if (m_parent)
         m_parent->remove(this);
     qDeleteAll(m_children);
-    m_parent = 0;
+    m_parent = nullptr;
     m_type = BookmarkNode::Root;
 }
 
@@ -124,7 +124,7 @@ void BookmarkNode::add(BookmarkNode *child, int offset)
 
 void BookmarkNode::remove(BookmarkNode *child)
 {
-    child->m_parent = 0;
+    child->m_parent = nullptr;
     m_children.removeAll(child);
 }
 

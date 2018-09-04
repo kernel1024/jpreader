@@ -15,7 +15,7 @@ class CAuxDictKeyFilter : public QObject
 {
     Q_OBJECT
 public:
-    CAuxDictKeyFilter(QObject *parent = 0);
+    CAuxDictKeyFilter(QObject *parent = nullptr);
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
 signals:
@@ -27,7 +27,7 @@ class CAuxDictionary : public QDialog
     Q_OBJECT
 
 public:
-    explicit CAuxDictionary(QWidget *parent = 0);
+    explicit CAuxDictionary(QWidget *parent = nullptr);
     ~CAuxDictionary();
 
     void adjustSplitters();

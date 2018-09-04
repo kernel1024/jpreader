@@ -58,6 +58,8 @@ public:
     QStringList scpHostHistory;
     QStringList charsetHistory;
 
+    QList<CLangPair> translatorPairs;
+
     int maxHistory;
     int maxRecent;
     int searchEngine;
@@ -86,9 +88,9 @@ public:
     bool proxyUseTranslator;
     bool ignoreSSLErrors;
 
-    explicit CSettings(QObject *parent = 0);
+    explicit CSettings(QObject *parent = nullptr);
 
-    void readSettings(QObject *control = 0);
+    void readSettings(QObject *control = nullptr);
     void setTranslationEngine(int engine);
 
 private:

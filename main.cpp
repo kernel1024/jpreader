@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QDir>("QDir");
     qRegisterMetaType<QSslCertificate>("QSslCertificate");
     qRegisterMetaType<QIntList>("QIntList");
+    qRegisterMetaType<CLangPair>("CLangPair");
     qRegisterMetaTypeStreamOperators<UrlHolder>("UrlHolder");
     qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
     qRegisterMetaTypeStreamOperators<CAdBlockList>("CAdBlockList");
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<QBookmarks>("QBookmarks");
     qRegisterMetaTypeStreamOperators<QStrHash>("QStrHash");
     qRegisterMetaTypeStreamOperators<QSslCertificateHash>("QSslCertificateHash");
+    qRegisterMetaTypeStreamOperators<CLangPairList>("CLangPairList");
 
     QApplication app(argc, argv);
 

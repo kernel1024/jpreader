@@ -14,7 +14,6 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     ui->setupUi(this);
 
     ui->barTranslating->hide();
-    ui->radioJap->setChecked(true);
 
     connect(ui->btnTranslate,&QPushButton::clicked,this,&CLightTranslator::translate);
 }
@@ -29,27 +28,32 @@ void CLightTranslator::restoreWindow()
 {
     show();
     activateWindow();
+    reloadLanguageList();
 }
 
 void CLightTranslator::translate()
 {
     if (isTranslating) {
         QMessageBox::warning(this,tr("JPReader"),
-                             tr("ATLAS engine is translating text now. Please try later."));
+                             tr("Translation engine is busy now. Please try later."));
         return;
     }
     QString s = ui->textSource->toPlainText();
     if (s.isEmpty()) return;
 
+    CLangPair lp = CLangPair(ui->comboLanguage->currentData().toString());
+    if (!lp.isValid()) {
+        QMessageBox::warning(this,tr("JPReader"),
+                             tr("Unable to initialize translation engine. Unacceptable language pair."));
+        return;
+    }
     isTranslating = true;
 
     QThread *th = new QThread();
     CAuxTranslator *at = new CAuxTranslator();
-    at->setParams(s);
-    if (ui->radioJap->isChecked())
-        at->setSrcLang(LS_JAPANESE);
-    if (ui->radioEng->isChecked())
-        at->setSrcLang(LS_ENGLISH);
+    at->setText(s);
+    at->setSrcLang(lp.langFrom.bcp47Name());
+    at->setDestLang(lp.langTo.bcp47Name());
     connect(this,&CLightTranslator::startTranslation,at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
     connect(at,&CAuxTranslator::gotTranslation,this,&CLightTranslator::gotTranslation,Qt::QueuedConnection);
     at->moveToThread(th);
@@ -82,4 +86,20 @@ CLightTranslator::~CLightTranslator()
 void CLightTranslator::appendSourceText(const QString &text)
 {
     ui->textSource->appendPlainText(text);
+}
+
+void CLightTranslator::reloadLanguageList()
+{
+    foreach (const CLangPair& pair, gSet->settings.translatorPairs) {
+        ui->comboLanguage->addItem(QString("%1 - %2").arg(
+                                      gSet->getLanguageName(pair.langFrom.bcp47Name()),
+                                      gSet->getLanguageName(pair.langTo.bcp47Name())),
+                                   pair.getHash());
+    }
+    if (gSet->ui.languageSelector->checkedAction()!=nullptr) {
+        QString selectedHash = gSet->ui.languageSelector->checkedAction()->data().toString();
+        int idx = ui->comboLanguage->findData(selectedHash);
+        if (idx>=0)
+            ui->comboLanguage->setCurrentIndex(idx);
+    }
 }

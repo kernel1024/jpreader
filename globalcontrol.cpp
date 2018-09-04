@@ -47,6 +47,8 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     recentFiles.clear();
     adblockWhiteList.clear();
 
+    initLanguagesList();
+
     appIcon.addFile(":/img/globe16");
     appIcon.addFile(":/img/globe32");
     appIcon.addFile(":/img/globe48");
@@ -333,7 +335,7 @@ void CGlobalControl::appendRecycled(QString title, QUrl url)
 
     if (recycleBin.count()>settings.maxRecycled) recycleBin.removeLast();
 
-    updateAllRecycleBins();
+    emit updateAllRecycleBins();
 }
 
 void CGlobalControl::appendMainHistory(UrlHolder &item)
@@ -347,7 +349,7 @@ void CGlobalControl::appendMainHistory(UrlHolder &item)
     while (mainHistory.count()>settings.maxHistory)
         mainHistory.removeLast();
 
-    updateAllHistoryLists();
+    emit updateAllHistoryLists();
 }
 
 bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
@@ -356,7 +358,7 @@ bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
         int idx = mainHistory.indexOf(item);
         if (idx>=0) {
             mainHistory[idx].title = newTitle;
-            updateAllHistoryLists();
+            emit updateAllHistoryLists();
             return true;
         }
     }
@@ -375,37 +377,7 @@ void CGlobalControl::appendRecent(QString filename)
     while (recentFiles.count()>settings.maxRecent)
         recentFiles.removeLast();
 
-    updateAllRecentLists();
-}
-
-void CGlobalControl::updateAllRecentLists()
-{
-    foreach (CMainWindow* w, mainWindows) w->updateRecentList();
-}
-
-void CGlobalControl::updateAllBookmarks()
-{
-    foreach (CMainWindow* w, mainWindows) w->updateBookmarks();
-}
-
-void CGlobalControl::updateAllCharsetLists()
-{
-    foreach (CMainWindow* w, mainWindows) w->reloadCharsetList();
-}
-
-void CGlobalControl::updateAllHistoryLists()
-{
-    foreach (CMainWindow* w, mainWindows) w->updateHistoryList();
-}
-
-void CGlobalControl::updateAllQueryLists()
-{
-    foreach (CMainWindow* w, mainWindows) w->updateQueryHistory();
-}
-
-void CGlobalControl::updateAllRecycleBins()
-{
-    foreach (CMainWindow* w, mainWindows) w->updateRecycled();
+    emit updateAllRecentLists();
 }
 
 void CGlobalControl::ipcMessageReceived()
@@ -661,60 +633,42 @@ QStrHash CGlobalControl::getUserScripts()
     return res;
 }
 
-int CGlobalControl::getTranslationMode()
+void CGlobalControl::initLanguagesList()
 {
-    bool okconv;
-    int res = 0;
-    if (ui.translationMode->checkedAction()!=nullptr) {
-        res = ui.translationMode->checkedAction()->data().toInt(&okconv);
-        if (!okconv)
-            res = 0;
+    QList<QLocale> allLocales = QLocale::matchingLocales(
+                QLocale::AnyLanguage,
+                QLocale::AnyScript,
+                QLocale::AnyCountry);
+
+    langNamesList.clear();
+    langSortedBCP47List.clear();
+
+    for(const QLocale &locale : allLocales) {
+        QString bcp = locale.bcp47Name();
+        QString name = QString("%1 (%2)").arg(QLocale::languageToString(locale.language()),bcp);
+
+        // filter out unsupported codes for dialects
+        if (bcp.contains('-') && !bcp.startsWith("zh")) continue;
+
+        // replace C locale with English
+        if (bcp == QString("en"))
+            name = QString("English (en)");
+
+        if (!langNamesList.contains(bcp)) {
+            langNamesList.insert(bcp,name);
+            langSortedBCP47List.insert(name,bcp);
+        }
     }
-    return res;
 }
 
-int CGlobalControl::getSourceLanguage()
+QString CGlobalControl::getLanguageName(const QString& bcp47Name)
 {
-    bool okconv;
-    int res = 0;
-    if (ui.sourceLanguage->checkedAction()!=nullptr) {
-        res = ui.sourceLanguage->checkedAction()->data().toInt(&okconv);
-        if (!okconv)
-            res = 0;
-    }
-    return res;
+    return langNamesList.value(bcp47Name);
 }
 
-QString CGlobalControl::getSourceLanguageID(int engineStd)
+QStringList CGlobalControl::getLanguageCodes() const
 {
-    return getSourceLanguageIDStr(getSourceLanguage(),engineStd);
-}
-
-QString CGlobalControl::getSourceLanguageIDStr(int engine, int engineStd)
-{
-    QString srcLang;
-    switch (engine) {
-        case LS_JAPANESE: srcLang="ja"; break;
-        case LS_CHINESETRAD:
-            if (engineStd==TE_YANDEX)
-                srcLang="zh";
-            else if (engineStd==TE_BINGAPI)
-                srcLang="zh-CHT";
-            else
-                srcLang="zh-TW";
-            break;
-        case LS_CHINESESIMP:
-            if (engineStd==TE_YANDEX)
-                srcLang="zh";
-            else if (engineStd==TE_BINGAPI)
-                srcLang="zh-CHS";
-            else
-                srcLang="zh-CN";
-            break;
-        case LS_KOREAN: srcLang="ko"; break;
-        default: srcLang="ja"; break;
-    }
-    return srcLang;
+    return langSortedBCP47List.values();
 }
 
 QString CGlobalControl::getTranslationEngineString(int engine)

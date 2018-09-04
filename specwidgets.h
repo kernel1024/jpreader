@@ -37,7 +37,7 @@ class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 public:
     CSpecTabBar(CSpecTabWidget *p);
-    CSpecTabBar(QWidget *p = 0);
+    CSpecTabBar(QWidget *p = nullptr);
     void setBrowserTabs(bool enabled);
 private:
     CSpecTabWidget *m_tabWidget;
@@ -59,7 +59,7 @@ signals:
 class CSpecTabWidget : public QTabWidget {
 	Q_OBJECT
 public:
-    CSpecTabWidget(QWidget *p = 0);
+    CSpecTabWidget(QWidget *p = nullptr);
     CSpecTabBar *tabBar() const;
     CMainWindow* parentWnd;
     bool mainTabWidget;
@@ -106,7 +106,7 @@ public:
     CMainWindow* parentWnd;
     CSpecTabWidget* tabWidget;
     QString tabTitle;
-    CSpecTabContainer(CMainWindow *parent = 0);
+    CSpecTabContainer(CMainWindow *parent = nullptr);
     void bindToTab(CSpecTabWidget *tabs, bool setFocused = true);
 
     virtual bool canClose() { return true; }
@@ -168,14 +168,14 @@ private:
 class CSpecUrlInterceptor : public QWebEngineUrlRequestInterceptor {
     Q_OBJECT
 public:
-    CSpecUrlInterceptor(QObject *p = 0);
+    CSpecUrlInterceptor(QObject *p = nullptr);
     void interceptRequest(QWebEngineUrlRequestInfo &info);
 };
 
 class CSpecUrlHistoryModel : public QAbstractListModel {
     Q_OBJECT
 public:
-    CSpecUrlHistoryModel(QObject *parent = 0);
+    CSpecUrlHistoryModel(QObject *parent = nullptr);
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -195,7 +195,7 @@ protected:
 class CIOEventLoop : public QEventLoop {
     Q_OBJECT
 public:
-    CIOEventLoop(QObject* parent = 0);
+    CIOEventLoop(QObject* parent = nullptr);
 
 public slots:
     void finished();
@@ -206,7 +206,7 @@ class CNetworkCookieJar : public QNetworkCookieJar
 {
     Q_OBJECT
 public:
-    explicit CNetworkCookieJar(QObject * parent = 0);
+    explicit CNetworkCookieJar(QObject * parent = nullptr);
 
     QList<QNetworkCookie> getAllCookies();
     void initAllCookies(const QList<QNetworkCookie> cookies);

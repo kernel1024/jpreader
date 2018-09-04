@@ -7,8 +7,8 @@
 
 #include "googlegtxtranslator.h"
 
-CGoogleGTXTranslator::CGoogleGTXTranslator(QObject *parent, const QString& SrcLang)
-    : CWebAPIAbstractTranslator(parent, SrcLang)
+CGoogleGTXTranslator::CGoogleGTXTranslator(QObject *parent, const CLangPair& lang)
+    : CWebAPIAbstractTranslator(parent, lang)
 {
 }
 
@@ -40,8 +40,8 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 
     QUrlQuery rqData;
     rqData.addQueryItem("client","gtx");
-    rqData.addQueryItem("sl",srcLang);
-    rqData.addQueryItem("tl","en");
+    rqData.addQueryItem("sl",m_lang.langFrom.bcp47Name());
+    rqData.addQueryItem("tl",m_lang.langTo.bcp47Name());
     rqData.addQueryItem("dt","t");
     rqData.addQueryItem("q",QUrl::toPercentEncoding(src));
 

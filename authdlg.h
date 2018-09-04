@@ -14,7 +14,7 @@ class CAuthDlg : public QDialog
     Q_OBJECT
     
 public:
-    explicit CAuthDlg(QWidget *parent = 0, const QUrl & origin = QUrl(), const QString & realm = QString(),
+    explicit CAuthDlg(QWidget *parent = nullptr, const QUrl & origin = QUrl(), const QString & realm = QString(),
                       bool autofillLogin = false);
     ~CAuthDlg();
     QString getUser();

@@ -14,7 +14,7 @@ protected:
     bool isValidCredentials();
 
 public:
-    CBingTranslator(QObject *parent, const QString& SrcLang, const QString& bingKey);
+    CBingTranslator(QObject *parent, const CLangPair& lang, const QString& bingKey);
 
     bool initTran();
 

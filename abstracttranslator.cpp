@@ -4,10 +4,10 @@
 #include "yandextranslator.h"
 #include "googlegtxtranslator.h"
 
-CAbstractTranslator::CAbstractTranslator(QObject *parent, const QString &SrcLang) : QObject(parent)
+CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang) : QObject(parent)
 {
     tranError.clear();
-    srcLang = SrcLang;
+    m_lang = lang;
 }
 
 CAbstractTranslator::~CAbstractTranslator()
@@ -20,25 +20,18 @@ QString CAbstractTranslator::getErrorMsg()
     return tranError;
 }
 
-CAbstractTranslator *translatorFactory(QObject* parent, int tranDirection)
+CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDirection)
 {
+    if (!tranDirection.isValid()) return nullptr;
+
     if (gSet->settings.translatorEngine==TE_ATLAS) {
-        QString dir;
-        switch (tranDirection) {
-            case LS_AUTO: dir = QString("auto"); break;
-            case LS_ENGLISH: dir = QString("en"); break;
-            case LS_JAPANESE: dir = QString("ja"); break;
-            default: dir = gSet->getSourceLanguageID(TE_ATLAS); break; // also LS_GLOBAL
-        }
-        return new CAtlasTranslator(parent,gSet->settings.atlHost,gSet->settings.atlPort, dir);
+        return new CAtlasTranslator(parent, gSet->settings.atlHost, gSet->settings.atlPort, tranDirection);
     } else if (gSet->settings.translatorEngine==TE_BINGAPI)
-        return new CBingTranslator(parent,gSet->getSourceLanguageID(TE_BINGAPI),
-                                   gSet->settings.bingKey);
+        return new CBingTranslator(parent, tranDirection, gSet->settings.bingKey);
     else if (gSet->settings.translatorEngine==TE_YANDEX)
-        return new CYandexTranslator(parent,gSet->getSourceLanguageID(TE_YANDEX),
-                                     gSet->settings.yandexKey);
+        return new CYandexTranslator(parent, tranDirection, gSet->settings.yandexKey);
     else if (gSet->settings.translatorEngine==TE_GOOGLE_GTX)
-        return new CGoogleGTXTranslator(parent,gSet->getSourceLanguageID(TE_GOOGLE_GTX));
+        return new CGoogleGTXTranslator(parent, tranDirection);
     else
         return nullptr;
 }

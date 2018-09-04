@@ -89,3 +89,88 @@ QDataStream &operator>>(QDataStream &in, QSslCertificate &obj)
         obj = slist.first();
     return in;
 }
+
+CLangPair::CLangPair()
+{
+    nullify();
+}
+
+CLangPair::CLangPair(const CLangPair &other)
+{
+    langFrom = other.langFrom;
+    langTo = other.langTo;
+}
+
+CLangPair::CLangPair(const QString &hash)
+{
+    QStringList sl = hash.split('#');
+    if (sl.count()!=2) {
+        nullify();
+        return;
+    }
+    langFrom = QLocale(sl.first());
+    langTo = QLocale(sl.last());
+}
+
+CLangPair::CLangPair(const QString &fromName, const QString &toName)
+{
+    langFrom = QLocale(fromName);
+    langTo = QLocale(toName);
+}
+
+CLangPair &CLangPair::operator=(const CLangPair &other)
+{
+    langFrom = other.langFrom;
+    langTo = other.langTo;
+    return *this;
+}
+
+bool CLangPair::isValid() const
+{
+    return (langFrom!=langTo);
+}
+
+bool CLangPair::isAtlasAcceptable() const
+{
+    QStringList validLangs({"en", "ja"});
+    return (isValid() &&
+            validLangs.contains(langFrom.bcp47Name()) &&
+            validLangs.contains(langTo.bcp47Name()));
+}
+
+QString CLangPair::getHash() const
+{
+    return QString("%1#%2").arg(langFrom.bcp47Name(),
+                                langTo.bcp47Name());
+}
+
+bool CLangPair::operator==(const CLangPair &s) const
+{
+    return ((langFrom==s.langFrom) && (langTo==s.langTo));
+}
+
+bool CLangPair::operator!=(const CLangPair &s) const
+{
+    return (!operator==(s));
+
+}
+
+void CLangPair::nullify()
+{
+    langFrom = QLocale::system();
+    langTo = QLocale::system();
+}
+
+QDataStream &operator<<(QDataStream &out, const CLangPair &obj)
+{
+    out << obj.getHash();
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, CLangPair &obj)
+{
+    QString hash;
+    in >> hash;
+    obj = CLangPair(hash);
+    return in;
+}

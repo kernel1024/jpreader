@@ -77,7 +77,7 @@ signals:
     void entryChanged(BookmarkNode *item);
 
 public:
-    BookmarksManager(QObject *parent = 0);
+    BookmarksManager(QObject *parent = nullptr);
     ~BookmarksManager();
 
     void addBookmark(BookmarkNode *parent, BookmarkNode *node, int row = -1);
@@ -130,7 +130,7 @@ public:
         SeparatorRole = Qt::UserRole + 4
     };
 
-    BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent = 0);
+    BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent = nullptr);
     inline BookmarksManager *bookmarksManager() const { return m_bookmarksManager; }
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
@@ -166,7 +166,7 @@ class AddBookmarkProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    AddBookmarkProxyModel(QObject * parent = 0);
+    AddBookmarkProxyModel(QObject * parent = nullptr);
     int columnCount(const QModelIndex & parent = QModelIndex()) const;
 
 protected:
@@ -182,7 +182,8 @@ class AddBookmarkDialog : public QDialog, public Ui_AddBookmarkDialog
     Q_OBJECT
 
 public:
-    AddBookmarkDialog(const QString &url, const QString &title, QWidget *parent = 0, BookmarksManager *bookmarkManager = 0);
+    AddBookmarkDialog(const QString &url, const QString &title, QWidget *parent = nullptr,
+                      BookmarksManager *bookmarkManager = nullptr);
 
 private slots:
     void accept();
@@ -217,7 +218,7 @@ signals:
     void openUrl(const QUrl &url);
 
 public:
-    BookmarksDialog(QWidget *parent = 0, BookmarksManager *manager = 0);
+    BookmarksDialog(QWidget *parent = nullptr, BookmarksManager *manager = nullptr);
     ~BookmarksDialog();
 
 private slots:

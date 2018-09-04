@@ -162,13 +162,13 @@
       <string>&amp;Translation mode</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuSourceLanguage">
+    <widget class="QMenu" name="menuTranslationLanguages">
      <property name="title">
-      <string>Source &amp;language</string>
+      <string>Translation languages</string>
      </property>
     </widget>
     <addaction name="menuTranslationMode"/>
-    <addaction name="menuSourceLanguage"/>
+    <addaction name="menuTranslationLanguages"/>
     <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDownloadManager"/>
@@ -498,7 +498,7 @@
   </action>
   <action name="actionManageBM">
    <property name="text">
-    <string>Manage bookmarks</string>
+    <string>&amp;Manage bookmarks</string>
    </property>
   </action>
  </widget>
