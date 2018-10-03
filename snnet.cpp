@@ -162,6 +162,22 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
             if (wtitle.isEmpty())
                 wtitle = extractFileTitle(html);
 
+            QStringList tags;
+            QRegExp trx("<li[^>]*class=\"tag\"[^>]*>",Qt::CaseInsensitive);
+            QRegExp ttrx("class=\"text\"[^>]*>",Qt::CaseInsensitive);
+            int tpos = 0;
+            int tstop = html.indexOf("template-work-tags",Qt::CaseInsensitive);
+            int tidx = trx.indexIn(html,tpos);
+            while (tidx>=0) {
+                tpos = tidx + trx.matchedLength();
+                int ttidx = ttrx.indexIn(html,tpos) + ttrx.matchedLength();
+                int ttlen = html.indexOf('<',ttidx) - ttidx;
+                if (ttidx>=0 && ttlen>=0 && ttidx<tstop) {
+                    tags << html.mid(ttidx,ttlen);
+                }
+                tidx = trx.indexIn(html,tpos);
+            }
+
             QRegExp rx("<textarea[^>]*id=\"novel_text\"[^>]*>",Qt::CaseInsensitive);
             int idx = rx.indexIn(html);
             if (idx<0) return;
@@ -184,6 +200,9 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
                 else
                     pos += rbrx.matchedLength();
             }
+
+            if (!tags.isEmpty())
+                html.prepend(QString("Tags: %1\n\n").arg(tags.join(" / ")));
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
                                                     focus,makeSimpleHtml(wtitle,html,true,rpl->url()));
