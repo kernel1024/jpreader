@@ -43,7 +43,7 @@ private:
 
 protected:
     void doSearch();
-    QString createSpecSnippet(QString aFilename, bool forceUntranslated = false);
+    QString createSpecSnippet(const QString &aFilename, bool forceUntranslated, const QString &auxText);
     QStringList splitQuery(QString aQuery);
 
 signals:

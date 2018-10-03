@@ -24,14 +24,14 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
     working = true;
     QProcess recoll;
     recoll.start("recoll",QStringList() << "-n" << QString::number(maxLimit)
-                 << "-a" << "-t" << "-F" << "url caption relevancyrating"
+                 << "-a" << "-t" << "-F" << "url caption relevancyrating abstract"
                  << "-q" << qr);
     recoll.waitForFinished(60000);
     while (!recoll.atEnd()) {
         QString s = QString::fromUtf8(recoll.readLine()).trimmed();
         QStringList sl = s.split(' ');
 
-        if (sl.count() != 3) continue; // must be 3 elements
+        if (sl.count() != 4) continue; // must be 4 elements
 
         QString fname = QString();
         double rel = 0.0;
@@ -49,7 +49,9 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
         if (ok)
             rel = static_cast<double>(ip)/100.0;
 
-        emit addHitFull(fname,title,rel);
+        QString snippet = strFromBase64(sl.at(3)).trimmed();
+
+        emit addHitFull(fname,title,rel,snippet);
     }
     working = false;
     emit finished();

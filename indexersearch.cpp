@@ -83,7 +83,7 @@ int CIndexerSearch::getCurrentIndexerService()
     return indexerSerivce;
 }
 
-void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double rel)
+void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double rel, const QString &snippet)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
@@ -147,6 +147,9 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
         result.snippets.last()["relMode"]=tr("percent");
     else
         result.snippets.last()["relMode"]=tr("count");
+
+    if (!snippet.isEmpty())
+        result.snippets.last()["Snip"]=snippet;
 }
 
 void CIndexerSearch::processFile(const QString &filename, double &hitRate, QString &title)
@@ -209,13 +212,13 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
 
 void CIndexerSearch::auxAddHit(const QString &fileName)
 {
-    auxAddHitFull(fileName, QString(), -1.0);
+    auxAddHitFull(fileName, QString(), -1.0, QString());
 }
 
-void CIndexerSearch::auxAddHitFull(const QString &fileName, const QString &title, double rel)
+void CIndexerSearch::auxAddHitFull(const QString &fileName, const QString &title, double rel, const QString& snippet)
 {
     QFileInfo fi(fileName);
-    addHitFS(fi,title,rel);
+    addHitFS(fi,title,rel,snippet);
 }
 
 void CIndexerSearch::engineFinished()

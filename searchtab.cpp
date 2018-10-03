@@ -316,9 +316,9 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         QString s = snip["Snip"];
         QString tranState = bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
         if (s.isEmpty() || tranState!=snip.value("SnipTran")) {
-            s = createSpecSnippet(snip["FullFilename"]);
+            s = createSpecSnippet(snip["FullFilename"],false,s);
             snip["Snip"]=s;
-            snip["SnipUntran"]=createSpecSnippet(snip["FullFilename"],true);
+            snip["SnipUntran"]=createSpecSnippet(snip["FullFilename"],true,s);
             snip["SnipTran"]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
@@ -332,18 +332,43 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
     }
 }
 
-QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated) {
-    QString s = "";
+QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntranslated, const QString& auxText)
+{
+    QString s;
     if(lastQuery.isEmpty()) return s;
-    QFileInfo fi(aFilename);
-    if (!fi.exists()) {
-        s=tr("File not found in directory.");
-        return s;
-    }
 
     QStringList queryTerms = splitQuery(lastQuery);
     if (queryTerms.count()==0) {
         s=tr("Search query is empty.");
+        return s;
+    }
+
+    if (!auxText.isEmpty())
+        s = auxText;
+
+    QStringList queryTermsTran = queryTerms;
+    CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
+    if (gSet->ui.actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
+        if (tran==nullptr || !tran->initTran()) {
+            qCritical() << tr("Unable to initialize translation engine.");
+            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
+        } else {
+            if (!auxText.isEmpty())
+                s = tran->tranString(auxText);
+            else {
+                for (int i=0;i<queryTerms.count();i++) {
+                    queryTermsTran[i] = tran->tranString(queryTerms[i]);
+                }
+            }
+        }
+    }
+
+    if (!auxText.isEmpty())
+        return s;
+
+    QFileInfo fi(aFilename);
+    if (!fi.exists()) {
+        s=tr("File not found in directory.");
         return s;
     }
 
@@ -367,19 +392,6 @@ QString CSearchTab::createSpecSnippet(QString aFilename, bool forceUntranslated)
     fileContents.remove("\n");
     fileContents.remove("\r");
     QHash<int,QStringList> snippets;
-
-    QStringList queryTermsTran = queryTerms;
-    CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
-    if (gSet->ui.actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
-        if (tran==nullptr || !tran->initTran()) {
-            qCritical() << tr("Unable to initialize translation engine.");
-            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
-        } else {
-            for (int i=0;i<queryTerms.count();i++) {
-                queryTermsTran[i] = tran->tranString(queryTerms[i]);
-            }
-        }
-    }
 
     const int snipWidth = 12;
     const int maxSnippets = 800 / snipWidth;
