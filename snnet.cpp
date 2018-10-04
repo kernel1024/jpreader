@@ -162,6 +162,30 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
             if (wtitle.isEmpty())
                 wtitle = extractFileTitle(html);
 
+            QString htitle;
+            QRegExp hrx("<h1[^>]*class=\"title\"[^>]*>",Qt::CaseInsensitive);
+            int hidx = hrx.indexIn(html);
+            if (hidx>=0) {
+                int hpos = hidx+hrx.matchedLength();
+                int hlen = html.indexOf('<',hpos) - hpos;
+                htitle = html.mid(hpos, hlen);
+            }
+
+            QString hauthor;
+            QString hauthornum;
+            QRegExp arx("<a[^>]*class=\"user-name\"[^>]*>");
+            int aidx = arx.indexIn(html);
+            if (aidx>=0) {
+                QString acap = arx.cap();
+                int anpos = acap.indexOf("id=")+3;
+                int anlen = acap.indexOf("\"",anpos) - anpos;
+                hauthornum = acap.mid(anpos,anlen);
+
+                int apos = aidx+arx.matchedLength();
+                int alen = html.indexOf('<',apos) - apos;
+                hauthor = html.mid(apos, alen);
+            }
+
             QStringList tags;
             QRegExp trx("<li[^>]*class=\"tag\"[^>]*>",Qt::CaseInsensitive);
             QRegExp ttrx("class=\"text\"[^>]*>",Qt::CaseInsensitive);
@@ -203,6 +227,11 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
 
             if (!tags.isEmpty())
                 html.prepend(QString("Tags: %1\n\n").arg(tags.join(" / ")));
+            if (!hauthor.isEmpty())
+                html.prepend(QString("Author: <a href=\"https://www.pixiv.net/member.php?id=%1\">%2</a>\n\n")
+                             .arg(hauthornum,hauthor));
+            if (!htitle.isEmpty())
+                html.prepend(QString("Title: <b>%1</b>\n\n").arg(htitle));
 
             CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),
                                                     focus,makeSimpleHtml(wtitle,html,true,rpl->url()));
