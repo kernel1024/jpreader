@@ -24,7 +24,7 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
     working = true;
     QProcess recoll;
     recoll.start("recoll",QStringList() << "-n" << QString::number(maxLimit)
-                 << "-a" << "-t" << "-F" << "url caption relevancyrating abstract"
+                 << "-t" << "-F" << "url caption relevancyrating abstract"
                  << "-q" << qr);
     recoll.waitForFinished(60000);
     while (!recoll.atEnd()) {
