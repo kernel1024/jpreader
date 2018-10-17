@@ -433,11 +433,13 @@ void CSnCtxHandler::saveToFile()
         selectedText = nt->data().toString();
 
     QString fname;
+#if QT_VERSION >= 0x050800
     if (selectedText.isEmpty())
         fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings.savedAuxSaveDir,
                                                  tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
                                                     "Text file (*.txt);;MHTML archive (*.mht)"));
     else
+#endif
         fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings.savedAuxSaveDir,
                                                  tr("Text file (*.txt)"));
 
@@ -458,12 +460,14 @@ void CSnCtxHandler::saveToFile()
             f.write(result.toUtf8());
             f.close();
         });
+#if QT_VERSION >= 0x050800
     else if (fi.suffix().toLower().startsWith("mht"))
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
     else if (fi.suffix().toLower()=="htm")
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
     else
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
+#endif
 }
 
 void CSnCtxHandler::bookmarkPage() {

@@ -370,8 +370,10 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     if (idx<0 || idx>=downloads.count()) return;
 
     downloads[idx].state = state;
+#if QT_VERSION >= 0x050900
     if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
         downloads[idx].errorString = item->interruptReasonString();
+#endif
 
     emit dataChanged(index(idx,0),index(idx,3));
 }
