@@ -7,8 +7,8 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
     working = false;
-    result = QBResult();
-    query = QString();
+    resultCount = 0;
+    m_query = QString();
     indexerSerivce = gSet->settings.searchEngine;
     if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
 #ifdef WITH_THREADED_SEARCH
@@ -23,8 +23,6 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
             engine = new CBaloo5Search();
         connect(engine,&CAbstractThreadedSearch::addHit,
                 this,&CIndexerSearch::auxAddHit,Qt::QueuedConnection);
-        connect(engine,&CAbstractThreadedSearch::addHitFull,
-                this,&CIndexerSearch::auxAddHitFull,Qt::QueuedConnection);
         connect(engine,&CAbstractThreadedSearch::finished,
                 this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
         connect(this,&CIndexerSearch::startThreadedSearch,
@@ -40,20 +38,20 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
     if (working) return;
     bool useFSSearch = (!searchDir.isRoot() && searchDir.isReadable());
 
-    result = QBResult();
-    query = searchTerm;
+    m_query = searchTerm;
+    resultCount = 0;
 
     gSet->appendSearchHistory(QStringList() << searchTerm);
     working = true;
     searchTimer.start();
     if (useFSSearch) {
-        searchInDir(searchDir,query);
+        searchInDir(searchDir,m_query);
         engineFinished();
     } else {
         if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig())
-                emit startThreadedSearch(query,gSet->settings.maxSearchLimit);
+                emit startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
             else
                 engineFinished();
 #endif
@@ -83,7 +81,8 @@ int CIndexerSearch::getCurrentIndexerService()
     return indexerSerivce;
 }
 
-void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double rel, const QString &snippet)
+void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title,
+                              double rel, const QString &snippet)
 {
     // get URI and file info
     QString w = hit.absoluteFilePath();
@@ -106,50 +105,41 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title, double
     if (ftitle.isEmpty())
         ftitle = fileName;
 
-    // scan existing snippets and add new empty snippet
-    for(int i=0;i<result.snippets.count();i++) {
-        if (result.snippets[i]["Uri"]==w) {
-            if ((result.snippets[i]["Score"]).toDouble()<=nhits)
-                return; // skip same hit with lower score, leave hit with higher score
-            else {
-                // remove old hit with lower score
-                result.snippets.removeAt(i);
-                break;
-            }
-        }
-    }
-    result.snippets.append(QStrHash());
+    QStrHash result;
 
-    result.snippets.last()["Uri"] = QString("file://%1").arg(w);
-    result.snippets.last()["FullFilename"] = w;
-    result.snippets.last()["DisplayFilename"] = w;
-    result.snippets.last()["FilePath"] = hit.path();
-    result.snippets.last()["FileSize"] = QString("%L1 Kb")
+    result["Uri"] = QString("file://%1").arg(w);
+    result["FullFilename"] = w;
+    result["DisplayFilename"] = w;
+    result["FilePath"] = hit.path();
+    result["FileSize"] = QString("%L1 Kb")
                                          .arg(static_cast<double>(hit.size())/1024.0, 0, 'f', 1);
-    result.snippets.last()["FileSizeNum"] = QString("%1").arg(hit.size());
-    result.snippets.last()["OnlyFilename"] = fileName;
-    result.snippets.last()["Dir"] = QDir(hit.dir()).dirName();
+    result["FileSizeNum"] = QString("%1").arg(hit.size());
+    result["OnlyFilename"] = fileName;
+    result["Dir"] = QDir(hit.dir()).dirName();
 
     // extract base properties (score, type etc)
-    result.snippets.last()["Src"]=tr("Files");
-    result.snippets.last()["Score"]=QString("%1").arg(nhits,0,'f',4);
-    result.snippets.last()["MimeT"]="";
-    result.snippets.last()["Type"]=tr("File");
+    result["Src"]=tr("Files");
+    result["Score"]=QString("%1").arg(nhits,0,'f',4);
+    result["MimeT"]="";
+    result["Type"]=tr("File");
 
     QDateTime dtm=hit.lastModified();
-    result.snippets.last()["Time"]=dtm.toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
+    result["Time"]=dtm.toString("yyyy-MM-dd hh:mm:ss")+" (Utc)";
 
-    result.snippets.last()["dc:title"]=ftitle;
-    result.snippets.last()["Filename"]= fileName;
-    result.snippets.last()["FileTitle"] = fileName;
+    result["dc:title"]=ftitle;
+    result["Filename"]= fileName;
+    result["FileTitle"] = fileName;
 
     if (relPercent)
-        result.snippets.last()["relMode"]=tr("percent");
+        result["relMode"]=tr("percent");
     else
-        result.snippets.last()["relMode"]=tr("count");
+        result["relMode"]=tr("count");
 
     if (!snippet.isEmpty())
-        result.snippets.last()["Snip"]=snippet;
+        result["Snip"]=snippet;
+
+    resultCount++;
+    emit gotResult(result);
 }
 
 void CIndexerSearch::processFile(const QString &filename, double &hitRate, QString &title)
@@ -189,7 +179,7 @@ void CIndexerSearch::processFile(const QString &filename, double &hitRate, QStri
 double CIndexerSearch::calculateHitRate(const QString &fc)
 {
 
-    QStringList ql = query.split(' ');
+    QStringList ql = m_query.split(' ');
     double hits = 0.0;
     for(int i=0;i<ql.count();i++)
         hits += fc.count(ql.at(i),Qt::CaseInsensitive);
@@ -210,12 +200,8 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
     }
 }
 
-void CIndexerSearch::auxAddHit(const QString &fileName)
-{
-    auxAddHitFull(fileName, QString(), -1.0, QString());
-}
-
-void CIndexerSearch::auxAddHitFull(const QString &fileName, const QString &title, double rel, const QString& snippet)
+void CIndexerSearch::auxAddHit(const QString &fileName, const QString &title,
+                               double rel, const QString& snippet)
 {
     QFileInfo fi(fileName);
     addHitFS(fi,title,rel,snippet);
@@ -225,41 +211,10 @@ void CIndexerSearch::engineFinished()
 {
     if (!working) return;
     working = false;
-    if (!result.snippets.isEmpty()) {
-        result.stats["Elapsed time"] = QString("%1")
-                                       .arg((static_cast<double>(searchTimer.elapsed()))/1000,1,'f',3);
-        result.stats["Total hits"] = QString("%1").arg(result.snippets.count());
-        result.presented = true;
-    }
-    emit searchFinished(result,query);
-}
 
-QBResult::QBResult()
-{
-    presented=false;
-    stats.clear();
-    snippets.clear();
-    sortMode = -2;
-}
-
-QBResult::QBResult(const QBResult &other)
-{
-    presented = other.presented;
-    stats=other.stats;
-    sortMode=other.sortMode;
-    snippets.clear();
-    foreach (const QStrHash &h, other.snippets)
-        snippets.append(h);
-}
-
-QBResult &QBResult::operator=(const QBResult &other)
-{
-    presented = other.presented;
-    stats=other.stats;
-    sortMode=other.sortMode;
-    snippets.clear();
-    foreach (const QStrHash &h, other.snippets)
-        snippets.append(h);
-
-    return *this;
+    QStrHash stats;
+    stats["Elapsed time"] = QString("%1")
+                            .arg((static_cast<double>(searchTimer.elapsed()))/1000,1,'f',3);
+    stats["Total hits"] = QString("%1").arg(resultCount);
+    emit searchFinished(stats,m_query);
 }

@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
     debugMessages.clear();
     qInstallMessageHandler(stdConsoleOutput);
     qRegisterMetaType<UrlHolder>("UrlHolder");
-    qRegisterMetaType<QBResult>("QBResult");
     qRegisterMetaType<QDir>("QDir");
     qRegisterMetaType<QSslCertificate>("QSslCertificate");
     qRegisterMetaType<QIntList>("QIntList");

@@ -172,11 +172,4 @@ void CSearchModel::addItems(const QList<QStrHash> &srcSnippets)
     beginInsertRows(QModelIndex(),posidx,posidx+srcSnippets.count()-1);
     snippets.append(srcSnippets);
     endInsertRows();
-    if (table!=nullptr) {
-        table->resizeColumnsToContents();
-        for (int i=0;i<columnCount(QModelIndex());i++) {
-            if (table->columnWidth(i)>400)
-                table->setColumnWidth(i,400);
-        }
-    }
 }

@@ -1,6 +1,7 @@
 #ifndef RECOLLSEARCH_H
 #define RECOLLSEARCH_H
 
+#include <QProcess>
 #include "abstractthreadedsearch.h"
 
 class CRecollSearch : public CAbstractThreadedSearch
@@ -11,6 +12,10 @@ public:
 
 private:
     QString strFromBase64(const QString &src);
+
+private slots:
+    void recollReadyRead();
+    void recollFinished(int exitCode, QProcess::ExitStatus exitStatus);
     
 public slots:
     virtual void doSearch(const QString &qr, int maxLimit);

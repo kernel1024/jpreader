@@ -18,17 +18,16 @@ QString CRecollSearch::strFromBase64(const QString &src)
     return QString::fromUtf8(QByteArray::fromBase64(ba));
 }
 
-void CRecollSearch::doSearch(const QString &qr, int maxLimit)
+void CRecollSearch::recollReadyRead()
 {
-    if (working) return;
-    working = true;
-    QProcess recoll;
-    recoll.start("recoll",QStringList() << "-n" << QString::number(maxLimit)
-                 << "-t" << "-F" << "url caption relevancyrating abstract"
-                 << "-q" << qr);
-    recoll.waitForFinished(60000);
-    while (!recoll.atEnd()) {
-        QString s = QString::fromUtf8(recoll.readLine()).trimmed();
+    QProcess* recoll = qobject_cast<QProcess *>(sender());
+    if (recoll==nullptr) return;
+
+    QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
+
+    for(int i=0;i<outList.count();i++) {
+
+        QString s = outList.at(i).trimmed();
         QStringList sl = s.split(' ');
 
         if (sl.count() != 4) continue; // must be 4 elements
@@ -51,8 +50,37 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
 
         QString snippet = strFromBase64(sl.at(3)).trimmed();
 
-        emit addHitFull(fname,title,rel,snippet);
+        emit addHit(fname,title,rel,snippet);
     }
+}
+
+void CRecollSearch::recollFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    Q_UNUSED(exitCode);
+    Q_UNUSED(exitStatus);
+
     working = false;
     emit finished();
+}
+
+void CRecollSearch::doSearch(const QString &qr, int maxLimit)
+{
+    if (working) return;
+    working = true;
+
+    QProcess *recoll = new QProcess(this);
+    recoll->setEnvironment(QProcess::systemEnvironment());
+    recoll->setProcessChannelMode(QProcess::MergedChannels);
+
+    connect(recoll,&QProcess::readyReadStandardOutput,
+            this,&CRecollSearch::recollReadyRead);
+
+    connect(recoll,QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this,&CRecollSearch::recollFinished);
+
+    recoll->start("recoll",QStringList() << "-n" << QString::number(maxLimit)
+                 << "-t" << "-F" << "url caption relevancyrating abstract"
+                 << "-q" << qr);
+
+    recoll->waitForStarted();
 }

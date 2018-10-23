@@ -17,20 +17,6 @@
 #include "recollsearch.h"
 #endif
 
-class QBResult
-{
-public:
-    int sortMode;
-    QStrHash stats;
-    QList<QStrHash> snippets;
-    bool presented;
-    QBResult();
-    QBResult(const QBResult& other);
-    QBResult& operator=(const QBResult& other);
-};
-
-Q_DECLARE_METATYPE(QBResult)
-
 class CIndexerSearch : public QObject
 {
     Q_OBJECT
@@ -44,18 +30,20 @@ private:
 #ifdef WITH_THREADED_SEARCH
     CAbstractThreadedSearch *engine;
 #endif
-    QBResult result;
-    QString query;
+    QString m_query;
     QTime searchTimer;
     int indexerSerivce;
     bool working;
-    void addHitFS(const QFileInfo &hit, const QString &title=QString(), double rel=-1.0, const QString& snippet = QString());
+    int resultCount;
+    void addHitFS(const QFileInfo &hit, const QString &title=QString(),
+                  double rel=-1.0, const QString& snippet = QString());
     void processFile(const QString &filename, double &hitRate, QString &title);
     double calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);
 
 signals:
-    void searchFinished(const QBResult &result, const QString &aQuery);
+    void searchFinished(const QStrHash &stats, const QString &query);
+    void gotResult(const QStrHash& result);
 #ifdef WITH_THREADED_SEARCH
     void startThreadedSearch(const QString &qr, int maxLimit);
 #endif
@@ -63,8 +51,7 @@ signals:
 public slots:
     void engineFinished();
     void doSearch(const QString &searchTerm, const QDir &searchDir);
-    void auxAddHit(const QString &fileName);
-    void auxAddHitFull(const QString &fileName, const QString &title, double rel, const QString& snippet);
+    void auxAddHit(const QString &fileName, const QString &title, double rel, const QString& snippet);
 
 };
 

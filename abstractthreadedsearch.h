@@ -16,8 +16,7 @@ public:
     explicit CAbstractThreadedSearch(QObject *parent = nullptr);
 
 signals:
-    void addHit(const QString &fileName);
-    void addHitFull(const QString &fileName, const QString &title, double rel, const QString &snippet);
+    void addHit(const QString &fileName, const QString &title, double rel, const QString &snippet);
     void finished();
 
 public slots:

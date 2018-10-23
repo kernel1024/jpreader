@@ -19,7 +19,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     engine = new CIndexerSearch();
     titleTran = new CTitlesTranslator();
 
-    lastQuery = "";
+    lastQuery.clear();
     tabTitle = tr("Search");
     selectFile();
 
@@ -33,6 +33,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     sort->setSortRole(Qt::UserRole + cpSortRole);
     sort->setFilterRole(Qt::UserRole + cpFilterRole);
     ui->listResults->setModel(sort);
+
+    ui->searchBar->hide();
 
     connect(model, &CSearchModel::itemContentsUpdated, sort, &QSortFilterProxyModel::invalidate);
 
@@ -53,9 +55,11 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(ui->editSearch->lineEdit(), &QLineEdit::returnPressed, ui->buttonSearch, &QPushButton::click);
 
     connect(engine, &CIndexerSearch::searchFinished,
-            this, &CSearchTab::searchFinished,Qt::QueuedConnection);
+            this, &CSearchTab::searchFinished, Qt::QueuedConnection);
     connect(this, &CSearchTab::startSearch,
-            engine, &CIndexerSearch::doSearch,Qt::QueuedConnection);
+            engine, &CIndexerSearch::doSearch, Qt::QueuedConnection);
+    connect(engine, &CIndexerSearch::gotResult,
+            this, &CSearchTab::gotSearchResult, Qt::QueuedConnection);
 
     connect(titleTran, &CTitlesTranslator::gotTranslation,
             this, &CSearchTab::gotTitleTranslation,Qt::QueuedConnection);
@@ -118,25 +122,35 @@ void CSearchTab::selectDir()
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
-void CSearchTab::searchFinished(const QBResult &aResult, const QString& aQuery)
+void CSearchTab::gotSearchResult(const QStrHash& item)
 {
+    model->addItem(item);
+}
+
+void CSearchTab::searchFinished(const QStrHash &stats, const QString& query)
+{
+    Q_UNUSED(query);
+
     ui->buttonSearch->setEnabled(true);
+    ui->searchBar->hide();
     ui->snippetBrowser->clear();
     ui->snippetBrowser->setToolTip(QString());
 
-    if (aResult.snippets.count() == 0) {
+    if (model->rowCount() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
         parentWnd->stSearchStatus.setText(tr("Ready"));
         return;
     }
 
-    model->deleteAllItems();
     titleTran->stop();
 
-    lastQuery = aQuery;
-    model->addItems(aResult.snippets);
-    ui->listResults->sortByColumn(1,Qt::DescendingOrder);
-    stats = aResult.stats;
+    ui->listResults->sortByColumn(2,Qt::AscendingOrder);
+
+    ui->listResults->resizeColumnsToContents();
+    for (int i=0;i<model->columnCount(QModelIndex());i++) {
+        if (ui->listResults->columnWidth(i)>400)
+            ui->listResults->setColumnWidth(i,400);
+    }
 
     QString elapsed = QString(stats["Elapsed time"]).remove(QRegExp("[s]"));
     QString statusmsg(tr("Found %1 results at %2 seconds").
@@ -248,22 +262,23 @@ void CSearchTab::doSearch()
 
     parentWnd->stSearchStatus.setText(tr("Search in progress..."));
     ui->buttonSearch->setEnabled(false);
-    ui->snippetBrowser->setHtml("<html><body><div align='center'><font size='+2'>Search in progress...</font></div></body></html>");
+    ui->searchBar->show();
 
-    QString searchTerm = ui->editSearch->currentText();
-    setDocTitle(tr("Searching:[%1]").arg(searchTerm));
+    lastQuery = ui->editSearch->currentText();
 
-    int idx = ui->editSearch->findText(searchTerm,Qt::MatchFixedString);
+    setDocTitle(tr("Searching:[%1]").arg(lastQuery));
+
+    int idx = ui->editSearch->findText(lastQuery,Qt::MatchFixedString);
     if (idx!=-1)
         ui->editSearch->removeItem(idx);
-    ui->editSearch->insertItem(0,searchTerm);
+    ui->editSearch->insertItem(0,lastQuery);
 
     ui->editSearch->setCurrentIndex(0);
 
     QDir fsdir = QDir("/");
     if (!ui->editDir->text().isEmpty())
         fsdir = QDir(ui->editDir->text());
-    emit startSearch(searchTerm,fsdir);
+    emit startSearch(lastQuery,fsdir);
 }
 
 void CSearchTab::searchTerm(const QString &term, bool startSearch)
@@ -295,6 +310,11 @@ void CSearchTab::setDocTitle(const QString& title)
 
 void CSearchTab::doNewSearch()
 {
+    if (engine->isWorking()) {
+        QMessageBox::information(window(),tr("JPReader"),tr("Indexed search engine busy. Try later."));
+        return;
+    }
+
     model->deleteAllItems();
     ui->snippetBrowser->clear();
     ui->snippetBrowser->setToolTip(QString());
@@ -304,7 +324,7 @@ void CSearchTab::doNewSearch()
 
 void CSearchTab::applySnippetIdx(const QModelIndex &index)
 {
-    if (stats.isEmpty() || !index.isValid()) return;
+    if (!index.isValid()) return;
     if (model->rowCount()==0) {
         selectFile();
         ui->snippetBrowser->clear();
@@ -332,7 +352,8 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
     }
 }
 
-QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntranslated, const QString& auxText)
+QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntranslated,
+                                      const QString& auxText)
 {
     QString s;
     if(lastQuery.isEmpty()) return s;

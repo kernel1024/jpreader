@@ -35,7 +35,6 @@ private:
     Ui::SearchTab *ui;
     CSearchModel *model;
     QSortFilterProxyModel *sort;
-    QStrHash stats;
     QString lastQuery;
 
     CIndexerSearch *engine;
@@ -56,13 +55,14 @@ public slots:
     void showSnippet();
     void execSnippet(const QModelIndex& index);
     void selectDir();
-    void searchFinished(const QBResult &aResult, const QString &aQuery);
+    void searchFinished(const QStrHash &stats, const QString &query);
     void translateTitles();
     void gotTitleTranslation(const QStringList &res);
     void updateProgress(const int pos);
     void headerMenu(const QPoint& pos);
     void applyFilter();
     void applySnippet(const QItemSelection & selected, const QItemSelection & deselected);
+    void gotSearchResult(const QStrHash &item);
 };
 
 #endif // SEARCHTAB_H
