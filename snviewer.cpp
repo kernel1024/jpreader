@@ -25,13 +25,13 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
-    tabTitle="";
+    tabTitle.clear();
     isStartPage = startPage;
     translationBkgdFinished=false;
     loadingBkgdFinished=false;
     loading = false;
     fileChanged = false;
-    calculatedUrl="";
+    calculatedUrl.clear();
     onceTranslated=false;
     requestAutotranslate=false;
     pageLoaded=false;
@@ -202,7 +202,7 @@ void CSnippetViewer::titleChanged(const QString & title)
             else
                 s=uri.toString();
 		}
-        if (s.isEmpty()) s = "< ... >";
+        if (s.isEmpty()) s = QLatin1String("< ... >");
 	}
     s = s.trimmed();
     if (!title.isEmpty())

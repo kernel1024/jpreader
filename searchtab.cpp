@@ -342,7 +342,7 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
             snip["SnipTran"]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
-        s="<font size='+1'>"+s+"</font>";
+        s=QString("<font size='+1'>%1</font>").arg(s);
         ui->snippetBrowser->setHtml(s);
         if (gSet->ui.actionSnippetAutotranslate->isChecked() &&
             snip.value("Snip")!=snip.value("SnipUntran"))
@@ -556,8 +556,8 @@ void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)
         ui->filenameEdit->setText(tr("%1").arg(dispFilename));
     } else {
         ui->buttonOpen->setEnabled(false);
-        selectedUri = "";
-        ui->filenameEdit->setText(tr(""));
+        selectedUri.clear();
+        ui->filenameEdit->clear();
     }
 }
 

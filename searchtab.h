@@ -24,7 +24,7 @@ public:
 
     explicit CSearchTab(CMainWindow *parent);
     virtual ~CSearchTab();
-    void selectFile(const QString& uri = "", const QString& dispFilename = "");
+    void selectFile(const QString& uri = QString(), const QString& dispFilename = QString());
     void updateQueryHistory();
     QString getLastQuery() { return lastQuery; }
     void keyPressEvent(QKeyEvent *event);

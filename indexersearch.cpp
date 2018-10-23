@@ -120,7 +120,7 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title,
     // extract base properties (score, type etc)
     result["Src"]=tr("Files");
     result["Score"]=QString("%1").arg(nhits,0,'f',4);
-    result["MimeT"]="";
+    result["MimeT"]=QString();
     result["Type"]=tr("File");
 
     QDateTime dtm=hit.lastModified();

@@ -53,8 +53,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     actionRecentDocuments->setMenu(recentMenu);
 
     menuBar()->addSeparator();
-	tabsMenu = menuBar()->addMenu(QIcon::fromTheme("tab-detach"),"");
-	recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),"");
+    tabsMenu = menuBar()->addMenu(QIcon::fromTheme("tab-detach"),QString());
+    recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),QString());
 
     menuBookmarks->setStyleSheet("QMenu { menu-scrollable: 1; }");
     menuBookmarks->setToolTipsVisible(true);
@@ -790,7 +790,7 @@ void CMainWindow::reloadCharsetList()
     QAction* act;
     menuCharset->clear();
     act = menuCharset->addAction(tr("Autodetect"),this,SLOT(forceCharset()));
-    act->setData(QString(""));
+    act->setData(QString());
     if (gSet->settings.forcedCharset.isEmpty()) {
         act->setCheckable(true);
         act->setChecked(true);

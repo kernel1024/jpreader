@@ -226,7 +226,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     if (tabWidget==nullptr) return;
     int i = tabWidget->addTab(this,getDocTitle());
     if (gSet->settings.showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),"");
+        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),QString());
         b->setFlat(true);
         int sz = tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
@@ -257,7 +257,7 @@ void CSpecTabContainer::detachTab()
 
     CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
     if (snv!=nullptr) {
-        QString url = "about://blank";
+        QString url("about://blank");
         if (!snv->fileChanged) url=snv->urlEdit->text();
 
         CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
@@ -561,14 +561,14 @@ CGDTextBrowser::CGDTextBrowser(QWidget *parent)
 
 QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
-    if (gSet!=nullptr && url.scheme().toLower()=="gdlookup") {
+    if (gSet!=nullptr && url.scheme().toLower()==QLatin1String("gdlookup")) {
         QByteArray rplb;
 
         CIOEventLoop ev;
         QString mime;
 
         QUrlQuery qr(url);
-        if ( qr.queryItemValue( "blank" ) == "1" ) {
+        if ( qr.queryItemValue( "blank" ) == QLatin1String("1") ) {
             rplb = makeSimpleHtml(QString(),QString()).toUtf8();
             return rplb;
         }

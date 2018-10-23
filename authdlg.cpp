@@ -20,8 +20,8 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
         ui->label->clear();
 
     if (origin.isValid()) {
-        QString user = "";
-        QString pass = "";
+        QString user;
+        QString pass;
         gSet->readPassword(origin,user,pass);
         ui->lineUser->setText(user);
         ui->linePassword->setText(pass);

@@ -30,7 +30,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
         CAbstractTranslator* tran=translatorFactory(this, m_lang);
         if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
-            m_text = "ERROR";
+            m_text = QLatin1String("ERROR");
         } else {
             QString ssrc = m_text;
             QString res;
@@ -39,13 +39,14 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
             foreach (const QString &s, sl) {
                 if (s.trimmed().isEmpty())
-                    res += "\n";
+                    res.append('\n');
                 else {
                     QString r = tran->tranString(s);
                     if (r.trimmed().isEmpty())
-                        res += s + "\n";
+                        res.append(s);
                     else
-                        res += r + "\n";
+                        res.append(r);
+                    res.append('\n');
                 }
             }
             tran->doneTran();

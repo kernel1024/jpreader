@@ -45,7 +45,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     if (!url.isValid() || url.isRelative()) return;
 
     QString fname = path;
-    if (!fname.endsWith("/")) fname+="/";
+    if (!fname.endsWith("/")) fname.append('/');
     fname+=url.fileName();
 
     if (!isVisible())
@@ -234,7 +234,7 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
 
     if (role == Qt::DisplayRole) {
         switch (section) {
-            case 0: return tr(" ");
+            case 0: return QLatin1String(" ");
             case 1: return tr("Filename");
             case 2: return tr("Completion");
             case 3: return tr("Downloaded");

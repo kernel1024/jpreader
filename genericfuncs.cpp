@@ -157,14 +157,14 @@ QString detectMIME(const QByteArray &buf)
 }
 
 QString detectEncodingName(const QByteArray& content) {
-    QString codepage = "";
+    QString codepage;
 
     if (!gSet->settings.forcedCharset.isEmpty() &&
             QTextCodec::availableCodecs().contains(gSet->settings.forcedCharset.toLatin1()))
         return gSet->settings.forcedCharset;
 
     QTextCodec* enc = QTextCodec::codecForLocale();
-    QByteArray icu_enc = "";
+    QByteArray icu_enc;
     UErrorCode status = U_ZERO_ERROR;
     UCharsetDetector* csd = ucsdet_open(&status);
     ucsdet_setText(csd, content.constData(), content.length(), &status);
@@ -180,7 +180,7 @@ QString detectEncodingName(const QByteArray& content) {
     ucsdet_close(csd);
 
     codepage = QTextCodec::codecForHtml(content,enc)->name();
-    if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage="SJIS";
+    if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage=QLatin1String("SJIS");
     return codepage;
 }
 
@@ -204,31 +204,31 @@ QString detectDecodeToUnicode(const QByteArray& content)
 }
 
 
-QString makeSimpleHtml(const QString &title, const QString &content, bool integratedTitle, const QUrl& origin)
+QString makeSimpleHtml(const QString &title, const QString &content,
+                       bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
     QString cnt = s.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
-    QString cn="<html><head>";
-    cn+="<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">";
-    cn+="<title>"+title+"</title></head>";
-    cn+="<body>";
+    QString cn("<html><head>");
+    cn.append("<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">");
+    cn.append(QString("<title>%1</title></head><body>").arg(title));
     if (integratedTitle) {
-        cn+="<h3>";
+        cn.append("<h3>");
         if (!origin.isEmpty())
-            cn+="<a href=\""+origin.toString(QUrl::FullyEncoded)+"\">";
-        cn+=title;
-        if (!origin.isEmpty())
-            cn+="</a>";
-        cn+="</h3>";
+            cn.append(QString("<a href=\"%1\">%2</a>")
+                      .arg(origin.toString(QUrl::FullyEncoded))
+                      .arg(title));
+        cn.append("</h3>");
     }
-    cn+=cnt+"</body></html>";
+    cn.append(cnt);
+    cn.append("</body></html>");
     return cn;
 }
 
 QString getClipboardContent(bool noFormatting, bool plainpre) {
-    QString res = "";
-    QString cbContents = "";
-    QString cbContentsUnformatted = "";
+    QString res;
+    QString cbContents;
+    QString cbContentsUnformatted;
 
     QClipboard *cb = QApplication::clipboard();
     if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
@@ -289,10 +289,10 @@ QString fixMetaEncoding(const QString &data_utf8)
 QString wordWrap(const QString &str, int wrapLength)
 {
     QStringList stl = str.split(' ');
-    QString ret = "";
+    QString ret;
     int cnt = 0;
     for (int i=0;i<stl.count();i++) {
-        ret += stl.at(i) + " ";
+        ret += stl.at(i) + QLatin1String(" ");
         cnt += stl.at(i).length()+1;
         if (cnt>wrapLength) {
             ret += '\n';
@@ -472,21 +472,21 @@ QString formatBytes(qint64 sz) {
     double msz;
     if (sz<1024.0) {
         msz=sz;
-        s="b";
+        s=QLatin1String("b");
     } else if (sz<(1024.0 * 1024.0)) {
         msz=sz/1024.0;
-        s="Kb";
+        s=QLatin1String("Kb");
     } else if (sz<(1024.0 * 1024.0 * 1024.0)) {
         msz=sz/(1024.0*1024.0);
-        s="Mb";
+        s=QLatin1String("Mb");
     } else if (sz<(1024.0 * 1024.0 * 1024.0 * 1024.0)) {
         msz=sz/(1024.0 * 1024.0 * 1024.0);
-        s="Gb";
+        s=QLatin1String("Gb");
     } else {
         msz=sz/(1024.0 * 1024.0 * 1024.0 * 1024.0);
-        s="Tb";
+        s=QLatin1String("Tb");
     }
-    s=QString("%1").arg(msz,0,'f',2)+" "+s;
+    s=QString("%1 %2").arg(msz,0,'f',2).arg(s);
     return s;
 }
 
@@ -573,8 +573,8 @@ QString convertPatternToRegExp(const QString &wildcardPattern) {
     QString pattern = wildcardPattern;
     return pattern.replace(QRegExp(QLatin1String("\\*+")), QLatin1String("*"))   // remove multiple wildcards
             .replace(QRegExp(QLatin1String("\\^\\|$")), QLatin1String("^"))        // remove anchors following separator placeholder
-            .replace(QRegExp(QLatin1String("^(\\*)")), QLatin1String(""))          // remove leading wildcards
-            .replace(QRegExp(QLatin1String("(\\*)$")), QLatin1String(""))          // remove trailing wildcards
+            .replace(QRegExp(QLatin1String("^(\\*)")), QString())          // remove leading wildcards
+            .replace(QRegExp(QLatin1String("(\\*)$")), QString())          // remove trailing wildcards
             .replace(QRegExp(QLatin1String("(\\W)")), QLatin1String("\\\\1"))      // escape special symbols
             .replace(QRegExp(QLatin1String("^\\\\\\|\\\\\\|")),
                      QLatin1String("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start

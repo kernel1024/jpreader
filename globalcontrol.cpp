@@ -166,7 +166,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 bool CGlobalControl::setupIPC()
 {
     QString serverName = IPC_NAME;
-    serverName.replace(QRegExp("[^\\w\\-. ]"), "");
+    serverName.replace(QRegExp("[^\\w\\-. ]"), QString());
 
     QLocalSocket *socket = new QLocalSocket();
     socket->connectToServer(serverName);
@@ -554,7 +554,7 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
 
     QString u = params.value(QString("%1-user").arg(key),QString()).toString();
     QByteArray ba = params.value(QString("%1-pass").arg(key),QByteArray()).toByteArray();
-    QString p = "";
+    QString p;
     if (!ba.isEmpty()) {
         p = QString::fromUtf8(QByteArray::fromBase64(ba));
     }

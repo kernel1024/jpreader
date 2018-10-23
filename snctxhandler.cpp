@@ -243,7 +243,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ac = new QAction(QIcon::fromTheme("tab-duplicate"),tr("Duplicate tab"),nullptr);
     connect(ac, &QAction::triggered, [this](){
-        QString url = "about://blank";
+        QString url("about://blank");
         if (!snv->fileChanged) url=snv->urlEdit->text();
 
         CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd, url);
@@ -452,7 +452,7 @@ void CSnCtxHandler::saveToFile()
         f.open(QIODevice::WriteOnly|QIODevice::Truncate);
         f.write(selectedText.toUtf8());
         f.close();
-    } else if (fi.suffix().toLower()=="txt")
+    } else if (fi.suffix().toLower().startsWith("txt"))
         snv->txtBrowser->page()->toPlainText([fname](const QString& result)
         {
             QFile f(fname);
@@ -463,7 +463,7 @@ void CSnCtxHandler::saveToFile()
 #if QT_VERSION >= 0x050800
     else if (fi.suffix().toLower().startsWith("mht"))
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
-    else if (fi.suffix().toLower()=="htm")
+    else if (fi.suffix().toLower()==QLatin1String("htm"))
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
     else
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);

@@ -72,7 +72,7 @@ bool CAtlasTranslator::initTran()
         }
     }
     buf = sock.readLine().simplified();
-    if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith("OK"))) {
         tranError = QString("ATLAS: initialization error");
         qCritical() << "ATLAS: initialization error";
         sock.close();
@@ -97,7 +97,7 @@ bool CAtlasTranslator::initTran()
         }
     }
     buf = sock.readLine().simplified();
-    if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith("OK"))) {
         tranError = QString("ATLAS: direction error");
         qCritical() << "ATLAS: direction error";
         sock.close();
@@ -117,7 +117,7 @@ QString CAtlasTranslator::tranString(const QString &src)
 
     // TR command and response
     QString s = QString::fromLatin1(QUrl::toPercentEncoding(src," ")).trimmed();
-    if (s.isEmpty()) return "";
+    if (s.isEmpty()) return QString();
 //    qDebug() << "TO TRAN: " << s;
     QByteArray buf = QString("TR:%1\r\n").arg(s).toLatin1();
     sock.write(buf);
@@ -180,7 +180,7 @@ void CAtlasTranslator::doneTran(bool lazyClose)
             }
         }
         buf = sock.readLine().simplified();
-        if (buf.isEmpty() || (QString::fromLatin1(buf)!="OK")) {
+        if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith("OK"))) {
             qCritical() << "ATLAS: finalization error";
             sock.close();
             return;

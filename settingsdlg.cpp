@@ -316,7 +316,7 @@ void CSettingsDlg::addAd()
 {
     bool ok;
     QString s = QInputDialog::getText(this,tr("Add AdBlock rule"),tr("Filter template"),
-                                      QLineEdit::Normal,"",&ok);
+                                      QLineEdit::Normal,QString(),&ok);
     if (!ok) return;
 
     adblockList << CAdBlockRule(s,QString());

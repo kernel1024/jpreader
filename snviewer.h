@@ -52,7 +52,7 @@ public:
     bool auxContentLoaded;
 
     CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
-                   bool setFocused = true, QString AuxContent="", QString zoom = QString("100%"),
+                   bool setFocused = true, QString AuxContent = QString(), QString zoom = QString("100%"),
                    bool startPage = false);
     virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event);

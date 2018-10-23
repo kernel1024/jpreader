@@ -32,11 +32,11 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 1:
                 score = snippets[idx]["Score"];
                 ps.clear();
-                if (snippets[idx]["relMode"]=="count")
+                if (snippets[idx]["relMode"].startsWith("count"))
                     sc = static_cast<int>(ceil(score.toDouble(&ok)));
                 else {
                     sc = static_cast<int>(score.toDouble(&ok)*100.0);
-                    ps = "%";
+                    ps = QLatin1String("%");
                 }
                 if (ok)
                     return tr("%1%2").arg(QString("%1").arg(sc),ps);

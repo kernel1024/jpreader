@@ -18,8 +18,8 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
     scpParams=gSet->settings.scpParams;
     scpHost=gSet->settings.scpHost;
     translationEngine=gSet->settings.translatorEngine;
-    if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
-    if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
+    if (!hostingDir.endsWith('/')) hostingDir.append('/');
+    if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
     atlTcpRetryCount=gSet->settings.atlTcpRetryCount;
     atlTcpTimeout=gSet->settings.atlTcpTimeout;
     forceFontColor=gSet->ui.forceFontColor();
@@ -67,7 +67,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
     QFileInfo fi(filename);
     QString wname=gSet->makeTmpFileName(fi.completeSuffix());
 
-    calculatedUrl="";
+    calculatedUrl.clear();
 
     bool b,r;
     if (useSCP) {
@@ -107,7 +107,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     }
     tranInited = true;
 
-    dst = "";
+    dst.clear();
     if (srcUri.isEmpty()) return false;
 
     QUuid token = QUuid::createUuid();
@@ -167,7 +167,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     abortFlag=false;
     abortMutex.unlock();
 
-    dst = "";
+    dst.clear();
     if (srcUri.isEmpty()) return false;
 
     QUuid token = QUuid::createUuid();
@@ -250,9 +250,9 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     if (xmlPass==PXPreprocess) {
         // WebEngine gives UTF-8 encoded page
-        if (node.tagName.toLower()=="meta") {
-            if (node.attributes.value("http-equiv").toLower().trimmed()=="content-type")
-                node.attributes["content"] = "text/html; charset=UTF-8";
+        if (node.tagName.toLower()==QLatin1String("meta")) {
+            if (node.attributes.value("http-equiv").toLower().trimmed()==QLatin1String("content-type"))
+                node.attributes["content"] = QLatin1String("text/html; charset=UTF-8");
         }
 
         // Unfold "1% height" divs from blog.jp/livedoor.jp
@@ -260,24 +260,27 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         // Also for blog.goo.ne.jp (same CSS as static.css)
         int idx = 0;
         while (idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()=="meta") {
-                if (node.children.at(idx).attributes.value("property").toLower().trimmed()=="og:url")
+            if (node.children.at(idx).tagName.toLower()==QLatin1String("meta")) {
+                if (node.children.at(idx).attributes.value("property")
+                        .toLower().trimmed()==QLatin1String("og:url"))
                     metaSrcUrl = QUrl(node.children.at(idx).attributes.value("content").toLower().trimmed());
             }
 
-            if (node.children.at(idx).tagName.toLower()=="link") {
-                if (node.children.at(idx).attributes.value("rel").toLower().trimmed()=="canonical")
+            if (node.children.at(idx).tagName.toLower()==QLatin1String("link")) {
+                if (node.children.at(idx).attributes.value("rel")
+                        .toLower().trimmed()==QLatin1String("canonical"))
                     metaSrcUrl = QUrl(node.children.at(idx).attributes.value("href").toLower().trimmed());
 
-                if ((node.children.at(idx).attributes.value("type").toLower().trimmed()=="text/css") &&
+                if ((node.children.at(idx).attributes.value("type")
+                     .toLower().trimmed()==QLatin1String("text/css")) &&
                         (node.children.at(idx).attributes.value("href").contains(
                              QRegExp("blog.*\\.jp.*site.css\\?_=",Qt::CaseInsensitive)) ||
                          (node.children.at(idx).attributes.value("href").contains(
                              QRegExp("/css/.*static.css\\?",Qt::CaseInsensitive)) &&
                           metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive))))) {
                     CHTMLNode st;
-                    st.tagName="style";
-                    st.closingText="</style>";
+                    st.tagName=QLatin1String("style");
+                    st.closingText=QLatin1String("</style>");
                     st.isTag=true;
                     st.children << CHTMLNode("* { height: auto !important; }");
                     node.children.insert(idx+1,st);
@@ -288,17 +291,17 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // div processing
-        if (node.tagName.toLower()=="div") {
+        if (node.tagName.toLower()==QLatin1String("div")) {
 
             // unfold compressed divs
-            QString sdivst = "";
+            QString sdivst;
             if (node.attributes.contains("style"))
                 sdivst = node.attributes.value("style");
             if (!sdivst.contains("absolute",Qt::CaseInsensitive)) {
                 if (!node.attributes.contains("style"))
-                    node.attributes["style"]="";
+                    node.attributes["style"]=QString();
                 if (node.attributes.value("style").isEmpty())
-                    node.attributes["style"]="height:auto;";
+                    node.attributes["style"]=QLatin1String("height:auto;");
                 else
                     node.attributes["style"]=node.attributes.value("style")+"; height:auto;";
             }
@@ -308,9 +311,9 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             if (node.attributes.contains("class") &&
                     unhide_classes.contains(node.attributes.value("class").toLower().trimmed())) {
                 if (!node.attributes.contains("style"))
-                    node.attributes["style"]="";
+                    node.attributes["style"]=QString();
                 if (node.attributes.value("style").isEmpty())
-                    node.attributes["style"]="display:block;";
+                    node.attributes["style"]=QLatin1String("display:block;");
                 else
                     node.attributes["style"]=node.attributes.value("style")+"; display:block;";
             }
@@ -322,7 +325,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         while(idx<node.children.count()) {
             // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
             // Remove 'vtoken' inline span
-            if (node.children.at(idx).tagName.toLower()=="span" &&
+            if (node.children.at(idx).tagName.toLower()==QLatin1String("span") &&
                     node.children.at(idx).attributes.contains("class") &&
                     node.children.at(idx).attributes.value("class")
                     .toLower().trimmed().startsWith("vtoken")) {
@@ -338,10 +341,10 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
 
             // remove ruby annotation (superscript), unfold main text block
-            if (node.children.at(idx).tagName.toLower()=="ruby") {
+            if (node.children.at(idx).tagName.toLower()==QLatin1String("ruby")) {
                 QList<CHTMLNode> subnodes;
                 foreach (const CHTMLNode& rnode, node.children.at(idx).children)
-                    if (rnode.tagName.toLower()=="rb")
+                    if (rnode.tagName.toLower()==QLatin1String("rb"))
                         subnodes << rnode.children;
 
                 for(int si=0;si<subnodes.count();si++)
@@ -357,7 +360,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             denyDivs << "sh_fc2blogheadbar" << "fc2_bottom_bnr" << "global-header";
             // remove floating headers for fc2 and goo blogs
             if (metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive)) &&
-                    node.children.at(idx).tagName.toLower()=="div" &&
+                    node.children.at(idx).tagName.toLower()==QLatin1String("div") &&
                     node.children.at(idx).attributes.contains("id") &&
                     denyDivs.contains(node.children.at(idx).attributes.value("id"),
                                       Qt::CaseInsensitive)) {
@@ -378,7 +381,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // collecting image urls
-        if (node.tagName.toLower()=="img") {
+        if (node.tagName.toLower()==QLatin1String("img")) {
             if (node.attributes.contains("src")) {
                 QString src = node.attributes.value("src").trimmed();
                 if (!src.isEmpty())
@@ -391,9 +394,9 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         // remove duplicated <br>
         int idx=0;
         while(idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()=="br") {
+            if (node.children.at(idx).tagName.toLower()==QLatin1String("br")) {
                 while(idx<(node.children.count()-1) &&
-                      node.children.at(idx+1).tagName.toLower()=="br") {
+                      node.children.at(idx+1).tagName.toLower()==QLatin1String("br")) {
                     node.children.removeAt(idx+1);
                 }
             }

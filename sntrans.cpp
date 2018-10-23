@@ -46,7 +46,7 @@ void CSnTrans::reparseDocument()
 
 void CSnTrans::reparseDocumentPriv(const QString& data)
 {
-    snv->calculatedUrl="";
+    snv->calculatedUrl.clear();
     snv->onceTranslated=true;
     QString aUri = data;
     savedBaseUrl = snv->txtBrowser->page()->url();
@@ -120,7 +120,7 @@ void CSnTrans::getImgUrlsAndParse()
 
 void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
 {
-    snv->calculatedUrl="";
+    snv->calculatedUrl.clear();
     snv->onceTranslated=true;
 
     CTranslator* ct = new CTranslator(nullptr,aUri,forceTranSubSentences);
@@ -257,7 +257,7 @@ void CSnTrans::findWordTranslation(const QString &text)
 
 void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
 {
-    if (node.tagName.toLower()=="a") {
+    if (node.tagName.toLower()==QLatin1String("a")) {
         if (node.attributes.contains("href")) {
             QUrl ref = QUrl(node.attributes.value("href"));
             if (ref.isRelative())

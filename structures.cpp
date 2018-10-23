@@ -2,7 +2,7 @@
 
 UrlHolder::UrlHolder()
 {
-    UrlHolder::title="";
+    UrlHolder::title=QString();
     UrlHolder::url=QUrl();
     UrlHolder::uuid=QUuid::createUuid();
 }
@@ -41,7 +41,7 @@ bool UrlHolder::operator!=(const UrlHolder &s) const
 
 DirStruct::DirStruct()
 {
-    DirStruct::dirName="";
+    DirStruct::dirName=QString();
     DirStruct::count=-1;
 }
 

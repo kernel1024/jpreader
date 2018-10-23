@@ -90,8 +90,8 @@ void CSettings::writeSettings()
     QSettings bigdata("kernel1024", "jpreader-bigdata");
     settings.beginGroup("MainWindow");
     bigdata.beginGroup("main");
-    settings.remove("");
-    bigdata.remove("");
+    settings.remove(QString());
+    bigdata.remove(QString());
 
     bigdata.setValue("searchHistory",QVariant::fromValue(gSet->searchHistory));
     bigdata.setValue("history",QVariant::fromValue(gSet->mainHistory));
@@ -226,7 +226,7 @@ void CSettings::readSettings(QObject *control)
 
     g->adblock = bigdata.value("adblock").value<CAdBlockList>();
 
-    hostingDir = settings.value("hostingDir","").toString();
+    hostingDir = settings.value("hostingDir",QString()).toString();
     hostingUrl = settings.value("hostingUrl","about:blank").toString();
     maxSearchLimit = settings.value("maxLimit",1000).toInt();
     maxHistory = settings.value("maxHistory",1000).toInt();
@@ -236,11 +236,11 @@ void CSettings::readSettings(QObject *control)
     sysEditor = settings.value("editor","kwrite").toString();
     translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
     useScp = settings.value("scp",false).toBool();
-    scpHost = settings.value("scphost","").toString();
-    scpParams = settings.value("scpparams","").toString();
+    scpHost = settings.value("scphost",QString()).toString();
+    scpParams = settings.value("scpparams",QString()).toString();
     atlHost = settings.value("atlasHost","localhost").toString();
     atlPort = static_cast<quint16>(settings.value("atlasPort",18000).toUInt());
-    atlToken = settings.value("atlasToken","").toString();
+    atlToken = settings.value("atlasToken",QString()).toString();
     atlProto = static_cast<QSsl::SslProtocol>(settings.value("atlasProto",QSsl::SecureProtocols).toInt());
     savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
     savedAuxSaveDir = settings.value("auxSaveDir",QDir::homePath()).toString();
@@ -310,8 +310,8 @@ void CSettings::readSettings(QObject *control)
 
     settings.endGroup();
     bigdata.endGroup();
-    if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
-    if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
+    if (!hostingDir.endsWith('/')) hostingDir.append('/');
+    if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
 
     emit g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
@@ -491,8 +491,8 @@ void CSettings::settingsDlg()
         translatorPairs = dlg->getLangPairList();
         gSet->ui.rebuildLanguageActions();
 
-        if (hostingDir.right(1)!="/") hostingDir=hostingDir+"/";
-        if (hostingUrl.right(1)!="/") hostingUrl=hostingUrl+"/";
+        if (!hostingDir.endsWith('/')) hostingDir.append('/');
+        if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
 
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
                                                    dlg->useJS->isChecked());
@@ -667,7 +667,7 @@ void CSettings::writeTabsListPrivate(const QList<QUrl> tabList)
 {
     QSettings tabs("kernel1024", "jpreader-tabs");
     tabs.beginGroup("OpenedTabs");
-    tabs.remove("");
+    tabs.remove(QString());
     tabs.setValue("tabsCnt", tabList.count());
     for (int i=0;i<tabList.count();i++)
         tabs.setValue(QString("tab_%1").arg(i),tabList.at(i));
