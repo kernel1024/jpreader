@@ -145,16 +145,18 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
 
         // we only support domain right now
         if (m_options.count() == 1) {
+            QUrl url = QUrl::fromEncoded(encodedUrl.toUtf8());
+            QString host = url.host();
             foreach (const QString &option, m_options) {
                 if (option.startsWith(QLatin1String("domain="))) {
-                    QUrl url = QUrl::fromEncoded(encodedUrl.toUtf8());
-                    QString host = url.host();
                     QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
-                    foreach (QString domainOption, domainOptions) {
+                    foreach (const QString& domainOption, domainOptions) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');
+                        bool hostMatched;
                         if (negate)
-                            domainOption = domainOption.mid(1);
-                        bool hostMatched = domainOption == host;
+                            hostMatched = domainOption.mid(1) == host;
+                        else
+                            hostMatched = domainOption == host;
                         if (hostMatched && !negate) {
 #if defined(ADBLOCKRULE_DEBUG)
                             qDebug() << "CAdBlockRule::" << __FUNCTION__ << encodedUrl
