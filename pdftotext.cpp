@@ -62,6 +62,9 @@
     #if POPPLER_VERSION_MINOR<58
         #define JPDF_PRE058_OBJECT_API 1
     #endif
+    #if POPPLER_VERSION_MINOR<70
+        #define JPDF_PRE070_API 1
+    #endif
 #endif
 
 void metaString(QString& out, Dict *infoDict, const char* key,
@@ -172,7 +175,7 @@ QString formatPdfText(const QString& text)
     int sumlen = 0;
     for (int i=0;i<outLengths.count();i++)
         sumlen += outLengths.at(i);
-    double avglen = (double)sumlen/outLengths.count();
+    double avglen = (static_cast<double>(sumlen))/outLengths.count();
     bool isVerticalText = (avglen<2.0);
 
     QString s = text;
@@ -379,8 +382,11 @@ bool pdfToText(const QUrl& pdf, QString& result)
 }
 
 static int loggedPopplerErrors = 0;
-
+#ifdef JPDF_PRE070_API
 static void popplerError(void *data, ErrorCategory category, Goffset pos, char *msg)
+#else
+static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
+#endif
 {
     Q_UNUSED(data);
 
