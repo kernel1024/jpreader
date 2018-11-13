@@ -15,6 +15,7 @@
 #include "searchtab.h"
 #include "genericfuncs.h"
 #include "userscript.h"
+#include "snctxhandler.h"
 
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)

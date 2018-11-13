@@ -5,7 +5,8 @@
 #include <QString>
 #include <QUrl>
 #include <QTimer>
-#include "snviewer.h"
+
+class CSnippetViewer;
 
 class CSnTrans : public QObject
 {

@@ -3,6 +3,8 @@
 #include <goldendictlib/goldendictmgr.hh>
 
 #include "sntrans.h"
+#include "snnet.h"
+#include "snctxhandler.h"
 #include "globalcontrol.h"
 #include "translator.h"
 #include "qxttooltip.h"

@@ -7,7 +7,6 @@
 #include <QMutex>
 #include <QTimer>
 #include <QWebEnginePage>
-#include "snviewer.h"
 
 class CSnippetViewer;
 

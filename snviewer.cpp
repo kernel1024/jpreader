@@ -18,6 +18,11 @@
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 
+#include "snctxhandler.h"
+#include "snnet.h"
+#include "sntrans.h"
+#include "snmsghandler.h"
+
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
                                QString AuxContent, QString zoom, bool startPage)
     : CSpecTabContainer(parent)

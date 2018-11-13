@@ -18,6 +18,9 @@
 #include "sourceviewer.h"
 #include "bookmarks.h"
 #include "authdlg.h"
+#include "snnet.h"
+#include "snmsghandler.h"
+#include "sntrans.h"
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -321,7 +324,16 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm = cm->addMenu(QIcon::fromTheme("system-run"),tr("Service"));
     ccm->addAction(QIcon::fromTheme("document-edit-verify"),tr("Show source"),
                  this,SLOT(showSource()),QKeySequence(Qt::CTRL + Qt::Key_E));
-    ccm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::InspectElement));
+
+#if QT_VERSION >= 0x050b00
+    ac = ccm->addAction(tr("Inspect page"));
+    connect(ac, &QAction::triggered, [this](){
+        qDebug() << "test";
+        CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd);
+        sv->txtBrowser->page()->setInspectedPage(snv->txtBrowser->page());
+    });
+#endif
+
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme("documentation"),tr("Show in editor"),
                  this,SLOT(showInEditor()));

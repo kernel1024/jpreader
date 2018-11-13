@@ -7,7 +7,9 @@
 #include <QDirIterator>
 #include <QRegExp>
 #include <QDialog>
+
 #include "snnet.h"
+#include "snmsghandler.h"
 #include "genericfuncs.h"
 #include "authdlg.h"
 #include "pdftotext.h"

@@ -5,7 +5,9 @@
 #include <QUrl>
 #include <QPixmap>
 #include <QWebEngineScript>
-#include "snviewer.h"
+#include <QNetworkReply>
+
+class CSnippetViewer;
 
 class CSnNet : public QObject
 {

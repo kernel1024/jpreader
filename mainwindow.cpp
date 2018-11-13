@@ -18,6 +18,8 @@
 #include "lighttranslator.h"
 #include "downloadmanager.h"
 
+#include "snctxhandler.h"
+
 CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
         : MainWindow()
 {

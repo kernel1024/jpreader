@@ -11,16 +11,8 @@
 #include <QTimer>
 #include <QWebEngineView>
 
-#include "ui_snviewer.h"
-#include "translator.h"
-#include "mainwindow.h"
 #include "specwidgets.h"
-
-#include "snctxhandler.h"
-#include "snmsghandler.h"
-#include "snnet.h"
-#include "sntrans.h"
-#include "snwaitctl.h"
+#include "ui_snviewer.h"
 
 class CSnCtxHandler;
 class CSnMsgHandler;
