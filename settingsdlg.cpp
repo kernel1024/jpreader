@@ -85,6 +85,9 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     maxRecent=ui->spinMaxRecent;
     dontUseNativeFileDialogs=ui->checkDontUseNativeFileDialogs;
     adblockMaxWhiteListItems=ui->spinMaxWhiteListItems;
+    pdfExtractImages=ui->checkPdfExtractImages;
+    pdfImageQuality=ui->spinPdfImageQuality;
+    pdfImageMaxSize=ui->spinPdfImageMaxSize;
 
     transModel = new CLangPairModel(this, gSet->settings.translatorPairs, ui->listTransDirections);
     ui->listTransDirections->setModel(transModel);

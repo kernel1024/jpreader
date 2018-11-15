@@ -57,6 +57,10 @@ CSettings::CSettings(QObject *parent)
     settingsDlgWidth=850;
     settingsDlgHeight=380;
 
+    pdfExtractImages = true;
+    pdfImageMaxSize = 250;
+    pdfImageQuality = 75;
+
     charsetHistory.clear();
     scpHostHistory.clear();
     atlHostHistory.clear();
@@ -173,6 +177,11 @@ void CSettings::writeSettings()
     settings.setValue("defaultSearchEngine",defaultSearchEngine);
     settings.setValue("settingsDlgWidth",settingsDlgWidth);
     settings.setValue("settingsDlgHeight",settingsDlgHeight);
+
+    settings.setValue("pdfExtractImages",pdfExtractImages);
+    settings.setValue("pdfImageMaxSize",pdfImageMaxSize);
+    settings.setValue("pdfImageQuality",pdfImageQuality);
+
     settings.endGroup();
     bigdata.endGroup();
     settingsSaveMutex.unlock();
@@ -296,6 +305,10 @@ void CSettings::readSettings(QObject *control)
     g->webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
     settingsDlgWidth=settings.value("settingsDlgWidth",850).toInt();
     settingsDlgHeight=settings.value("settingsDlgHeight",380).toInt();
+
+    pdfExtractImages = settings.value("pdfExtractImages",true).toBool();
+    pdfImageMaxSize = settings.value("pdfImageMaxSize",250).toInt();
+    pdfImageQuality = settings.value("pdfImageQuality",75).toInt();
 
     overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
     userAgent=settings.value("userAgent",QString()).toString();
@@ -442,6 +455,10 @@ void CSettings::settingsDlg()
 
     dlg->setSearchEngines(gSet->ctxSearchEngines);
 
+    dlg->pdfExtractImages->setChecked(pdfExtractImages);
+    dlg->pdfImageQuality->setValue(pdfImageQuality);
+    dlg->pdfImageMaxSize->setValue(pdfImageMaxSize);
+
     // flip proxy use check, for updating controls enabling logic
     dlg->proxyUse->setChecked(true);
     dlg->proxyUse->setChecked(false);
@@ -582,6 +599,10 @@ void CSettings::settingsDlg()
         }
 
         gSet->ctxSearchEngines = dlg->getSearchEngines();
+
+        pdfExtractImages = dlg->pdfExtractImages->isChecked();
+        pdfImageMaxSize = dlg->pdfImageMaxSize->value();
+        pdfImageQuality = dlg->pdfImageQuality->value();
 
         dontUseNativeFileDialog = dlg->dontUseNativeFileDialogs->isChecked();
         gSet->webProfile->setHttpCacheMaximumSize(dlg->cacheSize->value()*1024*1024);

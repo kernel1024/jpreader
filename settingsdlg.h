@@ -124,6 +124,9 @@ public:
     QSpinBox* maxRecent;
     QCheckBox* dontUseNativeFileDialogs;
     QSpinBox* adblockMaxWhiteListItems;
+    QCheckBox *pdfExtractImages;
+    QSpinBox *pdfImageQuality;
+    QSpinBox *pdfImageMaxSize;
 
     QStringList loadedDicts;
 

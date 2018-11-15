@@ -57,6 +57,7 @@
 #include <UnicodeMap.h>
 #include <PDFDocEncoding.h>
 #include <QMessageLogger>
+#include <QBuffer>
 
 #if POPPLER_VERSION_MAJOR==0
     #if POPPLER_VERSION_MINOR<58
@@ -66,6 +67,8 @@
         #define JPDF_PRE070_API 1
     #endif
 #endif
+
+#define PAGE_SEPARATOR "##JPREADER_NEWPAGE##"
 
 void metaString(QString& out, Dict *infoDict, const char* key,
                 const QString& fmt)
@@ -200,7 +203,7 @@ QString formatPdfText(const QString& text)
     s.remove('\n');
 
     // replace page separators
-    s = s.replace('\f',"</p><hr><p>");
+    s = s.replace('\f',"</p>" PAGE_SEPARATOR "<p>");
 
     s = "<p>" + s + "</p>";
 
@@ -370,7 +373,81 @@ bool pdfToText(const QUrl& pdf, QString& result)
 
     delete textOut;
 
-    result.append(formatPdfText(text));
+    QMultiHash<int,QByteArray> images;
+    if (gSet->settings.pdfExtractImages) {
+        for (int pageNum=1;pageNum<=lastPage;pageNum++) {
+            Dict *dict = doc->getPage(pageNum)->getResourceDict();
+            if (dict->lookup("XObject").isDict()) {
+                Dict *xolist = dict->lookup("XObject").getDict();
+
+                for (int xo_idx=0;xo_idx<xolist->getLength();xo_idx++) {
+                    Object stype;
+                    Object xitem = xolist->getVal(xo_idx);
+                    if (!xitem.isStream()) continue;
+                    if (!xitem.streamGetDict()->lookup("Subtype").isName("Image")) continue;
+
+                    QImage img;
+                    BaseStream* data = xitem.getStream()->getBaseStream();
+                    int size = static_cast<int>(data->getLength());
+                    QByteArray ba;
+                    ba.fill('\0',size);
+                    data->doGetChars(size,reinterpret_cast<Guchar *>(ba.data()));
+
+                    StreamKind kind = xitem.getStream()->getKind();
+//                    if (kind==StreamKind::strFlate &&
+//                            xitem.streamGetDict()->lookup("Width").isInt() &&
+//                            xitem.streamGetDict()->lookup("Height").isInt() &&
+//                            xitem.streamGetDict()->lookup("BitsPerComponent").isInt()) {
+//                        int dwidth = xitem.streamGetDict()->lookup("Width").getInt();
+//                        int dheight = xitem.streamGetDict()->lookup("Height").getInt();
+//                        int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
+
+//                        if (dBPP == 8) // RGB888 image, do not support indexed images and 16bpp images
+//                            img = QImage(reinterpret_cast<const uchar *>(ba.constData()),
+//                                         dwidth,dheight,QImage::Format_RGB888);
+//                    }
+                    if (kind==StreamKind::strDCT) { // JPEG stream
+                        img = QImage::fromData(ba);
+                    }
+
+                    if (!img.isNull()) {
+                        if (img.width()>img.height())
+                            img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
+                                                    Qt::SmoothTransformation);
+                        else
+                            img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
+                                                     Qt::SmoothTransformation);
+                        ba.clear();
+                        QBuffer buf(&ba);
+                        buf.open(QIODevice::WriteOnly);
+                        img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
+                        images.insert(pageNum,ba);
+                        ba.clear();
+                    }
+                }
+            }
+        }
+    }
+
+    text = formatPdfText(text);
+    QStringList sltext = text.split(PAGE_SEPARATOR);
+    text.clear();
+    int idx = 1;
+    while (!sltext.isEmpty()) {
+        if (idx>1)
+            text.append("<hr>");
+
+        foreach (const QByteArray& img, images.values(idx)) {
+            text.append("<img src=\"data:image/jpeg;base64,");
+            text.append(QString::fromLatin1(img.toBase64()));
+            text.append("\" />");
+        }
+        text.append(sltext.takeFirst());
+        idx++;
+    }
+
+
+    result.append(text);
     result.append("</body>\n");
     result.append("</html>\n");
 

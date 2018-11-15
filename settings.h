@@ -69,6 +69,8 @@ public:
     int atlTcpRetryCount;
     int atlTcpTimeout;
     int maxAdblockWhiteList;
+    int pdfImageMaxSize;
+    int pdfImageQuality;
     quint16 atlPort;
     quint16 proxyPort;
 
@@ -87,6 +89,7 @@ public:
     bool proxyUse;
     bool proxyUseTranslator;
     bool ignoreSSLErrors;
+    bool pdfExtractImages;
 
     explicit CSettings(QObject *parent = nullptr);
 
