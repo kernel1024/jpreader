@@ -411,12 +411,15 @@ bool pdfToText(const QUrl& pdf, QString& result)
                     }
 
                     if (!img.isNull()) {
-                        if (img.width()>img.height())
-                            img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
-                                                    Qt::SmoothTransformation);
-                        else
-                            img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
-                                                     Qt::SmoothTransformation);
+                        if (img.width()>img.height()) {
+                            if (img.width()>gSet->settings.pdfImageMaxSize)
+                                img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
+                                                        Qt::SmoothTransformation);
+                        } else {
+                            if (img.height()>gSet->settings.pdfImageMaxSize)
+                                img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
+                                                         Qt::SmoothTransformation);
+                        }
                         ba.clear();
                         QBuffer buf(&ba);
                         buf.open(QIODevice::WriteOnly);
