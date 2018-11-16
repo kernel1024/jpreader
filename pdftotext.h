@@ -1,10 +1,36 @@
 #ifndef PDFTOTEXT_H
 #define PDFTOTEXT_H
 
+#include <QObject>
 #include <QUrl>
 #include <QString>
+#include "structures.h"
 
-bool pdfToText(const QUrl& pdf, QString& result);
+class CPDFWorker : public QObject
+{
+    Q_OBJECT
+public:
+    CPDFWorker(QObject* parent = nullptr);
+    virtual ~CPDFWorker() {}
+
+private:
+    QString m_text;
+    QIntList m_outLengths;
+    bool m_prevblock;
+
+    QString formatPdfText(const QString &text);
+    QByteArray zlibInflate(const QByteArray &src);
+    static void outputToString(void *stream, const char *text, int len);
+
+public slots:
+    void pdfToText(const QString &filename);
+
+signals:
+    void gotText(const QString& result);
+    void error(const QString& message);
+
+};
+
 void initPdfToText();
 void freePdfToText();
 

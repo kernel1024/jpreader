@@ -21,6 +21,8 @@ public:
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab);
+signals:
+    void startPdfConversion(const QString& filename);
 public slots:
     void load(const QUrl & url);
     void load(const QString & html, const QUrl& loadedUrl = QUrl());
@@ -32,6 +34,8 @@ public slots:
     void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void pixivNovelError(QNetworkReply::NetworkError error);
+    void pdfConverted(const QString& html);
+    void pdfError(const QString& message);
 
 };
 

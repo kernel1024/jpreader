@@ -252,6 +252,26 @@ void CSnNet::pixivNovelError(QNetworkReply::NetworkError )
     QMessageBox::warning(snv->parentWnd,tr("JPReader"),msg);
 }
 
+void CSnNet::pdfConverted(const QString &html)
+{
+    if (html.isEmpty()) {
+        snv->txtBrowser->setHtml(makeSimpleHtml("PDF conversion error","Empty document."));
+    }
+    if (html.length()<1024*1024) { // Small PDF files
+        snv->txtBrowser->setHtml(html);
+        snv->auxContentLoaded=false;
+    } else { // Big PDF files
+        loadWithTempFile(html,false);
+    }
+}
+
+void CSnNet::pdfError(const QString &message)
+{
+    QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file.<br>%1").arg(message));
+    snv->txtBrowser->setHtml(cn);
+    QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
+}
+
 void CSnNet::load(const QUrl &url)
 {
     if (gSet->isUrlBlocked(url)) {
@@ -295,16 +315,14 @@ void CSnNet::load(const QUrl &url)
             snv->fileChanged = false;
             snv->translationBkgdFinished=false;
             snv->loadingBkgdFinished=false;
-            if (!pdfToText(url,cn)) { // PDF error
-                QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file '%1'.").arg(fname));
-                snv->txtBrowser->setHtml(cn,url);
-                QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
-            } else if (cn.length()<1024*1024) { // Small PDF files
-                snv->txtBrowser->setHtml(cn,url);
-                snv->auxContentLoaded=false;
-            } else { // Big PDF files
-                loadWithTempFile(cn,false);
-            }
+            CPDFWorker* pdf = new CPDFWorker();
+            connect(this,&CSnNet::startPdfConversion,pdf,&CPDFWorker::pdfToText,Qt::QueuedConnection);
+            connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
+            connect(pdf,&CPDFWorker::error,this,&CSnNet::pdfError,Qt::QueuedConnection);
+            QThread* pdft = new QThread();
+            pdf->moveToThread(pdft);
+            pdft->start();
+            emit startPdfConversion(url.toString());
         } else { // for local html files
             snv->fileChanged = false;
             snv->txtBrowser->load(url);

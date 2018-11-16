@@ -117,7 +117,7 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
     connect(webProfile, &QWebEngineProfile::downloadRequested,
             downloadManager, &CDownloadManager::handleDownload);
 
-    webProfile->setRequestInterceptor(new CSpecUrlInterceptor());
+    webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
 
     connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
             this, &CGlobalControl::cookieAdded);

@@ -129,15 +129,15 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
             new CSnippetViewer(this,withViewerUrl);
     }
 
-    qApp->installEventFilter(this);
-
-    setAcceptDrops(true);
-
     fullScreen=false;
     savedPos=pos();
     savedSize=size();
     savedMaximized=isMaximized();
     savedSplitterWidth=splitter->handleWidth();
+
+    qApp->installEventFilter(this);
+
+    setAcceptDrops(true);
 }
 
 CMainWindow::~CMainWindow()

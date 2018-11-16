@@ -38,8 +38,14 @@
 #include "genericfuncs.h"
 #include "structures.h"
 #include <QByteArray>
-#include <QMutex>
+#include <QFileInfo>
 #include <QDebug>
+
+extern "C" {
+#include <zlib.h>
+}
+
+#define PAGE_SEPARATOR "##JPREADER_NEWPAGE##"
 
 #ifdef WITH_POPPLER
 
@@ -60,26 +66,17 @@
 #include <QBuffer>
 
 #if POPPLER_VERSION_MAJOR==0
-    #if POPPLER_VERSION_MINOR<58
-        #define JPDF_PRE058_OBJECT_API 1
-    #endif
     #if POPPLER_VERSION_MINOR<70
         #define JPDF_PRE070_API 1
     #endif
 #endif
-
-#define PAGE_SEPARATOR "##JPREADER_NEWPAGE##"
 
 void metaString(QString& out, Dict *infoDict, const char* key,
                 const QString& fmt)
 {
     Object obj;
     QString res;
-#ifdef JPDF_PRE058_OBJECT_API
-    if (infoDict->lookup(key, &obj)->isString()) {
-#else
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
-#endif
         const GooString *s1 = obj.getString();
         QByteArray ba(s1->getCString());
         res = detectDecodeToUnicode(ba);
@@ -91,43 +88,74 @@ void metaString(QString& out, Dict *infoDict, const char* key,
     }
     if (!res.isEmpty())
         out.append(QString(fmt).arg(res));
-
-#ifdef JPDF_PRE058_OBJECT_API
-    obj.free();
-#else
-    obj.setToNull();
-#endif
 }
 
 void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 {
     Object obj;
 
-#ifdef JPDF_PRE058_OBJECT_API
-    if (infoDict->lookup(key, &obj)->isString()) {
-#else
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
-#endif
         const char *s = obj.getString()->getCString();
         if (s[0] == 'D' && s[1] == ':') {
             s += 2;
         }
         out.append(QString(fmt).arg(s));
     }
-
-#ifdef JPDF_PRE058_OBJECT_API
-    obj.free();
-#else
-    obj.setToNull();
-#endif
 }
 
-static QIntList outLengths;
-static QMutex pdfInterlock;
-
-static void outputToString(void *stream, const char *text, int len)
+static int loggedPopplerErrors = 0;
+#ifdef JPDF_PRE070_API
+static void popplerError(void *data, ErrorCategory category, Goffset pos, char *msg)
+#else
+static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
+#endif
 {
-    static bool prevblock = false;
+    Q_UNUSED(data);
+
+    if (loggedPopplerErrors>100) return;
+    loggedPopplerErrors++;
+
+    int ipos = static_cast<int>(pos);
+
+    switch (category) {
+        case ErrorCategory::errSyntaxError:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Syntax:" << msg;
+            break;
+        case ErrorCategory::errSyntaxWarning:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Syntax:" << msg;
+            break;
+        case ErrorCategory::errConfig:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Config:" << msg;
+            break;
+        case ErrorCategory::errIO:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "IO:" << msg;
+            break;
+        case ErrorCategory::errNotAllowed:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Permissions and DRM:" << msg;
+            break;
+        case ErrorCategory::errUnimplemented:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").info() << "Unimplemented:" << msg;
+            break;
+        case ErrorCategory::errInternal:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Internal:" << msg;
+            break;
+        case ErrorCategory::errCommandLine:
+            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Incorrect parameters:" << msg;
+            break;
+    }
+}
+
+#endif // WITH_POPPLER
+
+CPDFWorker::CPDFWorker(QObject *parent)
+    : QObject(parent),
+      m_prevblock(false)
+{
+
+}
+
+void CPDFWorker::outputToString(void *stream, const char *text, int len)
+{
     const static QString vertForm = "\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
                                     "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
                                     "\uFE46\uFE47\uFE48\u22EE"
@@ -142,7 +170,7 @@ static void outputToString(void *stream, const char *text, int len)
                                       "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
 
     if (stream==nullptr) return;
-    QString* str = reinterpret_cast<QString *>(stream);
+    CPDFWorker* worker = reinterpret_cast<CPDFWorker *>(stream);
     QString tx = QString::fromUtf8(text,len);
 
     for (int i=0;i<tx.length();i++) {
@@ -151,18 +179,18 @@ static void outputToString(void *stream, const char *text, int len)
             tx.replace(i,1,vertFormTr.at(vtidx));
     }
 
-    str->append(tx);
-    outLengths.append(tx.length());
+    worker->m_text.append(tx);
+    worker->m_outLengths.append(tx.length());
 
     if (tx.length()==1 && (tx.at(0).isLetter() || tx.at(0).isPunct() || tx.at(0).isSymbol())) {
-        prevblock = true;
+        worker->m_prevblock = true;
     } else {
-        if (!prevblock) str->append("\n");
-        prevblock = false;
+        if (!worker->m_prevblock) worker->m_text.append("\n");
+        worker->m_prevblock = false;
     }
 }
 
-QString formatPdfText(const QString& text)
+QString CPDFWorker::formatPdfText(const QString& text)
 {
     const static QString openingQuotation = "\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
                                             "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
@@ -176,9 +204,9 @@ QString formatPdfText(const QString& text)
     const static int maxParagraphLength = 150;
 
     int sumlen = 0;
-    for (int i=0;i<outLengths.count();i++)
-        sumlen += outLengths.at(i);
-    double avglen = (static_cast<double>(sumlen))/outLengths.count();
+    for (int i=0;i<m_outLengths.count();i++)
+        sumlen += m_outLengths.at(i);
+    double avglen = (static_cast<double>(sumlen))/m_outLengths.count();
     bool isVerticalText = (avglen<2.0);
 
     QString s = text;
@@ -197,7 +225,6 @@ QString formatPdfText(const QString& text)
                 s.insert(pos,"</p><p>");
         }
     }
-
 
     // delete remaining newlines
     s.remove('\n');
@@ -266,34 +293,74 @@ QString formatPdfText(const QString& text)
     return s;
 }
 
-bool pdfToText(const QUrl& pdf, QString& result)
+QByteArray CPDFWorker::zlibInflate(const QByteArray& src)
 {
+    QByteArray result;
+    z_stream strm;
+    int ret;
+    unsigned char buf[1024];
+    unsigned int bufsz = sizeof(buf);
+
+    strm.zalloc = nullptr;
+    strm.zfree = nullptr;
+    strm.opaque = nullptr;
+    strm.avail_in = static_cast<unsigned int>(src.length());
+    strm.next_in = reinterpret_cast<unsigned char *>(const_cast<char *>(src.data()));
+
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+        return QByteArray();
+
+    do {
+        strm.avail_out = bufsz;
+        strm.next_out = buf;
+        ret = inflate(&strm,Z_NO_FLUSH);
+        if ((ret != Z_OK) && (ret != Z_STREAM_END)) {
+            inflateEnd(&strm);
+            return QByteArray();
+        }
+        result.append(reinterpret_cast<char *>(&buf), static_cast<int>(bufsz - strm.avail_out));
+    } while (strm.avail_out == 0);
+
+    inflateEnd(&strm);
+
+    return result;
+}
+
+void CPDFWorker::pdfToText(const QString &filename)
+{
+#ifndef WITH_POPPLER
+    Q_UNUSED(filename)
+
+    m_text = tr("pdfToText unavailable, JPReader compiled without poppler support.");
+    qCritical() << m_text;
+    emit error(m_text);
+    return;
+#else
     // conversion parameters
-    static int lastPage = 0;
-    static double resolution = 72.0;
-    static GBool physLayout = gFalse;
-    static double fixedPitch = 0;
-    static GBool rawOrder = gTrue;
-    static char textEncoding[] = "UTF-8";
+    static const double resolution = 72.0;
+    static const GBool physLayout = gFalse;
+    static const double fixedPitch = 0;
+    static const GBool rawOrder = gTrue;
+
+    QString result;
 
     PDFDoc *doc;
-    GooString fileName(pdf.toString().toUtf8());
+    QFileInfo fi(filename);
+    GooString fileName(filename.toUtf8());
     TextOutputDev *textOut;
     UnicodeMap *uMap;
     Object info;
-
-    pdfInterlock.lock();
+    int lastPage = 0;
 
     result.clear();
-    outLengths.clear();
-
-    globalParams->setTextEncoding(textEncoding);
+    m_outLengths.clear();
 
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding())) {
         qCritical() << "pdfToText: Couldn't get text encoding";
-        pdfInterlock.unlock();
-        return false;
+        emit error(tr("pdfToText: Couldn't get text encoding"));
+        return;
     }
 
     doc = PDFDocFactory().createPDFDoc(fileName);
@@ -302,33 +369,20 @@ bool pdfToText(const QUrl& pdf, QString& result)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
-        pdfInterlock.unlock();
-        return false;
+        emit error(tr("pdfToText: Cannot create PDF Doc object"));
+        return;
     }
 
     // write HTML header
     result.append("<html><head>\n");
-#ifdef JPDF_PRE058_OBJECT_API
-    doc->getDocInfo(&info);
-#else
     info = doc->getDocInfo();
-#endif
     if (info.isDict()) {
         Object obj;
-#ifdef JPDF_PRE058_OBJECT_API
-        if (info.getDict()->lookup("Title", &obj)->isString()) {
-#else
         if (static_cast<void>(obj = info.getDict()->lookup("Title")), obj.isString()) {
-#endif
             metaString(result, info.getDict(), "Title", "<title>%1</title>\n");
         } else {
-            result.append("<title></title>\n");
+            result.append(QString("<title>%1</title>\n").arg(fi.baseName()));
         }
-#ifdef JPDF_PRE058_OBJECT_API
-        obj.free();
-#else
-        obj.setToNull();
-#endif
         metaString(result, info.getDict(), "Subject",
                    "<meta name=\"Subject\" content=\"%1\"/>\n");
         metaString(result, info.getDict(), "Keywords",
@@ -344,20 +398,15 @@ bool pdfToText(const QUrl& pdf, QString& result)
         metaDate(result, info.getDict(), "LastModifiedDate",
                  "<meta name=\"ModDate\" content=\"%1\"/>\n");
     }
-#ifdef JPDF_PRE058_OBJECT_API
-    info.free();
-#else
-    info.setToNull();
-#endif
     result.append("</head>\n");
     result.append("<body>\n");
 
     lastPage = doc->getNumPages();
 
-    QString text;
+    m_text.clear();
 
     // write text
-    textOut = new TextOutputDev(&outputToString,static_cast<void*>(&text),
+    textOut = new TextOutputDev(&CPDFWorker::outputToString,static_cast<void*>(this),
                                 physLayout, fixedPitch, rawOrder);
     if (textOut->isOk()) {
         doc->displayPages(textOut, 1, lastPage, resolution, resolution, 0,
@@ -367,8 +416,8 @@ bool pdfToText(const QUrl& pdf, QString& result)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
-        pdfInterlock.unlock();
-        return false;
+        emit error(tr("pdfToText: Cannot create TextOutput object"));
+        return;
     }
 
     delete textOut;
@@ -394,21 +443,29 @@ bool pdfToText(const QUrl& pdf, QString& result)
                     data->doGetChars(size,reinterpret_cast<Guchar *>(ba.data()));
 
                     StreamKind kind = xitem.getStream()->getKind();
-//                    if (kind==StreamKind::strFlate &&
-//                            xitem.streamGetDict()->lookup("Width").isInt() &&
-//                            xitem.streamGetDict()->lookup("Height").isInt() &&
-//                            xitem.streamGetDict()->lookup("BitsPerComponent").isInt()) {
-//                        int dwidth = xitem.streamGetDict()->lookup("Width").getInt();
-//                        int dheight = xitem.streamGetDict()->lookup("Height").getInt();
-//                        int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
+                    if (kind==StreamKind::strFlate && // zlib stream
+                            xitem.streamGetDict()->lookup("Width").isInt() &&
+                            xitem.streamGetDict()->lookup("Height").isInt() &&
+                            xitem.streamGetDict()->lookup("BitsPerComponent").isInt()) {
+                        int dwidth = xitem.streamGetDict()->lookup("Width").getInt();
+                        int dheight = xitem.streamGetDict()->lookup("Height").getInt();
+                        int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
 
-//                        if (dBPP == 8) // RGB888 image, do not support indexed images and 16bpp images
-//                            img = QImage(reinterpret_cast<const uchar *>(ba.constData()),
-//                                         dwidth,dheight,QImage::Format_RGB888);
-//                    }
-                    if (kind==StreamKind::strDCT) { // JPEG stream
+                        ba = zlibInflate(ba);
+
+                        if (!ba.isNull() && (dBPP == 8))
+                            // RGB888 image, do not support indexed images and 16bpp images
+                            img = QImage(reinterpret_cast<const uchar *>(ba.constData()),
+                                         dwidth,dheight,dwidth*3,QImage::Format_RGB888);
+                        else
+                            qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3, BPP = %4)")
+                                          .arg(xo_idx).arg(pageNum).arg(kind).arg(dBPP);
+
+                    } else if (kind==StreamKind::strDCT) { // JPEG stream
                         img = QImage::fromData(ba);
-                    }
+                    } else
+                        qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3)")
+                                      .arg(xo_idx).arg(pageNum).arg(kind);
 
                     if (!img.isNull()) {
                         if (img.width()>img.height()) {
@@ -432,103 +489,50 @@ bool pdfToText(const QUrl& pdf, QString& result)
         }
     }
 
-    text = formatPdfText(text);
-    QStringList sltext = text.split(PAGE_SEPARATOR);
-    text.clear();
+    m_text = formatPdfText(m_text);
+    QStringList sltext = m_text.split(PAGE_SEPARATOR);
+    m_text.clear();
     int idx = 1;
     while (!sltext.isEmpty()) {
         if (idx>1)
-            text.append("<hr>");
+            m_text.append("<hr>");
 
         foreach (const QByteArray& img, images.values(idx)) {
-            text.append("<img src=\"data:image/jpeg;base64,");
-            text.append(QString::fromLatin1(img.toBase64()));
-            text.append("\" />");
+            m_text.append("<img src=\"data:image/jpeg;base64,");
+            m_text.append(QString::fromLatin1(img.toBase64()));
+            m_text.append("\" />&nbsp;");
         }
-        text.append(sltext.takeFirst());
+        m_text.append(sltext.takeFirst());
         idx++;
     }
 
 
-    result.append(text);
+    result.append(m_text);
     result.append("</body>\n");
     result.append("</html>\n");
 
     delete doc;
     uMap->decRefCnt();
 
-    pdfInterlock.unlock();
-    return true;
-}
-
-static int loggedPopplerErrors = 0;
-#ifdef JPDF_PRE070_API
-static void popplerError(void *data, ErrorCategory category, Goffset pos, char *msg)
-#else
-static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
+    emit gotText(result);
 #endif
-{
-    Q_UNUSED(data);
 
-    if (loggedPopplerErrors>100) return;
-    loggedPopplerErrors++;
-
-    int ipos = static_cast<int>(pos);
-
-    switch (category) {
-        case ErrorCategory::errSyntaxError:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Syntax:" << msg;
-            break;
-        case ErrorCategory::errSyntaxWarning:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Syntax:" << msg;
-            break;
-        case ErrorCategory::errConfig:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Config:" << msg;
-            break;
-        case ErrorCategory::errIO:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "IO:" << msg;
-            break;
-        case ErrorCategory::errNotAllowed:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Permissions and DRM:" << msg;
-            break;
-        case ErrorCategory::errUnimplemented:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").info() << "Unimplemented:" << msg;
-            break;
-        case ErrorCategory::errInternal:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").critical() << "Internal:" << msg;
-            break;
-        case ErrorCategory::errCommandLine:
-            QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Incorrect parameters:" << msg;
-            break;
-    }
+    deleteLater();
 }
 
 void initPdfToText()
 {
+#ifdef WITH_POPPLER
+    char textEncoding[] = "UTF-8";
     globalParams = new GlobalParams();
     setErrorCallback(&popplerError,nullptr);
+    globalParams->setTextEncoding(textEncoding);
+#endif
 }
 
 void freePdfToText()
 {
+#ifdef WITH_POPPLER
     delete globalParams;
+#endif
 }
-
-#else // WITH_POPPLER
-
-void initPdfToText()
-{
-}
-
-void freePdfToText()
-{
-}
-
-bool pdfToText(const QUrl& pdf, QString& result)
-{
-    result.clear();
-    qCritical() << "pdfToText unavailable, compiled without poppler support.";
-    return false;
-}
-
-#endif // WITH_POPPLER
