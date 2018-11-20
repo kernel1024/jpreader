@@ -303,6 +303,26 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
+QString highlightSnippet(const QString& snippet, const QStringList& terms)
+{
+    QString res = snippet;
+
+    for (int i=0;i<terms.count();i++) {
+        QString ITerm = terms.value(i).trimmed();
+        QString snpColor = gSet->settings.snippetColors[i % gSet->settings.snippetColors.count()].name();
+        int start = 0;
+        int pos;
+        while ((pos = res.indexOf(ITerm,start,Qt::CaseInsensitive))>=0) {
+            QString tag = QString("<font color='%1'>").arg(snpColor);
+            int pos2 = pos + tag.length() + ITerm.length();
+            res.insert(pos,tag);
+            res.insert(pos2,"</font>");
+            start = pos2;
+        }
+    }
+    return res;
+}
+
 QString getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
     QFileDialog::Options opts = 0;

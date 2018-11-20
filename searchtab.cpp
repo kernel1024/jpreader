@@ -365,7 +365,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     }
 
     if (!auxText.isEmpty())
-        s = auxText;
+        s = highlightSnippet(auxText,queryTerms);
 
     QStringList queryTermsTran = queryTerms;
     CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));

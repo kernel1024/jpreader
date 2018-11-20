@@ -22,6 +22,7 @@ QString makeSimpleHtml(const QString& title, const QString& content, bool integr
 QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
 QString fixMetaEncoding(const QString& data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
+QString highlightSnippet(const QString& snippet, const QStringList& terms);
 QList<QStringList> encodingsByScript();
 QString bool2str(bool value);
 QString bool2str2(bool value);
