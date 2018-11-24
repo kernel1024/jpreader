@@ -69,6 +69,15 @@ extern "C" {
     #if POPPLER_VERSION_MINOR<70
         #define JPDF_PRE070_API 1
     #endif
+    #if POPPLER_VERSION_MINOR<71
+￼         #define JPDF_PRE071_API 1
+    #endif
+#endif
+
+#ifndef JPDF_PRE071_API
+    #define GBool bool
+    #define gTrue true
+    #define gFalse false
 #endif
 
 void metaString(QString& out, Dict *infoDict, const char* key,
