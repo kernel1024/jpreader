@@ -70,7 +70,7 @@ extern "C" {
         #define JPDF_PRE070_API 1
     #endif
     #if POPPLER_VERSION_MINOR<71
-￼         #define JPDF_PRE071_API 1
+        #define JPDF_PRE071_API 1
     #endif
 #endif
 
