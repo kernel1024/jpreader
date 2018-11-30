@@ -137,15 +137,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     qApp->installEventFilter(this);
 
-    QWidget* addTabWidget = new QWidget();
-    QHBoxLayout* addTabLayout = new QHBoxLayout();
-    addTabLayout->setContentsMargins(0,0,0,0);
     QPushButton* addTabButton = new QPushButton(QIcon::fromTheme("list-add"),QString());
     addTabButton->setFlat(true);
-    addTabLayout->addStretch();
-    addTabLayout->addWidget(addTabButton);
-    addTabWidget->setLayout(addTabLayout);
-    tabMain->setCornerWidget(addTabWidget);
+    tabMain->setCornerWidget(addTabButton);
     connect(addTabButton,&QPushButton::clicked,actionNew,&QAction::trigger);
 
     setAcceptDrops(true);
