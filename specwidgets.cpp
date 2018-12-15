@@ -5,6 +5,7 @@
 #include <QMessageLogger>
 #include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
+#include <QWebEngineCertificateError>
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
 #include <goldendictlib/dictionary.hh>
