@@ -72,6 +72,9 @@ extern "C" {
     #if POPPLER_VERSION_MINOR<71
         #define JPDF_PRE071_API 1
     #endif
+    #if POPPLER_VERSION_MINOR<72
+        #define JPDF_PRE072_API 1
+    #endif
 #endif
 
 #ifndef JPDF_PRE071_API
@@ -87,7 +90,11 @@ void metaString(QString& out, Dict *infoDict, const char* key,
     QString res;
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
         const GooString *s1 = obj.getString();
+#ifdef JPDF_PRE072_API
         QByteArray ba(s1->getCString());
+#else
+        QByteArray ba(s1->c_str());
+#endif
         res = detectDecodeToUnicode(ba);
         res.replace("&",  "&amp;");
         res.replace("'",  "&apos;" );
@@ -104,7 +111,11 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     Object obj;
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
+#ifdef JPDF_PRE072_API
         const char *s = obj.getString()->getCString();
+#else
+        const char *s = obj.getString()->c_str();
+#endif
         if (s[0] == 'D' && s[1] == ':') {
             s += 2;
         }
