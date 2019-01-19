@@ -66,21 +66,9 @@ extern "C" {
 #include <QBuffer>
 
 #if POPPLER_VERSION_MAJOR==0
-    #if POPPLER_VERSION_MINOR<70
-        #define JPDF_PRE070_API 1
+    #if POPPLER_VERSION_MINOR<73
+        #define JPDF_PRE073_API 1
     #endif
-    #if POPPLER_VERSION_MINOR<71
-        #define JPDF_PRE071_API 1
-    #endif
-    #if POPPLER_VERSION_MINOR<72
-        #define JPDF_PRE072_API 1
-    #endif
-#endif
-
-#ifndef JPDF_PRE071_API
-    #define GBool bool
-    #define gTrue true
-    #define gFalse false
 #endif
 
 void metaString(QString& out, Dict *infoDict, const char* key,
@@ -90,11 +78,7 @@ void metaString(QString& out, Dict *infoDict, const char* key,
     QString res;
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
         const GooString *s1 = obj.getString();
-#ifdef JPDF_PRE072_API
-        QByteArray ba(s1->getCString());
-#else
         QByteArray ba(s1->c_str());
-#endif
         res = detectDecodeToUnicode(ba);
         res.replace("&",  "&amp;");
         res.replace("'",  "&apos;" );
@@ -111,11 +95,7 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     Object obj;
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
-#ifdef JPDF_PRE072_API
-        const char *s = obj.getString()->getCString();
-#else
         const char *s = obj.getString()->c_str();
-#endif
         if (s[0] == 'D' && s[1] == ':') {
             s += 2;
         }
@@ -124,11 +104,7 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 }
 
 static int loggedPopplerErrors = 0;
-#ifdef JPDF_PRE070_API
-static void popplerError(void *data, ErrorCategory category, Goffset pos, char *msg)
-#else
 static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
-#endif
 {
     Q_UNUSED(data);
 
@@ -359,9 +335,9 @@ void CPDFWorker::pdfToText(const QString &filename)
 #else
     // conversion parameters
     static const double resolution = 72.0;
-    static const GBool physLayout = gFalse;
+    static const bool physLayout = false;
     static const double fixedPitch = 0;
-    static const GBool rawOrder = gTrue;
+    static const bool rawOrder = true;
 
     QString result;
 
@@ -430,7 +406,7 @@ void CPDFWorker::pdfToText(const QString &filename)
                                 physLayout, fixedPitch, rawOrder);
     if (textOut->isOk()) {
         doc->displayPages(textOut, 1, lastPage, resolution, resolution, 0,
-                          gTrue, gFalse, gFalse);
+                          true, false, false);
     } else {
         delete textOut;
         delete doc;
@@ -460,7 +436,11 @@ void CPDFWorker::pdfToText(const QString &filename)
                     int size = static_cast<int>(data->getLength());
                     QByteArray ba;
                     ba.fill('\0',size);
+#ifdef JPDF_PRE073_API
                     data->doGetChars(size,reinterpret_cast<Guchar *>(ba.data()));
+#else
+                    data->doGetChars(size,reinterpret_cast<unsigned char *>(ba.data()));
+#endif
 
                     StreamKind kind = xitem.getStream()->getKind();
                     if (kind==StreamKind::strFlate && // zlib stream

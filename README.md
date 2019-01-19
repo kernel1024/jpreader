@@ -11,7 +11,7 @@ Library dependencies:
     libmagic
     recoll engine (optional)
     baloo 5.6.0 (optional) 
-    poppler-cpp 0.58 (optional)
+    poppler 0.72 (optional)
 
 Integrated static parts from libraries:
 
