@@ -484,7 +484,7 @@ void CDownloadsModel::openHere()
                                  "image/jpeg", "image/png", "image/gif",
                                  "image/svg+xml", "image/webp" };
     QStringList acceptedExt = { "pdf", "htm", "html", "txt", "jpg", "jpeg", "jpe",
-                                "png", "svg", "gif", "png", "webp" };
+                                "png", "svg", "gif", "webp" };
 
     QString fname = downloads.at(idx).fileName;
     QString mime = downloads.at(idx).mimeType;

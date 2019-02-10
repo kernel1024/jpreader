@@ -388,6 +388,15 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                     imgUrls << src;
             }
         }
+        if (node.tagName.toLower()==QLatin1String("a")) {
+            if (node.attributes.contains("href")) {
+                QString src = node.attributes.value("href").trimmed();
+                QStringList acceptedExt = { "jpg", "jpeg", "jpe", "png", "svg", "gif", "bmp" };
+                QFileInfo fi(src);
+                if (acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
+                    imgUrls << src;
+            }
+        }
     }
 
     if (xmlPass==PXPostprocess) {
