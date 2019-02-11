@@ -487,6 +487,18 @@ QString bool2str2(bool value)
         return QString("FALSE");
 }
 
+int numDigits(const int n) {
+    if ((n >= 0) && (n < 10))
+        return 1;
+    else if ((n >= -9) && (n < 0))
+        return 2;
+
+    if (n<0)
+        return 2 + numDigits(abs(n) / 10);
+    else
+        return 1 + numDigits(n / 10);
+}
+
 QString formatBytes(qint64 sz) {
     QString s;
     double msz;

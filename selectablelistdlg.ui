@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>496</width>
-    <height>303</height>
+    <width>704</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,11 +15,65 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>&amp;Filter</string>
+         </property>
+         <property name="buddy">
+          <cstring>filter</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="filter"/>
+       </item>
+       <item>
+        <widget class="QToolButton" name="btnClearFilter">
+         <property name="toolTip">
+          <string>Clear filter</string>
+         </property>
+         <property name="text">
+          <string>X</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="syntax">
+         <property name="toolTip">
+          <string>Filter syntax</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Regexp</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Wildcard</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QListWidget" name="list">
@@ -29,17 +83,35 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QCheckBox" name="checkAddNumbers">
+       <property name="text">
+        <string>Add numbers to file name</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>list</tabstop>
+  <tabstop>filter</tabstop>
+  <tabstop>btnClearFilter</tabstop>
+  <tabstop>syntax</tabstop>
+  <tabstop>checkAddNumbers</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -49,8 +121,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>256</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -65,12 +137,28 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>324</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearFilter</sender>
+   <signal>clicked()</signal>
+   <receiver>filter</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>477</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>427</x>
+     <y>21</y>
     </hint>
    </hints>
   </connection>

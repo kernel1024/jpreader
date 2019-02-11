@@ -52,7 +52,7 @@ class CDownloadManager : public QDialog
 public:
     explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager();
-    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer);
+    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index, int maxIndex);
 public slots:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);

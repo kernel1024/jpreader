@@ -26,6 +26,7 @@ QString highlightSnippet(const QString& snippet, const QStringList& terms);
 QList<QStringList> encodingsByScript();
 QString bool2str(bool value);
 QString bool2str2(bool value);
+int numDigits(const int n);
 QString formatBytes(qint64 sz);
 QString getTmpDir();
 bool checkAndUnpackUrl(QUrl& url);

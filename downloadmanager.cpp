@@ -39,14 +39,16 @@ CDownloadManager::~CDownloadManager()
     delete ui;
 }
 
-void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer)
+void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer, int index, int maxIndex)
 {
     QUrl url = QUrl(src);
     if (!url.isValid() || url.isRelative()) return;
 
     QString fname = path;
     if (!fname.endsWith("/")) fname.append('/');
-    fname+=url.fileName();
+    if (index>=0)
+        fname.append(QString("%1_").arg(index,numDigits(maxIndex),10,QLatin1Char('0')));
+    fname.append(url.fileName());
 
     if (!isVisible())
         show();
@@ -80,7 +82,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         QFileInfo fi(item->path());
 
         QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
-                                         QString(),0,fi.fileName());
+                                         QString(),nullptr,fi.fileName());
 
         if (fname.isNull() || fname.isEmpty()) {
             item->cancel();

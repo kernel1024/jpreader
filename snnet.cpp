@@ -34,15 +34,42 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
     if (multiImgDialogSize.isValid())
         dlg->resize(multiImgDialogSize);
 
+    connect(ui.filter,&QLineEdit::textEdited,[ui](const QString& text){
+        if (text.isEmpty()) {
+            for (int i=0;i<ui.list->count();i++) {
+                if (ui.list->item(i)->isHidden())
+                    ui.list->item(i)->setHidden(false);
+            }
+            return;
+        }
+
+        for (int i=0;i<ui.list->count();i++) {
+            ui.list->item(i)->setHidden(true);
+        }
+        QList<QListWidgetItem *> filtered = ui.list->findItems(text,
+                                                               ((ui.syntax->currentIndex()==0) ?
+                                                                    Qt::MatchRegExp : Qt::MatchWildcard));
+        for (QListWidgetItem* item : filtered) {
+            item->setHidden(false);
+        }
+    });
+
     ui.label->setText(tr("Detected image URLs from page"));
+    ui.syntax->setCurrentIndex(0);
     ui.list->addItems(urls);
-    ui.list->selectAll();
     dlg->setWindowTitle(tr("Multiple images download"));
 
     if (dlg->exec()==QDialog::Accepted) {
         QString dir = getExistingDirectoryD(snv,tr("Save images to directory"),getTmpDir());
-        foreach(const QListWidgetItem* itm, ui.list->selectedItems()){
-            gSet->downloadManager->handleAuxDownload(itm->text(),dir,referer);
+        int index = 0;
+        for (const QListWidgetItem* itm : ui.list->selectedItems()){
+            if (!ui.checkAddNumbers->isChecked()) {
+                index = -1;
+            } else {
+                index++;
+            }
+
+            gSet->downloadManager->handleAuxDownload(itm->text(),dir,referer,index,ui.list->selectedItems().count());
         }
     }
     multiImgDialogSize=dlg->size();
