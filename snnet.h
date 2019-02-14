@@ -33,7 +33,7 @@ public slots:
     void loadFinished(bool ok);
     void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
-    void pixivNovelError(QNetworkReply::NetworkError error);
+    void pixivNovelReady(const QString& html, bool focus, bool translate);
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

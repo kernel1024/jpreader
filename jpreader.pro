@@ -40,7 +40,8 @@ HEADERS = mainwindow.h \
     webapiabstracttranslator.h \
     bookmarks.h \
     edittreeview.h \
-    xbel.h
+    xbel.h \
+    pixivnovelextractor.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -85,7 +86,8 @@ SOURCES = main.cpp \
     webapiabstracttranslator.cpp \
     bookmarks.cpp \
     edittreeview.cpp \
-    xbel.cpp
+    xbel.cpp \
+    pixivnovelextractor.cpp
 
 RESOURCES = \
     jpreader.qrc
