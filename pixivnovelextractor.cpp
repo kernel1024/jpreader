@@ -4,6 +4,7 @@
 
 #include "pixivnovelextractor.h"
 #include "genericfuncs.h"
+#include "globalcontrol.h"
 
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : QObject(parent), m_translate(false), m_focus(false), m_snv(nullptr)
@@ -97,6 +98,20 @@ void CPixivNovelExtractor::novelLoadFinished()
                 pos += rbrx.matchedLength();
         }
 
+/*        QRegExp imrx("\\[pixivimage\\:\\S+\\]");
+        pos = 0;
+        QStringList imgs;
+        while ((pos = imrx.indexIn(html,pos)) != -1) {
+            QString im = imrx.cap(0);
+            im.remove(QRegExp(".*\\:"));
+            im.remove(']');
+            im = im.trimmed();
+            if (!im.isEmpty())
+                imgs << im;
+            pos += rbrx.matchedLength();
+        }
+        handleImages(imgs,rpl->url());*/
+
         if (!tags.isEmpty())
             html.prepend(QString("Tags: %1\n\n").arg(tags.join(" / ")));
         if (!hauthor.isEmpty())
@@ -105,6 +120,7 @@ void CPixivNovelExtractor::novelLoadFinished()
         if (!htitle.isEmpty())
             html.prepend(QString("Title: <b>%1</b>\n\n").arg(htitle));
 
+        //syncSubWorks(html);
         emit novelReady(makeSimpleHtml(wtitle,html,true,rpl->url()),m_focus,m_translate);
     }
     rpl->deleteLater();
@@ -127,4 +143,88 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
         w = m_snv->parentWnd;
     QMessageBox::warning(w,tr("JPReader"),msg);
     deleteLater();
+}
+
+void CPixivNovelExtractor::subLoadError(QNetworkReply::NetworkError error)
+{
+    Q_UNUSED(error);
+
+    m_works--;
+}
+
+void CPixivNovelExtractor::subLoadFinished()
+{
+    QNetworkReply *rpl = qobject_cast<QNetworkReply *>(sender());
+    if (rpl==nullptr) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QString key = rpl->url().toString();
+        key.remove(QRegExp(".*illust_id="));
+
+        QString html = QString::fromUtf8(rpl->readAll());
+        const QSet<int> idxs = m_imgList.value(key);
+        int pos = 0;
+        QRegExp rx("data-src=\\\".*\\\"");
+        QStringList imageUrls;
+        while ((pos = rx.indexIn(html, pos)) != -1 )
+        {
+            imageUrls << rx.cap(0);
+        }
+
+        m_imgMutex.lock();
+        for (int i=0;i<idxs.values().count();i++) {
+            int page = idxs.values().at(i);
+            if (page<1 || page>imageUrls.count()) continue;
+            if (page==1)
+                m_imgUrls[QString("[pixivimage:%1]").arg(key)] =
+                        imageUrls.at(page-1);
+            else
+                m_imgUrls[QString("[pixivimage:%1-%2]").arg(key).arg(page)] =
+                        imageUrls.at(page-1);
+        }
+        m_imgMutex.unlock();
+        rpl->deleteLater();
+    }
+
+    m_works--;
+}
+
+void CPixivNovelExtractor::handleImages(const QStringList &imgs, const QUrl& referer)
+{
+    m_imgList.clear();
+    m_imgUrls.clear();
+
+    for(const QString &img : imgs) {
+        if (img.indexOf('-')>0) {
+            QStringList sl = img.split('-');
+            bool ok;
+            int page = sl.last().toInt(&ok);
+            if (ok && page>0)
+                m_imgList[sl.first()].insert(page);
+        } else
+            m_imgList[img].insert(1);
+    }
+
+    m_works = m_imgList.keys().count();
+    for(const QString &key : m_imgList.keys()) {
+        QUrl url(QString("https://www.pixiv.net/member_illust.php?mode=manga&illust_id=%1").arg(key));
+        QNetworkRequest req(url);
+        req.setRawHeader("referer",referer.toString().toUtf8());
+        QNetworkReply* rpl = gSet->auxNetManager->get(req);
+
+        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+                this,&CPixivNovelExtractor::subLoadError);
+        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+    }
+}
+
+void CPixivNovelExtractor::syncSubWorks(QString &html)
+{
+    while (m_works>0)
+        QThread::msleep(250);
+
+    // replace fetched image urls
+    for(const QString& key : m_imgUrls) {
+        html.replace(key, QString("<img src=\"%1\"").arg(m_imgUrls.value(key)));
+    }
 }
