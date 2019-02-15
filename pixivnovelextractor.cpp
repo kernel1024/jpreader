@@ -125,6 +125,8 @@ void CPixivNovelExtractor::novelLoadFinished()
             html.prepend(QString("Title: <b>%1</b>\n\n").arg(htitle));
 
         m_html = html;
+
+        subWorkFinished(); // call just in case for empty lists
     }
     rpl->deleteLater();
 }
