@@ -509,5 +509,5 @@ void CSnCtxHandler::showInEditor()
 void CSnCtxHandler::showSource()
 {
     CSourceViewer* srcv = new CSourceViewer(snv);
-    srcv->show();
+    srcv->showNormal();
 }

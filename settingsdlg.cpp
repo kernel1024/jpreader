@@ -88,6 +88,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     pdfExtractImages=ui->checkPdfExtractImages;
     pdfImageQuality=ui->spinPdfImageQuality;
     pdfImageMaxSize=ui->spinPdfImageMaxSize;
+    pixivNovelExtractor=ui->checkPixivFetchImages;
 
     transModel = new CLangPairModel(this, gSet->settings.translatorPairs, ui->listTransDirections);
     ui->listTransDirections->setModel(transModel);

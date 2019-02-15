@@ -90,6 +90,16 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="checkPixivFetchImages">
+              <property name="toolTip">
+               <string>Fetch and embedd illustrations for novels with pixiv novel extractor</string>
+              </property>
+              <property name="text">
+               <string>Fetch images for novels</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -1970,6 +1980,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkIgnoreSSLErrors</tabstop>
   <tabstop>checkLogNetworkRequests</tabstop>
   <tabstop>checkJSLogConsole</tabstop>
+  <tabstop>checkPixivFetchImages</tabstop>
   <tabstop>checkPdfExtractImages</tabstop>
   <tabstop>spinPdfImageQuality</tabstop>
   <tabstop>spinPdfImageMaxSize</tabstop>

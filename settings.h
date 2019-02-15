@@ -71,6 +71,7 @@ public:
     int maxAdblockWhiteList;
     int pdfImageMaxSize;
     int pdfImageQuality;
+    bool pixivFetchImages;
     quint16 atlPort;
     quint16 proxyPort;
 

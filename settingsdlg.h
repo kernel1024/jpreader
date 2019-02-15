@@ -127,6 +127,7 @@ public:
     QCheckBox *pdfExtractImages;
     QSpinBox *pdfImageQuality;
     QSpinBox *pdfImageMaxSize;
+    QCheckBox* pixivNovelExtractor;
 
     QStringList loadedDicts;
 

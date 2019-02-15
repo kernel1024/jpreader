@@ -8,10 +8,8 @@
 #include "genericfuncs.h"
 #include "ui_sourceviewer.h"
 
-using namespace htmlcxx;
-
-CSourceViewer::CSourceViewer(CSnippetViewer *origin) :
-    QDialog(origin->parentWnd),
+CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
+    QWidget(parent),
     ui(new Ui::CSourceViewer)
 {
     ui->setupUi(this);
@@ -21,7 +19,15 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin) :
 
     setWindowTitle(QString("Source - %1").arg(origin->getDocTitle()));
     ui->labelTitle->setText(origin->getDocTitle());
-    ui->labelUrl->setText(origin->getUrl().toString());
+    QString url = origin->getUrl().toString();
+    if (url.startsWith("data"))
+        url = QString("data-url (RFC 2397)");
+    if (url.length()>90) {
+        url.truncate(80);
+        url.append("...");
+        url.append(origin->getUrl().toString().right(10));
+    }
+    ui->labelUrl->setText(url);
 
     origin->txtBrowser->page()->toHtml([this](const QString& html) {
         updateSource(html);
@@ -35,9 +41,9 @@ CSourceViewer::~CSourceViewer()
 
 QString CSourceViewer::reformatSource(const QString& html)
 {
-    HTML::ParserDom parser;
+    htmlcxx::HTML::ParserDom parser;
     parser.parse(html);
-    tree<HTML::Node> tree = parser.getTree();
+    tree<htmlcxx::HTML::Node> tree = parser.getTree();
     CHTMLNode doc(tree);
     QString dst;
     generateHTML(doc,dst,true,0);

@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QAtomicInteger>
 #include <QMutex>
+#include <QUrl>
 #include <snviewer.h>
 
 class CPixivNovelExtractor : public QObject
@@ -15,14 +16,16 @@ private:
     QString m_title;
     bool m_translate;
     bool m_focus;
-    QAtomicInteger<int> m_works;
+    QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     CSnippetViewer* m_snv;
     QMutex m_imgMutex;
     QHash<QString,QSet<int> > m_imgList;
     QHash<QString,QString> m_imgUrls;
+    QUrl m_origin;
 
-    void handleImages(const QStringList& imgs, const QUrl &referer);
-    void syncSubWorks(QString &html);
+    QString m_html;
+
+    void handleImages(const QStringList& imgs);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
@@ -37,8 +40,9 @@ public slots:
     void novelLoadError(QNetworkReply::NetworkError error);
 
 private slots:
-    void subLoadError(QNetworkReply::NetworkError error);
     void subLoadFinished();
+    void subWorkFinished();
+    void subImageFinished();
 
 };
 
