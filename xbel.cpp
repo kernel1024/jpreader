@@ -128,11 +128,6 @@ void BookmarkNode::remove(BookmarkNode *child)
     m_children.removeAll(child);
 }
 
-
-XbelReader::XbelReader()
-{
-}
-
 BookmarkNode *XbelReader::read(const QString &fileName)
 {
     QFile file(fileName);
@@ -145,7 +140,7 @@ BookmarkNode *XbelReader::read(const QString &fileName)
 
 BookmarkNode *XbelReader::read(QIODevice *device)
 {
-    BookmarkNode *root = new BookmarkNode(BookmarkNode::Root);
+    auto root = new BookmarkNode(BookmarkNode::Root);
     setDevice(device);
     if (readNextStartElement()) {
         QString version = attributes().value(QLatin1String("version")).toString();
@@ -179,7 +174,7 @@ void XbelReader::readFolder(BookmarkNode *parent)
 {
     Q_ASSERT(isStartElement() && name() == QLatin1String("folder"));
 
-    BookmarkNode *folder = new BookmarkNode(BookmarkNode::Folder, parent);
+    auto folder = new BookmarkNode(BookmarkNode::Folder, parent);
     folder->expanded = (attributes().value(QLatin1String("folded")) == QLatin1String("no"));
 
     while (readNextStartElement()) {
@@ -220,7 +215,7 @@ void XbelReader::readSeparator(BookmarkNode *parent)
 void XbelReader::readBookmarkNode(BookmarkNode *parent)
 {
     Q_ASSERT(isStartElement() && name() == QLatin1String("bookmark"));
-    BookmarkNode *bookmark = new BookmarkNode(BookmarkNode::Bookmark, parent);
+    auto bookmark = new BookmarkNode(BookmarkNode::Bookmark, parent);
     bookmark->url = attributes().value(QLatin1String("href")).toString();
     while (readNextStartElement()) {
         if (name() == QLatin1String("title"))

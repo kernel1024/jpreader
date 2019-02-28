@@ -9,7 +9,7 @@ CSnWaitCtl::CSnWaitCtl(CSnippetViewer *parent) :
     setProgressEnabled(true);
 }
 
-void CSnWaitCtl::setText(QString aMsg)
+void CSnWaitCtl::setText(const QString& aMsg)
 {
     snv->lblWaitMessage->setText(aMsg);
 }

@@ -38,8 +38,8 @@
 
 QT_FORWARD_DECLARE_CLASS(QVBoxLayout)
 
-typedef QPointer<QWidget> WidgetPtr;
-typedef QPair<WidgetPtr, QRect> WidgetArea;
+using WidgetPtr = QPointer<QWidget>;
+using WidgetArea = QPair<WidgetPtr, QRect>;
 
 class QxtToolTipPrivate : public QWidget
 {
@@ -55,7 +55,7 @@ public:
     void setToolTip(QWidget* tooltip);
     bool eventFilter(QObject* parent, QEvent* event);
     void hideLater();
-    QPoint calculatePos(int scr, const QPoint& eventPos) const;
+    QPoint calculatePos(QScreen *scr, const QPoint& eventPos) const;
     QHash<WidgetPtr, WidgetArea> tooltips;
     QVBoxLayout* vbox;
 

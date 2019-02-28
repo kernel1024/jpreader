@@ -19,7 +19,7 @@ class CMainWindow : public QMainWindow, public Ui::MainWindow
 public:
     CMainWindow(bool withSearch = false, bool withViewer = true,
                 const QUrl &withViewerUrl = QUrl());
-    virtual ~CMainWindow();
+    virtual ~CMainWindow() = default;
 	int lastTabIdx;
 
     // -------- Global settings and objects --------
@@ -28,7 +28,7 @@ public:
 
     // -------------------------------------
 
-    void goHistory(QUuid idx);
+    void goHistory(const QUuid& idx);
     void updateTitle();
     void checkTabs();
     void updateTabs();

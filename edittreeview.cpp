@@ -64,7 +64,7 @@ void EditTreeView::keyPressEvent(QKeyEvent *event)
         && model()) {
         removeOne();
     } else {
-        QAbstractItemView::keyPressEvent(event);
+        QTreeView::keyPressEvent(event);
     }
 }
 

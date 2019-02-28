@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include "searchmodel.h"
 
 CSearchModel::CSearchModel(QObject *parent, QTableView *view)
@@ -40,8 +40,9 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                 }
                 if (ok)
                     return tr("%1%2").arg(QString("%1").arg(sc),ps);
-                else
-                    return score;
+
+                return score;
+
             case 2: return snippets[idx]["Dir"];
             case 3: return snippets[idx]["FileSize"];
             case 4: return snippets[idx]["OnlyFilename"];
@@ -61,16 +62,18 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                 sf = score.toFloat(&ok);
                 if (ok)
                     return sf;
-                else
-                    return score;
+
+                return score;
+
             case 2: return snippets[idx]["FilePath"];
             case 3:
                 score = snippets[idx]["FileSizeNum"];
                 sc = score.toInt(&ok);
                 if (ok)
                     return sc;
-                else
-                    return score;
+
+                return score;
+
             case 4: return snippets[idx]["OnlyFilename"];
             default: return QVariant();
         }
@@ -118,15 +121,15 @@ int CSearchModel::columnCount(const QModelIndex &) const
     return 5;
 }
 
-QStrHash CSearchModel::getSnippet(int idx)
+QStrHash CSearchModel::getSnippet(int idx) const
 {
     if (idx>=0 && idx<snippets.count())
         return snippets.at(idx);
-    else
-        return QStrHash();
+
+    return QStrHash();
 }
 
-void CSearchModel::setSnippet(int idx, QStrHash snippet)
+void CSearchModel::setSnippet(int idx, const QStrHash& snippet)
 {
     if (idx<0 || idx>=snippets.count()) return;
     snippets[idx]=snippet;
@@ -138,7 +141,7 @@ QStringList CSearchModel::getSnippetKeys(int idx)
     return snippets[idx].keys();
 }
 
-QStringList CSearchModel::getDistinctValues(QString snippetKey)
+QStringList CSearchModel::getDistinctValues(const QString &snippetKey)
 {
     QStringList sl;
     sl.clear();

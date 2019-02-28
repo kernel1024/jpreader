@@ -28,10 +28,10 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
     connect(selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
     connect(longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
-    connect(snv->transButton, &QPushButton::pressed, [this](){
+    connect(snv->transButton, &QPushButton::pressed, this, [this](){
         longClickTimer->start();
     });
-    connect(snv->transButton, &QPushButton::released, [this](){
+    connect(snv->transButton, &QPushButton::released, this, [this](){
         bool ta = longClickTimer->isActive();
         if (ta)
             longClickTimer->stop();
@@ -50,14 +50,13 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
 {
     snv->calculatedUrl.clear();
     snv->onceTranslated=true;
-    QString aUri = data;
     savedBaseUrl = snv->txtBrowser->page()->url();
     if (savedBaseUrl.hasFragment())
         savedBaseUrl.setFragment(QString());
 
-    CTranslator* ct = new CTranslator(nullptr,aUri);
+    auto ct = new CTranslator(nullptr,data);
     QString res;
-    if (!ct->documentReparse(aUri,res)) {
+    if (!ct->documentReparse(data,res)) {
         QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
         return;
     }
@@ -99,10 +98,11 @@ void CSnTrans::getImgUrlsAndParse()
 {
     snv->txtBrowser->page()->toHtml([this](const QString& result) {
 
-        CTranslator* ct = new CTranslator(nullptr,result);
+        auto ct = new CTranslator(nullptr,result);
         QString res;
         if (!ct->documentReparse(result,res)) {
-            QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed. Unable to get image urls."));
+            QMessageBox::critical(snv,tr("JPReader"),
+                                  tr("Translation to XML failed. Unable to get image urls."));
             return;
         }
 
@@ -110,7 +110,7 @@ void CSnTrans::getImgUrlsAndParse()
         if (baseUrl.hasFragment())
             baseUrl.setFragment(QString());
         QStringList urls;
-        foreach (const QString& s, ct->getImgUrls()) {
+        for (const QString& s : ct->getImgUrls()) {
             QUrl u = QUrl(s);
             if (u.isRelative())
                 u = baseUrl.resolved(u);
@@ -125,8 +125,8 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     snv->calculatedUrl.clear();
     snv->onceTranslated=true;
 
-    CTranslator* ct = new CTranslator(nullptr,aUri,forceTranSubSentences);
-    QThread* th = new QThread();
+    auto ct = new CTranslator(nullptr,aUri,forceTranSubSentences);
+    auto th = new QThread();
     connect(ct,&CTranslator::calcFinished,
             this,&CSnTrans::calcFinished,Qt::QueuedConnection);
     snv->waitHandler->setProgressValue(0);
@@ -295,7 +295,7 @@ void CSnTrans::selectionShow()
 void CSnTrans::showWordTranslation(const QString &html)
 {
     if (snv->ctxHandler->menuActive->isActive()) return;
-    CSpecToolTipLabel *t = new CSpecToolTipLabel(html);
+    auto t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(350,350);
@@ -323,8 +323,8 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
 void CSnTrans::dictDataReady()
 {
     QString res = QString();
-    QNetworkReply* rep = qobject_cast<QNetworkReply *>(sender());
-    if (rep!=nullptr) {
+    auto rep = qobject_cast<QNetworkReply *>(sender());
+    if (rep) {
         res = QString::fromUtf8(rep->readAll());
         rep->deleteLater();
     }

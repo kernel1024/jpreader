@@ -16,7 +16,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
             engine = nullptr;
             return;
         }
-        QThread* th = new QThread();
+        auto th = new QThread();
         if (indexerSerivce == SE_RECOLL)
             engine = new CRecollSearch();
         else

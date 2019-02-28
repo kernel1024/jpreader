@@ -43,8 +43,8 @@ void CSpecTabWidget::tabRightClick(int index)
 {
     emit tabRightClicked(index);
     if (mainTabWidget) {
-        CSpecTabContainer * tb = qobject_cast<CSpecTabContainer *>(widget(index));
-        if (tb!=nullptr && tb->parentWnd!=nullptr) {
+        auto tb = qobject_cast<CSpecTabContainer *>(widget(index));
+        if (tb && tb->parentWnd) {
             if (!tb->parentWnd->titleRenamedLock.isActive())
                 tb->closeTab();
         }
@@ -59,23 +59,24 @@ void CSpecTabWidget::mouseDoubleClickEvent(QMouseEvent *event)
 bool CSpecTabWidget::event(QEvent *event)
 {
     if (event->type()==QEvent::ToolTip) {
-        QHelpEvent* e = dynamic_cast<QHelpEvent *>(event);
+        auto e = dynamic_cast<QHelpEvent *>(event);
         QPoint gpos = QPoint();
         QPoint lpos = QPoint();
-        if (e!=nullptr) {
+        if (e) {
             gpos = e->globalPos();
             lpos = e->pos();
         }
         emit tooltipRequested(gpos,lpos);
         event->accept();
         return true;
-    } else
-        return QTabWidget::event(event);
+    }
+
+    return QTabWidget::event(event);
 }
 
 void CSpecTabWidget::createTab()
 {
-    if (mainTabWidget && parentWnd!=nullptr)
+    if (mainTabWidget && parentWnd)
         parentWnd->openEmptyBrowser();
 }
 
@@ -132,7 +133,7 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
             }
         } else if (event->button()==Qt::LeftButton) {
             if (tabRect(i).contains(event->pos())) {
-                if (m_tabWidget!=nullptr) {
+                if (m_tabWidget) {
                     m_draggingTab = qobject_cast<CSpecTabContainer *>(m_tabWidget->widget(i));
                     m_dragStart = event->pos();
                 }
@@ -163,8 +164,8 @@ void CSpecTabBar::mouseReleaseEvent(QMouseEvent *event)
 
 void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
 {
-    if ((m_draggingTab!=nullptr) &&
-            (m_tabWidget!=nullptr) &&
+    if ((m_draggingTab) &&
+            (m_tabWidget) &&
             (event->buttons() == Qt::LeftButton)) {
 
         QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(QMargins(50,50,50,100));
@@ -200,8 +201,8 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
 {
     if ( hint == SH_DrawMenuBarSeparator)
         return static_cast<int>(true);
-    else
-        return QProxyStyle::styleHint(hint, option, widget, returnData);
+
+    return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
 void CSpecToolTipLabel::hideEvent(QHideEvent *)
@@ -258,7 +259,7 @@ void CSpecTabContainer::detachTab()
     CSpecTabContainer* ntab = nullptr;
 
     CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
-    if (snv!=nullptr) {
+    if (snv) {
         QString url("about://blank");
         if (!snv->fileChanged) url=snv->urlEdit->text();
 
@@ -275,7 +276,7 @@ void CSpecTabContainer::detachTab()
     }
 
     CSearchTab* stb = qobject_cast<CSearchTab *>(this);
-    if (stb!=nullptr) {
+    if (stb) {
         QString query = stb->getLastQuery();
         if (!query.isEmpty()) {
             CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
@@ -285,7 +286,7 @@ void CSpecTabContainer::detachTab()
         }
     }
 
-    if (ntab!=nullptr) {
+    if (ntab) {
         closeTab();
         ntab->activateWindow();
         ntab->parentWnd->raise();
@@ -314,7 +315,7 @@ void CSpecTabContainer::closeTab(bool nowait)
         if (gSet->blockTabCloseActive) return;
         gSet->blockTabClose();
     }
-    if (tabWidget!=nullptr) {
+    if (tabWidget) {
         if ((parentWnd->lastTabIdx>=0) &&
                 (parentWnd->lastTabIdx<tabWidget->count())) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
         tabWidget->removeTab(tabWidget->indexOf(this));
@@ -360,7 +361,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 
 void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (parentViewer!=nullptr)
+    if (parentViewer)
         parentViewer->ctxHandler->contextMenu(event->pos(), m_page->contextMenuData());
 }
 
@@ -532,8 +533,8 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 
     if (gSet->mainHistory.count()>100)
         return 100;
-    else
-        return gSet->mainHistory.count();
+
+    return gSet->mainHistory.count();
 }
 
 QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
@@ -563,7 +564,7 @@ CGDTextBrowser::CGDTextBrowser(QWidget *parent)
 
 QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
-    if (gSet!=nullptr && url.scheme().toLower()==QLatin1String("gdlookup")) {
+    if (gSet && url.scheme().toLower()==QLatin1String("gdlookup")) {
         QByteArray rplb;
 
         CIOEventLoop ev;
@@ -629,7 +630,7 @@ QList<QNetworkCookie> CNetworkCookieJar::getAllCookies()
     return allCookies();
 }
 
-void CNetworkCookieJar::initAllCookies(const QList<QNetworkCookie> cookies)
+void CNetworkCookieJar::initAllCookies(const QList<QNetworkCookie> & cookies)
 {
     setAllCookies(cookies);
 }
@@ -642,15 +643,18 @@ CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
 
 void CFaviconLoader::queryStart(bool forceCached)
 {
-    if (gSet->favicons.keys().contains(m_url.host()+m_url.path())) {
-        emit gotIcon(gSet->favicons[m_url.host()+m_url.path()]);
-        deleteLater();
-        return;
-    } else if (gSet->favicons.keys().contains(m_url.host())) {
-        emit gotIcon(gSet->favicons[m_url.host()]);
+    if (gSet->favicons.contains(m_url.host()+m_url.path())) {
+        emit gotIcon(gSet->favicons.value(m_url.host()+m_url.path()));
         deleteLater();
         return;
     }
+
+    if (gSet->favicons.contains(m_url.host())) {
+        emit gotIcon(gSet->favicons.value(m_url.host()));
+        deleteLater();
+        return;
+    }
+
     if (forceCached) {
         deleteLater();
         return;
@@ -671,7 +675,7 @@ void CFaviconLoader::queryStart(bool forceCached)
 
 void CFaviconLoader::queryFinished()
 {
-    QNetworkReply *rpl = qobject_cast<QNetworkReply*>(sender());
+    auto rpl = qobject_cast<QNetworkReply*>(sender());
     if (rpl==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {

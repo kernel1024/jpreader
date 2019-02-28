@@ -26,12 +26,14 @@
 
 #define IPC_EOF "\n###"
 
-CGlobalControl::CGlobalControl(QApplication *parent) :
+CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     QObject(parent)
 {
     ipcServer = nullptr;
     if (!setupIPC())
         return;
+
+    inspectorPort = aInspectorPort;
 
     atlCertErrorInteractive=false;
 
@@ -84,10 +86,10 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     connect(ui.actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
 
-    connect(ui.actionJSUsage,&QAction::toggled,[this](bool checked){
+    connect(ui.actionJSUsage,&QAction::toggled,this,[this](bool checked){
         webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
     });
-    connect(ui.actionLogNetRequests,&QAction::toggled,[this](bool checked){
+    connect(ui.actionLogNetRequests,&QAction::toggled,this,[this](bool checked){
         settings.debugNetReqLogging = checked;
     });
 
@@ -137,15 +139,15 @@ CGlobalControl::CGlobalControl(QApplication *parent) :
 
     dictManager = new CGoldenDictMgr(this);
 
-    connect(dictManager,&CGoldenDictMgr::showStatusBarMessage,[this](const QString& msg){
-        if (activeWindow!=nullptr) {
+    connect(dictManager,&CGoldenDictMgr::showStatusBarMessage,this,[this](const QString& msg){
+        if (activeWindow) {
             if (msg.isEmpty())
                 activeWindow->statusBar()->clearMessage();
             else
                 activeWindow->statusBar()->showMessage(msg);
         }
     });
-    connect(dictManager,&CGoldenDictMgr::showCriticalMessage,[this](const QString& msg){
+    connect(dictManager,&CGoldenDictMgr::showCriticalMessage,this,[this](const QString& msg){
         QMessageBox::critical(activeWindow,tr("JPReader"),msg);
     });
 
@@ -168,7 +170,7 @@ bool CGlobalControl::setupIPC()
     QString serverName = IPC_NAME;
     serverName.replace(QRegExp("[^\\w\\-. ]"), QString());
 
-    QLocalSocket *socket = new QLocalSocket();
+    auto socket = new QLocalSocket();
     socket->connectToServer(serverName);
     if (socket->waitForConnected(1000)){
         // Connected. Process is already running, send message to it
@@ -190,8 +192,8 @@ bool CGlobalControl::setupIPC()
                 return false;
             }
             // Old instance closed, start new one
+            QLocalServer::removeServer(serverName);
             ipcServer = new QLocalServer();
-            ipcServer->removeServer(serverName);
             ipcServer->listen(serverName);
             connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
         } else {
@@ -203,8 +205,8 @@ bool CGlobalControl::setupIPC()
         }
     } else {
         // New process. Startup server and gSet normally, listen for new instances
+        QLocalServer::removeServer(serverName);
         ipcServer = new QLocalServer();
-        ipcServer->removeServer(serverName);
         ipcServer->listen(serverName);
         connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
     }
@@ -224,13 +226,13 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 
 void CGlobalControl::cookieAdded(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar()!=nullptr)
+    if (auxNetManager->cookieJar())
         auxNetManager->cookieJar()->insertCookie(cookie);
 }
 
 void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar()!=nullptr)
+    if (auxNetManager->cookieJar())
         auxNetManager->cookieJar()->deleteCookie(cookie);
 }
 
@@ -255,7 +257,7 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
 
     atlCertErrorInteractive = true;
     if (mbox.exec()==QMessageBox::Yes) {
-        foreach (const int errCode, errCodes) {
+        for (const int errCode : qAsConst(errCodes)) {
             if (!gSet->atlCerts[cert].contains(errCode))
                 gSet->atlCerts[cert].append(errCode);
         }
@@ -318,7 +320,7 @@ void CGlobalControl::showDictionaryWindowEx(const QString &text)
         auxDictionary->restoreWindow();
 }
 
-void CGlobalControl::appendSearchHistory(QStringList req)
+void CGlobalControl::appendSearchHistory(const QStringList& req)
 {
     for(int i=0;i<req.count();i++) {
         int idx = searchHistory.indexOf(req.at(i));
@@ -328,7 +330,7 @@ void CGlobalControl::appendSearchHistory(QStringList req)
     }
 }
 
-void CGlobalControl::appendRecycled(QString title, QUrl url)
+void CGlobalControl::appendRecycled(const QString& title, const QUrl& url)
 {
     int idx = recycleBin.indexOf(UrlHolder(title,url));
     if (idx>=0)
@@ -341,7 +343,7 @@ void CGlobalControl::appendRecycled(QString title, QUrl url)
     emit updateAllRecycleBins();
 }
 
-void CGlobalControl::appendMainHistory(UrlHolder &item)
+void CGlobalControl::appendMainHistory(const UrlHolder &item)
 {
     if (item.url.toString().startsWith("data:",Qt::CaseInsensitive)) return;
 
@@ -355,7 +357,7 @@ void CGlobalControl::appendMainHistory(UrlHolder &item)
     emit updateAllHistoryLists();
 }
 
-bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
+bool CGlobalControl::updateMainHistoryTitle(const UrlHolder &item, const QString& newTitle)
 {
     if (mainHistory.contains(item)) {
         int idx = mainHistory.indexOf(item);
@@ -368,7 +370,7 @@ bool CGlobalControl::updateMainHistoryTitle(UrlHolder &item, QString newTitle)
     return false;
 }
 
-void CGlobalControl::appendRecent(QString filename)
+void CGlobalControl::appendRecent(const QString& filename)
 {
     QFileInfo fi(filename);
     if (!fi.exists()) return;
@@ -407,7 +409,7 @@ void CGlobalControl::ipcMessageReceived()
 void CGlobalControl::focusChanged(QWidget *, QWidget *now)
 {
     if (now==nullptr) return;
-    CMainWindow* mw = qobject_cast<CMainWindow*>(now->window());
+    auto mw = qobject_cast<CMainWindow*>(now->window());
     if (mw==nullptr) return;
     activeWindow=mw;
 }
@@ -439,8 +441,8 @@ void CGlobalControl::cleanupAndExit()
     emit stopTranslators();
 
     if (mainWindows.count()>0) {
-        foreach (CMainWindow* w, mainWindows) {
-            if (w!=nullptr)
+        for (CMainWindow* w : qAsConst(mainWindows)) {
+            if (w)
                 w->close();
             QApplication::processEvents();
         }
@@ -462,13 +464,13 @@ void CGlobalControl::cleanupAndExit()
     QApplication::quit();
 }
 
-bool CGlobalControl::isUrlBlocked(QUrl url)
+bool CGlobalControl::isUrlBlocked(const QUrl& url)
 {
     QString dummy = QString();
     return isUrlBlocked(url,dummy);
 }
 
-bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
+bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 {
     if (!settings.useAdblock) return false;
     if (!url.scheme().startsWith("http",Qt::CaseInsensitive)) return false;
@@ -479,7 +481,7 @@ bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
 
     if (adblockWhiteList.contains(u)) return false;
 
-    foreach (const CAdBlockRule& rule, adblock) {
+    for (const CAdBlockRule& rule : qAsConst(adblock)) {
         if (rule.networkMatch(u)) {
             filter = rule.filter();
             return true;
@@ -496,19 +498,19 @@ bool CGlobalControl::isUrlBlocked(QUrl url, QString &filter)
     return false;
 }
 
-void CGlobalControl::adblockAppend(QString url)
+void CGlobalControl::adblockAppend(const QString& url)
 {
     adblockAppend(CAdBlockRule(url,QString()));
 }
 
-void CGlobalControl::adblockAppend(CAdBlockRule url)
+void CGlobalControl::adblockAppend(const CAdBlockRule& url)
 {
     QList<CAdBlockRule> list;
     list << url;
     adblockAppend(list);
 }
 
-void CGlobalControl::adblockAppend(QList<CAdBlockRule> urls)
+void CGlobalControl::adblockAppend(const QList<CAdBlockRule>& urls)
 {
     adblock.append(urls);
 
@@ -597,12 +599,11 @@ QList<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool is
     userScriptsMutex.lock();
 
     QList<CUserScript> scripts;
-    QHash<QString, CUserScript>::iterator iterator;
 
-    for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
-        if (iterator.value().isEnabledForUrl(url) &&
-                (isMainFrame || iterator.value().shouldRunOnSubFrames()))
-            scripts.append(iterator.value());
+    for (auto it = userScripts.constBegin(), end = userScripts.constEnd(); it != end; ++it)
+        if (it.value().isEnabledForUrl(url) &&
+                (isMainFrame || it.value().shouldRunOnSubFrames()))
+            scripts.append(it.value());
 
     userScriptsMutex.unlock();
 
@@ -614,9 +615,8 @@ void CGlobalControl::initUserScripts(const QStrHash &scripts)
     userScriptsMutex.lock();
 
     userScripts.clear();
-    QStrHash::const_iterator iterator;
-    for (iterator = scripts.begin(); iterator != scripts.end(); ++iterator)
-        userScripts[iterator.key()] = CUserScript(iterator.key(), iterator.value());
+    for (auto it = scripts.constBegin(), end = scripts.constEnd(); it != end; ++it)
+        userScripts[it.key()] = CUserScript(it.key(), it.value());
 
     userScriptsMutex.unlock();
 }
@@ -626,10 +626,9 @@ QStrHash CGlobalControl::getUserScripts()
     userScriptsMutex.lock();
 
     QStrHash res;
-    QHash<QString, CUserScript>::iterator iterator;
 
-    for (iterator = userScripts.begin(); iterator != userScripts.end(); ++iterator)
-        res[iterator.key()] = iterator.value().getSource();
+    for (auto it = userScripts.constBegin(), end = userScripts.constEnd(); it != end; ++it)
+        res[it.key()] = (*it).getSource();
 
     userScriptsMutex.unlock();
 

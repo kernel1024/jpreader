@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QUrl>
 #include <snviewer.h>
+#include <structures.h>
 
 class CPixivNovelExtractor : public QObject
 {
@@ -19,7 +20,7 @@ private:
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     CSnippetViewer* m_snv;
     QMutex m_imgMutex;
-    QHash<QString,QSet<int> > m_imgList;
+    QHash<QString,QIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
     QUrl m_origin;
 

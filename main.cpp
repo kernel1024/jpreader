@@ -41,8 +41,7 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    gSet = new CGlobalControl(&app);
-    gSet->inspectorPort = dbgport;
+    gSet = new CGlobalControl(&app, dbgport);
     if (gSet->ipcServer==nullptr)
         return 0;
 

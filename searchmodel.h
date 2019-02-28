@@ -25,10 +25,10 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     int rowCount( const QModelIndex & parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent) const;
-    QStrHash getSnippet(int idx);
-    void setSnippet(int idx, QStrHash snippet);
+    QStrHash getSnippet(int idx) const;
+    void setSnippet(int idx, const QStrHash &snippet);
     QStringList getSnippetKeys(int idx);
-    QStringList getDistinctValues(QString snippetKey);
+    QStringList getDistinctValues(const QString &snippetKey);
 
 signals:
     void itemContentsUpdated();

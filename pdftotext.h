@@ -19,7 +19,7 @@ private:
     bool m_prevblock;
 
     QString formatPdfText(const QString &text);
-    QByteArray zlibInflate(const QByteArray &src);
+    int zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize);
     static void outputToString(void *stream, const char *text, int len);
 
 public slots:

@@ -1,6 +1,6 @@
 #include <QMessageBox>
 #include <QTextCodec>
-#include <math.h>
+#include <cmath>
 #include "searchtab.h"
 #include "ui_searchtab.h"
 #include "globalcontrol.h"
@@ -15,7 +15,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
-    QThread *th = new QThread();
+    auto th = new QThread();
     engine = new CIndexerSearch();
     titleTran = new CTitlesTranslator();
 
@@ -39,7 +39,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(model, &CSearchModel::itemContentsUpdated, sort, &QSortFilterProxyModel::invalidate);
 
     QHeaderView *hh = ui->listResults->horizontalHeader();
-    if (hh!=nullptr) {
+    if (hh) {
         hh->setToolTip(tr("Right click for advanced commands on results list"));
         hh->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(hh, &QHeaderView::customContextMenuRequested,
@@ -98,7 +98,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     engine->moveToThread(th);
     th->start();
 
-    QThread* th2 = new QThread();
+    auto th2 = new QThread();
     titleTran->moveToThread(th2);
     th2->start();
 }
@@ -154,8 +154,7 @@ void CSearchTab::searchFinished(const QStrHash &stats, const QString& query)
 
     QString elapsed = QString(stats["Elapsed time"]).remove(QRegExp("[s]"));
     QString statusmsg(tr("Found %1 results at %2 seconds").
-            arg(stats["Total hits"]).
-            arg(elapsed));
+            arg(stats["Total hits"],elapsed));
     ui->labelStatus->setText(statusmsg);
     parentWnd->stSearchStatus.setText(tr("Ready"));
     parentWnd->updateTitle();
@@ -171,7 +170,7 @@ void CSearchTab::translateTitles()
     QStringList titles;
 
     for (int i=0;i<model->rowCount();i++)
-        titles << model->getSnippet(i)["dc:title"];
+        titles << model->getSnippet(i).value("dc:title");
 
     emit translateTitlesSrc(titles);
 }
@@ -207,7 +206,7 @@ void CSearchTab::updateProgress(const int pos)
 void CSearchTab::headerMenu(const QPoint &pos)
 {
     if (model->rowCount()==0) return;
-    QHeaderView* hh = qobject_cast<QHeaderView *>(sender());
+    auto hh = qobject_cast<QHeaderView *>(sender());
     if (hh==nullptr) return;
 
     int column = hh->logicalIndexAt(pos);
@@ -235,7 +234,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
 
 void CSearchTab::applyFilter()
 {
-    QAction *ac = qobject_cast<QAction *>(sender());
+    auto ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
     QString dir = ac->data().toString();
@@ -428,7 +427,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = tran!=nullptr &&
+            bool makeTran = tran &&
                             gSet->ui.actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
@@ -443,7 +442,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             snippets[i] << fspart;
         }
     }
-    if (tran!=nullptr) {
+    if (tran) {
         if (tran->isReady())
             tran->doneTran();
         tran->deleteLater();
@@ -507,7 +506,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     return snippet;
 }
 
-QStringList CSearchTab::splitQuery(QString aQuery) {
+QStringList CSearchTab::splitQuery(const QString &aQuery) {
     QString sltx=aQuery;
     QStringList res;
     QString tmp;

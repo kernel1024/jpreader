@@ -117,6 +117,11 @@ CONFIG += warn_on \
     stl \
     c++14
 
+# warn on *any* usage of deprecated APIs
+DEFINES += QT_DEPRECATED_WARNINGS
+# ... and just fail to compile if APIs deprecated in Qt <= 5.10 are used
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050A00
+
 LIBS += -lz -lgoldendict
 
 exists( /usr/include/magic.h ) {

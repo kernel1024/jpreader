@@ -43,8 +43,10 @@ public:
     bool pageLoaded;
     bool auxContentLoaded;
 
-    CSnippetViewer(CMainWindow* parent, QUrl aUri = QUrl(), QStringList aSearchText = QStringList(),
-                   bool setFocused = true, QString AuxContent = QString(), QString zoom = QString("100%"),
+    CSnippetViewer(CMainWindow* parent, const QUrl& aUri = QUrl(),
+                   const QStringList& aSearchText = QStringList(),
+                   bool setFocused = true, const QString& AuxContent = QString(),
+                   const QString& zoom = QString("100%"),
                    bool startPage = false);
     virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event);
@@ -59,8 +61,8 @@ public:
     void printToPDF();
 public slots:
     void navByUrlDefault();
-    void navByUrl(QUrl url);
-    void navByUrl(QString url);
+    void navByUrl(const QUrl &url);
+    void navByUrl(const QString &url);
     void titleChanged(const QString & title);
     void urlChanged(const QUrl & url);
     void statusBarMsg(const QString & msg);

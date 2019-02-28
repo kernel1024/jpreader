@@ -7,7 +7,7 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentences)
+CTranslator::CTranslator(QObject* parent, const QString& aUri, bool forceTranSubSentences)
     : QObject(parent)
 {
     hostingDir=gSet->settings.hostingDir;
@@ -42,7 +42,7 @@ CTranslator::CTranslator(QObject* parent, QString aUri, bool forceTranSubSentenc
 
 CTranslator::~CTranslator()
 {
-    if (tran!=nullptr)
+    if (tran)
         tran->deleteLater();
 }
 
@@ -78,16 +78,16 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
         r=(QProcess::execute("scp",scpp)==0);
         if (r) calculatedUrl=hostingUrl+wname;
         return r;
-    } else {
-        r=QFile(filename).copy(wdir+wname);
-        if (r) {
-            if (createdFiles!=nullptr) createdFiles->append(wdir+wname);
-            calculatedUrl=hostingUrl+wname;
-            b = true;
-        } else
-            b = false;
-        return b;
     }
+
+    r=QFile(filename).copy(wdir+wname);
+    if (r) {
+        if (createdFiles) createdFiles->append(wdir+wname);
+        calculatedUrl=hostingUrl+wname;
+        b = true;
+    } else
+        b = false;
+    return b;
 }
 
 bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
@@ -217,7 +217,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     return true;
 }
 
-QStringList CTranslator::getImgUrls()
+QStringList CTranslator::getImgUrls() const
 {
     return imgUrls;
 }
@@ -343,7 +343,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             // remove ruby annotation (superscript), unfold main text block
             if (node.children.at(idx).tagName.toLower()==QLatin1String("ruby")) {
                 QList<CHTMLNode> subnodes;
-                foreach (const CHTMLNode& rnode, node.children.at(idx).children)
+                for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children))
                     if (rnode.tagName.toLower()==QLatin1String("rb"))
                         subnodes << rnode.children;
 
@@ -466,8 +466,8 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 QString ttest = srct;
                 bool noText = true;
                 ttest.remove(QRegExp("&\\w+;"));
-                for (int j=0;j<ttest.length();j++) {
-                    if (ttest.at(j).isLetter()) {
+                for (const QChar &tc : qAsConst(ttest)) {
+                    if (tc.isLetter()) {
                         noText = false;
                         break;
                     }
@@ -518,25 +518,26 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     sout += t;
                     failure = true;
                     break;
-                } else {
-                    if (useOverrideFont || forceFontColor) {
-                        QString dstyle;
-                        if (useOverrideFont)
-                            dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
-                                        overrideFont.family()).arg(
-                                        overrideFont.pointSize());
-                        if (forceFontColor)
-                            dstyle+=tr("color: %1;").arg(forcedFontColor.name());
-
-                        sout += QString("<span style=\"%1\">%2</span>").arg(dstyle,t);
-                    } else
-                        sout += t;
-
-                    if (translationMode==TM_ADDITIVE)
-                        sout += "<br/>\n";
-                    else
-                        srctls << srct;
                 }
+
+                if (useOverrideFont || forceFontColor) {
+                    QString dstyle;
+                    if (useOverrideFont)
+                        dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
+                                    overrideFont.family()).arg(
+                                    overrideFont.pointSize());
+                    if (forceFontColor)
+                        dstyle+=tr("color: %1;").arg(forcedFontColor.name());
+
+                    sout += QString("<span style=\"%1\">%2</span>").arg(dstyle,t);
+                } else
+                    sout += t;
+
+                if (translationMode==TM_ADDITIVE)
+                    sout += "<br/>\n";
+                else
+                    srctls << srct;
+
             }
 
             if (textNodesCnt>0 && i%5==0) {
@@ -622,11 +623,12 @@ void CTranslator::translate()
                 if (translateDocument(Uri,aUrl)) {
                     oktrans = true;
                     break;
-                } else if (tran!=nullptr)
+                }
+                if (tran)
                     lastError = tran->getErrorMsg();
                 else
                     lastError = tr("ATLAS translator failed.");
-                if (tran!=nullptr)
+                if (tran)
                     tran->doneTran(true);
                 QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
             }
@@ -641,7 +643,7 @@ void CTranslator::translate()
                translationEngine==TE_GOOGLE_GTX) {
         if (!translateDocument(Uri,aUrl)) {
             QString lastError = tr("Translator initialization error");
-            if (tran!=nullptr)
+            if (tran)
                 lastError = tran->getErrorMsg();
             emit calcFinished(false,aUrl,lastError);
             deleteLater();
@@ -661,10 +663,10 @@ void CTranslator::translate()
 void CTranslator::abortTranslator()
 {
     // Intermediate timer, because sometimes webengine throws segfault from its insides on widget resize event
-    QTimer* imt = new QTimer(this);
+    auto imt = new QTimer(this);
     imt->setSingleShot(true);
     imt->setInterval(500);
-    connect(imt,&QTimer::timeout,[this,imt](){
+    connect(imt,&QTimer::timeout,this,[this,imt](){
         abortMutex.lock();
         abortFlag=true;
         abortMutex.unlock();

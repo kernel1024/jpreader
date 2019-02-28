@@ -36,8 +36,8 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             QString res;
             ssrc = ssrc.replace("\r\n","\n");
             ssrc = ssrc.replace('\r','\n');
-            QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
-            foreach (const QString &s, sl) {
+            const QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
+            for (const QString &s : qAsConst(sl)) {
                 if (s.trimmed().isEmpty())
                     res.append('\n');
                 else {
@@ -52,7 +52,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             tran->doneTran();
             m_text = res;
         }
-        if (tran!=nullptr)
+        if (tran)
             tran->deleteLater();
     }
     emit gotTranslation(m_text);

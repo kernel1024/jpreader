@@ -95,10 +95,9 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
     Object obj;
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
-        const char *s = obj.getString()->c_str();
-        if (s[0] == 'D' && s[1] == ':') {
-            s += 2;
-        }
+        QString s = QString::fromUtf8(obj.getString()->c_str());
+        if (s.startsWith("D:"))
+            s.remove(0,2);
         out.append(QString(fmt).arg(s));
     }
 }
@@ -166,7 +165,7 @@ void CPDFWorker::outputToString(void *stream, const char *text, int len)
                                       "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
 
     if (stream==nullptr) return;
-    CPDFWorker* worker = reinterpret_cast<CPDFWorker *>(stream);
+    auto worker = reinterpret_cast<CPDFWorker *>(stream);
     QString tx = QString::fromUtf8(text,len);
 
     for (int i=0;i<tx.length();i++) {
@@ -289,38 +288,35 @@ QString CPDFWorker::formatPdfText(const QString& text)
     return s;
 }
 
-QByteArray CPDFWorker::zlibInflate(const QByteArray& src)
+int CPDFWorker::zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize)
 {
-    QByteArray result;
     z_stream strm;
     int ret;
-    unsigned char buf[1024];
-    unsigned int bufsz = sizeof(buf);
 
     strm.zalloc = nullptr;
     strm.zfree = nullptr;
     strm.opaque = nullptr;
-    strm.avail_in = static_cast<unsigned int>(src.length());
-    strm.next_in = reinterpret_cast<unsigned char *>(const_cast<char *>(src.data()));
+    strm.avail_in = static_cast<uint>(srcSize);
+    strm.next_in = reinterpret_cast<uchar*>(const_cast<char*>(src));
 
     ret = inflateInit(&strm);
     if (ret != Z_OK)
-        return QByteArray();
+        return -1;
 
-    do {
-        strm.avail_out = bufsz;
-        strm.next_out = buf;
-        ret = inflate(&strm,Z_NO_FLUSH);
-        if ((ret != Z_OK) && (ret != Z_STREAM_END)) {
-            inflateEnd(&strm);
-            return QByteArray();
-        }
-        result.append(reinterpret_cast<char *>(&buf), static_cast<int>(bufsz - strm.avail_out));
-    } while (strm.avail_out == 0);
-
+    strm.avail_out = static_cast<uint>(dstSize);
+    strm.next_out = dst;
+    ret = inflate(&strm,Z_NO_FLUSH);
     inflateEnd(&strm);
 
-    return result;
+    if ((ret != Z_OK) && (ret != Z_STREAM_END)) {
+        return -2;
+    }
+
+    if ((ret == Z_OK) && (strm.avail_out == 0)) {
+        return -3;
+    }
+
+    return (dstSize - static_cast<int>(strm.avail_out));
 }
 
 void CPDFWorker::pdfToText(const QString &filename)
@@ -418,7 +414,7 @@ void CPDFWorker::pdfToText(const QString &filename)
 
     delete textOut;
 
-    QMultiHash<int,QByteArray> images;
+    QHash<int,QList<QByteArray> > images;
     if (gSet->settings.pdfExtractImages) {
         for (int pageNum=1;pageNum<=lastPage;pageNum++) {
             Dict *dict = doc->getPage(pageNum)->getResourceDict();
@@ -435,7 +431,7 @@ void CPDFWorker::pdfToText(const QString &filename)
                     BaseStream* data = xitem.getStream()->getBaseStream();
                     int size = static_cast<int>(data->getLength());
                     QByteArray ba;
-                    ba.fill('\0',size);
+                    ba.resize(size);
 #ifdef JPDF_PRE073_API
                     data->doGetChars(size,reinterpret_cast<Guchar *>(ba.data()));
 #else
@@ -451,21 +447,22 @@ void CPDFWorker::pdfToText(const QString &filename)
                         int dheight = xitem.streamGetDict()->lookup("Height").getInt();
                         int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
 
-                        ba = zlibInflate(ba);
-
-                        if (!ba.isNull() && (dBPP == 8))
-                            // RGB888 image, do not support indexed images and 16bpp images
-                            img = QImage(reinterpret_cast<const uchar *>(ba.constData()),
-                                         dwidth,dheight,dwidth*3,QImage::Format_RGB888);
-                        else
+                        if (dBPP == 8) {
+                            img = QImage(dwidth,dheight,QImage::Format_RGB888);
+                            int sz = zlibInflate(ba.constData(),ba.size(),
+                                                 img.bits(),static_cast<int>(img.sizeInBytes()));
+                            if (sz<0)
+                                qWarning() << tr("Failed to uncompress page from PDF stream %1 at page %2")
+                                              .arg(xo_idx).arg(pageNum);
+                        } else
                             qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3, BPP = %4)")
                                           .arg(xo_idx).arg(pageNum).arg(kind).arg(dBPP);
-
                     } else if (kind==StreamKind::strDCT) { // JPEG stream
                         img = QImage::fromData(ba);
                     } else
                         qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3)")
                                       .arg(xo_idx).arg(pageNum).arg(kind);
+                    ba.clear();
 
                     if (!img.isNull()) {
                         if (img.width()>img.height()) {
@@ -481,7 +478,7 @@ void CPDFWorker::pdfToText(const QString &filename)
                         QBuffer buf(&ba);
                         buf.open(QIODevice::WriteOnly);
                         img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
-                        images.insert(pageNum,ba);
+                        images[pageNum].append(ba);
                         ba.clear();
                     }
                 }
@@ -497,7 +494,8 @@ void CPDFWorker::pdfToText(const QString &filename)
         if (idx>1)
             m_text.append("<hr>");
 
-        foreach (const QByteArray& img, images.values(idx)) {
+        const auto imgList = images.value(idx);
+        for (const QByteArray& img : imgList) {
             m_text.append("<img src=\"data:image/jpeg;base64,");
             m_text.append(QString::fromLatin1(img.toBase64()));
             m_text.append("\" />&nbsp;");

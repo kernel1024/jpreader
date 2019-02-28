@@ -145,9 +145,9 @@ private:
     void resizeEvent(QResizeEvent *event);
 
     void updateCookiesTable();
-    QList<int> getSelectedRows(QTableWidget* table);
+    QList<int> getSelectedRows(QTableWidget* table) const;
     void updateAdblockList();
-    void adblockFocusSearchedRule(QList<QTreeWidgetItem *> items);
+    void adblockFocusSearchedRule(QList<QTreeWidgetItem *> &items);
     void populateTabList();
 
 public:
@@ -155,8 +155,8 @@ public:
     QColor getOverridedFontColor();
 
     void setQueryHistory(const QStringList &history);
-    void setAdblock(QList<CAdBlockRule> adblock);
-    void setMainHistory(QUHList history);
+    void setAdblock(const QList<CAdBlockRule> &adblock);
+    void setMainHistory(const QUHList &history);
     void setSearchEngines(const QStrHash &engines);
     void setUserScripts(const QStrHash &scripts);
     QStringList getQueryHistory();

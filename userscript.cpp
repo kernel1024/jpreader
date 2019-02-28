@@ -61,24 +61,6 @@ CUserScript::CUserScript(const QString &name, const QString &source)
         setSource(source);
 }
 
-CUserScript &CUserScript::operator=(const CUserScript &other)
-{
-    m_name = other.m_name;
-    m_source = other.m_source;
-    m_title = other.m_title;
-    m_description = other.m_description;
-    m_version = other.m_version;
-    m_homePage = other.m_homePage;
-    m_updateUrl = other.m_updateUrl;
-    m_excludeRules = other.m_excludeRules;
-    m_includeRules = other.m_includeRules;
-    m_matchRules = other.m_matchRules;
-    m_injectionTime = other.m_injectionTime;
-    m_shouldRunOnSubFrames = other.m_shouldRunOnSubFrames;
-
-    return *this;
-}
-
 QString CUserScript::getName() const
 {
     return m_name;
@@ -228,7 +210,7 @@ CUserScript::InjectionTime CUserScript::getInjectionTime() const
     return m_injectionTime;
 }
 
-bool CUserScript::isEnabledForUrl(const QUrl &url)
+bool CUserScript::isEnabledForUrl(const QUrl &url) const
 {
     if (url.scheme() != QLatin1String("http") &&
             url.scheme() != QLatin1String("https") &&

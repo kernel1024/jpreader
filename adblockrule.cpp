@@ -13,18 +13,21 @@
 #include "genericfuncs.h"
 
 CAdBlockRule::CAdBlockRule()
+    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = QString();
     setFilter(QString());
 }
 
 CAdBlockRule::CAdBlockRule(const CAdBlockRule &other)
+    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = other.m_listID;
     setFilter(other.filter());
 }
 
 CAdBlockRule::CAdBlockRule(const QString &filter, const QString &listID)
+    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = listID;
     setFilter(filter);
@@ -122,8 +125,8 @@ QString CAdBlockRule::listID() const
 {
     if (m_listID.isEmpty())
         return QObject::tr("User list");
-    else
-        return m_listID;
+
+    return m_listID;
 }
 
 bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
@@ -147,10 +150,10 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
         if (m_options.count() == 1) {
             QUrl url = QUrl::fromEncoded(encodedUrl.toUtf8());
             QString host = url.host();
-            foreach (const QString &option, m_options) {
+            for (const QString &option : qAsConst(m_options)) {
                 if (option.startsWith(QLatin1String("domain="))) {
-                    QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
-                    foreach (const QString& domainOption, domainOptions) {
+                    const QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
+                    for (const QString& domainOption : qAsConst(domainOptions)) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');
                         bool hostMatched;
                         if (negate)

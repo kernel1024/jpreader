@@ -193,7 +193,7 @@ void CSettings::writeSettings()
 
 void CSettings::readSettings(QObject *control)
 {
-    CGlobalControl* g = qobject_cast<CGlobalControl *>(control);
+    auto g = qobject_cast<CGlobalControl *>(control);
     if (g==nullptr) return;
 
     QSettings settings("kernel1024", "jpreader");
@@ -201,20 +201,20 @@ void CSettings::readSettings(QObject *control)
     settings.beginGroup("MainWindow");
     bigdata.beginGroup("main");
 
-    g->searchHistory = bigdata.value("searchHistory",QStringList()).value<QStringList>();
+    g->searchHistory = bigdata.value("searchHistory",QStringList()).toStringList();
 
     emit g->updateAllQueryLists();
 
-    atlHostHistory = bigdata.value("atlHostHistory",QStringList()).value<QStringList>();
-    scpHostHistory = bigdata.value("scpHostHistory",QStringList()).value<QStringList>();
+    atlHostHistory = bigdata.value("atlHostHistory",QStringList()).toStringList();
+    scpHostHistory = bigdata.value("scpHostHistory",QStringList()).toStringList();
     g->mainHistory = bigdata.value("history").value<QUHList>();
-    userAgentHistory = bigdata.value("userAgentHistory",QStringList()).value<QStringList>();
-    dictPaths = bigdata.value("dictPaths",QStringList()).value<QStringList>();
+    userAgentHistory = bigdata.value("userAgentHistory",QStringList()).toStringList();
+    dictPaths = bigdata.value("dictPaths",QStringList()).toStringList();
     g->ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
     g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
-    g->recentFiles = bigdata.value("recentFiles",QStringList()).value<QStringList>();
+    g->recentFiles = bigdata.value("recentFiles",QStringList()).toStringList();
     g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
-    g->bookmarksManager->load(bigdata.value("bookmarks2",QByteArray()).value<QByteArray>());
+    g->bookmarksManager->load(bigdata.value("bookmarks2",QByteArray()).toByteArray());
     translatorPairs = bigdata.value("translatorPairs").value<CLangPairList>();
 
     int idx=0;
@@ -229,8 +229,8 @@ void CSettings::readSettings(QObject *control)
     QBookmarks bookmarks;
     if (bigdata.contains("bookmarks")) {
         QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
-        foreach (const QString &title, bm.keys())
-            bookmarks << qMakePair(title, bm.value(title).toString());
+        for (auto it = bm.constBegin(), end = bm.constEnd(); it != end; ++it)
+            bookmarks << qMakePair(it.key(), it.value());
     } else if (bigdata.contains("bookmarks_list")) {
         bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
     }
@@ -340,7 +340,7 @@ void CSettings::readSettings(QObject *control)
 void CSettings::settingsDlg()
 {
     if (gSet==nullptr) return;
-    if (dlg!=nullptr) {
+    if (dlg) {
         dlg->activateWindow();
         return;
     }
@@ -638,7 +638,7 @@ void CSettings::settingsDlg()
         settingsDlgWidth=dlg->width();
         settingsDlgHeight=dlg->height();
     }
-    connect(dlg,&CSettingsDlg::destroyed,[this](){
+    connect(dlg,&CSettingsDlg::destroyed,this,[this](){
         dlg=nullptr;
     });
     dlg->deleteLater();
@@ -683,7 +683,7 @@ QList<QUrl> CSettings::getTabsList() const
 
     for (int i=0;i<gSet->mainWindows.count();i++) {
         for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
-            CSnippetViewer* sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
+            auto sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
             if (sn==nullptr) continue;
             QUrl url = sn->getUrl();
             if (url.isValid() && !url.isEmpty())

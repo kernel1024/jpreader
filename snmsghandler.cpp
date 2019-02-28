@@ -57,8 +57,8 @@ void CSnMsgHandler::pastePassword()
     gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
     QString inp = QString("%1%2%3").arg(user,QChar(0x9),pass);
 
-    QAction* ac = qobject_cast<QAction *>(sender());
-    if (ac!=nullptr) {
+    auto ac = qobject_cast<QAction *>(sender());
+    if (ac) {
         bool ok;
         int idx = ac->data().toInt(&ok);
         if (ok) {

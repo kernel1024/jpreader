@@ -45,7 +45,7 @@ class CGlobalControl : public QObject
 
     Q_OBJECT
 public:
-    explicit CGlobalControl(QApplication *parent);
+    explicit CGlobalControl(QApplication *parent, int aInspectorPort);
 
     CSettings settings;
     CGlobalUI ui;
@@ -94,18 +94,18 @@ public:
     bool blockTabCloseActive;
 
     // History lists append
-    void appendRecycled(QString title, QUrl url);
-    void appendSearchHistory(QStringList req);
-    void appendMainHistory(UrlHolder& item);
-    bool updateMainHistoryTitle(UrlHolder& item, QString newTitle);
-    void appendRecent(QString filename);
+    void appendRecycled(const QString &title, const QUrl &url);
+    void appendSearchHistory(const QStringList &req);
+    void appendMainHistory(const UrlHolder &item);
+    bool updateMainHistoryTitle(const UrlHolder &item, const QString &newTitle);
+    void appendRecent(const QString &filename);
 
     // Ad-block
-    bool isUrlBlocked(QUrl url);
-    bool isUrlBlocked(QUrl url, QString& filter);
-    void adblockAppend(QString url);
-    void adblockAppend(CAdBlockRule url);
-    void adblockAppend(QList<CAdBlockRule> urls);
+    bool isUrlBlocked(const QUrl &url);
+    bool isUrlBlocked(const QUrl &url, QString &filter);
+    void adblockAppend(const QString &url);
+    void adblockAppend(const CAdBlockRule &url);
+    void adblockAppend(const QList<CAdBlockRule> &urls);
 
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
@@ -175,7 +175,8 @@ public slots:
     void cookieRemoved(const QNetworkCookie &cookie);
 
     // ATLAS SSL
-    void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors, const QIntList& errCodes);
+    void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors,
+                          const QIntList& errCodes);
 };
 
 extern CGlobalControl* gSet;

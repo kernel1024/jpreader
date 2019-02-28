@@ -93,9 +93,9 @@ xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
               if ((mods & Qt::ShiftModifier) == 0)
                     s = s.toLower();
 
-              code = s.utf16()[0];
+              code = s.front().unicode();
         } else if (seq.toString().length() == 1){
-              code = seq.toString().utf16()[0];
+              code = seq.toString().front().unicode();
         }
     }
 
@@ -133,14 +133,14 @@ bool QxtGlobalShortcut::nativeEventFilter(const QByteArray & eventType,
 {
     Q_UNUSED(result);
 
-    xcb_key_press_event_t *kev = 0;
+    xcb_key_press_event_t *kev = nullptr;
     if (eventType == "xcb_generic_event_t") {
-        xcb_generic_event_t *ev = static_cast<xcb_generic_event_t *>(message);
+        auto ev = static_cast<xcb_generic_event_t *>(message);
         if ((ev->response_type & 127) == XCB_KEY_PRESS)
             kev = static_cast<xcb_key_press_event_t *>(message);
     }
 
-    if (kev != 0) {
+    if (kev != nullptr) {
         xcb_keycode_t keycode = kev->detail;
         uint16_t keystate = kev->state & (XCB_MOD_MASK_1 | XCB_MOD_MASK_CONTROL |
                                               XCB_MOD_MASK_4 | XCB_MOD_MASK_SHIFT);
@@ -178,9 +178,9 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
     xcb_keysym_t sym = qtKeyToKeysym(key, modifiers);
 
     xcb_key_symbols_t *syms = xcb_key_symbols_alloc(c);
-    if (syms!=nullptr) {
+    if (syms) {
         xcb_keycode_t *keyCodes = xcb_key_symbols_get_keycode(syms, sym);
-        if (keyCodes!=nullptr) {
+        if (keyCodes) {
             ret = keyCodes[0];
             free(keyCodes);
         }

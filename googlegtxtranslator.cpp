@@ -16,12 +16,12 @@ bool CGoogleGTXTranslator::initTran()
 {
     if (nam==nullptr) {
         nam=new QNetworkAccessManager(this);
-        CNetworkCookieJar *cj = new CNetworkCookieJar();
+        auto cj = new CNetworkCookieJar();
         nam->setCookieJar(cj);
     }
 
-    CNetworkCookieJar *cj = qobject_cast<CNetworkCookieJar *>(nam->cookieJar());
-    CNetworkCookieJar *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    auto cj = qobject_cast<CNetworkCookieJar *>(nam->cookieJar());
+    auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
     cj->initAllCookies(mj->getAllCookies());
 
     if (gSet->settings.proxyUseTranslator)

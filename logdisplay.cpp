@@ -35,7 +35,7 @@ void CLogDisplay::updateMessages()
     if (!isVisible()) return;
     int fr = -1;
     int sv = -1;
-    if (ui->logView->verticalScrollBar()!=nullptr)
+    if (ui->logView->verticalScrollBar())
         sv = ui->logView->verticalScrollBar()->value();
 
     if (!savedMessages.isEmpty())
@@ -47,7 +47,7 @@ void CLogDisplay::updateMessages()
         savedMessages = debugMessages;
 
     updateText(savedMessages.join('\n'));
-    if (ui->logView->verticalScrollBar()!=nullptr) {
+    if (ui->logView->verticalScrollBar()) {
         if (!ui->checkScrollLock->isChecked())
             ui->logView->verticalScrollBar()->setValue(ui->logView->verticalScrollBar()->maximum());
         else if (sv!=-1)
@@ -74,7 +74,7 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
 
 void CLogDisplay::addToAdblock()
 {
-    QAction* nt = qobject_cast<QAction *>(sender());
+    auto nt = qobject_cast<QAction *>(sender());
     if (nt==nullptr) return;
     QUrl url = nt->data().toUrl();
     if (url.isEmpty() || !url.isValid()) return;
@@ -94,7 +94,7 @@ void CLogDisplay::updateText(const QString &text)
 void CLogDisplay::showEvent(QShowEvent *)
 {
     updateMessages();
-    if (firstShow && gSet!=nullptr && !gSet->mainWindows.isEmpty()) {
+    if (firstShow && gSet && !gSet->mainWindows.isEmpty()) {
         QPoint p = gSet->mainWindows.first()->pos();
         p.rx()+=200;
         p.ry()+=100;

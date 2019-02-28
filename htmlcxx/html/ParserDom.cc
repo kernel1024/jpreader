@@ -85,10 +85,8 @@ void ParserDom::foundTag(Node node, bool isEnd)
 				found_open = true;
 				break;
 			} 
-			else 
-			{
-				path.push_back(i);
-			}
+
+            path.push_back(i);
 
 			i = mHtmlTree.parent(i);
 		}
@@ -97,10 +95,9 @@ void ParserDom::foundTag(Node node, bool isEnd)
 		{
 			//If match was upper in the tree, so we need to invalidate child
 			//nodes that were waiting for a close
-			for (unsigned int j = 0; j < path.size(); ++j)
+            for (const auto &it : path)
 			{
-//				path[j]->length(node.offset() - path[j]->offset());
-				mHtmlTree.flatten(path[j]);
+                mHtmlTree.flatten(it);
 			}
 		} 
 		else 
@@ -133,7 +130,7 @@ ostream &HTML::operator<<(ostream &stream, const tree<HTML::Node> &tr)
                stream << n << "@";
                stream << "[" << it->offset() << ";";
                stream << it->offset() + it->length() << ") ";
-               stream << (string)(*it) << endl;
+               stream << std::string(*it) << endl;
                ++it, ++n;
        }
        stream << "-----" << endl;

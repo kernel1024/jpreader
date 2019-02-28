@@ -218,7 +218,7 @@ void CSettingsDlg::updateCookiesTable()
     for (int i=0;i<cookiesList.count();i++) {
 
         QString s = cookiesList.at(i).domain();
-        QTableWidgetItem* item = new QTableWidgetItem(s);
+        auto item = new QTableWidgetItem(s);
         item->setData(Qt::UserRole+1,i);
         table->setItem(i,0,item);
 
@@ -257,7 +257,7 @@ void CSettingsDlg::updateAdblockList()
     for (int i=0;i<adblockList.count();i++) {
         QTreeWidgetItem* tli = nullptr;
         QString cat = adblockList.at(i).listID();
-        if (cats.keys().contains(cat))
+        if (cats.contains(cat))
             tli = cats.value(cat);
         else {
             tli = new QTreeWidgetItem(ui->treeAdblock);
@@ -265,7 +265,7 @@ void CSettingsDlg::updateAdblockList()
             cats[cat] = tli;
         }
 
-        QTreeWidgetItem *item = new QTreeWidgetItem(tli);
+        auto item = new QTreeWidgetItem(tli);
         item->setText(0,adblockList.at(i).filter());
         item->setData(0,Qt::UserRole+1,i);
     }
@@ -293,7 +293,7 @@ void CSettingsDlg::selectEditor()
 void CSettingsDlg::delQrs()
 {
     QList<QListWidgetItem *> dl = ui->listQr->selectedItems();
-	foreach (QListWidgetItem* i, dl) {
+    for (QListWidgetItem* i : dl) {
         ui->listQr->removeItemWidget(i);
 		delete i;
 	}
@@ -301,7 +301,7 @@ void CSettingsDlg::delQrs()
 
 void CSettingsDlg::clearHistory()
 {
-    if (gSet!=nullptr) {
+    if (gSet) {
         gSet->mainHistory.clear();
         emit gSet->updateAllHistoryLists();
     }
@@ -330,12 +330,12 @@ void CSettingsDlg::addAd()
 void CSettingsDlg::delAd()
 {
     QList<int> r;
-    foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
+    for (const QTreeWidgetItem* i : ui->treeAdblock->selectedItems())
         r << i->data(0,Qt::UserRole+1).toInt();
 
     QList<CAdBlockRule> tmp = adblockList;
 
-    foreach (const int idx, r)
+    for (const int idx : qAsConst(r))
         adblockList.removeOne(tmp.at(idx));
 
     tmp.clear();
@@ -383,7 +383,7 @@ void CSettingsDlg::exportAd()
     }
 
     QList<int> r;
-    foreach (QTreeWidgetItem* i, ui->treeAdblock->selectedItems())
+    for (QTreeWidgetItem* i : ui->treeAdblock->selectedItems())
         r << i->data(0,Qt::UserRole+1).toInt();
 
     QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),gSet->settings.savedAuxSaveDir,
@@ -439,7 +439,7 @@ void CSettingsDlg::showLoadedDicts()
 void CSettingsDlg::clearCookies()
 {
     QWebEngineCookieStore* wsc = gSet->webProfile->cookieStore();
-    if (wsc!=nullptr)
+    if (wsc)
         wsc->deleteAllCookies();
 
     getCookiesFromStore();
@@ -447,8 +447,8 @@ void CSettingsDlg::clearCookies()
 
 void CSettingsDlg::getCookiesFromStore()
 {
-    CNetworkCookieJar* cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
-    if (cj!=nullptr) {
+    auto cj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    if (cj) {
         cookiesList = cj->getAllCookies();
         updateCookiesTable();
     }
@@ -457,8 +457,8 @@ void CSettingsDlg::getCookiesFromStore()
 void CSettingsDlg::delCookies()
 {
     QList<int> r = getSelectedRows(ui->tableCookies);
-    if (gSet->webProfile->cookieStore()!=nullptr) {
-        foreach (const int idx, r)
+    if (gSet->webProfile->cookieStore()) {
+        for (int idx : qAsConst(r))
             gSet->webProfile->cookieStore()->deleteCookie(cookiesList.at(idx));
 
         getCookiesFromStore();
@@ -496,7 +496,7 @@ void CSettingsDlg::exportCookies()
            << "\t"
            << bool2str2(cookiesList.at(idx).isSecure())
            << "\t"
-           << cookiesList.at(idx).expirationDate().toTime_t()
+           << cookiesList.at(idx).expirationDate().toSecsSinceEpoch()
            << "\t"
            << cookiesList.at(idx).name()
            << "\t"
@@ -585,7 +585,7 @@ void CSettingsDlg::addSearchEngine()
 void CSettingsDlg::delSearchEngine()
 {
     QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
-    foreach (QListWidgetItem* i, dl) {
+    for (QListWidgetItem* i : dl) {
         ui->listSearch->removeItemWidget(i);
         delete i;
     }
@@ -593,8 +593,8 @@ void CSettingsDlg::delSearchEngine()
 
 void CSettingsDlg::updateAtlCertLabel()
 {
-    if (gSet!=nullptr)
-        ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.keys().count()));
+    if (gSet)
+        ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.count()));
 }
 
 void CSettingsDlg::setDefaultSearch()
@@ -644,7 +644,7 @@ void CSettingsDlg::editUserScript()
 void CSettingsDlg::deleteUserScript()
 {
     QList<QListWidgetItem *> dl = ui->listUserScripts->selectedItems();
-    foreach (QListWidgetItem* i, dl) {
+    for (QListWidgetItem* i : dl) {
         ui->listUserScripts->removeItemWidget(i);
         delete i;
     }
@@ -676,10 +676,9 @@ void CSettingsDlg::setUserScripts(const QStrHash& scripts)
 {
     ui->listUserScripts->clear();
 
-    QStrHash::const_iterator iterator;
-    for (iterator = scripts.begin(); iterator != scripts.end(); ++iterator) {
-        QListWidgetItem *itm = new QListWidgetItem(iterator.key());
-        itm->setData(Qt::UserRole,iterator.value());
+    for (auto it = scripts.constBegin(), end = scripts.constEnd(); it != end; ++it) {
+        auto itm = new QListWidgetItem(it.key());
+        itm->setData(Qt::UserRole,it.value());
         ui->listUserScripts->addItem(itm);
     }
 }
@@ -699,7 +698,7 @@ CLangPairList CSettingsDlg::getLangPairList()
     return transModel->getLangPairList();
 }
 
-void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> items)
+void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> & items)
 {
     if (adblockSearchIdx>=0 && adblockSearchIdx<items.count())
         ui->treeAdblock->setCurrentItem(items.at(adblockSearchIdx));
@@ -724,15 +723,15 @@ void CSettingsDlg::setQueryHistory(const QStringList& history)
         ui->listQr->addItem(history.at(i));
 }
 
-void CSettingsDlg::setAdblock(QList<CAdBlockRule> adblock)
+void CSettingsDlg::setAdblock(const QList<CAdBlockRule> &adblock)
 {
     adblockList = adblock;
     updateAdblockList();
 }
 
-void CSettingsDlg::setMainHistory(QUHList history)
+void CSettingsDlg::setMainHistory(const QUHList& history)
 {
-    foreach (const UrlHolder &t, history) {
+    for (const UrlHolder &t : history) {
         QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
@@ -742,22 +741,22 @@ void CSettingsDlg::setMainHistory(QUHList history)
 void CSettingsDlg::setSearchEngines(const QStrHash& engines)
 {
     ui->listSearch->clear();
-    foreach (const QString &t, engines.keys()) {
+    for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
         QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
-                                                  arg(t,
-                                                  engines.value(t),
-                t==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
-        li->setData(Qt::UserRole,t);
-        li->setData(Qt::UserRole+1,engines.value(t));
+                                                  arg(it.key(),
+                                                  it.value(),
+                it.key()==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
+        li->setData(Qt::UserRole,it.key());
+        li->setData(Qt::UserRole+1,it.value());
         ui->listSearch->addItem(li);
     }
 }
 
-QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table)
+QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table) const
 {
     QList<int> res;
     res.clear();
-    foreach (const QTableWidgetItem *i, table->selectedItems()) {
+    for (const QTableWidgetItem *i : table->selectedItems()) {
         if (!res.contains(i->data(Qt::UserRole+1).toInt()))
             res << i->data(Qt::UserRole+1).toInt();
     }
@@ -796,10 +795,10 @@ CLangPairDelegate::CLangPairDelegate(QObject *parent) :
 
 QWidget *CLangPairDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
 {
-    QComboBox *editor = new QComboBox(parent);
+    auto editor = new QComboBox(parent);
     editor->setFrame(false);
     const QStringList sl = gSet->getLanguageCodes();
-    foreach (const QString& bcp, sl) {
+    for (const QString& bcp : qAsConst(sl)) {
         editor->addItem(gSet->getLanguageName(bcp),QVariant::fromValue(bcp));
     }
     return editor;
@@ -809,7 +808,7 @@ void CLangPairDelegate::setEditorData(QWidget *editor, const QModelIndex &index)
 {
     QString bcp = index.model()->data(index, Qt::EditRole).toString();
 
-    QComboBox *cb = static_cast<QComboBox *>(editor);
+    auto cb = qobject_cast<QComboBox *>(editor);
 
     int idx = cb->findData(QVariant::fromValue(bcp));
     if (idx>=0)
@@ -818,7 +817,7 @@ void CLangPairDelegate::setEditorData(QWidget *editor, const QModelIndex &index)
 
 void CLangPairDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QComboBox *cb = static_cast<QComboBox *>(editor);
+    auto cb = qobject_cast<QComboBox *>(editor);
 
     model->setData(index, cb->currentData().toString(), Qt::EditRole);
 }

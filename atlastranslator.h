@@ -23,7 +23,7 @@ private:
     bool inited;
     bool emptyRestore;
 public:
-    explicit CAtlasTranslator(QObject *parent, QString host, quint16 port, const CLangPair& lang);
+    explicit CAtlasTranslator(QObject *parent, const QString &host, quint16 port, const CLangPair& lang);
     virtual ~CAtlasTranslator();
 
     bool initTran();

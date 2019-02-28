@@ -38,7 +38,7 @@ public:
     CUserScript();
     CUserScript(const CUserScript& other);
     CUserScript(const QString &name, const QString &source = QString());
-    CUserScript &operator=(const CUserScript& other);
+    CUserScript &operator=(const CUserScript& other) = default;
 
     QString getName() const;
     QString getTitle() const;
@@ -52,7 +52,7 @@ public:
     QStringList getIncludeRules() const;
     QStringList getMatchRules() const;
     InjectionTime getInjectionTime() const;
-    bool isEnabledForUrl(const QUrl &url);
+    bool isEnabledForUrl(const QUrl &url) const;
     bool shouldRunOnSubFrames() const;
 
 protected:
@@ -71,7 +71,6 @@ private:
     QStringList m_matchRules;
     InjectionTime m_injectionTime;
     bool m_shouldRunOnSubFrames;
-    bool m_dummy[3];
 
 };
 

@@ -72,7 +72,7 @@ QxtGlobalShortcut::~QxtGlobalShortcut()
     --ref;
     if (ref == 0) {
         QAbstractEventDispatcher *ed = QAbstractEventDispatcher::instance();
-        if (ed != 0) {
+        if (ed != nullptr) {
             ed->removeNativeEventFilter(this);
         }
     }
@@ -83,13 +83,14 @@ bool QxtGlobalShortcut::setShortcut(const QKeySequence& shortcut)
     if (key != 0)
         unsetShortcut();
 
-    Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
+    Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier
+                                    | Qt::AltModifier | Qt::MetaModifier;
 
     key = Qt::Key(0);
     if (!shortcut.isEmpty())
         key = static_cast<Qt::Key>((shortcut[0] ^ allMods) & shortcut[0]);
 
-    mods = Qt::KeyboardModifiers(0);
+    mods = static_cast<Qt::KeyboardModifiers>(0);
     if (!shortcut.isEmpty())
         mods = Qt::KeyboardModifiers(shortcut[0] & allMods);
 

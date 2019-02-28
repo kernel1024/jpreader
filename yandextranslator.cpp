@@ -74,11 +74,10 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
         return QString("ERROR:TRAN_YANDEX_TRAN_ERROR");
     }
 
-    QVariantList vl = jroot.value("text").toArray().toVariantList();
     QString res;
     res.clear();
 
-    foreach (const QVariant& value, vl)
+    for (const QVariant& value : jroot.value("text").toArray().toVariantList())
         res += value.toString();
 
     return res;

@@ -28,7 +28,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
         res.clear();
         res << "ERROR";
         emit gotTranslation(res);
-        if (tran!=nullptr)
+        if (tran)
             tran->deleteLater();
         return;
     }

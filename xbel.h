@@ -92,7 +92,7 @@ private:
 class XbelReader : public QXmlStreamReader
 {
 public:
-    XbelReader();
+    XbelReader() = default;
     BookmarkNode *read(const QString &fileName);
     BookmarkNode *read(QIODevice *device);
 

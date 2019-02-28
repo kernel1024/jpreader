@@ -11,7 +11,7 @@
 #include <QPrinter>
 #include <QPageSetupDialog>
 
-#include <math.h>
+#include <cmath>
 #include "snviewer.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
@@ -23,8 +23,10 @@
 #include "sntrans.h"
 #include "snmsghandler.h"
 
-CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSearchText, bool setFocused,
-                               QString AuxContent, QString zoom, bool startPage)
+CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStringList& aSearchText,
+                               bool setFocused, const QString& AuxContent, const QString& zoom,
+                               bool startPage)
+
     : CSpecTabContainer(parent)
 {
 	setupUi(this);
@@ -59,7 +61,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, QUrl aUri, QStringList aSear
     msgHandler = new CSnMsgHandler(this);
     waitHandler = new CSnWaitCtl(this);
 
-    QCompleter *completer = new QCompleter(this);
+    auto completer = new QCompleter(this);
     completer->setModel(new CSpecUrlHistoryModel(completer));
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setFilterMode(Qt::MatchContains);
@@ -157,7 +159,7 @@ void CSnippetViewer::updateButtonsState()
     fwdNavButton->setEnabled(txtBrowser->history()->canGoForward());
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
     passwordButton->setEnabled((!loading) &&
-                               (txtBrowser->page()!=nullptr) &&
+                               (txtBrowser->page()) &&
                                (gSet->haveSavedPassword(txtBrowser->page()->url())));
 }
 
@@ -166,7 +168,7 @@ void CSnippetViewer::navByUrlDefault()
     navByUrl(urlEdit->text());
 }
 
-void CSnippetViewer::navByUrl(QUrl url)
+void CSnippetViewer::navByUrl(const QUrl& url)
 {
     urlEdit->setStyleSheet(QString());
 
@@ -175,10 +177,9 @@ void CSnippetViewer::navByUrl(QUrl url)
     netHandler->load(url);
 }
 
-void CSnippetViewer::navByUrl(QString url)
+void CSnippetViewer::navByUrl(const QString& url)
 {
-    QString aUrl = url;
-    QUrl u = QUrl::fromUserInput(aUrl);
+    QUrl u = QUrl::fromUserInput(url);
     QStringList validSpecSchemes;
     validSpecSchemes << "gdlookup" << "about" << "chrome";
 
@@ -275,8 +276,8 @@ void CSnippetViewer::setToolbarVisibility(bool visible)
 
 void CSnippetViewer::outsideDragStart()
 {
-    QDrag* drag = new QDrag(this);
-    QMimeData* mime = new QMimeData();
+    auto drag = new QDrag(this);
+    auto mime = new QMimeData();
 
     QString s = QString("%1\n%2").arg(getUrl().toString(),tabTitle);
     mime->setData("_NETSCAPE_URL",s.toUtf8());
@@ -361,17 +362,16 @@ void CSnippetViewer::updateWebViewAttributes()
 
 bool CSnippetViewer::canClose()
 {
-    if (waitPanel->isVisible()) return false; // prevent closing while translation thread active
-    return true;
+    return !waitPanel->isVisible(); // prevent closing while translation thread active
 }
 
 void CSnippetViewer::takeScreenshot()
 {
     if (!pageLoaded) return;
-    QTimer* t = new QTimer(this);
+    auto t = new QTimer(this);
     t->setInterval(500);
     t->setSingleShot(true);
-    connect(t,&QTimer::timeout,[this,t](){
+    connect(t,&QTimer::timeout,this,[this,t](){
         pageImage = txtBrowser->grab();
         t->deleteLater();
     });

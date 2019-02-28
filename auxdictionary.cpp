@@ -132,16 +132,14 @@ void CAuxDictionary::updateMatchResults(bool finished)
         // Chop off any extra items that were there
         QListWidgetItem * i = ui->listWords->takeItem( ui->listWords->count() - 1 );
 
-        if ( i )
-            delete i;
-        else
+        if (!i)
             break;
     }
 
     if ( ui->listWords->count() )
     {
         ui->listWords->scrollToItem( ui->listWords->item( 0 ), QAbstractItemView::PositionAtTop );
-        ui->listWords->setCurrentItem( 0, QItemSelectionModel::Clear );
+        ui->listWords->setCurrentItem( nullptr, QItemSelectionModel::Clear );
     }
 
     ui->listWords->setUpdatesEnabled( true );
@@ -170,7 +168,7 @@ void CAuxDictionary::translateInputChanged(const QString &text)
     showEmptyDictPage();
 
     if ( ui->listWords->selectionModel()->hasSelection() )
-        ui->listWords->setCurrentItem( 0, QItemSelectionModel::Clear );
+        ui->listWords->setCurrentItem( nullptr, QItemSelectionModel::Clear );
 
     QString req = text.trimmed();
 
@@ -217,7 +215,7 @@ void CAuxDictionary::wordListSelectionChanged()
 {
     QList< QListWidgetItem * > selected = ui->listWords->selectedItems();
 
-    if ( selected.size() ) {
+    if ( !selected.empty() ) {
         QString newValue = selected.front()->text();
 
         showTranslationFor(newValue);
@@ -253,8 +251,8 @@ CAuxDictKeyFilter::CAuxDictKeyFilter(QObject *parent)
 bool CAuxDictKeyFilter::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type()==QEvent::KeyPress) {
-        QKeyEvent *ev = static_cast<QKeyEvent *>(event);
-        if (ev!=nullptr)
+        auto ev = dynamic_cast<QKeyEvent *>(event);
+        if (ev)
             emit keyPressed(ev->key());
     }
     return QObject::eventFilter(obj,event);

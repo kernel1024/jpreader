@@ -49,14 +49,15 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
             res+=s;
         }
         return res;
-    } else
-        return tranStringInternal(src);
+    }
+
+    return tranStringInternal(src);
 }
 
 bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 {
     QEventLoop eventLoop;
-    QTimer *timer = new QTimer(this);
+    auto timer = new QTimer(this);
 
     connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
     connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
@@ -73,7 +74,7 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 
 void CWebAPIAbstractTranslator::deleteNAM()
 {
-    if (nam!=nullptr)
+    if (nam)
         nam->deleteLater();
     nam=nullptr;
 }
@@ -86,5 +87,5 @@ void CWebAPIAbstractTranslator::doneTran(bool)
 
 bool CWebAPIAbstractTranslator::isReady()
 {
-    return isValidCredentials() && nam!=nullptr;
+    return isValidCredentials() && nam;
 }

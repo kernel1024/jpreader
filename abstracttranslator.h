@@ -13,7 +13,7 @@ protected:
     CLangPair m_lang;
 public:
     explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);
-    ~CAbstractTranslator();
+    ~CAbstractTranslator() = default;
 
     virtual bool initTran()=0;
     virtual QString tranString(const QString& src)=0;

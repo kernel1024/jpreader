@@ -109,9 +109,10 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
             snv->auxContentLoaded=false;
         }
         return true;
-    } else
-        QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
-                                                   "for document."));
+    }
+
+    QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
+                                               "for document."));
     return false;
 }
 
@@ -176,13 +177,13 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
 
 void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate, bool focus)
 {
-    CPixivNovelExtractor* ex = new CPixivNovelExtractor();
+    auto ex = new CPixivNovelExtractor();
     ex->setParams(snv,title,translate,focus);
-    QThread* th = new QThread();
+    auto th = new QThread();
     ex->moveToThread(th);
     th->start();
 
-    QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(url));
+    auto rpl = gSet->auxNetManager->get(QNetworkRequest(url));
     qApp->setOverrideCursor(Qt::BusyCursor);
 
     connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
@@ -193,7 +194,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
 
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
-    CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),focus,html);
+    auto sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),focus,html);
     sv->requestAutotranslate = translate;
 }
 
@@ -256,15 +257,14 @@ void CSnNet::load(const QUrl &url)
                 data.close();
             }
         } else if (MIME.startsWith("application/pdf",Qt::CaseInsensitive)) { // for local pdf files
-            QString cn;
             snv->fileChanged = false;
             snv->translationBkgdFinished=false;
             snv->loadingBkgdFinished=false;
-            CPDFWorker* pdf = new CPDFWorker();
+            auto pdf = new CPDFWorker();
             connect(this,&CSnNet::startPdfConversion,pdf,&CPDFWorker::pdfToText,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::error,this,&CSnNet::pdfError,Qt::QueuedConnection);
-            QThread* pdft = new QThread();
+            auto pdft = new QThread();
             pdf->moveToThread(pdft);
             pdft->start();
             emit startPdfConversion(url.toString());

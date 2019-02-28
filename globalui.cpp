@@ -125,8 +125,8 @@ void CGlobalUI::clipboardChanged(QClipboard::Mode mode)
 void CGlobalUI::startGlobalContextTranslate()
 {
     if (gctxSelection.isEmpty()) return;
-    QThread *th = new QThread();
-    CAuxTranslator *at = new CAuxTranslator();
+    auto th = new QThread();
+    auto at = new CAuxTranslator();
     connect(this,&CGlobalUI::gctxStart,
             at,&CAuxTranslator::startAuxTranslation,Qt::QueuedConnection);
     connect(at,&CAuxTranslator::gotTranslation,
@@ -166,7 +166,7 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const 
 {
     if (gSet==nullptr) return nullptr;
 
-    CMainWindow* mainWindow = new CMainWindow(withSearch,withViewer,withViewerUrl);
+    auto mainWindow = new CMainWindow(withSearch,withViewer,withViewerUrl);
     connect(mainWindow,&CMainWindow::aboutToClose,
             gSet,&CGlobalControl::windowDestroyed);
 
@@ -215,12 +215,12 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
     QString msg = QString("<span style='font-size:%1pt;white-space:nowrap;'>%2</span>").arg(sz).arg(text);
     QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
 
-    QTimer::singleShot(100,[msg,pos](){
+    QTimer::singleShot(100,gSet,[msg,pos](){
         if (gSet->activeWindow==nullptr) return;
         QToolTip::showText(pos,msg,gSet->activeWindow);
 
-        QTimer::singleShot(3000,[](){
-            if (gSet->activeWindow!=nullptr)
+        QTimer::singleShot(3000,gSet,[](){
+            if (gSet->activeWindow)
                 QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow);
         });
     });
@@ -232,7 +232,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     if (cg==nullptr) cg = gSet;
     if (cg==nullptr) return;
 
-    CGlobalControl* g = qobject_cast<CGlobalControl *>(cg);
+    auto g = qobject_cast<CGlobalControl *>(cg);
     if (g==nullptr) return;
 
     QString selectedHash;
@@ -244,7 +244,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     languageSelector = new QActionGroup(this);
 
 
-    foreach (const CLangPair& pair, g->settings.translatorPairs) {
+    for (const CLangPair& pair : qAsConst(g->settings.translatorPairs)) {
         QAction *ac = languageSelector->addAction(QString("%1 - %2").arg(
                                       g->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->getLanguageName(pair.langTo.bcp47Name())));
@@ -268,7 +268,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
 void CGlobalUI::actionToggled()
 {
-    QAction* ac = qobject_cast<QAction *>(sender());
+    auto ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
     QString msg = ac->text();
@@ -287,7 +287,7 @@ int CGlobalUI::getTranslationMode()
 {
     bool okconv;
     int res = 0;
-    if (translationMode->checkedAction()!=nullptr) {
+    if (translationMode->checkedAction()) {
         res = translationMode->checkedAction()->data().toInt(&okconv);
         if (!okconv)
             res = 0;
@@ -298,7 +298,7 @@ int CGlobalUI::getTranslationMode()
 QString CGlobalUI::getActiveLangPair() const
 {
     QString res;
-    if (languageSelector->checkedAction()!=nullptr) {
+    if (languageSelector->checkedAction()) {
         res = languageSelector->checkedAction()->data().toString();
     } else if (!languageSelector->actions().isEmpty()) {
         QAction* ac = languageSelector->actions().first();

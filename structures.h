@@ -39,8 +39,8 @@ public:
     QUuid uuid;
     UrlHolder();
     UrlHolder(const UrlHolder& other);
-    UrlHolder(QString title, QUrl url);
-    UrlHolder &operator=(const UrlHolder& other);
+    UrlHolder(const QString &title, const QUrl &url);
+    UrlHolder &operator=(const UrlHolder& other) = default;
     bool operator==(const UrlHolder &s) const;
     bool operator!=(const UrlHolder &s) const;
 };
@@ -51,8 +51,8 @@ class DirStruct {
 public:
     DirStruct();
     DirStruct(const DirStruct& other);
-    DirStruct(QString DirName, int Count);
-    DirStruct &operator=(const DirStruct& other);
+    DirStruct(const QString &DirName, int Count);
+    DirStruct &operator=(const DirStruct& other) = default;
     QString dirName;
     int count;
 };
@@ -66,7 +66,7 @@ public:
     CLangPair(const CLangPair& other);
     CLangPair(const QString& hash);
     CLangPair(const QString& fromName, const QString &toName);
-    CLangPair &operator=(const CLangPair& other);
+    CLangPair &operator=(const CLangPair& other) = default;
     bool isValid() const;
     bool isAtlasAcceptable() const;
     QString getHash() const;

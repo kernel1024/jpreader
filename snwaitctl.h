@@ -12,7 +12,7 @@ private:
     CSnippetViewer* snv;
 public:
     explicit CSnWaitCtl(CSnippetViewer *parent);
-    void setText(QString aMsg);
+    void setText(const QString &aMsg);
 public slots:
     void setProgressEnabled(bool show);
     void setProgressValue(int val);

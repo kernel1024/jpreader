@@ -104,7 +104,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
             syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
         }
 
-        if (gSet!=nullptr && gSet->logWindow!=nullptr)
+        if (gSet && gSet->logWindow)
             QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
     }
 
@@ -170,7 +170,7 @@ QString detectEncodingName(const QByteArray& content) {
     ucsdet_setText(csd, content.constData(), content.length(), &status);
     const UCharsetMatch *ucm;
     ucm = ucsdet_detect(csd, &status);
-    if (status==U_ZERO_ERROR && ucm!=nullptr) {
+    if (status==U_ZERO_ERROR && ucm) {
         const char* cname = ucsdet_getName(ucm,&status);
         if (status==U_ZERO_ERROR) icu_enc = QByteArray(cname);
     }
@@ -421,7 +421,7 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
     QString res;
     if (dialog.exec()==QDialog::Accepted) {
         QString userFilter = dialog.selectedNameFilter();
-        if (selectedFilter!=nullptr)
+        if (selectedFilter)
             *selectedFilter=userFilter;
         if (!userFilter.isEmpty())
             dialog.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());

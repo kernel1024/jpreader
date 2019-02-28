@@ -2,14 +2,15 @@
 #include <QUrl>
 #include "atlastranslator.h"
 
-CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, const CLangPair &lang) :
+CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16 port,
+                                   const CLangPair &lang) :
     CAbstractTranslator(parent, lang)
 {
     atlHost=host;
     atlPort=port;
     inited=false;
     emptyRestore=false;
-    if (gSet!=nullptr)
+    if (gSet)
         emptyRestore=gSet->settings.emptyRestore;
 
     QSslConfiguration conf = sock.sslConfiguration();
@@ -17,14 +18,19 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, QString host, quint16 port, 
     sock.setSslConfiguration(conf);
 
     QList<QSslError> expectedErrors;
-    foreach (const QSslCertificate& cert, gSet->atlCerts.keys())
-        foreach (const int errCode, gSet->atlCerts.value(cert))
-            expectedErrors << QSslError(static_cast<QSslError::SslError>(errCode),cert);
+    for (auto it = gSet->atlCerts.constBegin(),
+         end = gSet->atlCerts.constEnd(); it != end; ++it) {
+        for (auto iit = it.value().constBegin(), iend = it.value().constEnd(); iit != iend; ++iit) {
+            expectedErrors << QSslError(static_cast<QSslError::SslError>(*iit),it.key());
+        }
+    }
+
     sock.ignoreSslErrors(expectedErrors);
 
-    connect(&sock,SIGNAL(sslErrors(QList<QSslError>)),this,SLOT(sslError(QList<QSslError>)));
-    connect(&sock,SIGNAL(error(QAbstractSocket::SocketError)),
-            this,SLOT(socketError(QAbstractSocket::SocketError)));
+    connect(&sock,qOverload<const QList<QSslError>&>(&QSslSocket::sslErrors),
+            this,&CAtlasTranslator::sslError);
+    connect(&sock,qOverload<QAbstractSocket::SocketError>(&QSslSocket::error),
+            this,&CAtlasTranslator::socketError);
 
     connect(this,&CAtlasTranslator::sslCertErrors,gSet,&CGlobalControl::atlSSLCertErrors);
 }
@@ -146,12 +152,12 @@ QString CAtlasTranslator::tranString(const QString &src)
             sock.close();
             tranError = QString("ERROR: ATLAS slipped");
             return "ERROR:ATLAS_SLIPPED";
-        } else {
-            qCritical() << "ATLAS: translation error";
-            sock.close();
-            tranError = QString("ERROR: ATLAS translation error");
-            return "ERROR:TRAN_ATLAS_TRAN_ERROR";
         }
+
+        qCritical() << "ATLAS: translation error";
+        sock.close();
+        tranError = QString("ERROR: ATLAS translation error");
+        return "ERROR:TRAN_ATLAS_TRAN_ERROR";
     }
 
     s = s.remove(QRegExp("^RES:"));
@@ -200,7 +206,7 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     QHash<QSslCertificate,QStringList> errStrHash;
     QHash<QSslCertificate,QIntList> errIntHash;
 
-    foreach (const QSslError& err, errors) {
+    for (const QSslError& err : qAsConst(errors)) {
         if (gSet->atlCerts.contains(err.certificate()) &&
                 gSet->atlCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
 
@@ -209,8 +215,8 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
         errIntHash[err.certificate()].append(static_cast<int>(err.error()));
     }
 
-    foreach (const QSslCertificate& key, errStrHash.keys()) {
-        emit sslCertErrors(key,errStrHash.value(key),errIntHash.value(key));
+    for (auto it = errStrHash.constBegin(), end = errStrHash.constEnd(); it != end; ++it) {
+        emit sslCertErrors(it.key(),it.value(),errIntHash.value(it.key()));
     }
 }
 

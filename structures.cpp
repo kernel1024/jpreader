@@ -14,19 +14,11 @@ UrlHolder::UrlHolder(const UrlHolder &other)
     uuid=other.uuid;
 }
 
-UrlHolder::UrlHolder(QString title, QUrl url)
+UrlHolder::UrlHolder(const QString& title, const QUrl& url)
 {
     UrlHolder::title=title;
     UrlHolder::url=url;
     UrlHolder::uuid=QUuid::createUuid();
-}
-
-UrlHolder& UrlHolder::operator=(const UrlHolder& other)
-{
-    title=other.title;
-    url=other.url;
-    uuid=other.uuid;
-    return *this;
 }
 
 bool UrlHolder::operator==(const UrlHolder &s) const
@@ -51,17 +43,10 @@ DirStruct::DirStruct(const DirStruct &other)
     count=other.count;
 }
 
-DirStruct::DirStruct(QString DirName, int Count)
+DirStruct::DirStruct(const QString& DirName, int Count)
 {
     DirStruct::dirName=DirName;
     DirStruct::count=Count;
-}
-
-DirStruct& DirStruct::operator=(const DirStruct& other)
-{
-    dirName=other.dirName;
-    count=other.count;
-    return *this;
 }
 
 QDataStream &operator<<(QDataStream &out, const UrlHolder &obj) {
@@ -116,13 +101,6 @@ CLangPair::CLangPair(const QString &fromName, const QString &toName)
 {
     langFrom = QLocale(fromName);
     langTo = QLocale(toName);
-}
-
-CLangPair &CLangPair::operator=(const CLangPair &other)
-{
-    langFrom = other.langFrom;
-    langTo = other.langTo;
-    return *this;
 }
 
 bool CLangPair::isValid() const

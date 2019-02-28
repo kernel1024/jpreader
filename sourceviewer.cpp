@@ -23,9 +23,10 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     if (url.startsWith("data"))
         url = QString("data-url (RFC 2397)");
     if (url.length()>90) {
+        const QString bUrl = url;
         url.truncate(80);
         url.append("...");
-        url.append(origin->getUrl().toString().right(10));
+        url.append(bUrl.rightRef(10));
     }
     ui->labelUrl->setText(url);
 

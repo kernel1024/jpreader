@@ -137,6 +137,6 @@ Node::Node()
 }
 
 ostream &Node::operator<<(ostream &stream) const {
-    stream << (string)(*this);
+    stream << std::string(*this);
     return stream;
 }
