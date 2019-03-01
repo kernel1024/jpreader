@@ -39,11 +39,11 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
         "aHR0cHM6Ly90cmFuc2xhdGUuZ29vZ2xlYXBpcy5jb20vdHJhbnNsYXRlX2Evc2luZ2xl")));
 
     QUrlQuery rqData;
-    rqData.addQueryItem("client","gtx");
-    rqData.addQueryItem("sl",m_lang.langFrom.bcp47Name());
-    rqData.addQueryItem("tl",m_lang.langTo.bcp47Name());
-    rqData.addQueryItem("dt","t");
-    rqData.addQueryItem("q",QUrl::toPercentEncoding(src));
+    rqData.addQueryItem(QStringLiteral("client"),QStringLiteral("gtx"));
+    rqData.addQueryItem(QStringLiteral("sl"),m_lang.langFrom.bcp47Name());
+    rqData.addQueryItem(QStringLiteral("tl"),m_lang.langTo.bcp47Name());
+    rqData.addQueryItem(QStringLiteral("dt"),QStringLiteral("t"));
+    rqData.addQueryItem(QStringLiteral("q"),QUrl::toPercentEncoding(src));
 
     QNetworkRequest rq(rqurl);
     rq.setHeader(QNetworkRequest::ContentTypeHeader,
@@ -52,10 +52,10 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     QNetworkReply *rpl = nam->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
     if (!waitForReply(rpl)) {
-        tranError = QString("ERROR: Google GTX translator network error");
+        tranError = QStringLiteral("ERROR: Google GTX translator network error");
         qWarning() << rpl->errorString();
         rpl->deleteLater();
-        return QString("ERROR:TRAN_GOOGLE_GTX_NETWORK_ERROR");
+        return QStringLiteral("ERROR:TRAN_GOOGLE_GTX_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
@@ -65,9 +65,9 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
     if (jdoc.isNull() || jdoc.isEmpty() || !jdoc.isArray()) {
-        tranError = QString("ERROR: Google GTX translator JSON error");
+        tranError = QStringLiteral("ERROR: Google GTX translator JSON error");
         qWarning() << ra;
-        return QString("ERROR:TRAN_GOOGLE_GTX_JSON_ERROR");
+        return QStringLiteral("ERROR:TRAN_GOOGLE_GTX_JSON_ERROR");
     }
 
     QString res;
@@ -88,8 +88,8 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 
     if (!okres) {
         qCritical() << "Google GTX error: empty result";
-        tranError = QString("ERROR: Google GTX translator error: empty result");
-        return QString("ERROR:TRAN_GOOGLE_GTX_TRAN_ERROR");
+        tranError = QStringLiteral("ERROR: Google GTX translator error: empty result");
+        return QStringLiteral("ERROR:TRAN_GOOGLE_GTX_TRAN_ERROR");
     }
 
     return res;

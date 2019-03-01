@@ -6,7 +6,7 @@ CAuxTranslator::CAuxTranslator(QObject *parent) :
     QObject(parent)
 {
     m_text = QString();
-    m_lang = CLangPair("ja","en");
+    m_lang = CLangPair(QStringLiteral("ja"),QStringLiteral("en"));
 }
 
 void CAuxTranslator::setText(const QString &text)
@@ -30,11 +30,11 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
         CAbstractTranslator* tran=translatorFactory(this, m_lang);
         if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
-            m_text = QLatin1String("ERROR");
+            m_text = QStringLiteral("ERROR");
         } else {
             QString ssrc = m_text;
             QString res;
-            ssrc = ssrc.replace("\r\n","\n");
+            ssrc = ssrc.replace(QStringLiteral("\r\n"),QStringLiteral("\n"));
             ssrc = ssrc.replace('\r','\n');
             const QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
             for (const QString &s : qAsConst(sl)) {

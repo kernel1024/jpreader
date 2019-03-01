@@ -55,14 +55,14 @@ public slots:
     void showSnippet();
     void execSnippet(const QModelIndex& index);
     void selectDir();
-    void searchFinished(const QStrHash &stats, const QString &query);
+    void searchFinished(const CStringHash &stats, const QString &query);
     void translateTitles();
     void gotTitleTranslation(const QStringList &res);
     void updateProgress(const int pos);
     void headerMenu(const QPoint& pos);
     void applyFilter();
     void applySnippet(const QItemSelection & selected, const QItemSelection & deselected);
-    void gotSearchResult(const QStrHash &item);
+    void gotSearchResult(const CStringHash &item);
 };
 
 #endif // SEARCHTAB_H

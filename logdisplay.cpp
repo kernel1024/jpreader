@@ -39,7 +39,7 @@ void CLogDisplay::updateMessages()
         sv = ui->logView->verticalScrollBar()->value();
 
     if (!savedMessages.isEmpty())
-        fr = debugMessages.lastIndexOf(savedMessages.last());
+        fr = debugMessages.lastIndexOf(savedMessages.constLast());
     if (fr>=0 && fr<debugMessages.count()) {
         for (int i=(fr+1);i<debugMessages.count();i++)
             savedMessages << debugMessages.at(i);
@@ -63,8 +63,9 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
     if (su.isValid()) {
         cm->addSeparator();
 
-        QAction* ac = cm->addAction(QIcon::fromTheme("preferences-web-browser-adblock"),
-                                    tr("Add AdBlock rule for url..."),this,SLOT(addToAdblock()));
+        QAction* ac = cm->addAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
+                                    tr("Add AdBlock rule for url..."),this,
+                                    &CLogDisplay::addToAdblock);
         ac->setData(su);
     }
 
@@ -95,7 +96,7 @@ void CLogDisplay::showEvent(QShowEvent *)
 {
     updateMessages();
     if (firstShow && gSet && !gSet->mainWindows.isEmpty()) {
-        QPoint p = gSet->mainWindows.first()->pos();
+        QPoint p = gSet->mainWindows.constFirst()->pos();
         p.rx()+=200;
         p.ry()+=100;
         move(p);

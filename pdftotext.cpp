@@ -80,11 +80,11 @@ void metaString(QString& out, Dict *infoDict, const char* key,
         const GooString *s1 = obj.getString();
         QByteArray ba(s1->c_str());
         res = detectDecodeToUnicode(ba);
-        res.replace("&",  "&amp;");
-        res.replace("'",  "&apos;" );
-        res.replace("\"", "&quot;" );
-        res.replace("<",  "&lt;" );
-        res.replace(">",  "&gt;" );
+        res.replace(QStringLiteral("&"),  QStringLiteral("&amp;"));
+        res.replace(QStringLiteral("'"),  QStringLiteral("&apos;" ));
+        res.replace(QStringLiteral("\""), QStringLiteral("&quot;" ));
+        res.replace(QStringLiteral("<"),  QStringLiteral("&lt;" ));
+        res.replace(QStringLiteral(">"),  QStringLiteral("&gt;" ));
     }
     if (!res.isEmpty())
         out.append(QString(fmt).arg(res));
@@ -96,7 +96,7 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
         QString s = QString::fromUtf8(obj.getString()->c_str());
-        if (s.startsWith("D:"))
+        if (s.startsWith(QStringLiteral("D:")))
             s.remove(0,2);
         out.append(QString(fmt).arg(s));
     }
@@ -187,13 +187,16 @@ void CPDFWorker::outputToString(void *stream, const char *text, int len)
 
 QString CPDFWorker::formatPdfText(const QString& text)
 {
-    const static QString openingQuotation = "\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
-                                            "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B";
+    const static QString openingQuotation =
+            QStringLiteral("\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
+                           "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B");
     // 〈《「『【〔〖〘〚 “ « ‹ ‘ " ( [
-    const static QString closingQuotation = "\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
-                                            "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D";
+    const static QString closingQuotation =
+            QStringLiteral("\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
+                           "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D");
     //  〉》」』】〕〗〙〛” » › ’ " ) ]
-    const static QString endMarkers = "\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026";
+    const static QString endMarkers =
+            QStringLiteral("\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026");
     // ! . ? 。…
 
     const static int maxParagraphLength = 150;
@@ -207,7 +210,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
     QString s = text;
 
     // replace multi-newlines with paragraph markers
-    QRegExp exp("\n{2,}");
+    QRegExp exp(QStringLiteral("\n{2,}"));
     int pos = 0;
     while ((pos=exp.indexIn(s,pos)) != -1) {
         int length = exp.matchedLength();
@@ -217,7 +220,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
             if (!((pm.isLetter() && !isVerticalText) ||
                   (pm.isLetterOrNumber() && isVerticalText) ||
                   (pm.isPunct() && !endMarkers.contains(pm))))
-                s.insert(pos,"</p><p>");
+                s.insert(pos,QStringLiteral("</p><p>"));
         }
     }
 
@@ -225,9 +228,9 @@ QString CPDFWorker::formatPdfText(const QString& text)
     s.remove('\n');
 
     // replace page separators
-    s = s.replace('\f',"</p>" PAGE_SEPARATOR "<p>");
+    s = s.replace('\f',QStringLiteral("</p>" PAGE_SEPARATOR "<p>"));
 
-    s = "<p>" + s + "</p>";
+    s = QStringLiteral("<p>") + s + QStringLiteral("</p>");
 
     int idx = 0;
     while (idx<s.length()) { // remove-replace pass
@@ -351,7 +354,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding())) {
         qCritical() << "pdfToText: Couldn't get text encoding";
-        emit error(tr("pdfToText: Couldn't get text encoding"));
+        emit error(QStringLiteral("pdfToText: Couldn't get text encoding"));
         return;
     }
 
@@ -361,7 +364,7 @@ void CPDFWorker::pdfToText(const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
-        emit error(tr("pdfToText: Cannot create PDF Doc object"));
+        emit error(QStringLiteral("pdfToText: Cannot create PDF Doc object"));
         return;
     }
 
@@ -371,27 +374,27 @@ void CPDFWorker::pdfToText(const QString &filename)
     if (info.isDict()) {
         Object obj;
         if (static_cast<void>(obj = info.getDict()->lookup("Title")), obj.isString()) {
-            metaString(result, info.getDict(), "Title", "<title>%1</title>\n");
+            metaString(result, info.getDict(), "Title", QStringLiteral("<title>%1</title>\n"));
         } else {
-            result.append(QString("<title>%1</title>\n").arg(fi.baseName()));
+            result.append(QString(QStringLiteral("<title>%1</title>\n")).arg(fi.baseName()));
         }
         metaString(result, info.getDict(), "Subject",
-                   "<meta name=\"Subject\" content=\"%1\"/>\n");
+                   QStringLiteral("<meta name=\"Subject\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Keywords",
-                   "<meta name=\"Keywords\" content=\"%1\"/>\n");
+                   QStringLiteral("<meta name=\"Keywords\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Author",
-                   "<meta name=\"Author\" content=\"%1\"/>\n");
+                   QStringLiteral("<meta name=\"Author\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Creator",
-                   "<meta name=\"Creator\" content=\"%1\"/>\n");
+                   QStringLiteral("<meta name=\"Creator\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Producer",
-                   "<meta name=\"Producer\" content=\"%1\"/>\n");
+                   QStringLiteral("<meta name=\"Producer\" content=\"%1\"/>\n"));
         metaDate(result, info.getDict(), "CreationDate",
-                 "<meta name=\"CreationDate\" content=\"%1\"/>\n");
+                 QStringLiteral("<meta name=\"CreationDate\" content=\"%1\"/>\n"));
         metaDate(result, info.getDict(), "LastModifiedDate",
-                 "<meta name=\"ModDate\" content=\"%1\"/>\n");
+                 QStringLiteral("<meta name=\"ModDate\" content=\"%1\"/>\n"));
     }
-    result.append("</head>\n");
-    result.append("<body>\n");
+    result.append(QStringLiteral("</head>\n"));
+    result.append(QStringLiteral("<body>\n"));
 
     lastPage = doc->getNumPages();
 
@@ -408,13 +411,13 @@ void CPDFWorker::pdfToText(const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
-        emit error(tr("pdfToText: Cannot create TextOutput object"));
+        emit error(QStringLiteral("pdfToText: Cannot create TextOutput object"));
         return;
     }
 
     delete textOut;
 
-    QHash<int,QList<QByteArray> > images;
+    QHash<int,QVector<QByteArray> > images;
     if (gSet->settings.pdfExtractImages) {
         for (int pageNum=1;pageNum<=lastPage;pageNum++) {
             Dict *dict = doc->getPage(pageNum)->getResourceDict();
@@ -487,18 +490,18 @@ void CPDFWorker::pdfToText(const QString &filename)
     }
 
     m_text = formatPdfText(m_text);
-    QStringList sltext = m_text.split(PAGE_SEPARATOR);
+    QStringList sltext = m_text.split(QStringLiteral(PAGE_SEPARATOR));
     m_text.clear();
     int idx = 1;
     while (!sltext.isEmpty()) {
         if (idx>1)
-            m_text.append("<hr>");
+            m_text.append(QStringLiteral("<hr>"));
 
         const auto imgList = images.value(idx);
         for (const QByteArray& img : imgList) {
-            m_text.append("<img src=\"data:image/jpeg;base64,");
+            m_text.append(QStringLiteral("<img src=\"data:image/jpeg;base64,"));
             m_text.append(QString::fromLatin1(img.toBase64()));
-            m_text.append("\" />&nbsp;");
+            m_text.append(QStringLiteral("\" />&nbsp;"));
         }
         m_text.append(sltext.takeFirst());
         idx++;
@@ -506,8 +509,8 @@ void CPDFWorker::pdfToText(const QString &filename)
 
 
     result.append(m_text);
-    result.append("</body>\n");
-    result.append("</html>\n");
+    result.append(QStringLiteral("</body>\n"));
+    result.append(QStringLiteral("</html>\n"));
 
     delete doc;
     uMap->decRefCnt();

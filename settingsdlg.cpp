@@ -130,13 +130,13 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
 
     connect(ui->listTabs, &QListWidget::currentRowChanged, ui->tabWidget, &QStackedWidget::setCurrentIndex);
 
-    ui->atlSSLProto->addItem("Secure",static_cast<int>(QSsl::SecureProtocols));
-    ui->atlSSLProto->addItem("TLS 1.2",static_cast<int>(QSsl::TlsV1_2));
-    ui->atlSSLProto->addItem("TLS 1.1",static_cast<int>(QSsl::TlsV1_1));
-    ui->atlSSLProto->addItem("TLS 1.0",static_cast<int>(QSsl::TlsV1_0));
-    ui->atlSSLProto->addItem("SSL V3",static_cast<int>(QSsl::SslV3));
-    ui->atlSSLProto->addItem("SSL V2",static_cast<int>(QSsl::SslV2));
-    ui->atlSSLProto->addItem("Any",static_cast<int>(QSsl::AnyProtocol));
+    ui->atlSSLProto->addItem(QStringLiteral("Secure"),static_cast<int>(QSsl::SecureProtocols));
+    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
+    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.1"),static_cast<int>(QSsl::TlsV1_1));
+    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.0"),static_cast<int>(QSsl::TlsV1_0));
+    ui->atlSSLProto->addItem(QStringLiteral("SSL V3"),static_cast<int>(QSsl::SslV3));
+    ui->atlSSLProto->addItem(QStringLiteral("SSL V2"),static_cast<int>(QSsl::SslV2));
+    ui->atlSSLProto->addItem(QStringLiteral("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
     populateTabList();
@@ -162,29 +162,41 @@ void CSettingsDlg::populateTabList()
 
     QListWidgetItem* itm;
 
-    itm = new QListWidgetItem(QIcon::fromTheme("internet-web-browser"),tr("Browser"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("internet-web-browser")),tr("Browser"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("document-preview"),tr("Search"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("document-preview")),tr("Search"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("document-edit-decrypt-verify"),tr("Translator"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("document-edit-decrypt-verify")),tr("Translator"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("format-text-color"),tr("Fonts"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("format-text-color")),tr("Fonts"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("system-run"),tr("Programs"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("system-run")),tr("Programs"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("document-edit-decrypt"),tr("Translation pairs"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("document-edit-decrypt")),tr("Translation pairs"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon(":/img/nepomuk"),tr("Query history"));
+    itm = new QListWidgetItem(
+              QIcon(QStringLiteral(":/img/nepomuk")),tr("Query history"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("view-history"),tr("History"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("view-history")),tr("History"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("preferences-web-browser-adblock"),tr("AdBlock"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),tr("AdBlock"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("preferences-web-browser-cookies"),tr("Cookies"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("preferences-web-browser-cookies")),tr("Cookies"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("folder-script"),tr("User scripts"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("folder-script")),tr("User scripts"));
     ui->listTabs->addItem(itm);
-    itm = new QListWidgetItem(QIcon::fromTheme("server-database"),tr("Network & logging"));
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("server-database")),tr("Network & logging"));
     ui->listTabs->addItem(itm);
 
     int maxw = 0;
@@ -269,7 +281,8 @@ void CSettingsDlg::updateAdblockList()
         item->setText(0,adblockList.at(i).filter());
         item->setData(0,Qt::UserRole+1,i);
     }
-    ui->lblAdblockTotalRules->setText(QString("Total rules: %1.").arg(adblockList.count()));
+    ui->lblAdblockTotalRules->setText(
+                QString(QStringLiteral("Total rules: %1.")).arg(adblockList.count()));
 }
 
 void CSettingsDlg::selectDir()
@@ -330,10 +343,11 @@ void CSettingsDlg::addAd()
 void CSettingsDlg::delAd()
 {
     QList<int> r;
-    for (const QTreeWidgetItem* i : ui->treeAdblock->selectedItems())
+    const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
+    for (const QTreeWidgetItem* i : il)
         r << i->data(0,Qt::UserRole+1).toInt();
 
-    QList<CAdBlockRule> tmp = adblockList;
+    QVector<CAdBlockRule> tmp = adblockList;
 
     for (const int idx : qAsConst(r))
         adblockList.removeOne(tmp.at(idx));
@@ -383,10 +397,12 @@ void CSettingsDlg::exportAd()
     }
 
     QList<int> r;
-    for (QTreeWidgetItem* i : ui->treeAdblock->selectedItems())
+    const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
+    for (const QTreeWidgetItem* i : il)
         r << i->data(0,Qt::UserRole+1).toInt();
 
-    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),gSet->settings.savedAuxSaveDir,
+    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),
+                                     gSet->settings.savedAuxSaveDir,
                                      tr("Text file (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
@@ -489,17 +505,17 @@ void CSettingsDlg::exportCookies()
     for (int i=0;i<r.count();i++) {
         int idx = r.at(i);
         fs << cookiesList.at(idx).domain()
-           << "\t"
-           << bool2str2(cookiesList.at(idx).domain().startsWith("."))
-           << "\t"
+           << '\t'
+           << bool2str2(cookiesList.at(idx).domain().startsWith('.'))
+           << '\t'
            << cookiesList.at(idx).path()
-           << "\t"
+           << '\t'
            << bool2str2(cookiesList.at(idx).isSecure())
-           << "\t"
+           << '\t'
            << cookiesList.at(idx).expirationDate().toSecsSinceEpoch()
-           << "\t"
+           << '\t'
            << cookiesList.at(idx).name()
-           << "\t"
+           << '\t'
            << cookiesList.at(idx).value()
            << endl;
     }
@@ -559,11 +575,11 @@ void CSettingsDlg::adblockSearchFwd()
 
 void CSettingsDlg::addSearchEngine()
 {
-    QStrHash data;
-    data["Url template"]=QString();
-    data["Menu title"]=QString();
+    CStringHash data;
+    data[QStringLiteral("Url template")]=QString();
+    data[QStringLiteral("Menu title")]=QString();
 
-    QString hlp = tr("In the url template you can use following substitutions\n"
+    static const QString hlp = tr("In the url template you can use following substitutions\n"
                      "  %s - search text\n"
                      "  %ps - percent-encoded search text");
 
@@ -571,12 +587,12 @@ void CSettingsDlg::addSearchEngine()
     if (dlg->exec()) {
         data = dlg->getInputData();
 
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
-                                                  arg(data["Menu title"],
-                                                  data["Url template"],
+        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ] %3")).
+                                                  arg(data[QStringLiteral("Menu title")],
+                                                  data[QStringLiteral("Url template")],
                 data["Menu title"]==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
-        li->setData(Qt::UserRole,data["Menu title"]);
-        li->setData(Qt::UserRole+1,data["Url template"]);
+        li->setData(Qt::UserRole,data[QStringLiteral("Menu title")]);
+        li->setData(Qt::UserRole+1,data[QStringLiteral("Url template")]);
         ui->listSearch->addItem(li);
     }
     dlg->deleteLater();
@@ -594,7 +610,8 @@ void CSettingsDlg::delSearchEngine()
 void CSettingsDlg::updateAtlCertLabel()
 {
     if (gSet)
-        ui->atlCertsLabel->setText(QString("Trusted:\n%1 certificates").arg(gSet->atlCerts.count()));
+        ui->atlCertsLabel->setText(QString(QStringLiteral("Trusted:\n%1 certificates"))
+                                   .arg(gSet->atlCerts.count()));
 }
 
 void CSettingsDlg::setDefaultSearch()
@@ -672,7 +689,7 @@ void CSettingsDlg::importUserScript()
     ui->listUserScripts->addItem(itm);
 }
 
-void CSettingsDlg::setUserScripts(const QStrHash& scripts)
+void CSettingsDlg::setUserScripts(const CStringHash& scripts)
 {
     ui->listUserScripts->clear();
 
@@ -683,9 +700,9 @@ void CSettingsDlg::setUserScripts(const QStrHash& scripts)
     }
 }
 
-QStrHash CSettingsDlg::getUserScripts()
+CStringHash CSettingsDlg::getUserScripts()
 {
-    QStrHash res;
+    CStringHash res;
     for (int i=0;i<ui->listUserScripts->count();i++) {
         QListWidgetItem *itm = ui->listUserScripts->item(i);
         res[itm->text()]=itm->data(Qt::UserRole).toString();
@@ -693,7 +710,7 @@ QStrHash CSettingsDlg::getUserScripts()
     return res;
 }
 
-CLangPairList CSettingsDlg::getLangPairList()
+CLangPairVector CSettingsDlg::getLangPairList()
 {
     return transModel->getLangPairList();
 }
@@ -707,7 +724,7 @@ void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> & items)
 void CSettingsDlg::updateFontColorPreview(const QColor &c)
 {
     overridedFontColor = c;
-    ui->frameFontColorOverride->setStyleSheet(QString("QFrame { background: %1; }")
+    ui->frameFontColorOverride->setStyleSheet(QString(QStringLiteral("QFrame { background: %1; }"))
                                               .arg(overridedFontColor.name(QColor::HexRgb)));
 }
 
@@ -723,26 +740,27 @@ void CSettingsDlg::setQueryHistory(const QStringList& history)
         ui->listQr->addItem(history.at(i));
 }
 
-void CSettingsDlg::setAdblock(const QList<CAdBlockRule> &adblock)
+void CSettingsDlg::setAdblock(const QVector<CAdBlockRule> &adblock)
 {
     adblockList = adblock;
     updateAdblockList();
 }
 
-void CSettingsDlg::setMainHistory(const QUHList& history)
+void CSettingsDlg::setMainHistory(const CUrlHolderVector& history)
 {
-    for (const UrlHolder &t : history) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ]").arg(t.title, t.url.toString()));
+    for (const CUrlHolder &t : history) {
+        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ]"))
+                                                  .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
     }
 }
 
-void CSettingsDlg::setSearchEngines(const QStrHash& engines)
+void CSettingsDlg::setSearchEngines(const CStringHash& engines)
 {
     ui->listSearch->clear();
     for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
-        QListWidgetItem* li = new QListWidgetItem(QString("%1 [ %2 ] %3").
+        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ] %3")).
                                                   arg(it.key(),
                                                   it.value(),
                 it.key()==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
@@ -756,7 +774,8 @@ QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table) const
 {
     QList<int> res;
     res.clear();
-    for (const QTableWidgetItem *i : table->selectedItems()) {
+    const QList<QTableWidgetItem *> il = table->selectedItems();
+    for (const QTableWidgetItem *i : il) {
         if (!res.contains(i->data(Qt::UserRole+1).toInt()))
             res << i->data(Qt::UserRole+1).toInt();
     }
@@ -772,14 +791,14 @@ QStringList CSettingsDlg::getQueryHistory()
     return sl;
 }
 
-QList<CAdBlockRule> CSettingsDlg::getAdblock()
+QVector<CAdBlockRule> CSettingsDlg::getAdblock()
 {
     return adblockList;
 }
 
-QStrHash CSettingsDlg::getSearchEngines()
+CStringHash CSettingsDlg::getSearchEngines()
 {
-    QStrHash engines;
+    CStringHash engines;
     engines.clear();
     for (int i=0; i<ui->listSearch->count(); i++)
         engines[ui->listSearch->item(i)->data(Qt::UserRole).toString()] =
@@ -827,14 +846,14 @@ void CLangPairDelegate::updateEditorGeometry(QWidget *editor, const QStyleOption
     editor->setGeometry(option.rect);
 }
 
-CLangPairModel::CLangPairModel(QObject *parent, const CLangPairList &list, QTableView *table) :
+CLangPairModel::CLangPairModel(QObject *parent, const CLangPairVector &list, QTableView *table) :
     QAbstractTableModel (parent)
 {
     m_list = list;
     m_table = table;
 }
 
-CLangPairList CLangPairModel::getLangPairList()
+CLangPairVector CLangPairModel::getLangPairList()
 {
     return m_list;
 }
@@ -853,8 +872,8 @@ QVariant CLangPairModel::headerData(int section, Qt::Orientation orientation, in
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
-            case 0: return QVariant(QString("Source language"));
-            case 1: return QVariant(QString("Destination language"));
+            case 0: return QVariant(QStringLiteral("Source language"));
+            case 1: return QVariant(QStringLiteral("Destination language"));
         }
     }
     return QVariant();
@@ -903,7 +922,7 @@ bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
 {
     beginInsertRows(parent, row, row+count-1);
     for (int i=0;i<count;i++)
-        m_list.insert(row, CLangPair("ja","en"));
+        m_list.insert(row, CLangPair(QStringLiteral("ja"),QStringLiteral("en")));
     endInsertRows();
     return true;
 }

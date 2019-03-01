@@ -101,7 +101,7 @@ void BookmarkNode::setType(Type type)
     m_type = type;
 }
 
-QList<BookmarkNode *> BookmarkNode::children() const
+QVector<BookmarkNode *> BookmarkNode::children() const
 {
     return m_children;
 }

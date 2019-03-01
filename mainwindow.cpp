@@ -28,7 +28,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     tabMain->parentWnd=this;
 	lastTabIdx=0;
-    savedHelperWidth=0;
     setWindowIcon(gSet->appIcon);
 
     tabMain->tabBar()->setBrowserTabs(true);
@@ -37,6 +36,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     stSearchStatus.setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     statusBar()->addPermanentWidget(&stSearchStatus);
 
+    savedHelperWidth=0;
+    savedHelperIdx=-1;
     helperVisible = false;
     tabHelper = new CSpecTabBar(this);
     tabHelper->setShape(QTabBar::RoundedWest);
@@ -56,10 +57,10 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     actionRecentDocuments->setMenu(recentMenu);
 
     menuBar()->addSeparator();
-    tabsMenu = menuBar()->addMenu(QIcon::fromTheme("tab-detach"),QString());
-    recycledMenu = menuBar()->addMenu(QIcon::fromTheme("user-trash"),QString());
+    tabsMenu = menuBar()->addMenu(QIcon::fromTheme(QStringLiteral("tab-detach")),QString());
+    recycledMenu = menuBar()->addMenu(QIcon::fromTheme(QStringLiteral("user-trash")),QString());
 
-    menuBookmarks->setStyleSheet("QMenu { menu-scrollable: 1; }");
+    menuBookmarks->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
     menuBookmarks->setToolTipsVisible(true);
 
     titleRenamedLock.setInterval(500);
@@ -103,7 +104,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
     if (gSet->logWindow)
         connect(actionShowLog, &QAction::triggered, gSet->logWindow, &CLogDisplay::show);
     if (gSet->downloadManager)
-        connect(actionDownloadManager, &QAction::triggered, gSet->downloadManager, &CDownloadManager::show);
+        connect(actionDownloadManager, &QAction::triggered,
+                gSet->downloadManager, &CDownloadManager::show);
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);
@@ -138,7 +140,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     qApp->installEventFilter(this);
 
-    QPushButton* addTabButton = new QPushButton(QIcon::fromTheme("list-add"),QString());
+    QPushButton* addTabButton = new QPushButton(QIcon::fromTheme(QStringLiteral("list-add")),QString());
     addTabButton->setFlat(true);
     tabMain->setCornerWidget(addTabButton);
     connect(addTabButton,&QPushButton::clicked,actionNew,&QAction::trigger);
@@ -327,7 +329,7 @@ void CMainWindow::centerWindow()
         move(rect.width()/2 - frameGeometry().width()/2,
              rect.height()/2 - frameGeometry().height()/2);
     } else {
-        CMainWindow* w = gSet->mainWindows.last();
+        CMainWindow* w = gSet->mainWindows.constLast();
         if (QApplication::activeWindow())
             if (qobject_cast<CMainWindow *>(QApplication::activeWindow()))
                 w = qobject_cast<CMainWindow *>(QApplication::activeWindow());
@@ -428,14 +430,14 @@ void CMainWindow::updateHelperList()
             break;
         case 1: // Recycled
             for (int i=0;i<gSet->recycleBin.count();i++) {
-                auto it = new QListWidgetItem(gSet->recycleBin[i].title);
+                auto it = new QListWidgetItem(gSet->recycleBin.at(i).title);
                 it->setData(Qt::UserRole,1);
                 it->setData(Qt::UserRole+1,i);
                 helperList->addItem(it);
             }
             break;
         case 2: // History
-            for (const UrlHolder &t : qAsConst(gSet->mainHistory)) {
+            for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
                 auto it = new QListWidgetItem(t.title);
                 it->setStatusTip(t.url.toString());
                 it->setToolTip(t.url.toString());
@@ -482,7 +484,7 @@ void CMainWindow::updateHistoryList()
 {
     if (!(helperVisible && tabHelper->currentIndex()==2)) return;
     helperList->clear();
-    for (const UrlHolder &t : qAsConst(gSet->mainHistory)) {
+    for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
         auto it = new QListWidgetItem(t.title);
         it->setStatusTip(t.url.toString());
         it->setToolTip(t.url.toString());
@@ -516,9 +518,9 @@ void CMainWindow::updateTitle()
         if (sv&& !sv->tabTitle.isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle);
-            t = doc.toPlainText() + " - " + t;
-            t.remove("\r");
-            t.remove("\n");
+            t = QString(QStringLiteral("%1 - %2")).arg(doc.toPlainText(), t);
+            t.remove('\r');
+            t.remove('\n');
         }
         auto bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
         if (bv && !bv->getLastQuery().isEmpty()) t =
@@ -529,16 +531,13 @@ void CMainWindow::updateTitle()
 
 void CMainWindow::goHistory(const QUuid &idx)
 {
-    QListIterator<UrlHolder> li(gSet->mainHistory);
-    UrlHolder i;
-    while (li.hasNext()) {
-        i=li.next();
-        if (i.uuid==idx) break;
-    }
-    if (i.uuid!=idx) return;
-    QUrl u = i.url;
-    if (!u.isValid()) return;
-    new CSnippetViewer(this, u);
+    for (const CUrlHolder& uh : qAsConst(gSet->mainHistory))
+        if (uh.uuid==idx) {
+            QUrl u = uh.url;
+            if (!u.isValid()) return;
+            new CSnippetViewer(this, u);
+            break;
+        }
 }
 
 void CMainWindow::createSearch()
@@ -548,11 +547,11 @@ void CMainWindow::createSearch()
 
 void CMainWindow::createStartBrowser()
 {
-    QFile f(":/data/startpage");
+    QFile f(QStringLiteral(":/data/startpage"));
     QString html;
     if (f.open(QIODevice::ReadOnly))
         html = QString::fromUtf8(f.readAll());
-    new CSnippetViewer(this,QUrl(),QStringList(),true,html,"100%",true);
+    new CSnippetViewer(this,QUrl(),QStringList(),true,html,QStringLiteral("100%"),true);
 }
 
 void CMainWindow::checkTabs()
@@ -652,8 +651,13 @@ void CMainWindow::openFromClipboard()
 
 void CMainWindow::updateBookmarks()
 {
-    while (menuBookmarks->actions().count()>3)
-        menuBookmarks->removeAction(menuBookmarks->actions().last());
+    while (true) {
+        const QList<QAction *> acl = menuBookmarks->actions();
+        if (acl.count()>3)
+            menuBookmarks->removeAction(acl.last());
+        else
+            break;
+    }
 
     gSet->bookmarksManager->populateBookmarksMenu(menuBookmarks, this);
 }
@@ -733,8 +737,9 @@ void CMainWindow::updateRecycled()
 {
     recycledMenu->clear();
     for (int i=0;i<gSet->recycleBin.count();i++) {
-        QAction* a = recycledMenu->addAction(gSet->recycleBin[i].title,this,SLOT(openRecycled()));
-        a->setStatusTip(gSet->recycleBin[i].url.toString());
+        QAction* a = recycledMenu->addAction(gSet->recycleBin.at(i).title,this,
+                                             &CMainWindow::openRecycled);
+        a->setStatusTip(gSet->recycleBin.at(i).url.toString());
         a->setData(i);
     }
     updateHelperList();
@@ -746,7 +751,8 @@ void CMainWindow::updateTabs()
     for(int i=0;i<tabMain->count();i++) {
         auto sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
         if (sv)
-            tabsMenu->addAction(sv->getDocTitle(),this,SLOT(activateTab()))->setData(i);
+            tabsMenu->addAction(sv->getDocTitle(),this,
+                                &CMainWindow::activateTab)->setData(i);
     }
     updateHelperList();
 }
@@ -794,20 +800,20 @@ void CMainWindow::reloadCharsetList()
 {
     QAction* act;
     menuCharset->clear();
-    act = menuCharset->addAction(tr("Autodetect"),this,SLOT(forceCharset()));
+    act = menuCharset->addAction(tr("Autodetect"),this,&CMainWindow::forceCharset);
     act->setData(QString());
     if (gSet->settings.forcedCharset.isEmpty()) {
         act->setCheckable(true);
         act->setChecked(true);
     } else {
-        act = menuCharset->addAction(gSet->settings.forcedCharset,this,SLOT(forceCharset()));
+        act = menuCharset->addAction(gSet->settings.forcedCharset,this,&CMainWindow::forceCharset);
         act->setData(gSet->settings.forcedCharset);
         act->setCheckable(true);
         act->setChecked(true);
     }
     menuCharset->addSeparator();
 
-    QList<QStringList> cList = encodingsByScript();
+    QVector<QStringList> cList = encodingsByScript();
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
@@ -816,10 +822,11 @@ void CMainWindow::reloadCharsetList()
                 continue;
             }
             QString cname = QTextCodec::codecForName(cList.at(i).at(j).toLatin1())->name();
-            act = midx->addAction(cname,this,SLOT(forceCharset()));
+            act = midx->addAction(cname,this,&CMainWindow::forceCharset);
             act->setData(cname);
             if (QTextCodec::codecForName(cname.toLatin1().data())) {
-                if (QTextCodec::codecForName(cname.toLatin1().data())->name()==gSet->settings.forcedCharset) {
+                if (QTextCodec::codecForName(cname.toLatin1().data())->name() ==
+                        gSet->settings.forcedCharset) {
                     act->setCheckable(true);
                     act->setChecked(true);
                 }
@@ -830,7 +837,8 @@ void CMainWindow::reloadCharsetList()
 
     for(int i=0;i<gSet->settings.charsetHistory.count();i++) {
         if (gSet->settings.charsetHistory.at(i)==gSet->settings.forcedCharset) continue;
-        act = menuCharset->addAction(gSet->settings.charsetHistory.at(i),this,SLOT(forceCharset()));
+        act = menuCharset->addAction(gSet->settings.charsetHistory.at(i),this,
+                                     &CMainWindow::forceCharset);
         act->setData(gSet->settings.charsetHistory.at(i));
         act->setCheckable(true);
     }
@@ -845,7 +853,7 @@ void CMainWindow::closeEvent(QCloseEvent *event)
 bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
     QString cln(obj->metaObject()->className());
-    if (fullScreen && cln.contains("WebEngine",Qt::CaseInsensitive)) {
+    if (fullScreen && cln.contains(QStringLiteral("WebEngine"),Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
             auto mev = static_cast<QMouseEvent *>(ev);
             if (mev) {
@@ -863,10 +871,10 @@ void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
 {
     QStringList formats = ev->mimeData()->formats();
 
-    if (formats.contains("_NETSCAPE_URL") ||
-            formats.contains("text/uri-list"))
+    if (formats.contains(QStringLiteral("_NETSCAPE_URL")) ||
+            formats.contains(QStringLiteral("text/uri-list")))
         ev->acceptProposedAction();
-    else if (formats.contains("text/plain")) {
+    else if (formats.contains(QStringLiteral("text/plain"))) {
         QUrl u(ev->mimeData()->text());
         if (u.isValid())
             ev->acceptProposedAction();
@@ -880,19 +888,21 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     for (int i=0;i<formats.count();i++)
         data[formats.at(i)] = detectDecodeToUnicode(ev->mimeData()->data(formats.at(i)));
 
-    QList<QUrl> ul;
+    QVector<QUrl> ul;
     bool ok = false;
 
-    if (data.contains("_NETSCAPE_URL")) {
-        QString s = data.value("_NETSCAPE_URL").split(QRegExp("\n|\r\n|\r")).first();
+    if (data.contains(QStringLiteral("_NETSCAPE_URL"))) {
+        QString s = data.value(QStringLiteral("_NETSCAPE_URL"))
+                               .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst();
         QUrl u(s);
         if (u.isValid()) {
             ul << u;
             ok = true;
         }
     }
-    if (!ok && data.contains("text/uri-list")) {
-        QStringList sl = data.value("text/uri-list").split(QRegExp("\n|\r\n|\r"));
+    if (!ok && data.contains(QStringLiteral("text/uri-list"))) {
+        QStringList sl = data.value(QStringLiteral("text/uri-list"))
+                         .split(QRegExp(QStringLiteral("\n|\r\n|\r")));
         for (int i=0;i<sl.count();i++) {
             if (sl.at(i).startsWith('#')) continue;
             QUrl u(sl.at(i));
@@ -902,17 +912,17 @@ void CMainWindow::dropEvent(QDropEvent *ev)
             }
         }
     }
-    if (!ok && data.contains("text/plain")) {
-        QUrl u(data.value("text/plain").split(QRegExp("\n|\r\n|\r")).first());
+    if (!ok && data.contains(QStringLiteral("text/plain"))) {
+        QUrl u(data.value(QStringLiteral("text/plain"))
+               .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst());
         if (u.isValid())
             ul << u;
     }
 
-    if (!ul.isEmpty())
-        for (int i=0;i<ul.count();i++) {
-            CSnippetViewer* sv = new CSnippetViewer(this, ul.at(i));
-            sv->txtBrowser->setFocus(Qt::OtherFocusReason);
-        }
+    for (const QUrl& u : qAsConst(ul)) {
+        auto sv = new CSnippetViewer(this, u);
+        sv->txtBrowser->setFocus(Qt::OtherFocusReason);
+    }
 }
 
 void CMainWindow::helpAbout()

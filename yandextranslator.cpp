@@ -77,7 +77,8 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     QString res;
     res.clear();
 
-    for (const QVariant& value : jroot.value("text").toArray().toVariantList())
+    const QVariantList vl = jroot.value("text").toArray().toVariantList();
+    for (const QVariant& value : vl)
         res += value.toString();
 
     return res;

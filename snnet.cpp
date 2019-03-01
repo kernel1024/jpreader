@@ -63,7 +63,8 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
     if (dlg->exec()==QDialog::Accepted) {
         QString dir = getExistingDirectoryD(snv,tr("Save images to directory"),getTmpDir());
         int index = 0;
-        for (const QListWidgetItem* itm : ui.list->selectedItems()){
+        const QList<QListWidgetItem *> itml = ui.list->selectedItems();
+        for (const QListWidgetItem* itm : itml){
             if (!ui.checkAddNumbers->isChecked()) {
                 index = -1;
             } else {
@@ -83,7 +84,7 @@ bool CSnNet::isValidLoadedUrl(const QUrl& url)
     // loadedUrl points to non-empty page
     if (!url.isValid()) return false;
     if (!url.toLocalFile().isEmpty()) return true;
-    if (url.scheme().startsWith("http",Qt::CaseInsensitive)) return true;
+    if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return true;
     return false;
 }
 
@@ -95,7 +96,7 @@ bool CSnNet::isValidLoadedUrl()
 bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
 {
     QByteArray ba = html.toUtf8();
-    QString fname = gSet->makeTmpFileName("html",true);
+    QString fname = gSet->makeTmpFileName(QStringLiteral("html"),true);
     QFile f(fname);
     if (f.open(QIODevice::WriteOnly)) {
         f.write(ba);
@@ -170,7 +171,7 @@ void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool i
     snv->auxContentLoaded=false;
 
     if (isMainFrame) {
-        UrlHolder uh(QString("(blank)"),url);
+        CUrlHolder uh(QStringLiteral("(blank)"),url);
         gSet->appendMainHistory(uh);
     }
 }
@@ -201,7 +202,8 @@ void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 void CSnNet::pdfConverted(const QString &html)
 {
     if (html.isEmpty()) {
-        snv->txtBrowser->setHtml(makeSimpleHtml("PDF conversion error","Empty document."));
+        snv->txtBrowser->setHtml(makeSimpleHtml(QStringLiteral("PDF conversion error"),
+                                                QStringLiteral("Empty document.")));
     }
     if (html.length()<1024*1024) { // Small PDF files
         snv->txtBrowser->setHtml(html);
@@ -242,7 +244,7 @@ void CSnNet::load(const QUrl &url)
             return;
         }
         QString MIME = detectMIME(fname);
-        if (MIME.startsWith("text/plain",Qt::CaseInsensitive) &&
+        if (MIME.startsWith(QStringLiteral("text/plain"),Qt::CaseInsensitive) &&
                 fi.size()<1024*1024) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
@@ -256,7 +258,8 @@ void CSnNet::load(const QUrl &url)
                 snv->auxContentLoaded=false;
                 data.close();
             }
-        } else if (MIME.startsWith("application/pdf",Qt::CaseInsensitive)) { // for local pdf files
+        } else if (MIME.startsWith(QStringLiteral("application/pdf"),Qt::CaseInsensitive)) {
+            // for local pdf files
             snv->fileChanged = false;
             snv->translationBkgdFinished=false;
             snv->loadingBkgdFinished=false;

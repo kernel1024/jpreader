@@ -61,7 +61,7 @@ private:
     bool m_enabled;
 };
 
-typedef QList<CAdBlockRule> CAdBlockList;
+typedef QVector<CAdBlockRule> CAdBlockVector;
 
 Q_DECLARE_METATYPE(CAdBlockRule)
 

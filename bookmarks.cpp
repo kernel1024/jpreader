@@ -100,8 +100,10 @@ void BookmarksManager::load(const QByteArray& data)
     bookmarkFile.open(QIODevice::ReadOnly);
     m_bookmarkRootNode = reader.read(&bookmarkFile);
     if (reader.error() != QXmlStreamReader::NoError) {
-        qWarning() << tr("Error when loading bookmarks on line %1, column %2:\n"
-                         "%3").arg(reader.lineNumber()).arg(reader.columnNumber()).arg(reader.errorString());
+        qWarning() << tr("Error when loading bookmarks on line %1, column %2:\n%3")
+                      .arg(reader.lineNumber())
+                      .arg(reader.columnNumber())
+                      .arg(reader.errorString());
     }
     bookmarkFile.close();
 
@@ -109,7 +111,7 @@ void BookmarksManager::load(const QByteArray& data)
 
     BookmarkNode *menu = nullptr;
     BookmarkNode *old = nullptr;
-    QList<BookmarkNode*> others;
+    QVector<BookmarkNode*> others;
     for (int i = m_bookmarkRootNode->children().count() - 1; i >= 0; --i) {
         BookmarkNode *node = m_bookmarkRootNode->children().at(i);
         if (node->type() == BookmarkNode::Folder) {
@@ -156,38 +158,6 @@ QByteArray BookmarksManager::save() const
         qWarning() << "BookmarkManager: error saving to buffer";
     bookmarkFile.close();
     return bookmarkFile.data();
-}
-
-void BookmarksManager::importOldBookmarks(const QBookmarks& bookmarks)
-{
-    if (!m_bookmarkRootNode) return;
-
-    BookmarkNode *menu = nullptr;
-    QList<BookmarkNode*> others;
-    for (int i = m_bookmarkRootNode->children().count() - 1; i >= 0; --i) {
-        BookmarkNode *node = m_bookmarkRootNode->children().at(i);
-        if (node->type() == BookmarkNode::Folder) {
-            // Automatically convert
-            if (node->title == tr(BOOKMARKOLD) && !menu) {
-                menu = node;
-            }
-        }
-    }
-
-    if (!menu) {
-        menu = new BookmarkNode(BookmarkNode::Folder, m_bookmarkRootNode);
-        menu->title = tr(BOOKMARKOLD);
-        m_bookmarkRootNode->add(menu);
-    }
-
-    for(int i=0;i<bookmarks.count();i++) {
-        QString t = bookmarks.at(i).first;
-        QUrl u = bookmarks.at(i).second;
-        auto bm = new BookmarkNode(BookmarkNode::Bookmark);
-        bm->title = t;
-        bm->url = u.toString();
-        menu->add(bm);
-    }
 }
 
 void BookmarksManager::addBookmark(BookmarkNode *parent, BookmarkNode *node, int row)
@@ -274,12 +244,12 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
         switch (subnode->type()) {
             case BookmarkNode::Folder:
                 submenu = menuWidget->addMenu(subnode->title);
-                submenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
+                submenu->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
                 submenu->setToolTipsVisible(true);
                 populateBookmarksMenu(submenu, wnd, subnode);
                 break;
             case BookmarkNode::Bookmark:
-                a = menuWidget->addAction(subnode->title,wnd,SLOT(openBookmark()));
+                a = menuWidget->addAction(subnode->title,wnd,&CMainWindow::openBookmark);
                 url = subnode->url;
                 a->setData(QUrl(url));
                 a->setStatusTip(url);
@@ -296,7 +266,7 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
 
     if (!urls.isEmpty()) {
         menuWidget->addSeparator();
-        a = menuWidget->addAction(tr("Open all bookmarks"),wnd,SLOT(openBookmark()));
+        a = menuWidget->addAction(tr("Open all bookmarks"),wnd,&CMainWindow::openBookmark);
         a->setData(urls);
     }
 }
@@ -305,28 +275,30 @@ void BookmarksManager::importBookmarks()
 {
     QString fileName = getOpenFileNameD(nullptr, tr("Open File"),
                                         QString(),
-                                        tr("XBEL (*.xbel *.xml)"));
+                                        QStringLiteral("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
     XbelReader reader;
     BookmarkNode *importRootNode = reader.read(fileName);
     if (reader.error() != QXmlStreamReader::NoError) {
-        QMessageBox::warning(nullptr, QLatin1String("Loading Bookmark"),
+        QMessageBox::warning(nullptr, QStringLiteral("Loading Bookmark"),
             tr("Error when loading bookmarks on line %1, column %2:\n"
                "%3").arg(reader.lineNumber()).arg(reader.columnNumber()).arg(reader.errorString()));
     }
 
     importRootNode->setType(BookmarkNode::Folder);
-    importRootNode->title = (tr("Imported %1").arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate)));
+    importRootNode->title = (tr("Imported %1")
+                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate)));
     addBookmark(menu(), importRootNode);
 }
 
 void BookmarksManager::exportBookmarks()
 {
     QString fileName = getSaveFileNameD(nullptr, tr("Save File"),
-                                        tr("%1 Bookmarks.xbel").arg(QCoreApplication::applicationName()),
-                                        tr("XBEL (*.xbel *.xml)"));
+                                        tr("%1 Bookmarks.xbel")
+                                        .arg(QCoreApplication::applicationName()),
+                                        QStringLiteral("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
@@ -522,7 +494,7 @@ Qt::DropActions BookmarksModel::supportedDropActions () const
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-#define MIMETYPE QLatin1String("application/bookmarks.xbel")
+#define MIMETYPE QStringLiteral("application/bookmarks.xbel")
 
 QStringList BookmarksModel::mimeTypes() const
 {
@@ -574,7 +546,7 @@ bool BookmarksModel::dropMimeData(const QMimeData *data,
 
         XbelReader reader;
         BookmarkNode *rootNode = reader.read(&buffer);
-        QList<BookmarkNode*> children = rootNode->children();
+        QVector<BookmarkNode*> children = rootNode->children();
         for (int i = 0; i < children.count(); ++i) {
             BookmarkNode *bookmarkNode = children.at(i);
             rootNode->remove(bookmarkNode);
@@ -710,10 +682,11 @@ bool TreeProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
 BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     : QDialog(parent)
 {
+    setupUi(this);
+
     m_bookmarksManager = manager;
     if (!m_bookmarksManager)
         m_bookmarksManager = gSet->bookmarksManager;
-    setupUi(this);
 
     tree->setUniformRowHeights(true);
     tree->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -733,8 +706,8 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     int header = fm.width(QLatin1Char('m')) * 40;
     tree->header()->resizeSection(0, header);
     tree->header()->setStretchLastSection(true);
-    connect(tree, SIGNAL(activated(QModelIndex)),
-            this, SLOT(open()));
+    connect(tree, &EditTreeView::activated,
+            this, &BookmarksDialog::openEx);
     tree->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(tree, &EditTreeView::customContextMenuRequested,
             this, &BookmarksDialog::customContextMenuRequested);
@@ -787,13 +760,13 @@ void BookmarksDialog::removeNode(const QModelIndex &node)
 
 void BookmarksDialog::expandNodes(BookmarkNode *node)
 {
-    for (int i = 0; i < node->children().count(); ++i) {
-        BookmarkNode *childNode = node->children()[i];
-        if (childNode->expanded) {
-            QModelIndex idx = m_bookmarksModel->index(childNode);
+    const QVector<BookmarkNode *> nl = node->children();
+    for (const auto child : nl) {
+        if (child->expanded) {
+            QModelIndex idx = m_bookmarksModel->index(child);
             idx = m_proxyModel->mapFromSource(idx);
             tree->setExpanded(idx, true);
-            expandNodes(childNode);
+            expandNodes(child);
         }
     }
 }
@@ -804,16 +777,21 @@ void BookmarksDialog::customContextMenuRequested(const QPoint &pos)
     QModelIndex index = tree->indexAt(pos);
     index = index.sibling(index.row(), 0);
     if (index.isValid() && !tree->model()->hasChildren(index)) {
-        menu.addAction(tr("Open"), this, SLOT(open()));
+        menu.addAction(tr("Open"), this, &BookmarksDialog::open);
         menu.addSeparator();
     }
-    menu.addAction(tr("Delete"), tree, SLOT(removeOne()));
+    menu.addAction(tr("Delete"), tree, &EditTreeView::removeOne);
     menu.exec(QCursor::pos());
 }
 
 void BookmarksDialog::open()
 {
     QModelIndex index = tree->currentIndex();
+    openEx(index);
+}
+
+void BookmarksDialog::openEx(const QModelIndex& index)
+{
     if (!index.parent().isValid())
         return;
     emit openUrl(index.sibling(index.row(), 1).data(BookmarksModel::UrlRole).toUrl());

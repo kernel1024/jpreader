@@ -88,7 +88,6 @@ public:
 
     void load(const QByteArray &data);
     QByteArray save() const;
-    void importOldBookmarks(const QBookmarks &bookmarks);
 
     BookmarkNode *bookmarks();
     BookmarkNode *menu();
@@ -224,6 +223,7 @@ public:
 private slots:
     void customContextMenuRequested(const QPoint &pos);
     void open();
+    void openEx(const QModelIndex &index);
     void newFolder();
     void newSeparator();
 

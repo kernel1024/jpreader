@@ -19,13 +19,13 @@ void Node::parseAttributes()
     mAttributes.clear();
     mAttributesOrder.clear();
 
-    if (!lText.contains("<")) return;
+    if (!lText.contains(QStringLiteral("<"))) return;
 
     QString::Iterator end;
     QString::Iterator ptr = lText.data();
 
     // Skip up to tag start
-    ptr += lText.indexOf("<");
+    ptr += lText.indexOf(QStringLiteral("<"));
 
     // Chop opening braces
     ++ptr;

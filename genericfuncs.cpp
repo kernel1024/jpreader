@@ -443,9 +443,9 @@ QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const
     return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
 }
 
-QList<QStringList> encodingsByScript()
+QVector<QStringList> encodingsByScript()
 {
-    QList<QStringList> enc;
+    QVector<QStringList> enc;
 
     enc << (QStringList() << "Western European" << "ISO 8859-1" << "ISO 8859-15" <<
             "ISO 8859-14" << "cp 1252" << "CP850" << "x-MacRoman");

@@ -25,12 +25,12 @@ class CLangPairModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    CLangPairList m_list;
+    CLangPairVector m_list;
     QTableView* m_table;
 
 public:
-    CLangPairModel(QObject * parent, const CLangPairList& list, QTableView* table);
-    CLangPairList getLangPairList();
+    CLangPairModel(QObject * parent, const CLangPairVector& list, QTableView* table);
+    CLangPairVector getLangPairList();
 private:
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -138,7 +138,7 @@ private:
     Ui::SettingsDlg *ui;
     QColor overridedFontColor;
     QList<QNetworkCookie> cookiesList;
-    QList<CAdBlockRule> adblockList;
+    QVector<CAdBlockRule> adblockList;
     CLangPairModel *transModel;
     int adblockSearchIdx;
 
@@ -155,15 +155,15 @@ public:
     QColor getOverridedFontColor();
 
     void setQueryHistory(const QStringList &history);
-    void setAdblock(const QList<CAdBlockRule> &adblock);
-    void setMainHistory(const QUHList &history);
-    void setSearchEngines(const QStrHash &engines);
-    void setUserScripts(const QStrHash &scripts);
+    void setAdblock(const QVector<CAdBlockRule> &adblock);
+    void setMainHistory(const CUrlHolderVector &history);
+    void setSearchEngines(const CStringHash &engines);
+    void setUserScripts(const CStringHash &scripts);
     QStringList getQueryHistory();
-    QList<CAdBlockRule> getAdblock();
-    QStrHash getSearchEngines();
-    QStrHash getUserScripts();
-    CLangPairList getLangPairList();
+    QVector<CAdBlockRule> getAdblock();
+    CStringHash getSearchEngines();
+    CStringHash getUserScripts();
+    CLangPairVector getLangPairList();
 
 public slots:
     void selectDir();

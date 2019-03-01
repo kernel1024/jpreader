@@ -68,7 +68,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
 
 void CSnTrans::transButtonHighlight()
 {
-    snv->transButton->setStyleSheet("QPushButton { background: #d7ffd7; }");
+    snv->transButton->setStyleSheet(QStringLiteral("QPushButton { background: #d7ffd7; }"));
 }
 
 void CSnTrans::translate(bool tranSubSentences)
@@ -110,7 +110,8 @@ void CSnTrans::getImgUrlsAndParse()
         if (baseUrl.hasFragment())
             baseUrl.setFragment(QString());
         QStringList urls;
-        for (const QString& s : ct->getImgUrls()) {
+        const QStringList sl = ct->getImgUrls();
+        for (const QString& s : sl) {
             QUrl u = QUrl(s);
             if (u.isRelative())
                 u = baseUrl.resolved(u);
@@ -171,7 +172,7 @@ void CSnTrans::calcFinished(const bool success, const QString& aUrl, const QStri
         postTranslate();
         snv->parentWnd->updateTabs();
     } else {
-        if (aUrl.startsWith("ERROR:"))
+        if (aUrl.startsWith(QStringLiteral("ERROR:")))
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(aUrl));
         else if (!error.isEmpty())
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(error));
@@ -183,7 +184,7 @@ void CSnTrans::calcFinished(const bool success, const QString& aUrl, const QStri
 void CSnTrans::postTranslate()
 {
     if (snv->calculatedUrl.isEmpty()) return;
-    if (snv->calculatedUrl.contains("ERROR:ATLAS_SLIPPED")) {
+    if (snv->calculatedUrl.contains(QStringLiteral("ERROR:ATLAS_SLIPPED"))) {
         QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
         return;
     }
@@ -193,12 +194,12 @@ void CSnTrans::postTranslate()
     CLangPair lp;
     switch (gSet->settings.translatorEngine) {
         case TE_GOOGLE:
-            url = QUrl("http://translate.google.com/translate");
+            url = QUrl(QStringLiteral("http://translate.google.com/translate"));
             lp = CLangPair(gSet->ui.getActiveLangPair());
             if (lp.isValid()) {
-                qu.addQueryItem("sl",lp.langFrom.bcp47Name());
-                qu.addQueryItem("tl",lp.langTo.bcp47Name());
-                qu.addQueryItem("u",snv->calculatedUrl);
+                qu.addQueryItem(QStringLiteral("sl"),lp.langFrom.bcp47Name());
+                qu.addQueryItem(QStringLiteral("tl"),lp.langTo.bcp47Name());
+                qu.addQueryItem(QStringLiteral("u"),snv->calculatedUrl);
                 url.setQuery(qu);
                 snv->txtBrowser->load(url);
                 if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
@@ -248,10 +249,10 @@ void CSnTrans::selectionChanged()
 void CSnTrans::findWordTranslation(const QString &text)
 {
     QUrl req;
-    req.setScheme( "gdlookup" );
-    req.setHost( "localhost" );
+    req.setScheme( QStringLiteral("gdlookup") );
+    req.setHost( QStringLiteral("localhost") );
     QUrlQuery requ;
-    requ.addQueryItem( "word", text );
+    requ.addQueryItem( QStringLiteral("word"), text );
     req.setQuery(requ);
     QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
     connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
@@ -259,11 +260,11 @@ void CSnTrans::findWordTranslation(const QString &text)
 
 void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
 {
-    if (node.tagName.toLower()==QLatin1String("a")) {
-        if (node.attributes.contains("href")) {
-            QUrl ref = QUrl(node.attributes.value("href"));
+    if (node.tagName.toLower()==QStringLiteral("a")) {
+        if (node.attributes.contains(QStringLiteral("href"))) {
+            QUrl ref = QUrl(node.attributes.value(QStringLiteral("href")));
             if (ref.isRelative())
-                node.attributes["href"]=baseUrl.resolved(ref).toString();
+                node.attributes[QStringLiteral("href")]=baseUrl.resolved(ref).toString();
         }
     }
 
@@ -299,7 +300,7 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(350,350);
-    t->setStyleSheet("QLabel { background: #fefdeb; }");
+    t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; }"));
 
     connect(t,&CSpecToolTipLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
     connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&CSpecToolTipLabel::close);
@@ -311,7 +312,7 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
 {
     QUrl url(link);
     QUrlQuery requ(url);
-    QString word = requ.queryItemValue("word");
+    QString word = requ.queryItemValue(QStringLiteral("word"));
     if (word.startsWith('%')) {
         QByteArray bword = word.toLatin1();
         if (!bword.isNull() && !bword.isEmpty())

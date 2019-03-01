@@ -48,6 +48,7 @@ CTranslator::~CTranslator()
 
 bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 {
+    // TODO: continue QStringLiteral here!
     QString wdir = hostingDir;
     if (wdir.isEmpty()
             || hostingUrl.isEmpty()
@@ -330,7 +331,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                     node.children.at(idx).attributes.value("class")
                     .toLower().trimmed().startsWith("vtoken")) {
 
-                QList<CHTMLNode> subnodes = node.children.at(idx).children;
+                const QVector<CHTMLNode> subnodes = node.children.at(idx).children;
                 for(int si=0;si<subnodes.count();si++)
                     node.children.insert(idx+si+1,subnodes.at(si));
 
@@ -342,7 +343,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
             // remove ruby annotation (superscript), unfold main text block
             if (node.children.at(idx).tagName.toLower()==QLatin1String("ruby")) {
-                QList<CHTMLNode> subnodes;
+                QVector<CHTMLNode> subnodes;
                 for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children))
                     if (rnode.tagName.toLower()==QLatin1String("rb"))
                         subnodes << rnode.children;
@@ -556,12 +557,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             src.text = sout;
     }
 
-    if (failure)
-        return false;
-
-
-    return true;
-
+    return !failure;
 }
 
 void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QString &page)

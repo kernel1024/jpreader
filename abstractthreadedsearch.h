@@ -20,7 +20,7 @@ signals:
     void finished();
 
 public slots:
-    virtual void doSearch(const QString &qr, int maxLimit);
+    virtual void doSearch(const QString &qr, int maxLimit) = 0;
 
 };
 

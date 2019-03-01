@@ -42,8 +42,8 @@ private:
     void searchInDir(const QDir &dir, const QString &qr);
 
 signals:
-    void searchFinished(const QStrHash &stats, const QString &query);
-    void gotResult(const QStrHash& result);
+    void searchFinished(const CStringHash &stats, const QString &query);
+    void gotResult(const CStringHash& result);
 #ifdef WITH_THREADED_SEARCH
     void startThreadedSearch(const QString &qr, int maxLimit);
 #endif

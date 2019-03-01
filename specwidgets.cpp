@@ -211,7 +211,6 @@ void CSpecToolTipLabel::hideEvent(QHideEvent *)
 }
 
 CSpecToolTipLabel::CSpecToolTipLabel(const QString &text)
-    : QLabel()
 {
     setText(text);
 }
@@ -229,7 +228,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     if (tabWidget==nullptr) return;
     int i = tabWidget->addTab(this,getDocTitle());
     if (gSet->settings.showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme("dialog-close"),QString());
+        QPushButton* b = new QPushButton(QIcon::fromTheme(QStringLiteral("dialog-close")),QString());
         b->setFlat(true);
         int sz = tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
@@ -317,7 +316,9 @@ void CSpecTabContainer::closeTab(bool nowait)
     }
     if (tabWidget) {
         if ((parentWnd->lastTabIdx>=0) &&
-                (parentWnd->lastTabIdx<tabWidget->count())) tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
+                (parentWnd->lastTabIdx<tabWidget->count())) {
+            tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
+        }
         tabWidget->removeTab(tabWidget->indexOf(this));
     }
     recycleTab();
@@ -393,7 +394,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     if (!blocked) {
 
         // Userscripts
-        const QList<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame));
+        const QVector<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame));
 
         if (!sl.isEmpty())
             scripts().clear();
@@ -461,14 +462,22 @@ CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
 
 void CSpecLogHighlighter::highlightBlock(const QString &text)
 {
-    formatBlock(text,QRegExp("^\\S{,8}",Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp("\\s(\\S+\\s)?Debug:\\s",Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp("\\s(\\S+\\s)?Warning:\\s",Qt::CaseInsensitive),Qt::darkRed,true);
-    formatBlock(text,QRegExp("\\s(\\S+\\s)?Critical:\\s",Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp("\\s(\\S+\\s)?Fatal:\\s",Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp("\\s(\\S+\\s)?Info:\\s",Qt::CaseInsensitive),Qt::darkBlue,true);
-    formatBlock(text,QRegExp("\\sBLOCKED\\s",Qt::CaseSensitive),Qt::darkRed,true);
-    formatBlock(text,QRegExp("\\(\\S+\\)$",Qt::CaseInsensitive),Qt::gray,false,true);
+    formatBlock(text,QRegExp(QStringLiteral("^\\S{,8}"),
+                             Qt::CaseInsensitive),Qt::black,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Debug:\\s"),
+                             Qt::CaseInsensitive),Qt::black,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Warning:\\s"),
+                             Qt::CaseInsensitive),Qt::darkRed,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Critical:\\s"),
+                             Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Fatal:\\s"),
+                             Qt::CaseInsensitive),Qt::red,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Info:\\s"),
+                             Qt::CaseInsensitive),Qt::darkBlue,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\sBLOCKED\\s"),
+                             Qt::CaseSensitive),Qt::darkRed,true);
+    formatBlock(text,QRegExp(QStringLiteral("\\(\\S+\\)$"),
+                             Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
 void CSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
@@ -510,7 +519,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
         if (gSet->settings.debugNetReqLogging)
             qWarning() << "Net request:" << info.requestUrl() << "BLOCKED" <<
-                          QString("(rule: '%1')").arg(rule);
+                          QString(QStringLiteral("(rule: '%1')")).arg(rule);
 
         info.block(true);
 
@@ -564,22 +573,22 @@ CGDTextBrowser::CGDTextBrowser(QWidget *parent)
 
 QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
-    if (gSet && url.scheme().toLower()==QLatin1String("gdlookup")) {
+    if (gSet && url.scheme().toLower()==QStringLiteral("gdlookup")) {
         QByteArray rplb;
 
         CIOEventLoop ev;
         QString mime;
 
         QUrlQuery qr(url);
-        if ( qr.queryItemValue( "blank" ) == QLatin1String("1") ) {
+        if ( qr.queryItemValue( QStringLiteral("blank") ) == QStringLiteral("1") ) {
             rplb = makeSimpleHtml(QString(),QString()).toUtf8();
             return rplb;
         }
 
         sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(url,mime);
 
-        connect(dr.get(),SIGNAL(finished()),&ev,SLOT(finished()));
-        QTimer::singleShot(15000,&ev,SLOT(timeout()));
+        connect(dr.get(), &Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
+        QTimer::singleShot(15000,&ev,&CIOEventLoop::timeout);
 
         int ret = ev.exec();
 

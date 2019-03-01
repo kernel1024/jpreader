@@ -28,59 +28,59 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-            case 0: return snippets[idx]["dc:title"];
+            case 0: return snippets[idx][QStringLiteral("dc:title")];
             case 1:
-                score = snippets[idx]["Score"];
+                score = snippets[idx][QStringLiteral("Score")];
                 ps.clear();
-                if (snippets[idx]["relMode"].startsWith("count"))
+                if (snippets[idx][QStringLiteral("relMode")].startsWith(QStringLiteral("count")))
                     sc = static_cast<int>(ceil(score.toDouble(&ok)));
                 else {
                     sc = static_cast<int>(score.toDouble(&ok)*100.0);
-                    ps = QLatin1String("%");
+                    ps = QStringLiteral("%");
                 }
                 if (ok)
                     return tr("%1%2").arg(QString("%1").arg(sc),ps);
 
                 return score;
 
-            case 2: return snippets[idx]["Dir"];
-            case 3: return snippets[idx]["FileSize"];
-            case 4: return snippets[idx]["OnlyFilename"];
+            case 2: return snippets[idx][QStringLiteral("Dir")];
+            case 3: return snippets[idx][QStringLiteral("FileSize")];
+            case 4: return snippets[idx][QStringLiteral("OnlyFilename")];
             default: return QVariant();
         }
 
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (index.column()==2) // show full path in tooltips
-            return snippets[idx]["FilePath"];
-        if (snippets[idx].contains("dc:title:saved"))
-            return snippets[idx]["dc:title:saved"];
+            return snippets[idx][QStringLiteral("FilePath")];
+        if (snippets[idx].contains(QStringLiteral("dc:title:saved")))
+            return snippets[idx][QStringLiteral("dc:title:saved")];
     } else if (role == Qt::UserRole + cpSortRole) {
         switch (index.column()) {
-            case 0: return snippets[idx]["dc:title"];
+            case 0: return snippets[idx][QStringLiteral("dc:title")];
             case 1:
-                score = snippets[idx]["Score"];
+                score = snippets[idx][QStringLiteral("Score")];
                 sf = score.toFloat(&ok);
                 if (ok)
                     return sf;
 
                 return score;
 
-            case 2: return snippets[idx]["FilePath"];
+            case 2: return snippets[idx][QStringLiteral("FilePath")];
             case 3:
-                score = snippets[idx]["FileSizeNum"];
+                score = snippets[idx][QStringLiteral("FileSizeNum")];
                 sc = score.toInt(&ok);
                 if (ok)
                     return sc;
 
                 return score;
 
-            case 4: return snippets[idx]["OnlyFilename"];
+            case 4: return snippets[idx][QStringLiteral("OnlyFilename")];
             default: return QVariant();
         }
 
     } else if (role == Qt::UserRole + cpFilterRole) {
         // column calculation removed - filtering only by directory
-        return snippets[idx]["Dir"];
+        return snippets[idx][QStringLiteral("Dir")];
     }
     return QVariant();
 }
@@ -121,15 +121,15 @@ int CSearchModel::columnCount(const QModelIndex &) const
     return 5;
 }
 
-QStrHash CSearchModel::getSnippet(int idx) const
+CStringHash CSearchModel::getSnippet(int idx) const
 {
     if (idx>=0 && idx<snippets.count())
         return snippets.at(idx);
 
-    return QStrHash();
+    return CStringHash();
 }
 
-void CSearchModel::setSnippet(int idx, const QStrHash& snippet)
+void CSearchModel::setSnippet(int idx, const CStringHash& snippet)
 {
     if (idx<0 || idx>=snippets.count()) return;
     snippets[idx]=snippet;
@@ -138,7 +138,7 @@ void CSearchModel::setSnippet(int idx, const QStrHash& snippet)
 
 QStringList CSearchModel::getSnippetKeys(int idx)
 {
-    return snippets[idx].keys();
+    return snippets.at(idx).keys();
 }
 
 QStringList CSearchModel::getDistinctValues(const QString &snippetKey)
@@ -162,14 +162,14 @@ void CSearchModel::deleteAllItems()
     endRemoveRows();
 }
 
-void CSearchModel::addItem(const QStrHash &srcSnippet)
+void CSearchModel::addItem(const CStringHash &srcSnippet)
 {
-    QList<QStrHash> l;
+    QVector<CStringHash> l;
     l.append(srcSnippet);
     addItems(l);
 }
 
-void CSearchModel::addItems(const QList<QStrHash> &srcSnippets)
+void CSearchModel::addItems(const QVector<CStringHash> &srcSnippets)
 {
     int posidx = snippets.count();
     beginInsertRows(QModelIndex(),posidx,posidx+srcSnippets.count()-1);

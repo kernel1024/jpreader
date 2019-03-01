@@ -17,15 +17,15 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     move(origin->mapToGlobal(origin->pos())+QPoint(50,50));
     resize(5*origin->width()/6,5*origin->height()/6);
 
-    setWindowTitle(QString("Source - %1").arg(origin->getDocTitle()));
+    setWindowTitle(QString(QStringLiteral("Source - %1")).arg(origin->getDocTitle()));
     ui->labelTitle->setText(origin->getDocTitle());
     QString url = origin->getUrl().toString();
-    if (url.startsWith("data"))
-        url = QString("data-url (RFC 2397)");
+    if (url.startsWith(QStringLiteral("data")))
+        url = QStringLiteral("data-url (RFC 2397)");
     if (url.length()>90) {
         const QString bUrl = url;
         url.truncate(80);
-        url.append("...");
+        url.append(QStringLiteral("..."));
         url.append(bUrl.rightRef(10));
     }
     ui->labelUrl->setText(url);

@@ -19,7 +19,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     viewArticles = ui->browser;
     forceFocusToEdit = false;
 
-    ui->btnClear->setIcon(QIcon::fromTheme("edit-clear"));
+    ui->btnClear->setIcon(QIcon::fromTheme(QStringLiteral("edit-clear")));
 
     wordFinder = new WordFinder(this);
 
@@ -67,10 +67,10 @@ void CAuxDictionary::findWord(const QString &text)
 void CAuxDictionary::showTranslationFor(const QString &text)
 {
     QUrl req;
-    req.setScheme( "gdlookup" );
-    req.setHost( "localhost" );
+    req.setScheme( QStringLiteral( "gdlookup" ));
+    req.setHost( QStringLiteral( "localhost" ));
     QUrlQuery requ;
-    requ.addQueryItem( "word", text );
+    requ.addQueryItem( QStringLiteral( "word" ), text );
     req.setQuery(requ);
     dictLoadUrl(req);
 
@@ -172,7 +172,7 @@ void CAuxDictionary::translateInputChanged(const QString &text)
 
     QString req = text.trimmed();
 
-    if ( !req.size() )
+    if ( req.isEmpty() )
     {
         // An empty request always results in an empty result
         wordFinder->cancel();
@@ -207,7 +207,7 @@ void CAuxDictionary::translateInputFinished()
         wordHistoryModel->setStringList(h);
     }
 
-    if ( word.size() )
+    if ( !word.isEmpty() )
         showTranslationFor( word );
 }
 

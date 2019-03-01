@@ -19,7 +19,7 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 
     firstResize = true;
 
-    setWindowIcon(QIcon::fromTheme("folder-downloads"));
+    setWindowIcon(QIcon::fromTheme(QStringLiteral("folder-downloads")));
 
     model = new CDownloadsModel(this);
     ui->tableDownloads->setModel(model);
@@ -45,9 +45,10 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     if (!url.isValid() || url.isRelative()) return;
 
     QString fname = path;
-    if (!fname.endsWith("/")) fname.append('/');
+    if (!fname.endsWith('/')) fname.append('/');
     if (index>=0)
-        fname.append(QString("%1_").arg(index,numDigits(maxIndex),10,QLatin1Char('0')));
+        fname.append(QString(QStringLiteral("%1_"))
+                     .arg(index,numDigits(maxIndex),10,QLatin1Char('0')));
     fname.append(url.fileName());
 
     if (!isVisible())
@@ -64,8 +65,8 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
             model, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
             model, &CDownloadsModel::downloadProgress);
-    connect(rpl, SIGNAL(error(QNetworkReply::NetworkError)),
-            model, SLOT(downloadFailed(QNetworkReply::NetworkError)));
+    connect(rpl, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+            model, &CDownloadsModel::downloadFailed);
 
     model->appendItem(CDownloadItem(rpl, fname));
 }
@@ -78,7 +79,8 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     if (!isVisible())
         show();
 
-    if (item->savePageFormat()==QWebEngineDownloadItem::UnknownSaveFormat) { // Async save request from user, not full html page
+    if (item->savePageFormat()==QWebEngineDownloadItem::UnknownSaveFormat) {
+        // Async save request from user, not full html page
         QFileInfo fi(item->path());
 
         QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
@@ -116,22 +118,22 @@ void CDownloadManager::contextMenu(const QPoint &pos)
     QAction *acm;
 
     if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
-        acm = cm->addAction(tr("Abort"),model,SLOT(abortDownload()));
+        acm = cm->addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
         acm->setData(idx.row());
         cm->addSeparator();
     }
 
-    acm = cm->addAction(tr("Remove"),model,SLOT(cleanDownload()));
+    acm = cm->addAction(tr("Remove"),model,&CDownloadsModel::cleanDownload);
     acm->setData(idx.row());
 
     if (item.state==QWebEngineDownloadItem::DownloadCompleted ||
             item.state==QWebEngineDownloadItem::DownloadInProgress) {
         cm->addSeparator();
-        acm = cm->addAction(tr("Open here"),model,SLOT(openHere()));
+        acm = cm->addAction(tr("Open here"),model,&CDownloadsModel::openHere);
         acm->setData(idx.row());
-        acm = cm->addAction(tr("Open with associated application"),model,SLOT(openXdg()));
+        acm = cm->addAction(tr("Open with associated application"),model,&CDownloadsModel::openXdg);
         acm->setData(idx.row());
-        acm = cm->addAction(tr("Open containing directory"),model,SLOT(openDirectory()));
+        acm = cm->addAction(tr("Open containing directory"),model,&CDownloadsModel::openDirectory);
         acm->setData(idx.row());
     }
 
@@ -191,14 +193,14 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         if (index.column()==0) {
             switch (t.state) {
                 case QWebEngineDownloadItem::DownloadCancelled:
-                    return QIcon::fromTheme("task-reject").pixmap(QSize(16,16));
+                    return QIcon::fromTheme(QStringLiteral("task-reject")).pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadCompleted:
-                    return QIcon::fromTheme("task-complete").pixmap(QSize(16,16));
+                    return QIcon::fromTheme(QStringLiteral("task-complete")).pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadInProgress:
                 case QWebEngineDownloadItem::DownloadRequested:
-                    return QIcon::fromTheme("arrow-right").pixmap(QSize(16,16));
+                    return QIcon::fromTheme(QStringLiteral("arrow-right")).pixmap(QSize(16,16));
                 case QWebEngineDownloadItem::DownloadInterrupted:
-                    return QIcon::fromTheme("task-attention").pixmap(QSize(16,16));
+                    return QIcon::fromTheme(QStringLiteral("task-attention")).pixmap(QSize(16,16));
             }
             return QVariant();
         }
@@ -207,12 +209,12 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         switch (index.column()) {
             case 1: return fi.fileName();
             case 2:
-                if (t.total==0) return QString("0%");
-                return QString("%1%").arg(100*t.received/t.total);
+                if (t.total==0) return QStringLiteral("0%");
+                return QString(QStringLiteral("%1%")).arg(100*t.received/t.total);
             case 3:
                 if (!t.errorString.isEmpty())
                     return t.errorString;
-                return QString("%1 / %2")
+                return QString(QStringLiteral("%1 / %2"))
                         .arg(formatBytes(t.received),formatBytes(t.total));
             default: return QVariant();
         }
@@ -235,7 +237,7 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
 
     if (role == Qt::DisplayRole) {
         switch (section) {
-            case 0: return QLatin1String(" ");
+            case 0: return QStringLiteral(" ");
             case 1: return tr("Filename");
             case 2: return tr("Completion");
             case 3: return tr("Downloaded");
@@ -418,7 +420,8 @@ void CDownloadsModel::abortDownload()
     }
 
     if (!ok)
-        QMessageBox::warning(m_manager,tr("JPReader"),tr("Unable to stop this download. Incorrect state."));
+        QMessageBox::warning(m_manager,tr("JPReader"),
+                             tr("Unable to stop this download. Incorrect state."));
 }
 
 void CDownloadsModel::cleanDownload()
@@ -469,7 +472,7 @@ void CDownloadsModel::openDirectory()
 
     QFileInfo fi(downloads.at(idx).fileName);
 
-    if (!QProcess::startDetached("xdg-open", QStringList() << fi.path()))
+    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << fi.path()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
 }
 
@@ -504,7 +507,7 @@ void CDownloadsModel::openXdg()
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
-    if (!QProcess::startDetached("xdg-open", QStringList() << downloads.at(idx).fileName))
+    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << downloads.at(idx).fileName))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
@@ -607,7 +610,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
 {
     id = 0;
     fileName = fname;
-    mimeType = QString("application/download");
+    mimeType = QStringLiteral("application/download");
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadInProgress;
     received = 0;

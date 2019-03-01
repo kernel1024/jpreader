@@ -103,21 +103,21 @@ void CAdBlockRule::setFilter(const QString &filter)
         parsedLine = parsedLine.left(options);
     }
 
-    bool hasWildcards = parsedLine.contains(QRegExp("[\\*\\$]"));
+    bool hasWildcards = parsedLine.contains(QRegExp(QStringLiteral("[\\*\\$]")));
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
-        (!parsedLine.contains("^") || parsedLine.endsWith("^"))) {
+        (!parsedLine.contains('^') || parsedLine.endsWith('^'))) {
         m_plainRule = parsedLine;
-        if (m_plainRule.startsWith("||"))
+        if (m_plainRule.startsWith(QStringLiteral("||")))
             m_plainRule = m_plainRule.mid(2);
-        if (m_plainRule.endsWith("^"))
+        if (m_plainRule.endsWith('^'))
             m_plainRule = m_plainRule.left(m_plainRule.length()-1);
     }
 
     setPattern(parsedLine, regExpRule);
 
-    if (m_options.contains(QLatin1String("match-case"))) {
+    if (m_options.contains(QStringLiteral("match-case"))) {
         m_regExp.setCaseSensitivity(Qt::CaseSensitive);
-        m_options.removeOne(QLatin1String("match-case"));
+        m_options.removeOne(QStringLiteral("match-case"));
     }
 }
 
@@ -208,7 +208,7 @@ void CAdBlockRule::setEnabled(bool enabled)
 {
     m_enabled = enabled;
     if (!enabled) {
-        m_filter = QLatin1String("!") + m_filter;
+        m_filter = QStringLiteral("!") + m_filter;
     } else {
         m_filter = m_filter.mid(1);
     }

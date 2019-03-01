@@ -32,7 +32,7 @@ public:
     bool isReady();
 
 signals:
-    void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const QIntList& errCodes);
+    void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const CIntList& errCodes);
 
 public slots:
     void sslError(const QList<QSslError>&);

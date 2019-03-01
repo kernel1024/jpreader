@@ -78,9 +78,11 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
     connect(recoll,QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this,&CRecollSearch::recollFinished);
 
-    recoll->start("recoll",QStringList() << "-n" << QString::number(maxLimit)
-                 << "-t" << "-F" << "url caption relevancyrating abstract"
-                 << "-q" << qr);
+    recoll->start(QStringLiteral("recoll"),QStringList() << QStringLiteral("-n")
+                  << QString::number(maxLimit) << QStringLiteral("-t")
+                  << QStringLiteral("-F")
+                  << QStringLiteral("url caption relevancyrating abstract")
+                  << QStringLiteral("-q") << qr);
 
     recoll->waitForStarted();
 }

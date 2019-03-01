@@ -56,19 +56,19 @@ CGlobalUI::CGlobalUI(QObject *parent)
 
     actionTMAdditive->setChecked(true);
 
-    actionAutoTranslate = new QAction(QIcon::fromTheme("document-edit-decrypt"),
+    actionAutoTranslate = new QAction(QIcon::fromTheme(QStringLiteral("document-edit-decrypt")),
                                       tr("Automatic translation"),this);
     actionAutoTranslate->setCheckable(true);
     actionAutoTranslate->setChecked(false);
     actionAutoTranslate->setShortcut(Qt::Key_F8);
     addActionNotification(actionAutoTranslate);
 
-    actionOverrideFont = new QAction(QIcon::fromTheme("character-set"),
+    actionOverrideFont = new QAction(QIcon::fromTheme(QStringLiteral("character-set")),
                                      tr("Override font for translated text"),this);
     actionOverrideFont->setCheckable(true);
     actionOverrideFont->setChecked(false);
 
-    actionOverrideFontColor = new QAction(QIcon::fromTheme("format-text-color"),
+    actionOverrideFontColor = new QAction(QIcon::fromTheme(QStringLiteral("format-text-color")),
                                           tr("Force translated text color"),this);
     actionOverrideFontColor->setCheckable(true);
     actionOverrideFontColor->setChecked(false);
@@ -152,7 +152,7 @@ void CGlobalUI::addActionNotification(QAction *action)
 void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
-    t->setStyleSheet("QLabel { background: #fefdeb; color: black; }");
+    t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,nullptr);
 }
@@ -212,7 +212,8 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
 
     int sz = 5*qApp->font().pointSize()/4;
 
-    QString msg = QString("<span style='font-size:%1pt;white-space:nowrap;'>%2</span>").arg(sz).arg(text);
+    QString msg = QString(QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
+                                         "%2</span>")).arg(sz).arg(text);
     QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
 
     QTimer::singleShot(100,gSet,[msg,pos](){
@@ -245,7 +246,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
 
     for (const CLangPair& pair : qAsConst(g->settings.translatorPairs)) {
-        QAction *ac = languageSelector->addAction(QString("%1 - %2").arg(
+        QAction *ac = languageSelector->addAction(QString(QStringLiteral("%1 - %2")).arg(
                                       g->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->getLanguageName(pair.langTo.bcp47Name())));
         ac->setCheckable(true);
@@ -259,7 +260,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     }
 
     if (languageSelector->actions().isEmpty()) {
-        QAction *ac = languageSelector->addAction(QString("(empty)"));
+        QAction *ac = languageSelector->addAction(QStringLiteral("(empty)"));
         ac->setEnabled(false);
     }
 
@@ -301,7 +302,8 @@ QString CGlobalUI::getActiveLangPair() const
     if (languageSelector->checkedAction()) {
         res = languageSelector->checkedAction()->data().toString();
     } else if (!languageSelector->actions().isEmpty()) {
-        QAction* ac = languageSelector->actions().first();
+        const QList<QAction *> acl = languageSelector->actions();
+        QAction* ac = acl.first();
         if (ac->isEnabled())
             res = ac->data().toString();
     }

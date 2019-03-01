@@ -17,7 +17,7 @@
 class CHTMLNode {
 public:
     QString text, tagName, closingText;
-    QList<CHTMLNode> children;
+    QVector<CHTMLNode> children;
     QHash<QString,QString> attributes;
     QStringList attributesOrder;
     bool isTag, isComment;

@@ -181,7 +181,7 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
     if (syms) {
         xcb_keycode_t *keyCodes = xcb_key_symbols_get_keycode(syms, sym);
         if (keyCodes) {
-            ret = keyCodes[0];
+            ret = *keyCodes;
             free(keyCodes);
         }
         xcb_key_symbols_free(syms);

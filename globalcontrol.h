@@ -51,7 +51,7 @@ public:
     CGlobalUI ui;
 
     CMainWindow* activeWindow;
-    QList<CMainWindow*> mainWindows;
+    QVector<CMainWindow*> mainWindows;
     CLightTranslator* lightTranslator;
     CAuxTranslator* auxTranslatorDBus;
     CBrowserController* browserControllerDBus;
@@ -72,15 +72,15 @@ public:
 
     QStringList recentFiles;
 
-    QStrHash ctxSearchEngines;
+    CStringHash ctxSearchEngines;
 
-    QUHList recycleBin;
-    QUHList mainHistory;
+    CUrlHolderVector recycleBin;
+    CUrlHolderVector mainHistory;
     QStringList searchHistory;
 
     QHash<QString,QIcon> favicons;
 
-    CAdBlockList adblock;
+    CAdBlockVector adblock;
     QStringList adblockWhiteList;
     QMutex adblockWhiteListMutex;
 
@@ -88,7 +88,7 @@ public:
 
     QTimer tabsListTimer;
 
-    QSslCertificateHash atlCerts;
+    CSslCertificateHash atlCerts;
 
     int inspectorPort;
     bool blockTabCloseActive;
@@ -96,8 +96,8 @@ public:
     // History lists append
     void appendRecycled(const QString &title, const QUrl &url);
     void appendSearchHistory(const QStringList &req);
-    void appendMainHistory(const UrlHolder &item);
-    bool updateMainHistoryTitle(const UrlHolder &item, const QString &newTitle);
+    void appendMainHistory(const CUrlHolder &item);
+    bool updateMainHistoryTitle(const CUrlHolder &item, const QString &newTitle);
     void appendRecent(const QString &filename);
 
     // Ad-block
@@ -105,7 +105,7 @@ public:
     bool isUrlBlocked(const QUrl &url, QString &filter);
     void adblockAppend(const QString &url);
     void adblockAppend(const CAdBlockRule &url);
-    void adblockAppend(const QList<CAdBlockRule> &urls);
+    void adblockAppend(const QVector<CAdBlockRule> &urls);
 
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
@@ -115,9 +115,9 @@ public:
     QUrl cleanUrlForRealm(const QUrl &origin) const;
 
     // Userscripts
-    QList<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame);
-    void initUserScripts(const QStrHash& scripts);
-    QStrHash getUserScripts();
+    QVector<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame);
+    void initUserScripts(const CStringHash& scripts);
+    CStringHash getUserScripts();
 
     // Translation languages selection
     QStringList getLanguageCodes() const;
@@ -176,7 +176,7 @@ public slots:
 
     // ATLAS SSL
     void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors,
-                          const QIntList& errCodes);
+                          const CIntList& errCodes);
 };
 
 extern CGlobalControl* gSet;

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <goldendictlib/goldendictmgr.hh>
 #include "settings.h"
+#include "mainwindow.h"
 #include "globalcontrol.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "genericfuncs.h"
@@ -12,64 +13,55 @@
 #include "userscript.h"
 #include "bookmarks.h"
 
+const QVector<QColor> CSettings::snippetColors = {
+    QColor(Qt::red), QColor(Qt::green), QColor(Qt::blue), QColor(Qt::cyan),
+    QColor(Qt::magenta), QColor(Qt::darkRed), QColor(Qt::darkGreen),
+    QColor(Qt::darkBlue), QColor(Qt::darkCyan), QColor(Qt::darkMagenta),
+    QColor(Qt::darkYellow), QColor(Qt::gray) };
+
 CSettings::CSettings(QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      maxHistory(5000),
+      maxRecent(10),
+      maxSearchLimit(1000),
+      translatorEngine(TE_ATLAS),
+      maxRecycled(20),
+      atlTcpRetryCount(3),
+      atlTcpTimeout(2),
+      maxAdblockWhiteList(5000),
+      pdfImageMaxSize(250),
+      pdfImageQuality(75),
+      pixivFetchImages(false),
+      atlPort(18000),
+      proxyPort(3128),
+      atlProto(QSsl::SecureProtocols),
+      proxyType(QNetworkProxy::NoProxy),
+      jsLogConsole(true),
+      dontUseNativeFileDialog(false),
+      overrideStdFonts(false),
+      showTabCloseButtons(true),
+      createCoredumps(false),
+      overrideUserAgent(false),
+      useAdblock(false),
+      useScp(false),
+      emptyRestore(false),
+      debugNetReqLogging(false),
+      debugDumpHtml(false),
+      globalContextTranslate(false),
+      proxyUse(false),
+      proxyUseTranslator(false),
+      ignoreSSLErrors(false),
+      pdfExtractImages(true),
+      dlg(nullptr),
+      settingsDlgWidth(-1),
+      settingsDlgHeight(-1),
+      restoreLoadChecked(false)
+
 {
-    snippetColors << QColor(Qt::red) << QColor(Qt::green) << QColor(Qt::blue) << QColor(Qt::cyan) <<
-                     QColor(Qt::magenta) << QColor(Qt::darkRed) << QColor(Qt::darkGreen) <<
-                     QColor(Qt::darkBlue) << QColor(Qt::darkCyan) << QColor(Qt::darkMagenta) <<
-                     QColor(Qt::darkYellow) << QColor(Qt::gray);
+    fontFixed=QStringLiteral("Courier New");
+    fontSerif=QStringLiteral("Times New Roman");
+    fontSansSerif=QStringLiteral("Verdana");
 
-    maxSearchLimit=1000;
-    maxHistory=5000;
-    maxRecent=10;
-    maxAdblockWhiteList=5000;
-    useAdblock=false;
-    restoreLoadChecked=false;
-    globalContextTranslate=false;
-    emptyRestore=false;
-    createCoredumps=false;
-    ignoreSSLErrors=false;
-    jsLogConsole=true;
-    dontUseNativeFileDialog=false;
-    forcedCharset=QString(); // autodetect
-    overrideUserAgent=false;
-    overrideStdFonts=false;
-    fontFixed=QString("Courier New");
-    fontSerif=QString("Times New Roman");
-    fontSansSerif=QString("Verdana");
-    atlTcpRetryCount=3;
-    atlTcpTimeout=2;
-    atlToken=QString();
-    atlProto=QSsl::SecureProtocols;
-    bingKey=QString();
-    yandexKey=QString();
-    proxyHost=QString();
-    proxyPort=3128;
-    proxyLogin=QString();
-    proxyPassword=QString();
-    proxyUse=false;
-    proxyUseTranslator=false;
-    proxyType=QNetworkProxy::HttpCachingProxy;
-    debugNetReqLogging=false;
-    debugDumpHtml=false;
-    dlg=nullptr;
-    settingsDlgWidth=850;
-    settingsDlgHeight=380;
-
-    pdfExtractImages = true;
-    pdfImageMaxSize = 250;
-    pdfImageQuality = 75;
-
-    pixivFetchImages = false;
-
-    charsetHistory.clear();
-    scpHostHistory.clear();
-    atlHostHistory.clear();
-    dictPaths.clear();
-    userAgent.clear();
-    userAgentHistory.clear();
-    defaultSearchEngine.clear();
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=savedAuxDir;
     overrideFont=QApplication::font();
@@ -90,101 +82,101 @@ CSettings::CSettings(QObject *parent)
 
 void CSettings::writeSettings()
 {
-    if (gSet==nullptr) return;
+    if (!gSet) return;
     if (!settingsSaveMutex.tryLock(1000)) return;
-    QSettings settings("kernel1024", "jpreader");
-    QSettings bigdata("kernel1024", "jpreader-bigdata");
-    settings.beginGroup("MainWindow");
-    bigdata.beginGroup("main");
+    QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
+    QSettings bigdata(QStringLiteral("kernel1024"), QStringLiteral("jpreader-bigdata"));
+    settings.beginGroup(QStringLiteral("MainWindow"));
+    bigdata.beginGroup(QStringLiteral("main"));
     settings.remove(QString());
     bigdata.remove(QString());
 
-    bigdata.setValue("searchHistory",QVariant::fromValue(gSet->searchHistory));
-    bigdata.setValue("history",QVariant::fromValue(gSet->mainHistory));
-    bigdata.setValue("adblock",QVariant::fromValue(gSet->adblock));
-    bigdata.setValue("atlHostHistory",QVariant::fromValue(atlHostHistory));
-    bigdata.setValue("scpHostHistory",QVariant::fromValue(scpHostHistory));
-    bigdata.setValue("userAgentHistory",QVariant::fromValue(userAgentHistory));
-    bigdata.setValue("dictPaths",QVariant::fromValue(dictPaths));
-    bigdata.setValue("ctxSearchEngines",QVariant::fromValue(gSet->ctxSearchEngines));
-    bigdata.setValue("atlasCertificates",QVariant::fromValue(gSet->atlCerts));
-    bigdata.setValue("recentFiles",QVariant::fromValue(gSet->recentFiles));
-    bigdata.setValue("userScripts",QVariant::fromValue(gSet->getUserScripts()));
-    bigdata.setValue("bookmarks2",QVariant::fromValue(gSet->bookmarksManager->save()));
-    bigdata.setValue("translatorPairs",QVariant::fromValue(translatorPairs));
+    bigdata.setValue(QStringLiteral("searchHistory"),QVariant::fromValue(gSet->searchHistory));
+    bigdata.setValue(QStringLiteral("history"),QVariant::fromValue(gSet->mainHistory));
+    bigdata.setValue(QStringLiteral("adblock"),QVariant::fromValue(gSet->adblock));
+    bigdata.setValue(QStringLiteral("atlHostHistory"),QVariant::fromValue(atlHostHistory));
+    bigdata.setValue(QStringLiteral("scpHostHistory"),QVariant::fromValue(scpHostHistory));
+    bigdata.setValue(QStringLiteral("userAgentHistory"),QVariant::fromValue(userAgentHistory));
+    bigdata.setValue(QStringLiteral("dictPaths"),QVariant::fromValue(dictPaths));
+    bigdata.setValue(QStringLiteral("ctxSearchEngines"),QVariant::fromValue(gSet->ctxSearchEngines));
+    bigdata.setValue(QStringLiteral("atlasCertificates"),QVariant::fromValue(gSet->atlCerts));
+    bigdata.setValue(QStringLiteral("recentFiles"),QVariant::fromValue(gSet->recentFiles));
+    bigdata.setValue(QStringLiteral("userScripts"),QVariant::fromValue(gSet->getUserScripts()));
+    bigdata.setValue(QStringLiteral("bookmarks2"),QVariant::fromValue(gSet->bookmarksManager->save()));
+    bigdata.setValue(QStringLiteral("translatorPairs"),QVariant::fromValue(translatorPairs));
 
-    settings.setValue("hostingDir",hostingDir);
-    settings.setValue("hostingUrl",hostingUrl);
-    settings.setValue("maxLimit",maxSearchLimit);
-    settings.setValue("maxHistory",maxHistory);
-    settings.setValue("maxRecent",maxRecent);
-    settings.setValue("maxAdblockWhiteList",maxAdblockWhiteList);
-    settings.setValue("browser",sysBrowser);
-    settings.setValue("editor",sysEditor);
-    settings.setValue("tr_engine",translatorEngine);
-    settings.setValue("scp",useScp);
-    settings.setValue("scphost",scpHost);
-    settings.setValue("scpparams",scpParams);
-    settings.setValue("atlasHost",atlHost);
-    settings.setValue("atlasPort",atlPort);
-    settings.setValue("atlasToken",atlToken);
-    settings.setValue("atlasProto",static_cast<int>(atlProto));
-    settings.setValue("auxDir",savedAuxDir);
-    settings.setValue("auxSaveDir",savedAuxSaveDir);
-    settings.setValue("emptyRestore",emptyRestore);
-    settings.setValue("javascript",gSet->webProfile->settings()->
+    settings.setValue(QStringLiteral("hostingDir"),hostingDir);
+    settings.setValue(QStringLiteral("hostingUrl"),hostingUrl);
+    settings.setValue(QStringLiteral("maxLimit"),maxSearchLimit);
+    settings.setValue(QStringLiteral("maxHistory"),maxHistory);
+    settings.setValue(QStringLiteral("maxRecent"),maxRecent);
+    settings.setValue(QStringLiteral("maxAdblockWhiteList"),maxAdblockWhiteList);
+    settings.setValue(QStringLiteral("browser"),sysBrowser);
+    settings.setValue(QStringLiteral("editor"),sysEditor);
+    settings.setValue(QStringLiteral("tr_engine"),translatorEngine);
+    settings.setValue(QStringLiteral("scp"),useScp);
+    settings.setValue(QStringLiteral("scphost"),scpHost);
+    settings.setValue(QStringLiteral("scpparams"),scpParams);
+    settings.setValue(QStringLiteral("atlasHost"),atlHost);
+    settings.setValue(QStringLiteral("atlasPort"),atlPort);
+    settings.setValue(QStringLiteral("atlasToken"),atlToken);
+    settings.setValue(QStringLiteral("atlasProto"),static_cast<int>(atlProto));
+    settings.setValue(QStringLiteral("auxDir"),savedAuxDir);
+    settings.setValue(QStringLiteral("auxSaveDir"),savedAuxSaveDir);
+    settings.setValue(QStringLiteral("emptyRestore"),emptyRestore);
+    settings.setValue(QStringLiteral("javascript"),gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::JavascriptEnabled));
-    settings.setValue("autoloadimages",gSet->webProfile->settings()->
+    settings.setValue(QStringLiteral("autoloadimages"),gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::AutoLoadImages));
-    settings.setValue("enablePlugins",gSet->webProfile->settings()->
+    settings.setValue(QStringLiteral("enablePlugins"),gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::PluginsEnabled));
-    settings.setValue("recycledCount",maxRecycled);
+    settings.setValue(QStringLiteral("recycledCount"),maxRecycled);
 
-    settings.setValue("useAdblock",useAdblock);
-    settings.setValue("useOverrideFont",gSet->ui.useOverrideFont());
-    settings.setValue("overrideFont",overrideFont.family());
-    settings.setValue("overrideFontSize",overrideFont.pointSize());
-    settings.setValue("overrideStdFonts",overrideStdFonts);
-    settings.setValue("standardFont",fontStandard);
-    settings.setValue("fixedFont",fontFixed);
-    settings.setValue("serifFont",fontSerif);
-    settings.setValue("sansSerifFont",fontSansSerif);
-    settings.setValue("forceFontColor",gSet->ui.forceFontColor());
-    settings.setValue("forcedFontColor",forcedFontColor.name());
-    settings.setValue("gctxHotkey",gSet->ui.gctxTranHotkey.shortcut().toString());
-    settings.setValue("translateSubSentences",gSet->ui.translateSubSentences());
+    settings.setValue(QStringLiteral("useAdblock"),useAdblock);
+    settings.setValue(QStringLiteral("useOverrideFont"),gSet->ui.useOverrideFont());
+    settings.setValue(QStringLiteral("overrideFont"),overrideFont.family());
+    settings.setValue(QStringLiteral("overrideFontSize"),overrideFont.pointSize());
+    settings.setValue(QStringLiteral("overrideStdFonts"),overrideStdFonts);
+    settings.setValue(QStringLiteral("standardFont"),fontStandard);
+    settings.setValue(QStringLiteral("fixedFont"),fontFixed);
+    settings.setValue(QStringLiteral("serifFont"),fontSerif);
+    settings.setValue(QStringLiteral("sansSerifFont"),fontSansSerif);
+    settings.setValue(QStringLiteral("forceFontColor"),gSet->ui.forceFontColor());
+    settings.setValue(QStringLiteral("forcedFontColor"),forcedFontColor.name());
+    settings.setValue(QStringLiteral("gctxHotkey"),gSet->ui.gctxTranHotkey.shortcut().toString());
+    settings.setValue(QStringLiteral("translateSubSentences"),gSet->ui.translateSubSentences());
 
-    settings.setValue("searchEngine",searchEngine);
-    settings.setValue("atlTcpRetryCount",atlTcpRetryCount);
-    settings.setValue("atlTcpTimeout",atlTcpTimeout);
-    settings.setValue("showTabCloseButtons",showTabCloseButtons);
-    settings.setValue("proxyHost",proxyHost);
-    settings.setValue("proxyPort",proxyPort);
-    settings.setValue("proxyLogin",proxyLogin);
-    settings.setValue("proxyPassword",proxyPassword);
-    settings.setValue("proxyUse",proxyUse);
-    settings.setValue("proxyType",proxyType);
-    settings.setValue("proxyUseTranslator",proxyUseTranslator);
-    settings.setValue("bingKey",bingKey);
-    settings.setValue("yandexKey",yandexKey);
-    settings.setValue("createCoredumps",createCoredumps);
-    settings.setValue("overrideUserAgent",overrideUserAgent);
-    settings.setValue("userAgent",userAgent);
-    settings.setValue("ignoreSSLErrors",ignoreSSLErrors);
-    settings.setValue("showFavicons",gSet->webProfile->settings()->
+    settings.setValue(QStringLiteral("searchEngine"),searchEngine);
+    settings.setValue(QStringLiteral("atlTcpRetryCount"),atlTcpRetryCount);
+    settings.setValue(QStringLiteral("atlTcpTimeout"),atlTcpTimeout);
+    settings.setValue(QStringLiteral("showTabCloseButtons"),showTabCloseButtons);
+    settings.setValue(QStringLiteral("proxyHost"),proxyHost);
+    settings.setValue(QStringLiteral("proxyPort"),proxyPort);
+    settings.setValue(QStringLiteral("proxyLogin"),proxyLogin);
+    settings.setValue(QStringLiteral("proxyPassword"),proxyPassword);
+    settings.setValue(QStringLiteral("proxyUse"),proxyUse);
+    settings.setValue(QStringLiteral("proxyType"),proxyType);
+    settings.setValue(QStringLiteral("proxyUseTranslator"),proxyUseTranslator);
+    settings.setValue(QStringLiteral("bingKey"),bingKey);
+    settings.setValue(QStringLiteral("yandexKey"),yandexKey);
+    settings.setValue(QStringLiteral("createCoredumps"),createCoredumps);
+    settings.setValue(QStringLiteral("overrideUserAgent"),overrideUserAgent);
+    settings.setValue(QStringLiteral("userAgent"),userAgent);
+    settings.setValue(QStringLiteral("ignoreSSLErrors"),ignoreSSLErrors);
+    settings.setValue(QStringLiteral("showFavicons"),gSet->webProfile->settings()->
                       testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
-    settings.setValue("diskCacheSize",gSet->webProfile->httpCacheMaximumSize());
-    settings.setValue("jsLogConsole",jsLogConsole);
-    settings.setValue("dontUseNativeFileDialog",dontUseNativeFileDialog);
-    settings.setValue("defaultSearchEngine",defaultSearchEngine);
-    settings.setValue("settingsDlgWidth",settingsDlgWidth);
-    settings.setValue("settingsDlgHeight",settingsDlgHeight);
+    settings.setValue(QStringLiteral("diskCacheSize"),gSet->webProfile->httpCacheMaximumSize());
+    settings.setValue(QStringLiteral("jsLogConsole"),jsLogConsole);
+    settings.setValue(QStringLiteral("dontUseNativeFileDialog"),dontUseNativeFileDialog);
+    settings.setValue(QStringLiteral("defaultSearchEngine"),defaultSearchEngine);
+    settings.setValue(QStringLiteral("settingsDlgWidth"),settingsDlgWidth);
+    settings.setValue(QStringLiteral("settingsDlgHeight"),settingsDlgHeight);
 
-    settings.setValue("pdfExtractImages",pdfExtractImages);
-    settings.setValue("pdfImageMaxSize",pdfImageMaxSize);
-    settings.setValue("pdfImageQuality",pdfImageQuality);
+    settings.setValue(QStringLiteral("pdfExtractImages"),pdfExtractImages);
+    settings.setValue(QStringLiteral("pdfImageMaxSize"),pdfImageMaxSize);
+    settings.setValue(QStringLiteral("pdfImageQuality"),pdfImageQuality);
 
-    settings.setValue("pixivFetchImages",pixivFetchImages);
+    settings.setValue(QStringLiteral("pixivFetchImages"),pixivFetchImages);
 
     settings.endGroup();
     bigdata.endGroup();
@@ -194,130 +186,126 @@ void CSettings::writeSettings()
 void CSettings::readSettings(QObject *control)
 {
     auto g = qobject_cast<CGlobalControl *>(control);
-    if (g==nullptr) return;
+    if (!g) return;
 
-    QSettings settings("kernel1024", "jpreader");
-    QSettings bigdata("kernel1024", "jpreader-bigdata");
-    settings.beginGroup("MainWindow");
-    bigdata.beginGroup("main");
+    QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
+    QSettings bigdata(QStringLiteral("kernel1024"), QStringLiteral("jpreader-bigdata"));
+    settings.beginGroup(QStringLiteral("MainWindow"));
+    bigdata.beginGroup(QStringLiteral("main"));
 
-    g->searchHistory = bigdata.value("searchHistory",QStringList()).toStringList();
+    g->searchHistory = bigdata.value(QStringLiteral("searchHistory"),QStringList()).toStringList();
 
     emit g->updateAllQueryLists();
 
-    atlHostHistory = bigdata.value("atlHostHistory",QStringList()).toStringList();
-    scpHostHistory = bigdata.value("scpHostHistory",QStringList()).toStringList();
-    g->mainHistory = bigdata.value("history").value<QUHList>();
-    userAgentHistory = bigdata.value("userAgentHistory",QStringList()).toStringList();
-    dictPaths = bigdata.value("dictPaths",QStringList()).toStringList();
-    g->ctxSearchEngines = bigdata.value("ctxSearchEngines").value<QStrHash>();
-    g->atlCerts = bigdata.value("atlasCertificates").value<QSslCertificateHash>();
-    g->recentFiles = bigdata.value("recentFiles",QStringList()).toStringList();
-    g->initUserScripts(bigdata.value("userScripts").value<QStrHash>());
-    g->bookmarksManager->load(bigdata.value("bookmarks2",QByteArray()).toByteArray());
-    translatorPairs = bigdata.value("translatorPairs").value<CLangPairList>();
+    atlHostHistory = bigdata.value(QStringLiteral("atlHostHistory"),QStringList()).toStringList();
+    scpHostHistory = bigdata.value(QStringLiteral("scpHostHistory"),QStringList()).toStringList();
+    g->mainHistory = bigdata.value(QStringLiteral("history")).value<CUrlHolderVector>();
+    userAgentHistory = bigdata.value(QStringLiteral("userAgentHistory"),QStringList()).toStringList();
+    dictPaths = bigdata.value(QStringLiteral("dictPaths"),QStringList()).toStringList();
+    g->ctxSearchEngines = bigdata.value(QStringLiteral("ctxSearchEngines")).value<CStringHash>();
+    g->atlCerts = bigdata.value(QStringLiteral("atlasCertificates")).value<CSslCertificateHash>();
+    g->recentFiles = bigdata.value(QStringLiteral("recentFiles"),QStringList()).toStringList();
+    g->initUserScripts(bigdata.value(QStringLiteral("userScripts")).value<CStringHash>());
+    g->bookmarksManager->load(bigdata.value(QStringLiteral("bookmarks2"),QByteArray()).toByteArray());
+    translatorPairs = bigdata.value(QStringLiteral("translatorPairs")).value<CLangPairVector>();
 
     int idx=0;
     while (idx<g->mainHistory.count()) {
-        if (g->mainHistory.at(idx).url.toString().startsWith("data:",Qt::CaseInsensitive))
+        if (g->mainHistory.at(idx).url.toString().startsWith(QStringLiteral("data:"),
+                                                             Qt::CaseInsensitive))
             g->mainHistory.removeAt(idx);
         else
             idx++;
     }
 
-    // read legacy bookmarks
-    QBookmarks bookmarks;
-    if (bigdata.contains("bookmarks")) {
-        QBookmarksMap bm = bigdata.value("bookmarks").value<QBookmarksMap>();
-        for (auto it = bm.constBegin(), end = bm.constEnd(); it != end; ++it)
-            bookmarks << qMakePair(it.key(), it.value());
-    } else if (bigdata.contains("bookmarks_list")) {
-        bookmarks = bigdata.value("bookmarks_list").value<QBookmarks>();
-    }
-    if (!bookmarks.isEmpty())
-        g->bookmarksManager->importOldBookmarks(bookmarks);
+    g->adblock = bigdata.value(QStringLiteral("adblock")).value<CAdBlockVector>();
 
-    g->adblock = bigdata.value("adblock").value<CAdBlockList>();
-
-    hostingDir = settings.value("hostingDir",QString()).toString();
-    hostingUrl = settings.value("hostingUrl","about:blank").toString();
-    maxSearchLimit = settings.value("maxLimit",1000).toInt();
-    maxHistory = settings.value("maxHistory",1000).toInt();
-    maxRecent = settings.value("maxRecent",10).toInt();
-    maxAdblockWhiteList = settings.value("maxAdblockWhiteList",5000).toInt();
-    sysBrowser = settings.value("browser","konqueror").toString();
-    sysEditor = settings.value("editor","kwrite").toString();
-    translatorEngine = settings.value("tr_engine",TE_ATLAS).toInt();
-    useScp = settings.value("scp",false).toBool();
-    scpHost = settings.value("scphost",QString()).toString();
-    scpParams = settings.value("scpparams",QString()).toString();
-    atlHost = settings.value("atlasHost","localhost").toString();
-    atlPort = static_cast<quint16>(settings.value("atlasPort",18000).toUInt());
-    atlToken = settings.value("atlasToken",QString()).toString();
-    atlProto = static_cast<QSsl::SslProtocol>(settings.value("atlasProto",QSsl::SecureProtocols).toInt());
-    savedAuxDir = settings.value("auxDir",QDir::homePath()).toString();
-    savedAuxSaveDir = settings.value("auxSaveDir",QDir::homePath()).toString();
-    emptyRestore = settings.value("emptyRestore",false).toBool();
-    maxRecycled = settings.value("recycledCount",20).toInt();
-    bool jsstate = settings.value("javascript",true).toBool();
+    hostingDir = settings.value(QStringLiteral("hostingDir"),QString()).toString();
+    hostingUrl = settings.value(QStringLiteral("hostingUrl"),"about:blank").toString();
+    maxSearchLimit = settings.value(QStringLiteral("maxLimit"),1000).toInt();
+    maxHistory = settings.value(QStringLiteral("maxHistory"),1000).toInt();
+    maxRecent = settings.value(QStringLiteral("maxRecent"),10).toInt();
+    maxAdblockWhiteList = settings.value(QStringLiteral("maxAdblockWhiteList"),5000).toInt();
+    sysBrowser = settings.value(QStringLiteral("browser"),"konqueror").toString();
+    sysEditor = settings.value(QStringLiteral("editor"),"kwrite").toString();
+    translatorEngine = settings.value(QStringLiteral("tr_engine"),TE_ATLAS).toInt();
+    useScp = settings.value(QStringLiteral("scp"),false).toBool();
+    scpHost = settings.value(QStringLiteral("scphost"),QString()).toString();
+    scpParams = settings.value(QStringLiteral("scpparams"),QString()).toString();
+    atlHost = settings.value(QStringLiteral("atlasHost"),"localhost").toString();
+    atlPort = static_cast<quint16>(settings.value(QStringLiteral("atlasPort"),18000).toUInt());
+    atlToken = settings.value(QStringLiteral("atlasToken"),QString()).toString();
+    atlProto = static_cast<QSsl::SslProtocol>(settings.value(QStringLiteral("atlasProto"),
+                                                             QSsl::SecureProtocols).toInt());
+    savedAuxDir = settings.value(QStringLiteral("auxDir"),QDir::homePath()).toString();
+    savedAuxSaveDir = settings.value(QStringLiteral("auxSaveDir"),QDir::homePath()).toString();
+    emptyRestore = settings.value(QStringLiteral("emptyRestore"),false).toBool();
+    maxRecycled = settings.value(QStringLiteral("recycledCount"),20).toInt();
+    bool jsstate = settings.value(QStringLiteral("javascript"),true).toBool();
     g->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
     g->ui.actionJSUsage->setChecked(jsstate);
     g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
-                                         settings.value("autoloadimages",true).toBool());
+                                         settings.value(QStringLiteral("autoloadimages"),true).toBool());
     g->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
-                                         settings.value("enablePlugins",false).toBool());
+                                         settings.value(QStringLiteral("enablePlugins"),false).toBool());
 
-    useAdblock=settings.value("useAdblock",false).toBool();
-    g->ui.actionOverrideFont->setChecked(settings.value("useOverrideFont",false).toBool());
-    overrideFont.setFamily(settings.value("overrideFont","Verdana").toString());
-    overrideFont.setPointSize(settings.value("overrideFontSize",12).toInt());
-    overrideStdFonts=settings.value("overrideStdFonts",false).toBool();
-    fontStandard=settings.value("standardFont",QApplication::font().family()).toString();
-    fontFixed=settings.value("fixedFont","Courier New").toString();
-    fontSerif=settings.value("serifFont","Times New Roman").toString();
-    fontSansSerif=settings.value("sansSerifFont","Verdana").toString();
-    g->ui.actionOverrideFontColor->setChecked(settings.value("forceFontColor",false).toBool());
-    forcedFontColor=QColor(settings.value("forcedFontColor","#000000").toString());
-    QString hk = settings.value("gctxHotkey",QString()).toString();
-    g->ui.actionTranslateSubSentences->setChecked(settings.value("translateSubSentences",false).toBool());
+    useAdblock=settings.value(QStringLiteral("useAdblock"),false).toBool();
+    g->ui.actionOverrideFont->setChecked(settings.value(QStringLiteral("useOverrideFont"),
+                                                        false).toBool());
+    overrideFont.setFamily(settings.value(QStringLiteral("overrideFont"),"Verdana").toString());
+    overrideFont.setPointSize(settings.value(QStringLiteral("overrideFontSize"),12).toInt());
+    overrideStdFonts=settings.value(QStringLiteral("overrideStdFonts"),false).toBool();
+    fontStandard=settings.value(QStringLiteral("standardFont"),QApplication::font().family()).toString();
+    fontFixed=settings.value(QStringLiteral("fixedFont"),"Courier New").toString();
+    fontSerif=settings.value(QStringLiteral("serifFont"),"Times New Roman").toString();
+    fontSansSerif=settings.value(QStringLiteral("sansSerifFont"),"Verdana").toString();
+    g->ui.actionOverrideFontColor->setChecked(settings.value(
+                                                  QStringLiteral("forceFontColor"),false).toBool());
+    forcedFontColor=QColor(settings.value(
+                               QStringLiteral("forcedFontColor"),"#000000").toString());
+    QString hk = settings.value(QStringLiteral("gctxHotkey"),QString()).toString();
+    g->ui.actionTranslateSubSentences->setChecked(settings.value(
+                                                      QStringLiteral("translateSubSentences"),
+                                                      false).toBool());
     if (!hk.isEmpty()) {
         g->ui.gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
         if (!g->ui.gctxTranHotkey.shortcut().isEmpty())
             g->ui.gctxTranHotkey.setEnabled();
     }
-    searchEngine = settings.value("searchEngine",SE_NONE).toInt();
-    atlTcpRetryCount = settings.value("atlTcpRetryCount",3).toInt();
-    atlTcpTimeout = settings.value("atlTcpTimeout",2).toInt();
-    showTabCloseButtons = settings.value("showTabCloseButtons",true).toBool();
-    proxyHost = settings.value("proxyHost",QString()).toString();
-    proxyPort = static_cast<quint16>(settings.value("proxyPort",3128).toUInt());
-    proxyType = static_cast<QNetworkProxy::ProxyType>(settings.value("proxyType",
-                                                                     QNetworkProxy::HttpCachingProxy).toInt());
-    proxyLogin = settings.value("proxyLogin",QString()).toString();
-    proxyPassword = settings.value("proxyPassword",QString()).toString();
-    proxyUse = settings.value("proxyUse",false).toBool();
-    proxyUseTranslator = settings.value("proxyUseTranslator",false).toBool();
-    bingKey = settings.value("bingKey",QString()).toString();
-    yandexKey = settings.value("yandexKey",QString()).toString();
-    jsLogConsole = settings.value("jsLogConsole",true).toBool();
-    dontUseNativeFileDialog = settings.value("dontUseNativeFileDialog",false).toBool();
-    createCoredumps = settings.value("createCoredumps",false).toBool();
-    ignoreSSLErrors = settings.value("ignoreSSLErrors",false).toBool();
+    searchEngine = settings.value(QStringLiteral("searchEngine"),SE_NONE).toInt();
+    atlTcpRetryCount = settings.value(QStringLiteral("atlTcpRetryCount"),3).toInt();
+    atlTcpTimeout = settings.value(QStringLiteral("atlTcpTimeout"),2).toInt();
+    showTabCloseButtons = settings.value(QStringLiteral("showTabCloseButtons"),true).toBool();
+    proxyHost = settings.value(QStringLiteral("proxyHost"),QString()).toString();
+    proxyPort = static_cast<quint16>(settings.value(QStringLiteral("proxyPort"),3128).toUInt());
+    proxyType = static_cast<QNetworkProxy::ProxyType>(
+                    settings.value(QStringLiteral("proxyType"),
+                                   QNetworkProxy::HttpCachingProxy).toInt());
+    proxyLogin = settings.value(QStringLiteral("proxyLogin"),QString()).toString();
+    proxyPassword = settings.value(QStringLiteral("proxyPassword"),QString()).toString();
+    proxyUse = settings.value(QStringLiteral("proxyUse"),false).toBool();
+    proxyUseTranslator = settings.value(QStringLiteral("proxyUseTranslator"),false).toBool();
+    bingKey = settings.value(QStringLiteral("bingKey"),QString()).toString();
+    yandexKey = settings.value(QStringLiteral("yandexKey"),QString()).toString();
+    jsLogConsole = settings.value(QStringLiteral("jsLogConsole"),true).toBool();
+    dontUseNativeFileDialog = settings.value(QStringLiteral("dontUseNativeFileDialog"),false).toBool();
+    createCoredumps = settings.value(QStringLiteral("createCoredumps"),false).toBool();
+    ignoreSSLErrors = settings.value(QStringLiteral("ignoreSSLErrors"),false).toBool();
     g->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
-                                            settings.value("showFavicons",true).toBool());
-    defaultSearchEngine = settings.value("defaultSearchEngine",QString()).toString();
-    g->webProfile->setHttpCacheMaximumSize(settings.value("diskCacheSize",0).toInt());
-    settingsDlgWidth=settings.value("settingsDlgWidth",850).toInt();
-    settingsDlgHeight=settings.value("settingsDlgHeight",380).toInt();
+                                            settings.value(QStringLiteral("showFavicons"),true).toBool());
+    defaultSearchEngine = settings.value(QStringLiteral("defaultSearchEngine"),QString()).toString();
+    g->webProfile->setHttpCacheMaximumSize(settings.value(QStringLiteral("diskCacheSize"),0).toInt());
+    settingsDlgWidth=settings.value(QStringLiteral("settingsDlgWidth"),850).toInt();
+    settingsDlgHeight=settings.value(QStringLiteral("settingsDlgHeight"),380).toInt();
 
-    pdfExtractImages = settings.value("pdfExtractImages",true).toBool();
-    pdfImageMaxSize = settings.value("pdfImageMaxSize",250).toInt();
-    pdfImageQuality = settings.value("pdfImageQuality",75).toInt();
+    pdfExtractImages = settings.value(QStringLiteral("pdfExtractImages"),true).toBool();
+    pdfImageMaxSize = settings.value(QStringLiteral("pdfImageMaxSize"),250).toInt();
+    pdfImageQuality = settings.value(QStringLiteral("pdfImageQuality"),75).toInt();
 
-    pixivFetchImages = settings.value("pixivFetchImages",true).toBool();
+    pixivFetchImages = settings.value(QStringLiteral("pixivFetchImages"),true).toBool();
 
-    overrideUserAgent=settings.value("overrideUserAgent",false).toBool();
-    userAgent=settings.value("userAgent",QString()).toString();
+    overrideUserAgent=settings.value(QStringLiteral("overrideUserAgent"),false).toBool();
+    userAgent=settings.value(QStringLiteral("userAgent"),QString()).toString();
     if (userAgent.isEmpty())
         overrideUserAgent=false;
     else if (userAgentHistory.isEmpty())
@@ -339,7 +327,7 @@ void CSettings::readSettings(QObject *control)
 
 void CSettings::settingsDlg()
 {
-    if (gSet==nullptr) return;
+    if (!gSet) return;
     if (dlg) {
         dlg->activateWindow();
         return;
@@ -655,20 +643,21 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     if (restoreLoadChecked) return;
     restoreLoadChecked = true;
 
-    QList<QUrl> urls;
+    QVector<QUrl> urls;
     urls.clear();
-    QSettings settings("kernel1024", "jpreader-tabs");
-    settings.beginGroup("OpenedTabs");
+    QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader-tabs"));
+    settings.beginGroup(QStringLiteral("OpenedTabs"));
     int cnt = settings.value("tabsCnt", 0).toInt();
     for (int i=0;i<cnt;i++) {
-        QUrl u = settings.value(QString("tab_%1").arg(i),QUrl()).toUrl();
+        QUrl u = settings.value(QString(QStringLiteral("tab_%1")).arg(i),QUrl()).toUrl();
         if (u.isValid() && !u.isEmpty())
             urls << u;
     }
     settings.endGroup();
 
     if (!urls.isEmpty()) {
-        if (QMessageBox::question(w,tr("JPReader"),tr("Program crashed in previous run. Restore all tabs?"),
+        if (QMessageBox::question(w,tr("JPReader"),
+                                  tr("Program crashed in previous run. Restore all tabs?"),
                                   QMessageBox::Yes,QMessageBox::No) == QMessageBox::Yes) {
             for (int i=0;i<cnt;i++)
                 new CSnippetViewer(w,urls.at(i));
@@ -676,15 +665,15 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     }
 }
 
-QList<QUrl> CSettings::getTabsList() const
+QVector<QUrl> CSettings::getTabsList() const
 {
-    QList<QUrl> res;
-    if (gSet==nullptr) return res;
+    QVector<QUrl> res;
+    if (!gSet) return res;
 
     for (int i=0;i<gSet->mainWindows.count();i++) {
         for (int j=0;j<gSet->mainWindows.at(i)->tabMain->count();j++) {
             auto sn = qobject_cast<CSnippetViewer *>(gSet->mainWindows.at(i)->tabMain->widget(j));
-            if (sn==nullptr) continue;
+            if (!sn) continue;
             QUrl url = sn->getUrl();
             if (url.isValid() && !url.isEmpty())
                 res << url;
@@ -694,7 +683,7 @@ QList<QUrl> CSettings::getTabsList() const
     return res;
 }
 
-void CSettings::writeTabsListPrivate(const QList<QUrl> tabList)
+void CSettings::writeTabsListPrivate(const QVector<QUrl>& tabList)
 {
     QSettings tabs("kernel1024", "jpreader-tabs");
     tabs.beginGroup("OpenedTabs");
@@ -707,7 +696,7 @@ void CSettings::writeTabsListPrivate(const QList<QUrl> tabList)
 
 void CSettings::clearTabsList()
 {
-    QList<QUrl> tabs;
+    QVector<QUrl> tabs;
     writeTabsListPrivate(tabs);
 }
 

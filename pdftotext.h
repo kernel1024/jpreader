@@ -15,7 +15,7 @@ public:
 
 private:
     QString m_text;
-    QIntList m_outLengths;
+    CIntList m_outLengths;
     bool m_prevblock;
 
     QString formatPdfText(const QString &text);

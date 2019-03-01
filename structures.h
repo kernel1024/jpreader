@@ -30,29 +30,29 @@
 #define DBUS_NAME "org.kernel1024.jpreader"
 #define IPC_NAME "org.kernel1024.jpreader.ipc.main"
 
-class UrlHolder {
-    friend QDataStream &operator<<(QDataStream &out, const UrlHolder &obj);
-    friend QDataStream &operator>>(QDataStream &in, UrlHolder &obj);
+class CUrlHolder {
+    friend QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj);
+    friend QDataStream &operator>>(QDataStream &in, CUrlHolder &obj);
 public:
     QString title;
     QUrl url;
     QUuid uuid;
-    UrlHolder();
-    UrlHolder(const UrlHolder& other);
-    UrlHolder(const QString &title, const QUrl &url);
-    UrlHolder &operator=(const UrlHolder& other) = default;
-    bool operator==(const UrlHolder &s) const;
-    bool operator!=(const UrlHolder &s) const;
+    CUrlHolder();
+    CUrlHolder(const CUrlHolder& other);
+    CUrlHolder(const QString &title, const QUrl &url);
+    CUrlHolder &operator=(const CUrlHolder& other) = default;
+    bool operator==(const CUrlHolder &s) const;
+    bool operator!=(const CUrlHolder &s) const;
 };
 
-Q_DECLARE_METATYPE(UrlHolder)
+Q_DECLARE_METATYPE(CUrlHolder)
 
-class DirStruct {
+class CDirStruct {
 public:
-    DirStruct();
-    DirStruct(const DirStruct& other);
-    DirStruct(const QString &DirName, int Count);
-    DirStruct &operator=(const DirStruct& other) = default;
+    CDirStruct();
+    CDirStruct(const CDirStruct& other);
+    CDirStruct(const QString &DirName, int Count);
+    CDirStruct &operator=(const CDirStruct& other) = default;
     QString dirName;
     int count;
 };
@@ -78,13 +78,11 @@ private:
 
 Q_DECLARE_METATYPE(CLangPair)
 
-typedef QHash<QString, QString> QStrHash;
-typedef QList<int> QIntList;
-typedef QList<UrlHolder> QUHList;
-typedef QMap<QString, QUrl> QBookmarksMap;
-typedef QList<QPair<QString, QUrl>> QBookmarks;
-typedef QHash<QSslCertificate,QIntList> QSslCertificateHash;
-typedef QList<CLangPair> CLangPairList;
+typedef QHash<QString, QString> CStringHash;
+typedef QList<int> CIntList;
+typedef QVector<CUrlHolder> CUrlHolderVector;
+typedef QHash<QSslCertificate,CIntList> CSslCertificateHash;
+typedef QVector<CLangPair> CLangPairVector;
 
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
 QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);

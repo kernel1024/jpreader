@@ -1,11 +1,6 @@
 #include "abstractthreadedsearch.h"
 
-CAbstractThreadedSearch::CAbstractThreadedSearch(QObject *parent) : QObject(parent)
+CAbstractThreadedSearch::CAbstractThreadedSearch(QObject *parent)
+    : QObject(parent), working(false)
 {
-    working = false;
-}
-
-void CAbstractThreadedSearch::doSearch(const QString &, int)
-{
-
 }

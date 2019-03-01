@@ -102,19 +102,20 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     connect(txtBrowser->customPage(), &CSpecWebPage::linkClickedExt,
             netHandler, &CSnNet::userNavigationRequest);
 
-    backNavButton->setIcon(QIcon::fromTheme("go-previous"));
-    fwdNavButton->setIcon(QIcon::fromTheme("go-next"));
-    backButton->setIcon(QIcon::fromTheme("go-up-search"));
-	fwdButton->setIcon(QIcon::fromTheme("go-down-search"));
-	reloadButton->setIcon(QIcon::fromTheme("view-refresh"));
-    stopButton->setIcon(QIcon::fromTheme("process-stop"));
-    navButton->setIcon(QIcon::fromTheme("arrow-right"));
-    passwordButton->setIcon(QIcon::fromTheme("dialog-password"));
+    backNavButton->setIcon(QIcon::fromTheme(QStringLiteral("go-previous")));
+    fwdNavButton->setIcon(QIcon::fromTheme(QStringLiteral("go-next")));
+    backButton->setIcon(QIcon::fromTheme(QStringLiteral("go-up-search")));
+    fwdButton->setIcon(QIcon::fromTheme(QStringLiteral("go-down-search")));
+    reloadButton->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
+    stopButton->setIcon(QIcon::fromTheme(QStringLiteral("process-stop")));
+    navButton->setIcon(QIcon::fromTheme(QStringLiteral("arrow-right")));
+    passwordButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-password")));
 
     for (int i=0;i<TECOUNT;i++)
         comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
-    connect(comboTranEngine, SIGNAL(currentIndexChanged(int)), msgHandler, SLOT(tranEngine(int)));
+    connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
+            msgHandler, &CSnMsgHandler::tranEngine);
     connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;
@@ -180,8 +181,7 @@ void CSnippetViewer::navByUrl(const QUrl& url)
 void CSnippetViewer::navByUrl(const QString& url)
 {
     QUrl u = QUrl::fromUserInput(url);
-    QStringList validSpecSchemes;
-    validSpecSchemes << "gdlookup" << "about" << "chrome";
+    static const QStringList validSpecSchemes ( { "gdlookup", "about", "chrome" } );
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
             && (!u.isValid() || !url.contains('.'))
@@ -221,8 +221,9 @@ void CSnippetViewer::titleChanged(const QString & title)
 
     if (!title.isEmpty()) {
         if (txtBrowser->page()->url().isValid() &&
-                !txtBrowser->page()->url().toString().contains("about:blank",Qt::CaseInsensitive)) {
-                UrlHolder uh(title,txtBrowser->page()->url());
+                !txtBrowser->page()->url().toString().contains(
+                    QStringLiteral("about:blank"),Qt::CaseInsensitive)) {
+                CUrlHolder uh(title,txtBrowser->page()->url());
                 if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
                     gSet->appendMainHistory(uh);
             }
@@ -233,13 +234,13 @@ void CSnippetViewer::titleChanged(const QString & title)
 
 void CSnippetViewer::urlChanged(const QUrl & url)
 {
-    if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
-            url.scheme().startsWith("file",Qt::CaseInsensitive))
+    if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
+            url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive))
         urlEdit->setText(url.toString());
     else {
         QUrl aUrl = getUrl();
-        if (url.scheme().startsWith("http",Qt::CaseInsensitive) ||
-                url.scheme().startsWith("file",Qt::CaseInsensitive))
+        if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
+                url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive))
             urlEdit->setText(aUrl.toString());
         else if (netHandler->isValidLoadedUrl())
             urlEdit->setText(netHandler->loadedUrl.toString());
@@ -249,7 +250,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 
     if (fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
-        urlEdit->setStyleSheet("QLineEdit { background: #d7ffd7; }");
+        urlEdit->setStyleSheet(QStringLiteral("QLineEdit { background: #d7ffd7; }"));
     } else {
         urlEdit->setToolTip(tr("Displayed URL"));
         urlEdit->setStyleSheet(QString());
@@ -260,7 +261,7 @@ void CSnippetViewer::recycleTab()
 {
     if (tabTitle.isEmpty() || !txtBrowser->page()->url().isValid() ||
             txtBrowser->page()->url().toString().
-            startsWith("about",Qt::CaseInsensitive)) return;
+            startsWith(QStringLiteral("about"),Qt::CaseInsensitive)) return;
     gSet->appendRecycled(tabTitle,txtBrowser->page()->url());
 }
 
@@ -279,8 +280,8 @@ void CSnippetViewer::outsideDragStart()
     auto drag = new QDrag(this);
     auto mime = new QMimeData();
 
-    QString s = QString("%1\n%2").arg(getUrl().toString(),tabTitle);
-    mime->setData("_NETSCAPE_URL",s.toUtf8());
+    QString s = QString(QStringLiteral("%1\n%2")).arg(getUrl().toString(),tabTitle);
+    mime->setData(QStringLiteral("_NETSCAPE_URL"),s.toUtf8());
     drag->setMimeData(mime);
 
     drag->exec(Qt::MoveAction);
@@ -353,10 +354,14 @@ void CSnippetViewer::updateWebViewAttributes()
                     QWebEngineSettings::AutoLoadImages));
 
     if (gSet->settings.overrideStdFonts) {
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::StandardFont,gSet->settings.fontStandard);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::FixedFont,gSet->settings.fontFixed);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,gSet->settings.fontSerif);
-        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,gSet->settings.fontSansSerif);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::StandardFont,
+                                              gSet->settings.fontStandard);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::FixedFont,
+                                              gSet->settings.fontFixed);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,
+                                              gSet->settings.fontSerif);
+        txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,
+                                              gSet->settings.fontSansSerif);
     }
 }
 

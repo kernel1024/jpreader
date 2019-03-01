@@ -11,7 +11,6 @@
 #include <QTimer>
 
 #include "settingsdlg.h"
-#include "mainwindow.h"
 
 class CSettingsDlg;
 class CMainWindow;
@@ -20,7 +19,7 @@ class CSettings : public QObject
 {
     Q_OBJECT
 public:
-    QList<QColor> snippetColors;
+    static const QVector<QColor> snippetColors;
 
     QStringList dictPaths;
     QString dictIndexDir;
@@ -40,7 +39,6 @@ public:
     QString savedAuxSaveDir;
     QString forcedCharset;
 
-    QSsl::SslProtocol atlProto;
     QString atlToken;
     QString bingKey;
     QString yandexKey;
@@ -48,7 +46,6 @@ public:
     QString proxyHost;
     QString proxyLogin;
     QString proxyPassword;
-    QNetworkProxy::ProxyType proxyType;
 
     QFont overrideFont;
     QColor forcedFontColor;
@@ -58,7 +55,7 @@ public:
     QStringList scpHostHistory;
     QStringList charsetHistory;
 
-    QList<CLangPair> translatorPairs;
+    QVector<CLangPair> translatorPairs;
 
     int maxHistory;
     int maxRecent;
@@ -74,6 +71,8 @@ public:
     bool pixivFetchImages;
     quint16 atlPort;
     quint16 proxyPort;
+    QSsl::SslProtocol atlProto;
+    QNetworkProxy::ProxyType proxyType;
 
     bool jsLogConsole;
     bool dontUseNativeFileDialog;
@@ -103,8 +102,8 @@ private:
     CSettingsDlg* dlg;
     int settingsDlgWidth, settingsDlgHeight;
     bool restoreLoadChecked;
-    QList<QUrl> getTabsList() const;
-    void writeTabsListPrivate(const QList<QUrl> tabList);
+    QVector<QUrl> getTabsList() const;
+    void writeTabsListPrivate(const QVector<QUrl> &tabList);
 
 signals:
     void settingsUpdated();

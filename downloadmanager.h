@@ -73,7 +73,7 @@ class CDownloadsModel : public QAbstractTableModel
     Q_OBJECT
 private:
     CDownloadManager* m_manager;
-    QList<CDownloadItem> downloads;
+    QVector<CDownloadItem> downloads;
 
 public:
     explicit CDownloadsModel(CDownloadManager* parent);

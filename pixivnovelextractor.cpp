@@ -47,12 +47,12 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QString hauthor;
         QString hauthornum;
-        QRegExp arx("<a[^>]*class=\"user-name\"[^>]*>",Qt::CaseInsensitive);
+        QRegExp arx(QStringLiteral("<a[^>]*class=\"user-name\"[^>]*>"),Qt::CaseInsensitive);
         int aidx = arx.indexIn(html);
         if (aidx>=0) {
             QString acap = arx.cap();
-            int anpos = acap.indexOf("id=")+3;
-            int anlen = acap.indexOf("\"",anpos) - anpos;
+            int anpos = acap.indexOf(QStringLiteral("id="))+3;
+            int anlen = acap.indexOf('\"',anpos) - anpos;
             hauthornum = acap.mid(anpos,anlen);
 
             int apos = aidx+arx.matchedLength();
@@ -61,10 +61,10 @@ void CPixivNovelExtractor::novelLoadFinished()
         }
 
         QStringList tags;
-        QRegExp trx("<li[^>]*class=\"tag\"[^>]*>",Qt::CaseInsensitive);
-        QRegExp ttrx("class=\"text\"[^>]*>",Qt::CaseInsensitive);
+        QRegExp trx(QStringLiteral("<li[^>]*class=\"tag\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp ttrx(QStringLiteral("class=\"text\"[^>]*>"),Qt::CaseInsensitive);
         int tpos = 0;
-        int tstop = html.indexOf("template-work-tags",Qt::CaseInsensitive);
+        int tstop = html.indexOf(QStringLiteral("template-work-tags"),Qt::CaseInsensitive);
         int tidx = trx.indexIn(html,tpos);
         while (tidx>=0) {
             tpos = tidx + trx.matchedLength();
@@ -76,22 +76,22 @@ void CPixivNovelExtractor::novelLoadFinished()
             tidx = trx.indexIn(html,tpos);
         }
 
-        QRegExp rx("<textarea[^>]*id=\"novel_text\"[^>]*>",Qt::CaseInsensitive);
+        QRegExp rx(QStringLiteral("<textarea[^>]*id=\"novel_text\"[^>]*>"),Qt::CaseInsensitive);
         int idx = rx.indexIn(html);
         if (idx<0) return;
         html.remove(0,idx+rx.matchedLength());
-        idx = html.indexOf(QString("</textarea>"),0,Qt::CaseInsensitive);
+        idx = html.indexOf(QStringLiteral("</textarea>"),0,Qt::CaseInsensitive);
         if (idx>=0)
             html.truncate(idx);
 
-        QRegExp rbrx("\\[\\[rb\\:.*\\]\\]");
+        QRegExp rbrx(QStringLiteral("\\[\\[rb\\:.*\\]\\]"));
         rbrx.setMinimal(true);
         int pos = 0;
         while ((pos = rbrx.indexIn(html,pos)) != -1) {
             QString rb = rbrx.cap(0);
-            rb.replace("&gt;", ">");
-            rb.remove(QRegExp("^.*rb\\:"));
-            rb.remove(QRegExp("\\>.*"));
+            rb.replace(QStringLiteral("&gt;"), QStringLiteral(">"));
+            rb.remove(QRegExp(QStringLiteral("^.*rb\\:")));
+            rb.remove(QRegExp(QStringLiteral("\\>.*")));
             rb = rb.trimmed();
             if (!rb.isEmpty())
                 html.replace(pos,rbrx.matchedLength(),rb);
@@ -99,12 +99,12 @@ void CPixivNovelExtractor::novelLoadFinished()
                 pos += rbrx.matchedLength();
         }
 
-        QRegExp imrx("\\[pixivimage\\:\\S+\\]");
+        QRegExp imrx(QStringLiteral("\\[pixivimage\\:\\S+\\]"));
         pos = 0;
         QStringList imgs;
         while ((pos = imrx.indexIn(html,pos)) != -1) {
             QString im = imrx.cap(0);
-            im.remove(QRegExp(".*\\:"));
+            im.remove(QRegExp(QStringLiteral(".*\\:")));
             im.remove(']');
             im = im.trimmed();
             if (!im.isEmpty())
@@ -117,12 +117,14 @@ void CPixivNovelExtractor::novelLoadFinished()
         handleImages(imgs);
 
         if (!tags.isEmpty())
-            html.prepend(QString("Tags: %1\n\n").arg(tags.join(" / ")));
+            html.prepend(QString(QStringLiteral("Tags: %1\n\n"))
+                         .arg(tags.join(QStringLiteral(" / "))));
         if (!hauthor.isEmpty())
-            html.prepend(QString("Author: <a href=\"https://www.pixiv.net/member.php?id=%1\">%2</a>\n\n")
+            html.prepend(QString(QStringLiteral("Author: <a href=\"https://www.pixiv.net/member.php?"
+                                                "id=%1\">%2</a>\n\n"))
                          .arg(hauthornum,hauthor));
         if (!htitle.isEmpty())
-            html.prepend(QString("Title: <b>%1</b>\n\n").arg(htitle));
+            html.prepend(QString(QStringLiteral("Title: <b>%1</b>\n\n")).arg(htitle));
 
         m_html = html;
 
@@ -136,11 +138,11 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
     Q_UNUSED(error)
     qApp->restoreOverrideCursor();
 
-    QString msg("Unable to load pixiv novel.");
+    QString msg(QStringLiteral("Unable to load pixiv novel."));
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
-        msg.append(QString(" %1").arg(rpl->errorString()));
+        msg.append(QString(QStringLiteral(" %1")).arg(rpl->errorString()));
 
     QWidget *w = nullptr;
     if (m_snv)
@@ -151,23 +153,27 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 
 void CPixivNovelExtractor::subLoadFinished()
 {
+    static const QStringList supportedExt( { "jpeg", "jpg", "gif", "bmp", "png" } );
+
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl==nullptr) return;
 
     QUrlQuery qr(rpl->url());
-    QString key = qr.queryItemValue("illust_id");
-    QString mode = qr.queryItemValue("mode");
-    bool mediumMode = (QString("medium").compare(mode,Qt::CaseInsensitive) == 0);
+    QString key = qr.queryItemValue(QStringLiteral("illust_id"));
+    QString mode = qr.queryItemValue(QStringLiteral("mode"));
+    bool mediumMode = (QStringLiteral("medium").compare(mode,Qt::CaseInsensitive) == 0);
 
     if (rpl->error() == QNetworkReply::NoError) {
 
         QString html = QString::fromUtf8(rpl->readAll());
-        const QIntList idxs = m_imgList.value(key);
+        const CIntList idxs = m_imgList.value(key);
         int pos = 0;
 
-        QRegExp rx("data-src=\\\".*\\\"",Qt::CaseInsensitive);
+        QRegExp rx(QStringLiteral("data-src=\\\".*\\\""),Qt::CaseInsensitive);
         if (mediumMode)
-            rx = QRegExp("\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\"",Qt::CaseInsensitive);
+            rx = QRegExp(QStringLiteral(
+                             "\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\""),
+                         Qt::CaseInsensitive);
         rx.setMinimal(true);
 
         QStringList imageUrls;
@@ -175,10 +181,10 @@ void CPixivNovelExtractor::subLoadFinished()
         {
             QString u = rx.cap(0);
             if (mediumMode)
-                u.remove("\\");
+                u.remove('\\');
             else
-                u.remove("data-src=",Qt::CaseInsensitive);
-            u.remove("\"");
+                u.remove(QStringLiteral("data-src="),Qt::CaseInsensitive);
+            u.remove('\"');
             imageUrls << u;
             pos += rx.matchedLength();
         }
@@ -188,11 +194,9 @@ void CPixivNovelExtractor::subLoadFinished()
             int page = (*it);
             if (page<1 || page>imageUrls.count()) continue;
             QUrl url = QUrl(imageUrls.at(page-1));
-            m_imgUrls[QString("%1_%2").arg(key).arg(page)] = url.toString();
+            m_imgUrls[QString(QStringLiteral("%1_%2")).arg(key).arg(page)] = url.toString();
 
             QFileInfo fi(url.toString());
-            QStringList supportedExt;
-            supportedExt << "jpeg" << "jpg" << "gif" << "bmp" << "png";
             if (gSet->settings.pixivFetchImages &&
                     supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
                 m_worksImgFetch++;
@@ -212,8 +216,9 @@ void CPixivNovelExtractor::subLoadFinished()
                 // not found... try single page load
                 QUrl url(QString("https://www.pixiv.net/member_illust.php"));
                 QUrlQuery qr;
-                qr.addQueryItem("mode","medium");
-                qr.addQueryItem("illust_id",QString("%1").arg(key));
+                qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("medium"));
+                qr.addQueryItem(QStringLiteral("illust_id"),
+                                QString(QStringLiteral("%1")).arg(key));
                 url.setQuery(qr);
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
@@ -226,7 +231,7 @@ void CPixivNovelExtractor::subLoadFinished()
             }
         }
     }
-    QMetaObject::invokeMethod(this,"subWorkFinished",Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this,&CPixivNovelExtractor::subWorkFinished,Qt::QueuedConnection);
     m_worksPageLoad--;
     rpl->deleteLater();
 }
@@ -239,19 +244,21 @@ void CPixivNovelExtractor::subWorkFinished()
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
-        QStringList kl = it.key().split("_");
+        QStringList kl = it.key().split('_');
 
         QRegExp rx;
         if (kl.last()=="1")
-            rx = QRegExp(QString("\\[pixivimage\\:%1(-1)?\\]").arg(kl.first()));
+            rx = QRegExp(QString(QStringLiteral("\\[pixivimage\\:%1(-1)?\\]")).arg(kl.first()));
         else
-            rx = QRegExp(QString("\\[pixivimage\\:%1-%2\\]").arg(kl.first(),kl.last()));
+            rx = QRegExp(QString(QStringLiteral("\\[pixivimage\\:%1-%2\\]"))
+                         .arg(kl.first(),kl.last()));
 
-        QString rpl = QString("<img src=\"%1\"").arg(it.value());
-        if (it.value().startsWith("data:"))
-            rpl.append("/ >");
+        QString rpl = QString(QStringLiteral("<img src=\"%1\"")).arg(it.value());
+        if (it.value().startsWith(QStringLiteral("data:")))
+            rpl.append(QStringLiteral("/ >"));
         else
-            rpl.append(QString(" width=\"%1px;\"/ >").arg(gSet->settings.pdfImageMaxSize));
+            rpl.append(QString(QStringLiteral(" width=\"%1px;\"/ >"))
+                       .arg(gSet->settings.pdfImageMaxSize));
         m_html.replace(rx, rpl);
     }
 
@@ -268,38 +275,36 @@ void CPixivNovelExtractor::subImageFinished()
         QByteArray ba = rpl->readAll();
 
         m_imgMutex.lock();
-        if (m_imgUrls.values().contains(rpl->url().toString())) {
-            QImage img;
-
-            if (img.loadFromData(ba)) {
-                if (img.width()>img.height()) {
-                    if (img.width()>gSet->settings.pdfImageMaxSize)
-                        img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
-                                                Qt::SmoothTransformation);
-                } else {
-                    if (img.height()>gSet->settings.pdfImageMaxSize)
-                        img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
-                                                 Qt::SmoothTransformation);
-                }
-                ba.clear();
-                QBuffer buf(&ba);
-                buf.open(QIODevice::WriteOnly);
-                img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
-
-                QByteArray out("data:image/jpeg;base64,");
-                out.append(QString::fromLatin1(ba.toBase64()));
-
-                for (auto it = m_imgUrls.keyValueBegin(), end = m_imgUrls.keyValueEnd();
-                     it != end; ++it) {
-                    if ((*it).second==rpl->url().toString()) {
-                        (*it).second = QString::fromUtf8(out);
+        for (auto it = m_imgUrls.keyValueBegin(), end = m_imgUrls.keyValueEnd();
+             it != end; ++it) {
+            if ((*it).second==rpl->url().toString()) {
+                QImage img;
+                
+                if (img.loadFromData(ba)) {
+                    if (img.width()>img.height()) {
+                        if (img.width()>gSet->settings.pdfImageMaxSize)
+                            img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
+                                                    Qt::SmoothTransformation);
+                    } else {
+                        if (img.height()>gSet->settings.pdfImageMaxSize)
+                            img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
+                                                     Qt::SmoothTransformation);
                     }
+                    ba.clear();
+                    QBuffer buf(&ba);
+                    buf.open(QIODevice::WriteOnly);
+                    img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
+                    
+                    QByteArray out("data:image/jpeg;base64,");
+                    out.append(QString::fromLatin1(ba.toBase64()));
+                    
+                    (*it).second = QString::fromUtf8(out);
                 }
             }
         }
         m_imgMutex.unlock();
     }
-    QMetaObject::invokeMethod(this,"subWorkFinished",Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this,&CPixivNovelExtractor::subWorkFinished,Qt::QueuedConnection);
     m_worksImgFetch--;
     rpl->deleteLater();
 }
@@ -323,10 +328,10 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     m_worksPageLoad = m_imgList.count();
     m_worksImgFetch = 0;
     for(auto it  = m_imgList.constBegin(), end = m_imgList.constEnd(); it != end; ++it) {
-        QUrl url(QString("https://www.pixiv.net/member_illust.php"));
+        QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
         QUrlQuery qr;
-        qr.addQueryItem("mode","manga");
-        qr.addQueryItem("illust_id",QString("%1").arg(it.key()));
+        qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("manga"));
+        qr.addQueryItem(QStringLiteral("illust_id"),QString(QStringLiteral("%1")).arg(it.key()));
         url.setQuery(qr);
         QNetworkRequest req(url);
         req.setRawHeader("referer",m_origin.toString().toUtf8());

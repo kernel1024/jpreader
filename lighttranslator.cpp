@@ -69,7 +69,7 @@ void CLightTranslator::gotTranslation(const QString &text)
     isTranslating = false;
     ui->barTranslating->hide();
     activateWindow();
-    if (text.startsWith("ERROR")) {
+    if (text.startsWith(QStringLiteral("ERROR"))) {
         QMessageBox::warning(this,tr("JPReader"),
                              tr("Error occured during translation. Try again."));
         ui->textResult->clear();
@@ -91,7 +91,7 @@ void CLightTranslator::appendSourceText(const QString &text)
 void CLightTranslator::reloadLanguageList()
 {
     for (const CLangPair& pair : qAsConst(gSet->settings.translatorPairs)) {
-        ui->comboLanguage->addItem(QString("%1 - %2").arg(
+        ui->comboLanguage->addItem(QString(QStringLiteral("%1 - %2")).arg(
                                       gSet->getLanguageName(pair.langFrom.bcp47Name()),
                                       gSet->getLanguageName(pair.langTo.bcp47Name())),
                                    pair.getHash());

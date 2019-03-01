@@ -2,7 +2,7 @@
 #include "ui_multiinputdialog.h"
 
 CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
-                                     const QStrHash& data, const QString& helperText) :
+                                     const CStringHash& data, const QString& helperText) :
     QDialog(parent),
     ui(new Ui::CMultiInputDialog)
 {
@@ -16,14 +16,14 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
     int i = 0;
     for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
         QLabel *label = new QLabel(this);
-        label->setObjectName(QString("label_%1").arg(i));
+        label->setObjectName(QString(QStringLiteral("label_%1")).arg(i));
         label->setText(it.key());
         labels << label;
 
         formLayout->setWidget(i, QFormLayout::LabelRole, label);
 
         auto lineEdit = new QLineEdit(this);
-        lineEdit->setObjectName(QString("lineEdit_%1").arg(i));
+        lineEdit->setObjectName(QString(QStringLiteral("lineEdit_%1")).arg(i));
         lineEdit->setText(it.value());
         edits << lineEdit;
 
@@ -47,9 +47,9 @@ CMultiInputDialog::~CMultiInputDialog()
     delete ui;
 }
 
-QStrHash CMultiInputDialog::getInputData()
+CStringHash CMultiInputDialog::getInputData()
 {
-    QStrHash res;
+    CStringHash res;
     for (int i=0;i<edits.count();i++)
         res[labels.at(i)->text()] = edits.at(i)->text();
     return res;

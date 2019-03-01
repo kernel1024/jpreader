@@ -68,7 +68,7 @@ void ParserDom::foundTag(Node node, bool isEnd)
 		while (i != mHtmlTree.begin())
 		{
 			assert(i->isTag());
-			assert(i->tagName().length());
+            assert(!i->tagName().isEmpty());
 
             bool equal = (i->tagName().compare(node.tagName(),Qt::CaseInsensitive)==0);
 

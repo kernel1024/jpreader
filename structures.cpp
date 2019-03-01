@@ -1,60 +1,60 @@
 #include "structures.h"
 
-UrlHolder::UrlHolder()
+CUrlHolder::CUrlHolder()
 {
-    UrlHolder::title=QString();
-    UrlHolder::url=QUrl();
-    UrlHolder::uuid=QUuid::createUuid();
+    CUrlHolder::title=QString();
+    CUrlHolder::url=QUrl();
+    CUrlHolder::uuid=QUuid::createUuid();
 }
 
-UrlHolder::UrlHolder(const UrlHolder &other)
+CUrlHolder::CUrlHolder(const CUrlHolder &other)
 {
     title=other.title;
     url=other.url;
     uuid=other.uuid;
 }
 
-UrlHolder::UrlHolder(const QString& title, const QUrl& url)
+CUrlHolder::CUrlHolder(const QString& title, const QUrl& url)
 {
-    UrlHolder::title=title;
-    UrlHolder::url=url;
-    UrlHolder::uuid=QUuid::createUuid();
+    CUrlHolder::title=title;
+    CUrlHolder::url=url;
+    CUrlHolder::uuid=QUuid::createUuid();
 }
 
-bool UrlHolder::operator==(const UrlHolder &s) const
+bool CUrlHolder::operator==(const CUrlHolder &s) const
 {
     return (s.url==url);
 }
 
-bool UrlHolder::operator!=(const UrlHolder &s) const
+bool CUrlHolder::operator!=(const CUrlHolder &s) const
 {
     return !operator==(s);
 }
 
-DirStruct::DirStruct()
+CDirStruct::CDirStruct()
 {
-    DirStruct::dirName=QString();
-    DirStruct::count=-1;
+    CDirStruct::dirName=QString();
+    CDirStruct::count=-1;
 }
 
-DirStruct::DirStruct(const DirStruct &other)
+CDirStruct::CDirStruct(const CDirStruct &other)
 {
     dirName=other.dirName;
     count=other.count;
 }
 
-DirStruct::DirStruct(const QString& DirName, int Count)
+CDirStruct::CDirStruct(const QString& DirName, int Count)
 {
-    DirStruct::dirName=DirName;
-    DirStruct::count=Count;
+    CDirStruct::dirName=DirName;
+    CDirStruct::count=Count;
 }
 
-QDataStream &operator<<(QDataStream &out, const UrlHolder &obj) {
+QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj) {
     out << obj.title << obj.url << obj.uuid;
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, UrlHolder &obj) {
+QDataStream &operator>>(QDataStream &in, CUrlHolder &obj) {
     in >> obj.title >> obj.url >> obj.uuid;
     return in;
 }
@@ -110,7 +110,7 @@ bool CLangPair::isValid() const
 
 bool CLangPair::isAtlasAcceptable() const
 {
-    QStringList validLangs({"en", "ja"});
+    static const QStringList validLangs({"en", "ja"});
     return (isValid() &&
             validLangs.contains(langFrom.bcp47Name()) &&
             validLangs.contains(langTo.bcp47Name()));
@@ -118,7 +118,7 @@ bool CLangPair::isAtlasAcceptable() const
 
 QString CLangPair::getHash() const
 {
-    return QString("%1#%2").arg(langFrom.bcp47Name(),
+    return QString(QStringLiteral("%1#%2")).arg(langFrom.bcp47Name(),
                                 langTo.bcp47Name());
 }
 

@@ -71,7 +71,7 @@ public:
 
     Type type() const;
     void setType(Type type);
-    QList<BookmarkNode *> children() const;
+    QVector<BookmarkNode *> children() const;
     BookmarkNode *parent() const;
 
     void add(BookmarkNode *child, int offset = -1);
@@ -85,7 +85,7 @@ public:
 private:
     BookmarkNode *m_parent;
     Type m_type;
-    QList<BookmarkNode *> m_children;
+    QVector<BookmarkNode *> m_children;
 
 };
 

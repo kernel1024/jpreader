@@ -20,7 +20,7 @@ private:
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     CSnippetViewer* m_snv;
     QMutex m_imgMutex;
-    QHash<QString,QIntList> m_imgList;
+    QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
     QUrl m_origin;
 
