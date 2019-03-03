@@ -91,7 +91,7 @@ void CLightTranslator::appendSourceText(const QString &text)
 void CLightTranslator::reloadLanguageList()
 {
     for (const CLangPair& pair : qAsConst(gSet->settings.translatorPairs)) {
-        ui->comboLanguage->addItem(QString(QStringLiteral("%1 - %2")).arg(
+        ui->comboLanguage->addItem(QStringLiteral("%1 - %2").arg(
                                       gSet->getLanguageName(pair.langFrom.bcp47Name()),
                                       gSet->getLanguageName(pair.langTo.bcp47Name())),
                                    pair.getHash());

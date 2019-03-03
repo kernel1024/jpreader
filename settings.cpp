@@ -585,7 +585,7 @@ void CSettings::settingsDlg()
             gSet->webProfile->setHttpUserAgent(userAgent);
 
         QStringList sl;
-        sl.clear();
+        sl.reserve(dlg->dictPaths->count());
         for (int i=0;i<dlg->dictPaths->count();i++)
             sl.append(dlg->dictPaths->item(i)->text());
         if (compareStringLists(dictPaths,sl)!=0) {
@@ -647,9 +647,9 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     urls.clear();
     QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader-tabs"));
     settings.beginGroup(QStringLiteral("OpenedTabs"));
-    int cnt = settings.value("tabsCnt", 0).toInt();
+    int cnt = settings.value(QStringLiteral("tabsCnt"), 0).toInt();
     for (int i=0;i<cnt;i++) {
-        QUrl u = settings.value(QString(QStringLiteral("tab_%1")).arg(i),QUrl()).toUrl();
+        QUrl u = settings.value(QStringLiteral("tab_%1").arg(i),QUrl()).toUrl();
         if (u.isValid() && !u.isEmpty())
             urls << u;
     }
@@ -685,12 +685,12 @@ QVector<QUrl> CSettings::getTabsList() const
 
 void CSettings::writeTabsListPrivate(const QVector<QUrl>& tabList)
 {
-    QSettings tabs("kernel1024", "jpreader-tabs");
-    tabs.beginGroup("OpenedTabs");
+    QSettings tabs(QStringLiteral("kernel1024"), QStringLiteral("jpreader-tabs"));
+    tabs.beginGroup(QStringLiteral("OpenedTabs"));
     tabs.remove(QString());
-    tabs.setValue("tabsCnt", tabList.count());
+    tabs.setValue(QStringLiteral("tabsCnt"), tabList.count());
     for (int i=0;i<tabList.count();i++)
-        tabs.setValue(QString("tab_%1").arg(i),tabList.at(i));
+        tabs.setValue(QStringLiteral("tab_%1").arg(i),tabList.at(i));
     tabs.endGroup();
 }
 

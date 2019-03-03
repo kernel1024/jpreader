@@ -48,11 +48,10 @@ CTranslator::~CTranslator()
 
 bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 {
-    // TODO: continue QStringLiteral here!
     QString wdir = hostingDir;
     if (wdir.isEmpty()
             || hostingUrl.isEmpty()
-            || !hostingUrl.startsWith("http",Qt::CaseInsensitive)) return false;
+            || !hostingUrl.startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return false;
     QString filename = QUrl(aUri).toLocalFile();
     if (filename.isEmpty()) {
         calculatedUrl=aUri;
@@ -75,8 +74,8 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
         QStringList scpp;
         scpp << scpParams.split(' ');
         scpp << filename;
-        scpp << QString("%1:%2%3").arg(scpHost,wdir,wname);
-        r=(QProcess::execute("scp",scpp)==0);
+        scpp << QStringLiteral("%1:%2%3").arg(scpHost,wdir,wname);
+        r=(QProcess::execute(QStringLiteral("scp"),scpp)==0);
         if (r) calculatedUrl=hostingUrl+wname;
         return r;
     }
@@ -115,8 +114,8 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     QString src = srcUri.trimmed();
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"1-source",src);
-    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
+        dumpPage(token,QStringLiteral("1-source"),src);
+    src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
     parser.parse(src);
@@ -126,36 +125,36 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->settings.debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"2-tree",QByteArray::fromRawData(sst.str().data(),
+        dumpPage(token,QStringLiteral("2-tree"),QByteArray::fromRawData(sst.str().data(),
                                                         static_cast<int>(sst.str().size())));
     }
 
     CHTMLNode doc(tr);
 
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"3-converted",doc);
+        dumpPage(token,QStringLiteral("3-converted"),doc);
 
     translatorFailed = false;
     textNodesCnt=0;
     metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"4-preprocessed",doc);
+        dumpPage(token,QStringLiteral("4-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"5-calculated",doc);
+        dumpPage(token,QStringLiteral("5-calculated"),doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"6-translated",doc);
+        dumpPage(token,QStringLiteral("6-translated"),doc);
 
     examineNode(doc,PXPostprocess);
     generateHTML(doc,dst);
 
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"7-finalized",dst);
+        dumpPage(token,QStringLiteral("7-finalized"),dst);
 
     tran->doneTran();
 
@@ -175,8 +174,8 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 
     QString src = srcUri.trimmed();
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-1-source",src);
-    src = src.remove(0,src.indexOf("<html",Qt::CaseInsensitive));
+        dumpPage(token,QStringLiteral("parser-1-source"),src);
+    src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
 
     HTML::ParserDom parser;
     parser.parse(src);
@@ -186,34 +185,34 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     if (gSet->settings.debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
-        dumpPage(token,"parser-2-tree",QByteArray::fromRawData(sst.str().data(),
+        dumpPage(token,QStringLiteral("parser-2-tree"),QByteArray::fromRawData(sst.str().data(),
                                                                static_cast<int>(sst.str().size())));
     }
 
     CHTMLNode doc(tr);
 
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-3-converted",doc);
+        dumpPage(token,QStringLiteral("parser-3-converted"),doc);
 
     translatorFailed=false;
     textNodesCnt=0;
     metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-4-preprocessed",doc);
+        dumpPage(token,QStringLiteral("parser-4-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-5-calculated",doc);
+        dumpPage(token,QStringLiteral("parser-5-calculated"),doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-6-translated",doc);
+        dumpPage(token,QStringLiteral("parser-6-translated"),doc);
 
     generateHTML(doc,dst);
     if (gSet->settings.debugDumpHtml)
-        dumpPage(token,"parser-7-finalized",dst);
+        dumpPage(token,QStringLiteral("parser-7-finalized"),dst);
 
     return true;
 }
@@ -235,8 +234,13 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     QApplication::processEvents();
 
-    QStringList skipTags;
-    skipTags << "style" << "title";
+    static const QStringList skipTags { "style", "title" };
+    static const QStringList unhide_classes { "novel-text-wrapper", "novel-pages", "novel-page" };
+    static const QStringList denyTags { "script", "noscript", "object", "iframe" };
+    static const QStringList denyDivs { "sh_fc2blogheadbar", "fc2_bottom_bnr", "global-header" };
+    const QStringList acceptedExt = getSupportedImageExtensions();
+
+    QVector<CHTMLNode> subnodes;
 
     if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
         if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
@@ -251,9 +255,9 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     if (xmlPass==PXPreprocess) {
         // WebEngine gives UTF-8 encoded page
-        if (node.tagName.toLower()==QLatin1String("meta")) {
-            if (node.attributes.value("http-equiv").toLower().trimmed()==QLatin1String("content-type"))
-                node.attributes["content"] = QLatin1String("text/html; charset=UTF-8");
+        if (node.tagName.toLower()==QStringLiteral("meta")) {
+            if (node.attributes.value(QStringLiteral("http-equiv")).toLower().trimmed()==QStringLiteral("content-type"))
+                node.attributes[QStringLiteral("content")] = QStringLiteral("text/html; charset=UTF-8");
         }
 
         // Unfold "1% height" divs from blog.jp/livedoor.jp
@@ -261,29 +265,29 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         // Also for blog.goo.ne.jp (same CSS as static.css)
         int idx = 0;
         while (idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()==QLatin1String("meta")) {
-                if (node.children.at(idx).attributes.value("property")
-                        .toLower().trimmed()==QLatin1String("og:url"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value("content").toLower().trimmed());
+            if (node.children.at(idx).tagName.toLower()==QStringLiteral("meta")) {
+                if (node.children.at(idx).attributes.value(QStringLiteral("property"))
+                        .toLower().trimmed()==QStringLiteral("og:url"))
+                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("content")).toLower().trimmed());
             }
 
-            if (node.children.at(idx).tagName.toLower()==QLatin1String("link")) {
-                if (node.children.at(idx).attributes.value("rel")
-                        .toLower().trimmed()==QLatin1String("canonical"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value("href").toLower().trimmed());
+            if (node.children.at(idx).tagName.toLower()==QStringLiteral("link")) {
+                if (node.children.at(idx).attributes.value(QStringLiteral("rel"))
+                        .toLower().trimmed()==QStringLiteral("canonical"))
+                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("href")).toLower().trimmed());
 
-                if ((node.children.at(idx).attributes.value("type")
-                     .toLower().trimmed()==QLatin1String("text/css")) &&
-                        (node.children.at(idx).attributes.value("href").contains(
-                             QRegExp("blog.*\\.jp.*site.css\\?_=",Qt::CaseInsensitive)) ||
-                         (node.children.at(idx).attributes.value("href").contains(
-                             QRegExp("/css/.*static.css\\?",Qt::CaseInsensitive)) &&
-                          metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive))))) {
+                if ((node.children.at(idx).attributes.value(QStringLiteral("type"))
+                     .toLower().trimmed()==QStringLiteral("text/css")) &&
+                        (node.children.at(idx).attributes.value(QStringLiteral("href")).contains(
+                             QRegExp(QStringLiteral("blog.*\\.jp.*site.css\\?_="),Qt::CaseInsensitive)) ||
+                         (node.children.at(idx).attributes.value(QStringLiteral("href")).contains(
+                             QRegExp(QStringLiteral("/css/.*static.css\\?"),Qt::CaseInsensitive)) &&
+                          metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive))))) {
                     CHTMLNode st;
-                    st.tagName=QLatin1String("style");
-                    st.closingText=QLatin1String("</style>");
+                    st.tagName=QStringLiteral("style");
+                    st.closingText=QStringLiteral("</style>");
                     st.isTag=true;
-                    st.children << CHTMLNode("* { height: auto !important; }");
+                    st.children << CHTMLNode(QStringLiteral("* { height: auto !important; }"));
                     node.children.insert(idx+1,st);
                     break;
                 }
@@ -292,44 +296,41 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // div processing
-        if (node.tagName.toLower()==QLatin1String("div")) {
+        if (node.tagName.toLower()==QStringLiteral("div")) {
 
             // unfold compressed divs
             QString sdivst;
-            if (node.attributes.contains("style"))
-                sdivst = node.attributes.value("style");
-            if (!sdivst.contains("absolute",Qt::CaseInsensitive)) {
-                if (!node.attributes.contains("style"))
-                    node.attributes["style"]=QString();
-                if (node.attributes.value("style").isEmpty())
-                    node.attributes["style"]=QLatin1String("height:auto;");
+            if (node.attributes.contains(QStringLiteral("style")))
+                sdivst = node.attributes.value(QStringLiteral("style"));
+            if (!sdivst.contains(QStringLiteral("absolute"),Qt::CaseInsensitive)) {
+                if (!node.attributes.contains(QStringLiteral("style")))
+                    node.attributes[QStringLiteral("style")]=QString();
+                if (node.attributes.value(QStringLiteral("style")).isEmpty())
+                    node.attributes[QStringLiteral("style")]=QStringLiteral("height:auto;");
                 else
-                    node.attributes["style"]=node.attributes.value("style")+"; height:auto;";
+                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; height:auto;");
             }
 
             // pixiv - unfolding novel pages to one big page
-            QStringList unhide_classes { "novel-text-wrapper", "novel-pages", "novel-page" };
-            if (node.attributes.contains("class") &&
-                    unhide_classes.contains(node.attributes.value("class").toLower().trimmed())) {
-                if (!node.attributes.contains("style"))
-                    node.attributes["style"]=QString();
-                if (node.attributes.value("style").isEmpty())
-                    node.attributes["style"]=QLatin1String("display:block;");
+            if (node.attributes.contains(QStringLiteral("class")) &&
+                    unhide_classes.contains(node.attributes.value(QStringLiteral("class")).toLower().trimmed())) {
+                if (!node.attributes.contains(QStringLiteral("style")))
+                    node.attributes[QStringLiteral("style")]=QString();
+                if (node.attributes.value(QStringLiteral("style")).isEmpty())
+                    node.attributes[QStringLiteral("style")]=QStringLiteral("display:block;");
                 else
-                    node.attributes["style"]=node.attributes.value("style")+"; display:block;";
+                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; display:block;");
             }
         }
 
         idx=0;
-        QStringList denyTags;
-        denyTags << "script" << "noscript" << "object" << "iframe";
         while(idx<node.children.count()) {
             // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
             // Remove 'vtoken' inline span
-            if (node.children.at(idx).tagName.toLower()==QLatin1String("span") &&
-                    node.children.at(idx).attributes.contains("class") &&
-                    node.children.at(idx).attributes.value("class")
-                    .toLower().trimmed().startsWith("vtoken")) {
+            if (node.children.at(idx).tagName.toLower()==QStringLiteral("span") &&
+                    node.children.at(idx).attributes.contains(QStringLiteral("class")) &&
+                    node.children.at(idx).attributes.value(QStringLiteral("class"))
+                    .toLower().trimmed().startsWith(QStringLiteral("vtoken"))) {
 
                 const QVector<CHTMLNode> subnodes = node.children.at(idx).children;
                 for(int si=0;si<subnodes.count();si++)
@@ -342,10 +343,10 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
 
             // remove ruby annotation (superscript), unfold main text block
-            if (node.children.at(idx).tagName.toLower()==QLatin1String("ruby")) {
-                QVector<CHTMLNode> subnodes;
+            if (node.children.at(idx).tagName.toLower()==QStringLiteral("ruby")) {
+                subnodes.clear();
                 for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children))
-                    if (rnode.tagName.toLower()==QLatin1String("rb"))
+                    if (rnode.tagName.toLower()==QStringLiteral("rb"))
                         subnodes << rnode.children;
 
                 for(int si=0;si<subnodes.count();si++)
@@ -357,13 +358,11 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 continue;
             }
 
-            QStringList denyDivs;
-            denyDivs << "sh_fc2blogheadbar" << "fc2_bottom_bnr" << "global-header";
             // remove floating headers for fc2 and goo blogs
-            if (metaSrcUrl.host().contains(QRegExp("blog",Qt::CaseInsensitive)) &&
-                    node.children.at(idx).tagName.toLower()==QLatin1String("div") &&
-                    node.children.at(idx).attributes.contains("id") &&
-                    denyDivs.contains(node.children.at(idx).attributes.value("id"),
+            if (metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive)) &&
+                    node.children.at(idx).tagName.toLower()==QStringLiteral("div") &&
+                    node.children.at(idx).attributes.contains(QStringLiteral("id")) &&
+                    denyDivs.contains(node.children.at(idx).attributes.value(QStringLiteral("id")),
                                       Qt::CaseInsensitive)) {
                 node.children.removeAt(idx);
                 node.normalize();
@@ -382,17 +381,16 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // collecting image urls
-        if (node.tagName.toLower()==QLatin1String("img")) {
-            if (node.attributes.contains("src")) {
-                QString src = node.attributes.value("src").trimmed();
+        if (node.tagName.toLower()==QStringLiteral("img")) {
+            if (node.attributes.contains(QStringLiteral("src"))) {
+                QString src = node.attributes.value(QStringLiteral("src")).trimmed();
                 if (!src.isEmpty())
                     imgUrls << src;
             }
         }
-        if (node.tagName.toLower()==QLatin1String("a")) {
-            if (node.attributes.contains("href")) {
-                QString src = node.attributes.value("href").trimmed();
-                QStringList acceptedExt = { "jpg", "jpeg", "jpe", "png", "svg", "gif", "bmp" };
+        if (node.tagName.toLower()==QStringLiteral("a")) {
+            if (node.attributes.contains(QStringLiteral("href"))) {
+                QString src = node.attributes.value(QStringLiteral("href")).trimmed();
                 QFileInfo fi(src);
                 if (acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
                     imgUrls << src;
@@ -404,9 +402,9 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         // remove duplicated <br>
         int idx=0;
         while(idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()==QLatin1String("br")) {
+            if (node.children.at(idx).tagName.toLower()==QStringLiteral("br")) {
                 while(idx<(node.children.count()-1) &&
-                      node.children.at(idx+1).tagName.toLower()==QLatin1String("br")) {
+                      node.children.at(idx+1).tagName.toLower()==QStringLiteral("br")) {
                     node.children.removeAt(idx+1);
                 }
             }
@@ -416,8 +414,8 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     if (translatorFailed) return;
 
-    for(int i=0;i<node.children.count();i++) {
-        examineNode(node.children[i],xmlPass);
+    for(auto &child : node.children) {
+        examineNode(child,xmlPass);
     }
 }
 
@@ -434,9 +432,9 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     emit setProgress(baseProgress);
 
     QString ssrc = src.text;
-    ssrc = ssrc.replace("\r\n","\n");
+    ssrc = ssrc.replace(QStringLiteral("\r\n"),QStringLiteral("\n"));
     ssrc = ssrc.replace('\r','\n');
-    ssrc = ssrc.replace(QRegExp("\n{2,}"),"\n");
+    ssrc = ssrc.replace(QRegExp(QStringLiteral("\n{2,}")),QStringLiteral("\n"));
     QStringList sl = ssrc.split('\n',QString::SkipEmptyParts);
 
     QString sout;
@@ -460,13 +458,13 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             QString srct = sl.at(i);
 
             if (srct.trimmed().isEmpty())
-                sout += "\n";
+                sout += QStringLiteral("\n");
             else {
                 QString t = QString();
 
                 QString ttest = srct;
                 bool noText = true;
-                ttest.remove(QRegExp("&\\w+;"));
+                ttest.remove(QRegExp(QStringLiteral("&\\w+;")));
                 for (const QChar &tc : qAsConst(ttest)) {
                     if (tc.isLetter()) {
                         noText = false;
@@ -512,7 +510,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 }
 
                 if (translationMode==TM_ADDITIVE)
-                    sout += srct + "<br/>";
+                    sout += srct + QStringLiteral("<br/>");
 
                 if (!tran->getErrorMsg().isEmpty()) {
                     tran->doneTran();
@@ -524,18 +522,18 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 if (useOverrideFont || forceFontColor) {
                     QString dstyle;
                     if (useOverrideFont)
-                        dstyle+=tr("font-family: %1; font-size: %2pt;").arg(
+                        dstyle+=QStringLiteral("font-family: %1; font-size: %2pt;").arg(
                                     overrideFont.family()).arg(
                                     overrideFont.pointSize());
                     if (forceFontColor)
-                        dstyle+=tr("color: %1;").arg(forcedFontColor.name());
+                        dstyle+=QStringLiteral("color: %1;").arg(forcedFontColor.name());
 
-                    sout += QString("<span style=\"%1\">%2</span>").arg(dstyle,t);
+                    sout += QStringLiteral("<span style=\"%1\">%2</span>").arg(dstyle,t);
                 } else
                     sout += t;
 
                 if (translationMode==TM_ADDITIVE)
-                    sout += "<br/>\n";
+                    sout += QStringLiteral("<br/>\n");
                 else
                     srctls << srct;
 
@@ -551,8 +549,8 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
         if (!srctls.isEmpty() && ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)))
-            src.text = QString("<span title=\"%1\">%2</span>")
-                       .arg(srctls.join("\n").replace('"','\''),sout);
+            src.text = QStringLiteral("<span title=\"%1\">%2</span>")
+                       .arg(srctls.join('\n').replace('"','\''),sout);
         else
             src.text = sout;
     }
@@ -560,9 +558,10 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     return !failure;
 }
 
-void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QString &page)
+void CTranslator::dumpPage(QUuid token, const QString &suffix, const QString &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QString fname = getTmpDir() + QDir::separator() + token.toString()
+            + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
         qWarning() << "Unable to create dump file " << fname;
@@ -572,9 +571,10 @@ void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QStr
     f.close();
 }
 
-void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const CHTMLNode &page)
+void CTranslator::dumpPage(QUuid token, const QString &suffix, const CHTMLNode &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QString fname = getTmpDir() + QDir::separator() + token.toString()
+            + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
         qWarning() << "Unable to create dump file " << fname;
@@ -587,9 +587,10 @@ void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const CHTM
     f.close();
 }
 
-void CTranslator::dumpPage(const QUuid &token, const QString &suffix, const QByteArray &page)
+void CTranslator::dumpPage(QUuid token, const QString &suffix, const QByteArray &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString() + "-" + suffix + ".html";
+    QString fname = getTmpDir() + QDir::separator() + token.toString()
+            + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
         qWarning() << "Unable to create dump file " << fname;
@@ -647,7 +648,7 @@ void CTranslator::translate()
         }
     } else {
         if (!calcLocalUrl(Uri,aUrl)) {
-            emit calcFinished(false,QString(),QString("ERROR: Url calculation error"));
+            emit calcFinished(false,QString(),tr("ERROR: Url calculation error"));
             deleteLater();
             return;
         }
@@ -728,7 +729,7 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
     attributesOrder = it->attributesOrder();
 
     children.clear();
-
+    children.reserve(static_cast<int>(it.number_of_children()));
     for (unsigned i=0; i<it.number_of_children(); i++ )
         children << CHTMLNode(node.child(it,i));
 }

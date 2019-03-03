@@ -50,12 +50,12 @@ public:
     ~QxtToolTipPrivate();
 
     static QxtToolTipPrivate* instance();
-    void show(const QPoint& pos, QWidget* tooltip, QWidget* parent = nullptr,
-              const QRect& rect = QRect(), const bool allowMouseEnter = false);
+    void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
+              QRect rect = QRect(), const bool allowMouseEnter = false);
     void setToolTip(QWidget* tooltip);
     bool eventFilter(QObject* parent, QEvent* event);
     void hideLater();
-    QPoint calculatePos(QScreen *scr, const QPoint& eventPos) const;
+    QPoint calculatePos(QScreen *scr, QPoint eventPos) const;
     QHash<WidgetPtr, WidgetArea> tooltips;
     QVBoxLayout* vbox;
 

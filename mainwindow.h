@@ -28,7 +28,7 @@ public:
 
     // -------------------------------------
 
-    void goHistory(const QUuid& idx);
+    void goHistory(QUuid idx);
     void updateTitle();
     void checkTabs();
     void updateTabs();

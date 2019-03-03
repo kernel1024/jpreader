@@ -333,8 +333,9 @@ CSpecWebView::CSpecWebView(QWidget *parent)
 {
     parentViewer = qobject_cast<CSnippetViewer *>(parent);
     if (parentViewer==nullptr)
-        qFatal("parentViewer is nullptr");
-    m_page = new CSpecWebPage(gSet->webProfile, parentViewer);
+        qCritical() << "parentViewer is nullptr";
+
+    m_page = new CSpecWebPage(gSet->webProfile, parent);
     setPage(m_page);
 }
 
@@ -366,13 +367,13 @@ void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
         parentViewer->ctxHandler->contextMenu(event->pos(), m_page->contextMenuData());
 }
 
-CSpecWebPage::CSpecWebPage(CSnippetViewer *parent)
+CSpecWebPage::CSpecWebPage(QObject *parent)
     : QWebEnginePage(parent)
 {
 
 }
 
-CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, CSnippetViewer *parent)
+CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, QObject *parent)
     : QWebEnginePage(profile, parent)
 {
 
@@ -519,7 +520,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
         if (gSet->settings.debugNetReqLogging)
             qWarning() << "Net request:" << info.requestUrl() << "BLOCKED" <<
-                          QString(QStringLiteral("(rule: '%1')")).arg(rule);
+                          tr("(rule: '%1')").arg(rule);
 
         info.block(true);
 
@@ -645,9 +646,9 @@ void CNetworkCookieJar::initAllCookies(const QList<QNetworkCookie> & cookies)
 }
 
 CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
-    : QObject(parent), m_url(url)
+    : QObject(parent)
 {
-
+    m_url = url;
 }
 
 void CFaviconLoader::queryStart(bool forceCached)

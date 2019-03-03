@@ -51,12 +51,13 @@
 #ifndef BOOKMARKS_H
 #define BOOKMARKS_H
 
-#include <QtCore/QObject>
-#include <QtCore/QAbstractItemModel>
-#include <QtCore/QByteArray>
-#include <QtWidgets/QDialog>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QMenu>
+#include <QObject>
+#include <QAbstractItemModel>
+#include <QByteArray>
+#include <QSortFilterProxyModel>
+#include <QDialog>
+#include <QWidget>
+#include <QMenu>
 
 #include "structures.h"
 #include "mainwindow.h"
@@ -160,7 +161,6 @@ private:
     Proxy model that filters out the bookmarks so only the folders
     are left behind.  Used in the add bookmark dialog combobox.
  */
-#include <QtCore/QSortFilterProxyModel>
 class AddBookmarkProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
@@ -175,8 +175,11 @@ protected:
 /*!
     Add bookmark dialog
  */
-#include "ui_addbookmarkdialog.h"
-class AddBookmarkDialog : public QDialog, public Ui_AddBookmarkDialog
+//#include "ui_addbookmarkdialog.h"
+namespace Ui {
+class AddBookmarkDialog;
+}
+class AddBookmarkDialog : public QDialog
 {
     Q_OBJECT
 
@@ -188,12 +191,13 @@ private slots:
     void accept();
 
 private:
+    Ui::AddBookmarkDialog *ui;
     QString m_url;
     BookmarksManager *m_bookmarksManager;
     AddBookmarkProxyModel *m_proxyModel;
 };
 
-#include "ui_bookmarks.h"
+//#include "ui_bookmarks.h"
 class TreeProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
@@ -208,8 +212,10 @@ private:
     BookmarksModel *m_sourceModel;
 };
 
-
-class BookmarksDialog : public QDialog, public Ui_BookmarksDialog
+namespace Ui {
+class BookmarksDialog;
+}
+class BookmarksDialog : public QDialog
 {
     Q_OBJECT
 
@@ -232,6 +238,7 @@ private:
     bool saveExpandedNodes(const QModelIndex &parent);
     void removeNode(const QModelIndex &node);
 
+    Ui::BookmarksDialog *ui;
     BookmarksManager *m_bookmarksManager;
     BookmarksModel *m_bookmarksModel;
     TreeProxyModel *m_proxyModel;

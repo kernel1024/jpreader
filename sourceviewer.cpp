@@ -17,7 +17,7 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     move(origin->mapToGlobal(origin->pos())+QPoint(50,50));
     resize(5*origin->width()/6,5*origin->height()/6);
 
-    setWindowTitle(QString(QStringLiteral("Source - %1")).arg(origin->getDocTitle()));
+    setWindowTitle(tr("Source - %1").arg(origin->getDocTitle()));
     ui->labelTitle->setText(origin->getDocTitle());
     QString url = origin->getUrl().toString();
     if (url.startsWith(QStringLiteral("data")))

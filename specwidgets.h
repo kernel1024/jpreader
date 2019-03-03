@@ -123,8 +123,8 @@ public slots:
 class CSpecWebPage : public QWebEnginePage {
     Q_OBJECT
 public:
-    CSpecWebPage(CSnippetViewer* parent);
-    CSpecWebPage(QWebEngineProfile* profile, CSnippetViewer* parent);
+    CSpecWebPage(QObject* parent);
+    CSpecWebPage(QWebEngineProfile* profile, QObject* parent);
 protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
     bool certificateError(const QWebEngineCertificateError &certificateError);

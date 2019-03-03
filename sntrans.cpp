@@ -111,6 +111,7 @@ void CSnTrans::getImgUrlsAndParse()
             baseUrl.setFragment(QString());
         QStringList urls;
         const QStringList sl = ct->getImgUrls();
+        urls.reserve(sl.count());
         for (const QString& s : sl) {
             QUrl u = QUrl(s);
             if (u.isRelative())
@@ -160,7 +161,7 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     ct->moveToThread(th);
     th->start();
 
-    QMetaObject::invokeMethod(ct,"translate",Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ct,&CTranslator::translate,Qt::QueuedConnection);
 }
 
 void CSnTrans::calcFinished(const bool success, const QString& aUrl, const QString& error)
@@ -268,8 +269,8 @@ void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
         }
     }
 
-    for(int i=0;i<node.children.count();i++) {
-        replaceLocalHrefs(node.children[i],baseUrl);
+    for (auto &child : node.children) {
+        replaceLocalHrefs(child,baseUrl);
     }
 }
 

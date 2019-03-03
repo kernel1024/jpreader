@@ -212,8 +212,8 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
 
     int sz = 5*qApp->font().pointSize()/4;
 
-    QString msg = QString(QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
-                                         "%2</span>")).arg(sz).arg(text);
+    QString msg = QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
+                                         "%2</span>").arg(sz).arg(text);
     QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
 
     QTimer::singleShot(100,gSet,[msg,pos](){
@@ -246,7 +246,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
 
     for (const CLangPair& pair : qAsConst(g->settings.translatorPairs)) {
-        QAction *ac = languageSelector->addAction(QString(QStringLiteral("%1 - %2")).arg(
+        QAction *ac = languageSelector->addAction(QStringLiteral("%1 - %2").arg(
                                       g->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->getLanguageName(pair.langTo.bcp47Name())));
         ac->setCheckable(true);

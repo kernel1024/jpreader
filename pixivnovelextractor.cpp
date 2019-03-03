@@ -117,14 +117,14 @@ void CPixivNovelExtractor::novelLoadFinished()
         handleImages(imgs);
 
         if (!tags.isEmpty())
-            html.prepend(QString(QStringLiteral("Tags: %1\n\n"))
+            html.prepend(QStringLiteral("Tags: %1\n\n")
                          .arg(tags.join(QStringLiteral(" / "))));
         if (!hauthor.isEmpty())
-            html.prepend(QString(QStringLiteral("Author: <a href=\"https://www.pixiv.net/member.php?"
-                                                "id=%1\">%2</a>\n\n"))
+            html.prepend(QStringLiteral("Author: <a href=\"https://www.pixiv.net/member.php?"
+                                                "id=%1\">%2</a>\n\n")
                          .arg(hauthornum,hauthor));
         if (!htitle.isEmpty())
-            html.prepend(QString(QStringLiteral("Title: <b>%1</b>\n\n")).arg(htitle));
+            html.prepend(QStringLiteral("Title: <b>%1</b>\n\n").arg(htitle));
 
         m_html = html;
 
@@ -142,7 +142,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
-        msg.append(QString(QStringLiteral(" %1")).arg(rpl->errorString()));
+        msg.append(QStringLiteral(" %1").arg(rpl->errorString()));
 
     QWidget *w = nullptr;
     if (m_snv)
@@ -153,7 +153,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 
 void CPixivNovelExtractor::subLoadFinished()
 {
-    static const QStringList supportedExt( { "jpeg", "jpg", "gif", "bmp", "png" } );
+    const QStringList supportedExt = getSupportedImageExtensions();
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl==nullptr) return;
@@ -194,7 +194,7 @@ void CPixivNovelExtractor::subLoadFinished()
             int page = (*it);
             if (page<1 || page>imageUrls.count()) continue;
             QUrl url = QUrl(imageUrls.at(page-1));
-            m_imgUrls[QString(QStringLiteral("%1_%2")).arg(key).arg(page)] = url.toString();
+            m_imgUrls[QStringLiteral("%1_%2").arg(key).arg(page)] = url.toString();
 
             QFileInfo fi(url.toString());
             if (gSet->settings.pixivFetchImages &&
@@ -214,11 +214,10 @@ void CPixivNovelExtractor::subLoadFinished()
             int status = vstatus.toInt(&ok);
             if (ok && status>=400 && status<500) {
                 // not found... try single page load
-                QUrl url(QString("https://www.pixiv.net/member_illust.php"));
+                QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
                 QUrlQuery qr;
                 qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("medium"));
-                qr.addQueryItem(QStringLiteral("illust_id"),
-                                QString(QStringLiteral("%1")).arg(key));
+                qr.addQueryItem(QStringLiteral("illust_id"),key);
                 url.setQuery(qr);
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
@@ -247,17 +246,17 @@ void CPixivNovelExtractor::subWorkFinished()
         QStringList kl = it.key().split('_');
 
         QRegExp rx;
-        if (kl.last()=="1")
-            rx = QRegExp(QString(QStringLiteral("\\[pixivimage\\:%1(-1)?\\]")).arg(kl.first()));
+        if (kl.last()==QStringLiteral("1"))
+            rx = QRegExp(QStringLiteral("\\[pixivimage\\:%1(-1)?\\]").arg(kl.first()));
         else
-            rx = QRegExp(QString(QStringLiteral("\\[pixivimage\\:%1-%2\\]"))
+            rx = QRegExp(QStringLiteral("\\[pixivimage\\:%1-%2\\]")
                          .arg(kl.first(),kl.last()));
 
-        QString rpl = QString(QStringLiteral("<img src=\"%1\"")).arg(it.value());
+        QString rpl = QStringLiteral("<img src=\"%1\"").arg(it.value());
         if (it.value().startsWith(QStringLiteral("data:")))
             rpl.append(QStringLiteral("/ >"));
         else
-            rpl.append(QString(QStringLiteral(" width=\"%1px;\"/ >"))
+            rpl.append(QStringLiteral(" width=\"%1px;\"/ >")
                        .arg(gSet->settings.pdfImageMaxSize));
         m_html.replace(rx, rpl);
     }
@@ -331,7 +330,7 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
         QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
         QUrlQuery qr;
         qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("manga"));
-        qr.addQueryItem(QStringLiteral("illust_id"),QString(QStringLiteral("%1")).arg(it.key()));
+        qr.addQueryItem(QStringLiteral("illust_id"),it.key());
         url.setQuery(qr);
         QNetworkRequest req(url);
         req.setRawHeader("referer",m_origin.toString().toUtf8());

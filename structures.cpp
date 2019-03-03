@@ -118,7 +118,7 @@ bool CLangPair::isAtlasAcceptable() const
 
 QString CLangPair::getHash() const
 {
-    return QString(QStringLiteral("%1#%2")).arg(langFrom.bcp47Name(),
+    return QStringLiteral("%1#%2").arg(langFrom.bcp47Name(),
                                 langTo.bcp47Name());
 }
 

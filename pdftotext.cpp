@@ -286,7 +286,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
             clen++;
         idx++;
     }
-    s = s.replace('\n',"</p>\n<p>");
+    s = s.replace('\n',QStringLiteral("</p>\n<p>"));
 
     return s;
 }
@@ -376,7 +376,7 @@ void CPDFWorker::pdfToText(const QString &filename)
         if (static_cast<void>(obj = info.getDict()->lookup("Title")), obj.isString()) {
             metaString(result, info.getDict(), "Title", QStringLiteral("<title>%1</title>\n"));
         } else {
-            result.append(QString(QStringLiteral("<title>%1</title>\n")).arg(fi.baseName()));
+            result.append(QStringLiteral("<title>%1</title>\n").arg(fi.baseName()));
         }
         metaString(result, info.getDict(), "Subject",
                    QStringLiteral("<meta name=\"Subject\" content=\"%1\"/>\n"));

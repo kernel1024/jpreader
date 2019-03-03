@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     int dbgport = getRandomTCPPort();
     if (dbgport>0) {
-        QString url = QString(QStringLiteral("127.0.0.1:%1")).arg(dbgport);
+        QString url = QStringLiteral("127.0.0.1:%1").arg(dbgport);
         setenv("QTWEBENGINE_REMOTE_DEBUGGING",url.toUtf8().constData(),1);
     }
     debugMessages.clear();
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         setrlimit(RLIMIT_CORE, &rlp);
     }
 
-    app.setStyle(new CSpecMenuStyle);
+    QApplication::setStyle(new CSpecMenuStyle);
     QApplication::setQuitOnLastWindowClosed(false);
 
     gSet->ui.addMainWindow();

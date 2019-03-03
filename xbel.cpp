@@ -143,9 +143,9 @@ BookmarkNode *XbelReader::read(QIODevice *device)
     auto root = new BookmarkNode(BookmarkNode::Root);
     setDevice(device);
     if (readNextStartElement()) {
-        QString version = attributes().value(QLatin1String("version")).toString();
-        if (name() == QLatin1String("xbel")
-            && (version.isEmpty() || version == QLatin1String("1.0"))) {
+        QString version = attributes().value(QStringLiteral("version")).toString();
+        if (name() == QStringLiteral("xbel")
+            && (version.isEmpty() || version == QStringLiteral("1.0"))) {
             readXBEL(root);
         } else {
             raiseError(QObject::tr("The file is not an XBEL version 1.0 file."));
@@ -156,14 +156,14 @@ BookmarkNode *XbelReader::read(QIODevice *device)
 
 void XbelReader::readXBEL(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QLatin1String("xbel"));
+    Q_ASSERT(isStartElement() && name() == QStringLiteral("xbel"));
 
     while (readNextStartElement()) {
-        if (name() == QLatin1String("folder"))
+        if (name() == QStringLiteral("folder"))
             readFolder(parent);
-        else if (name() == QLatin1String("bookmark"))
+        else if (name() == QStringLiteral("bookmark"))
             readBookmarkNode(parent);
-        else if (name() == QLatin1String("separator"))
+        else if (name() == QStringLiteral("separator"))
             readSeparator(parent);
         else
             skipCurrentElement();
@@ -172,21 +172,21 @@ void XbelReader::readXBEL(BookmarkNode *parent)
 
 void XbelReader::readFolder(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QLatin1String("folder"));
+    Q_ASSERT(isStartElement() && name() == QStringLiteral("folder"));
 
     auto folder = new BookmarkNode(BookmarkNode::Folder, parent);
-    folder->expanded = (attributes().value(QLatin1String("folded")) == QLatin1String("no"));
+    folder->expanded = (attributes().value(QStringLiteral("folded")) == QStringLiteral("no"));
 
     while (readNextStartElement()) {
-        if (name() == QLatin1String("title"))
+        if (name() == QStringLiteral("title"))
             readTitle(folder);
-        else if (name() == QLatin1String("desc"))
+        else if (name() == QStringLiteral("desc"))
             readDescription(folder);
-        else if (name() == QLatin1String("folder"))
+        else if (name() == QStringLiteral("folder"))
             readFolder(folder);
-        else if (name() == QLatin1String("bookmark"))
+        else if (name() == QStringLiteral("bookmark"))
             readBookmarkNode(folder);
-        else if (name() == QLatin1String("separator"))
+        else if (name() == QStringLiteral("separator"))
             readSeparator(folder);
         else
             skipCurrentElement();
@@ -195,13 +195,13 @@ void XbelReader::readFolder(BookmarkNode *parent)
 
 void XbelReader::readTitle(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QLatin1String("title"));
+    Q_ASSERT(isStartElement() && name() == QStringLiteral("title"));
     parent->title = readElementText();
 }
 
 void XbelReader::readDescription(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QLatin1String("desc"));
+    Q_ASSERT(isStartElement() && name() == QStringLiteral("desc"));
     parent->desc = readElementText();
 }
 
@@ -214,13 +214,13 @@ void XbelReader::readSeparator(BookmarkNode *parent)
 
 void XbelReader::readBookmarkNode(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QLatin1String("bookmark"));
+    Q_ASSERT(isStartElement() && name() == QStringLiteral("bookmark"));
     auto bookmark = new BookmarkNode(BookmarkNode::Bookmark, parent);
-    bookmark->url = attributes().value(QLatin1String("href")).toString();
+    bookmark->url = attributes().value(QStringLiteral("href")).toString();
     while (readNextStartElement()) {
-        if (name() == QLatin1String("title"))
+        if (name() == QStringLiteral("title"))
             readTitle(bookmark);
-        else if (name() == QLatin1String("desc"))
+        else if (name() == QStringLiteral("desc"))
             readDescription(bookmark);
         else
             skipCurrentElement();
@@ -248,9 +248,9 @@ bool XbelWriter::write(QIODevice *device, const BookmarkNode *root)
     setDevice(device);
 
     writeStartDocument();
-    writeDTD(QLatin1String("<!DOCTYPE xbel>"));
-    writeStartElement(QLatin1String("xbel"));
-    writeAttribute(QLatin1String("version"), QLatin1String("1.0"));
+    writeDTD(QStringLiteral("<!DOCTYPE xbel>"));
+    writeStartElement(QStringLiteral("xbel"));
+    writeAttribute(QStringLiteral("version"), QStringLiteral("1.0"));
     if (root->type() == BookmarkNode::Root) {
         for (int i = 0; i < root->children().count(); ++i)
             writeItem(root->children().at(i));
@@ -266,24 +266,24 @@ void XbelWriter::writeItem(const BookmarkNode *parent)
 {
     switch (parent->type()) {
     case BookmarkNode::Folder:
-        writeStartElement(QLatin1String("folder"));
-        writeAttribute(QLatin1String("folded"), parent->expanded ? QLatin1String("no") : QLatin1String("yes"));
-        writeTextElement(QLatin1String("title"), parent->title);
+        writeStartElement(QStringLiteral("folder"));
+        writeAttribute(QStringLiteral("folded"), parent->expanded ? QStringLiteral("no") : QStringLiteral("yes"));
+        writeTextElement(QStringLiteral("title"), parent->title);
         for (int i = 0; i < parent->children().count(); ++i)
             writeItem(parent->children().at(i));
         writeEndElement();
         break;
     case BookmarkNode::Bookmark:
-        writeStartElement(QLatin1String("bookmark"));
+        writeStartElement(QStringLiteral("bookmark"));
         if (!parent->url.isEmpty())
-            writeAttribute(QLatin1String("href"), parent->url);
-        writeTextElement(QLatin1String("title"), parent->title);
+            writeAttribute(QStringLiteral("href"), parent->url);
+        writeTextElement(QStringLiteral("title"), parent->title);
         if (!parent->desc.isEmpty())
-            writeAttribute(QLatin1String("desc"), parent->desc);
+            writeAttribute(QStringLiteral("desc"), parent->desc);
         writeEndElement();
         break;
     case BookmarkNode::Separator:
-        writeEmptyElement(QLatin1String("separator"));
+        writeEmptyElement(QStringLiteral("separator"));
         break;
     default:
         break;

@@ -84,9 +84,9 @@ private:
     void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
     bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
 
-    void dumpPage(const QUuid& token, const QString& suffix, const QString& page);
-    void dumpPage(const QUuid& token, const QString& suffix, const CHTMLNode& page);
-    void dumpPage(const QUuid& token, const QString& suffix, const QByteArray& page);
+    void dumpPage(QUuid token, const QString& suffix, const QString& page);
+    void dumpPage(QUuid token, const QString& suffix, const CHTMLNode& page);
+    void dumpPage(QUuid token, const QString& suffix, const QByteArray& page);
 
 public:
     explicit CTranslator(QObject* parent, const QString &aUri, bool forceTranSubSentences = false);

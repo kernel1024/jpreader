@@ -54,22 +54,25 @@
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 
-#include <QtCore/QBuffer>
-#include <QtCore/QFile>
-#include <QtCore/QMimeData>
-#include <QtCore/QBuffer>
-#include <QtCore/QXmlStreamReader>
-#include <QtCore/QXmlStreamWriter>
+#include <QBuffer>
+#include <QFile>
+#include <QMimeData>
+#include <QBuffer>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
-#include <QtGui/QDesktopServices>
-#include <QtGui/QDragEnterEvent>
-#include <QtGui/QIcon>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QToolButton>
+#include <QDesktopServices>
+#include <QDragEnterEvent>
+#include <QIcon>
+#include <QFileDialog>
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QToolButton>
 
-#include <QtCore/QDebug>
+#include <QDebug>
+
+#include "ui_bookmarks.h"
+#include "ui_addbookmarkdialog.h"
 
 #define BOOKMARKOLD "Old Bookmarks"
 #define BOOKMARKMENU "Bookmarks Menu"
@@ -112,6 +115,7 @@ void BookmarksManager::load(const QByteArray& data)
     BookmarkNode *menu = nullptr;
     BookmarkNode *old = nullptr;
     QVector<BookmarkNode*> others;
+    others.reserve(m_bookmarkRootNode->children().count());
     for (int i = m_bookmarkRootNode->children().count() - 1; i >= 0; --i) {
         BookmarkNode *node = m_bookmarkRootNode->children().at(i);
         if (node->type() == BookmarkNode::Folder) {
@@ -275,7 +279,7 @@ void BookmarksManager::importBookmarks()
 {
     QString fileName = getOpenFileNameD(nullptr, tr("Open File"),
                                         QString(),
-                                        QStringLiteral("XBEL (*.xbel *.xml)"));
+                                        tr("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
@@ -288,8 +292,8 @@ void BookmarksManager::importBookmarks()
     }
 
     importRootNode->setType(BookmarkNode::Folder);
-    importRootNode->title = (tr("Imported %1")
-                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate)));
+    importRootNode->title = tr("Imported %1")
+                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate));
     addBookmark(menu(), importRootNode);
 }
 
@@ -298,7 +302,7 @@ void BookmarksManager::exportBookmarks()
     QString fileName = getSaveFileNameD(nullptr, tr("Save File"),
                                         tr("%1 Bookmarks.xbel")
                                         .arg(QCoreApplication::applicationName()),
-                                        QStringLiteral("XBEL (*.xbel *.xml)"));
+                                        tr("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
@@ -618,13 +622,14 @@ bool AddBookmarkProxyModel::filterAcceptsRow(int source_row, const QModelIndex &
 
 AddBookmarkDialog::AddBookmarkDialog(const QString &url, const QString &title, QWidget *parent, BookmarksManager *bookmarkManager)
     : QDialog(parent)
-    , m_url(url)
+    , ui(new Ui::AddBookmarkDialog)
     , m_bookmarksManager(bookmarkManager)
 {
     setWindowFlags(Qt::Sheet);
     if (!m_bookmarksManager)
         m_bookmarksManager = gSet->bookmarksManager;
-    setupUi(this);
+    ui->setupUi(this);
+    m_url = url;
     auto view = new QTreeView(this);
     auto model = m_bookmarksManager->bookmarksModel();
     m_proxyModel = new AddBookmarkProxyModel(this);
@@ -636,26 +641,26 @@ AddBookmarkDialog::AddBookmarkDialog(const QString &url, const QString &title, Q
     view->setItemsExpandable(false);
     view->setRootIsDecorated(false);
     view->setIndentation(10);
-    location->setModel(m_proxyModel);
+    ui->location->setModel(m_proxyModel);
     view->show();
-    location->setView(view);
+    ui->location->setView(view);
     BookmarkNode *menu = m_bookmarksManager->menu();
     QModelIndex idx = m_proxyModel->mapFromSource(model->index(menu));
     view->setCurrentIndex(idx);
-    location->setCurrentIndex(idx.row());
-    name->setText(title);
+    ui->location->setCurrentIndex(idx.row());
+    ui->name->setText(title);
 }
 
 void AddBookmarkDialog::accept()
 {
-    QModelIndex index = location->view()->currentIndex();
+    QModelIndex index = ui->location->view()->currentIndex();
     index = m_proxyModel->mapToSource(index);
     if (!index.isValid())
         index = m_bookmarksManager->bookmarksModel()->index(0, 0);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(index);
     auto bookmark = new BookmarkNode(BookmarkNode::Bookmark);
     bookmark->url = m_url;
-    bookmark->title = name->text();
+    bookmark->title = ui->name->text();
     m_bookmarksManager->addBookmark(parent, bookmark);
     QDialog::accept();
 }
@@ -681,41 +686,42 @@ bool TreeProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
 
 BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     : QDialog(parent)
+    , ui(new Ui::BookmarksDialog)
 {
-    setupUi(this);
+    ui->setupUi(this);
 
     m_bookmarksManager = manager;
     if (!m_bookmarksManager)
         m_bookmarksManager = gSet->bookmarksManager;
 
-    tree->setUniformRowHeights(true);
-    tree->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tree->setSelectionMode(QAbstractItemView::ContiguousSelection);
-    tree->setTextElideMode(Qt::ElideMiddle);
+    ui->tree->setUniformRowHeights(true);
+    ui->tree->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tree->setSelectionMode(QAbstractItemView::ContiguousSelection);
+    ui->tree->setTextElideMode(Qt::ElideMiddle);
     m_bookmarksModel = m_bookmarksManager->bookmarksModel();
     m_proxyModel = new TreeProxyModel(this, m_bookmarksModel);
-    connect(search, &QLineEdit::textChanged,
+    connect(ui->search, &QLineEdit::textChanged,
             m_proxyModel, &TreeProxyModel::setFilterFixedString);
-    connect(removeButton, &QPushButton::clicked, tree, &EditTreeView::removeOne);
+    connect(ui->removeButton, &QPushButton::clicked, ui->tree, &EditTreeView::removeOne);
     m_proxyModel->setSourceModel(m_bookmarksModel);
-    tree->setModel(m_proxyModel);
-    tree->setDragDropMode(QAbstractItemView::InternalMove);
-    tree->setExpanded(m_proxyModel->index(0, 0), true);
-    tree->setAlternatingRowColors(true);
+    ui->tree->setModel(m_proxyModel);
+    ui->tree->setDragDropMode(QAbstractItemView::InternalMove);
+    ui->tree->setExpanded(m_proxyModel->index(0, 0), true);
+    ui->tree->setAlternatingRowColors(true);
     QFontMetrics fm(font());
     int header = fm.width(QLatin1Char('m')) * 40;
-    tree->header()->resizeSection(0, header);
-    tree->header()->setStretchLastSection(true);
-    connect(tree, &EditTreeView::activated,
+    ui->tree->header()->resizeSection(0, header);
+    ui->tree->header()->setStretchLastSection(true);
+    connect(ui->tree, &EditTreeView::activated,
             this, &BookmarksDialog::openEx);
-    tree->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(tree, &EditTreeView::customContextMenuRequested,
+    ui->tree->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tree, &EditTreeView::customContextMenuRequested,
             this, &BookmarksDialog::customContextMenuRequested);
-    connect(tree, &EditTreeView::removeNode,
+    connect(ui->tree, &EditTreeView::removeNode,
             this, &BookmarksDialog::removeNode);
-    connect(addFolderButton, &QPushButton::clicked,
+    connect(ui->addFolderButton, &QPushButton::clicked,
             this, &BookmarksDialog::newFolder);
-    connect(addSeparatorButton, &QPushButton::clicked,
+    connect(ui->addSeparatorButton, &QPushButton::clicked,
             this, &BookmarksDialog::newSeparator);
     expandNodes(m_bookmarksManager->bookmarks());
     setAttribute(Qt::WA_DeleteOnClose);
@@ -723,7 +729,7 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
 
 BookmarksDialog::~BookmarksDialog()
 {
-    if (saveExpandedNodes(tree->rootIndex()))
+    if (saveExpandedNodes(ui->tree->rootIndex()))
         m_bookmarksManager->changeExpanded();
 }
 
@@ -735,7 +741,7 @@ bool BookmarksDialog::saveExpandedNodes(const QModelIndex &parent)
         QModelIndex sourceIndex = m_proxyModel->mapToSource(child);
         BookmarkNode *childNode = m_bookmarksModel->node(sourceIndex);
         bool wasExpanded = childNode->expanded;
-        if (tree->isExpanded(child)) {
+        if (ui->tree->isExpanded(child)) {
             childNode->expanded = true;
             changed |= saveExpandedNodes(child);
         } else {
@@ -765,7 +771,7 @@ void BookmarksDialog::expandNodes(BookmarkNode *node)
         if (child->expanded) {
             QModelIndex idx = m_bookmarksModel->index(child);
             idx = m_proxyModel->mapFromSource(idx);
-            tree->setExpanded(idx, true);
+            ui->tree->setExpanded(idx, true);
             expandNodes(child);
         }
     }
@@ -774,19 +780,19 @@ void BookmarksDialog::expandNodes(BookmarkNode *node)
 void BookmarksDialog::customContextMenuRequested(const QPoint &pos)
 {
     QMenu menu;
-    QModelIndex index = tree->indexAt(pos);
+    QModelIndex index = ui->tree->indexAt(pos);
     index = index.sibling(index.row(), 0);
-    if (index.isValid() && !tree->model()->hasChildren(index)) {
+    if (index.isValid() && !ui->tree->model()->hasChildren(index)) {
         menu.addAction(tr("Open"), this, &BookmarksDialog::open);
         menu.addSeparator();
     }
-    menu.addAction(tr("Delete"), tree, &EditTreeView::removeOne);
+    menu.addAction(tr("Delete"), ui->tree, &EditTreeView::removeOne);
     menu.exec(QCursor::pos());
 }
 
 void BookmarksDialog::open()
 {
-    QModelIndex index = tree->currentIndex();
+    QModelIndex index = ui->tree->currentIndex();
     openEx(index);
 }
 
@@ -799,7 +805,7 @@ void BookmarksDialog::openEx(const QModelIndex& index)
 
 void BookmarksDialog::newFolder()
 {
-    QModelIndex currentIndex = tree->currentIndex();
+    QModelIndex currentIndex = ui->tree->currentIndex();
     QModelIndex idx = currentIndex;
 
     int row;
@@ -811,7 +817,7 @@ void BookmarksDialog::newFolder()
             row = 0;
         }
     } else {
-        idx = tree->rootIndex();
+        idx = ui->tree->rootIndex();
         row = 0;
     }
 
@@ -824,7 +830,7 @@ void BookmarksDialog::newFolder()
 
 void BookmarksDialog::newSeparator()
 {
-    QModelIndex currentIndex = tree->currentIndex();
+    QModelIndex currentIndex = ui->tree->currentIndex();
     QModelIndex idx = currentIndex;
 
     int row;
@@ -836,7 +842,7 @@ void BookmarksDialog::newSeparator()
             row = 0;
         }
     } else {
-        idx = tree->rootIndex();
+        idx = ui->tree->rootIndex();
         row = 0;
     }
 

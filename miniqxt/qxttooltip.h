@@ -41,15 +41,15 @@ class QxtToolTip
     QxtToolTip();
 
 public:
-    static void show(const QPoint& pos, QWidget* tooltip, QWidget* parent = nullptr,
-                     const QRect& rect = QRect(), const bool allowMouseEnter = false);
+    static void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
+                     QRect rect = QRect(), const bool allowMouseEnter = false);
     static void hide();
 
     static QWidget* toolTip(QWidget* parent);
-    static void setToolTip(QWidget* parent, QWidget* tooltip, const QRect& rect = QRect());
+    static void setToolTip(QWidget* parent, QWidget* tooltip, QRect rect = QRect());
 
     static QRect toolTipRect(QWidget* parent);
-    static void setToolTipRect(QWidget* parent, const QRect& rect);
+    static void setToolTipRect(QWidget* parent, QRect rect);
 
     static int margin();
     static void setMargin(int margin);

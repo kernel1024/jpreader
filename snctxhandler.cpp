@@ -136,7 +136,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                          tr("Create plain text in separate tab"),nullptr);
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
-            s = s.replace('\n',"<br/>");
+            s = s.replace('\n',QStringLiteral("<br/>"));
             new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),true,s);
         });
         cm->addAction(ac);
@@ -335,7 +335,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                             tr("Save username and password"));
         connect(ac, &QAction::triggered, this, [origin](){
             QString realm = gSet->cleanUrlForRealm(origin).toString();
-            if (realm.length()>60) realm = QString(QStringLiteral("...%1"))
+            if (realm.length()>60) realm = QStringLiteral("...%1")
                                            .arg(realm.right(60));
             auto dlg = new CAuthDlg(QApplication::activeWindow(),origin,realm,true);
             dlg->exec();

@@ -169,7 +169,7 @@ void CSearchTab::translateTitles()
     if (model->rowCount()==0) return;
 
     QStringList titles;
-
+    titles.reserve(model->rowCount());
     for (int i=0;i<model->rowCount();i++)
         titles << model->getSnippet(i).value(QStringLiteral("dc:title"));
 
@@ -343,7 +343,7 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
             snip[QStringLiteral("SnipTran")]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
-        s=QString(QStringLiteral("<font size='+1'>%1</font>")).arg(s);
+        s=QStringLiteral("<font size='+1'>%1</font>").arg(s);
         ui->snippetBrowser->setHtml(s);
         if (gSet->ui.actionSnippetAutotranslate->isChecked() &&
             snip.value(QStringLiteral("Snip"))!=snip.value(QStringLiteral("SnipUntran")))
@@ -409,9 +409,8 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     QTextCodec *cd = detectEncoding(fc);
 
     QString fileContents = cd->toUnicode(fc.constData());
-    QTextEdit tagRemover(fileContents);
-    fileContents = tagRemover.toPlainText();
-    // TODO: optimize tag removing
+
+    fileContents.remove(QRegExp(QStringLiteral("<[^>]*>")));
     fileContents.remove('\n');
     fileContents.remove('\r');
     QHash<int,QStringList> snippets;
@@ -436,13 +435,12 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
                             !forceUntranslated;
             if (makeTran)
                 fspart = tran->tranString(fspart);
-            QString snpColor =
-                    gSet->settings.snippetColors[i % gSet->settings.snippetColors.count()].name();
+            QString snpColor = CSettings::snippetColors.at(i % CSettings::snippetColors.count()).name();
             if (makeTran)
-                fspart.replace(ITermT,QString(QStringLiteral("<font color='%1'>%2</font>"))
+                fspart.replace(ITermT,QStringLiteral("<font color='%1'>%2</font>")
                                               .arg(snpColor,ITermT),Qt::CaseInsensitive);
             else
-                fspart.replace(ITerm,QString(QStringLiteral("<font color='%1'>%2</font>"))
+                fspart.replace(ITerm,QStringLiteral("<font color='%1'>%2</font>")
                                .arg(snpColor,ITerm),Qt::CaseInsensitive);
             // add occurence to collection
             snippets[i] << fspart;
@@ -456,10 +454,11 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     // *** Weighted sorting ***
     // calculate term weights
-    QVector<double> fweights;
     double fsumWeight = 0.0;
     double fminWeight = 1.0;
     int sumCount = 0;
+    QVector<double> fweights;
+    fweights.reserve(queryTerms.count());
     for (int i=0;i<queryTerms.count();i++) {
         double wght = 1.0/static_cast<double>(snippets[i].count());
         if (wght < fminWeight) fminWeight = wght;
@@ -468,8 +467,9 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
         sumCount += snippets[i].count();
     }
     // normalization
-    QVector<int> iweights;
     int isumWeight = 0;
+    QVector<int> iweights;
+    iweights.reserve(queryTerms.count());
     for (int i=0;i<queryTerms.count();i++) {
         int wght = static_cast<int>(fweights[i]/fminWeight);
         iweights << wght;
@@ -558,7 +558,7 @@ void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)
     if (!uri.isEmpty()) {
         ui->buttonOpen->setEnabled(true);
         selectedUri = uri;
-        ui->filenameEdit->setText(tr("%1").arg(dispFilename));
+        ui->filenameEdit->setText(dispFilename);
     } else {
         ui->buttonOpen->setEnabled(false);
         selectedUri.clear();

@@ -282,7 +282,7 @@ void CSettingsDlg::updateAdblockList()
         item->setData(0,Qt::UserRole+1,i);
     }
     ui->lblAdblockTotalRules->setText(
-                QString(QStringLiteral("Total rules: %1.")).arg(adblockList.count()));
+                tr("Total rules: %1.").arg(adblockList.count()));
 }
 
 void CSettingsDlg::selectDir()
@@ -344,6 +344,7 @@ void CSettingsDlg::delAd()
 {
     QList<int> r;
     const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
+    r.reserve(il.count());
     for (const QTreeWidgetItem* i : il)
         r << i->data(0,Qt::UserRole+1).toInt();
 
@@ -398,6 +399,7 @@ void CSettingsDlg::exportAd()
 
     QList<int> r;
     const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
+    r.reserve(il.count());
     for (const QTreeWidgetItem* i : il)
         r << i->data(0,Qt::UserRole+1).toInt();
 
@@ -587,10 +589,11 @@ void CSettingsDlg::addSearchEngine()
     if (dlg->exec()) {
         data = dlg->getInputData();
 
-        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ] %3")).
+        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ] %3").
                                                   arg(data[QStringLiteral("Menu title")],
                                                   data[QStringLiteral("Url template")],
-                data["Menu title"]==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
+                data[QStringLiteral("Menu title")]==gSet->settings.defaultSearchEngine ?
+                    tr("(default)") : QString()));
         li->setData(Qt::UserRole,data[QStringLiteral("Menu title")]);
         li->setData(Qt::UserRole+1,data[QStringLiteral("Url template")]);
         ui->listSearch->addItem(li);
@@ -610,7 +613,7 @@ void CSettingsDlg::delSearchEngine()
 void CSettingsDlg::updateAtlCertLabel()
 {
     if (gSet)
-        ui->atlCertsLabel->setText(QString(QStringLiteral("Trusted:\n%1 certificates"))
+        ui->atlCertsLabel->setText(QStringLiteral("Trusted:\n%1 certificates")
                                    .arg(gSet->atlCerts.count()));
 }
 
@@ -682,7 +685,7 @@ void CSettingsDlg::importUserScript()
     QString src = fs.readAll();
     f.close();
 
-    CUserScript us("loader",src);
+    CUserScript us(QStringLiteral("loader"),src);
 
     QListWidgetItem *itm = new QListWidgetItem(us.getTitle());
     itm->setData(Qt::UserRole,src);
@@ -724,7 +727,7 @@ void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> & items)
 void CSettingsDlg::updateFontColorPreview(const QColor &c)
 {
     overridedFontColor = c;
-    ui->frameFontColorOverride->setStyleSheet(QString(QStringLiteral("QFrame { background: %1; }"))
+    ui->frameFontColorOverride->setStyleSheet(QStringLiteral("QFrame { background: %1; }")
                                               .arg(overridedFontColor.name(QColor::HexRgb)));
 }
 
@@ -749,7 +752,7 @@ void CSettingsDlg::setAdblock(const QVector<CAdBlockRule> &adblock)
 void CSettingsDlg::setMainHistory(const CUrlHolderVector& history)
 {
     for (const CUrlHolder &t : history) {
-        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ]"))
+        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ]")
                                                   .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
@@ -760,7 +763,7 @@ void CSettingsDlg::setSearchEngines(const CStringHash& engines)
 {
     ui->listSearch->clear();
     for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
-        QListWidgetItem* li = new QListWidgetItem(QString(QStringLiteral("%1 [ %2 ] %3")).
+        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ] %3").
                                                   arg(it.key(),
                                                   it.value(),
                 it.key()==gSet->settings.defaultSearchEngine ? tr("(default)") : QString()));
@@ -785,7 +788,7 @@ QList<int> CSettingsDlg::getSelectedRows(QTableWidget *table) const
 QStringList CSettingsDlg::getQueryHistory()
 {
     QStringList sl;
-    sl.clear();
+    sl.reserve(ui->listQr->count());
     for (int i=0; i<ui->listQr->count();i++)
         sl << ui->listQr->item(i)->text();
     return sl;

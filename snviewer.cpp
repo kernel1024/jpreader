@@ -208,7 +208,7 @@ void CSnippetViewer::titleChanged(const QString & title)
             else
                 s=uri.toString();
 		}
-        if (s.isEmpty()) s = QLatin1String("< ... >");
+        if (s.isEmpty()) s = QStringLiteral("< ... >");
 	}
     s = s.trimmed();
     if (!title.isEmpty())
@@ -280,7 +280,7 @@ void CSnippetViewer::outsideDragStart()
     auto drag = new QDrag(this);
     auto mime = new QMimeData();
 
-    QString s = QString(QStringLiteral("%1\n%2")).arg(getUrl().toString(),tabTitle);
+    QString s = QStringLiteral("%1\n%2").arg(getUrl().toString(),tabTitle);
     mime->setData(QStringLiteral("_NETSCAPE_URL"),s.toUtf8());
     drag->setMimeData(mime);
 

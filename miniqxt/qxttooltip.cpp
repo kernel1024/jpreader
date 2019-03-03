@@ -76,7 +76,7 @@ QxtToolTipPrivate::~QxtToolTipPrivate()
     self = nullptr;
 }
 
-void QxtToolTipPrivate::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect, const bool allowMouseEnter)
+void QxtToolTipPrivate::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, const bool allowMouseEnter)
 {
     //    Q_ASSERT(tooltip && parent);
     if (!isVisible())
@@ -218,7 +218,7 @@ void QxtToolTipPrivate::hideLater()
         QTimer::singleShot(0, this, &QxtToolTipPrivate::hide);
 }
 
-QPoint QxtToolTipPrivate::calculatePos(QScreen *scr, const QPoint& eventPos) const
+QPoint QxtToolTipPrivate::calculatePos(QScreen *scr, QPoint eventPos) const
 {
     QRect screen = scr->availableGeometry();
 
@@ -281,7 +281,7 @@ QxtToolTip::QxtToolTip()
 
     \sa hide()
 */
-void QxtToolTip::show(const QPoint& pos, QWidget* tooltip, QWidget* parent, const QRect& rect, const bool allowMouseEnter)
+void QxtToolTip::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, const bool allowMouseEnter)
 {
     QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect, allowMouseEnter);
 }
@@ -318,7 +318,7 @@ QWidget* QxtToolTip::toolTip(QWidget* parent)
 
     \sa toolTip()
 */
-void QxtToolTip::setToolTip(QWidget* parent, QWidget* tooltip, const QRect& rect)
+void QxtToolTip::setToolTip(QWidget* parent, QWidget* tooltip, QRect rect)
 {
     Q_ASSERT(parent);
     if (tooltip)
@@ -358,7 +358,7 @@ QRect QxtToolTip::toolTipRect(QWidget* parent)
 
     \sa toolTipRect()
 */
-void QxtToolTip::setToolTipRect(QWidget* parent, const QRect& rect)
+void QxtToolTip::setToolTipRect(QWidget* parent, QRect rect)
 {
     Q_ASSERT(parent);
     if (!QxtToolTipPrivate::instance()->tooltips.contains(parent))

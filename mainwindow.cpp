@@ -518,7 +518,7 @@ void CMainWindow::updateTitle()
         if (sv&& !sv->tabTitle.isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle);
-            t = QString(QStringLiteral("%1 - %2")).arg(doc.toPlainText(), t);
+            t = QStringLiteral("%1 - %2").arg(doc.toPlainText(), t);
             t.remove('\r');
             t.remove('\n');
         }
@@ -529,7 +529,7 @@ void CMainWindow::updateTitle()
     setWindowTitle(t);
 }
 
-void CMainWindow::goHistory(const QUuid &idx)
+void CMainWindow::goHistory(QUuid idx)
 {
     for (const CUrlHolder& uh : qAsConst(gSet->mainHistory))
         if (uh.uuid==idx) {
@@ -855,7 +855,7 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
     QString cln(obj->metaObject()->className());
     if (fullScreen && cln.contains(QStringLiteral("WebEngine"),Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
-            auto mev = static_cast<QMouseEvent *>(ev);
+            auto mev = dynamic_cast<QMouseEvent *>(ev);
             if (mev) {
                 if (mev->y()<20 && !tabMain->tabBar()->isVisible())
                     setToolsVisibility(true);
@@ -951,10 +951,10 @@ void CMainWindow::helpAbout()
                      "Recoll backend compiled: %5\n"
                      "Baloo backend compiled: %6\n"
                      "Poppler support: %7.")
-                    .arg(BUILD_REV,
+                    .arg(QStringLiteral(BUILD_REV),
                     debugstr,
-                    BUILD_PLATFORM,
-                    BUILD_DATE,
+                    QStringLiteral(BUILD_PLATFORM),
+                    QStringLiteral(BUILD_DATE),
                     recoll,
                     baloo5,
                     poppler);

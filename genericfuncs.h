@@ -24,10 +24,6 @@ QString fixMetaEncoding(const QString& data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
 QString highlightSnippet(const QString& snippet, const QStringList& terms);
 QVector<QStringList> encodingsByScript();
-QString bool2str(bool value);
-QString bool2str2(bool value);
-int numDigits(const int n);
-QString formatBytes(qint64 sz);
 QString getTmpDir();
 bool checkAndUnpackUrl(QUrl& url);
 int getRandomTCPPort();
@@ -53,5 +49,65 @@ QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = 
 QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                 const QString & dir = QString(),
                                 QFileDialog::Options options = QFileDialog::ShowDirsOnly);
+
+
+inline QStringList getSupportedImageExtensions()
+{
+    static const QStringList supportedImageExtensions { "jpeg", "jpg", "jpe", "gif", "bmp", "png" };
+    return supportedImageExtensions;
+}
+
+
+inline QString bool2str(bool value)
+{
+    if (value)
+        return QStringLiteral("on");
+
+    return QStringLiteral("off");
+}
+
+inline QString bool2str2(bool value)
+{
+    if (value)
+        return QStringLiteral("TRUE");
+
+    return QStringLiteral("FALSE");
+}
+
+inline int numDigits(const int n) {
+    if ((n >= 0) && (n < 10))
+        return 1;
+
+    if ((n >= -9) && (n < 0))
+        return 2;
+
+    if (n<0)
+        return 2 + numDigits(abs(n) / 10);
+
+    return 1 + numDigits(n / 10);
+}
+
+inline QString formatBytes(qint64 sz) {
+    QString s;
+    double msz;
+    if (sz<1024.0) {
+        msz=sz;
+        s=QStringLiteral("b");
+    } else if (sz<(1024.0 * 1024.0)) {
+        msz=sz/1024.0;
+        s=QStringLiteral("Kb");
+    } else if (sz<(1024.0 * 1024.0 * 1024.0)) {
+        msz=sz/(1024.0*1024.0);
+        s=QStringLiteral("Mb");
+    } else if (sz<(1024.0 * 1024.0 * 1024.0 * 1024.0)) {
+        msz=sz/(1024.0 * 1024.0 * 1024.0);
+        s=QStringLiteral("Gb");
+    } else {
+        msz=sz/(1024.0 * 1024.0 * 1024.0 * 1024.0);
+        s=QStringLiteral("Tb");
+    }
+    s=QStringLiteral("%1 %2").arg(msz,0,'f',2).arg(s);
+    return s;
+}
 
 #endif // GENERICFUNCS_H

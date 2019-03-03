@@ -11,17 +11,20 @@
 #include <QtTest>
 
 #include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include "genericfuncs.h"
+#include "globalcontrol.h"
+
+extern "C" {
 #include <unistd.h>
 #include <magic.h>
 #include <unicode/utypes.h>
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <syslog.h>
-#include "genericfuncs.h"
-#include "globalcontrol.h"
+}
 
 static QSize openFileDialogSize = QSize();
 static QSize saveFileDialogSize = QSize();
@@ -56,9 +59,9 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     QString lmsg = QString();
 
     int line = context.line;
-    QString file = QString(context.file);
-    QString category = QString(context.category);
-    if (category==QString("default"))
+    QString file(context.file);
+    QString category(context.category);
+    if (category==QStringLiteral("default"))
         category.clear();
     else
         category.append(' ');
@@ -66,29 +69,29 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
 
     switch (type) {
         case QtDebugMsg:
-            lmsg = QString("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
+            lmsg = QStringLiteral("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_DEBUG;
             break;
         case QtWarningMsg:
-            lmsg = QString("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
+            lmsg = QStringLiteral("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_WARNING;
             break;
         case QtCriticalMsg:
-            lmsg = QString("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
+            lmsg = QStringLiteral("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_CRIT;
             break;
         case QtFatalMsg:
-            lmsg = QString("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
+            lmsg = QStringLiteral("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_ALERT;
             break;
         case QtInfoMsg:
-            lmsg = QString("%1Info: %2 (%3:%4)").arg(category, msg, file, QString("%1").arg(line));
+            lmsg = QStringLiteral("%1Info: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_INFO;
             break;
     }
 
     if (!lmsg.isEmpty()) {
-        QString fmsg = QTime::currentTime().toString("h:mm:ss") + " "+lmsg;
+        QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime().toString("h:mm:ss"),lmsg);
         debugMessages << fmsg;
         while (debugMessages.count()>5000)
             debugMessages.removeFirst();
@@ -105,7 +108,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
         }
 
         if (gSet && gSet->logWindow)
-            QMetaObject::invokeMethod(gSet->logWindow,"updateMessages");
+            QMetaObject::invokeMethod(gSet->logWindow,&CLogDisplay::updateMessages);
     }
 
     loggerMutex.unlock();
@@ -114,7 +117,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
 bool checkAndUnpackUrl(QUrl& url)
 {
     // Extract jump url for pixiv
-    if (url.host().endsWith("pixiv.net") && url.path().startsWith("/jump")) {
+    if (url.host().endsWith(QStringLiteral("pixiv.net")) && url.path().startsWith(QStringLiteral("/jump"))) {
         QUrl ju(url.query(QUrl::FullyDecoded));
         if (ju.isValid()) {
             url = ju;
@@ -135,7 +138,7 @@ QString detectMIME(const QString &filename)
     const char* mg = magic_file(myt,bm);
     if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
-        return QString("text/plain");
+        return QStringLiteral("text/plain");
     }
     QString mag(mg);
     magic_close(myt);
@@ -149,7 +152,7 @@ QString detectMIME(const QByteArray &buf)
     const char* mg = magic_buffer(myt,buf.data(),static_cast<size_t>(buf.length()));
     if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
-        return QString("text/plain");
+        return QStringLiteral("text/plain");
     }
     QString mag(mg);
     magic_close(myt);
@@ -180,7 +183,7 @@ QString detectEncodingName(const QByteArray& content) {
     ucsdet_close(csd);
 
     codepage = QTextCodec::codecForHtml(content,enc)->name();
-    if (codepage.contains("x-sjis",Qt::CaseInsensitive)) codepage=QLatin1String("SJIS");
+    if (codepage.contains(QStringLiteral("x-sjis"),Qt::CaseInsensitive)) codepage=QStringLiteral("SJIS");
     return codepage;
 }
 
@@ -208,20 +211,21 @@ QString makeSimpleHtml(const QString &title, const QString &content,
                        bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
-    QString cnt = s.replace(QRegExp("\n{3,}"),"\n\n").replace("\n","<br />\n");
-    QString cn("<html><head>");
-    cn.append("<META HTTP-EQUIV=\"Content-type\" CONTENT=\"text/html; charset=UTF-8;\">");
-    cn.append(QString("<title>%1</title></head><body>").arg(title));
+    QString cnt = s.replace(QRegExp(QStringLiteral("\n{3,}")),QStringLiteral("\n\n"))
+            .replace(QStringLiteral("\n"),QStringLiteral("<br />\n"));
+    QString cn(QStringLiteral("<html><head><META HTTP-EQUIV=\"Content-type\" "
+                              "CONTENT=\"text/html; charset=UTF-8;\">"));
+    cn.append(QStringLiteral("<title>%1</title></head><body>").arg(title));
     if (integratedTitle) {
-        cn.append("<h3>");
+        cn.append(QStringLiteral("<h3>"));
         if (!origin.isEmpty())
-            cn.append(QString("<a href=\"%1\">%2</a>")
+            cn.append(QStringLiteral("<a href=\"%1\">%2</a>")
                       .arg(origin.toString(QUrl::FullyEncoded))
                       .arg(title));
-        cn.append("</h3>");
+        cn.append(QStringLiteral("</h3>"));
     }
     cn.append(cnt);
-    cn.append("</body></html>");
+    cn.append(QStringLiteral("</body></html>"));
     return cn;
 }
 
@@ -241,12 +245,12 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
 
     if (plainpre && !cbContentsUnformatted.isEmpty()) {
         res=cbContentsUnformatted;
-        if (res.indexOf("\r\n")>=0)
-            res.replace("\r\n","</p><p>");
+        if (res.indexOf(QStringLiteral("\r\n"))>=0)
+            res.replace(QStringLiteral("\r\n"),QStringLiteral("</p><p>"));
         else
-            res.replace("\n","</p><p>");
-        res = "<p>"+res+"</p>";
-        res = makeSimpleHtml("<...>",res);
+            res.replace(QStringLiteral("\n"),QStringLiteral("</p><p>"));
+        res = QStringLiteral("<p>%1</p>").arg(res);
+        res = makeSimpleHtml(QStringLiteral("<...>"),res);
     } else {
         if (noFormatting) {
             if (!cbContentsUnformatted.isEmpty())
@@ -255,7 +259,7 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
             if (!cbContents.isEmpty())
                 res = cbContents;
             else if (!cbContentsUnformatted.isEmpty())
-                res = makeSimpleHtml("<...>",cbContentsUnformatted);
+                res = makeSimpleHtml(QStringLiteral("<...>"),cbContentsUnformatted);
         }
     }
     return res;
@@ -268,19 +272,19 @@ QString fixMetaEncoding(const QString &data_utf8)
     QString dt = data_utf8;
     dt.remove(0,header.length());
     bool forceMeta = true;
-    if ((pos = header.indexOf(QRegExp("http-equiv {0,}=",Qt::CaseInsensitive))) != -1) {
-        if ((pos = header.lastIndexOf("<meta ", pos, Qt::CaseInsensitive)) != -1) {
-            QRegExp rxcs("charset {0,}=",Qt::CaseInsensitive);
+    if ((pos = header.indexOf(QRegExp(QStringLiteral("http-equiv {0,}="),Qt::CaseInsensitive))) != -1) {
+        if ((pos = header.lastIndexOf(QStringLiteral("<meta "), pos, Qt::CaseInsensitive)) != -1) {
+            QRegExp rxcs(QStringLiteral("charset {0,}="),Qt::CaseInsensitive);
             pos = rxcs.indexIn(header,pos) + rxcs.matchedLength();
             if (pos > -1) {
-                int pos2 = header.indexOf(QRegExp("['\"]",Qt::CaseInsensitive), pos+1);
-                header.replace(pos, pos2-pos,"UTF-8");
+                int pos2 = header.indexOf(QRegExp(QStringLiteral("['\"]"),Qt::CaseInsensitive), pos+1);
+                header.replace(pos, pos2-pos,QStringLiteral("UTF-8"));
                 forceMeta = false;
             }
         }
     }
-    if (forceMeta && ((pos = header.indexOf(QRegExp("</head",Qt::CaseInsensitive))) != -1)) {
-        header.insert(pos,"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
+    if (forceMeta && ((pos = header.indexOf(QRegExp(QStringLiteral("</head"),Qt::CaseInsensitive))) != -1)) {
+        header.insert(pos,QStringLiteral("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"));
     }
     dt = header+dt;
     return dt;
@@ -292,7 +296,7 @@ QString wordWrap(const QString &str, int wrapLength)
     QString ret;
     int cnt = 0;
     for (int i=0;i<stl.count();i++) {
-        ret += stl.at(i) + QLatin1String(" ");
+        ret += stl.at(i) + ' ';
         cnt += stl.at(i).length()+1;
         if (cnt>wrapLength) {
             ret += '\n';
@@ -309,14 +313,14 @@ QString highlightSnippet(const QString& snippet, const QStringList& terms)
 
     for (int i=0;i<terms.count();i++) {
         QString ITerm = terms.value(i).trimmed();
-        QString snpColor = gSet->settings.snippetColors[i % gSet->settings.snippetColors.count()].name();
+        QString snpColor = CSettings::snippetColors[i % CSettings::snippetColors.count()].name();
         int start = 0;
         int pos;
         while ((pos = res.indexOf(ITerm,start,Qt::CaseInsensitive))>=0) {
-            QString tag = QString("<font color='%1'>").arg(snpColor);
+            QString tag = QStringLiteral("<font color='%1'>").arg(snpColor);
             int pos2 = pos + tag.length() + ITerm.length();
             res.insert(pos,tag);
-            res.insert(pos2,"</font>");
+            res.insert(pos2,QStringLiteral("</font>"));
             start = pos2;
         }
     }
@@ -382,7 +386,7 @@ QStringList getSuffixesFromFilter(const QString& filter)
     res.clear();
     if (filter.isEmpty()) return res;
 
-    QStringList filters = filter.split(";;",QString::SkipEmptyParts);
+    QStringList filters = filter.split(QStringLiteral(";;"),QString::SkipEmptyParts);
     if (filters.isEmpty()) return res;
 
     for (int i=0;i<filters.count();i++) {
@@ -390,10 +394,10 @@ QStringList getSuffixesFromFilter(const QString& filter)
 
         if (ex.isEmpty()) continue;
 
-        ex.remove(QRegExp("^.*\\("));
-        ex.remove(QRegExp("\\).*$"));
-        ex.remove(QRegExp("^.*\\."));
-        res.append(ex.split(" "));
+        ex.remove(QRegExp(QStringLiteral("^.*\\(")));
+        ex.remove(QRegExp(QStringLiteral("\\).*$")));
+        ex.remove(QRegExp(QStringLiteral("^.*\\.")));
+        res.append(ex.split(' '));
     }
 
     return res;
@@ -445,88 +449,32 @@ QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const
 
 QVector<QStringList> encodingsByScript()
 {
-    QVector<QStringList> enc;
+    const static QVector<QStringList> enc = {
+        { "Western European", "ISO 8859-1", "ISO 8859-15", "ISO 8859-14", "cp 1252", "CP850", "x-MacRoman" },
+        { "Central European", "ISO 8859-2", "ISO 8859-3", "cp 1250", "x-MacCentralEurope" },
+        { "Baltic", "ISO 8859-4", "ISO 8859-13", "cp 1257" },
+        { "Turkish", "cp 1254", "ISO 8859-9", "x-MacTurkish" },
+        { "Cyrillic", "KOI8-R", "ISO 8859-5", "cp 1251", "KOI8-U", "CP866", "x-MacCyrillic" },
+        { "Chinese", "HZ", "GBK", "GB18030", "BIG5", "BIG5-HKSCS", "ISO-2022-CN", "ISO-2022-CN-EXT" },
+        { "Korean", "CP949", "ISO-2022-KR" },
+        { "Japanese", "EUC-JP", "SHIFT_JIS", "ISO-2022-JP", "ISO-2022-JP-2", "ISO-2022-JP-1" },
+        { "Greek", "ISO 8859-7", "cp 1253", "x-MacGreek" },
+        { "Arabic", "ISO 8859-6", "cp 1256" },
+        { "Hebrew", "ISO 8859-8", "cp 1255", "CP862" },
+        { "Thai", "CP874" },
+        { "Vietnamese", "CP1258" },
+        { "Unicode", "UTF-8", "UTF-7", "UTF-16", "UTF-16BE", "UTF-16LE", "UTF-32", "UTF-32BE", "UTF-32LE" },
+        { "Other", "windows-1258", "IBM874", "TSCII", "Macintosh" }
+    };
 
-    enc << (QStringList() << "Western European" << "ISO 8859-1" << "ISO 8859-15" <<
-            "ISO 8859-14" << "cp 1252" << "CP850" << "x-MacRoman");
-    enc << (QStringList() << "Central European" << "ISO 8859-2" << "ISO 8859-3" << "cp 1250"
-            << "x-MacCentralEurope");
-    enc << (QStringList() << "Baltic" << "ISO 8859-4" << "ISO 8859-13" << "cp 1257");
-    enc << (QStringList() << "Turkish" << "cp 1254" << "ISO 8859-9" << "x-MacTurkish");
-    enc << (QStringList() << "Cyrillic" << "KOI8-R" << "ISO 8859-5" << "cp 1251" << "KOI8-U"
-            << "CP866" << "x-MacCyrillic");
-    enc << (QStringList() << "Chinese" << "HZ" << "GBK" << "GB18030" << "BIG5" << "BIG5-HKSCS"
-            << "ISO-2022-CN" << "ISO-2022-CN-EXT");
-    enc << (QStringList() << "Korean" << "CP949" << "ISO-2022-KR");
-    enc << (QStringList() << "Japanese" << "EUC-JP" << "SHIFT_JIS" << "ISO-2022-JP"
-            << "ISO-2022-JP-2" << "ISO-2022-JP-1");
-    enc << (QStringList() << "Greek" << "ISO 8859-7" << "cp 1253" << "x-MacGreek");
-    enc << (QStringList() << "Arabic" << "ISO 8859-6" << "cp 1256");
-    enc << (QStringList() << "Hebrew" << "ISO 8859-8" << "cp 1255" << "CP862");
-    enc << (QStringList() << "Thai" << "CP874");
-    enc << (QStringList() << "Vietnamese" << "CP1258");
-    enc << (QStringList() << "Unicode" << "UTF-8" << "UTF-7" << "UTF-16" << "UTF-16BE" << "UTF-16LE"
-            << "UTF-32" << "UTF-32BE" << "UTF-32LE");
-    enc << (QStringList() << "Other" << "windows-1258" << "IBM874" << "TSCII" << "Macintosh");
     return enc;
-}
-
-QString bool2str(bool value)
-{
-    if (value)
-        return QString("on");
-    else
-        return QString("off");
-}
-
-QString bool2str2(bool value)
-{
-    if (value)
-        return QString("TRUE");
-    else
-        return QString("FALSE");
-}
-
-int numDigits(const int n) {
-    if ((n >= 0) && (n < 10))
-        return 1;
-    else if ((n >= -9) && (n < 0))
-        return 2;
-
-    if (n<0)
-        return 2 + numDigits(abs(n) / 10);
-    else
-        return 1 + numDigits(n / 10);
-}
-
-QString formatBytes(qint64 sz) {
-    QString s;
-    double msz;
-    if (sz<1024.0) {
-        msz=sz;
-        s=QLatin1String("b");
-    } else if (sz<(1024.0 * 1024.0)) {
-        msz=sz/1024.0;
-        s=QLatin1String("Kb");
-    } else if (sz<(1024.0 * 1024.0 * 1024.0)) {
-        msz=sz/(1024.0*1024.0);
-        s=QLatin1String("Mb");
-    } else if (sz<(1024.0 * 1024.0 * 1024.0 * 1024.0)) {
-        msz=sz/(1024.0 * 1024.0 * 1024.0);
-        s=QLatin1String("Gb");
-    } else {
-        msz=sz/(1024.0 * 1024.0 * 1024.0 * 1024.0);
-        s=QLatin1String("Tb");
-    }
-    s=QString("%1 %2").arg(msz,0,'f',2).arg(s);
-    return s;
 }
 
 QString getTmpDir()
 {
-    QFileInfo fi(QDir::homePath() + QDir::separator() + "tmp");
+    QFileInfo fi(QDir::homePath() + QDir::separator() + QStringLiteral("tmp"));
     if (fi.exists() && fi.isDir() && fi.isWritable())
-        return QDir::homePath() + QDir::separator() + "tmp";
+        return QDir::homePath() + QDir::separator() + QStringLiteral("tmp");
 
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 }
@@ -547,34 +495,34 @@ int compareStringLists(const QStringList &left, const QStringList &right)
 void generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
 {
     if (src.isTag && !src.tagName.isEmpty()) {
-        html.append("<"+src.tagName);
-        for (int i=0;i<src.attributesOrder.count();i++) {
-            QString key = src.attributesOrder.at(i);
-            QString val = src.attributes.value(key);
-            if (!val.contains("\""))
-                html.append(QString(" %1=\"%2\"").arg(key,val));
+        html.append(QStringLiteral("<")+src.tagName);
+        for (const QString &key : qAsConst(src.attributesOrder)) {
+            const QString val = src.attributes.value(key);
+            if (!val.contains('"'))
+                html.append(QStringLiteral(" %1=\"%2\"").arg(key,val));
             else
-                html.append(QString(" %1='%2'").arg(key,val));
+                html.append(QStringLiteral(" %1='%2'").arg(key,val));
         }
-        html.append(">");
+        html.append(QStringLiteral(">"));
     } else {
         QString txt = src.text;
         // fix incorrect nested comments - pixiv
         if (src.isComment) {
-            if ((txt.count("<!--")>1) || (txt.count("-->")>1))
+            if ((txt.count(QStringLiteral("<!--"))>1) || (txt.count(QStringLiteral("-->"))>1))
                 txt.clear();
-            if ((txt.count("<")>1 || txt.count(">")>1) && (txt.count("<")!=txt.count(">")))
+            if ((txt.count(QStringLiteral("<"))>1 || txt.count(QStringLiteral(">"))>1)
+                && (txt.count(QStringLiteral("<"))!=txt.count(QStringLiteral(">"))))
                 txt.clear();
         }
         html.append(txt);
     }
 
-    for (int i=0; i<src.children.count(); i++ )
-        generateHTML(src.children.at(i),html,reformat,depth+1);
+    for (const CHTMLNode &node : qAsConst(src.children))
+        generateHTML(node,html,reformat,depth+1);
 
     html.append(src.closingText);
     if (reformat)
-        html.append("\n");
+        html.append('\n');
 }
 
 QString extractFileTitle(const QString& fileContents)
@@ -582,17 +530,17 @@ QString extractFileTitle(const QString& fileContents)
     int pos;
     int start = -1;
     int stop = -1;
-    if ((pos = fileContents.indexOf(QRegExp("<title {0,}>",Qt::CaseInsensitive))) != -1) {
+    if ((pos = fileContents.indexOf(QRegExp(QStringLiteral("<title {0,}>"),Qt::CaseInsensitive))) != -1) {
         start = pos;
-        if ((pos = fileContents.indexOf(QRegExp("</title {0,}>", Qt::CaseInsensitive))) != -1) {
+        if ((pos = fileContents.indexOf(QRegExp(QStringLiteral("</title {0,}>"), Qt::CaseInsensitive))) != -1) {
             stop = pos;
             if (stop>start) {
                 if ((stop-start)>255)
                     stop = start + 255;
                 QString s = fileContents.mid(start,stop-start);
-                s.remove(QRegExp("^<title {0,}>",Qt::CaseInsensitive));
-                s.remove("\r");
-                s.remove("\n");
+                s.remove(QRegExp(QStringLiteral("^<title {0,}>"),Qt::CaseInsensitive));
+                s.remove('\r');
+                s.remove('\n');
                 return s;
             }
         }
@@ -603,18 +551,18 @@ QString extractFileTitle(const QString& fileContents)
 // for url rules
 QString convertPatternToRegExp(const QString &wildcardPattern) {
     QString pattern = wildcardPattern;
-    return pattern.replace(QRegExp(QLatin1String("\\*+")), QLatin1String("*"))   // remove multiple wildcards
-            .replace(QRegExp(QLatin1String("\\^\\|$")), QLatin1String("^"))        // remove anchors following separator placeholder
-            .replace(QRegExp(QLatin1String("^(\\*)")), QString())          // remove leading wildcards
-            .replace(QRegExp(QLatin1String("(\\*)$")), QString())          // remove trailing wildcards
-            .replace(QRegExp(QLatin1String("(\\W)")), QLatin1String("\\\\1"))      // escape special symbols
-            .replace(QRegExp(QLatin1String("^\\\\\\|\\\\\\|")),
-                     QLatin1String("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
-            .replace(QRegExp(QLatin1String("\\\\\\^")),
-                     QLatin1String("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
-            .replace(QRegExp(QLatin1String("^\\\\\\|")), QLatin1String("^"))       // process anchor at expression start
-            .replace(QRegExp(QLatin1String("\\\\\\|$")), QLatin1String("$"))       // process anchor at expression end
-            .replace(QRegExp(QLatin1String("\\\\\\*")), QLatin1String(".*"))       // replace wildcards by .*
+    return pattern.replace(QRegExp(QStringLiteral("\\*+")), QStringLiteral("*"))   // remove multiple wildcards
+            .replace(QRegExp(QStringLiteral("\\^\\|$")), QStringLiteral("^"))        // remove anchors following separator placeholder
+            .replace(QRegExp(QStringLiteral("^(\\*)")), QString())          // remove leading wildcards
+            .replace(QRegExp(QStringLiteral("(\\*)$")), QString())          // remove trailing wildcards
+            .replace(QRegExp(QStringLiteral("(\\W)")), QStringLiteral("\\\\1"))      // escape special symbols
+            .replace(QRegExp(QStringLiteral("^\\\\\\|\\\\\\|")),
+                     QStringLiteral("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
+            .replace(QRegExp(QStringLiteral("\\\\\\^")),
+                     QStringLiteral("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
+            .replace(QRegExp(QStringLiteral("^\\\\\\|")), QStringLiteral("^"))       // process anchor at expression start
+            .replace(QRegExp(QStringLiteral("\\\\\\|$")), QStringLiteral("$"))       // process anchor at expression end
+            .replace(QRegExp(QStringLiteral("\\\\\\*")), QStringLiteral(".*"))       // replace wildcards by .*
             ;
 }
 
@@ -634,9 +582,10 @@ void sendKeyboardInputToView(QWidget *widget, const QString& s)
     if (widget==nullptr) return;
 
     widget->setFocus();
-    Q_FOREACH(QObject* obj, widget->children()) {
+    for (QObject *obj : widget->children()) {
         QWidget *w = qobject_cast<QWidget*>(obj);
-        sendStringToWidget(w,s);
+        if (w)
+            sendStringToWidget(w,s);
     }
     sendStringToWidget(widget,s);
 }

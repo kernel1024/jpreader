@@ -55,7 +55,7 @@ void CSnMsgHandler::pastePassword()
     if (!gSet->haveSavedPassword(snv->txtBrowser->page()->url())) return;
 
     gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
-    QString inp = QString(QStringLiteral("%1%2%3")).arg(user,QChar(0x9),pass);
+    QString inp = QStringLiteral("%1%2%3").arg(user,QChar(0x9),pass);
 
     auto ac = qobject_cast<QAction *>(sender());
     if (ac) {

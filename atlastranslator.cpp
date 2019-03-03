@@ -67,7 +67,7 @@ bool CAtlasTranslator::initTran()
     QByteArray buf;
 
     // INIT command and response
-    buf = QString(QStringLiteral("INIT:%1\r\n")).arg(gSet->settings.atlToken).toLatin1();
+    buf = QStringLiteral("INIT:%1\r\n").arg(gSet->settings.atlToken).toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {
@@ -126,7 +126,7 @@ QString CAtlasTranslator::tranString(const QString &src)
     QString s = QString::fromLatin1(QUrl::toPercentEncoding(src," ")).trimmed();
     if (s.isEmpty()) return QString();
 //    qDebug() << "TO TRAN: " << s;
-    QByteArray buf = QString(QStringLiteral("TR:%1\r\n")).arg(s).toLatin1();
+    QByteArray buf = QStringLiteral("TR:%1\r\n").arg(s).toLatin1();
     sock.write(buf);
     sock.flush();
     QByteArray sumbuf;
@@ -176,7 +176,7 @@ void CAtlasTranslator::doneTran(bool lazyClose)
 
     if (!lazyClose) {
         // FIN command and response
-        QByteArray buf = QString(QStringLiteral("FIN\r\n")).toLatin1();
+        QByteArray buf = QStringLiteral("FIN\r\n").toLatin1();
         sock.write(buf);
         sock.flush();
         if (!sock.canReadLine()) {

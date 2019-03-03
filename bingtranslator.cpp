@@ -55,14 +55,14 @@ bool CBingTranslator::initTran()
 
     rpl->deleteLater();
 
-    authHeader = QString(QStringLiteral("Bearer %1")).arg(QString::fromUtf8(ra));
+    authHeader = QStringLiteral("Bearer %1").arg(QString::fromUtf8(ra));
     tranError.clear();
     return true;
 }
 
 QString CBingTranslator::tranStringInternal(const QString &src)
 {
-    QUrl rqurl = QUrl("https://api.cognitive.microsofttranslator.com/translate");
+    QUrl rqurl = QUrl(QStringLiteral("https://api.cognitive.microsofttranslator.com/translate"));
 
     QUrlQuery rqData;
     rqData.addQueryItem(QStringLiteral("textType"),QStringLiteral("plain"));
@@ -104,7 +104,7 @@ QString CBingTranslator::tranStringInternal(const QString &src)
         QJsonObject obj = doc.object();
         QJsonValue err = obj.value(QStringLiteral("error"));
         if (err.isObject()) {
-            tranError = QString(QStringLiteral("ERROR: Bing translator JSON error #%1: %2"))
+            tranError = tr("ERROR: Bing translator JSON error #%1: %2")
                     .arg(err.toObject().value(QStringLiteral("code")).toInt())
                     .arg(err.toObject().value(QStringLiteral("message")).toString());
             return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");

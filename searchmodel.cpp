@@ -39,7 +39,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
                     ps = QStringLiteral("%");
                 }
                 if (ok)
-                    return tr("%1%2").arg(QString("%1").arg(sc),ps);
+                    return QStringLiteral("%1%2").arg(sc).arg(ps);
 
                 return score;
 
@@ -103,7 +103,7 @@ QVariant CSearchModel::headerData(int section, Qt::Orientation orientation, int 
     if (orientation == Qt::Vertical) {
         if (role == Qt::DisplayRole) {
             if (section>=0 && section<snippets.count())
-                return tr("%1").arg(section+1);
+                return QString::number(section+1);
             return QVariant();
         }
         return QVariant();
@@ -144,7 +144,6 @@ QStringList CSearchModel::getSnippetKeys(int idx)
 QStringList CSearchModel::getDistinctValues(const QString &snippetKey)
 {
     QStringList sl;
-    sl.clear();
     if (snippetKey.isEmpty()) return sl;
 
     for (int i=0;i<snippets.count();i++) {

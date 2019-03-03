@@ -107,21 +107,19 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title,
 
     CStringHash result;
 
-    result[QStringLiteral("Uri")] = QString(QStringLiteral("file://%1")).arg(w);
+    result[QStringLiteral("Uri")] = QStringLiteral("file://%1").arg(w);
     result[QStringLiteral("FullFilename")] = w;
     result[QStringLiteral("DisplayFilename")] = w;
     result[QStringLiteral("FilePath")] = hit.path();
-    result[QStringLiteral("FileSize")] = QString(QStringLiteral("%L1 Kb"))
+    result[QStringLiteral("FileSize")] = QStringLiteral("%L1 Kb")
                                          .arg(static_cast<double>(hit.size())/1024.0, 0, 'f', 1);
-    result[QStringLiteral("FileSizeNum")] = QString(QStringLiteral("%1")).arg(hit.size());
+    result[QStringLiteral("FileSizeNum")] = QString::number(hit.size());
     result[QStringLiteral("OnlyFilename")] = fileName;
     result[QStringLiteral("Dir")] = QDir(hit.dir()).dirName();
 
     // extract base properties (score, type etc)
-    result[QStringLiteral("Src")]=tr("Files");
-    result[QStringLiteral("Score")]=QString(QStringLiteral("%1")).arg(nhits,0,'f',4);
+    result[QStringLiteral("Score")]=QString::number(nhits,'f',4);
     result[QStringLiteral("MimeT")]=QString();
-    result[QStringLiteral("Type")]=tr("File");
 
     QDateTime dtm=hit.lastModified();
     result[QStringLiteral("Time")]=dtm.toString(QStringLiteral("yyyy-MM-dd hh:mm:ss"))
@@ -132,9 +130,9 @@ void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title,
     result[QStringLiteral("FileTitle")] = fileName;
 
     if (relPercent)
-        result[QStringLiteral("relMode")]=tr("percent");
+        result[QStringLiteral("relMode")]=QStringLiteral("percent");
     else
-        result[QStringLiteral("relMode")]=tr("count");
+        result[QStringLiteral("relMode")]=QStringLiteral("count");
 
     if (!snippet.isEmpty())
         result[QStringLiteral("Snip")]=snippet;
@@ -216,8 +214,8 @@ void CIndexerSearch::engineFinished()
     working = false;
 
     CStringHash stats;
-    stats[QStringLiteral("Elapsed time")] = QString(QStringLiteral("%1"))
-                            .arg((static_cast<double>(searchTimer.elapsed()))/1000,1,'f',3);
-    stats[QStringLiteral("Total hits")] = QString(QStringLiteral("%1")).arg(resultCount);
+    stats[QStringLiteral("Elapsed time")] = QString::number(
+                static_cast<double>(searchTimer.elapsed())/1000,'f',3);
+    stats[QStringLiteral("Total hits")] = QString::number(resultCount);
     emit searchFinished(stats,m_query);
 }

@@ -220,7 +220,7 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==nullptr) return;
 
-    QString s = QString(QStringLiteral("%1%2")).arg(msg,IPC_EOF);
+    QString s = QStringLiteral("%1%2").arg(msg,QStringLiteral(IPC_EOF));
     socket->write(s.toUtf8());
 }
 
@@ -247,7 +247,7 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
                     "Add this certificate to trusted list?"));
     QString imsg;
     for(int i=0;i<errors.count();i++)
-        imsg+=QString(QStringLiteral("%1. %2\n")).arg(i+1).arg(errors.at(i));
+        imsg+=QStringLiteral("%1. %2\n").arg(i+1).arg(errors.at(i));
     mbox.setInformativeText(imsg);
 
     mbox.setDetailedText(cert.toText());
@@ -277,7 +277,7 @@ QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
 {
     QString res = QUuid::createUuid().toString().remove(QRegExp(QStringLiteral("[^a-z,A-Z,0,1-9,-]")));
     if (!suffix.isEmpty())
-        res.append(QString(QStringLiteral(".%1")).arg(suffix));
+        res.append(QStringLiteral(".%1").arg(suffix));
     if (withDir)
         res = QDir::temp().absoluteFilePath(res);
     return res;
@@ -392,7 +392,7 @@ void CGlobalControl::ipcMessageReceived()
     do {
         if (!socket->waitForReadyRead(2000)) return;
         bmsg.append(socket->readAll());
-    } while (!bmsg.contains(QString(IPC_EOF).toUtf8()));
+    } while (!bmsg.contains(QStringLiteral(IPC_EOF).toUtf8()));
     socket->close();
     socket->deleteLater();
 
@@ -400,8 +400,8 @@ void CGlobalControl::ipcMessageReceived()
     if (cmd.first().startsWith(QStringLiteral("newWindow")))
         ui.addMainWindow();
     else if (cmd.first().startsWith(QStringLiteral("debugRestart"))) {
-        qInfo() << QString(QStringLiteral("Closing jpreader instance (pid: %1)"
-                                          "after debugRestart request"))
+        qInfo() << tr("Closing jpreader instance (pid: %1)"
+                                          "after debugRestart request")
                    .arg(QApplication::applicationPid());
         cleanupAndExit();
     }
@@ -555,8 +555,8 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
     params.beginGroup(QStringLiteral("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
 
-    QString u = params.value(QString(QStringLiteral("%1-user")).arg(key),QString()).toString();
-    QByteArray ba = params.value(QString(QStringLiteral("%1-pass")).arg(key),QByteArray()).toByteArray();
+    QString u = params.value(QStringLiteral("%1-user").arg(key),QString()).toString();
+    QByteArray ba = params.value(QStringLiteral("%1-pass").arg(key),QByteArray()).toByteArray();
     QString p;
     if (!ba.isEmpty()) {
         p = QString::fromUtf8(QByteArray::fromBase64(ba));
@@ -577,8 +577,8 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     QSettings params(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
     params.beginGroup(QStringLiteral("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
-    params.setValue(QString(QStringLiteral("%1-user")).arg(key),user);
-    params.setValue(QString(QStringLiteral("%1-pass")).arg(key),password.toUtf8().toBase64());
+    params.setValue(QStringLiteral("%1-user").arg(key),user);
+    params.setValue(QStringLiteral("%1-pass").arg(key),password.toUtf8().toBase64());
     params.endGroup();
 }
 
@@ -590,8 +590,8 @@ void CGlobalControl::removePassword(const QUrl &origin)
     QSettings params(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
     params.beginGroup(QStringLiteral("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
-    params.remove(QString(QStringLiteral("%1-user")).arg(key));
-    params.remove(QString(QStringLiteral("%1-pass")).arg(key));
+    params.remove(QStringLiteral("%1-user").arg(key));
+    params.remove(QStringLiteral("%1-pass").arg(key));
     params.endGroup();
 }
 
@@ -648,7 +648,7 @@ void CGlobalControl::initLanguagesList()
 
     for(const QLocale &locale : allLocales) {
         QString bcp = locale.bcp47Name();
-        QString name = QString(QStringLiteral("%1 (%2)"))
+        QString name = QStringLiteral("%1 (%2)")
                        .arg(QLocale::languageToString(locale.language()),bcp);
 
         // filter out unsupported codes for dialects

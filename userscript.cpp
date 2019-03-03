@@ -53,10 +53,10 @@ CUserScript::CUserScript(const CUserScript &other)
 }
 
 CUserScript::CUserScript(const QString &name, const QString &source)
-    : m_name(name),
-      m_injectionTime(DocumentReadyTime),
+    : m_injectionTime(DocumentReadyTime),
       m_shouldRunOnSubFrames(true)
 {
+    m_name = name;
     if (!source.isEmpty())
         setSource(source);
 }
@@ -96,51 +96,51 @@ void CUserScript::setSource(const QString &src)
     while (!stream.atEnd())
     {
         QString line(stream.readLine().trimmed());
-        if (!line.startsWith(QLatin1String("//")))
+        if (!line.startsWith(QStringLiteral("//")))
             continue;
 
         line = line.mid(2).trimmed();
-        if (line.startsWith(QLatin1String("==UserScript==")))
+        if (line.startsWith(QStringLiteral("==UserScript==")))
         {
             hasHeader = true;
             continue;
         }
 
-        if (!line.startsWith(QLatin1Char('@')))
+        if (!line.startsWith('@'))
             continue;
 
         line = line.mid(1);
 
-        const QString keyword(line.section(QLatin1Char(' '), 0, 0));
+        const QString keyword(line.section(' ', 0, 0));
 
-        if (keyword == QLatin1String("description"))
-            m_description = line.section(QLatin1Char(' '), 1, -1).trimmed();
-        else if (keyword == QLatin1String("exclude"))
-            m_excludeRules.append(line.section(QLatin1Char(' '), 1, -1).trimmed());
-        else if (keyword == QLatin1String("homepage"))
-            m_homePage = QUrl(line.section(QLatin1Char(' '), 1, -1).trimmed());
-        else if (keyword == QLatin1String("include"))
-            m_includeRules.append(line.section(QLatin1Char(' '), 1, -1).trimmed());
-        else if (keyword == QLatin1String("match"))
+        if (keyword == QStringLiteral("description"))
+            m_description = line.section(' ', 1, -1).trimmed();
+        else if (keyword == QStringLiteral("exclude"))
+            m_excludeRules.append(line.section(' ', 1, -1).trimmed());
+        else if (keyword == QStringLiteral("homepage"))
+            m_homePage = QUrl(line.section(' ', 1, -1).trimmed());
+        else if (keyword == QStringLiteral("include"))
+            m_includeRules.append(line.section(' ', 1, -1).trimmed());
+        else if (keyword == QStringLiteral("match"))
         {
-            line = line.section(QLatin1Char(' '), 1, -1).trimmed();
+            line = line.section(' ', 1, -1).trimmed();
 
-            if (QRegularExpression(QLatin1String("^.+://.*/.*")).match(line).hasMatch()
-                    && (!line.startsWith(QLatin1Char('*')) || line.at(1) == QLatin1Char(':')))
+            if (QRegularExpression(QStringLiteral("^.+://.*/.*")).match(line).hasMatch()
+                    && (!line.startsWith('*') || line.at(1) == QLatin1Char(':')))
             {
-                const QString scheme(line.left(line.indexOf(QLatin1String("://"))));
+                const QString scheme(line.left(line.indexOf(QStringLiteral("://"))));
 
-                if (scheme == QLatin1String("*") ||
-                        scheme == QLatin1String("http") ||
-                        scheme == QLatin1String("https") ||
-                        scheme == QLatin1String("file") ||
-                        scheme == QLatin1String("ftp"))
+                if (scheme == QStringLiteral("*") ||
+                        scheme == QStringLiteral("http") ||
+                        scheme == QStringLiteral("https") ||
+                        scheme == QStringLiteral("file") ||
+                        scheme == QStringLiteral("ftp"))
                 {
-                    const QString pathAndDomain(line.mid(line.indexOf(QLatin1String("://")) + 3));
-                    const QString domain(pathAndDomain.left(pathAndDomain.indexOf(QLatin1Char('/'))));
+                    const QString pathAndDomain(line.mid(line.indexOf(QStringLiteral("://")) + 3));
+                    const QString domain(pathAndDomain.left(pathAndDomain.indexOf('/')));
 
-                    if (domain.indexOf(QLatin1Char('*')) < 0 ||
-                            (domain.indexOf(QLatin1Char('*')) == 0 &&
+                    if (domain.indexOf('*') < 0 ||
+                            (domain.indexOf('*') == 0 &&
                              (domain.length() == 1 ||
                               (domain.length() > 1 && domain.at(1) == QLatin1Char('.')))))
                     {
@@ -152,25 +152,25 @@ void CUserScript::setSource(const QString &src)
 
             qWarning() << "Invalid match rule for User Script, line:" << line;
         }
-        else if (keyword == QLatin1String("name"))
-            m_title = line.section(QLatin1Char(' '), 1, -1).trimmed();
-        else if (keyword == QLatin1String("noframes"))
+        else if (keyword == QStringLiteral("name"))
+            m_title = line.section(' ', 1, -1).trimmed();
+        else if (keyword == QStringLiteral("noframes"))
             m_shouldRunOnSubFrames = true;
-        else if (keyword == QLatin1String("run-at"))
+        else if (keyword == QStringLiteral("run-at"))
         {
-            const QString injectionTime(line.section(QLatin1Char(' '), 1, -1));
+            const QString injectionTime(line.section(' ', 1, -1));
 
-            if (injectionTime == QLatin1String("document-start"))
+            if (injectionTime == QStringLiteral("document-start"))
                 m_injectionTime = DocumentCreationTime;
-            else if (injectionTime == QLatin1String("document-idle"))
+            else if (injectionTime == QStringLiteral("document-idle"))
                 m_injectionTime = DeferredTime;
             else
                 m_injectionTime = DocumentReadyTime;
         }
-        else if (keyword == QLatin1String("updateURL"))
-            m_updateUrl = QUrl(line.section(QLatin1Char(' '), 1, -1).trimmed());
-        else if (keyword == QLatin1String("version"))
-            m_version = line.section(QLatin1Char(' '), 1, -1).trimmed();
+        else if (keyword == QStringLiteral("updateURL"))
+            m_updateUrl = QUrl(line.section(' ', 1, -1).trimmed());
+        else if (keyword == QStringLiteral("version"))
+            m_version = line.section(' ', 1, -1).trimmed();
     }
 
     if (m_title.isEmpty())
@@ -212,10 +212,10 @@ CUserScript::InjectionTime CUserScript::getInjectionTime() const
 
 bool CUserScript::isEnabledForUrl(const QUrl &url) const
 {
-    if (url.scheme() != QLatin1String("http") &&
-            url.scheme() != QLatin1String("https") &&
-            url.scheme() != QLatin1String("file") &&
-            url.scheme() != QLatin1String("ftp"))
+    if (url.scheme() != QStringLiteral("http") &&
+            url.scheme() != QStringLiteral("https") &&
+            url.scheme() != QStringLiteral("file") &&
+            url.scheme() != QStringLiteral("ftp"))
     {
         return false;
     }

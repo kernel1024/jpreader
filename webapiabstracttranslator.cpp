@@ -19,13 +19,13 @@ CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
 QString CWebAPIAbstractTranslator::tranString(const QString& src)
 {
     if (!isReady()) {
-        tranError = QString("ERROR: Translator not ready");
-        return QString("ERROR:TRAN_NOT_READY");
+        tranError = tr("ERROR: Translator not ready");
+        return QStringLiteral("ERROR:TRAN_NOT_READY");
     }
 
     if (src.length()>=MAX_BLOCK_LENGTH) {
         // Split by separator chars
-        QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+        QRegExp rx(QStringLiteral("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
         // Check for max length
         QStringList srout;

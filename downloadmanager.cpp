@@ -47,7 +47,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     QString fname = path;
     if (!fname.endsWith('/')) fname.append('/');
     if (index>=0)
-        fname.append(QString(QStringLiteral("%1_"))
+        fname.append(QStringLiteral("%1_")
                      .arg(index,numDigits(maxIndex),10,QLatin1Char('0')));
     fname.append(url.fileName());
 
@@ -210,11 +210,11 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
             case 1: return fi.fileName();
             case 2:
                 if (t.total==0) return QStringLiteral("0%");
-                return QString(QStringLiteral("%1%")).arg(100*t.received/t.total);
+                return QStringLiteral("%1%").arg(100*t.received/t.total);
             case 3:
                 if (!t.errorString.isEmpty())
                     return t.errorString;
-                return QString(QStringLiteral("%1 / %2"))
+                return QStringLiteral("%1 / %2")
                         .arg(formatBytes(t.received),formatBytes(t.total));
             default: return QVariant();
         }
@@ -319,7 +319,7 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
 
     emit dataChanged(index(idx,0),index(idx,3));
 
-    if (downloads[idx].autoDelete)
+    if (downloads.at(idx).autoDelete)
         deleteDownloadItem(index(idx,0));
 }
 
@@ -344,7 +344,7 @@ void CDownloadsModel::downloadFinished()
     downloads[idx].ptr = nullptr;
 
     if (rpl) {
-        QFile f(downloads[idx].fileName);
+        QFile f(downloads.at(idx).fileName);
         if (f.open(QIODevice::WriteOnly)) {
             f.write(rpl->readAll());
             f.close();
@@ -360,7 +360,7 @@ void CDownloadsModel::downloadFinished()
     if (item)
         item->deleteLater();
 
-    if (downloads[idx].autoDelete)
+    if (downloads.at(idx).autoDelete)
         deleteDownloadItem(index(idx,0));
 }
 
