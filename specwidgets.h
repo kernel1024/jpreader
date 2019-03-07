@@ -33,6 +33,7 @@ class CSnippetViewer;
 class CSpecTabWidget;
 class CSpecTabContainer;
 
+
 class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 public:

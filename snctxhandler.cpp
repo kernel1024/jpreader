@@ -21,6 +21,7 @@
 #include "snnet.h"
 #include "snmsghandler.h"
 #include "sntrans.h"
+#include "noscriptdialog.h"
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -297,6 +298,21 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     cm->addSeparator();
 
+    if (gSet->settings.useNoScript ) {
+        ac = new QAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
+                            tr("Enable scripts for this page..."), nullptr);
+        connect(ac, &QAction::triggered, this, [this](){
+            const QUrl origin = snv->getUrl();
+            if (origin.isLocalFile() || origin.isRelative()) return;
+            QString u = snv->getUrl().toString(CSettings::adblockUrlFmt);
+            auto dlg = new CNoScriptDialog(snv,u);
+            dlg->exec();
+            dlg->setParent(nullptr);
+            delete dlg;
+        });
+        cm->addAction(ac);
+        cm->addSeparator();
+    }
     if (!linkUrl.isEmpty()) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
                             tr("Add AdBlock rule for link url..."), nullptr);
@@ -511,7 +527,7 @@ void CSnCtxHandler::saveToFile()
 
 void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
-    AddBookmarkDialog *dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
+    auto dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
     if (dlg->exec())
         emit gSet->updateAllBookmarks();
     dlg->setParent(nullptr);

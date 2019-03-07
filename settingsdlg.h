@@ -90,6 +90,7 @@ public:
     QSpinBox* maxRecycled;
     QCheckBox* useJS;
     QCheckBox* useAd;
+    QCheckBox* useNoScript;
     QCheckBox* useOverrideFont;
     QSpinBox* fontOverrideSize;
     QFontComboBox* fontOverride;
@@ -159,11 +160,13 @@ public:
     void setMainHistory(const CUrlHolderVector &history);
     void setSearchEngines(const CStringHash &engines);
     void setUserScripts(const CStringHash &scripts);
+    void setNoScriptWhitelist(const CStringSet &hosts);
     QStringList getQueryHistory();
     QVector<CAdBlockRule> getAdblock();
     CStringHash getSearchEngines();
     CStringHash getUserScripts();
     CLangPairVector getLangPairList();
+    CStringSet getNoScriptWhitelist();
 
 public slots:
     void selectDir();
@@ -196,6 +199,8 @@ public slots:
     void deleteUserScript();
     void importUserScript();
     void editUserScript();
+    void addNoScriptHost();
+    void delNoScriptHost();
 };
 
 #endif // SETTINGSDLG_H

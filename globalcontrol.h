@@ -81,8 +81,6 @@ public:
     QHash<QString,QIcon> favicons;
 
     CAdBlockVector adblock;
-    QStringList adblockWhiteList;
-    QMutex adblockWhiteListMutex;
 
     QStringList createdFiles;
 
@@ -106,6 +104,14 @@ public:
     void adblockAppend(const QString &url);
     void adblockAppend(const CAdBlockRule &url);
     void adblockAppend(const QVector<CAdBlockRule> &urls);
+
+    // No-Script
+    bool isScriptBlocked(const QUrl &url, const QUrl &origin);
+    void clearNoScriptPageHosts(const QString& origin);
+    CStringSet getNoScriptPageHosts(const QString& origin);
+    void removeNoScriptWhitelistHost(const QString& host);
+    void addNoScriptWhitelistHost(const QString& host);
+    bool containsNoScriptWhitelist(const QString& host) const;
 
     // Password management
     void readPassword(const QUrl &origin, QString &user, QString &password);
@@ -137,6 +143,13 @@ private:
     QMutex userScriptsMutex;
     bool cleaningState;
     bool atlCertErrorInteractive;
+
+    QStringList adblockWhiteList;
+    QMutex adblockWhiteListMutex;
+
+    CStringSet noScriptWhiteList;
+    QHash<QString,QSet<QString> > pageScriptHosts;
+    QMutex noScriptMutex;
 
     QMap<QString,QString> langSortedBCP47List;  // names -> bcp (for sorting)
     QHash<QString,QString> langNamesList;       // bcp -> names

@@ -41,7 +41,8 @@ HEADERS = mainwindow.h \
     bookmarks.h \
     edittreeview.h \
     xbel.h \
-    pixivnovelextractor.h
+    pixivnovelextractor.h \
+    noscriptdialog.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -87,7 +88,8 @@ SOURCES = main.cpp \
     bookmarks.cpp \
     edittreeview.cpp \
     xbel.cpp \
-    pixivnovelextractor.cpp
+    pixivnovelextractor.cpp \
+    noscriptdialog.cpp
 
 RESOURCES = \
     jpreader.qrc
@@ -106,7 +108,8 @@ FORMS = main.ui \
     userscriptdlg.ui \
     selectablelistdlg.ui \
     bookmarks.ui \
-    addbookmarkdialog.ui
+    addbookmarkdialog.ui \
+    noscriptdialog.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
 

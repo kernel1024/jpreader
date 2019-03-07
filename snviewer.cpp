@@ -367,6 +367,9 @@ void CSnippetViewer::updateWebViewAttributes()
 
 bool CSnippetViewer::canClose()
 {
+    // cleanup some temporary data
+    gSet->clearNoScriptPageHosts(getUrl().toString(CSettings::adblockUrlFmt));
+
     return !waitPanel->isVisible(); // prevent closing while translation thread active
 }
 

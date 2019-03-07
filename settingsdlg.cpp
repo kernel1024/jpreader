@@ -42,6 +42,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     maxRecycled=ui->spinMaxRecycled;
     useJS=ui->checkJS;
     useAd=ui->checkUseAd;
+    useNoScript=ui->checkUseNoScript;
     useOverrideFont=ui->checkTransFont;
     fontOverride=ui->transFont;
     fontOverrideSize=ui->transFontSize;
@@ -125,10 +126,13 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonUserScriptImport, &QPushButton::clicked, this, &CSettingsDlg::importUserScript);
     connect(ui->buttonAddTrDir, &QPushButton::clicked, transModel, &CLangPairModel::addItem);
     connect(ui->buttonDelTrDir, &QPushButton::clicked, transModel, &CLangPairModel::deleteItem);
+    connect(ui->buttonAddNoScript, &QPushButton::clicked, this, &CSettingsDlg::addNoScriptHost);
+    connect(ui->buttonDelNoScript, &QPushButton::clicked, this, &CSettingsDlg::delNoScriptHost);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsDlg::adblockSearch);
 
-    connect(ui->listTabs, &QListWidget::currentRowChanged, ui->tabWidget, &QStackedWidget::setCurrentIndex);
+    connect(ui->listTabs, &QListWidget::currentRowChanged,
+            ui->tabWidget, &QStackedWidget::setCurrentIndex);
 
     ui->atlSSLProto->addItem(QStringLiteral("Secure"),static_cast<int>(QSsl::SecureProtocols));
     ui->atlSSLProto->addItem(QStringLiteral("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
@@ -188,6 +192,9 @@ void CSettingsDlg::populateTabList()
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(
               QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),tr("AdBlock"));
+    ui->listTabs->addItem(itm);
+    itm = new QListWidgetItem(
+              QIcon::fromTheme(QStringLiteral("dialog-cancel")),tr("NoScript"));
     ui->listTabs->addItem(itm);
     itm = new QListWidgetItem(
               QIcon::fromTheme(QStringLiteral("preferences-web-browser-cookies")),tr("Cookies"));
@@ -661,6 +668,26 @@ void CSettingsDlg::editUserScript()
     dlg->deleteLater();
 }
 
+void CSettingsDlg::addNoScriptHost()
+{
+    bool ok;
+    QString s = QInputDialog::getText(this,tr("Add to NoScript whitelist"),tr("Hostname"),
+                                      QLineEdit::Normal,QString(),&ok);
+    if (!ok) return;
+
+    auto li = new QListWidgetItem(s);
+    ui->listNoScriptWhitelist->addItem(li);
+}
+
+void CSettingsDlg::delNoScriptHost()
+{
+    QList<QListWidgetItem *> dl = ui->listNoScriptWhitelist->selectedItems();
+    for (QListWidgetItem* i : dl) {
+        ui->listNoScriptWhitelist->removeItemWidget(i);
+        delete i;
+    }
+}
+
 void CSettingsDlg::deleteUserScript()
 {
     QList<QListWidgetItem *> dl = ui->listUserScripts->selectedItems();
@@ -716,6 +743,26 @@ CStringHash CSettingsDlg::getUserScripts()
 CLangPairVector CSettingsDlg::getLangPairList()
 {
     return transModel->getLangPairList();
+}
+
+void CSettingsDlg::setNoScriptWhitelist(const CStringSet &hosts)
+{
+    ui->listNoScriptWhitelist->clear();
+
+    for (auto it = hosts.constBegin(), end = hosts.constEnd(); it != end; ++it) {
+        auto itm = new QListWidgetItem(*it);
+        ui->listNoScriptWhitelist->addItem(itm);
+    }
+}
+
+CStringSet CSettingsDlg::getNoScriptWhitelist()
+{
+    CStringSet res;
+    for (int i=0;i<ui->listNoScriptWhitelist->count();i++) {
+        QListWidgetItem *itm = ui->listNoScriptWhitelist->item(i);
+        res.insert(itm->text());
+    }
+    return res;
 }
 
 void CSettingsDlg::adblockFocusSearchedRule(QList<QTreeWidgetItem *> & items)

@@ -78,11 +78,12 @@ private:
 
 Q_DECLARE_METATYPE(CLangPair)
 
-typedef QHash<QString, QString> CStringHash;
-typedef QList<int> CIntList;
-typedef QVector<CUrlHolder> CUrlHolderVector;
-typedef QHash<QSslCertificate,CIntList> CSslCertificateHash;
-typedef QVector<CLangPair> CLangPairVector;
+using CStringHash = QHash<QString, QString>;
+using CIntList = QList<int>;
+using CUrlHolderVector = QVector<CUrlHolder>;
+using CSslCertificateHash = QHash<QSslCertificate,CIntList>;
+using CLangPairVector = QVector<CLangPair>;
+using CStringSet = QSet<QString>;
 
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
 QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);

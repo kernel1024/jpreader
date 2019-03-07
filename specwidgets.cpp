@@ -379,7 +379,8 @@ CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, QObject *parent)
 
 }
 
-bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
+bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type,
+                                           bool isMainFrame)
 {
     emit linkClickedExt(url,static_cast<int>(type),isMainFrame);
 
@@ -393,6 +394,8 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     bool blocked = gSet->isUrlBlocked(url);
 
     if (!blocked) {
+        // NoScript discovery reload
+        gSet->clearNoScriptPageHosts(url.toString(CSettings::adblockUrlFmt));
 
         // Userscripts
         const QVector<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame));
@@ -517,9 +520,12 @@ CSpecUrlInterceptor::CSpecUrlInterceptor(QObject *p)
 void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
     QString rule;
-    if (gSet->isUrlBlocked(info.requestUrl(),rule)) {
+    const QUrl url = info.requestUrl();
+
+    // AdBlock
+    if (gSet->isUrlBlocked(url,rule)) {
         if (gSet->settings.debugNetReqLogging)
-            qWarning() << "Net request:" << info.requestUrl() << "BLOCKED" <<
+            qWarning() << "Net request:" << url << "BLOCKED" <<
                           tr("(rule: '%1')").arg(rule);
 
         info.block(true);
@@ -527,8 +533,27 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         return;
     }
 
+    // NoScript
+    if (info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeScript ||
+            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeWorker ||
+            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeSharedWorker ||
+            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeServiceWorker ||
+            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeUnknown) {
+
+        if (gSet->isScriptBlocked(url,info.firstPartyUrl())) {
+
+            if (gSet->settings.debugNetReqLogging)
+                qWarning() << "Net request:" << url << "BLOCKED by NOSCRIPT";
+
+            info.block(true);
+
+            return;
+
+        }
+    }
+
     if (gSet->settings.debugNetReqLogging)
-        qInfo() << "Net request:" << info.requestUrl();
+        qInfo() << "Net request:" << url;
 }
 
 CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)

@@ -48,6 +48,8 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     ctxSearchEngines.clear();
     recentFiles.clear();
     adblockWhiteList.clear();
+    noScriptWhiteList.clear();
+    pageScriptHosts.clear();
 
     initLanguagesList();
 
@@ -477,8 +479,7 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
     if (!url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return false;
 
     filter.clear();
-    QString u = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
-                             QUrl::RemoveFragment | QUrl::StripTrailingSlash);
+    QString u = url.toString(CSettings::adblockUrlFmt);
 
     if (adblockWhiteList.contains(u)) return false;
 
@@ -497,6 +498,22 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
     adblockWhiteListMutex.unlock();
 
     return false;
+}
+
+bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
+{
+    if (!settings.useNoScript) return false;
+    if (url.isRelative() || url.isLocalFile()) return false;
+
+    const QString host = url.host();
+    const QString key = origin.toString(CSettings::adblockUrlFmt);
+
+    noScriptMutex.lock();
+    pageScriptHosts[key].insert(host.toLower());
+    bool block = !(noScriptWhiteList.contains(host));
+    noScriptMutex.unlock();
+
+    return block;
 }
 
 void CGlobalControl::adblockAppend(const QString& url)
@@ -518,6 +535,41 @@ void CGlobalControl::adblockAppend(const QVector<CAdBlockRule> &urls)
     adblockWhiteListMutex.lock();
     adblockWhiteList.clear();
     adblockWhiteListMutex.unlock();
+}
+
+void CGlobalControl::clearNoScriptPageHosts(const QString &origin)
+{
+    noScriptMutex.lock();
+    pageScriptHosts[origin].clear();
+    noScriptMutex.unlock();
+}
+
+CStringSet CGlobalControl::getNoScriptPageHosts(const QString &origin)
+{
+    CStringSet res;
+    noScriptMutex.lock();
+    res = pageScriptHosts.value(origin);
+    noScriptMutex.unlock();
+    return res;
+}
+
+void CGlobalControl::removeNoScriptWhitelistHost(const QString &host)
+{
+    noScriptMutex.lock();
+    noScriptWhiteList.remove(host);
+    noScriptMutex.unlock();
+}
+
+void CGlobalControl::addNoScriptWhitelistHost(const QString &host)
+{
+    noScriptMutex.lock();
+    noScriptWhiteList.insert(host);
+    noScriptMutex.unlock();
+}
+
+bool CGlobalControl::containsNoScriptWhitelist(const QString &host) const
+{
+    return noScriptWhiteList.contains(host);
 }
 
 bool CGlobalControl::haveSavedPassword(const QUrl &origin)

@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QMutex>
 #include <QTimer>
+#include <QUrl>
 
 #include "settingsdlg.h"
 
@@ -20,6 +21,7 @@ class CSettings : public QObject
     Q_OBJECT
 public:
     static const QVector<QColor> snippetColors;
+    static const QUrl::FormattingOptions adblockUrlFmt;
 
     QStringList dictPaths;
     QString dictIndexDir;
@@ -81,6 +83,7 @@ public:
     bool createCoredumps;
     bool overrideUserAgent;
     bool useAdblock;
+    bool useNoScript;
     bool useScp;
     bool emptyRestore;
     bool debugNetReqLogging;

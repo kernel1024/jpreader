@@ -19,6 +19,11 @@ const QVector<QColor> CSettings::snippetColors = {
     QColor(Qt::darkBlue), QColor(Qt::darkCyan), QColor(Qt::darkMagenta),
     QColor(Qt::darkYellow), QColor(Qt::gray) };
 
+const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
+                                                         | QUrl::RemovePort
+                                                         | QUrl::RemoveFragment
+                                                         | QUrl::StripTrailingSlash;
+
 CSettings::CSettings(QObject *parent)
     : QObject(parent),
       maxHistory(5000),
@@ -43,6 +48,7 @@ CSettings::CSettings(QObject *parent)
       createCoredumps(false),
       overrideUserAgent(false),
       useAdblock(false),
+      useNoScript(false),
       useScp(false),
       emptyRestore(false),
       debugNetReqLogging(false),
@@ -94,6 +100,7 @@ void CSettings::writeSettings()
     bigdata.setValue(QStringLiteral("searchHistory"),QVariant::fromValue(gSet->searchHistory));
     bigdata.setValue(QStringLiteral("history"),QVariant::fromValue(gSet->mainHistory));
     bigdata.setValue(QStringLiteral("adblock"),QVariant::fromValue(gSet->adblock));
+    bigdata.setValue(QStringLiteral("noScriptWhitelist"),QVariant::fromValue(gSet->noScriptWhiteList));
     bigdata.setValue(QStringLiteral("atlHostHistory"),QVariant::fromValue(atlHostHistory));
     bigdata.setValue(QStringLiteral("scpHostHistory"),QVariant::fromValue(scpHostHistory));
     bigdata.setValue(QStringLiteral("userAgentHistory"),QVariant::fromValue(userAgentHistory));
@@ -133,6 +140,7 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("recycledCount"),maxRecycled);
 
     settings.setValue(QStringLiteral("useAdblock"),useAdblock);
+    settings.setValue(QStringLiteral("useNoScript"),useNoScript);
     settings.setValue(QStringLiteral("useOverrideFont"),gSet->ui.useOverrideFont());
     settings.setValue(QStringLiteral("overrideFont"),overrideFont.family());
     settings.setValue(QStringLiteral("overrideFontSize"),overrideFont.pointSize());
@@ -219,6 +227,7 @@ void CSettings::readSettings(QObject *control)
     }
 
     g->adblock = bigdata.value(QStringLiteral("adblock")).value<CAdBlockVector>();
+    g->noScriptWhiteList = bigdata.value(QStringLiteral("noScriptWhitelist")).value<CStringSet>();
 
     hostingDir = settings.value(QStringLiteral("hostingDir"),QString()).toString();
     hostingUrl = settings.value(QStringLiteral("hostingUrl"),"about:blank").toString();
@@ -250,6 +259,7 @@ void CSettings::readSettings(QObject *control)
                                          settings.value(QStringLiteral("enablePlugins"),false).toBool());
 
     useAdblock=settings.value(QStringLiteral("useAdblock"),false).toBool();
+    useNoScript=settings.value(QStringLiteral("useNoScript"),false).toBool();
     g->ui.actionOverrideFont->setChecked(settings.value(QStringLiteral("useOverrideFont"),
                                                         false).toBool());
     overrideFont.setFamily(settings.value(QStringLiteral("overrideFont"),"Verdana").toString());
@@ -352,6 +362,7 @@ void CSettings::settingsDlg()
     dlg->setMainHistory(gSet->mainHistory);
     dlg->setQueryHistory(gSet->searchHistory);
     dlg->setAdblock(gSet->adblock);
+    dlg->setNoScriptWhitelist(gSet->noScriptWhiteList);
     dlg->setUserScripts(gSet->getUserScripts());
 
     switch (translatorEngine) {
@@ -389,6 +400,7 @@ void CSettings::settingsDlg()
     dlg->jsLogConsole->setChecked(jsLogConsole);
 
     dlg->useAd->setChecked(useAdblock);
+    dlg->useNoScript->setChecked(useNoScript);
     dlg->useOverrideFont->setChecked(gSet->ui.useOverrideFont());
     dlg->overrideStdFonts->setChecked(overrideStdFonts);
     dlg->fontOverride->setCurrentFont(overrideFont);
@@ -501,6 +513,8 @@ void CSettings::settingsDlg()
         gSet->adblockWhiteListMutex.unlock();
         gSet->initUserScripts(dlg->getUserScripts());
 
+        gSet->noScriptWhiteList = dlg->getNoScriptWhitelist();
+
         translatorPairs = dlg->getLangPairList();
         gSet->ui.rebuildLanguageActions();
 
@@ -554,6 +568,7 @@ void CSettings::settingsDlg()
         forcedFontColor=dlg->getOverridedFontColor();
 
         useAdblock=dlg->useAd->isChecked();
+        useNoScript=dlg->useNoScript->isChecked();
 
         gSet->ui.gctxTranHotkey.setShortcut(dlg->gctxHotkey->keySequence());
         if (!gSet->ui.gctxTranHotkey.shortcut().isEmpty())

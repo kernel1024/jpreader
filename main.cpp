@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<CStringHash>("CStringHash");
     qRegisterMetaTypeStreamOperators<CSslCertificateHash>("CSslCertificateHash");
     qRegisterMetaTypeStreamOperators<CLangPairVector>("CLangPairVector");
+    qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
 
     QApplication app(argc, argv);
 
