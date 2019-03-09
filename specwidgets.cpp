@@ -534,11 +534,12 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     }
 
     // NoScript
-    if (info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeScript ||
-            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeWorker ||
-            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeSharedWorker ||
-            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeServiceWorker ||
-            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeUnknown) {
+    auto resource = info.resourceType();
+    if (resource == QWebEngineUrlRequestInfo::ResourceTypeScript ||
+            resource == QWebEngineUrlRequestInfo::ResourceTypeWorker ||
+            resource == QWebEngineUrlRequestInfo::ResourceTypeSharedWorker ||
+            resource == QWebEngineUrlRequestInfo::ResourceTypeServiceWorker ||
+            resource == QWebEngineUrlRequestInfo::ResourceTypeUnknown) {
 
         if (gSet->isScriptBlocked(url,info.firstPartyUrl())) {
 

@@ -177,6 +177,7 @@ public slots:
     void clearHistory();
     void addAd();
     void delAd();
+    void delAdAll();
     void importAd();
     void exportAd();
     void fontColorDlg();

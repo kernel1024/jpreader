@@ -105,6 +105,7 @@ CSettingsDlg::CSettingsDlg(QWidget *parent) :
     connect(ui->buttonGoHistory, &QPushButton::clicked, this, &CSettingsDlg::goHistory);
     connect(ui->buttonAdAdd, &QPushButton::clicked, this, &CSettingsDlg::addAd);
     connect(ui->buttonAdDel, &QPushButton::clicked, this, &CSettingsDlg::delAd);
+    connect(ui->buttonAdDelAll, &QPushButton::clicked, this, &CSettingsDlg::delAdAll);
     connect(ui->buttonAdImport, &QPushButton::clicked, this, &CSettingsDlg::importAd);
     connect(ui->buttonAdExport, &QPushButton::clicked, this, &CSettingsDlg::exportAd);
     connect(ui->buttonFontColorOverride, &QPushButton::clicked, this, &CSettingsDlg::fontColorDlg);
@@ -361,6 +362,13 @@ void CSettingsDlg::delAd()
         adblockList.removeOne(tmp.at(idx));
 
     tmp.clear();
+
+    updateAdblockList();
+}
+
+void CSettingsDlg::delAdAll()
+{
+    adblockList.clear();
 
     updateAdblockList();
 }

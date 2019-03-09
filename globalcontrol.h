@@ -171,6 +171,9 @@ signals:
     void updateAllRecentLists();
     void updateAllLanguagesLists();
 
+    void addAdBlockWhiteListUrl(const QString& url);
+    void addNoScriptPageHost(const QString& origin, const QString& host);
+
 public slots:
     void cleanupAndExit();
     void blockTabClose();

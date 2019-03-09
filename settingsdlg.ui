@@ -31,7 +31,7 @@
         <enum>QFrame::Raised</enum>
        </property>
        <property name="currentIndex">
-        <number>9</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="widget">
         <layout class="QHBoxLayout" name="horizontalLayout_37">
@@ -1572,6 +1572,13 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="buttonAdDelAll">
+             <property name="text">
+              <string>Delete all</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="Line" name="line">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -2121,9 +2128,14 @@ p, li { white-space: pre-wrap; }
   <tabstop>checkUseAd</tabstop>
   <tabstop>buttonAdAdd</tabstop>
   <tabstop>buttonAdDel</tabstop>
+  <tabstop>buttonAdDelAll</tabstop>
   <tabstop>spinMaxWhiteListItems</tabstop>
   <tabstop>buttonAdImport</tabstop>
   <tabstop>buttonAdExport</tabstop>
+  <tabstop>listNoScriptWhitelist</tabstop>
+  <tabstop>buttonAddNoScript</tabstop>
+  <tabstop>buttonDelNoScript</tabstop>
+  <tabstop>checkUseNoScript</tabstop>
   <tabstop>tableCookies</tabstop>
   <tabstop>buttonExportCookies</tabstop>
   <tabstop>buttonDelCookies</tabstop>

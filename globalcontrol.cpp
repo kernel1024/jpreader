@@ -162,6 +162,21 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     connect(&tabsListTimer, &QTimer::timeout, &settings, &CSettings::writeTabsList);
     tabsListTimer.start();
 
+    connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this](const QString& u){
+        // append unblocked url to cache
+        adblockWhiteListMutex.lock();
+        adblockWhiteList.append(u);
+        while(adblockWhiteList.count()>settings.maxAdblockWhiteList)
+            adblockWhiteList.removeFirst();
+        adblockWhiteListMutex.unlock();
+    },Qt::QueuedConnection);
+
+    connect(this,&CGlobalControl::addNoScriptPageHost,this,[this](const QString& key, const QString& host){
+        noScriptMutex.lock();
+        pageScriptHosts[key].insert(host.toLower());
+        noScriptMutex.unlock();
+    },Qt::QueuedConnection);
+
     QTimer::singleShot(1500,dictManager,[this](){
         dictManager->loadDictionaries(settings.dictPaths, settings.dictIndexDir);
     });
@@ -490,12 +505,7 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
         }
     }
 
-    // append unblocked url to cache
-    adblockWhiteListMutex.lock();
-    adblockWhiteList.append(u);
-    while(adblockWhiteList.count()>settings.maxAdblockWhiteList)
-        adblockWhiteList.removeFirst();
-    adblockWhiteListMutex.unlock();
+    emit addAdBlockWhiteListUrl(u);
 
     return false;
 }
@@ -508,12 +518,9 @@ bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
     const QString host = url.host();
     const QString key = origin.toString(CSettings::adblockUrlFmt);
 
-    noScriptMutex.lock();
-    pageScriptHosts[key].insert(host.toLower());
-    bool block = !(noScriptWhiteList.contains(host));
-    noScriptMutex.unlock();
+    emit addNoScriptPageHost(key, host);
 
-    return block;
+    return !(noScriptWhiteList.contains(host));
 }
 
 void CGlobalControl::adblockAppend(const QString& url)
