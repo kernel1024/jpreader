@@ -7,6 +7,7 @@
 #include <QAtomicInteger>
 #include <QMutex>
 #include <QUrl>
+#include <QJsonDocument>
 #include <snviewer.h>
 #include <structures.h>
 
@@ -27,6 +28,9 @@ private:
     QString m_html;
 
     void handleImages(const QStringList& imgs);
+    QString parseJsonNovel(const QString& novelId, const QString& html, QStringList& tags,
+                           QString& author, QString& authorNum, QString& title);
+    QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);

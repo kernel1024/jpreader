@@ -4,6 +4,10 @@
 #include <QUrlQuery>
 #include <QFileInfo>
 #include <QBuffer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
 
 #include "pixivnovelextractor.h"
 #include "genericfuncs.h"
@@ -31,6 +35,10 @@ void CPixivNovelExtractor::novelLoadFinished()
 
     if (rpl->error() == QNetworkReply::NoError) {
         QString html = QString::fromUtf8(rpl->readAll());
+
+        QUrl origin = rpl->url();
+        QUrlQuery qr(origin);
+        QString novelId = qr.queryItemValue(QStringLiteral("id"));
 
         QString wtitle = m_title;
         if (wtitle.isEmpty())
@@ -78,11 +86,30 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QRegExp rx(QStringLiteral("<textarea[^>]*id=\"novel_text\"[^>]*>"),Qt::CaseInsensitive);
         int idx = rx.indexIn(html);
-        if (idx<0) return;
-        html.remove(0,idx+rx.matchedLength());
-        idx = html.indexOf(QStringLiteral("</textarea>"),0,Qt::CaseInsensitive);
-        if (idx>=0)
-            html.truncate(idx);
+        if (idx<0) {
+            // something wrong here - try pixiv novel JSON parser
+            idx = html.indexOf(QStringLiteral("{token:"));
+            if (idx<=0) {
+                // something very wrong here
+                html = tr("Unable to extract novel. Unknown page structure.");
+            } else {
+                html.remove(0,idx);
+                idx = html.indexOf(QStringLiteral("</script>"));
+                if (idx>=0)
+                    html.truncate(idx);
+                idx = html.lastIndexOf(QStringLiteral("})"));
+                if (idx>0)
+                    html.truncate(idx+1);
+
+                html = parseJsonNovel(novelId,html,tags,hauthor,hauthornum,htitle);
+
+            }
+        } else {
+            html.remove(0,idx+rx.matchedLength());
+            idx = html.indexOf(QStringLiteral("</textarea>"),0,Qt::CaseInsensitive);
+            if (idx>=0)
+                html.truncate(idx);
+        }
 
         QRegExp rbrx(QStringLiteral("\\[\\[rb\\:.*\\]\\]"));
         rbrx.setMinimal(true);
@@ -113,7 +140,7 @@ void CPixivNovelExtractor::novelLoadFinished()
         }
 
         m_title = wtitle;
-        m_origin = rpl->url();
+        m_origin = origin;
         handleImages(imgs);
 
         if (!tags.isEmpty())
@@ -338,4 +365,114 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
 
         connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
     }
+}
+
+QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& source, const QString& start)
+{
+    QJsonDocument doc;
+
+    const QByteArray baStart = start.toUtf8();
+    int idx = source.indexOf(baStart);
+    if (idx<0) {
+        doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
+        return doc;
+    }
+    QByteArray cnt = source.mid(idx+baStart.size()-1);
+
+    QJsonParseError err {};
+    doc = QJsonDocument::fromJson(cnt,&err);
+    if (doc.isNull()) {
+        if (err.error == QJsonParseError::GarbageAtEnd) {
+            cnt.truncate(err.offset);
+        } else {
+            const QString s = QStringLiteral(R"({"error":"JSON parser error %1 at %2."})")
+                              .arg(err.error)
+                              .arg(err.offset);
+            doc = QJsonDocument::fromJson(s.toUtf8());
+            return doc;
+        }
+    }
+    // try again
+    doc = QJsonDocument::fromJson(cnt,&err);
+    if (doc.isNull()) {
+        const QString s = QStringLiteral(R"({"error":"JSON reparser error %1 at %2."})")
+                          .arg(err.error)
+                          .arg(err.offset);
+        doc = QJsonDocument::fromJson(s.toUtf8());
+        return doc;
+    }
+
+    return doc;
+}
+
+QString CPixivNovelExtractor::parseJsonNovel(const QString &novelId, const QString &html,
+                                             QStringList &tags, QString &author,
+                                             QString &authorNum, QString &title)
+{
+    QByteArray cnt = html.toUtf8();
+    QString res;
+
+    QJsonDocument doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(novelId));
+    if (doc.isObject()) {
+        QJsonObject obj = doc.object();
+
+        QJsonValue v = obj.value(QStringLiteral("error"));
+        if (v.isString()) {
+            res = QStringLiteral("Novel extractor error: %1").arg(v.toString());
+            return res;
+        }
+
+        v = obj.value(QStringLiteral("content"));
+        if (v.isString())
+            res = v.toString();
+
+        v = obj.value(QStringLiteral("title"));
+        if (v.isString())
+            title = v.toString();
+
+        v = obj.value(QStringLiteral("userId"));
+        if (v.isString())
+            authorNum = v.toString();
+
+        v = obj.value(QStringLiteral("tags"));
+        if (v.isObject()) {
+            QJsonObject tobj = v.toObject();
+            v = tobj.value(QStringLiteral("tags"));
+            if (v.isArray()) {
+                const QJsonArray vtags = v.toArray();
+                for(const auto &tag : vtags) {
+                    if (tag.isObject()) {
+                        tobj = tag.toObject();
+                        QJsonValue vt = tobj.value("tag");
+                        if (vt.isString())
+                            tags.append(vt.toString());
+                    }
+                }
+            }
+        }
+
+    } else {
+        res = tr("ERROR: Unable to find novel subdocument.");
+        return res;
+    }
+
+    doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(authorNum));
+    if (doc.isObject()) {
+        QJsonObject obj = doc.object();
+
+        QJsonValue v = obj.value(QStringLiteral("error"));
+        if (v.isString()) {
+            res = QStringLiteral("Author parser error: %1").arg(v.toString());
+            return res;
+        }
+
+        v = obj.value(QStringLiteral("name"));
+        if (v.isString())
+            author = v.toString();
+    } else {
+        res = tr("ERROR: Unable to find author subdocument.");
+        return res;
+    }
+
+    return res;
 }
