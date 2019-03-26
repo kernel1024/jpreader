@@ -111,9 +111,7 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
-#if QT_VERSION >= 0x050800
     webProfile->setSpellCheckEnabled(false);
-#endif
 
     webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
     webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);

@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QMutex>
+#include <QMutexLocker>
 #include <QTcpServer>
 #include <QRegExp>
 #include <QtTest>
@@ -31,7 +32,23 @@ static QSize saveFileDialogSize = QSize();
 
 bool runnedFromQtCreator()
 {
-    return qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE");
+    static int ppid = -1;
+    static bool res = true;
+    static QMutex mtx;
+    QMutexLocker locker(&mtx);
+
+    int tpid = getppid();
+    if (tpid==ppid)
+        return res;
+
+    ppid = tpid;
+    if (ppid>0) {
+        QFileInfo fi(QFile::symLinkTarget(QStringLiteral("/proc/%1/exe").arg(ppid)));
+        res = (fi.fileName().contains(QStringLiteral("creator"),Qt::CaseInsensitive) ||
+               (fi.fileName().compare(QStringLiteral("gdb"))==0));
+    }
+
+    return res;
 }
 
 int getRandomTCPPort()
