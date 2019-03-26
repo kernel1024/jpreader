@@ -24,11 +24,11 @@ private:
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
     QUrl m_origin;
-
+    QString m_novelId;
     QString m_html;
 
     void handleImages(const QStringList& imgs);
-    QString parseJsonNovel(const QString& novelId, const QString& html, QStringList& tags,
+    QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
     QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
 

@@ -4,6 +4,8 @@
 #include <QUrlQuery>
 #include <QFileInfo>
 #include <QBuffer>
+#include <QImage>
+#include <QTimer>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -38,7 +40,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QUrl origin = rpl->url();
         QUrlQuery qr(origin);
-        QString novelId = qr.queryItemValue(QStringLiteral("id"));
+        m_novelId = qr.queryItemValue(QStringLiteral("id"));
 
         QString wtitle = m_title;
         if (wtitle.isEmpty())
@@ -101,7 +103,7 @@ void CPixivNovelExtractor::novelLoadFinished()
                 if (idx>0)
                     html.truncate(idx+1);
 
-                html = parseJsonNovel(novelId,html,tags,hauthor,hauthornum,htitle);
+                html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle);
 
             }
         } else {
@@ -171,10 +173,17 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
     if (rpl)
         msg.append(QStringLiteral(" %1").arg(rpl->errorString()));
 
+    qCritical() << msg;
+
     QWidget *w = nullptr;
-    if (m_snv)
+    QObject *ctx = qApp;
+    if (m_snv) {
         w = m_snv->parentWnd;
-    QMessageBox::warning(w,tr("JPReader"),msg);
+        ctx = m_snv;
+    }
+    QTimer::singleShot(0,ctx,[msg,w](){
+        QMessageBox::warning(w,tr("JPReader"),msg);
+    });
     deleteLater();
 }
 
@@ -185,7 +194,8 @@ void CPixivNovelExtractor::subLoadFinished()
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl==nullptr) return;
 
-    QUrlQuery qr(rpl->url());
+    QUrl rplUrl = rpl->url();
+    QUrlQuery qr(rplUrl);
     QString key = qr.queryItemValue(QStringLiteral("illust_id"));
     QString mode = qr.queryItemValue(QStringLiteral("mode"));
     bool mediumMode = (QStringLiteral("medium").compare(mode,Qt::CaseInsensitive) == 0);
@@ -227,10 +237,12 @@ void CPixivNovelExtractor::subLoadFinished()
             if (gSet->settings.pixivFetchImages &&
                     supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
                 m_worksImgFetch++;
-                QNetworkRequest req(url);
-                req.setRawHeader("referer",rpl->url().toString().toUtf8());
-                QNetworkReply *rplImg = gSet->auxNetManager->get(req);
-                connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
+                QTimer::singleShot(0,gSet->auxNetManager,[this,url,rplUrl]{
+                    QNetworkRequest req(url);
+                    req.setRawHeader("referer",rplUrl.toString().toUtf8());
+                    QNetworkReply *rplImg = gSet->auxNetManager->get(req);
+                    connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
+                });
             }
         }
         m_imgMutex.unlock();
@@ -239,19 +251,19 @@ void CPixivNovelExtractor::subLoadFinished()
         if (vstatus.isValid()) {
             bool ok;
             int status = vstatus.toInt(&ok);
-            if (ok && status>=400 && status<500) {
-                // not found... try single page load
+            if (ok && (!mediumMode) && status>=400 && status<500) {
+                // not found in multi mode... try single page load
                 QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
                 QUrlQuery qr;
                 qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("medium"));
                 qr.addQueryItem(QStringLiteral("illust_id"),key);
                 url.setQuery(qr);
-                QNetworkRequest req(url);
-                req.setRawHeader("referer",m_origin.toString().toUtf8());
-                QNetworkReply* nrpl = gSet->auxNetManager->get(req);
-
-                connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-
+                QTimer::singleShot(0,gSet->auxNetManager,[this,url]{
+                    QNetworkRequest req(url);
+                    req.setRawHeader("referer",m_origin.toString().toUtf8());
+                    QNetworkReply* nrpl = gSet->auxNetManager->get(req);
+                    connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+                });
                 rpl->deleteLater();
                 return;
             }
@@ -359,11 +371,12 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
         qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("manga"));
         qr.addQueryItem(QStringLiteral("illust_id"),it.key());
         url.setQuery(qr);
-        QNetworkRequest req(url);
-        req.setRawHeader("referer",m_origin.toString().toUtf8());
-        QNetworkReply* rpl = gSet->auxNetManager->get(req);
-
-        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+        QTimer::singleShot(0,gSet->auxNetManager,[this,url]{
+            QNetworkRequest req(url);
+            req.setRawHeader("referer",m_origin.toString().toUtf8());
+            QNetworkReply* rpl = gSet->auxNetManager->get(req);
+            connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+        });
     }
 }
 
@@ -405,14 +418,14 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
     return doc;
 }
 
-QString CPixivNovelExtractor::parseJsonNovel(const QString &novelId, const QString &html,
-                                             QStringList &tags, QString &author,
-                                             QString &authorNum, QString &title)
+QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &tags,
+                                             QString &author, QString &authorNum,
+                                             QString &title)
 {
     QByteArray cnt = html.toUtf8();
     QString res;
 
-    QJsonDocument doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(novelId));
+    QJsonDocument doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(m_novelId));
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 

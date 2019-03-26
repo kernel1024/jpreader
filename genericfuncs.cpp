@@ -220,8 +220,7 @@ QString makeSimpleHtml(const QString &title, const QString &content,
         cn.append(QStringLiteral("<h3>"));
         if (!origin.isEmpty())
             cn.append(QStringLiteral("<a href=\"%1\">%2</a>")
-                      .arg(origin.toString(QUrl::FullyEncoded))
-                      .arg(title));
+                      .arg(origin.toString(QUrl::FullyEncoded),title));
         cn.append(QStringLiteral("</h3>"));
     }
     cn.append(cnt);
