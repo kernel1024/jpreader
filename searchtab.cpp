@@ -218,6 +218,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
         QStringList sl = model->getDistinctValues(QStringLiteral("Dir"));
         if (!sl.isEmpty()) {
             QMenu *cmf = cm.addMenu(tr("Filter"));
+            cmf->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
             QAction *ac = cmf->addAction(tr("Clear filter"),this,&CSearchTab::applyFilter);
             ac->setData(QString());
             cmf->addSeparator();
