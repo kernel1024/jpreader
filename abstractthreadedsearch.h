@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include "structures.h"
 
 
 class CAbstractThreadedSearch : public QObject
@@ -16,7 +17,7 @@ public:
     explicit CAbstractThreadedSearch(QObject *parent = nullptr);
 
 signals:
-    void addHit(const QString &fileName, const QString &title, double rel, const QString &snippet);
+    void addHit(const CStringHash &meta);
     void finished();
 
 public slots:

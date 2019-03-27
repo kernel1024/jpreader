@@ -1,5 +1,7 @@
 #include <QMessageBox>
 #include <QTextCodec>
+#include <QUrl>
+#include <QDesktopServices>
 #include <cmath>
 #include "searchtab.h"
 #include "ui_searchtab.h"
@@ -7,6 +9,7 @@
 #include "snviewer.h"
 #include "genericfuncs.h"
 #include "abstracttranslator.h"
+#include "ui_hashviewer.h"
 
 CSearchTab::CSearchTab(CMainWindow *parent) :
     CSpecTabContainer(parent),
@@ -24,14 +27,16 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     selectFile();
 
     ui->listResults->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->listResults->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listResults,&QTableView::customContextMenuRequested,
+            this,&CSearchTab::snippetMenu);
 
     ui->translateFrame->hide();
 
     model = new CSearchModel(this,ui->listResults);
-    sort = new QSortFilterProxyModel(this);
+    sort = new QSortFilterProxyModel;
     sort->setSourceModel(model);
     sort->setSortRole(Qt::UserRole + cpSortRole);
-    sort->setFilterRole(Qt::UserRole + cpFilterRole);
     ui->listResults->setModel(sort);
 
     ui->searchBar->hide();
@@ -152,10 +157,10 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
             ui->listResults->setColumnWidth(i,400);
     }
 
-    QString elapsed = QString(stats[QStringLiteral("Elapsed time")])
+    QString elapsed = QString(stats[QStringLiteral("jp:elapsedtime")])
                       .remove(QRegExp(QStringLiteral("[s]")));
     QString statusmsg(tr("Found %1 results at %2 seconds").
-            arg(stats[QStringLiteral("Total hits")],elapsed));
+            arg(stats[QStringLiteral("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
     parentWnd->stSearchStatus.setText(tr("Ready"));
     parentWnd->updateTitle();
@@ -171,7 +176,7 @@ void CSearchTab::translateTitles()
     QStringList titles;
     titles.reserve(model->rowCount());
     for (int i=0;i<model->rowCount();i++)
-        titles << model->getSnippet(i).value(QStringLiteral("dc:title"));
+        titles << model->getSnippet(i).value(QStringLiteral("title"));
 
     emit translateTitlesSrc(titles);
 }
@@ -187,9 +192,9 @@ void CSearchTab::gotTitleTranslation(const QStringList &res)
 
     for (int i=0;i<res.count();i++) {
         CStringHash snip = model->getSnippet(i);
-        if (!snip.contains(QStringLiteral("dc:title:saved")))
-            snip[QStringLiteral("dc:title:saved")]=snip[QStringLiteral("dc:title")];
-        snip[QStringLiteral("dc:title")]=res.at(i);
+        if (!snip.contains(QStringLiteral("title:saved")))
+            snip[QStringLiteral("title:saved")]=snip[QStringLiteral("title")];
+        snip[QStringLiteral("title")]=res.at(i);
         model->setSnippet(i,snip);
     }
 }
@@ -215,7 +220,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
     QMenu cm(this);
 
     if (column == 2) { // Directory filter
-        QStringList sl = model->getDistinctValues(QStringLiteral("Dir"));
+        QStringList sl = model->getDistinctValues(QStringLiteral("jp:dir"));
         if (!sl.isEmpty()) {
             QMenu *cmf = cm.addMenu(tr("Filter"));
             cmf->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
@@ -234,18 +239,58 @@ void CSearchTab::headerMenu(const QPoint &pos)
     cm.exec(hh->mapToGlobal(pos));
 }
 
+void CSearchTab::snippetMenu(const QPoint &pos)
+{
+    if (model->rowCount()==0) return;
+    const CStringHash sh = model->getSnippet(sort->mapToSource(ui->listResults->indexAt(pos)));
+    if (sh.isEmpty()) return;
+
+    const QFileInfo fi(sh[QStringLiteral("jp:fullfilename")]);
+
+    QMenu cm(this);
+
+    if (fi.isFile() && fi.exists()) {
+        cm.addAction(QIcon::fromTheme("fork"),tr("Open with default DE action"),[fi](){
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fi.filePath()));
+        });
+        cm.addAction(QIcon::fromTheme("document-open-folder"),tr("Open containing directory"),[fi](){
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fi.path()));
+        });
+        cm.addSeparator();
+    }
+    cm.addAction(QIcon::fromTheme("document-properties"),tr("Show indexer data..."),[this,sh](){
+        QDialog *dlg = new QDialog(this);
+        Ui::HashViewerDialog ui;
+        dlg->setWindowTitle(tr("Document properties"));
+        ui.setupUi(dlg);
+        ui.label->setText(tr("<b>Title:</b> %1")
+                           .arg(elideString(sh[QStringLiteral("title")],100)));
+        ui.table->clear();
+        ui.table->setColumnCount(2);
+        ui.table->setRowCount(sh.size());
+        ui.table->setHorizontalHeaderLabels(QStringList() << tr("Property") << tr("Value"));
+
+        int row = 0;
+        for (auto it = sh.constKeyValueBegin(), end = sh.constKeyValueEnd(); it != end; ++it, ++row) {
+            ui.table->setItem(row,0,new QTableWidgetItem((*it).first));
+            ui.table->setItem(row,1,new QTableWidgetItem((*it).second));
+        }
+        ui.table->resizeColumnsToContents();
+
+        dlg->exec();
+        dlg->setParent(nullptr);
+        dlg->deleteLater();
+    });
+
+    cm.exec(ui->listResults->mapToGlobal(pos));
+}
+
 void CSearchTab::applyFilter()
 {
     auto ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
-    QString dir = ac->data().toString();
-    if (dir.isEmpty())
-        sort->setFilterRegExp(QRegExp());
-    else {
-        sort->setFilterKeyColumn(2);
-        sort->setFilterFixedString(dir);
-    }
+    model->setFilter(ac->data().toString());
 }
 
 void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &)
@@ -334,23 +379,23 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         int row = sort->mapToSource(index).row();
         if ((row < 0) || (row >= model->rowCount())) return;
         CStringHash snip = model->getSnippet(row);
-        QString s = snip[QStringLiteral("Snip")];
+        QString s = snip[QStringLiteral("abstract")];
         QString tranState = bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
-        if (s.isEmpty() || tranState!=snip.value(QStringLiteral("SnipTran"))) {
-            s = createSpecSnippet(snip[QStringLiteral("FullFilename")],false,s);
-            snip[QStringLiteral("Snip")]=s;
-            snip[QStringLiteral("SnipUntran")]=
-                    createSpecSnippet(snip[QStringLiteral("FullFilename")],true,s);
-            snip[QStringLiteral("SnipTran")]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
+        if (s.isEmpty() || tranState!=snip.value(QStringLiteral("abstract:tran"))) {
+            s = createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
+            snip[QStringLiteral("abstract")]=s;
+            snip[QStringLiteral("abstract:untran")]=
+                    createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],true,s);
+            snip[QStringLiteral("abstract:tran")]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
         s=QStringLiteral("<font size='+1'>%1</font>").arg(s);
         ui->snippetBrowser->setHtml(s);
         if (gSet->ui.actionSnippetAutotranslate->isChecked() &&
-            snip.value(QStringLiteral("Snip"))!=snip.value(QStringLiteral("SnipUntran")))
-            ui->snippetBrowser->setToolTip(snip.value(QStringLiteral("SnipUntran")));
+            snip.value(QStringLiteral("abstract"))!=snip.value(QStringLiteral("abstract:untran")))
+            ui->snippetBrowser->setToolTip(snip.value(QStringLiteral("abstract:untran")));
 
-        selectFile(snip[QStringLiteral("Uri")], snip[QStringLiteral("DisplayFilename")]);
+        selectFile(snip[QStringLiteral("url")], snip[QStringLiteral("jp:fullfilename")]);
     }
 }
 

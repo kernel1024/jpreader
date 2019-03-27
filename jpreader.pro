@@ -109,7 +109,8 @@ FORMS = main.ui \
     selectablelistdlg.ui \
     bookmarks.ui \
     addbookmarkdialog.ui \
-    noscriptdialog.ui
+    noscriptdialog.ui \
+    hashviewer.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
 

@@ -14,8 +14,10 @@ class CSearchModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
-    QVector<CStringHash> snippets;
-    QTableView *table;
+    QVector<CStringHash> m_snippets;
+    QTableView *m_table;
+    QVector<int> m_filterList;
+    QString m_filter;
 
 public:
     CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
@@ -26,8 +28,8 @@ public:
     int rowCount( const QModelIndex & parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent) const;
     CStringHash getSnippet(int idx) const;
+    CStringHash getSnippet(const QModelIndex& index) const;
     void setSnippet(int idx, const CStringHash &snippet);
-    QStringList getSnippetKeys(int idx);
     QStringList getDistinctValues(const QString &snippetKey);
 
 signals:
@@ -37,6 +39,7 @@ public slots:
     void deleteAllItems();
     void addItem(const CStringHash& srcSnippet);
     void addItems(const QVector<CStringHash> &srcSnippets);
+    void setFilter(const QString& text);
 
 };
 

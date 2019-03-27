@@ -22,7 +22,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
         else
             engine = new CBaloo5Search();
         connect(engine,&CAbstractThreadedSearch::addHit,
-                this,&CIndexerSearch::auxAddHit,Qt::QueuedConnection);
+                this,&CIndexerSearch::addHit,Qt::QueuedConnection);
         connect(engine,&CAbstractThreadedSearch::finished,
                 this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
         connect(this,&CIndexerSearch::startThreadedSearch,
@@ -81,72 +81,48 @@ int CIndexerSearch::getCurrentIndexerService()
     return indexerSerivce;
 }
 
-void CIndexerSearch::addHitFS(const QFileInfo &hit, const QString &title,
-                              double rel, const QString &snippet)
+void CIndexerSearch::addHit(const CStringHash &meta)
 {
-    // get URI and file info
-    QString w = hit.absoluteFilePath();
-    double nhits = -1.0;
-    QString ftitle;
-    bool relPercent = false;
+    CStringHash result = meta;
 
-    // use indexer file info from search engine (if available)
-    if (rel>=0.0) {
-        ftitle = title;
-        nhits = rel;
-        relPercent = true;
-    } else
-        processFile(w,nhits,ftitle);
+    QFileInfo fi(result.value(QStringLiteral("jp:fullfilename")));
+    if (!result.contains(QStringLiteral("url")))
+        result[QStringLiteral("uri")] = QStringLiteral("file://%1")
+                                        .arg(fi.absoluteFilePath());
 
-    if (nhits<0.01) return;
+    if (!result.contains(QStringLiteral("relevancyrating"))) {
+        int nhits = -1;
+        QString ftitle;
 
-    QString fileName = hit.fileName();
+        processFile(fi.absoluteFilePath(),nhits,ftitle);
+        if (nhits<0) return;
 
-    if (ftitle.isEmpty())
-        ftitle = fileName;
+        result[QStringLiteral("relevancyrating")]=QString::number(nhits);
+        result[QStringLiteral("title")]=ftitle;
+    }
 
-    CStringHash result;
+    result[QStringLiteral("jp:filepath")] = fi.path();
+    result[QStringLiteral("jp:dir")] = fi.absoluteDir().dirName();
 
-    result[QStringLiteral("Uri")] = QStringLiteral("file://%1").arg(w);
-    result[QStringLiteral("FullFilename")] = w;
-    result[QStringLiteral("DisplayFilename")] = w;
-    result[QStringLiteral("FilePath")] = hit.path();
-    result[QStringLiteral("FileSize")] = QStringLiteral("%L1 Kb")
-                                         .arg(static_cast<double>(hit.size())/1024.0, 0, 'f', 1);
-    result[QStringLiteral("FileSizeNum")] = QString::number(hit.size());
-    result[QStringLiteral("OnlyFilename")] = fileName;
-    result[QStringLiteral("Dir")] = QDir(hit.dir()).dirName();
+    if (!result.contains(QStringLiteral("fbytes")))
+        result[QStringLiteral("fbytes")] = QString::number(fi.size());
 
-    // extract base properties (score, type etc)
-    result[QStringLiteral("Score")]=QString::number(nhits,'f',4);
-    result[QStringLiteral("MimeT")]=QString();
+    if (!result.contains(QStringLiteral("filename")))
+        result[QStringLiteral("filename")] = fi.fileName();
 
-    QDateTime dtm=hit.lastModified();
-    result[QStringLiteral("Time")]=dtm.toString(QStringLiteral("yyyy-MM-dd hh:mm:ss"))
-                                   + QStringLiteral(" (Utc)");
-
-    result[QStringLiteral("dc:title")]=ftitle;
-    result[QStringLiteral("Filename")]= fileName;
-    result[QStringLiteral("FileTitle")] = fileName;
-
-    if (relPercent)
-        result[QStringLiteral("relMode")]=QStringLiteral("percent");
-    else
-        result[QStringLiteral("relMode")]=QStringLiteral("count");
-
-    if (!snippet.isEmpty())
-        result[QStringLiteral("Snip")]=snippet;
+    if (!result.contains(QStringLiteral("title")))
+        result[QStringLiteral("title")]=fi.fileName();
 
     resultCount++;
     emit gotResult(result);
 }
 
-void CIndexerSearch::processFile(const QString &filename, double &hitRate, QString &title)
+void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString &title)
 {
     QFileInfo fi(filename);
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        hitRate = -1.0;
+        hitRate = -1;
         title = fi.fileName();
         return;
     }
@@ -175,11 +151,11 @@ void CIndexerSearch::processFile(const QString &filename, double &hitRate, QStri
     fc.clear();
 }
 
-double CIndexerSearch::calculateHitRate(const QString &fc)
+int CIndexerSearch::calculateHitRate(const QString &fc)
 {
 
     QStringList ql = m_query.split(' ');
-    double hits = 0.0;
+    int hits = 0;
     for(int i=0;i<ql.count();i++)
         hits += fc.count(ql.at(i),Qt::CaseInsensitive);
     return hits;
@@ -197,15 +173,8 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
     fl = dir.entryInfoList(anyFile,QDir::Files | QDir::Readable | QDir::NoDotAndDotDot);
     for (int i=0;i<fl.count();i++) {
         if (!(fl.at(i).isFile() && fl.at(i).isReadable())) continue;
-        addHitFS(fl.at(i));
+        addHit({ { QStringLiteral("jp:fullfilename"),fl.at(i).absoluteFilePath() } });
     }
-}
-
-void CIndexerSearch::auxAddHit(const QString &fileName, const QString &title,
-                               double rel, const QString& snippet)
-{
-    QFileInfo fi(fileName);
-    addHitFS(fi,title,rel,snippet);
 }
 
 void CIndexerSearch::engineFinished()
@@ -214,8 +183,8 @@ void CIndexerSearch::engineFinished()
     working = false;
 
     CStringHash stats;
-    stats[QStringLiteral("Elapsed time")] = QString::number(
+    stats[QStringLiteral("jp:elapsedtime")] = QString::number(
                 static_cast<double>(searchTimer.elapsed())/1000,'f',3);
-    stats[QStringLiteral("Total hits")] = QString::number(resultCount);
+    stats[QStringLiteral("jp:totalhits")] = QString::number(resultCount);
     emit searchFinished(stats,m_query);
 }

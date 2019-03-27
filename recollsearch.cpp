@@ -24,33 +24,27 @@ void CRecollSearch::recollReadyRead()
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
+    QRegExp rxname("[a-z]+");
 
     for(int i=0;i<outList.count();i++) {
-
         QString s = outList.at(i).trimmed();
         QStringList sl = s.split(' ');
+        CStringHash snip;
 
-        if (sl.count() != 4) continue; // must be 4 elements
+        if ((sl.count() % 2) != 0) continue; // must be even elements
+        if (!rxname.exactMatch(sl.first())) continue; // must be started with field name
 
-        QString fname = QString();
-        double rel = 0.0;
+        int idx = 0;
+        while (idx<sl.count()) {
+            QString name = sl.at(idx++).trimmed();
+            snip[name] = strFromBase64(sl.at(idx++)).trimmed();
+        }
 
-        QUrl u = QUrl(strFromBase64(sl.at(0)));
+        QUrl u = QUrl(snip.value(QStringLiteral("url")));
         if (u.isValid() && u.isLocalFile())
-            fname = u.toLocalFile();
+            snip[QStringLiteral("jp:fullfilename")] = u.toLocalFile();
 
-        QString title = strFromBase64(sl.at(1));
-
-        QString p = strFromBase64(sl.at(2)).trimmed();
-        p.remove('%');
-        bool ok;
-        int ip = p.toInt(&ok);
-        if (ok)
-            rel = static_cast<double>(ip)/100.0;
-
-        QString snippet = strFromBase64(sl.at(3)).trimmed();
-
-        emit addHit(fname,title,rel,snippet);
+        emit addHit(snip);
     }
 }
 
@@ -75,13 +69,12 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
     connect(recoll,&QProcess::readyReadStandardOutput,
             this,&CRecollSearch::recollReadyRead);
 
-    connect(recoll,QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    connect(recoll,qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
             this,&CRecollSearch::recollFinished);
 
     recoll->start(QStringLiteral("recoll"),QStringList() << QStringLiteral("-n")
                   << QString::number(maxLimit) << QStringLiteral("-t")
-                  << QStringLiteral("-F")
-                  << QStringLiteral("url caption relevancyrating abstract")
+                  << QStringLiteral("-F") << QString() << QStringLiteral("-N")
                   << QStringLiteral("-q") << qr);
 
     recoll->waitForStarted();

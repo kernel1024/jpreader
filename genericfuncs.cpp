@@ -323,6 +323,32 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
+QString formatSize(const QString& size)
+{
+    bool ok;
+    qint64 sz = size.toLong(&ok);
+    if (ok)
+        return formatSize(sz);
+
+    return size;
+}
+
+QString formatSize(qint64 size)
+{
+    if (size<1024) return QStringLiteral("%1 bytes").arg(size);
+    if (size<1024*1024) return QStringLiteral("%1 Kb").arg(size/1024);
+    if (size<1024*1024*1024) return QStringLiteral("%1 Mb").arg(size/(1024*1024));
+    return QStringLiteral("%1 Gb").arg(size/(1024*1024*1024));
+}
+
+QString elideString(const QString& text, int maxlen)
+{
+    if (text.length()<maxlen)
+        return text;
+
+    return QStringLiteral("%1...").arg(text.left(maxlen));
+}
+
 QString highlightSnippet(const QString& snippet, const QStringList& terms)
 {
     QString res = snippet;

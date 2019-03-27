@@ -35,10 +35,8 @@ private:
     int indexerSerivce;
     bool working;
     int resultCount;
-    void addHitFS(const QFileInfo &hit, const QString &title=QString(),
-                  double rel=-1.0, const QString& snippet = QString());
-    void processFile(const QString &filename, double &hitRate, QString &title);
-    double calculateHitRate(const QString &fc);
+    void processFile(const QString &filename, int &hitRate, QString &title);
+    int calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);
 
 signals:
@@ -51,7 +49,7 @@ signals:
 public slots:
     void engineFinished();
     void doSearch(const QString &searchTerm, const QDir &searchDir);
-    void auxAddHit(const QString &fileName, const QString &title, double rel, const QString& snippet);
+    void addHit(const CStringHash &meta);
 
 };
 

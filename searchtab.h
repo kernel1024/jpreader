@@ -60,6 +60,7 @@ public slots:
     void gotTitleTranslation(const QStringList &res);
     void updateProgress(const int pos);
     void headerMenu(const QPoint& pos);
+    void snippetMenu(const QPoint& pos);
     void applyFilter();
     void applySnippet(const QItemSelection & selected, const QItemSelection & deselected);
     void gotSearchResult(const CStringHash &item);
