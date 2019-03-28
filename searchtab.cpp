@@ -261,8 +261,8 @@ void CSearchTab::snippetMenu(const QPoint &pos)
     cm.addAction(QIcon::fromTheme("document-properties"),tr("Show indexer data..."),[this,sh](){
         QDialog *dlg = new QDialog(this);
         Ui::HashViewerDialog ui;
-        dlg->setWindowTitle(tr("Document properties"));
         ui.setupUi(dlg);
+        dlg->setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
                            .arg(elideString(sh[QStringLiteral("title")],100)));
         ui.table->clear();
@@ -382,10 +382,11 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         QString s = snip[QStringLiteral("abstract")];
         QString tranState = bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
         if (s.isEmpty() || tranState!=snip.value(QStringLiteral("abstract:tran"))) {
-            s = createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
-            snip[QStringLiteral("abstract")]=s;
             snip[QStringLiteral("abstract:untran")]=
                     createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],true,s);
+            snip[QStringLiteral("abstract")]=
+                    createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
+            s = snip[QStringLiteral("abstract")];
             snip[QStringLiteral("abstract:tran")]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
