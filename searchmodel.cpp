@@ -44,8 +44,8 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (index.column()==2) // show full path in tooltips
             return m_snippets[idx][QStringLiteral("jp:filepath")];
-        if (m_snippets[idx].contains(QStringLiteral("dc:title:saved")))
-            return m_snippets[idx][QStringLiteral("dc:title:saved")];
+        if (m_snippets[idx].contains(QStringLiteral("title:saved")))
+            return m_snippets[idx][QStringLiteral("title:saved")];
 
     } else if (role == Qt::UserRole + cpSortRole) {
         switch (index.column()) {
