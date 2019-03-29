@@ -38,6 +38,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     sort->setSourceModel(model);
     sort->setSortRole(Qt::UserRole + cpSortRole);
     ui->listResults->setModel(sort);
+    ui->listResults->sortByColumn(1,Qt::DescendingOrder);
 
     ui->searchBar->hide();
 
@@ -148,8 +149,6 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
     }
 
     titleTran->stop();
-
-    ui->listResults->sortByColumn(2,Qt::AscendingOrder);
 
     ui->listResults->resizeColumnsToContents();
     for (int i=0;i<model->columnCount(QModelIndex());i++) {
