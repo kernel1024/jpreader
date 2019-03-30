@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
-    <height>359</height>
+    <width>702</width>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="editSource"/>
+    <widget class="JSEdit" name="editSource"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -46,6 +46,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>JSEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header location="global">jsedit/jsedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

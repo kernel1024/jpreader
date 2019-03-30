@@ -644,15 +644,19 @@ void CSettingsDlg::setDefaultSearch()
 
 void CSettingsDlg::addUserScript()
 {
+    static QSize addScriptDlgSize;
     QDialog *dlg = new QDialog(this);
     Ui::UserScriptEditorDlg dui;
     dui.setupUi(dlg);
+    if (!addScriptDlgSize.isEmpty())
+        dlg->resize(addScriptDlgSize);
 
     if (dlg->exec()==QDialog::Accepted) {
         QListWidgetItem *itm = new QListWidgetItem(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
         ui->listUserScripts->addItem(itm);
     }
+    addScriptDlgSize = dlg->size();
     dlg->setParent(nullptr);
     dlg->deleteLater();
 }
@@ -662,9 +666,12 @@ void CSettingsDlg::editUserScript()
     if (ui->listUserScripts->selectedItems().isEmpty()) return;
     QListWidgetItem *itm = ui->listUserScripts->selectedItems().first();
 
+    static QSize editScriptDlgSize;
     QDialog *dlg = new QDialog(this);
     Ui::UserScriptEditorDlg dui;
     dui.setupUi(dlg);
+    if (!editScriptDlgSize.isEmpty())
+        dlg->resize(editScriptDlgSize);
 
     dui.editTitle->setText(itm->text());
     dui.editSource->setPlainText(itm->data(Qt::UserRole).toString());
@@ -672,6 +679,7 @@ void CSettingsDlg::editUserScript()
         itm->setText(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
     }
+    editScriptDlgSize = dlg->size();
     dlg->setParent(nullptr);
     dlg->deleteLater();
 }

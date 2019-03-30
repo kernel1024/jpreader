@@ -42,7 +42,8 @@ HEADERS = mainwindow.h \
     edittreeview.h \
     xbel.h \
     pixivnovelextractor.h \
-    noscriptdialog.h
+    noscriptdialog.h \
+    jsedit/jsedit.h
 
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -89,7 +90,8 @@ SOURCES = main.cpp \
     edittreeview.cpp \
     xbel.cpp \
     pixivnovelextractor.cpp \
-    noscriptdialog.cpp
+    noscriptdialog.cpp \
+    jsedit/jsedit.cpp
 
 RESOURCES = \
     jpreader.qrc
