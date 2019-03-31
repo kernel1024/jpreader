@@ -54,6 +54,7 @@ public:
     InjectionTime getInjectionTime() const;
     bool isEnabledForUrl(const QUrl &url) const;
     bool shouldRunOnSubFrames() const;
+    bool shouldRunFromContextMenu() const;
 
 protected:
     bool checkUrl(const QUrl &url, const QStringList &rules) const;
@@ -71,6 +72,7 @@ private:
     QStringList m_matchRules;
     InjectionTime m_injectionTime;
     bool m_shouldRunOnSubFrames;
+    bool m_runFromContextMenu;
 
 };
 

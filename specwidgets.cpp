@@ -398,7 +398,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
         gSet->clearNoScriptPageHosts(url.toString(CSettings::adblockUrlFmt));
 
         // Userscripts
-        const QVector<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame));
+        const QVector<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame, false));
 
         if (!sl.isEmpty())
             scripts().clear();

@@ -66,7 +66,7 @@ public:
         FoldIndicator
     } ColorComponent;
 
-    JSEdit(QWidget *parent = 0);
+    JSEdit(QWidget *parent = nullptr);
     ~JSEdit();
 
     void setColor(ColorComponent component, const QColor &color);
@@ -104,8 +104,8 @@ private slots:
 
 private:
     QScopedPointer<JSEditPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(JSEdit);
-    Q_DISABLE_COPY(JSEdit);
+    Q_DECLARE_PRIVATE(JSEdit)
+    Q_DISABLE_COPY(JSEdit)
 };
 
 #endif // OFILABS_JSEDIT

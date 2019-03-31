@@ -27,6 +27,7 @@ public slots:
     void bookmarkPage();
     void showInEditor();
     void showSource();
+    void runJavaScript();
 signals:
     void startTranslation(bool deleteAfter);
     void hideTooltips();

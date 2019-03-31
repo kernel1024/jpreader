@@ -652,7 +652,7 @@ void CGlobalControl::removePassword(const QUrl &origin)
     params.endGroup();
 }
 
-QVector<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool isMainFrame)
+QVector<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu)
 {
     userScriptsMutex.lock();
 
@@ -660,7 +660,9 @@ QVector<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool 
 
     for (auto it = userScripts.constBegin(), end = userScripts.constEnd(); it != end; ++it)
         if (it.value().isEnabledForUrl(url) &&
-                (isMainFrame || it.value().shouldRunOnSubFrames()))
+                (isMainFrame || it.value().shouldRunOnSubFrames()) &&
+                ((isContextMenu && it.value().shouldRunFromContextMenu()) ||
+                 (!isContextMenu && !it.value().shouldRunFromContextMenu())))
             scripts.append(it.value());
 
     userScriptsMutex.unlock();

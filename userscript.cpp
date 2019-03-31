@@ -31,7 +31,8 @@
 CUserScript::CUserScript()
     : m_name(QString()),
       m_injectionTime(DocumentReadyTime),
-      m_shouldRunOnSubFrames(true)
+      m_shouldRunOnSubFrames(true),
+      m_runFromContextMenu(false)
 {
 
 }
@@ -50,11 +51,13 @@ CUserScript::CUserScript(const CUserScript &other)
     m_matchRules = other.m_matchRules;
     m_injectionTime = other.m_injectionTime;
     m_shouldRunOnSubFrames = other.m_shouldRunOnSubFrames;
+    m_runFromContextMenu = other.m_runFromContextMenu;
 }
 
 CUserScript::CUserScript(const QString &name, const QString &source)
     : m_injectionTime(DocumentReadyTime),
-      m_shouldRunOnSubFrames(true)
+      m_shouldRunOnSubFrames(true),
+      m_runFromContextMenu(false)
 {
     m_name = name;
     if (!source.isEmpty())
@@ -158,13 +161,16 @@ void CUserScript::setSource(const QString &src)
             m_shouldRunOnSubFrames = true;
         else if (keyword == QStringLiteral("run-at"))
         {
-            const QString injectionTime(line.section(' ', 1, -1));
+            const QString injectionTime(line.section(' ', 1, -1).trimmed());
 
             if (injectionTime == QStringLiteral("document-start"))
                 m_injectionTime = DocumentCreationTime;
             else if (injectionTime == QStringLiteral("document-idle"))
                 m_injectionTime = DeferredTime;
-            else
+            else if (injectionTime == QStringLiteral("context-menu")) {
+                m_runFromContextMenu = true;
+                m_injectionTime = DocumentReadyTime;
+            } else
                 m_injectionTime = DocumentReadyTime;
         }
         else if (keyword == QStringLiteral("updateURL"))
@@ -255,4 +261,9 @@ bool CUserScript::checkUrl(const QUrl &url, const QStringList &rules) const
 bool CUserScript::shouldRunOnSubFrames() const
 {
     return m_shouldRunOnSubFrames;
+}
+
+bool CUserScript::shouldRunFromContextMenu() const
+{
+    return m_runFromContextMenu;
 }

@@ -38,6 +38,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 {
     QString sText;
     QUrl linkUrl, imageUrl;
+    QUrl origin = snv->txtBrowser->page()->url();
+
     if (data.isValid()) {
         sText = data.selectedText();
         linkUrl = data.linkUrl();;
@@ -47,6 +49,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     QClipboard *cb = QApplication::clipboard();
     QAction *ac;
+    QMenu *ccm;
     auto cm = new QMenu(snv);
 
     if (linkUrl.isValid()) {
@@ -298,7 +301,17 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     cm->addSeparator();
 
-    if (gSet->settings.useNoScript ) {
+    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,true);
+    if (!scripts.isEmpty()) {
+        ccm = cm->addMenu(QIcon::fromTheme(QStringLiteral("run-build")),
+                          tr("Start user script"));
+        for (const auto& script : scripts) {
+            ac = ccm->addAction(script.getTitle());
+            ac->setData(script.getSource());
+        }
+        connect(ac,&QAction::triggered,this,&CSnCtxHandler::runJavaScript);
+    }
+    if (gSet->settings.useNoScript) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
                             tr("Enable scripts for this page..."), nullptr);
         connect(ac, &QAction::triggered, this, [this](){
@@ -311,8 +324,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             delete dlg;
         });
         cm->addAction(ac);
-        cm->addSeparator();
     }
+    if (!scripts.isEmpty() || gSet->settings.useNoScript)
+        cm->addSeparator();
+
     if (!linkUrl.isEmpty()) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
                             tr("Add AdBlock rule for link url..."), nullptr);
@@ -328,9 +343,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         cm->addSeparator();
     }
 
-    QMenu *ccm = cm->addMenu(QIcon::fromTheme(QStringLiteral("dialog-password")),
+    ccm = cm->addMenu(QIcon::fromTheme(QStringLiteral("dialog-password")),
                              tr("Form autofill"));
-    QUrl origin = snv->txtBrowser->page()->url();
     if (gSet->haveSavedPassword(origin)) {
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("tools-wizard")),
                             tr("Insert username and password"),
@@ -549,4 +563,16 @@ void CSnCtxHandler::showSource()
 {
     auto srcv = new CSourceViewer(snv);
     srcv->showNormal();
+}
+
+void CSnCtxHandler::runJavaScript()
+{
+    auto nt = qobject_cast<QAction *>(sender());
+    if (nt==nullptr) return;
+    if (!nt->data().canConvert<QString>()) return;
+
+    const QString source = nt->data().toString();
+
+    if (!source.isEmpty())
+        snv->txtBrowser->page()->runJavaScript(source,QWebEngineScript::MainWorld);
 }
