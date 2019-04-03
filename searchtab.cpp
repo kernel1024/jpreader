@@ -34,7 +34,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->translateFrame->hide();
 
     model = new CSearchModel(this,ui->listResults);
-    sort = new QSortFilterProxyModel;
+    sort = new CSearchProxyFilterModel;
     sort->setSourceModel(model);
     sort->setSortRole(Qt::UserRole + cpSortRole);
     ui->listResults->setModel(sort);
@@ -289,7 +289,7 @@ void CSearchTab::applyFilter()
     auto ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
-    model->setFilter(ac->data().toString());
+    sort->setFilter(ac->data().toString());
 }
 
 void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &)

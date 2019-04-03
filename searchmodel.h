@@ -16,8 +16,6 @@ class CSearchModel : public QAbstractTableModel
 private:
     QVector<CStringHash> m_snippets;
     QTableView *m_table;
-    QVector<int> m_filterList;
-    QString m_filter;
 
 public:
     CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
@@ -39,8 +37,22 @@ public slots:
     void deleteAllItems();
     void addItem(const CStringHash& srcSnippet);
     void addItems(const QVector<CStringHash> &srcSnippets);
-    void setFilter(const QString& text);
 
+};
+
+class CSearchProxyFilterModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+private:
+    QString m_filter;
+public:
+    CSearchProxyFilterModel(QObject* parent = nullptr)
+        : QSortFilterProxyModel(parent) {}
+    virtual ~CSearchProxyFilterModel() = default;
+    void setFilter(const QString& filter);
+protected:
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 };
 
 #endif // CSEARCHMODEL_H

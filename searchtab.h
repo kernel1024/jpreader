@@ -34,7 +34,7 @@ public:
 private:
     Ui::SearchTab *ui;
     CSearchModel *model;
-    QSortFilterProxyModel *sort;
+    CSearchProxyFilterModel *sort;
     QString lastQuery;
 
     CIndexerSearch *engine;
