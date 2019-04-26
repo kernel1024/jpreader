@@ -24,11 +24,8 @@ public slots:
 
 private:
     Ui::CLogDisplay *ui;
-    QStringList savedMessages;
     QSyntaxHighlighter* syntax;
     bool firstShow;
-
-    void updateText(const QString& text);
 
 protected:
     void showEvent(QShowEvent *);

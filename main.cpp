@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
         QString url = QStringLiteral("127.0.0.1:%1").arg(dbgport);
         setenv("QTWEBENGINE_REMOTE_DEBUGGING",url.toUtf8().constData(),1);
     }
-    debugMessages.clear();
     qInstallMessageHandler(stdConsoleOutput);
     qRegisterMetaType<CUrlHolder>("CUrlHolder");
     qRegisterMetaType<QDir>("QDir");

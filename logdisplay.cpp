@@ -26,33 +26,22 @@ CLogDisplay::CLogDisplay() :
 
 CLogDisplay::~CLogDisplay()
 {
-    savedMessages.clear();
     delete ui;
 }
 
 void CLogDisplay::updateMessages()
 {
+    if (qApp->closingDown()) return;
     if (!isVisible()) return;
-    int fr = -1;
-    int sv = -1;
-    if (ui->logView->verticalScrollBar())
-        sv = ui->logView->verticalScrollBar()->value();
+    if (debugMessages.isEmpty()) return;
 
-    if (!savedMessages.isEmpty())
-        fr = debugMessages.lastIndexOf(savedMessages.constLast());
-    if (fr>=0 && fr<debugMessages.count()) {
-        for (int i=(fr+1);i<debugMessages.count();i++)
-            savedMessages << debugMessages.at(i);
-    } else
-        savedMessages = debugMessages;
+    QString log = debugMessages.join('\n');
+    debugMessages.clear();
+    log.append('\n');
 
-    updateText(savedMessages.join('\n'));
-    if (ui->logView->verticalScrollBar()) {
-        if (!ui->checkScrollLock->isChecked())
-            ui->logView->verticalScrollBar()->setValue(ui->logView->verticalScrollBar()->maximum());
-        else if (sv!=-1)
-            ui->logView->verticalScrollBar()->setValue(sv);
-    }
+    ui->logView->moveCursor(QTextCursor::End);
+    ui->logView->insertPlainText(log);
+    ui->logView->moveCursor(QTextCursor::End);
 }
 
 void CLogDisplay::logCtxMenu(const QPoint &pos)
@@ -82,14 +71,10 @@ void CLogDisplay::addToAdblock()
     QString u = url.toString();
     bool ok;
 
-    u = QInputDialog::getText(this,tr("Add AdBlock rule"),tr("Filter template"),QLineEdit::Normal,u,&ok);
+    u = QInputDialog::getText(this,tr("Add AdBlock rule"),
+                              tr("Filter template"),QLineEdit::Normal,u,&ok);
     if (ok)
         gSet->adblockAppend(u);
-}
-
-void CLogDisplay::updateText(const QString &text)
-{
-    ui->logView->setPlainText(text);
 }
 
 void CLogDisplay::showEvent(QShowEvent *)
