@@ -42,6 +42,8 @@ void CLogDisplay::updateMessages()
     ui->logView->moveCursor(QTextCursor::End);
     ui->logView->insertPlainText(log);
     ui->logView->moveCursor(QTextCursor::End);
+
+    ui->linesCount->setText(QStringLiteral("%1 messages").arg(ui->logView->document()->lineCount()));
 }
 
 void CLogDisplay::logCtxMenu(const QPoint &pos)

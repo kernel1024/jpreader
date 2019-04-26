@@ -24,9 +24,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QCheckBox" name="checkScrollLock">
+      <widget class="QLabel" name="linesCount">
        <property name="text">
-        <string>Disable autoscroll</string>
+        <string>0 messages</string>
        </property>
       </widget>
      </item>
@@ -55,7 +55,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>checkScrollLock</tabstop>
   <tabstop>buttonClose</tabstop>
  </tabstops>
  <resources/>
