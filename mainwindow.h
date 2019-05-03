@@ -18,7 +18,7 @@ class CMainWindow : public QMainWindow, public Ui::MainWindow
 	Q_OBJECT
 public:
     CMainWindow(bool withSearch = false, bool withViewer = true,
-                const QUrl &withViewerUrl = QUrl());
+                const QVector<QUrl> &viewerUrls = { });
     virtual ~CMainWindow() = default;
 	int lastTabIdx;
 

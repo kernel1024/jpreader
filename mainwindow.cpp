@@ -21,7 +21,7 @@
 
 #include "snctxhandler.h"
 
-CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
+CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls)
         : MainWindow()
 {
 	setupUi(this);
@@ -126,10 +126,15 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QUrl& withViewe
 
     if (withSearch) createSearch();
     if (withViewer) {
-        if (withViewerUrl.isEmpty())
+        bool emptyViewer = true;
+        for (const auto &url : viewerUrls) {
+            if (!url.isEmpty()) {
+                new CSnippetViewer(this,url);
+                emptyViewer = false;
+            }
+        }
+        if (emptyViewer)
             createStartBrowser();
-        else
-            new CSnippetViewer(this,withViewerUrl);
     }
 
     fullScreen=false;

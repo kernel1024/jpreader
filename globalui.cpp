@@ -162,11 +162,11 @@ CMainWindow* CGlobalUI::addMainWindow()
      return addMainWindowEx(false, true);
 }
 
-CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const QUrl& withViewerUrl)
+CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const QVector<QUrl>& viewerUrls)
 {
     if (gSet==nullptr) return nullptr;
 
-    auto mainWindow = new CMainWindow(withSearch,withViewer,withViewerUrl);
+    auto mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
     connect(mainWindow,&CMainWindow::aboutToClose,
             gSet,&CGlobalControl::windowDestroyed);
 

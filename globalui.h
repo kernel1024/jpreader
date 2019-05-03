@@ -56,7 +56,7 @@ public slots:
     void gctxTranslateReady(const QString& text);
     CMainWindow* addMainWindow();
     CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
-                                 const QUrl &withViewerUrl = QUrl());
+                                 const QVector<QUrl> &viewerUrls = { });
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
 

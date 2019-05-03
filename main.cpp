@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QUrl>
+#include <QVector>
 #include <QStringList>
 #include <QSslCertificate>
 
@@ -54,7 +56,13 @@ int main(int argc, char *argv[])
     QApplication::setStyle(new CSpecMenuStyle);
     QApplication::setQuitOnLastWindowClosed(false);
 
-    gSet->ui.addMainWindow();
+    QVector<QUrl> urls;
+    for (int i=1;i<qApp->arguments().count();i++) {
+        QUrl u(qApp->arguments().at(i));
+        if (!u.isEmpty() && u.isValid())
+            urls << u;
+    }
+    gSet->ui.addMainWindowEx(false,true,urls);
 
     return app.exec();
 }
