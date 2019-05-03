@@ -31,6 +31,7 @@ private:
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
     QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
+    QStringList parseJsonIllustPage(const QJsonDocument& doc);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
