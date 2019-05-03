@@ -30,8 +30,8 @@ private:
     void handleImages(const QStringList& imgs);
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
-    QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
-    QStringList parseJsonIllustPage(const QJsonDocument& doc);
+    static QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
+    static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);

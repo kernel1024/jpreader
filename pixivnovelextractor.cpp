@@ -209,26 +209,11 @@ void CPixivNovelExtractor::subLoadFinished()
 
     if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<300)) {
         // valid page without redirect or error
-        QStringList imageUrls;
         const CIntList idxs = m_imgList.value(key);
         QString html = QString::fromUtf8(rpl->readAll());
 
-        QString jstart = QStringLiteral("illust: { %1: {").arg(key);
-        if (html.indexOf(jstart)>=0) {
-            QJsonDocument doc = parseJsonSubDocument(html.toUtf8(),jstart);
-            if (doc.isObject()) {
-                QJsonObject obj = doc.object();
-
-                QJsonValue v = obj.value(QStringLiteral("error"));
-                if (v.isString()) {
-                    qWarning() << QStringLiteral("Images extractor error: %1").arg(v.toString());
-                    rpl->deleteLater();
-                    return;
-                }
-            }
-            imageUrls = parseJsonIllustPage(doc);
-
-        } else {
+        QStringList imageUrls = parseJsonIllustPage(html,rplUrl); // try JSON parser
+        if (imageUrls.isEmpty()) { // no JSON found
             int pos = 0;
 
             QRegExp rx(QStringLiteral("data-src=\\\".*\\\""),Qt::CaseInsensitive);
@@ -439,9 +424,28 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
     return doc;
 }
 
-QStringList CPixivNovelExtractor::parseJsonIllustPage(const QJsonDocument &doc)
+QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin)
 {
     QStringList res;
+    QJsonDocument doc;
+
+    QUrlQuery qr(origin);
+    QString key = qr.queryItemValue(QStringLiteral("illust_id"));
+    QString jstart = QStringLiteral("illust: { %1: {").arg(key);
+    if (html.indexOf(jstart)>=0) {
+        doc = parseJsonSubDocument(html.toUtf8(),jstart);
+        if (doc.isObject()) {
+            QJsonObject obj = doc.object();
+
+            QJsonValue v = obj.value(QStringLiteral("error"));
+            if (v.isString()) {
+                qWarning() << QStringLiteral("Images extractor error: %1").arg(v.toString());
+                return res;
+            }
+        }
+    } else {
+        return res;
+    }
 
     QString illustId;
     QString suffix;
