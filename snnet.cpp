@@ -193,6 +193,26 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::pixivNovelReady,Qt::QueuedConnection);
 }
 
+void CSnNet::downloadPixivManga()
+{
+    auto ac = qobject_cast<QAction*>(sender());
+    if (!ac) return;
+    QUrl origin = ac->data().toUrl();
+    if (!origin.isValid()) return;
+
+    snv->txtBrowser->page()->toHtml([this,origin](const QString& html){
+        QStringList sl = CPixivNovelExtractor::parseJsonIllustPage(html,origin);
+        if (sl.isEmpty()) // no JSON found
+            sl = CPixivNovelExtractor::parseIllustPage(html);
+        if (sl.isEmpty())
+            QMessageBox::warning(snv,tr("JPReader"),
+                                 tr("No pixiv manga image urls found"));
+        else {
+            snv->netHandler->multiImgDownload(sl,origin);
+        }
+    });
+}
+
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
     auto sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),focus,html);

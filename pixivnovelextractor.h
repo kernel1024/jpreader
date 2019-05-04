@@ -31,12 +31,13 @@ private:
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
     static QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
-    static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
     void setParams(CSnippetViewer* viewer, const QString& title,
                    bool translate, bool focus);
+    static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
+    static QStringList parseIllustPage(const QString &html, bool mediumMode = true);
 
 signals:
     void novelReady(const QString& html, bool focus, bool translate);

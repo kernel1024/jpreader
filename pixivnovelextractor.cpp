@@ -214,26 +214,7 @@ void CPixivNovelExtractor::subLoadFinished()
 
         QStringList imageUrls = parseJsonIllustPage(html,rplUrl); // try JSON parser
         if (imageUrls.isEmpty()) { // no JSON found
-            int pos = 0;
-
-            QRegExp rx(QStringLiteral("data-src=\\\".*\\\""),Qt::CaseInsensitive);
-            if (mediumMode)
-                rx = QRegExp(QStringLiteral(
-                                 "\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\""),
-                             Qt::CaseInsensitive);
-            rx.setMinimal(true);
-
-            while ((pos = rx.indexIn(html, pos)) != -1 )
-            {
-                QString u = rx.cap(0);
-                if (mediumMode)
-                    u.remove('\\');
-                else
-                    u.remove(QStringLiteral("data-src="),Qt::CaseInsensitive);
-                u.remove('\"');
-                imageUrls << u;
-                pos += rx.matchedLength();
-            }
+            imageUrls = parseIllustPage(html,mediumMode);
         }
 
         m_imgMutex.lock();
@@ -487,6 +468,33 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
 
         res << QStringLiteral("%1/%2_p%3.%4")
                .arg(path,illustId,QString::number(i),suffix);
+    }
+
+    return res;
+}
+
+QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool mediumMode)
+{
+    QStringList res;
+    int pos = 0;
+
+    QRegExp rx(QStringLiteral("data-src=\\\".*\\\""),Qt::CaseInsensitive);
+    if (mediumMode)
+        rx = QRegExp(QStringLiteral(
+                         "\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\""),
+                     Qt::CaseInsensitive);
+    rx.setMinimal(true);
+
+    while ((pos = rx.indexIn(html, pos)) != -1 )
+    {
+        QString u = rx.cap(0);
+        if (mediumMode)
+            u.remove('\\');
+        else
+            u.remove(QStringLiteral("data-src="),Qt::CaseInsensitive);
+        u.remove('\"');
+        res << u;
+        pos += rx.matchedLength();
     }
 
     return res;

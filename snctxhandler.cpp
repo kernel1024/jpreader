@@ -39,6 +39,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QString sText;
     QUrl linkUrl, imageUrl;
     QUrl origin = snv->txtBrowser->page()->url();
+    QUrlQuery originQuery(origin);
 
     if (data.isValid()) {
         sText = data.selectedText();
@@ -414,6 +415,22 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ccm->addAction(QIcon::fromTheme(QStringLiteral("download-later")),tr("Download all images"),
                    snv->transHandler,&CSnTrans::getImgUrlsAndParse);
+
+    if (origin.toString().startsWith(
+                QStringLiteral("https://www.pixiv.net/member_illust.php?mode=medium"),
+                Qt::CaseInsensitive)) {
+
+        ac = ccm->addAction(tr("Download all images from Pixiv illustration"),
+                      snv->netHandler,&CSnNet::downloadPixivManga);
+        ac->setData(origin);
+
+        QUrl fiurl("https://www.pixiv.net/favicon.ico");
+        auto fl = new CFaviconLoader(snv,fiurl);
+        connect(fl,&CFaviconLoader::gotIcon,ac,[ac](const QIcon& icon){
+            ac->setIcon(icon);
+        });
+        fl->queryStart(false);
+    }
     ccm->addSeparator();
 
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-edit-decrypt")),tr("Parse document"),
