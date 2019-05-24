@@ -16,12 +16,12 @@ void CAuxTranslator::setText(const QString &text)
 
 void CAuxTranslator::setSrcLang(const QString &lang)
 {
-    m_lang.langFrom = QLocale(lang);
+    m_lang.setLangFrom(QLocale(lang));
 }
 
 void CAuxTranslator::setDestLang(const QString &lang)
 {
-    m_lang.langTo = QLocale(lang);
+    m_lang.setLangTo(QLocale(lang));
 }
 
 void CAuxTranslator::startTranslation(bool deleteAfter)

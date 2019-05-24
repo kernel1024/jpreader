@@ -14,19 +14,28 @@
 #include "globalcontrol.h"
 #include "snwaitctl.h"
 
+class CTranslator;
+
 class CHTMLNode {
+    friend class CTranslator;
+
+private:
+    QString m_text, m_tagName, m_closingText;
+    QVector<CHTMLNode> m_children;
+    QHash<QString,QString> m_attributes;
+    QStringList m_attributesOrder;
+    bool m_isTag {false};
+    bool m_isComment {false};
+
 public:
-    QString text, tagName, closingText;
-    QVector<CHTMLNode> children;
-    QHash<QString,QString> attributes;
-    QStringList attributesOrder;
-    bool isTag, isComment;
-    CHTMLNode();
+    CHTMLNode() = default;
     ~CHTMLNode();
     CHTMLNode(const CHTMLNode& other);
+    CHTMLNode(CHTMLNode&& other) = default;
     CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
     CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other);
+    CHTMLNode &operator=(CHTMLNode&& other) = default;
     bool operator==(const CHTMLNode &s) const;
     bool operator!=(const CHTMLNode &s) const;
     void normalize();
@@ -94,8 +103,11 @@ public:
     bool documentReparse(const QString& srcUri, QString& dst);
     QStringList getImgUrls() const;
 
+    static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
+                             int depth = 0);
+    static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 signals:
-    void calcFinished(const bool success, const QString &aUrl, const QString &error);
+    void calcFinished(bool success, const QString &aUrl, const QString &error);
     void setProgress(int value);
 
 public slots:

@@ -21,6 +21,7 @@
 #include "snctxhandler.h"
 #include "snnet.h"
 #include "sntrans.h"
+#include "snwaitctl.h"
 #include "snmsghandler.h"
 
 CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStringList& aSearchText,

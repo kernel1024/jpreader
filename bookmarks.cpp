@@ -126,13 +126,13 @@ void BookmarksManager::load(const QByteArray& data)
         BookmarkNode *node = m_bookmarkRootNode->children().at(i);
         if (node->type() == BookmarkNode::Folder) {
             // Automatically convert
-            if (node->title == tr("Menu") && !menu) {
-                node->title = tr(BOOKMARKMENU);
+            if (node->getTitle() == tr("Menu") && !menu) {
+                node->setTitle(tr(BOOKMARKMENU));
             }
-            if (node->title == tr(BOOKMARKMENU) && !menu) {
+            if (node->getTitle() == tr(BOOKMARKMENU) && !menu) {
                 menu = node;
             }
-            if (node->title == tr(BOOKMARKOLD) && !old) {
+            if (node->getTitle() == tr(BOOKMARKOLD) && !old) {
                 old = node;
             }
         } else {
@@ -144,7 +144,7 @@ void BookmarksManager::load(const QByteArray& data)
 
     if (!menu) {
         menu = new BookmarkNode(BookmarkNode::Folder, m_bookmarkRootNode);
-        menu->title = tr(BOOKMARKMENU);
+        menu->setTitle(tr(BOOKMARKMENU));
     } else {
         m_bookmarkRootNode->add(menu);
     }
@@ -197,7 +197,7 @@ void BookmarksManager::setTitle(BookmarkNode *node, const QString &newTitle)
         return;
 
     Q_ASSERT(node);
-    node->title = newTitle;
+    node->setTitle(newTitle);
     emit entryChanged(node);
 }
 
@@ -207,7 +207,7 @@ void BookmarksManager::setUrl(BookmarkNode *node, const QString &newUrl)
         return;
 
     Q_ASSERT(node);
-    node->url = newUrl;
+    node->setUrl(newUrl);
     emit entryChanged(node);
 }
 
@@ -223,7 +223,7 @@ BookmarkNode *BookmarksManager::menu()
 
     for (int i = m_bookmarkRootNode->children().count() - 1; i >= 0; --i) {
         BookmarkNode *node = m_bookmarkRootNode->children().at(i);
-        if (node->title == tr(BOOKMARKMENU))
+        if (node->getTitle() == tr(BOOKMARKMENU))
             return node;
     }
     Q_ASSERT(false);
@@ -253,14 +253,14 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
         const BookmarkNode* subnode = nd->children().at(i);
         switch (subnode->type()) {
             case BookmarkNode::Folder:
-                submenu = menuWidget->addMenu(subnode->title);
+                submenu = menuWidget->addMenu(subnode->getTitle());
                 submenu->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
                 submenu->setToolTipsVisible(true);
                 populateBookmarksMenu(submenu, wnd, subnode);
                 break;
             case BookmarkNode::Bookmark:
-                a = menuWidget->addAction(subnode->title,wnd,&CMainWindow::openBookmark);
-                url = subnode->url;
+                a = menuWidget->addAction(subnode->getTitle(),wnd,&CMainWindow::openBookmark);
+                url = subnode->getUrl();
                 a->setData(QUrl(url));
                 a->setStatusTip(url);
                 a->setToolTip(url);
@@ -298,8 +298,8 @@ void BookmarksManager::importBookmarks()
     }
 
     importRootNode->setType(BookmarkNode::Folder);
-    importRootNode->title = tr("Imported %1")
-                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate));
+    importRootNode->setTitle(tr("Imported %1")
+                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate)));
     addBookmark(menu(), importRootNode);
 }
 
@@ -408,12 +408,12 @@ QVariant BookmarksModel::data(const QModelIndex &index, int role) const
         }
 
         switch (index.column()) {
-        case 0: return bookmarkNode->title;
-        case 1: return bookmarkNode->url;
+        case 0: return bookmarkNode->getTitle();
+        case 1: return bookmarkNode->getUrl();
         }
         break;
-    case BookmarksModel::UrlRole: return QUrl(bookmarkNode->url);
-    case BookmarksModel::UrlStringRole: return bookmarkNode->url;
+    case BookmarksModel::UrlRole: return QUrl(bookmarkNode->getUrl());
+    case BookmarksModel::UrlStringRole: return bookmarkNode->getUrl();
     case BookmarksModel::TypeRole: return bookmarkNode->type();
     case BookmarksModel::SeparatorRole:
         return (bookmarkNode->type() == BookmarkNode::Separator);
@@ -665,8 +665,8 @@ void AddBookmarkDialog::accept()
         index = m_bookmarksManager->bookmarksModel()->index(0, 0);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(index);
     auto bookmark = new BookmarkNode(BookmarkNode::Bookmark);
-    bookmark->url = m_url;
-    bookmark->title = ui->name->text();
+    bookmark->setUrl(m_url);
+    bookmark->setTitle(ui->name->text());
     m_bookmarksManager->addBookmark(parent, bookmark);
     QDialog::accept();
 }
@@ -746,14 +746,14 @@ bool BookmarksDialog::saveExpandedNodes(const QModelIndex &parent)
         QModelIndex child = m_proxyModel->index(i, 0, parent);
         QModelIndex sourceIndex = m_proxyModel->mapToSource(child);
         BookmarkNode *childNode = m_bookmarksModel->node(sourceIndex);
-        bool wasExpanded = childNode->expanded;
+        bool wasExpanded = childNode->getExpanded();
         if (ui->tree->isExpanded(child)) {
-            childNode->expanded = true;
+            childNode->setExpanded(true);
             changed |= saveExpandedNodes(child);
         } else {
-            childNode->expanded = false;
+            childNode->setExpanded(false);
         }
-        changed |= (wasExpanded != childNode->expanded);
+        changed |= (wasExpanded != childNode->getExpanded());
     }
     return changed;
 }
@@ -774,7 +774,7 @@ void BookmarksDialog::expandNodes(BookmarkNode *node)
 {
     const QVector<BookmarkNode *> nl = node->children();
     for (const auto child : nl) {
-        if (child->expanded) {
+        if (child->getExpanded()) {
             QModelIndex idx = m_bookmarksModel->index(child);
             idx = m_proxyModel->mapFromSource(idx);
             ui->tree->setExpanded(idx, true);
@@ -830,7 +830,7 @@ void BookmarksDialog::newFolder()
     idx = m_proxyModel->mapToSource(idx);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(idx);
     auto node = new BookmarkNode(BookmarkNode::Folder);
-    node->title = tr("New Folder");
+    node->setTitle(tr("New Folder"));
     m_bookmarksManager->addBookmark(parent, node, row);
 }
 

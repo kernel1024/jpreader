@@ -534,39 +534,6 @@ int compareStringLists(const QStringList &left, const QStringList &right)
     return 0;
 }
 
-void generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
-{
-    if (src.isTag && !src.tagName.isEmpty()) {
-        html.append(QStringLiteral("<")+src.tagName);
-        for (const QString &key : qAsConst(src.attributesOrder)) {
-            const QString val = src.attributes.value(key);
-            if (!val.contains('"'))
-                html.append(QStringLiteral(" %1=\"%2\"").arg(key,val));
-            else
-                html.append(QStringLiteral(" %1='%2'").arg(key,val));
-        }
-        html.append(QStringLiteral(">"));
-    } else {
-        QString txt = src.text;
-        // fix incorrect nested comments - pixiv
-        if (src.isComment) {
-            if ((txt.count(QStringLiteral("<!--"))>1) || (txt.count(QStringLiteral("-->"))>1))
-                txt.clear();
-            if ((txt.count(QStringLiteral("<"))>1 || txt.count(QStringLiteral(">"))>1)
-                && (txt.count(QStringLiteral("<"))!=txt.count(QStringLiteral(">"))))
-                txt.clear();
-        }
-        html.append(txt);
-    }
-
-    for (const CHTMLNode &node : qAsConst(src.children))
-        generateHTML(node,html,reformat,depth+1);
-
-    html.append(src.closingText);
-    if (reformat)
-        html.append('\n');
-}
-
 QString extractFileTitle(const QString& fileContents)
 {
     int pos;

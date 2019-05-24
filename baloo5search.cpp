@@ -11,8 +11,8 @@ CBaloo5Search::CBaloo5Search(QObject *parent) : CAbstractThreadedSearch(parent)
 void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
 {
 #ifdef WITH_BALOO5
-    if (working) return;
-    working = true;
+    if (isWorking()) return;
+    setWorking(true);
 
     Baloo::Query baloo;
     baloo.setSearchString(qr);
@@ -24,7 +24,7 @@ void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
         if (fname.endsWith('/') || fname.endsWith('\\')) continue;
         emit addHit({ { QStringLiteral("jp:fullfilename"), fname } });
     }
-    working = false;
+    setWorking(false);
 #else
     Q_UNUSED(qr);
     Q_UNUSED(maxLimit);

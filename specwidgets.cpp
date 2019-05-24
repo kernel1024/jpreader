@@ -580,14 +580,14 @@ QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
     if (idx<0 || idx>=gSet->mainHistory.count()) return QVariant();
 
     if (role==Qt::DisplayRole || role==Qt::EditRole)
-        return gSet->mainHistory.at(idx).url.toString();
+        return gSet->mainHistory.at(idx).getUrl().toString();
 
     return QVariant();
 }
 
 Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
+    Q_UNUSED(index)
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }

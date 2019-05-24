@@ -15,7 +15,7 @@ class CLogDisplay : public QDialog
 
 public:
     explicit CLogDisplay();
-    ~CLogDisplay();
+    ~CLogDisplay() override;
 
 public slots:
     void updateMessages();
@@ -28,7 +28,7 @@ private:
     bool firstShow;
 
 protected:
-    void showEvent(QShowEvent *);
+    void showEvent(QShowEvent *) override;
 };
 
 #endif // LOGDISPLAY_H

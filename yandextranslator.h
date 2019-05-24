@@ -8,14 +8,14 @@ class CYandexTranslator : public CWebAPIAbstractTranslator
 private:
     QString clientKey;
 
-    QString tranStringInternal(const QString& src);
-    void clearCredentials();
-    bool isValidCredentials();
+    QString tranStringInternal(const QString& src) override;
+    void clearCredentials() override;
+    bool isValidCredentials() override;
 
 public:
     CYandexTranslator(QObject *parent, const CLangPair &lang, const QString& yandexKey);
 
-    bool initTran();
+    bool initTran() override;
 
 };
 

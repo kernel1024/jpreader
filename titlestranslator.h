@@ -7,15 +7,14 @@ class CTitlesTranslator : public QObject
 {
     Q_OBJECT
 public:
-    bool inProgress;
     explicit CTitlesTranslator(QObject *parent = nullptr);
 
 private:
-    bool stopReq;
+    bool stopReq {false};
 
 signals:
     void gotTranslation(const QStringList &res);
-    void updateProgress(const int pos);
+    void updateProgress(int pos);
 
 public slots:
     void translateTitles(const QStringList &titles);

@@ -36,6 +36,7 @@
 
 #include "pdftotext.h"
 #include "genericfuncs.h"
+#include "globalcontrol.h"
 #include "structures.h"
 #include <QByteArray>
 #include <QFileInfo>

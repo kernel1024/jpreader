@@ -247,8 +247,8 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
     for (const CLangPair& pair : qAsConst(g->settings.translatorPairs)) {
         QAction *ac = languageSelector->addAction(QStringLiteral("%1 - %2").arg(
-                                      g->getLanguageName(pair.langFrom.bcp47Name()),
-                                      g->getLanguageName(pair.langTo.bcp47Name())));
+                                      g->getLanguageName(pair.getLangFrom().bcp47Name()),
+                                      g->getLanguageName(pair.getLangTo().bcp47Name())));
         ac->setCheckable(true);
         QString hash = pair.getHash();
         ac->setData(hash);

@@ -35,10 +35,14 @@ public:
         DeferredTime
     };
 
-    CUserScript();
+    CUserScript() = default;
     CUserScript(const CUserScript& other);
     CUserScript(const QString &name, const QString &source = QString());
+    CUserScript(CUserScript && other) = default;
+    ~CUserScript() = default;
+
     CUserScript &operator=(const CUserScript& other) = default;
+    CUserScript &operator=(CUserScript&& other) = default;
 
     QString getName() const;
     QString getTitle() const;
@@ -70,9 +74,9 @@ private:
     QStringList m_excludeRules;
     QStringList m_includeRules;
     QStringList m_matchRules;
-    InjectionTime m_injectionTime;
-    bool m_shouldRunOnSubFrames;
-    bool m_runFromContextMenu;
+    InjectionTime m_injectionTime {DocumentReadyTime};
+    bool m_shouldRunOnSubFrames {true};
+    bool m_runFromContextMenu {false};
 
 };
 

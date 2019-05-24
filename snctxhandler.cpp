@@ -490,8 +490,8 @@ void CSnCtxHandler::translateFragment()
     auto th = new QThread();
     auto at = new CAuxTranslator();
     at->setText(s);
-    at->setSrcLang(lp.langFrom.bcp47Name());
-    at->setDestLang(lp.langTo.bcp47Name());
+    at->setSrcLang(lp.getLangFrom().bcp47Name());
+    at->setDestLang(lp.getLangTo().bcp47Name());
     connect(this,&CSnCtxHandler::startTranslation,
             at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
 

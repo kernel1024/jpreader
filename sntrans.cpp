@@ -198,8 +198,8 @@ void CSnTrans::postTranslate()
             url = QUrl(QStringLiteral("http://translate.google.com/translate"));
             lp = CLangPair(gSet->ui.getActiveLangPair());
             if (lp.isValid()) {
-                qu.addQueryItem(QStringLiteral("sl"),lp.langFrom.bcp47Name());
-                qu.addQueryItem(QStringLiteral("tl"),lp.langTo.bcp47Name());
+                qu.addQueryItem(QStringLiteral("sl"),lp.getLangFrom().bcp47Name());
+                qu.addQueryItem(QStringLiteral("tl"),lp.getLangTo().bcp47Name());
                 qu.addQueryItem(QStringLiteral("u"),snv->calculatedUrl);
                 url.setQuery(qu);
                 snv->txtBrowser->load(url);
@@ -259,30 +259,15 @@ void CSnTrans::findWordTranslation(const QString &text)
     connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
 }
 
-void replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
-{
-    if (node.tagName.toLower()==QStringLiteral("a")) {
-        if (node.attributes.contains(QStringLiteral("href"))) {
-            QUrl ref = QUrl(node.attributes.value(QStringLiteral("href")));
-            if (ref.isRelative())
-                node.attributes[QStringLiteral("href")]=baseUrl.resolved(ref).toString();
-        }
-    }
-
-    for (auto &child : node.children) {
-        replaceLocalHrefs(child,baseUrl);
-    }
-}
-
 void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
 {
     HTML::ParserDom parser;
     parser.parse(html);
     tree<HTML::Node> tree = parser.getTree();
     CHTMLNode doc(tree);
-    replaceLocalHrefs(doc, baseUrl);
     QString dst;
-    generateHTML(doc,dst);
+    CTranslator::replaceLocalHrefs(doc, baseUrl);
+    CTranslator::generateHTML(doc,dst);
 
     snv->netHandler->loadWithTempFile(dst, true);
 }

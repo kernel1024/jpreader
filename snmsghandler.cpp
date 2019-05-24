@@ -1,6 +1,8 @@
 #include <QMessageBox>
 #include <QDebug>
+#include "snviewer.h"
 #include "snmsghandler.h"
+#include "globalcontrol.h"
 #include "genericfuncs.h"
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)

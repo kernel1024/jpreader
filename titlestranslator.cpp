@@ -6,10 +6,9 @@
 #include "abstracttranslator.h"
 
 CTitlesTranslator::CTitlesTranslator(QObject *parent) :
-    QObject(parent),
-    inProgress(false),
-    stopReq(false)
+    QObject(parent)
 {
+
 }
 
 void CTitlesTranslator::stop()

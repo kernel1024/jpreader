@@ -16,6 +16,7 @@
 #include "downloadmanager.h"
 #include "genericfuncs.h"
 #include "pixivnovelextractor.h"
+#include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
 CSnNet::CSnNet(CSnippetViewer *parent)

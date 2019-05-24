@@ -54,8 +54,13 @@
 #include <QtCore/QXmlStreamReader>
 #include <QtCore/QDateTime>
 
+class XbelReader;
+class XbelWriter;
+
 class BookmarkNode
 {
+    friend class XbelReader;
+    friend class XbelWriter;
 public:
     enum Type {
         Root,
@@ -66,6 +71,12 @@ public:
 
     BookmarkNode(Type type = Root, BookmarkNode *parent = nullptr);
     ~BookmarkNode();
+
+    BookmarkNode(const BookmarkNode& other) = delete;
+    BookmarkNode(BookmarkNode&& other) = default;
+    BookmarkNode &operator=(const BookmarkNode& other) = delete;
+    BookmarkNode &operator=(BookmarkNode&& other) = default;
+
     bool operator==(const BookmarkNode &other);
     bool operator!=(const BookmarkNode &other);
 
@@ -77,12 +88,24 @@ public:
     void add(BookmarkNode *child, int offset = -1);
     void remove(BookmarkNode *child);
 
+    QString getUrl() const;
+    void setUrl(const QString &value);
+
+    QString getTitle() const;
+    void setTitle(const QString &value);
+
+    QString getDesc() const;
+    void setDesc(const QString &value);
+
+    bool getExpanded() const;
+    void setExpanded(bool value);
+
+private:
     QString url;
     QString title;
     QString desc;
-    bool expanded;
+    bool expanded {false};
 
-private:
     BookmarkNode *m_parent;
     Type m_type;
     QVector<BookmarkNode *> m_children;

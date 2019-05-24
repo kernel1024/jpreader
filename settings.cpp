@@ -219,7 +219,7 @@ void CSettings::readSettings(QObject *control)
 
     int idx=0;
     while (idx<g->mainHistory.count()) {
-        if (g->mainHistory.at(idx).url.toString().startsWith(QStringLiteral("data:"),
+        if (g->mainHistory.at(idx).getUrl().toString().startsWith(QStringLiteral("data:"),
                                                              Qt::CaseInsensitive))
             g->mainHistory.removeAt(idx);
         else

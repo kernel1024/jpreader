@@ -243,52 +243,52 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     QVector<CHTMLNode> subnodes;
 
     if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
-        if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
+        if (skipTags.contains(node.m_tagName,Qt::CaseInsensitive)) return;
 
-        if (xmlPass==PXCalculate && !node.isTag && !node.isComment) {
+        if (xmlPass==PXCalculate && !node.m_isTag && !node.m_isComment) {
             translateParagraph(node,xmlPass);
         }
-        if (xmlPass==PXTranslate && !node.isTag && !node.isComment) {
+        if (xmlPass==PXTranslate && !node.m_isTag && !node.m_isComment) {
             if (!translateParagraph(node,xmlPass)) translatorFailed=true;
         }
     }
 
     if (xmlPass==PXPreprocess) {
         // WebEngine gives UTF-8 encoded page
-        if (node.tagName.toLower()==QStringLiteral("meta")) {
-            if (node.attributes.value(QStringLiteral("http-equiv")).toLower().trimmed()==QStringLiteral("content-type"))
-                node.attributes[QStringLiteral("content")] = QStringLiteral("text/html; charset=UTF-8");
+        if (node.m_tagName.toLower()==QStringLiteral("meta")) {
+            if (node.m_attributes.value(QStringLiteral("http-equiv")).toLower().trimmed()==QStringLiteral("content-type"))
+                node.m_attributes[QStringLiteral("content")] = QStringLiteral("text/html; charset=UTF-8");
         }
 
         // Unfold "1% height" divs from blog.jp/livedoor.jp
         // their blogs using same site.css
         // Also for blog.goo.ne.jp (same CSS as static.css)
         int idx = 0;
-        while (idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()==QStringLiteral("meta")) {
-                if (node.children.at(idx).attributes.value(QStringLiteral("property"))
+        while (idx<node.m_children.count()) {
+            if (node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("meta")) {
+                if (node.m_children.at(idx).m_attributes.value(QStringLiteral("property"))
                         .toLower().trimmed()==QStringLiteral("og:url"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("content")).toLower().trimmed());
+                    metaSrcUrl = QUrl(node.m_children.at(idx).m_attributes.value(QStringLiteral("content")).toLower().trimmed());
             }
 
-            if (node.children.at(idx).tagName.toLower()==QStringLiteral("link")) {
-                if (node.children.at(idx).attributes.value(QStringLiteral("rel"))
+            if (node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("link")) {
+                if (node.m_children.at(idx).m_attributes.value(QStringLiteral("rel"))
                         .toLower().trimmed()==QStringLiteral("canonical"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("href")).toLower().trimmed());
+                    metaSrcUrl = QUrl(node.m_children.at(idx).m_attributes.value(QStringLiteral("href")).toLower().trimmed());
 
-                if ((node.children.at(idx).attributes.value(QStringLiteral("type"))
+                if ((node.m_children.at(idx).m_attributes.value(QStringLiteral("type"))
                      .toLower().trimmed()==QStringLiteral("text/css")) &&
-                        (node.children.at(idx).attributes.value(QStringLiteral("href")).contains(
+                        (node.m_children.at(idx).m_attributes.value(QStringLiteral("href")).contains(
                              QRegExp(QStringLiteral("blog.*\\.jp.*site.css\\?_="),Qt::CaseInsensitive)) ||
-                         (node.children.at(idx).attributes.value(QStringLiteral("href")).contains(
+                         (node.m_children.at(idx).m_attributes.value(QStringLiteral("href")).contains(
                              QRegExp(QStringLiteral("/css/.*static.css\\?"),Qt::CaseInsensitive)) &&
                           metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive))))) {
                     CHTMLNode st;
-                    st.tagName=QStringLiteral("style");
-                    st.closingText=QStringLiteral("</style>");
-                    st.isTag=true;
-                    st.children << CHTMLNode(QStringLiteral("* { height: auto !important; }"));
-                    node.children.insert(idx+1,st);
+                    st.m_tagName=QStringLiteral("style");
+                    st.m_closingText=QStringLiteral("</style>");
+                    st.m_isTag=true;
+                    st.m_children << CHTMLNode(QStringLiteral("* { height: auto !important; }"));
+                    node.m_children.insert(idx+1,st);
                     break;
                 }
             }
@@ -296,63 +296,63 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // div processing
-        if (node.tagName.toLower()==QStringLiteral("div")) {
+        if (node.m_tagName.toLower()==QStringLiteral("div")) {
 
             // unfold compressed divs
             QString sdivst;
-            if (node.attributes.contains(QStringLiteral("style")))
-                sdivst = node.attributes.value(QStringLiteral("style"));
+            if (node.m_attributes.contains(QStringLiteral("style")))
+                sdivst = node.m_attributes.value(QStringLiteral("style"));
             if (!sdivst.contains(QStringLiteral("absolute"),Qt::CaseInsensitive)) {
-                if (!node.attributes.contains(QStringLiteral("style")))
-                    node.attributes[QStringLiteral("style")]=QString();
-                if (node.attributes.value(QStringLiteral("style")).isEmpty())
-                    node.attributes[QStringLiteral("style")]=QStringLiteral("height:auto;");
+                if (!node.m_attributes.contains(QStringLiteral("style")))
+                    node.m_attributes[QStringLiteral("style")]=QString();
+                if (node.m_attributes.value(QStringLiteral("style")).isEmpty())
+                    node.m_attributes[QStringLiteral("style")]=QStringLiteral("height:auto;");
                 else
-                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; height:auto;");
+                    node.m_attributes[QStringLiteral("style")]=node.m_attributes.value(QStringLiteral("style"))+QStringLiteral("; height:auto;");
             }
 
             // pixiv - unfolding novel pages to one big page
-            if (node.attributes.contains(QStringLiteral("class")) &&
-                    unhide_classes.contains(node.attributes.value(QStringLiteral("class")).toLower().trimmed())) {
-                if (!node.attributes.contains(QStringLiteral("style")))
-                    node.attributes[QStringLiteral("style")]=QString();
-                if (node.attributes.value(QStringLiteral("style")).isEmpty())
-                    node.attributes[QStringLiteral("style")]=QStringLiteral("display:block;");
+            if (node.m_attributes.contains(QStringLiteral("class")) &&
+                    unhide_classes.contains(node.m_attributes.value(QStringLiteral("class")).toLower().trimmed())) {
+                if (!node.m_attributes.contains(QStringLiteral("style")))
+                    node.m_attributes[QStringLiteral("style")]=QString();
+                if (node.m_attributes.value(QStringLiteral("style")).isEmpty())
+                    node.m_attributes[QStringLiteral("style")]=QStringLiteral("display:block;");
                 else
-                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; display:block;");
+                    node.m_attributes[QStringLiteral("style")]=node.m_attributes.value(QStringLiteral("style"))+QStringLiteral("; display:block;");
             }
         }
 
         idx=0;
-        while(idx<node.children.count()) {
+        while(idx<node.m_children.count()) {
             // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
             // Remove 'vtoken' inline span
-            if (node.children.at(idx).tagName.toLower()==QStringLiteral("span") &&
-                    node.children.at(idx).attributes.contains(QStringLiteral("class")) &&
-                    node.children.at(idx).attributes.value(QStringLiteral("class"))
+            if (node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("span") &&
+                    node.m_children.at(idx).m_attributes.contains(QStringLiteral("class")) &&
+                    node.m_children.at(idx).m_attributes.value(QStringLiteral("class"))
                     .toLower().trimmed().startsWith(QStringLiteral("vtoken"))) {
 
-                const QVector<CHTMLNode> subnodes = node.children.at(idx).children;
+                const QVector<CHTMLNode> subnodes = node.m_children.at(idx).m_children;
                 for(int si=0;si<subnodes.count();si++)
-                    node.children.insert(idx+si+1,subnodes.at(si));
+                    node.m_children.insert(idx+si+1,subnodes.at(si));
 
-                node.children.removeAt(idx);
+                node.m_children.removeAt(idx);
                 node.normalize();
                 idx=0;
                 continue;
             }
 
             // remove ruby annotation (superscript), unfold main text block
-            if (node.children.at(idx).tagName.toLower()==QStringLiteral("ruby")) {
+            if (node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("ruby")) {
                 subnodes.clear();
-                for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children))
-                    if (rnode.tagName.toLower()==QStringLiteral("rb"))
-                        subnodes << rnode.children;
+                for (const CHTMLNode& rnode : qAsConst(node.m_children.at(idx).m_children))
+                    if (rnode.m_tagName.toLower()==QStringLiteral("rb"))
+                        subnodes << rnode.m_children;
 
                 for(int si=0;si<subnodes.count();si++)
-                    node.children.insert(idx+si+1,subnodes.at(si));
+                    node.m_children.insert(idx+si+1,subnodes.at(si));
 
-                node.children.removeAt(idx);
+                node.m_children.removeAt(idx);
                 node.normalize();
                 idx=0;
                 continue;
@@ -360,19 +360,19 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
             // remove floating headers for fc2 and goo blogs
             if (metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive)) &&
-                    node.children.at(idx).tagName.toLower()==QStringLiteral("div") &&
-                    node.children.at(idx).attributes.contains(QStringLiteral("id")) &&
-                    denyDivs.contains(node.children.at(idx).attributes.value(QStringLiteral("id")),
+                    node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("div") &&
+                    node.m_children.at(idx).m_attributes.contains(QStringLiteral("id")) &&
+                    denyDivs.contains(node.m_children.at(idx).m_attributes.value(QStringLiteral("id")),
                                       Qt::CaseInsensitive)) {
-                node.children.removeAt(idx);
+                node.m_children.removeAt(idx);
                 node.normalize();
                 idx=0;
                 continue;
             }
 
             // Remove scripts and iframes
-            if (denyTags.contains(node.children.at(idx).tagName,Qt::CaseInsensitive)) {
-                node.children.removeAt(idx);
+            if (denyTags.contains(node.m_children.at(idx).m_tagName,Qt::CaseInsensitive)) {
+                node.m_children.removeAt(idx);
                 node.normalize();
                 idx = 0;
                 continue;
@@ -381,16 +381,16 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
 
         // collecting image urls
-        if (node.tagName.toLower()==QStringLiteral("img")) {
-            if (node.attributes.contains(QStringLiteral("src"))) {
-                QString src = node.attributes.value(QStringLiteral("src")).trimmed();
+        if (node.m_tagName.toLower()==QStringLiteral("img")) {
+            if (node.m_attributes.contains(QStringLiteral("src"))) {
+                QString src = node.m_attributes.value(QStringLiteral("src")).trimmed();
                 if (!src.isEmpty())
                     imgUrls << src;
             }
         }
-        if (node.tagName.toLower()==QStringLiteral("a")) {
-            if (node.attributes.contains(QStringLiteral("href"))) {
-                QString src = node.attributes.value(QStringLiteral("href")).trimmed();
+        if (node.m_tagName.toLower()==QStringLiteral("a")) {
+            if (node.m_attributes.contains(QStringLiteral("href"))) {
+                QString src = node.m_attributes.value(QStringLiteral("href")).trimmed();
                 QFileInfo fi(src);
                 if (acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
                     imgUrls << src;
@@ -401,11 +401,11 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     if (xmlPass==PXPostprocess) {
         // remove duplicated <br>
         int idx=0;
-        while(idx<node.children.count()) {
-            if (node.children.at(idx).tagName.toLower()==QStringLiteral("br")) {
-                while(idx<(node.children.count()-1) &&
-                      node.children.at(idx+1).tagName.toLower()==QStringLiteral("br")) {
-                    node.children.removeAt(idx+1);
+        while(idx<node.m_children.count()) {
+            if (node.m_children.at(idx).m_tagName.toLower()==QStringLiteral("br")) {
+                while(idx<(node.m_children.count()-1) &&
+                      node.m_children.at(idx+1).m_tagName.toLower()==QStringLiteral("br")) {
+                    node.m_children.removeAt(idx+1);
                 }
             }
             idx++;
@@ -414,7 +414,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     if (translatorFailed) return;
 
-    for(auto &child : node.children) {
+    for(auto &child : node.m_children) {
         examineNode(child,xmlPass);
     }
 }
@@ -431,7 +431,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     }
     emit setProgress(baseProgress);
 
-    QString ssrc = src.text;
+    QString ssrc = src.m_text;
     ssrc = ssrc.replace(QStringLiteral("\r\n"),QStringLiteral("\n"));
     ssrc = ssrc.replace('\r','\n');
     ssrc = ssrc.replace(QRegExp(QStringLiteral("\n{2,}")),QStringLiteral("\n"));
@@ -549,10 +549,10 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
         if (!srctls.isEmpty() && ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)))
-            src.text = QStringLiteral("<span title=\"%1\">%2</span>")
+            src.m_text = QStringLiteral("<span title=\"%1\">%2</span>")
                        .arg(srctls.join('\n').replace('"','\''),sout);
         else
-            src.text = sout;
+            src.m_text = sout;
     }
 
     return !failure;
@@ -672,42 +672,77 @@ void CTranslator::abortTranslator()
     imt->start();
 }
 
-
-CHTMLNode::CHTMLNode()
+void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
 {
-    children.clear();
-    attributes.clear();
-    attributesOrder.clear();
-    text.clear();
-    tagName.clear();
-    closingText.clear();
-    isTag = false;
-    isComment = false;
+    if (src.m_isTag && !src.m_tagName.isEmpty()) {
+        html.append(QStringLiteral("<")+src.m_tagName);
+        for (const QString &key : qAsConst(src.m_attributesOrder)) {
+            const QString val = src.m_attributes.value(key);
+            if (!val.contains('"'))
+                html.append(QStringLiteral(" %1=\"%2\"").arg(key,val));
+            else
+                html.append(QStringLiteral(" %1='%2'").arg(key,val));
+        }
+        html.append(QStringLiteral(">"));
+    } else {
+        QString txt = src.m_text;
+        // fix incorrect nested comments - pixiv
+        if (src.m_isComment) {
+            if ((txt.count(QStringLiteral("<!--"))>1) || (txt.count(QStringLiteral("-->"))>1))
+                txt.clear();
+            if ((txt.count(QStringLiteral("<"))>1 || txt.count(QStringLiteral(">"))>1)
+                && (txt.count(QStringLiteral("<"))!=txt.count(QStringLiteral(">"))))
+                txt.clear();
+        }
+        html.append(txt);
+    }
+
+    for (const CHTMLNode &node : qAsConst(src.m_children))
+        generateHTML(node,html,reformat,depth+1);
+
+    html.append(src.m_closingText);
+    if (reformat)
+        html.append('\n');
+}
+
+void CTranslator::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
+{
+    if (node.m_tagName.toLower()==QStringLiteral("a")) {
+        if (node.m_attributes.contains(QStringLiteral("href"))) {
+            QUrl ref = QUrl(node.m_attributes.value(QStringLiteral("href")));
+            if (ref.isRelative())
+                node.m_attributes[QStringLiteral("href")]=baseUrl.resolved(ref).toString();
+        }
+    }
+
+    for (auto &child : node.m_children) {
+        replaceLocalHrefs(child,baseUrl);
+    }
 }
 
 CHTMLNode::~CHTMLNode()
 {
-    children.clear();
-    attributes.clear();
-    attributesOrder.clear();
+    m_children.clear();
+    m_attributes.clear();
+    m_attributesOrder.clear();
 }
 
 CHTMLNode::CHTMLNode(const CHTMLNode &other)
 {
-    text = other.text;
-    tagName = other.tagName;
-    closingText = other.closingText;
-    isTag = other.isTag;
-    isComment = other.isComment;
+    m_text = other.m_text;
+    m_tagName = other.m_tagName;
+    m_closingText = other.m_closingText;
+    m_isTag = other.m_isTag;
+    m_isComment = other.m_isComment;
 
-    attributes.clear();
-    attributes = other.attributes;
+    m_attributes.clear();
+    m_attributes = other.m_attributes;
 
-    attributesOrder.clear();
-    attributesOrder = other.attributesOrder;
+    m_attributesOrder.clear();
+    m_attributesOrder = other.m_attributesOrder;
 
-    children.clear();
-    children = other.children;
+    m_children.clear();
+    m_children = other.m_children;
 }
 
 CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
@@ -716,61 +751,61 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 
     it->parseAttributes();
 
-    text = it->text();
-    tagName = it->tagName();
-    closingText = it->closingText();
-    isTag = it->isTag();
-    isComment = it->isComment();
+    m_text = it->text();
+    m_tagName = it->tagName();
+    m_closingText = it->closingText();
+    m_isTag = it->isTag();
+    m_isComment = it->isComment();
 
-    attributes.clear();
-    attributes = it->attributes();
+    m_attributes.clear();
+    m_attributes = it->attributes();
 
-    attributesOrder.clear();
-    attributesOrder = it->attributesOrder();
+    m_attributesOrder.clear();
+    m_attributesOrder = it->attributesOrder();
 
-    children.clear();
-    children.reserve(static_cast<int>(it.number_of_children()));
+    m_children.clear();
+    m_children.reserve(static_cast<int>(it.number_of_children()));
     for (unsigned i=0; i<it.number_of_children(); i++ )
-        children << CHTMLNode(node.child(it,i));
+        m_children << CHTMLNode(node.child(it,i));
 }
 
 CHTMLNode::CHTMLNode(const QString &innerText)
 {
     // creates text node
-    text = innerText;
-    tagName = innerText;
-    closingText.clear();
-    isTag = false;
-    isComment = false;
+    m_text = innerText;
+    m_tagName = innerText;
+    m_closingText.clear();
+    m_isTag = false;
+    m_isComment = false;
 
-    attributes.clear();
-    attributesOrder.clear();
-    children.clear();
+    m_attributes.clear();
+    m_attributesOrder.clear();
+    m_children.clear();
 }
 
 CHTMLNode &CHTMLNode::operator=(const CHTMLNode &other)
 {
-    text = other.text;
-    tagName = other.tagName;
-    closingText = other.closingText;
-    isTag = other.isTag;
-    isComment = other.isComment;
+    m_text = other.m_text;
+    m_tagName = other.m_tagName;
+    m_closingText = other.m_closingText;
+    m_isTag = other.m_isTag;
+    m_isComment = other.m_isComment;
 
-    attributes.clear();
-    attributes = other.attributes;
+    m_attributes.clear();
+    m_attributes = other.m_attributes;
 
-    attributesOrder.clear();
-    attributesOrder = other.attributesOrder;
+    m_attributesOrder.clear();
+    m_attributesOrder = other.m_attributesOrder;
 
-    children.clear();
-    children = other.children;
+    m_children.clear();
+    m_children = other.m_children;
 
     return *this;
 }
 
 bool CHTMLNode::operator==(const CHTMLNode &s) const
 {
-    return (text == s.text);
+    return (m_text == s.m_text);
 }
 
 bool CHTMLNode::operator!=(const CHTMLNode &s) const
@@ -781,12 +816,12 @@ bool CHTMLNode::operator!=(const CHTMLNode &s) const
 void CHTMLNode::normalize()
 {
     int i = 0;
-    while (i<(children.count()-1)) {
-        if (children.at(i).isTextNode() &&
-                children.at(i+1).isTextNode()) {
-            if (!children.at(i+1).text.trimmed().isEmpty())
-                children[i].text += children.at(i+1).text;
-            children.removeAt(i+1);
+    while (i<(m_children.count()-1)) {
+        if (m_children.at(i).isTextNode() &&
+                m_children.at(i+1).isTextNode()) {
+            if (!m_children.at(i+1).m_text.trimmed().isEmpty())
+                m_children[i].m_text += m_children.at(i+1).m_text;
+            m_children.removeAt(i+1);
             i = 0;
             continue;
         }
@@ -796,5 +831,5 @@ void CHTMLNode::normalize()
 
 bool CHTMLNode::isTextNode() const
 {
-    return (!isTag && !isComment);
+    return (!m_isTag && !m_isComment);
 }

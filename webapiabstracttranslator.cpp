@@ -8,7 +8,7 @@
 CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang)
     : CAbstractTranslator (parent, lang)
 {
-    nam = nullptr;
+    m_nam = nullptr;
 }
 
 CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
@@ -19,7 +19,7 @@ CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
 QString CWebAPIAbstractTranslator::tranString(const QString& src)
 {
     if (!isReady()) {
-        tranError = tr("ERROR: Translator not ready");
+        setTranslatorError(tr("ERROR: Translator not ready"));
         return QStringLiteral("ERROR:TRAN_NOT_READY");
     }
 
@@ -42,7 +42,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         res.clear();
         for (int i=0;i<srout.count();i++) {
             QString s = tranStringInternal(srout.at(i));
-            if (!tranError.isEmpty()) {
+            if (!getErrorMsg().isEmpty()) {
                 res=s;
                 break;
             }
@@ -72,11 +72,34 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
     return reply->isFinished() && reply->bytesAvailable()>0;
 }
 
+void CWebAPIAbstractTranslator::initNAM()
+{
+    if (m_nam==nullptr) {
+        m_nam=new QNetworkAccessManager(this);
+        auto cj = new CNetworkCookieJar();
+        m_nam->setCookieJar(cj);
+    }
+
+    auto cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
+    auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    cj->initAllCookies(mj->getAllCookies());
+
+    if (gSet->settings.proxyUseTranslator)
+        m_nam->setProxy(QNetworkProxy::DefaultProxy);
+    else
+        m_nam->setProxy(QNetworkProxy::NoProxy);
+}
+
+QNetworkAccessManager *CWebAPIAbstractTranslator::nam()
+{
+    return m_nam;
+}
+
 void CWebAPIAbstractTranslator::deleteNAM()
 {
-    if (nam)
-        nam->deleteLater();
-    nam=nullptr;
+    if (m_nam)
+        m_nam->deleteLater();
+    m_nam=nullptr;
 }
 
 void CWebAPIAbstractTranslator::doneTran(bool)
@@ -87,5 +110,5 @@ void CWebAPIAbstractTranslator::doneTran(bool)
 
 bool CWebAPIAbstractTranslator::isReady()
 {
-    return isValidCredentials() && nam;
+    return isValidCredentials() && m_nam;
 }

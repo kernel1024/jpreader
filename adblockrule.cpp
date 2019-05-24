@@ -13,21 +13,18 @@
 #include "genericfuncs.h"
 
 CAdBlockRule::CAdBlockRule()
-    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = QString();
     setFilter(QString());
 }
 
 CAdBlockRule::CAdBlockRule(const CAdBlockRule &other)
-    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = other.m_listID;
     setFilter(other.filter());
 }
 
 CAdBlockRule::CAdBlockRule(const QString &filter, const QString &listID)
-    : m_cssRule(false), m_exception(false), m_enabled(false)
 {
     m_listID = listID;
     setFilter(filter);

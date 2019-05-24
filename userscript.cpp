@@ -28,15 +28,6 @@
 #include <QTextStream>
 #include <QDebug>
 
-CUserScript::CUserScript()
-    : m_name(QString()),
-      m_injectionTime(DocumentReadyTime),
-      m_shouldRunOnSubFrames(true),
-      m_runFromContextMenu(false)
-{
-
-}
-
 CUserScript::CUserScript(const CUserScript &other)
 {
     m_name = other.m_name;
@@ -55,9 +46,6 @@ CUserScript::CUserScript(const CUserScript &other)
 }
 
 CUserScript::CUserScript(const QString &name, const QString &source)
-    : m_injectionTime(DocumentReadyTime),
-      m_shouldRunOnSubFrames(true),
-      m_runFromContextMenu(false)
 {
     m_name = name;
     if (!source.isEmpty())

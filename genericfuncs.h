@@ -7,7 +7,14 @@
 #include <QStringList>
 #include <QWidget>
 #include <QFileDialog>
-#include "translator.h"
+
+#define Z_DISABLE_MOVE(Class) \
+    Class(Class &&) Q_DECL_EQ_DELETE;\
+    Class &operator=(Class &&) Q_DECL_EQ_DELETE;
+
+#define Z_DEFAULT_MOVE(Class) \
+    Class(Class &&) Q_DECL_EQ_DEFAULT;\
+    Class &operator=(Class &&) Q_DECL_EQ_DEFAULT;
 
 extern QStringList debugMessages;
 
@@ -32,7 +39,6 @@ bool checkAndUnpackUrl(QUrl& url);
 int getRandomTCPPort();
 bool runnedFromQtCreator();
 int compareStringLists(const QStringList& left, const QStringList& right);
-void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false, int depth = 0);
 QString extractFileTitle(const QString& fileContents);
 QString convertPatternToRegExp(const QString &wildcardPattern);
 void sendKeyboardInputToView(QWidget *widget, const QString& s);
