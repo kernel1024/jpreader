@@ -60,7 +60,6 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
 
     userScripts.clear();
     logWindow = new CLogDisplay();
-
     downloadManager = new CDownloadManager();
     bookmarksManager = new BookmarksManager(this);
 
@@ -178,6 +177,13 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     QTimer::singleShot(1500,dictManager,[this](){
         dictManager->loadDictionaries(settings.dictPaths, settings.dictIndexDir);
     });
+}
+
+CGlobalControl::~CGlobalControl()
+{
+    webProfile->setParent(nullptr);
+    delete webProfile;
+    gSet = nullptr;
 }
 
 bool CGlobalControl::setupIPC()
@@ -460,24 +466,24 @@ void CGlobalControl::cleanupAndExit()
         for (CMainWindow* w : qAsConst(mainWindows)) {
             if (w)
                 w->close();
-            QApplication::processEvents();
         }
-        QApplication::processEvents();
     }
     ui.gctxTranHotkey.unsetShortcut();
     freePdfToText();
-    webProfile->deleteLater();
-    QApplication::processEvents();
 
     ipcServer->close();
-    QApplication::processEvents();
     ipcServer->deleteLater();
-    QApplication::processEvents();
-
     ipcServer=nullptr;
-    webProfile=nullptr;
 
-    QApplication::quit();
+    logWindow->setParent(nullptr);
+    logWindow->deleteLater();
+    logWindow = nullptr;
+
+    downloadManager->setParent(nullptr);
+    downloadManager->deleteLater();
+    downloadManager = nullptr;
+
+    QMetaObject::invokeMethod(qApp,&QApplication::quit,Qt::QueuedConnection);
 }
 
 bool CGlobalControl::isUrlBlocked(const QUrl& url)

@@ -46,6 +46,7 @@ class CGlobalControl : public QObject
     Q_OBJECT
 public:
     explicit CGlobalControl(QApplication *parent, int aInspectorPort);
+    virtual ~CGlobalControl();
 
     CSettings settings;
     CGlobalUI ui;

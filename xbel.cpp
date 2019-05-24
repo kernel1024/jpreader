@@ -65,9 +65,11 @@ BookmarkNode::~BookmarkNode()
 {
     if (m_parent)
         m_parent->remove(this);
-    qDeleteAll(m_children);
     m_parent = nullptr;
-    m_type = BookmarkNode::Root;
+
+    auto children = m_children;
+    qDeleteAll(children);
+    m_children.clear();
 }
 
 bool BookmarkNode::operator==(const BookmarkNode &other)

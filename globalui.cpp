@@ -168,7 +168,7 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const 
 
     auto mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
     connect(mainWindow,&CMainWindow::aboutToClose,
-            gSet,&CGlobalControl::windowDestroyed);
+            gSet,&CGlobalControl::windowDestroyed,Qt::QueuedConnection);
 
     gSet->mainWindows.append(mainWindow);
 

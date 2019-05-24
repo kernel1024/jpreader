@@ -29,6 +29,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     tabMain->parentWnd=this;
 	lastTabIdx=0;
     setWindowIcon(gSet->appIcon);
+    setAttribute(Qt::WA_DeleteOnClose,true);
 
     tabMain->tabBar()->setBrowserTabs(true);
 

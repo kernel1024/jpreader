@@ -79,7 +79,7 @@ signals:
 
 public:
     BookmarksManager(QObject *parent = nullptr);
-    ~BookmarksManager() = default;
+    ~BookmarksManager();
 
     void addBookmark(BookmarkNode *parent, BookmarkNode *node, int row = -1);
     void removeBookmark(BookmarkNode *node);

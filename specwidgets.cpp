@@ -335,7 +335,7 @@ CSpecWebView::CSpecWebView(QWidget *parent)
     if (parentViewer==nullptr)
         qCritical() << "parentViewer is nullptr";
 
-    m_page = new CSpecWebPage(gSet->webProfile, parent);
+    m_page = new CSpecWebPage(gSet->webProfile, this);
     setPage(m_page);
 }
 
@@ -343,7 +343,7 @@ CSpecWebView::CSpecWebView(CSnippetViewer *parent)
     : QWebEngineView(parent)
 {
     parentViewer = parent;
-    m_page = new CSpecWebPage(gSet->webProfile, parent);
+    m_page = new CSpecWebPage(gSet->webProfile, this);
     setPage(m_page);
 }
 

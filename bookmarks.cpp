@@ -85,6 +85,12 @@ BookmarksManager::BookmarksManager(QObject *parent)
 {
 }
 
+BookmarksManager::~BookmarksManager()
+{
+    delete m_bookmarkRootNode;
+    m_bookmarkRootNode = nullptr;
+}
+
 void BookmarksManager::changeExpanded()
 {
 }
