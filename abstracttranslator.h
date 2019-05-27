@@ -8,18 +8,12 @@
 class CAbstractTranslator : public QObject
 {
     Q_OBJECT
-private:
-    QString m_translatorError;
-    CLangPair m_langPair;
-
 protected:
-    void setTranslatorError(const QString& msg);
-    void clearTranslatorError();
-    CLangPair getLangPair() const;
-    void setLangPair(const CLangPair &lang);
-
+    QString tranError;
+    CLangPair m_lang;
 public:
     explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);
+    ~CAbstractTranslator() = default;
 
     virtual bool initTran()=0;
     virtual QString tranString(const QString& src)=0;

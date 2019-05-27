@@ -61,7 +61,6 @@
 
 #include "structures.h"
 #include "mainwindow.h"
-#include "genericfuncs.h"
 
 
 /*!
@@ -80,7 +79,7 @@ signals:
 
 public:
     BookmarksManager(QObject *parent = nullptr);
-    ~BookmarksManager() override;
+    ~BookmarksManager();
 
     void addBookmark(BookmarkNode *parent, BookmarkNode *node, int row = -1);
     void removeBookmark(BookmarkNode *node);
@@ -109,8 +108,6 @@ private:
     BookmarkNode *m_bookmarkRootNode;
     BookmarksModel *m_bookmarkModel;
 
-    Q_DISABLE_COPY(BookmarksManager)
-    Z_DISABLE_MOVE(BookmarksManager)
 };
 
 /*!
@@ -136,22 +133,21 @@ public:
     BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent = nullptr);
     inline BookmarksManager *bookmarksManager() const { return m_bookmarksManager; }
 
-    QVariant headerData(int section, Qt::Orientation orientation,
-                        int role = Qt::DisplayRole) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex index(int, int, const QModelIndex& = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index= QModelIndex()) const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    Qt::DropActions supportedDropActions () const override;
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    QStringList mimeTypes() const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex index(int, int, const QModelIndex& = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex& index= QModelIndex()) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    Qt::DropActions supportedDropActions () const;
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    QMimeData *mimeData(const QModelIndexList &indexes) const;
+    QStringList mimeTypes() const;
     bool dropMimeData(const QMimeData *data,
-        Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
-    bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
+        Qt::DropAction action, int row, int column, const QModelIndex &parent);
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
 
     BookmarkNode *node(const QModelIndex &index) const;
     QModelIndex index(BookmarkNode *node) const;
@@ -170,10 +166,10 @@ class AddBookmarkProxyModel : public QSortFilterProxyModel
     Q_OBJECT
 public:
     AddBookmarkProxyModel(QObject * parent = nullptr);
-    int columnCount(const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex & parent = QModelIndex()) const;
 
 protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 };
 
 /*!
@@ -192,16 +188,13 @@ public:
                       BookmarksManager *bookmarkManager = nullptr);
 
 private slots:
-    void accept() override;
+    void accept();
 
 private:
     Ui::AddBookmarkDialog *ui;
     QString m_url;
     BookmarksManager *m_bookmarksManager;
     AddBookmarkProxyModel *m_proxyModel;
-
-    Q_DISABLE_COPY(AddBookmarkDialog)
-    Z_DISABLE_MOVE(AddBookmarkDialog)
 };
 
 //#include "ui_bookmarks.h"
@@ -213,7 +206,7 @@ public:
     TreeProxyModel(QObject *parent, BookmarksModel *sourceModel);
 
 protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
 
 private:
     BookmarksModel *m_sourceModel;
@@ -231,11 +224,11 @@ signals:
 
 public:
     BookmarksDialog(QWidget *parent = nullptr, BookmarksManager *manager = nullptr);
-    ~BookmarksDialog() override;
+    ~BookmarksDialog();
 
 private slots:
     void customContextMenuRequested(const QPoint &pos);
-    void open() override;
+    void open();
     void openEx(const QModelIndex &index);
     void newFolder();
     void newSeparator();
@@ -249,9 +242,6 @@ private:
     BookmarksManager *m_bookmarksManager;
     BookmarksModel *m_bookmarksModel;
     TreeProxyModel *m_proxyModel;
-
-    Q_DISABLE_COPY(BookmarksDialog)
-    Z_DISABLE_MOVE(BookmarksDialog)
 };
 
 

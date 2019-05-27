@@ -4,35 +4,15 @@
 #include "yandextranslator.h"
 #include "googlegtxtranslator.h"
 
-void CAbstractTranslator::setTranslatorError(const QString &msg)
-{
-    m_translatorError = msg;
-}
-
-void CAbstractTranslator::clearTranslatorError()
-{
-    m_translatorError.clear();
-}
-
-CLangPair CAbstractTranslator::getLangPair() const
-{
-    return m_langPair;
-}
-
-void CAbstractTranslator::setLangPair(const CLangPair &lang)
-{
-    m_langPair = lang;
-}
-
 CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang) : QObject(parent)
 {
-    m_translatorError.clear();
-    m_langPair = lang;
+    tranError.clear();
+    m_lang = lang;
 }
 
 QString CAbstractTranslator::getErrorMsg()
 {
-    return m_translatorError;
+    return tranError;
 }
 
 CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDirection)

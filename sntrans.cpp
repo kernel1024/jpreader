@@ -198,8 +198,8 @@ void CSnTrans::postTranslate()
             url = QUrl(QStringLiteral("http://translate.google.com/translate"));
             lp = CLangPair(gSet->ui.getActiveLangPair());
             if (lp.isValid()) {
-                qu.addQueryItem(QStringLiteral("sl"),lp.getLangFrom().bcp47Name());
-                qu.addQueryItem(QStringLiteral("tl"),lp.getLangTo().bcp47Name());
+                qu.addQueryItem(QStringLiteral("sl"),lp.langFrom.bcp47Name());
+                qu.addQueryItem(QStringLiteral("tl"),lp.langTo.bcp47Name());
                 qu.addQueryItem(QStringLiteral("u"),snv->calculatedUrl);
                 url.setQuery(qu);
                 snv->txtBrowser->load(url);

@@ -436,7 +436,7 @@ void CMainWindow::updateHelperList()
             break;
         case 1: // Recycled
             for (int i=0;i<gSet->recycleBin.count();i++) {
-                auto it = new QListWidgetItem(gSet->recycleBin.at(i).getTitle());
+                auto it = new QListWidgetItem(gSet->recycleBin.at(i).title);
                 it->setData(Qt::UserRole,1);
                 it->setData(Qt::UserRole+1,i);
                 helperList->addItem(it);
@@ -444,12 +444,12 @@ void CMainWindow::updateHelperList()
             break;
         case 2: // History
             for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
-                auto it = new QListWidgetItem(t.getTitle());
-                it->setStatusTip(t.getUrl().toString());
-                it->setToolTip(t.getUrl().toString());
+                auto it = new QListWidgetItem(t.title);
+                it->setStatusTip(t.url.toString());
+                it->setToolTip(t.url.toString());
                 it->setData(Qt::UserRole,2);
                 it->setData(Qt::UserRole+1,0);
-                it->setData(Qt::UserRole+2,t.getUuid().toString());
+                it->setData(Qt::UserRole+2,t.uuid.toString());
                 helperList->addItem(it);
             }
             break;
@@ -472,7 +472,7 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
             break;
         case 1: // Recycled
             if (idx<0 || idx>=gSet->recycleBin.count()) return;
-            u = gSet->recycleBin.at(idx).getUrl();
+            u = gSet->recycleBin.at(idx).url;
             if (!u.isValid()) return;
             new CSnippetViewer(this, u);
 
@@ -491,12 +491,12 @@ void CMainWindow::updateHistoryList()
     if (!(helperVisible && tabHelper->currentIndex()==2)) return;
     helperList->clear();
     for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
-        auto it = new QListWidgetItem(t.getTitle());
-        it->setStatusTip(t.getUrl().toString());
-        it->setToolTip(t.getUrl().toString());
+        auto it = new QListWidgetItem(t.title);
+        it->setStatusTip(t.url.toString());
+        it->setToolTip(t.url.toString());
         it->setData(Qt::UserRole,2);
         it->setData(Qt::UserRole+1,0);
-        it->setData(Qt::UserRole+2,t.getUuid().toString());
+        it->setData(Qt::UserRole+2,t.uuid.toString());
         helperList->addItem(it);
     }
 }
@@ -538,8 +538,8 @@ void CMainWindow::updateTitle()
 void CMainWindow::goHistory(QUuid idx)
 {
     for (const CUrlHolder& uh : qAsConst(gSet->mainHistory))
-        if (uh.getUuid()==idx) {
-            QUrl u = uh.getUrl();
+        if (uh.uuid==idx) {
+            QUrl u = uh.url;
             if (!u.isValid()) return;
             new CSnippetViewer(this, u);
             break;
@@ -731,7 +731,7 @@ void CMainWindow::openRecycled()
     int idx = a->data().toInt(&okconv);
     if (!okconv) return;
     if (idx<0 || idx>=gSet->recycleBin.count()) return;
-    QUrl u = gSet->recycleBin.at(idx).getUrl();
+    QUrl u = gSet->recycleBin.at(idx).url;
     if (!u.isValid()) return;
     new CSnippetViewer(this, u);
 
@@ -743,9 +743,9 @@ void CMainWindow::updateRecycled()
 {
     recycledMenu->clear();
     for (int i=0;i<gSet->recycleBin.count();i++) {
-        QAction* a = recycledMenu->addAction(gSet->recycleBin.at(i).getTitle(),this,
+        QAction* a = recycledMenu->addAction(gSet->recycleBin.at(i).title,this,
                                              &CMainWindow::openRecycled);
-        a->setStatusTip(gSet->recycleBin.at(i).getUrl().toString());
+        a->setStatusTip(gSet->recycleBin.at(i).url.toString());
         a->setData(i);
     }
     updateHelperList();

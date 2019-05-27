@@ -52,8 +52,8 @@ void CLightTranslator::translate()
     auto th = new QThread();
     auto at = new CAuxTranslator();
     at->setText(s);
-    at->setSrcLang(lp.getLangFrom().bcp47Name());
-    at->setDestLang(lp.getLangTo().bcp47Name());
+    at->setSrcLang(lp.langFrom.bcp47Name());
+    at->setDestLang(lp.langTo.bcp47Name());
     connect(this,&CLightTranslator::startTranslation,at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
     connect(at,&CAuxTranslator::gotTranslation,this,&CLightTranslator::gotTranslation,Qt::QueuedConnection);
     at->moveToThread(th);
@@ -92,8 +92,8 @@ void CLightTranslator::reloadLanguageList()
 {
     for (const CLangPair& pair : qAsConst(gSet->settings.translatorPairs)) {
         ui->comboLanguage->addItem(QStringLiteral("%1 - %2").arg(
-                                      gSet->getLanguageName(pair.getLangFrom().bcp47Name()),
-                                      gSet->getLanguageName(pair.getLangTo().bcp47Name())),
+                                      gSet->getLanguageName(pair.langFrom.bcp47Name()),
+                                      gSet->getLanguageName(pair.langTo.bcp47Name())),
                                    pair.getHash());
     }
     if (gSet->ui.languageSelector->checkedAction()) {

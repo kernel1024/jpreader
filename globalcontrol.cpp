@@ -366,7 +366,7 @@ void CGlobalControl::appendRecycled(const QString& title, const QUrl& url)
 
 void CGlobalControl::appendMainHistory(const CUrlHolder &item)
 {
-    if (item.getUrl().toString().startsWith(QStringLiteral("data:"),Qt::CaseInsensitive)) return;
+    if (item.url.toString().startsWith(QStringLiteral("data:"),Qt::CaseInsensitive)) return;
 
     if (mainHistory.contains(item))
         mainHistory.removeOne(item);
@@ -383,7 +383,7 @@ bool CGlobalControl::updateMainHistoryTitle(const CUrlHolder &item, const QStrin
     if (mainHistory.contains(item)) {
         int idx = mainHistory.indexOf(item);
         if (idx>=0) {
-            mainHistory[idx].setTitle(newTitle);
+            mainHistory[idx].title = newTitle;
             emit updateAllHistoryLists();
             return true;
         }

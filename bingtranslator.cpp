@@ -28,10 +28,10 @@ bool CBingTranslator::initTran()
     rqurl.setQuery(uq);
     QNetworkRequest rq(rqurl);
 
-    QNetworkReply *rpl = nam()->post(rq,QByteArray());
+    QNetworkReply *rpl = nam->post(rq,QByteArray());
 
     if (!waitForReply(rpl)) {
-        setTranslatorError(tr("Bing connection error"));
+        tranError = tr("Bing connection error");
         qCritical() << "Bing connection error: " << rpl->error();
         rpl->deleteLater();
         return false;
@@ -40,7 +40,7 @@ bool CBingTranslator::initTran()
     QByteArray ra = rpl->readAll();
 
     if (rpl->error()!=QNetworkReply::NoError) {
-        setTranslatorError(tr("Bing auth error"));
+        tranError = tr("Bing auth error");
         qCritical() << "Bing auth error: " << rpl->error();
         qCritical() << "Response: " << ra;
         rpl->deleteLater();
@@ -50,7 +50,7 @@ bool CBingTranslator::initTran()
     rpl->deleteLater();
 
     authHeader = QStringLiteral("Bearer %1").arg(QString::fromUtf8(ra));
-    clearTranslatorError();
+    tranError.clear();
     return true;
 }
 
@@ -60,8 +60,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     QUrlQuery rqData;
     rqData.addQueryItem(QStringLiteral("textType"),QStringLiteral("plain"));
-    rqData.addQueryItem(QStringLiteral("from"),getLangPair().getLangFrom().bcp47Name());
-    rqData.addQueryItem(QStringLiteral("to"),getLangPair().getLangTo().bcp47Name());
+    rqData.addQueryItem(QStringLiteral("from"),m_lang.langFrom.bcp47Name());
+    rqData.addQueryItem(QStringLiteral("to"),m_lang.langTo.bcp47Name());
     rqData.addQueryItem(QStringLiteral("api-version"),QStringLiteral("3.0"));
     rqurl.setQuery(rqData);
 
@@ -77,10 +77,10 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     rq.setRawHeader("Content-Type","application/json");
     rq.setRawHeader("Content-Length",authHeader.toUtf8());
 
-    QNetworkReply *rpl = nam()->post(rq,body);
+    QNetworkReply *rpl = nam->post(rq,body);
 
     if (!waitForReply(rpl)) {
-        setTranslatorError(QStringLiteral("ERROR: Bing translator network error"));
+        tranError = QStringLiteral("ERROR: Bing translator network error");
         return QStringLiteral("ERROR:TRAN_BING_NETWORK_ERROR");
     }
 
@@ -90,7 +90,7 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     doc = QJsonDocument::fromJson(ra);
     if (doc.isNull()) {
-        setTranslatorError(QStringLiteral("ERROR: Bing translator JSON error"));
+        tranError = QStringLiteral("ERROR: Bing translator JSON error");
         return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
     }
 
@@ -98,12 +98,12 @@ QString CBingTranslator::tranStringInternal(const QString &src)
         QJsonObject obj = doc.object();
         QJsonValue err = obj.value(QStringLiteral("error"));
         if (err.isObject()) {
-            setTranslatorError(tr("ERROR: Bing translator JSON error #%1: %2")
+            tranError = tr("ERROR: Bing translator JSON error #%1: %2")
                     .arg(err.toObject().value(QStringLiteral("code")).toInt())
-                    .arg(err.toObject().value(QStringLiteral("message")).toString()));
+                    .arg(err.toObject().value(QStringLiteral("message")).toString());
             return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
         }
-        setTranslatorError(QStringLiteral("ERROR: Bing translator JSON generic error"));
+        tranError = QStringLiteral("ERROR: Bing translator JSON generic error");
         return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
     }
 

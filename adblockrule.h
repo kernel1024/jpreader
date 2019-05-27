@@ -23,11 +23,8 @@ class CAdBlockRule
 public:
     CAdBlockRule();
     CAdBlockRule(const CAdBlockRule& other);
-    CAdBlockRule(CAdBlockRule&& other) = default;
     CAdBlockRule(const QString &filter, const QString &listID);
-    ~CAdBlockRule() = default;
     CAdBlockRule &operator=(const CAdBlockRule& other);
-    CAdBlockRule &operator=(CAdBlockRule&& other) = default;
     bool operator==(const CAdBlockRule &s) const;
     bool operator!=(const CAdBlockRule &s) const;
 
@@ -59,9 +56,9 @@ private:
     QString m_plainRule;
     QStringList m_options;
 
-    bool m_cssRule {false};
-    bool m_exception {false};
-    bool m_enabled {false};
+    bool m_cssRule { false };
+    bool m_exception { false };
+    bool m_enabled { false };
 };
 
 using CAdBlockVector = QVector<CAdBlockRule>;

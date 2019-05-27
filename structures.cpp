@@ -1,35 +1,5 @@
 #include "structures.h"
 
-QString CUrlHolder::getTitle() const
-{
-    return title;
-}
-
-void CUrlHolder::setTitle(const QString &value)
-{
-    title = value;
-}
-
-QUrl CUrlHolder::getUrl() const
-{
-    return url;
-}
-
-void CUrlHolder::setUrl(const QUrl &value)
-{
-    url = value;
-}
-
-QUuid CUrlHolder::getUuid() const
-{
-    return uuid;
-}
-
-void CUrlHolder::setUuid(const QUuid &value)
-{
-    uuid = value;
-}
-
 CUrlHolder::CUrlHolder()
 {
     CUrlHolder::title=QString();
@@ -60,18 +30,6 @@ bool CUrlHolder::operator!=(const CUrlHolder &s) const
 {
     return !operator==(s);
 }
-
-/*CDirStruct::CDirStruct(const CDirStruct &other)
-{
-    dirName=other.dirName;
-    count=other.count;
-}
-
-CDirStruct::CDirStruct(const QString& DirName, int Count)
-{
-    CDirStruct::dirName=DirName;
-    CDirStruct::count=Count;
-}*/
 
 QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj) {
     out << obj.title << obj.url << obj.uuid;
@@ -155,26 +113,6 @@ bool CLangPair::operator!=(const CLangPair &s) const
 {
     return (!operator==(s));
 
-}
-
-QLocale CLangPair::getLangFrom() const
-{
-    return langFrom;
-}
-
-void CLangPair::setLangFrom(const QLocale &value)
-{
-    langFrom = value;
-}
-
-QLocale CLangPair::getLangTo() const
-{
-    return langTo;
-}
-
-void CLangPair::setLangTo(const QLocale &value)
-{
-    langTo = value;
 }
 
 void CLangPair::nullify()

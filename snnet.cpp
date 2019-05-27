@@ -163,7 +163,7 @@ void CSnNet::loadFinished(bool ok)
 
 void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool isMainFrame)
 {
-    Q_UNUSED(type);
+    Q_UNUSED(type)
 
     if (!isValidLoadedUrl(url)) return;
 
@@ -331,7 +331,7 @@ void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *auth
 void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator,
                                          const QString &proxyHost)
 {
-    Q_UNUSED(proxyHost);
+    Q_UNUSED(proxyHost)
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
     if (dlg->exec()) {
         authenticator->setUser(dlg->getUser());

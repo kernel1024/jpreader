@@ -21,7 +21,7 @@ bool CYandexTranslator::initTran()
 {
     initNAM();
 
-    clearTranslatorError();
+    tranError.clear();
     return true;
 }
 
@@ -32,18 +32,18 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     QUrlQuery rqData;
     rqData.addQueryItem(QStringLiteral("key"),clientKey);
     rqData.addQueryItem(QStringLiteral("lang"),QStringLiteral("%1-%2").arg(
-                            getLangPair().getLangFrom().bcp47Name(),
-                            getLangPair().getLangTo().bcp47Name()));
+                            m_lang.langFrom.bcp47Name(),
+                            m_lang.langTo.bcp47Name()));
     rqData.addQueryItem(QStringLiteral("text"),QUrl::toPercentEncoding(src));
 
     QNetworkRequest rq(rqurl);
     rq.setHeader(QNetworkRequest::ContentTypeHeader,
                  "application/x-www-form-urlencoded");
 
-    QNetworkReply *rpl = nam()->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
+    QNetworkReply *rpl = nam->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
     if (!waitForReply(rpl)) {
-        setTranslatorError(tr("ERROR: Yandex translator network error"));
+        tranError = tr("ERROR: Yandex translator network error");
         rpl->deleteLater();
         return QStringLiteral("ERROR:TRAN_YANDEX_NETWORK_ERROR");
     }
@@ -55,7 +55,7 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 
     if (jdoc.isNull() || jdoc.isEmpty()) {
-        setTranslatorError(tr("ERROR: Yandex translator JSON error"));
+        tranError = tr("ERROR: Yandex translator JSON error");
         return QStringLiteral("ERROR:TRAN_YANDEX_JSON_ERROR");
     }
 
@@ -64,8 +64,8 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
 
     if (code!=200 || !jroot.value(QStringLiteral("text")).isArray()) {
         qCritical() << "Yandex error:" << jroot.value(QStringLiteral("message")).toString();
-        setTranslatorError(QStringLiteral("ERROR: Yandex translator error: %1")
-                    .arg(jroot.value(QStringLiteral("message")).toString()));
+        tranError = QStringLiteral("ERROR: Yandex translator error: %1")
+                    .arg(jroot.value(QStringLiteral("message")).toString());
         return QStringLiteral("ERROR:TRAN_YANDEX_TRAN_ERROR");
     }
 

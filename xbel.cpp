@@ -53,7 +53,8 @@
 #include <QtCore/QFile>
 
 BookmarkNode::BookmarkNode(BookmarkNode::Type type, BookmarkNode *parent) :
-   m_parent(parent)
+     expanded(false)
+   , m_parent(parent)
    , m_type(type)
 {
     if (parent)
@@ -127,46 +128,6 @@ void BookmarkNode::remove(BookmarkNode *child)
 {
     child->m_parent = nullptr;
     m_children.removeAll(child);
-}
-
-bool BookmarkNode::getExpanded() const
-{
-    return expanded;
-}
-
-void BookmarkNode::setExpanded(bool value)
-{
-    expanded = value;
-}
-
-QString BookmarkNode::getDesc() const
-{
-    return desc;
-}
-
-void BookmarkNode::setDesc(const QString &value)
-{
-    desc = value;
-}
-
-QString BookmarkNode::getTitle() const
-{
-    return title;
-}
-
-void BookmarkNode::setTitle(const QString &value)
-{
-    title = value;
-}
-
-QString BookmarkNode::getUrl() const
-{
-    return url;
-}
-
-void BookmarkNode::setUrl(const QString &value)
-{
-    url = value;
 }
 
 BookmarkNode *XbelReader::read(const QString &fileName)

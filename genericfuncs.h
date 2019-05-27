@@ -8,14 +8,6 @@
 #include <QWidget>
 #include <QFileDialog>
 
-#define Z_DISABLE_MOVE(Class) \
-    Class(Class &&) Q_DECL_EQ_DELETE;\
-    Class &operator=(Class &&) Q_DECL_EQ_DELETE;
-
-#define Z_DEFAULT_MOVE(Class) \
-    Class(Class &&) Q_DECL_EQ_DEFAULT;\
-    Class &operator=(Class &&) Q_DECL_EQ_DEFAULT;
-
 extern QStringList debugMessages;
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);

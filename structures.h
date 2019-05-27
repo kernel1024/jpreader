@@ -33,74 +33,37 @@
 class CUrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj);
     friend QDataStream &operator>>(QDataStream &in, CUrlHolder &obj);
-
-private:
+public:
     QString title;
     QUrl url;
     QUuid uuid;
-
-public:
     CUrlHolder();
     CUrlHolder(const CUrlHolder& other);
-    CUrlHolder(CUrlHolder&& other) = default;
     CUrlHolder(const QString &title, const QUrl &url);
     CUrlHolder &operator=(const CUrlHolder& other) = default;
-    CUrlHolder &operator=(CUrlHolder&& other) = default;
-    ~CUrlHolder() = default;
     bool operator==(const CUrlHolder &s) const;
     bool operator!=(const CUrlHolder &s) const;
-
-    QString getTitle() const;
-    void setTitle(const QString &value);
-    QUrl getUrl() const;
-    void setUrl(const QUrl &value);
-    QUuid getUuid() const;
-    void setUuid(const QUuid &value);
 };
 
 Q_DECLARE_METATYPE(CUrlHolder)
 
-/*class CDirStruct {
-private:
-    QString dirName;
-    int count {-1};
-
-public:
-    CDirStruct() = default;
-    CDirStruct(const CDirStruct& other);
-    CDirStruct(CDirStruct&& other) = default;
-    CDirStruct(const QString &DirName, int Count);
-    ~CDirStruct() = default;
-    CDirStruct &operator=(const CDirStruct& other) = default;
-    CDirStruct &operator=(CDirStruct&& other) = default;
-};*/
-
 class CLangPair {
     friend QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
     friend QDataStream &operator>>(QDataStream &in, CLangPair &obj);
-
-private:
-    QLocale langFrom, langTo;
-    void nullify();
-
 public:
+    QLocale langFrom, langTo;
     CLangPair();
     CLangPair(const CLangPair& other);
-    CLangPair(CLangPair&& other) = default;
     CLangPair(const QString& hash);
     CLangPair(const QString& fromName, const QString &toName);
-    ~CLangPair() = default;
     CLangPair &operator=(const CLangPair& other) = default;
-    CLangPair &operator=(CLangPair&& other) = default;
     bool isValid() const;
     bool isAtlasAcceptable() const;
     QString getHash() const;
     bool operator==(const CLangPair &s) const;
     bool operator!=(const CLangPair &s) const;
-    QLocale getLangFrom() const;
-    void setLangFrom(const QLocale &value);
-    QLocale getLangTo() const;
-    void setLangTo(const QLocale &value);
+private:
+    void nullify();
 };
 
 Q_DECLARE_METATYPE(CLangPair)

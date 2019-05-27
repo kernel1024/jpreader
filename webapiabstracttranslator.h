@@ -8,17 +8,16 @@
 class CWebAPIAbstractTranslator : public CAbstractTranslator
 {
 protected:
+    QNetworkAccessManager *nam;
 
     bool waitForReply(QNetworkReply* reply);
     void initNAM();
-    QNetworkAccessManager* nam();
 
     virtual QString tranStringInternal(const QString& src) = 0;
     virtual void clearCredentials() = 0;
     virtual bool isValidCredentials() = 0;
 
 private:
-    QNetworkAccessManager *m_nam;
     void deleteNAM();
 
 public:

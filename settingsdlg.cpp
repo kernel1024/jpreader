@@ -816,8 +816,8 @@ void CSettingsDlg::setMainHistory(const CUrlHolderVector& history)
 {
     for (const CUrlHolder &t : history) {
         QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ]")
-                                                  .arg(t.getTitle(), t.getUrl().toString()));
-        li->setData(Qt::UserRole,t.getUuid().toString());
+                                                  .arg(t.title, t.url.toString()));
+        li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
     }
 }
@@ -951,17 +951,15 @@ QVariant CLangPairModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-            case 0: return QVariant(gSet->getLanguageName(
-                                        m_list.at(index.row()).getLangFrom().bcp47Name()));
-            case 1: return QVariant(gSet->getLanguageName(
-                                        m_list.at(index.row()).getLangTo().bcp47Name()));
+            case 0: return QVariant(gSet->getLanguageName(m_list.at(index.row()).langFrom.bcp47Name()));
+            case 1: return QVariant(gSet->getLanguageName(m_list.at(index.row()).langTo.bcp47Name()));
             default: return QVariant();
         }
     }
     if (role == Qt::EditRole) {
         switch (index.column()) {
-            case 0: return QVariant(m_list.at(index.row()).getLangFrom().bcp47Name());
-            case 1: return QVariant(m_list.at(index.row()).getLangTo().bcp47Name());
+            case 0: return QVariant(m_list.at(index.row()).langFrom.bcp47Name());
+            case 1: return QVariant(m_list.at(index.row()).langTo.bcp47Name());
             default: return QVariant();
         }
     }
@@ -978,8 +976,8 @@ bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, in
     if (index.row()<0 || index.row()>=m_list.count()) return false;
     if (role == Qt::EditRole) {
         switch (index.column()) {
-            case 0: m_list[index.row()].setLangFrom(QLocale(value.toString())); break;
-            case 1: m_list[index.row()].setLangTo(QLocale(value.toString())); break;
+            case 0: m_list[index.row()].langFrom = QLocale(value.toString()); break;
+            case 1: m_list[index.row()].langTo = QLocale(value.toString()); break;
         }
         return true;
     }
