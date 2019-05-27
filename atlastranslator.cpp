@@ -221,7 +221,7 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     }
 }
 
-void CAtlasTranslator::socketError(const QAbstractSocket::SocketError error)
+void CAtlasTranslator::socketError(QAbstractSocket::SocketError error)
 {
     qCritical() << "ATLAS socket error: " << error;
 }

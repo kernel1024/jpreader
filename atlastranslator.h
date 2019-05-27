@@ -36,7 +36,7 @@ signals:
 
 public slots:
     void sslError(const QList<QSslError>&);
-    void socketError(const QAbstractSocket::SocketError error);
+    void socketError(QAbstractSocket::SocketError error);
 
 };
 

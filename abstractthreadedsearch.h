@@ -11,7 +11,7 @@ class CAbstractThreadedSearch : public QObject
     Q_OBJECT
 
 protected:
-    bool working;
+    bool working { false };
 
 public:
     explicit CAbstractThreadedSearch(QObject *parent = nullptr);
