@@ -6,8 +6,8 @@
 #include <QTableView>
 #include "indexersearch.h"
 
-#define cpSortRole 1
-#define cpFilterRole 2
+const int cpSortRole = 1;
+const int cpFilterRole = 2;
 
 class CSearchModel : public QAbstractTableModel
 {
@@ -17,14 +17,17 @@ private:
     QVector<CStringHash> m_snippets;
     QTableView *m_table;
 
-public:
-    CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
-    ~CSearchModel();
+    Q_DISABLE_COPY(CSearchModel)
 
-    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    int rowCount( const QModelIndex & parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent) const;
+public:
+    explicit CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
+    ~CSearchModel() override;
+
+    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+    int rowCount( const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent) const override;
     CStringHash getSnippet(int idx) const;
     CStringHash getSnippet(const QModelIndex& index) const;
     void setSnippet(int idx, const CStringHash &snippet);
@@ -45,14 +48,20 @@ class CSearchProxyFilterModel : public QSortFilterProxyModel
     Q_OBJECT
 private:
     QString m_filter;
+
+    Q_DISABLE_COPY(CSearchProxyFilterModel)
+
 public:
-    CSearchProxyFilterModel(QObject* parent = nullptr)
+    explicit CSearchProxyFilterModel(QObject* parent = nullptr)
         : QSortFilterProxyModel(parent) {}
-    virtual ~CSearchProxyFilterModel() = default;
+    ~CSearchProxyFilterModel() override = default;
     void setFilter(const QString& filter);
+
 protected:
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+
 };
 
 #endif // CSEARCHMODEL_H

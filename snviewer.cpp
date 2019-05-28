@@ -16,6 +16,7 @@
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
+#include "structures.h"
 #include "genericfuncs.h"
 
 #include "snctxhandler.h"
@@ -33,7 +34,6 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
-    tabTitle.clear();
     isStartPage = startPage;
     translationBkgdFinished=false;
     loadingBkgdFinished=false;
@@ -112,8 +112,10 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     navButton->setIcon(QIcon::fromTheme(QStringLiteral("arrow-right")));
     passwordButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-password")));
 
-    for (int i=0;i<TECOUNT;i++)
-        comboTranEngine->addItem(gSet->getTranslationEngineString(i),i);
+    for (auto it = translationEngines.constKeyValueBegin(),
+         end = translationEngines.constKeyValueEnd(); it != end; ++it) {
+        comboTranEngine->addItem((*it).second,(*it).first);
+    }
     comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
             msgHandler, &CSnMsgHandler::tranEngine);
@@ -143,13 +145,13 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
         comboZoom->setCurrentIndex(comboZoom->findText(zoom,Qt::MatchExactly));
     }
 
-    int mv = (70*parentWnd->height()/(urlEdit->fontMetrics().height()*100));
+    int mv = (70*parentWnd()->height()/(urlEdit->fontMetrics().height()*100));
     completer->setMaxVisibleItems(mv);
 
     ctxHandler->reconfigureDefaultActions();
 
     if (!startPage)
-        parentWnd->closeStartPage();
+        parentWnd()->closeStartPage();
 
     msgHandler->focusTimer->start();
 }
@@ -194,7 +196,6 @@ void CSnippetViewer::navByUrl(const QString& url)
 
 void CSnippetViewer::titleChanged(const QString & title)
 {
-    int i = tabWidget->indexOf(this);
 	QString s = title;
     QUrl uri;
 	if (s.isEmpty()) {
@@ -210,15 +211,12 @@ void CSnippetViewer::titleChanged(const QString & title)
                 s=uri.toString();
 		}
         if (s.isEmpty()) s = QStringLiteral("< ... >");
-	}
-    s = s.trimmed();
-    if (!title.isEmpty())
-        tabTitle = title.trimmed();
-    else
-        tabTitle = s;
+        s = s.trimmed();
+    } else {
+        s = title.trimmed();
+    }
 
-    parentWnd->titleRenamedLock.start();
-    tabWidget->setTabText(i,tabWidget->fontMetrics().elidedText(s,Qt::ElideRight,150));
+    setTabTitle(s);
 
     if (!title.isEmpty()) {
         if (txtBrowser->page()->url().isValid() &&
@@ -229,8 +227,8 @@ void CSnippetViewer::titleChanged(const QString & title)
                     gSet->appendMainHistory(uh);
             }
     }
-    parentWnd->updateTitle();
-	parentWnd->updateTabs();
+    parentWnd()->updateTitle();
+    parentWnd()->updateTabs();
 }
 
 void CSnippetViewer::urlChanged(const QUrl & url)
@@ -260,10 +258,10 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 
 void CSnippetViewer::recycleTab()
 {
-    if (tabTitle.isEmpty() || !txtBrowser->page()->url().isValid() ||
+    if (tabTitle().isEmpty() || !txtBrowser->page()->url().isValid() ||
             txtBrowser->page()->url().toString().
             startsWith(QStringLiteral("about"),Qt::CaseInsensitive)) return;
-    gSet->appendRecycled(tabTitle,txtBrowser->page()->url());
+    gSet->appendRecycled(tabTitle(),txtBrowser->page()->url());
 }
 
 QUrl CSnippetViewer::getUrl()
@@ -281,7 +279,7 @@ void CSnippetViewer::outsideDragStart()
     auto drag = new QDrag(this);
     auto mime = new QMimeData();
 
-    QString s = QStringLiteral("%1\n%2").arg(getUrl().toString(),tabTitle);
+    QString s = QStringLiteral("%1\n%2").arg(getUrl().toString(),tabTitle());
     mime->setData(QStringLiteral("_NETSCAPE_URL"),s.toUtf8());
     drag->setMimeData(mime);
 
@@ -319,7 +317,7 @@ void CSnippetViewer::printToPDF()
 
 void CSnippetViewer::statusBarMsg(const QString &msg)
 {
-    parentWnd->statusBar()->showMessage(msg);
+    parentWnd()->statusBar()->showMessage(msg);
 }
 
 QString CSnippetViewer::getDocTitle()

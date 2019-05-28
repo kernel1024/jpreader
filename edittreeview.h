@@ -51,18 +51,24 @@
 #ifndef EDITTREEVIEW_H
 #define EDITTREEVIEW_H
 
-#include <QtWidgets/QTreeView>
+#include <QTreeView>
 
 class EditTreeView : public QTreeView
 {
     Q_OBJECT
 
+private:
+    Q_DISABLE_COPY(EditTreeView)
+
 public:
-    EditTreeView(QWidget *parent = nullptr);
-    void keyPressEvent(QKeyEvent *event);
+    explicit EditTreeView(QWidget *parent = nullptr);
+
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 
 signals:
     void removeNode(const QModelIndex &node);
+
 public slots:
     void removeOne();
 };

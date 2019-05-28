@@ -29,7 +29,7 @@ CSettings::CSettings(QObject *parent)
       maxHistory(5000),
       maxRecent(10),
       maxSearchLimit(1000),
-      translatorEngine(TE_ATLAS),
+      translatorEngine(teAtlas),
       maxRecycled(20),
       atlTcpRetryCount(3),
       atlTcpTimeout(2),
@@ -74,7 +74,7 @@ CSettings::CSettings(QObject *parent)
     fontStandard=QApplication::font().family();
 
 #if WITH_RECOLL
-    searchEngine = SE_RECOLL;
+    searchEngine = seRecoll;
 #elif WITH_BALOO5
     searchEngine = SE_BALOO5;
 #else
@@ -154,7 +154,7 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("gctxHotkey"),gSet->ui.gctxTranHotkey.shortcut().toString());
     settings.setValue(QStringLiteral("translateSubSentences"),gSet->ui.translateSubSentences());
 
-    settings.setValue(QStringLiteral("searchEngine"),searchEngine);
+    settings.setValue(QStringLiteral("searchEngine"),static_cast<int>(searchEngine));
     settings.setValue(QStringLiteral("atlTcpRetryCount"),atlTcpRetryCount);
     settings.setValue(QStringLiteral("atlTcpTimeout"),atlTcpTimeout);
     settings.setValue(QStringLiteral("showTabCloseButtons"),showTabCloseButtons);
@@ -237,7 +237,8 @@ void CSettings::readSettings(QObject *control)
     maxAdblockWhiteList = settings.value(QStringLiteral("maxAdblockWhiteList"),5000).toInt();
     sysBrowser = settings.value(QStringLiteral("browser"),"konqueror").toString();
     sysEditor = settings.value(QStringLiteral("editor"),"kwrite").toString();
-    translatorEngine = settings.value(QStringLiteral("tr_engine"),TE_ATLAS).toInt();
+    translatorEngine = static_cast<TranslationEngine>(
+                           settings.value(QStringLiteral("tr_engine"),teAtlas).toInt());
     useScp = settings.value(QStringLiteral("scp"),false).toBool();
     scpHost = settings.value(QStringLiteral("scphost"),QString()).toString();
     scpParams = settings.value(QStringLiteral("scpparams"),QString()).toString();
@@ -282,7 +283,8 @@ void CSettings::readSettings(QObject *control)
         if (!g->ui.gctxTranHotkey.shortcut().isEmpty())
             g->ui.gctxTranHotkey.setEnabled();
     }
-    searchEngine = settings.value(QStringLiteral("searchEngine"),SE_NONE).toInt();
+    searchEngine = static_cast<SearchEngine>(settings.value(
+                                                 QStringLiteral("searchEngine"),seNone).toInt());
     atlTcpRetryCount = settings.value(QStringLiteral("atlTcpRetryCount"),3).toInt();
     atlTcpTimeout = settings.value(QStringLiteral("atlTcpTimeout"),2).toInt();
     showTabCloseButtons = settings.value(QStringLiteral("showTabCloseButtons"),true).toBool();
@@ -366,12 +368,11 @@ void CSettings::settingsDlg()
     dlg->setUserScripts(gSet->getUserScripts());
 
     switch (translatorEngine) {
-        case TE_GOOGLE: dlg->rbGoogle->setChecked(true); break;
-        case TE_ATLAS: dlg->rbAtlas->setChecked(true); break;
-        case TE_BINGAPI: dlg->rbBingAPI->setChecked(true); break;
-        case TE_YANDEX: dlg->rbYandexAPI->setChecked(true); break;
-        case TE_GOOGLE_GTX: dlg->rbGoogleGTX->setChecked(true); break;
-        default: dlg->rbAtlas->setChecked(true); break;
+        case teGoogle: dlg->rbGoogle->setChecked(true); break;
+        case teAtlas: dlg->rbAtlas->setChecked(true); break;
+        case teBingAPI: dlg->rbBingAPI->setChecked(true); break;
+        case teYandexAPI: dlg->rbYandexAPI->setChecked(true); break;
+        case teGoogleGTX: dlg->rbGoogleGTX->setChecked(true); break;
     }
     dlg->scpHost->clear();
     if (!scpHostHistory.contains(scpHost))
@@ -430,9 +431,9 @@ void CSettings::settingsDlg()
 #ifndef WITH_BALOO5
     dlg->searchBaloo5->setEnabled(false);
 #endif
-    if ((searchEngine==SE_RECOLL) && (dlg->searchRecoll->isEnabled()))
+    if ((searchEngine==seRecoll) && (dlg->searchRecoll->isEnabled()))
         dlg->searchRecoll->setChecked(true);
-    else if ((searchEngine==SE_BALOO5) && (dlg->searchBaloo5->isEnabled()))
+    else if ((searchEngine==seBaloo5) && (dlg->searchBaloo5->isEnabled()))
         dlg->searchBaloo5->setChecked(true);
     else
         dlg->searchNone->setChecked(true);
@@ -529,12 +530,12 @@ void CSettings::settingsDlg()
         gSet->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                                    dlg->enablePlugins->isChecked());
 
-        if (dlg->rbGoogle->isChecked()) translatorEngine=TE_GOOGLE;
-        else if (dlg->rbAtlas->isChecked()) translatorEngine=TE_ATLAS;
-        else if (dlg->rbBingAPI->isChecked()) translatorEngine=TE_BINGAPI;
-        else if (dlg->rbYandexAPI->isChecked()) translatorEngine=TE_YANDEX;
-        else if (dlg->rbGoogleGTX->isChecked()) translatorEngine=TE_GOOGLE_GTX;
-        else translatorEngine=TE_ATLAS;
+        if (dlg->rbGoogle->isChecked()) translatorEngine=teGoogle;
+        else if (dlg->rbAtlas->isChecked()) translatorEngine=teAtlas;
+        else if (dlg->rbBingAPI->isChecked()) translatorEngine=teBingAPI;
+        else if (dlg->rbYandexAPI->isChecked()) translatorEngine=teYandexAPI;
+        else if (dlg->rbGoogleGTX->isChecked()) translatorEngine=teGoogleGTX;
+        else translatorEngine=teAtlas;
         useScp=dlg->cbSCP->isChecked();
         scpHost=dlg->scpHost->lineEdit()->text();
         scpParams=dlg->scpParams->text();
@@ -575,11 +576,11 @@ void CSettings::settingsDlg()
             gSet->ui.gctxTranHotkey.setEnabled();
         createCoredumps=dlg->createCoredumps->isChecked();
         if (dlg->searchRecoll->isChecked())
-            searchEngine = SE_RECOLL;
+            searchEngine = seRecoll;
         else if (dlg->searchBaloo5->isChecked())
-            searchEngine = SE_BALOO5;
+            searchEngine = seBaloo5;
         else
-            searchEngine = SE_NONE;
+            searchEngine = seNone;
 
         showTabCloseButtons = dlg->visualShowTabCloseButtons->isChecked();
 
@@ -647,7 +648,7 @@ void CSettings::settingsDlg()
     dlg->deleteLater();
 }
 
-void CSettings::setTranslationEngine(int engine)
+void CSettings::setTranslationEngine(TranslationEngine engine)
 {
     translatorEngine = engine;
     emit settingsUpdated();

@@ -23,7 +23,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     titleTran = new CTitlesTranslator();
 
     lastQuery.clear();
-    tabTitle = tr("Search");
+    setTabTitle(tr("Search"));
     selectFile();
 
     ui->listResults->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -80,21 +80,21 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->buttonOpen->setIcon(QIcon::fromTheme(QStringLiteral("document-open")));
     ui->buttonDir->setIcon(QIcon::fromTheme(QStringLiteral("folder-sync")));
 
-    int mv = (70*parentWnd->height())/(ui->editSearch->fontMetrics().height()*100);
+    int mv = (70*parentWnd()->height())/(ui->editSearch->fontMetrics().height()*100);
     ui->editSearch->setMaxVisibleItems(mv);
     updateQueryHistory();
 
-    bindToTab(parentWnd->tabMain);
+    bindToTab(parentWnd()->tabMain);
 
-    if (engine->getCurrentIndexerService()==SE_RECOLL)
+    if (engine->getCurrentIndexerService()==seRecoll)
         ui->labelMode->setText(QStringLiteral("Recoll search"));
-    else if (engine->getCurrentIndexerService()==SE_BALOO5)
+    else if (engine->getCurrentIndexerService()==seBaloo5)
         ui->labelMode->setText(QStringLiteral("Baloo KF5 search"));
     else
         ui->labelMode->setText(QStringLiteral("Local file search"));
 
     if (!engine->isValidConfig())
-        QMessageBox::warning(parentWnd,tr("JPReader"),
+        QMessageBox::warning(parentWnd(),tr("JPReader"),
                              tr("Configuration error. \n"
                                 "You have enabled some search engine in settings, \n"
                                 "but jpreader compiled without support for this engine.\n"
@@ -124,7 +124,7 @@ void CSearchTab::updateQueryHistory()
 
 void CSearchTab::selectDir()
 {
-    QString dir = getExistingDirectoryD(parentWnd,tr("Search in"),gSet->settings.savedAuxDir);
+    QString dir = getExistingDirectoryD(parentWnd(),tr("Search in"),gSet->settings.savedAuxDir);
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
@@ -144,7 +144,7 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
 
     if (model->rowCount() == 0) {
         QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
-        parentWnd->stSearchStatus.setText(tr("Ready"));
+        parentWnd()->setSearchStatus(tr("Ready"));
         return;
     }
 
@@ -161,11 +161,11 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
     QString statusmsg(tr("Found %1 results at %2 seconds").
             arg(stats[QStringLiteral("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
-    parentWnd->stSearchStatus.setText(tr("Ready"));
-    parentWnd->updateTitle();
-    parentWnd->updateTabs();
+    parentWnd()->setSearchStatus(tr("Ready"));
+    parentWnd()->updateTitle();
+    parentWnd()->updateTabs();
 
-    setDocTitle(tr("S:[%1]").arg(lastQuery));
+    setTabTitle(tr("S:[%1]").arg(lastQuery));
 }
 
 void CSearchTab::translateTitles()
@@ -198,7 +198,7 @@ void CSearchTab::gotTitleTranslation(const QStringList &res)
     }
 }
 
-void CSearchTab::updateProgress(const int pos)
+void CSearchTab::updateProgress(int pos)
 {
     if (pos>=0) {
         ui->translateBar->setValue(pos);
@@ -305,13 +305,13 @@ void CSearchTab::doSearch()
         return;
     }
 
-    parentWnd->stSearchStatus.setText(tr("Search in progress..."));
+    parentWnd()->setSearchStatus(tr("Search in progress..."));
     ui->buttonSearch->setEnabled(false);
     ui->searchBar->show();
 
     lastQuery = ui->editSearch->currentText();
 
-    setDocTitle(tr("Searching:[%1]").arg(lastQuery));
+    setTabTitle(tr("Searching:[%1]").arg(lastQuery));
 
     int idx = ui->editSearch->findText(lastQuery,Qt::MatchFixedString);
     if (idx!=-1)
@@ -336,21 +336,6 @@ void CSearchTab::searchTerm(const QString &term, bool startSearch)
 
     if (startSearch)
         doNewSearch();
-}
-
-QString CSearchTab::getDocTitle()
-{
-    return tabTitle;
-}
-
-void CSearchTab::setDocTitle(const QString& title)
-{
-    tabTitle = title;
-    int idx = parentWnd->tabMain->indexOf(this);
-    if (idx>=0 && idx<parentWnd->tabMain->count()) {
-        parentWnd->titleRenamedLock.start();
-        parentWnd->tabMain->setTabText(idx,tabTitle);
-    }
 }
 
 void CSearchTab::doNewSearch()
@@ -386,7 +371,8 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
             snip[QStringLiteral("abstract")]=
                     createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
             s = snip[QStringLiteral("abstract")];
-            snip[QStringLiteral("abstract:tran")]=bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
+            snip[QStringLiteral("abstract:tran")] =
+                    bool2str(gSet->ui.actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
         s=QStringLiteral("<font size='+1'>%1</font>").arg(s);
@@ -596,7 +582,7 @@ void CSearchTab::showSnippet()
 {
     QStringList sl = splitQuery(ui->editSearch->currentText());
 
-    new CSnippetViewer(parentWnd, selectedUri, sl);
+    new CSnippetViewer(parentWnd(), selectedUri, sl);
 }
 
 void CSearchTab::selectFile(const QString& uri, const QString& dispFilename)

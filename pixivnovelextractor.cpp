@@ -16,7 +16,7 @@
 #include "globalcontrol.h"
 
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
-    : QObject(parent), m_translate(false), m_focus(false), m_snv(nullptr)
+    : QObject(parent)
 {
 
 }
@@ -178,7 +178,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
     QWidget *w = nullptr;
     QObject *ctx = qApp;
     if (m_snv) {
-        w = m_snv->parentWnd;
+        w = m_snv->parentWnd();
         ctx = m_snv;
     }
     QTimer::singleShot(0,ctx,[msg,w](){

@@ -16,25 +16,23 @@ class CDownloadBarDelegate;
 
 class CDownloadItem
 {
-    friend class CDownloadsModel;
-private:
-    bool m_empty;
-    bool autoDelete;
-    bool m_aux;
-    QNetworkReply* m_rpl;
 public:
     quint32 id;
     QString fileName, mimeType, errorString;
     QWebEngineDownloadItem::DownloadState state;
     qint64 received, total;
-    QWebEngineDownloadItem* ptr;
+    QWebEngineDownloadItem* downloadItem;
+    QNetworkReply* reply;
+
+    bool autoDelete;
 
     CDownloadItem();
     CDownloadItem(const CDownloadItem& other);
-    CDownloadItem(quint32 itemId);
-    CDownloadItem(QNetworkReply* rpl);
-    CDownloadItem(QWebEngineDownloadItem* item);
+    explicit CDownloadItem(quint32 itemId);
+    explicit CDownloadItem(QNetworkReply* rpl);
+    explicit CDownloadItem(QWebEngineDownloadItem* item);
     CDownloadItem(QNetworkReply* rpl, const QString& fname);
+    ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other);
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
@@ -51,7 +49,7 @@ class CDownloadManager : public QDialog
 
 public:
     explicit CDownloadManager(QWidget *parent = nullptr);
-    ~CDownloadManager();
+    ~CDownloadManager() override;
     void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index, int maxIndex);
 public slots:
     void handleDownload(QWebEngineDownloadItem* item);
@@ -60,11 +58,13 @@ public slots:
 private:
     CDownloadsModel *model;
     Ui::CDownloadManager *ui;
-    bool firstResize;
+    bool firstResize { true };
+
+    Q_DISABLE_COPY(CDownloadManager)
 
 protected:
-    void closeEvent(QCloseEvent * event);
-    void showEvent(QShowEvent * event);
+    void closeEvent(QCloseEvent * event) override;
+    void showEvent(QShowEvent * event) override;
 
 };
 
@@ -75,15 +75,18 @@ private:
     CDownloadManager* m_manager;
     QVector<CDownloadItem> downloads;
 
+    Q_DISABLE_COPY(CDownloadsModel)
+
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
-    ~CDownloadsModel();
+    ~CDownloadsModel() override;
 
-    Qt::ItemFlags flags(const QModelIndex & index) const;
-    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    int rowCount( const QModelIndex & parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent) const;
+    Qt::ItemFlags flags(const QModelIndex & index) const override;
+    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+    int rowCount( const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent) const override;
 
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
@@ -110,11 +113,15 @@ class CDownloadBarDelegate : public QAbstractItemDelegate {
 private:
     CDownloadsModel* m_model;
 
+    Q_DISABLE_COPY(CDownloadBarDelegate)
+
 public:
     CDownloadBarDelegate(QObject *parent, CDownloadsModel* model);
+    ~CDownloadBarDelegate() override = default;
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option,
+               const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 };
 
 

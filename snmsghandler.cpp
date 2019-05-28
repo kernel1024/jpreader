@@ -91,8 +91,9 @@ void CSnMsgHandler::tranEngine(int engine)
 {
     if (!lockTranEngine.tryLock()) return;
 
-    if (engine>=0 && engine<TECOUNT)
-        gSet->settings.setTranslationEngine(engine);
+    TranslationEngine e = static_cast<TranslationEngine>(engine);
+    if (translationEngines.contains(e))
+        gSet->settings.setTranslationEngine(e);
 
     lockTranEngine.unlock();
 }

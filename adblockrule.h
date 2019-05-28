@@ -24,6 +24,7 @@ public:
     CAdBlockRule();
     CAdBlockRule(const CAdBlockRule& other);
     CAdBlockRule(const QString &filter, const QString &listID);
+    ~CAdBlockRule() = default;
     CAdBlockRule &operator=(const CAdBlockRule& other);
     bool operator==(const CAdBlockRule &s) const;
     bool operator!=(const CAdBlockRule &s) const;

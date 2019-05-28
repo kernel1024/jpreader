@@ -10,13 +10,15 @@ class CPDFWorker : public QObject
 {
     Q_OBJECT
 public:
-    CPDFWorker(QObject* parent = nullptr);
-    virtual ~CPDFWorker() {}
+    explicit CPDFWorker(QObject* parent = nullptr);
+    ~CPDFWorker() override = default;
 
 private:
     QString m_text;
     CIntList m_outLengths;
-    bool m_prevblock;
+    bool m_prevblock { false };
+
+    Q_DISABLE_COPY(CPDFWorker)
 
     QString formatPdfText(const QString &text);
     int zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize);

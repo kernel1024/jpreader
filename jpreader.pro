@@ -212,6 +212,7 @@ DBUS_ADAPTORS = org.kernel1024.jpreader.auxtranslator.xml \
     org.kernel1024.jpreader.browsercontroller.xml
 
 DISTFILES += \
+    .clang-tidy \
     README.md \
     data/pixiv-built-in.js \
     org.kernel1024.jpreader.auxtranslator.xml \

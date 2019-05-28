@@ -129,7 +129,6 @@ public:
     // Translation languages selection
     QStringList getLanguageCodes() const;
     QString getLanguageName(const QString &bcp47Name);
-    QString getTranslationEngineString(int engine);
     void showLightTranslator(const QString& text = QString());
 
     // Misc

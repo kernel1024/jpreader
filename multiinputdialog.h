@@ -19,7 +19,7 @@ class CMultiInputDialog : public QDialog
 public:
     explicit CMultiInputDialog(QWidget *parent, const QString &title,
                                const CStringHash& data, const QString &helperText = QString());
-    ~CMultiInputDialog();
+    ~CMultiInputDialog() override;
 
     CStringHash getInputData();
 
@@ -29,6 +29,9 @@ private:
     QFormLayout *formLayout;
     QList<QLabel *> labels;
     QList<QLineEdit *> edits;
+
+    Q_DISABLE_COPY(CMultiInputDialog)
+
 };
 
 #endif // MULTIINPUTDIALOG_H

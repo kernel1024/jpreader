@@ -79,9 +79,6 @@
 
 BookmarksManager::BookmarksManager(QObject *parent)
     : QObject(parent)
-    , m_loaded(false)
-    , m_bookmarkRootNode(nullptr)
-    , m_bookmarkModel(nullptr)
 {
 }
 

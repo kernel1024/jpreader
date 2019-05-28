@@ -20,30 +20,30 @@ class CSearchTab : public CSpecTabContainer
     Q_OBJECT
 
 public:
-    QString selectedUri;
-
     explicit CSearchTab(CMainWindow *parent);
-    virtual ~CSearchTab();
+    ~CSearchTab() override;
     void selectFile(const QString& uri = QString(), const QString& dispFilename = QString());
     void updateQueryHistory();
     QString getLastQuery() { return lastQuery; }
-    void keyPressEvent(QKeyEvent *event);
     void searchTerm(const QString &term, bool startSearch = true);
-    QString getDocTitle();
-    void setDocTitle(const QString &title);
+
 private:
     Ui::SearchTab *ui;
     CSearchModel *model;
     CSearchProxyFilterModel *sort;
     QString lastQuery;
+    QString selectedUri;
 
     CIndexerSearch *engine;
     CTitlesTranslator *titleTran;
+
+    Q_DISABLE_COPY(CSearchTab)
 
 protected:
     void doSearch();
     QString createSpecSnippet(const QString &aFilename, bool forceUntranslated, const QString &auxText);
     QStringList splitQuery(const QString &aQuery);
+    void keyPressEvent(QKeyEvent *event) override;
 
 signals:
     void startSearch(const QString &searchTerm, const QDir &searchDir);
@@ -58,7 +58,7 @@ public slots:
     void searchFinished(const CStringHash &stats, const QString &query);
     void translateTitles();
     void gotTitleTranslation(const QStringList &res);
-    void updateProgress(const int pos);
+    void updateProgress(int pos);
     void headerMenu(const QPoint& pos);
     void snippetMenu(const QPoint& pos);
     void applyFilter();

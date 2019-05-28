@@ -5,9 +5,11 @@
 
 class CYandexTranslator : public CWebAPIAbstractTranslator
 {
+    Q_OBJECT
 private:
     QString clientKey;
 
+protected:
     QString tranStringInternal(const QString& src) override;
     void clearCredentials() override;
     bool isValidCredentials() override;

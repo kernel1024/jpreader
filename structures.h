@@ -12,23 +12,36 @@
 #include <QSslCertificate>
 #include <QLocale>
 
-#define TE_GOOGLE 0
-#define TE_ATLAS 1
-#define TE_BINGAPI 2
-#define TE_YANDEX 3
-#define TE_GOOGLE_GTX 4
-#define TECOUNT 5
+enum TranslationEngine {
+    teGoogle = 0,
+    teAtlas = 1,
+    teBingAPI = 2,
+    teYandexAPI = 3,
+    teGoogleGTX = 4
+};
 
-#define SE_NONE 0
-#define SE_RECOLL 2
-#define SE_BALOO5 3
+static const QMap<TranslationEngine,QString> translationEngines = {
+    { teGoogle, QStringLiteral("Google") },
+    { teAtlas, QStringLiteral("ATLAS") },
+    { teBingAPI, QStringLiteral("Bing API") },
+    { teYandexAPI, QStringLiteral("Yandex API") },
+    { teGoogleGTX, QStringLiteral("Google GTX") }
+};
 
-#define TM_ADDITIVE 0
-#define TM_OVERWRITING 1
-#define TM_TOOLTIP 2
+enum SearchEngine {
+    seNone = 0,
+    seRecoll = 2,
+    seBaloo5 = 3
+};
 
-#define DBUS_NAME "org.kernel1024.jpreader"
-#define IPC_NAME "org.kernel1024.jpreader.ipc.main"
+enum TranslationMode {
+    tmAdditive = 0,
+    tmOverwriting = 1,
+    tmTooltip = 2
+};
+
+const char DBusName[] = "org.kernel1024.jpreader";
+const char IPCName[] = "org.kernel1024.jpreader.ipc.main";
 
 class CUrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj);

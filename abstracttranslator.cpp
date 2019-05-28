@@ -4,31 +4,51 @@
 #include "yandextranslator.h"
 #include "googlegtxtranslator.h"
 
-CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang) : QObject(parent)
+void CAbstractTranslator::setErrorMsg(const QString &msg)
 {
-    tranError.clear();
+    m_tranError = msg;
+}
+
+void CAbstractTranslator::clearErrorMsg()
+{
+    m_tranError.clear();
+}
+
+CLangPair CAbstractTranslator::language() const
+{
+    return m_lang;
+}
+
+void CAbstractTranslator::setLanguage(const CLangPair &lang)
+{
     m_lang = lang;
 }
 
-QString CAbstractTranslator::getErrorMsg()
+CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang) : QObject(parent)
 {
-    return tranError;
+    m_tranError.clear();
+    m_lang = lang;
+}
+
+QString CAbstractTranslator::getErrorMsg() const
+{
+    return m_tranError;
 }
 
 CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDirection)
 {
     if (!tranDirection.isValid()) return nullptr;
 
-    if (gSet->settings.translatorEngine==TE_ATLAS)
+    if (gSet->settings.translatorEngine==teAtlas)
         return new CAtlasTranslator(parent, gSet->settings.atlHost, gSet->settings.atlPort, tranDirection);
 
-    if (gSet->settings.translatorEngine==TE_BINGAPI)
+    if (gSet->settings.translatorEngine==teBingAPI)
         return new CBingTranslator(parent, tranDirection, gSet->settings.bingKey);
 
-    if (gSet->settings.translatorEngine==TE_YANDEX)
+    if (gSet->settings.translatorEngine==teYandexAPI)
         return new CYandexTranslator(parent, tranDirection, gSet->settings.yandexKey);
 
-    if (gSet->settings.translatorEngine==TE_GOOGLE_GTX)
+    if (gSet->settings.translatorEngine==teGoogleGTX)
         return new CGoogleGTXTranslator(parent, tranDirection);
 
     return nullptr;

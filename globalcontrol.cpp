@@ -23,8 +23,9 @@
 #include "downloadmanager.h"
 #include "pdftotext.h"
 #include "userscript.h"
+#include "structures.h"
 
-#define IPC_EOF "\n###"
+const char IPC_EOF[] = "\n###";
 
 CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     QObject(parent)
@@ -80,7 +81,7 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
     if (!dbus.registerObject(QStringLiteral("/browserController"),browserControllerDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerService(QStringLiteral(DBUS_NAME)))
+    if (!dbus.registerService(DBusName))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
     connect(parent, &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
@@ -188,7 +189,7 @@ CGlobalControl::~CGlobalControl()
 
 bool CGlobalControl::setupIPC()
 {
-    QString serverName = QStringLiteral(IPC_NAME);
+    QString serverName(IPCName);
     serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
 
     auto socket = new QLocalSocket();
@@ -241,7 +242,7 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==nullptr) return;
 
-    QString s = QStringLiteral("%1%2").arg(msg,QStringLiteral(IPC_EOF));
+    QString s = QStringLiteral("%1%2").arg(msg,IPC_EOF);
     socket->write(s.toUtf8());
 }
 
@@ -413,7 +414,7 @@ void CGlobalControl::ipcMessageReceived()
     do {
         if (!socket->waitForReadyRead(2000)) return;
         bmsg.append(socket->readAll());
-    } while (!bmsg.contains(QStringLiteral(IPC_EOF).toUtf8()));
+    } while (!bmsg.contains(IPC_EOF));
     socket->close();
     socket->deleteLater();
 
@@ -738,18 +739,6 @@ QString CGlobalControl::getLanguageName(const QString& bcp47Name)
 QStringList CGlobalControl::getLanguageCodes() const
 {
     return langSortedBCP47List.values();
-}
-
-QString CGlobalControl::getTranslationEngineString(int engine)
-{
-    switch (engine) {
-        case TE_GOOGLE: return QStringLiteral("Google");
-        case TE_ATLAS: return QStringLiteral("ATLAS");
-        case TE_BINGAPI: return QStringLiteral("Bing API");
-        case TE_YANDEX: return QStringLiteral("Yandex API");
-        case TE_GOOGLE_GTX: return QStringLiteral("Google GTX");
-        default: return QStringLiteral("<unknown engine>");
-    }
 }
 
 void CGlobalControl::showLightTranslator(const QString &text)

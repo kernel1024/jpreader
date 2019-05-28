@@ -15,9 +15,9 @@ class CAuxDictKeyFilter : public QObject
 {
     Q_OBJECT
 public:
-    CAuxDictKeyFilter(QObject *parent = nullptr);
+    explicit CAuxDictKeyFilter(QObject *parent = nullptr);
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
 signals:
     void keyPressed(int key);
 };
@@ -28,7 +28,7 @@ class CAuxDictionary : public QDialog
 
 public:
     explicit CAuxDictionary(QWidget *parent = nullptr);
-    ~CAuxDictionary();
+    ~CAuxDictionary() override;
 
     void adjustSplitters();
     void findWord(const QString& text);
@@ -39,12 +39,14 @@ private:
     CAuxDictKeyFilter* keyFilter;
     QStringListModel* wordHistoryModel;
     QTextBrowser* viewArticles;
-    bool forceFocusToEdit;
+    bool forceFocusToEdit { false };
     void showTranslationFor(const QString& text);
     void updateMatchResults(bool finished);
 
+    Q_DISABLE_COPY(CAuxDictionary)
+
 protected:
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent * event) override;
 
 public slots:
     void translateInputChanged(const QString& text);

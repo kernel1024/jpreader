@@ -144,8 +144,7 @@ static void popplerError(void *data, ErrorCategory category, Goffset pos, const 
 #endif // WITH_POPPLER
 
 CPDFWorker::CPDFWorker(QObject *parent)
-    : QObject(parent),
-      m_prevblock(false)
+    : QObject(parent)
 {
 
 }

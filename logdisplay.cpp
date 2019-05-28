@@ -79,8 +79,10 @@ void CLogDisplay::addToAdblock()
         gSet->adblockAppend(u);
 }
 
-void CLogDisplay::showEvent(QShowEvent *)
+void CLogDisplay::showEvent(QShowEvent *event)
 {
+    Q_UNUSED(event)
+
     updateMessages();
     if (firstShow && gSet && !gSet->mainWindows.isEmpty()) {
         QPoint p = gSet->mainWindows.constFirst()->pos();

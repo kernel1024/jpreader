@@ -10,8 +10,12 @@ class CAbstractThreadedSearch : public QObject
 {
     Q_OBJECT
 
+private:
+    bool m_working { false };
+
 protected:
-    bool working { false };
+    bool isWorking();
+    void setWorking(bool working);
 
 public:
     explicit CAbstractThreadedSearch(QObject *parent = nullptr);

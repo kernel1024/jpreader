@@ -19,7 +19,7 @@ CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
 QString CWebAPIAbstractTranslator::tranString(const QString& src)
 {
     if (!isReady()) {
-        tranError = tr("ERROR: Translator not ready");
+        setErrorMsg(tr("ERROR: Translator not ready"));
         return QStringLiteral("ERROR:TRAN_NOT_READY");
     }
 
@@ -42,7 +42,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         res.clear();
         for (int i=0;i<srout.count();i++) {
             QString s = tranStringInternal(srout.at(i));
-            if (!tranError.isEmpty()) {
+            if (!getErrorMsg().isEmpty()) {
                 res=s;
                 break;
             }
@@ -62,7 +62,7 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
     connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
     connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
     timer->setSingleShot(true);
-    timer->start(30000);
+    timer->start(translatorConnectionTimeout);
 
     eventLoop.exec();
 

@@ -20,22 +20,25 @@ private:
     QSslSocket sock;
     QString atlHost;
     quint16 atlPort;
-    bool inited;
-    bool emptyRestore;
+    bool inited { false };
+    bool emptyRestore { false };
+
+    Q_DISABLE_COPY(CAtlasTranslator)
+
 public:
     explicit CAtlasTranslator(QObject *parent, const QString &host, quint16 port, const CLangPair& lang);
-    virtual ~CAtlasTranslator();
+    ~CAtlasTranslator() override;
 
-    bool initTran();
-    QString tranString(const QString& src);
-    void doneTran(bool lazyClose = false);
-    bool isReady();
+    bool initTran() override;
+    QString tranString(const QString& src) override;
+    void doneTran(bool lazyClose = false) override;
+    bool isReady() override;
 
 signals:
     void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const CIntList& errCodes);
 
 public slots:
-    void sslError(const QList<QSslError>&);
+    void sslError(const QList<QSslError>& errors);
     void socketError(QAbstractSocket::SocketError error);
 
 };

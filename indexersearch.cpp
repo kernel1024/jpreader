@@ -6,18 +6,15 @@
 CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
-    working = false;
-    resultCount = 0;
-    m_query = QString();
     indexerSerivce = gSet->settings.searchEngine;
-    if ((indexerSerivce == SE_RECOLL) || (indexerSerivce == SE_BALOO5)) {
+    if ((indexerSerivce == seRecoll) || (indexerSerivce == seBaloo5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
             engine = nullptr;
             return;
         }
         auto th = new QThread();
-        if (indexerSerivce == SE_RECOLL)
+        if (indexerSerivce == seRecoll)
             engine = new CRecollSearch();
         else
             engine = new CBaloo5Search();
@@ -48,7 +45,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         searchInDir(searchDir,m_query);
         engineFinished();
     } else {
-        if ((indexerSerivce == SE_BALOO5) || (indexerSerivce == SE_RECOLL)) {
+        if ((indexerSerivce == seBaloo5) || (indexerSerivce == seRecoll)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig())
                 emit startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
@@ -76,7 +73,7 @@ bool CIndexerSearch::isWorking()
     return working;
 }
 
-int CIndexerSearch::getCurrentIndexerService()
+SearchEngine CIndexerSearch::getCurrentIndexerService()
 {
     return indexerSerivce;
 }

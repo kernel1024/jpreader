@@ -17,7 +17,6 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     ui->setupUi(this);
 
     viewArticles = ui->browser;
-    forceFocusToEdit = false;
 
     ui->btnClear->setIcon(QIcon::fromTheme(QStringLiteral("edit-clear")));
 

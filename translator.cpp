@@ -29,15 +29,8 @@ CTranslator::CTranslator(QObject* parent, const QString& aUri, bool forceTranSub
     translationMode=gSet->ui.getTranslationMode();
     engine=gSet->settings.translatorEngine;
     translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
-    tran=nullptr;
-    tranInited=false;
     metaSrcUrl.clear();
     imgUrls.clear();
-    textNodesCnt = 0;
-    textNodesProgress = 0;
-    localHosting = false;
-    abortFlag = false;
-    translatorFailed = false;
 }
 
 CTranslator::~CTranslator()
@@ -503,13 +496,13 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 } else
                     t = srct;
 
-                if (translationMode==TM_TOOLTIP) {
+                if (translationMode==tmTooltip) {
                     QString ts = srct;
                     srct = t;
                     t = ts;
                 }
 
-                if (translationMode==TM_ADDITIVE)
+                if (translationMode==tmAdditive)
                     sout += srct + QStringLiteral("<br/>");
 
                 if (!tran->getErrorMsg().isEmpty()) {
@@ -532,7 +525,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 } else
                     sout += t;
 
-                if (translationMode==TM_ADDITIVE)
+                if (translationMode==tmAdditive)
                     sout += QStringLiteral("<br/>\n");
                 else
                     srctls << srct;
@@ -548,7 +541,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     }
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
-        if (!srctls.isEmpty() && ((translationMode==TM_OVERWRITING) || (translationMode==TM_TOOLTIP)))
+        if (!srctls.isEmpty() && ((translationMode==tmOverwriting) || (translationMode==tmTooltip)))
             src.text = QStringLiteral("<span title=\"%1\">%2</span>")
                        .arg(srctls.join('\n').replace('"','\''),sout);
         else
@@ -610,7 +603,7 @@ void CTranslator::translate()
         emit calcFinished(false,aUrl,lastError);
     }
 
-    if (translationEngine==TE_ATLAS) {
+    if (translationEngine==teAtlas) {
         bool oktrans = false;
 
         if (!lp.isAtlasAcceptable()) {
@@ -635,9 +628,9 @@ void CTranslator::translate()
             deleteLater();
             return;
         }
-    } else if (translationEngine==TE_BINGAPI ||
-               translationEngine==TE_YANDEX ||
-               translationEngine==TE_GOOGLE_GTX) {
+    } else if (translationEngine==teBingAPI ||
+               translationEngine==teYandexAPI ||
+               translationEngine==teGoogleGTX) {
         if (!translateDocument(Uri,aUrl)) {
             QString lastError = tr("Translator initialization error");
             if (tran)

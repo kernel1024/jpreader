@@ -18,7 +18,7 @@ private slots:
     void recollFinished(int exitCode, QProcess::ExitStatus exitStatus);
     
 public slots:
-    virtual void doSearch(const QString &qr, int maxLimit);
+    void doSearch(const QString &qr, int maxLimit) override;
     
 };
 

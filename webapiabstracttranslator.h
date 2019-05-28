@@ -7,6 +7,7 @@
 
 class CWebAPIAbstractTranslator : public CAbstractTranslator
 {
+    Q_OBJECT
 protected:
     QNetworkAccessManager *nam;
 
@@ -18,6 +19,8 @@ protected:
     virtual bool isValidCredentials() = 0;
 
 private:
+    Q_DISABLE_COPY(CWebAPIAbstractTranslator)
+
     void deleteNAM();
 
 public:

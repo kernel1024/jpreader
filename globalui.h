@@ -7,6 +7,7 @@
 #include <QTimer>
 #include "qxtglobalshortcut.h"
 #include "mainwindow.h"
+#include "structures.h"
 
 class CMainWindow;
 
@@ -42,7 +43,7 @@ public:
 
     explicit CGlobalUI(QObject *parent = nullptr);
 
-    int getTranslationMode();
+    TranslationMode getTranslationMode();
     QString getActiveLangPair() const;
 private:
     QTimer gctxTimer;

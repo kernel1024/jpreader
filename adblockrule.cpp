@@ -134,9 +134,10 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
     if (!m_enabled)
         return false;
 
-    if (!m_plainRule.isEmpty())
+    if (!m_plainRule.isEmpty()) {
         if (encodedUrl.contains(m_plainRule,Qt::CaseInsensitive))
             return true;
+    }
 
     bool matched = encodedUrl.contains(m_regExp);
 
@@ -153,10 +154,11 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
                     for (const QString& domainOption : qAsConst(domainOptions)) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');
                         bool hostMatched;
-                        if (negate)
+                        if (negate) {
                             hostMatched = domainOption.mid(1) == host;
-                        else
+                        } else {
                             hostMatched = domainOption == host;
+                        }
                         if (hostMatched && !negate) {
 #if defined(ADBLOCKRULE_DEBUG)
                             qDebug() << "CAdBlockRule::" << __FUNCTION__ << encodedUrl

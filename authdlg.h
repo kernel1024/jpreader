@@ -14,16 +14,20 @@ class CAuthDlg : public QDialog
     Q_OBJECT
     
 public:
-    explicit CAuthDlg(QWidget *parent = nullptr, const QUrl & origin = QUrl(), const QString & realm = QString(),
+    explicit CAuthDlg(QWidget *parent = nullptr,
+                      const QUrl & origin = QUrl(),
+                      const QString & realm = QString(),
                       bool autofillLogin = false);
-    ~CAuthDlg();
+    ~CAuthDlg() override;
     QString getUser();
     QString getPassword();
     
 private:
     Ui::AuthDlg *ui;
     QUrl u_origin;
-    bool m_autofillLogin;
+    bool m_autofillLogin { false };
+
+    Q_DISABLE_COPY(CAuthDlg)
 
 public slots:
     void acceptPass();

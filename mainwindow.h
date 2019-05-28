@@ -1,5 +1,5 @@
 #ifndef MAINWINDOW_H
-#define MAINWINDOW_H 1
+#define MAINWINDOW_H
 
 #include <QMainWindow>
 #include <QLabel>
@@ -17,36 +17,38 @@ class CMainWindow : public QMainWindow, public Ui::MainWindow
 {
 	Q_OBJECT
 public:
-    CMainWindow(bool withSearch = false, bool withViewer = true,
+    explicit CMainWindow(bool withSearch = false, bool withViewer = true,
                 const QVector<QUrl> &viewerUrls = { });
-    virtual ~CMainWindow() = default;
-	int lastTabIdx;
-
-    // -------- Global settings and objects --------
-    QLabel stSearchStatus;
-    QTimer titleRenamedLock;
-
-    // -------------------------------------
+    ~CMainWindow() override = default;
 
     void goHistory(QUuid idx);
     void updateTitle();
     void checkTabs();
     void updateTabs();
     CSnippetViewer *getOpenedInspectorTab();
+    void setSearchStatus(const QString& text);
+    void startTitleRenameTimer();
+    bool isTitleRenameTimerActive() const;
+    int lastTabIndex() const;
 
 private:
     QMenu* recycledMenu;
     QMenu* tabsMenu;
     QMenu* recentMenu;
+    QLabel* stSearchStatus;
     CSpecTabBar* tabHelper;
     int savedHelperIdx;
     int savedHelperWidth;
     int savedSplitterWidth;
+    int lastTabIdx;
     QPoint savedPos;
     QSize savedSize;
     bool fullScreen;
     bool savedMaximized;
     bool helperVisible;
+    QTimer titleRenamedLock;
+
+    Q_DISABLE_COPY(CMainWindow)
 
     void updateHelperList();
 
@@ -99,10 +101,11 @@ signals:
 protected:
     void centerWindow();
     void updateSplitters();
-    void closeEvent(QCloseEvent *event);
-    bool eventFilter(QObject *obj, QEvent *ev);
-    void dragEnterEvent(QDragEnterEvent *ev);
-    void dropEvent(QDropEvent *ev);
+    void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *ev) override;
+    void dragEnterEvent(QDragEnterEvent *ev) override;
+    void dropEvent(QDropEvent *ev) override;
+
 };
 
 #endif

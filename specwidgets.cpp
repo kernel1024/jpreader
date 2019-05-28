@@ -21,17 +21,10 @@
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
 	: QTabWidget(p)
 {
-    parentWnd = nullptr;
-    mainTabWidget = true;
     m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
     connect(m_tabBar, &CSpecTabBar::tabRightClicked,this,&CSpecTabWidget::tabRightClick);
     connect(m_tabBar, &CSpecTabBar::tabLeftClicked,this,&CSpecTabWidget::tabLeftClick);
-}
-
-CSpecTabBar *CSpecTabWidget::tabBar() const
-{
-    return m_tabBar;
 }
 
 void CSpecTabWidget::tabLeftClick(int index)
@@ -44,8 +37,8 @@ void CSpecTabWidget::tabRightClick(int index)
     emit tabRightClicked(index);
     if (mainTabWidget) {
         auto tb = qobject_cast<CSpecTabContainer *>(widget(index));
-        if (tb && tb->parentWnd) {
-            if (!tb->parentWnd->titleRenamedLock.isActive())
+        if (tb && tb->parentWnd()) {
+            if (!tb->parentWnd()->isTitleRenameTimerActive())
                 tb->closeTab();
         }
     }
@@ -76,8 +69,8 @@ bool CSpecTabWidget::event(QEvent *event)
 
 void CSpecTabWidget::createTab()
 {
-    if (mainTabWidget && parentWnd)
-        parentWnd->openEmptyBrowser();
+    if (mainTabWidget && parentWnd())
+        parentWnd()->openEmptyBrowser();
 }
 
 void CSpecTabWidget::selectNextTab()
@@ -216,42 +209,51 @@ CSpecToolTipLabel::CSpecToolTipLabel(const QString &text)
 }
 
 CSpecTabContainer::CSpecTabContainer(CMainWindow *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+      m_parentWnd(parent)
 {
-    parentWnd = parent;
-    tabWidget=nullptr;
 }
 
 void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 {
-    tabWidget=tabs;
-    if (tabWidget==nullptr) return;
-    int i = tabWidget->addTab(this,getDocTitle());
+    m_tabWidget=tabs;
+    if (m_tabWidget==nullptr) return;
+    int i = m_tabWidget->addTab(this,m_tabTitle);
     if (gSet->settings.showTabCloseButtons) {
         QPushButton* b = new QPushButton(QIcon::fromTheme(QStringLiteral("dialog-close")),QString());
         b->setFlat(true);
-        int sz = tabWidget->tabBar()->fontMetrics().height();
+        int sz = m_tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
         connect(b, &QPushButton::clicked,this,&CSpecTabContainer::closeTab);
-        tabWidget->tabBar()->setTabButton(i,QTabBar::RightSide,b);
+        m_tabWidget->tabBar()->setTabButton(i,QTabBar::RightSide,b);
     }
-    tabTitle = getDocTitle();
-    if (setFocused) tabWidget->setCurrentWidget(this);
-    parentWnd->updateTitle();
-    parentWnd->updateTabs();
+    if (setFocused) m_tabWidget->setCurrentWidget(this);
+    m_parentWnd->updateTitle();
+    m_parentWnd->updateTabs();
+}
+
+void CSpecTabContainer::setTabTitle(const QString &title)
+{
+    m_tabTitle = title;
+    int idx = m_parentWnd->tabMain->indexOf(this);
+    if (idx>=0 && idx<m_parentWnd->tabMain->count()) {
+        m_parentWnd->startTitleRenameTimer();
+        m_parentWnd->tabMain->setTabText(idx,m_tabWidget->fontMetrics()
+                                         .elidedText(m_tabTitle,Qt::ElideRight,150));
+    }
 }
 
 void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
     if (!gSet->webProfile->settings()->
             testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
-    if (tabWidget==nullptr) return;
-    tabWidget->setTabIcon(tabWidget->indexOf(this),icon);
+    if (m_tabWidget==nullptr) return;
+    m_tabWidget->setTabIcon(m_tabWidget->indexOf(this),icon);
 }
 
 void CSpecTabContainer::detachTab()
 {
-    if (tabWidget->count()<=1) return;
+    if (m_tabWidget->count()<=1) return;
 
 /*  Classic method - create new tab and copy contents
  *
@@ -297,8 +299,8 @@ void CSpecTabContainer::detachTab()
  *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
 
     CMainWindow* mwnd = gSet->ui.addMainWindowEx(false,false);
-    tabWidget->removeTab(tabWidget->indexOf(this));
-    parentWnd = mwnd;
+    m_tabWidget->removeTab(m_tabWidget->indexOf(this));
+    m_parentWnd = mwnd;
     setParent(mwnd);
     bindToTab(mwnd->tabMain);
     activateWindow();
@@ -308,23 +310,23 @@ void CSpecTabContainer::detachTab()
 void CSpecTabContainer::closeTab(bool nowait)
 {
     if (!canClose()) return;
-    if (tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
+    if (m_tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
 
     if (!nowait) {
         if (gSet->blockTabCloseActive) return;
         gSet->blockTabClose();
     }
-    if (tabWidget) {
-        if ((parentWnd->lastTabIdx>=0) &&
-                (parentWnd->lastTabIdx<tabWidget->count())) {
-            tabWidget->setCurrentIndex(parentWnd->lastTabIdx);
+    if (m_tabWidget) {
+        if ((m_parentWnd->lastTabIndex()>=0) &&
+                (m_parentWnd->lastTabIndex()<m_tabWidget->count())) {
+            m_tabWidget->setCurrentIndex(m_parentWnd->lastTabIndex());
         }
-        tabWidget->removeTab(tabWidget->indexOf(this));
+        m_tabWidget->removeTab(m_tabWidget->indexOf(this));
     }
     recycleTab();
-    parentWnd->updateTitle();
-    parentWnd->updateTabs();
-    parentWnd->checkTabs();
+    m_parentWnd->updateTitle();
+    m_parentWnd->updateTabs();
+    m_parentWnd->checkTabs();
     deleteLater();
 }
 
@@ -356,7 +358,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     if (parentViewer==nullptr) return nullptr;
 
-    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd,QUrl(),QStringList(),
+    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd(),QUrl(),QStringList(),
                                             (type!=QWebEnginePage::WebBrowserBackgroundTab));
     return sv->txtBrowser;
 }

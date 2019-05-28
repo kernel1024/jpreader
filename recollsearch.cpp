@@ -53,14 +53,14 @@ void CRecollSearch::recollFinished(int exitCode, QProcess::ExitStatus exitStatus
     Q_UNUSED(exitCode)
     Q_UNUSED(exitStatus)
 
-    working = false;
+    setWorking(false);
     emit finished();
 }
 
 void CRecollSearch::doSearch(const QString &qr, int maxLimit)
 {
-    if (working) return;
-    working = true;
+    if (isWorking()) return;
+    setWorking(true);
 
     auto recoll = new QProcess(this);
     recoll->setEnvironment(QProcess::systemEnvironment());

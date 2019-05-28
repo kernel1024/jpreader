@@ -16,10 +16,10 @@ class CPixivNovelExtractor : public QObject
     Q_OBJECT
 private:
     QString m_title;
-    bool m_translate;
-    bool m_focus;
+    bool m_translate { false };
+    bool m_focus { false };
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
-    CSnippetViewer* m_snv;
+    CSnippetViewer* m_snv { nullptr };
     QMutex m_imgMutex;
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;

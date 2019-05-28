@@ -5,18 +5,20 @@
 
 class CBingTranslator : public CWebAPIAbstractTranslator
 {
-protected:
+    Q_OBJECT
+private:
     QString clientKey;
     QString authHeader;
 
-    QString tranStringInternal(const QString& src);
-    void clearCredentials();
-    bool isValidCredentials();
+protected:
+    QString tranStringInternal(const QString& src) override;
+    void clearCredentials() override;
+    bool isValidCredentials() override;
 
 public:
     CBingTranslator(QObject *parent, const CLangPair& lang, const QString& bingKey);
 
-    bool initTran();
+    bool initTran() override;
 
 };
 

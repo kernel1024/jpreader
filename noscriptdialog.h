@@ -13,19 +13,22 @@ class CNoScriptDialog : public QDialog
 
 public:
     explicit CNoScriptDialog(QWidget *parent, const QString& origin);
-    ~CNoScriptDialog();
+    ~CNoScriptDialog() override;
 
 private:
     Ui::CNoScriptDialog *ui;
     QString m_origin;
 
+    Q_DISABLE_COPY(CNoScriptDialog)
+
     void updateHostsList();
 
 protected:
-    void showEvent(QShowEvent* event);
+    void showEvent(QShowEvent* event) override;
 
 private slots:
     void acceptScripts();
+
 };
 
 #endif // NOSCRIPTDIALOG_H

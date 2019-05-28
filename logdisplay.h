@@ -27,8 +27,11 @@ private:
     QSyntaxHighlighter* syntax;
     bool firstShow;
 
+    Q_DISABLE_COPY(CLogDisplay)
+
 protected:
-    void showEvent(QShowEvent *) override;
+    void showEvent(QShowEvent * event) override;
+
 };
 
 #endif // LOGDISPLAY_H

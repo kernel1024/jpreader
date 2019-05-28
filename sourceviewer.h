@@ -14,10 +14,12 @@ class CSourceViewer : public QWidget
 
 public:
     explicit CSourceViewer(CSnippetViewer *origin, QWidget *parent = nullptr);
-    ~CSourceViewer();
+    ~CSourceViewer() override;
 
 private:
     Ui::CSourceViewer *ui;
+
+    Q_DISABLE_COPY(CSourceViewer)
 
     void updateSource(const QString& src);
     QString reformatSource(const QString &html);

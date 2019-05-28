@@ -42,17 +42,17 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionTMAdditive = new QAction(tr("Additive"),this);
     actionTMAdditive->setCheckable(true);
     actionTMAdditive->setActionGroup(translationMode);
-    actionTMAdditive->setData(TM_ADDITIVE);
+    actionTMAdditive->setData(tmAdditive);
 
     actionTMOverwriting = new QAction(tr("Overwriting"),this);
     actionTMOverwriting->setCheckable(true);
     actionTMOverwriting->setActionGroup(translationMode);
-    actionTMOverwriting->setData(TM_OVERWRITING);
+    actionTMOverwriting->setData(tmOverwriting);
 
     actionTMTooltip = new QAction(tr("Tooltip"),this);
     actionTMTooltip->setCheckable(true);
     actionTMTooltip->setActionGroup(translationMode);
-    actionTMTooltip->setData(TM_TOOLTIP);
+    actionTMTooltip->setData(tmTooltip);
 
     actionTMAdditive->setChecked(true);
 
@@ -284,14 +284,14 @@ void CGlobalUI::actionToggled()
     showGlobalTooltip(msg);
 }
 
-int CGlobalUI::getTranslationMode()
+TranslationMode CGlobalUI::getTranslationMode()
 {
     bool okconv;
-    int res = 0;
+    TranslationMode res = tmAdditive;
     if (translationMode->checkedAction()) {
-        res = translationMode->checkedAction()->data().toInt(&okconv);
+        res = static_cast<TranslationMode>(translationMode->checkedAction()->data().toInt(&okconv));
         if (!okconv)
-            res = 0;
+            res = tmAdditive;
     }
     return res;
 }

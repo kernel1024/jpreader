@@ -26,16 +26,17 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 {
 	setupUi(this);
 
-    tabMain->parentWnd=this;
+    tabMain->setParentWnd(this);
 	lastTabIdx=0;
     setWindowIcon(gSet->appIcon);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
     tabMain->tabBar()->setBrowserTabs(true);
 
-    stSearchStatus.setText(tr("Ready"));
-    stSearchStatus.setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
-    statusBar()->addPermanentWidget(&stSearchStatus);
+    stSearchStatus = new QLabel(this);
+    stSearchStatus->setText(tr("Ready"));
+    stSearchStatus->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    statusBar()->addPermanentWidget(stSearchStatus);
 
     savedHelperWidth=0;
     savedHelperIdx=-1;
@@ -195,7 +196,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
 
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv) {
-        t = new CSpecToolTipLabel(sv->tabTitle);
+        t = new CSpecToolTipLabel(sv->tabTitle());
 
         QPixmap pix = sv->pageImage;
         bool fillRect = false;
@@ -214,7 +215,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
         rx.setHeight(dc.fontMetrics().height());
         dc.fillRect(rx,t->palette().toolTipBase());
         dc.setPen(t->palette().toolTipText().color());
-        dc.drawText(rx,Qt::AlignLeft | Qt::AlignVCenter,sv->tabTitle);
+        dc.drawText(rx,Qt::AlignLeft | Qt::AlignVCenter,sv->tabTitle());
 
         t->setPixmap(pix);
     } else {
@@ -403,6 +404,26 @@ CSnippetViewer* CMainWindow::getOpenedInspectorTab()
     return nullptr;
 }
 
+void CMainWindow::setSearchStatus(const QString &text)
+{
+    stSearchStatus->setText(text);
+}
+
+void CMainWindow::startTitleRenameTimer()
+{
+    titleRenamedLock.start();
+}
+
+bool CMainWindow::isTitleRenameTimerActive() const
+{
+    return titleRenamedLock.isActive();
+}
+
+int CMainWindow::lastTabIndex() const
+{
+    return lastTabIdx;
+}
+
 void CMainWindow::updateHelperList()
 {
     helperList->clear();
@@ -414,7 +435,7 @@ void CMainWindow::updateHelperList()
                 it->setData(Qt::UserRole+1,i);
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
                 if (sv) {
-                    it->setText(sv->tabTitle);
+                    it->setText(sv->tabTitle());
                     it->setStatusTip(sv->getUrl().toString());
                     it->setToolTip(sv->getUrl().toString());
                     if (sv->translationBkgdFinished)
@@ -521,9 +542,9 @@ void CMainWindow::updateTitle()
     QString t = tr("JPReader");
     if (tabMain->currentWidget()) {
         auto sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
-        if (sv&& !sv->tabTitle.isEmpty()) {
+        if (sv&& !sv->tabTitle().isEmpty()) {
             QTextDocument doc;
-            doc.setHtml(sv->tabTitle);
+            doc.setHtml(sv->tabTitle());
             t = QStringLiteral("%1 - %2").arg(doc.toPlainText(), t);
             t.remove('\r');
             t.remove('\n');
@@ -674,7 +695,7 @@ void CMainWindow::addBookmark()
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sv==nullptr) return;
 
-    auto dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle,this);
+    auto dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle(),this);
     if (dlg->exec())
         emit gSet->updateAllBookmarks();
 
@@ -757,7 +778,7 @@ void CMainWindow::updateTabs()
     for(int i=0;i<tabMain->count();i++) {
         auto sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
         if (sv)
-            tabsMenu->addAction(sv->getDocTitle(),this,
+            tabsMenu->addAction(sv->tabTitle(),this,
                                 &CMainWindow::activateTab)->setData(i);
     }
     updateHelperList();

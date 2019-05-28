@@ -24,7 +24,7 @@ public:
     explicit CIndexerSearch(QObject *parent = nullptr);
     bool isValidConfig();
     bool isWorking();
-    int getCurrentIndexerService();
+    SearchEngine getCurrentIndexerService();
     
 private:
 #ifdef WITH_THREADED_SEARCH
@@ -32,9 +32,9 @@ private:
 #endif
     QString m_query;
     QTime searchTimer;
-    int indexerSerivce;
-    bool working;
-    int resultCount;
+    SearchEngine indexerSerivce;
+    bool working { false };
+    int resultCount { 0 };
     void processFile(const QString &filename, int &hitRate, QString &title);
     int calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);

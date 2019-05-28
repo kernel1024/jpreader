@@ -61,9 +61,9 @@ public:
 
     int maxHistory;
     int maxRecent;
-    int searchEngine;
+    SearchEngine searchEngine;
     int maxSearchLimit;
-    int translatorEngine;
+    TranslationEngine translatorEngine;
     int maxRecycled;
     int atlTcpRetryCount;
     int atlTcpTimeout;
@@ -97,7 +97,7 @@ public:
     explicit CSettings(QObject *parent = nullptr);
 
     void readSettings(QObject *control = nullptr);
-    void setTranslationEngine(int engine);
+    void setTranslationEngine(TranslationEngine engine);
 
 private:
     QTimer settingsSaveTimer;

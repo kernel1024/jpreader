@@ -104,7 +104,7 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
         f.close();
         gSet->createdFiles.append(fname);
         if (createNewTab)
-            new CSnippetViewer(snv->parentWnd,QUrl::fromLocalFile(fname));
+            new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
         else {
             snv->fileChanged = false;
             snv->txtBrowser->load(QUrl::fromLocalFile(fname));
@@ -139,11 +139,12 @@ void CSnNet::loadFinished(bool ok)
         loadedUrl = snv->txtBrowser->url();
     }
 
-    if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
+    // TODO: move this to specwidgets
+    if (snv->parentWnd()->tabMain->currentIndex()!=snv->parentWnd()->tabMain->indexOf(snv) &&
             !snv->translationBkgdFinished) { // tab is inactive
         snv->loadingBkgdFinished=true;
-        snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::blue);
-        snv->parentWnd->updateTabs();
+        snv->parentWnd()->tabMain->tabBar()->setTabTextColor(snv->parentWnd()->tabMain->indexOf(snv),Qt::blue);
+        snv->parentWnd()->updateTabs();
     }
 
     bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->requestAutotranslate) ||
@@ -155,7 +156,7 @@ void CSnNet::loadFinished(bool ok)
     snv->pageLoaded = true;
     snv->requestAutotranslate = false;
 
-    if (snv->tabWidget->currentWidget()==snv) {
+    if (snv->tabWidget()->currentWidget()==snv) {
         snv->takeScreenshot();
         snv->txtBrowser->setFocus();
     }
@@ -216,7 +217,7 @@ void CSnNet::downloadPixivManga()
 
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
-    auto sv = new CSnippetViewer(snv->parentWnd,QUrl(),QStringList(),focus,html);
+    auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
     sv->requestAutotranslate = translate;
 }
 

@@ -13,6 +13,7 @@
 #include "abstracttranslator.h"
 #include "globalcontrol.h"
 #include "snwaitctl.h"
+#include "structures.h"
 
 class CHTMLNode {
 public:
@@ -48,7 +49,6 @@ private:
         PXPostprocess
     };
 
-
     QString hostingDir;
     QString hostingUrl;
     QString Uri;
@@ -56,27 +56,29 @@ private:
     QString scpHost;
     QString translatorError;
     QMutex abortMutex;
-    CAbstractTranslator* tran;
+    CAbstractTranslator* tran { nullptr };
     QColor forcedFontColor;
     QFont overrideFont;
     QUrl metaSrcUrl;
-    QStringList* createdFiles;
+    QStringList* createdFiles { nullptr };
     QStringList imgUrls;
-    int atlTcpRetryCount;
-    int atlTcpTimeout;
-    int translationEngine;
-    int textNodesCnt;
-    int textNodesProgress;
-    int translationMode;
-    int engine;
-    bool localHosting;
-    bool useSCP;
-    bool abortFlag;
-    bool translatorFailed;
-    bool tranInited;
-    bool useOverrideFont;
-    bool forceFontColor;
-    bool translateSubSentences;
+    int atlTcpRetryCount { 0 };
+    int atlTcpTimeout { 0 };
+    int translationEngine { 0 };
+    int textNodesCnt { 0 };
+    int textNodesProgress { 0 };
+    TranslationMode translationMode { tmAdditive };
+    int engine { 0 };
+    bool localHosting { false };
+    bool useSCP { false };
+    bool abortFlag { false };
+    bool translatorFailed { false };
+    bool tranInited { false };
+    bool useOverrideFont { false };
+    bool forceFontColor { false };
+    bool translateSubSentences { false };
+
+    Q_DISABLE_COPY(CTranslator)
 
     bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
     bool translateDocument(const QString& srcUri, QString& dst);

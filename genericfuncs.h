@@ -8,6 +8,9 @@
 #include <QWidget>
 #include <QFileDialog>
 
+const int httpCodeFound = 200;
+const int httpCodeServerError = 500;
+
 extern QStringList debugMessages;
 
 void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);

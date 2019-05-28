@@ -63,7 +63,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
 
     snv->calculatedUrl=res;
     postTranslate();
-    snv->parentWnd->updateTabs();
+    snv->parentWnd()->updateTabs();
 }
 
 void CSnTrans::transButtonHighlight()
@@ -73,10 +73,10 @@ void CSnTrans::transButtonHighlight()
 
 void CSnTrans::translate(bool tranSubSentences)
 {
-    if (gSet->settings.translatorEngine==TE_ATLAS ||
-        gSet->settings.translatorEngine==TE_BINGAPI ||
-        gSet->settings.translatorEngine==TE_YANDEX ||
-        gSet->settings.translatorEngine==TE_GOOGLE_GTX) {
+    if (gSet->settings.translatorEngine==teAtlas ||
+        gSet->settings.translatorEngine==teBingAPI ||
+        gSet->settings.translatorEngine==teYandexAPI ||
+        gSet->settings.translatorEngine==teGoogleGTX) {
         savedBaseUrl = snv->txtBrowser->page()->url();
         if (savedBaseUrl.hasFragment())
             savedBaseUrl.setFragment(QString());
@@ -134,16 +134,16 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->settings.translatorEngine==TE_ATLAS) {
+    if (gSet->settings.translatorEngine==teAtlas) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==TE_BINGAPI) {
+    } else if (gSet->settings.translatorEngine==teBingAPI) {
         snv->waitHandler->setText(tr("Translating text with Bing API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==TE_YANDEX) {
+    } else if (gSet->settings.translatorEngine==teYandexAPI) {
         snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==TE_GOOGLE_GTX) {
+    } else if (gSet->settings.translatorEngine==teGoogleGTX) {
         snv->waitHandler->setText(tr("Translating text with Google GTX..."));
         snv->waitHandler->setProgressEnabled(true);
     } else {
@@ -164,14 +164,14 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     QMetaObject::invokeMethod(ct,&CTranslator::translate,Qt::QueuedConnection);
 }
 
-void CSnTrans::calcFinished(const bool success, const QString& aUrl, const QString& error)
+void CSnTrans::calcFinished(bool success, const QString& aUrl, const QString& error)
 {
     snv->waitPanel->hide();
     snv->transButton->setEnabled(true);
     if (success) {
         snv->calculatedUrl=aUrl;
         postTranslate();
-        snv->parentWnd->updateTabs();
+        snv->parentWnd()->updateTabs();
     } else {
         if (aUrl.startsWith(QStringLiteral("ERROR:")))
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(aUrl));
@@ -194,7 +194,7 @@ void CSnTrans::postTranslate()
     QUrlQuery qu;
     CLangPair lp;
     switch (gSet->settings.translatorEngine) {
-        case TE_GOOGLE:
+        case teGoogle:
             url = QUrl(QStringLiteral("http://translate.google.com/translate"));
             lp = CLangPair(gSet->ui.getActiveLangPair());
             if (lp.isValid()) {
@@ -203,20 +203,20 @@ void CSnTrans::postTranslate()
                 qu.addQueryItem(QStringLiteral("u"),snv->calculatedUrl);
                 url.setQuery(qu);
                 snv->txtBrowser->load(url);
-                if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+                if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
             } else
                 QMessageBox::warning(snv,tr("JPReader"),tr("No active language pair selected"));
             break;
-        case TE_ATLAS: // Url contains translated file itself
-        case TE_BINGAPI:
-        case TE_YANDEX:
-        case TE_GOOGLE_GTX:
+        case teAtlas: // Url contains translated file itself
+        case teBingAPI:
+        case teYandexAPI:
+        case teGoogleGTX:
             cn = snv->calculatedUrl;
             if (cn.toUtf8().size()<1024*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
                 snv->fileChanged = true;
                 snv->onceTranslated = true;
                 snv->txtBrowser->setHtml(cn,savedBaseUrl);
-                if (snv->tabWidget->currentWidget()==snv) snv->txtBrowser->setFocus();
+                if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
                 snv->urlChanged(snv->netHandler->loadedUrl);
             } else
                 openSeparateTranslationTab(cn, savedBaseUrl);
@@ -225,12 +225,13 @@ void CSnTrans::postTranslate()
             QMessageBox::warning(snv,tr("JPReader"),tr("Unknown translation engine selected"));
             return;
     }
-    if (snv->parentWnd->tabMain->currentIndex()!=snv->parentWnd->tabMain->indexOf(snv) &&
+    // TODO: move this to specwidgets
+    if (snv->parentWnd()->tabMain->currentIndex()!=snv->parentWnd()->tabMain->indexOf(snv) &&
             !snv->loadingBkgdFinished) { // tab is inactive
         snv->translationBkgdFinished=true;
         if (snv->fileChanged) {
-            snv->parentWnd->tabMain->tabBar()->setTabTextColor(snv->parentWnd->tabMain->indexOf(snv),Qt::red);
-            snv->parentWnd->updateTabs();
+            snv->parentWnd()->tabMain->tabBar()->setTabTextColor(snv->parentWnd()->tabMain->indexOf(snv),Qt::red);
+            snv->parentWnd()->updateTabs();
         }
     }
 }

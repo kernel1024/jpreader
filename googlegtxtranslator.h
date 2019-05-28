@@ -5,15 +5,16 @@
 
 class CGoogleGTXTranslator : public CWebAPIAbstractTranslator
 {
+    Q_OBJECT
 protected:
-    QString tranStringInternal(const QString& src);
-    void clearCredentials();
-    bool isValidCredentials();
+    QString tranStringInternal(const QString& src) override;
+    void clearCredentials() override;
+    bool isValidCredentials() override;
 
 public:
     CGoogleGTXTranslator(QObject *parent, const CLangPair &lang);
 
-    bool initTran();
+    bool initTran() override;
 };
 
 #endif // GOOGLEGTXTRANSLATOR_H

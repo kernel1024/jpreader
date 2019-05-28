@@ -9,8 +9,6 @@ CLightTranslator::CLightTranslator(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CLigthTranslator)
 {
-    isTranslating = false;
-
     ui->setupUi(this);
 
     ui->barTranslating->hide();

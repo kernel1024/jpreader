@@ -15,16 +15,19 @@ class CLightTranslator : public QDialog
     
 public:
     explicit CLightTranslator(QWidget *parent = nullptr);
-    ~CLightTranslator();
+    ~CLightTranslator() override;
     void appendSourceText(const QString& text);
 
 private:
     Ui::CLigthTranslator *ui;
-    bool isTranslating;
+    bool isTranslating { false };
+
+    Q_DISABLE_COPY(CLightTranslator)
+
     void reloadLanguageList();
 
 protected:
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent * event) override;
 
 signals:
     void startTranslation(bool deleteAfter);
