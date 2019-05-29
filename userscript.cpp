@@ -104,16 +104,19 @@ void CUserScript::setSource(const QString &src)
 
         const QString keyword(line.section(' ', 0, 0));
 
-        if (keyword == QStringLiteral("description"))
+        if (keyword == QStringLiteral("description")) {
             m_description = line.section(' ', 1, -1).trimmed();
-        else if (keyword == QStringLiteral("exclude"))
+
+        } else if (keyword == QStringLiteral("exclude")) {
             m_excludeRules.append(line.section(' ', 1, -1).trimmed());
-        else if (keyword == QStringLiteral("homepage"))
+
+        } else if (keyword == QStringLiteral("homepage")) {
             m_homePage = QUrl(line.section(' ', 1, -1).trimmed());
-        else if (keyword == QStringLiteral("include"))
+
+        } else if (keyword == QStringLiteral("include")) {
             m_includeRules.append(line.section(' ', 1, -1).trimmed());
-        else if (keyword == QStringLiteral("match"))
-        {
+
+        } else if (keyword == QStringLiteral("match")) {
             line = line.section(' ', 1, -1).trimmed();
 
             if (QRegularExpression(QStringLiteral("^.+://.*/.*")).match(line).hasMatch()
@@ -142,29 +145,35 @@ void CUserScript::setSource(const QString &src)
             }
 
             qWarning() << "Invalid match rule for User Script, line:" << line;
-        }
-        else if (keyword == QStringLiteral("name"))
+
+        } else if (keyword == QStringLiteral("name")) {
             m_title = line.section(' ', 1, -1).trimmed();
-        else if (keyword == QStringLiteral("noframes"))
+
+        } else if (keyword == QStringLiteral("noframes")) {
             m_shouldRunOnSubFrames = true;
-        else if (keyword == QStringLiteral("run-at"))
-        {
+
+        } else if (keyword == QStringLiteral("run-at")) {
             const QString injectionTime(line.section(' ', 1, -1).trimmed());
 
-            if (injectionTime == QStringLiteral("document-start"))
+            if (injectionTime == QStringLiteral("document-start")) {
                 m_injectionTime = DocumentCreationTime;
-            else if (injectionTime == QStringLiteral("document-idle"))
+
+            } else if (injectionTime == QStringLiteral("document-idle")) {
                 m_injectionTime = DeferredTime;
-            else if (injectionTime == QStringLiteral("context-menu")) {
+
+            } else if (injectionTime == QStringLiteral("context-menu")) {
                 m_runFromContextMenu = true;
                 m_injectionTime = DocumentReadyTime;
-            } else
+
+            } else {
                 m_injectionTime = DocumentReadyTime;
-        }
-        else if (keyword == QStringLiteral("updateURL"))
+            }
+        } else if (keyword == QStringLiteral("updateURL")) {
             m_updateUrl = QUrl(line.section(' ', 1, -1).trimmed());
-        else if (keyword == QStringLiteral("version"))
+
+        } else if (keyword == QStringLiteral("version")) {
             m_version = line.section(' ', 1, -1).trimmed();
+        }
     }
 
     if (m_title.isEmpty())

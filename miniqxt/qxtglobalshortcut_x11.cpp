@@ -88,9 +88,9 @@ xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
 
     if ( code == 0 ) {
         QKeySequence seq(key);
-        if ((mods & Qt::ControlModifier) && seq.toString().length() == 1) {
+        if (((mods & Qt::ControlModifier) != 0U) && seq.toString().length() == 1) {
             QString s = seq.toString();
-              if ((mods & Qt::ShiftModifier) == 0)
+              if ((mods & Qt::ShiftModifier) == 0U)
                     s = s.toLower();
 
               code = s.front().unicode();
@@ -131,19 +131,22 @@ bool grabKey(xcb_keycode_t keycode, uint16_t modifiers, xcb_window_t window)
 bool QxtGlobalShortcut::nativeEventFilter(const QByteArray & eventType,
     void *message, long *result)
 {
-    Q_UNUSED(result);
+    Q_UNUSED(result)
+
+    const unsigned short responseMask = 0x7f;
 
     xcb_key_press_event_t *kev = nullptr;
     if (eventType == "xcb_generic_event_t") {
         auto ev = static_cast<xcb_generic_event_t *>(message);
-        if ((ev->response_type & 127) == XCB_KEY_PRESS)
+        if ((ev->response_type & responseMask) == XCB_KEY_PRESS)
             kev = static_cast<xcb_key_press_event_t *>(message);
     }
 
     if (kev != nullptr) {
         xcb_keycode_t keycode = kev->detail;
-        uint16_t keystate = kev->state & (XCB_MOD_MASK_1 | XCB_MOD_MASK_CONTROL |
-                                              XCB_MOD_MASK_4 | XCB_MOD_MASK_SHIFT);
+        const unsigned short modifiersMask = (XCB_MOD_MASK_1 | XCB_MOD_MASK_CONTROL |
+                                              XCB_MOD_MASK_4 | XCB_MOD_MASK_SHIFT); // NOLINT
+        uint16_t keystate = kev->state & modifiersMask;
         // Mod1Mask == Alt, Mod4Mask == Meta
         activateShortcut(keycode, keystate);
     }
@@ -154,13 +157,13 @@ uint16_t QxtGlobalShortcut::nativeModifiers(Qt::KeyboardModifiers modifiers)
 {
     // ShiftMask, LockMask, ControlMask, Mod1Mask, Mod2Mask, Mod3Mask, Mod4Mask, and Mod5Mask
     uint16_t native = 0;
-    if (modifiers & Qt::ShiftModifier)
+    if ((modifiers & Qt::ShiftModifier) != 0U)
         native |= XCB_MOD_MASK_SHIFT;
-    if (modifiers & Qt::ControlModifier)
+    if ((modifiers & Qt::ControlModifier) != 0U)
         native |= XCB_MOD_MASK_CONTROL;
-    if (modifiers & Qt::AltModifier)
+    if ((modifiers & Qt::AltModifier) != 0U)
         native |= XCB_MOD_MASK_1;
-    if (modifiers & Qt::MetaModifier)
+    if ((modifiers & Qt::MetaModifier) != 0U)
         native |= XCB_MOD_MASK_4;
 
     return native;
@@ -182,7 +185,7 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
         xcb_keycode_t *keyCodes = xcb_key_symbols_get_keycode(syms, sym);
         if (keyCodes) {
             ret = *keyCodes;
-            free(keyCodes);
+            free(keyCodes); // NOLINT
         }
         xcb_key_symbols_free(syms);
     }
@@ -192,10 +195,10 @@ xcb_keycode_t QxtGlobalShortcut::nativeKeycode(Qt::Key key, Qt::KeyboardModifier
 
 bool QxtGlobalShortcut::registerShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods)
 {
-    return grabKey(nativeKey, nativeMods, QX11Info::appRootWindow());
+    return grabKey(nativeKey, nativeMods, static_cast<unsigned int>(QX11Info::appRootWindow()));
 }
 
 bool QxtGlobalShortcut::unregisterShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods)
 {
-    return ungrabKey(nativeKey, nativeMods, QX11Info::appRootWindow());
+    return ungrabKey(nativeKey, nativeMods, static_cast<unsigned int>(QX11Info::appRootWindow()));
 }

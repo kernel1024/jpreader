@@ -34,7 +34,6 @@
 #include <QRect>
 #include <QPointer>
 #include <QWidget>
-#include "qxtglobal.h"
 
 class QxtToolTip
 {
@@ -42,7 +41,7 @@ class QxtToolTip
 
 public:
     static void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
-                     QRect rect = QRect(), const bool allowMouseEnter = false);
+                     QRect rect = QRect(), bool allowMouseEnter = false);
     static void hide();
 
     static QWidget* toolTip(QWidget* parent);
@@ -59,9 +58,9 @@ public:
 };
 
 QT_BEGIN_NAMESPACE
-inline uint qHash(const QPointer<QWidget> key)
+inline uint qHash(const QPointer<QWidget> &key)
 {
-    return reinterpret_cast<quint64>(key ? (&*key) : 0);
+    return static_cast<uint>(reinterpret_cast<quint64>(key ? (&*key) : nullptr));
 }
 QT_END_NAMESPACE
 

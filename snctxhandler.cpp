@@ -484,7 +484,7 @@ void CSnCtxHandler::translateFragment()
     if (nt==nullptr) return;
     QString s = nt->data().toString();
     if (s.isEmpty()) return;
-    CLangPair lp = gSet->ui.getActiveLangPair();
+    CLangPair lp(gSet->ui.getActiveLangPair());
     if (!lp.isValid()) return;
 
     auto th = new QThread();

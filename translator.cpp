@@ -62,7 +62,8 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 
     calculatedUrl.clear();
 
-    bool b,r;
+    bool b;
+    bool r;
     if (useSCP) {
         QStringList scpp;
         scpp << scpParams.split(' ');
@@ -296,23 +297,32 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             if (node.attributes.contains(QStringLiteral("style")))
                 sdivst = node.attributes.value(QStringLiteral("style"));
             if (!sdivst.contains(QStringLiteral("absolute"),Qt::CaseInsensitive)) {
-                if (!node.attributes.contains(QStringLiteral("style")))
+                if (!node.attributes.contains(QStringLiteral("style"))) {
                     node.attributes[QStringLiteral("style")]=QString();
-                if (node.attributes.value(QStringLiteral("style")).isEmpty())
+                }
+                if (node.attributes.value(QStringLiteral("style")).isEmpty()) {
                     node.attributes[QStringLiteral("style")]=QStringLiteral("height:auto;");
-                else
-                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; height:auto;");
+                } else {
+                    node.attributes[QStringLiteral("style")]=
+                            node.attributes.value(QStringLiteral("style"))
+                            +QStringLiteral("; height:auto;");
+                }
             }
 
             // pixiv - unfolding novel pages to one big page
-            if (node.attributes.contains(QStringLiteral("class")) &&
-                    unhide_classes.contains(node.attributes.value(QStringLiteral("class")).toLower().trimmed())) {
-                if (!node.attributes.contains(QStringLiteral("style")))
+            if (node.attributes.contains(QStringLiteral("class"))
+                    && unhide_classes.contains(node.attributes.value(
+                                                   QStringLiteral("class")).toLower().trimmed())) {
+                if (!node.attributes.contains(QStringLiteral("style"))) {
                     node.attributes[QStringLiteral("style")]=QString();
-                if (node.attributes.value(QStringLiteral("style")).isEmpty())
+                }
+                if (node.attributes.value(QStringLiteral("style")).isEmpty()) {
                     node.attributes[QStringLiteral("style")]=QStringLiteral("display:block;");
-                else
-                    node.attributes[QStringLiteral("style")]=node.attributes.value(QStringLiteral("style"))+QStringLiteral("; display:block;");
+                } else {
+                    node.attributes[QStringLiteral("style")]=
+                            node.attributes.value(QStringLiteral("style"))
+                            +QStringLiteral("; display:block;");
+                }
             }
         }
 
@@ -338,9 +348,10 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             // remove ruby annotation (superscript), unfold main text block
             if (node.children.at(idx).tagName.toLower()==QStringLiteral("ruby")) {
                 subnodes.clear();
-                for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children))
+                for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children)) {
                     if (rnode.tagName.toLower()==QStringLiteral("rb"))
                         subnodes << rnode.children;
+                }
 
                 for(int si=0;si<subnodes.count();si++)
                     node.children.insert(idx+si+1,subnodes.at(si));
@@ -597,7 +608,7 @@ void CTranslator::translate()
 {
     QString aUrl;
     QString lastError;
-    CLangPair lp = gSet->ui.getActiveLangPair();
+    CLangPair lp(gSet->ui.getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
         emit calcFinished(false,aUrl,lastError);

@@ -21,6 +21,8 @@
 
 #include "snctxhandler.h"
 
+const int titleRenameLockTimeout = 500;
+
 CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls)
         : MainWindow()
 {
@@ -46,10 +48,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     //splitter->insertWidget(0,tabHelper);
     auto hbx = qobject_cast<QHBoxLayout *>(centralWidget()->layout());
-    if (hbx)
+    if (hbx) {
         hbx->insertWidget(0,tabHelper,0,Qt::AlignTop);
-    else
+    } else {
         qCritical() << "Main HBox layout not found. Check form design, update source.";
+    }
     tabHelper->addTab(tr("Tabs"));
     tabHelper->addTab(tr("Recycled"));
     tabHelper->addTab(tr("History"));
@@ -65,7 +68,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     menuBookmarks->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
     menuBookmarks->setToolTipsVisible(true);
 
-    titleRenamedLock.setInterval(500);
+    titleRenamedLock.setInterval(titleRenameLockTimeout);
     titleRenamedLock.setSingleShot(true);
 
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
@@ -105,9 +108,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     if (gSet->logWindow)
         connect(actionShowLog, &QAction::triggered, gSet->logWindow, &CLogDisplay::show);
-    if (gSet->downloadManager)
+
+    if (gSet->downloadManager) {
         connect(actionDownloadManager, &QAction::triggered,
                 gSet->downloadManager, &CDownloadManager::show);
+    }
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);
@@ -157,14 +162,17 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
 void CMainWindow::updateSplitters()
 {
+    const int minHelperWidth = 150;
+
     splitter->setCollapsible(0,true);
-    if (savedHelperWidth<150) savedHelperWidth=150;
+    if (savedHelperWidth<minHelperWidth) savedHelperWidth=minHelperWidth;
 
     QList<int> widths;
-    if (helperVisible)
+    if (helperVisible) {
         widths << savedHelperWidth;
-    else
+    } else {
         widths << 0;
+    }
     if (!helperVisible && helperFrame->width()>0)
         savedHelperWidth=helperFrame->width();
 
@@ -186,8 +194,13 @@ void CMainWindow::closeStartPage()
         pt->closeTab(true);
 }
 
-void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
+void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
 {
+    Q_UNUSED(localPos)
+
+    const QSize tooltipPreviewSize(250,100);
+    const int tooltipFontSize = 8;
+
     QPoint p = tabMain->tabBar()->mapFromGlobal(globalPos);
     int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
@@ -201,14 +214,14 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &)
         QPixmap pix = sv->pageImage;
         bool fillRect = false;
         if (pix.isNull()) {
-            pix = QPixmap(250,100);
+            pix = QPixmap(tooltipPreviewSize);
             fillRect = true;
         } else
-            pix = pix.scaledToWidth(250,Qt::SmoothTransformation);
+            pix = pix.scaledToWidth(tooltipPreviewSize.width(),Qt::SmoothTransformation);
         QPainter dc(&pix);
         QRect rx = pix.rect();
         QFont f = dc.font();
-        f.setPointSize(8);
+        f.setPointSize(tooltipFontSize);
         dc.setFont(f);
         if (fillRect)
             dc.fillRect(rx,t->palette().window());
@@ -267,12 +280,12 @@ void CMainWindow::switchFullscreen()
 
     setToolsVisibility(!fullScreen);
 
-    if (fullScreen)
+    if (fullScreen) {
         showFullScreen();
-    else {
-        if (savedMaximized)
+    } else {
+        if (savedMaximized) {
             showMaximized();
-        else {
+        } else {
             showNormal();
             move(savedPos);
             resize(savedSize);
@@ -310,13 +323,22 @@ void CMainWindow::save()
     sv->ctxHandler->saveToFile();
 }
 
-void CMainWindow::splitterMoved(int, int)
+void CMainWindow::splitterMoved(int pos, int index)
 {
+    Q_UNUSED(pos)
+    Q_UNUSED(index)
+
     helperVisible=(helperFrame->width()>0);
 }
 
 void CMainWindow::centerWindow()
 {
+    const int initialHeightFrac = 80;
+    const int initialWidthFrac = 135;
+    const int maxWidth = 1000;
+    const int maxWidthFrac = 80;
+    const int newWindowLadderMargin = 25;
+
     QScreen *screen = nullptr;
 
     if (window() && window()->windowHandle()) {
@@ -328,19 +350,21 @@ void CMainWindow::centerWindow()
         screen = QApplication::primaryScreen();
 
     QRect rect(screen->availableGeometry());
-	int h = 80*rect.height()/100;
-    QSize nw(135*h/100,h);
-    if (nw.width()<1000) nw.setWidth(80*rect.width()/100);
+    int h = initialHeightFrac*rect.height()/100;
+    QSize nw(initialWidthFrac*h/100,h);
+    if (nw.width()<maxWidth) nw.setWidth(maxWidthFrac*rect.width()/100);
     resize(nw);
     if (gSet->mainWindows.count()==0) {
         move(rect.width()/2 - frameGeometry().width()/2,
              rect.height()/2 - frameGeometry().height()/2);
     } else {
         CMainWindow* w = gSet->mainWindows.constLast();
-        if (QApplication::activeWindow())
+        if (QApplication::activeWindow()) {
             if (qobject_cast<CMainWindow *>(QApplication::activeWindow()))
                 w = qobject_cast<CMainWindow *>(QApplication::activeWindow());
-        move(w->pos().x()+25,w->pos().y()+25);
+        }
+        move(w->pos().x()+newWindowLadderMargin,
+             w->pos().y()+newWindowLadderMargin);
     }
 }
 
@@ -353,17 +377,21 @@ void CMainWindow::updateQueryHistory()
     }
 }
 
-void CMainWindow::helperPreClicked(int) {
+void CMainWindow::helperPreClicked(int index)
+{
+    Q_UNUSED(index)
+
     savedHelperIdx = tabHelper->currentIndex();
 }
 
 void CMainWindow::helperClicked(int index)
 {
     if (index<0 || index>=tabHelper->count()) return;
-    if (helperVisible && savedHelperIdx==tabHelper->currentIndex())
+    if (helperVisible && savedHelperIdx==tabHelper->currentIndex()) {
         helperVisible=false;
-    else if (!helperVisible)
+    } else if (!helperVisible) {
         helperVisible=true;
+    }
     updateSplitters();
     updateHelperList();
 }
@@ -375,7 +403,7 @@ void CMainWindow::tabChanged(int idx)
     tabMain->tabBar()->setTabTextColor(idx,QApplication::palette(tabMain->tabBar()).windowText().color());
     if (tabMain->widget(idx)) {
         auto sn = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
-        if (sn) {
+        if (sn!=nullptr) {
             sn->translationBkgdFinished=false;
             sn->loadingBkgdFinished=false;
             sn->txtBrowser->setFocus(Qt::OtherFocusReason);
@@ -388,7 +416,7 @@ void CMainWindow::tabChanged(int idx)
 
     if (tabMain->currentWidget()) {
         auto bt = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-        actionAddBM->setEnabled(bt);
+        actionAddBM->setEnabled(bt!=nullptr);
     }
 }
 
@@ -434,19 +462,24 @@ void CMainWindow::updateHelperList()
                 it->setData(Qt::UserRole,0);
                 it->setData(Qt::UserRole+1,i);
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
-                if (sv) {
+                if (sv!=nullptr) {
                     it->setText(sv->tabTitle());
                     it->setStatusTip(sv->getUrl().toString());
                     it->setToolTip(sv->getUrl().toString());
-                    if (sv->translationBkgdFinished)
+
+                    if (sv->translationBkgdFinished) {
                         it->setForeground(QBrush(Qt::green));
-                    else if (sv->loadingBkgdFinished)
+
+                    } else if (sv->loadingBkgdFinished) {
                         it->setForeground(QBrush(Qt::blue));
-                    else
+
+                    } else {
                         it->setForeground(QApplication::palette(helperList).text());
+                    }
                 }
+
                 auto bv = qobject_cast<CSearchTab*>(tabMain->widget(i));
-                if (bv) {
+                if (bv!=nullptr) {
                     QString qr = bv->getLastQuery();
                     if (qr.isEmpty()) qr = tr("(empty)");
                     it->setText(tr("Search: %1").arg(qr));
@@ -477,15 +510,19 @@ void CMainWindow::updateHelperList()
     }
 }
 
-void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
+void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *previous)
 {
+    Q_UNUSED(previous)
+
     if (current==nullptr) return;
     bool okconv;
     int idx = current->data(Qt::UserRole+1).toInt(&okconv);
     if (!okconv) return;
     int t = current->data(Qt::UserRole).toInt(&okconv);
     if (!okconv) return;
+
     QUrl u;
+    QUuid uidx;
     switch (t) {
         case 0: // Tabs
             if (idx<0 || idx>=tabMain->count()) return;
@@ -501,8 +538,10 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *)
             updateRecycled();
             break;
         case 2: // History
-            QUuid uidx(current->data(Qt::UserRole+2).toString());
+            uidx = QUuid(current->data(Qt::UserRole+2).toString());
             if (!uidx.isNull()) goHistory(uidx);
+            break;
+        default:
             break;
     }
 }
@@ -542,29 +581,31 @@ void CMainWindow::updateTitle()
     QString t = tr("JPReader");
     if (tabMain->currentWidget()) {
         auto sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
-        if (sv&& !sv->tabTitle().isEmpty()) {
+        if (sv!=nullptr && !sv->tabTitle().isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle());
             t = QStringLiteral("%1 - %2").arg(doc.toPlainText(), t);
             t.remove('\r');
             t.remove('\n');
         }
+
         auto bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
-        if (bv && !bv->getLastQuery().isEmpty()) t =
-                tr("[%1] search - %2").arg(bv->getLastQuery(),t);
+        if (bv!=nullptr && !bv->getLastQuery().isEmpty())
+            t = tr("[%1] search - %2").arg(bv->getLastQuery(),t);
     }
     setWindowTitle(t);
 }
 
 void CMainWindow::goHistory(QUuid idx)
 {
-    for (const CUrlHolder& uh : qAsConst(gSet->mainHistory))
+    for (const CUrlHolder& uh : qAsConst(gSet->mainHistory)) {
         if (uh.uuid==idx) {
             QUrl u = uh.url;
             if (!u.isValid()) return;
             new CSnippetViewer(this, u);
             break;
         }
+    }
 }
 
 void CMainWindow::createSearch()
@@ -588,9 +629,10 @@ void CMainWindow::checkTabs()
 
 void CMainWindow::openAuxFiles(const QStringList &filenames)
 {
-    for(const QString& fname : qAsConst(filenames))
+    for(const QString& fname : qAsConst(filenames)) {
         if (!fname.isEmpty())
             new CSnippetViewer(this, QUrl::fromLocalFile(fname));
+    }
 }
 
 void CMainWindow::openAuxFileWithDialog()
@@ -680,10 +722,11 @@ void CMainWindow::updateBookmarks()
 {
     while (true) {
         const QList<QAction *> acl = menuBookmarks->actions();
-        if (acl.count()>3)
+        if (acl.count()>3) {
             menuBookmarks->removeAction(acl.last());
-        else
+        } else {
             break;
+        }
     }
 
     gSet->bookmarksManager->populateBookmarksMenu(menuBookmarks, this);
@@ -696,7 +739,7 @@ void CMainWindow::addBookmark()
     if (sv==nullptr) return;
 
     auto dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle(),this);
-    if (dlg->exec())
+    if (dlg->exec() == QDialog::Accepted)
         emit gSet->updateAllBookmarks();
 
     dlg->setParent(nullptr);
@@ -777,9 +820,10 @@ void CMainWindow::updateTabs()
     tabsMenu->clear();
     for(int i=0;i<tabMain->count();i++) {
         auto sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
-        if (sv)
+        if (sv!=nullptr) {
             tabsMenu->addAction(sv->tabTitle(),this,
                                 &CMainWindow::activateTab)->setData(i);
+        }
     }
     updateHelperList();
 }
@@ -796,25 +840,28 @@ void CMainWindow::activateTab()
 
 void CMainWindow::forceCharset()
 {
+    const int maxCharsetHistory = 10;
+
     auto act = qobject_cast<QAction*>(sender());
     if (act==nullptr) return;
 
     QString cs = act->data().toString();
     if (!cs.isEmpty()) {
-        if (QTextCodec::codecForName(cs.toLatin1().data()))
-            cs = QTextCodec::codecForName(cs.toLatin1().data())->name();
+        QTextCodec* codec = QTextCodec::codecForName(cs.toLatin1().data());
+        if (codec!=nullptr)
+            cs = codec->name();
 
         gSet->settings.charsetHistory.removeAll(cs);
         gSet->settings.charsetHistory.prepend(cs);
-        if (gSet->settings.charsetHistory.count()>10)
+        if (gSet->settings.charsetHistory.count()>maxCharsetHistory)
             gSet->settings.charsetHistory.removeLast();
     }
     gSet->settings.forcedCharset = cs;
     emit gSet->updateAllCharsetLists();
 
-    if (gSet->webProfile &&
-            gSet->webProfile->settings())
+    if (gSet->webProfile && gSet->webProfile->settings()) {
         gSet->webProfile->settings()->setDefaultTextEncoding(cs);
+    }
 }
 
 void CMainWindow::reloadLanguagesList()
@@ -844,19 +891,18 @@ void CMainWindow::reloadCharsetList()
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
-            if (QTextCodec::codecForName(cList.at(i).at(j).toLatin1())==nullptr) {
+            QTextCodec* codec = QTextCodec::codecForName(cList.at(i).at(j).toLatin1());
+            if (codec==nullptr) {
                 qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));
                 continue;
             }
-            QString cname = QTextCodec::codecForName(cList.at(i).at(j).toLatin1())->name();
+            QString cname = codec->name();
             act = midx->addAction(cname,this,&CMainWindow::forceCharset);
             act->setData(cname);
-            if (QTextCodec::codecForName(cname.toLatin1().data())) {
-                if (QTextCodec::codecForName(cname.toLatin1().data())->name() ==
-                        gSet->settings.forcedCharset) {
-                    act->setCheckable(true);
-                    act->setChecked(true);
-                }
+            codec = QTextCodec::codecForName(cname.toLatin1().data());
+            if (codec!=nullptr && codec->name() == gSet->settings.forcedCharset) {
+                act->setCheckable(true);
+                act->setChecked(true);
             }
         }
     }
@@ -879,15 +925,18 @@ void CMainWindow::closeEvent(QCloseEvent *event)
 
 bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
+    const int fullscreenToolsShowMargin = 20;
+
     QString cln(obj->metaObject()->className());
     if (fullScreen && cln.contains(QStringLiteral("WebEngine"),Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
             auto mev = dynamic_cast<QMouseEvent *>(ev);
             if (mev) {
-                if (mev->y()<20 && !tabMain->tabBar()->isVisible())
+                if (mev->y()<fullscreenToolsShowMargin && !tabMain->tabBar()->isVisible()) {
                     setToolsVisibility(true);
-                else if (mev->y()>25 && tabMain->tabBar()->isVisible())
+                } else if (mev->y()>(fullscreenToolsShowMargin+4) && tabMain->tabBar()->isVisible()) {
                     setToolsVisibility(false);
+                }
             }
         }
     }
@@ -899,9 +948,10 @@ void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
     QStringList formats = ev->mimeData()->formats();
 
     if (formats.contains(QStringLiteral("_NETSCAPE_URL")) ||
-            formats.contains(QStringLiteral("text/uri-list")))
+            formats.contains(QStringLiteral("text/uri-list"))) {
         ev->acceptProposedAction();
-    else if (formats.contains(QStringLiteral("text/plain"))) {
+
+    } else if (formats.contains(QStringLiteral("text/plain"))) {
         QUrl u(ev->mimeData()->text());
         if (u.isValid())
             ev->acceptProposedAction();

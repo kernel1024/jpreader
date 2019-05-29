@@ -132,7 +132,7 @@ public:
         SeparatorRole = Qt::UserRole + 4
     };
 
-    BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent = nullptr);
+    explicit BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent = nullptr);
     inline BookmarksManager *bookmarksManager() const { return m_bookmarksManager; }
 
     QVariant headerData(int section, Qt::Orientation orientation,
@@ -140,7 +140,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex index(int, int, const QModelIndex& = QModelIndex()) const override;
+    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex& index= QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     Qt::DropActions supportedDropActions () const override;
@@ -209,7 +209,7 @@ public:
     TreeProxyModel(QObject *parent, BookmarksModel *sourceModel);
 
 protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
 private:
     BookmarksModel *m_sourceModel;
@@ -226,7 +226,7 @@ signals:
     void openUrl(const QUrl &url);
 
 public:
-    BookmarksDialog(QWidget *parent = nullptr, BookmarksManager *manager = nullptr);
+    explicit BookmarksDialog(QWidget *parent = nullptr, BookmarksManager *manager = nullptr);
     ~BookmarksDialog() override;
 
 private slots:

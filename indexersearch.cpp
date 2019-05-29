@@ -14,10 +14,11 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
             return;
         }
         auto th = new QThread();
-        if (indexerSerivce == seRecoll)
+        if (indexerSerivce == seRecoll) {
             engine = new CRecollSearch();
-        else
+        } else {
             engine = new CBaloo5Search();
+        }
         connect(engine,&CAbstractThreadedSearch::addHit,
                 this,&CIndexerSearch::addHit,Qt::QueuedConnection);
         connect(engine,&CAbstractThreadedSearch::finished,
@@ -47,13 +48,15 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
     } else {
         if ((indexerSerivce == seBaloo5) || (indexerSerivce == seRecoll)) {
 #ifdef WITH_THREADED_SEARCH
-            if (isValidConfig())
+            if (isValidConfig()) {
                 emit startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
-            else
+            } else {
                 engineFinished();
+            }
 #endif
-        } else
+        } else {
             engineFinished();
+        }
     }
 }
 
@@ -83,9 +86,10 @@ void CIndexerSearch::addHit(const CStringHash &meta)
     CStringHash result = meta;
 
     QFileInfo fi(result.value(QStringLiteral("jp:fullfilename")));
-    if (!result.contains(QStringLiteral("url")))
+    if (!result.contains(QStringLiteral("url"))) {
         result[QStringLiteral("uri")] = QStringLiteral("file://%1")
                                         .arg(fi.absoluteFilePath());
+    }
 
     if (!result.contains(QStringLiteral("relevancyrating"))) {
         int nhits = -1;
@@ -124,10 +128,11 @@ void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString 
         return;
     }
     QByteArray fb;
-    if (f.size()<50*1024*1024)
+    if (f.size()<maxSearchFileSize) {
         fb = f.readAll();
-    else
-        fb = f.read(50*1024*1024);
+    } else {
+        fb = f.read(maxSearchFileSize);
+    }
     f.close();
 
     QTextCodec *cd = detectEncoding(fb);
@@ -163,9 +168,10 @@ void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
     static const QStringList anyFile( { QStringLiteral("*") } );
 
     QFileInfoList fl = dir.entryInfoList(anyFile,QDir::Dirs | QDir::NoDotAndDotDot);
-    for (int i=0;i<fl.count();i++)
+    for (int i=0;i<fl.count();i++) {
         if (fl.at(i).isDir() && fl.at(i).isReadable())
             searchInDir(QDir(fl.at(i).absoluteFilePath()),qr);
+    }
 
     fl = dir.entryInfoList(anyFile,QDir::Files | QDir::Readable | QDir::NoDotAndDotDot);
     for (int i=0;i<fl.count();i++) {
@@ -178,10 +184,11 @@ void CIndexerSearch::engineFinished()
 {
     if (!working) return;
     working = false;
+    const int oneK = 1000;
 
     CStringHash stats;
     stats[QStringLiteral("jp:elapsedtime")] = QString::number(
-                static_cast<double>(searchTimer.elapsed())/1000,'f',3);
+                static_cast<double>(searchTimer.elapsed())/oneK,'f',3);
     stats[QStringLiteral("jp:totalhits")] = QString::number(resultCount);
     emit searchFinished(stats,m_query);
 }

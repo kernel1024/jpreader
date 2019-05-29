@@ -40,8 +40,8 @@ enum TranslationMode {
     tmTooltip = 2
 };
 
-const char DBusName[] = "org.kernel1024.jpreader";
-const char IPCName[] = "org.kernel1024.jpreader.ipc.main";
+const auto DBusName = "org.kernel1024.jpreader";
+const auto IPCName = "org.kernel1024.jpreader.ipc.main";
 
 class CUrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj);
@@ -53,6 +53,7 @@ public:
     CUrlHolder();
     CUrlHolder(const CUrlHolder& other);
     CUrlHolder(const QString &title, const QUrl &url);
+    ~CUrlHolder() = default;
     CUrlHolder &operator=(const CUrlHolder& other) = default;
     bool operator==(const CUrlHolder &s) const;
     bool operator!=(const CUrlHolder &s) const;
@@ -67,8 +68,9 @@ public:
     QLocale langFrom, langTo;
     CLangPair();
     CLangPair(const CLangPair& other);
-    CLangPair(const QString& hash);
+    explicit CLangPair(const QString& hash);
     CLangPair(const QString& fromName, const QString &toName);
+    ~CLangPair() = default;
     CLangPair &operator=(const CLangPair& other) = default;
     bool isValid() const;
     bool isAtlasAcceptable() const;

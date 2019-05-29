@@ -45,31 +45,35 @@ class QxtToolTipPrivate : public QWidget
 {
     Q_OBJECT
 
+    friend class QxtToolTip;
+
 public:
     QxtToolTipPrivate();
-    ~QxtToolTipPrivate();
+    ~QxtToolTipPrivate() override;
 
     static QxtToolTipPrivate* instance();
     void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
-              QRect rect = QRect(), const bool allowMouseEnter = false);
+              QRect rect = QRect(), bool allowMouseEnter = false);
     void setToolTip(QWidget* tooltip);
-    bool eventFilter(QObject* parent, QEvent* event);
+    bool eventFilter(QObject* object, QEvent* event) override;
     void hideLater();
     QPoint calculatePos(QScreen *scr, QPoint eventPos) const;
-    QHash<WidgetPtr, WidgetArea> tooltips;
-    QVBoxLayout* vbox;
 
 protected:
-    void enterEvent(QEvent* event);
-    void leaveEvent(QEvent* event);
-    void paintEvent(QPaintEvent* event);
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
 
 private:
     static QxtToolTipPrivate* self;
     QWidget* currentParent;
     QRect currentRect;
+    QHash<WidgetPtr, WidgetArea> tooltips;
+    QVBoxLayout* vbox;
     bool ignoreEnterEvent;
     bool allowCloseOnLeave;
+
+    Q_DISABLE_COPY(QxtToolTipPrivate)
 };
 
 #endif // QXTTOOLTIP_P_H

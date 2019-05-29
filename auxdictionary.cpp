@@ -76,8 +76,10 @@ void CAuxDictionary::showTranslationFor(const QString &text)
     viewArticles->setCursor( Qt::WaitCursor );
 }
 
-void CAuxDictionary::editKeyPressed(int )
+void CAuxDictionary::editKeyPressed(int key)
 {
+    Q_UNUSED(key)
+
     forceFocusToEdit = true;
 }
 
@@ -92,7 +94,7 @@ void CAuxDictionary::updateMatchResults(bool finished)
 
     ui->listWords->setUpdatesEnabled( false );
 
-    for( unsigned x = 0; x < results.size(); ++x )
+    for( unsigned long x = 0; x < results.size(); ++x )
     {
         QListWidgetItem * i = ui->listWords->item( static_cast<int>(x) );
 
@@ -135,7 +137,7 @@ void CAuxDictionary::updateMatchResults(bool finished)
             break;
     }
 
-    if ( ui->listWords->count() )
+    if ( ui->listWords->count() > 0 )
     {
         ui->listWords->scrollToItem( ui->listWords->item( 0 ), QAbstractItemView::PositionAtTop );
         ui->listWords->setCurrentItem( nullptr, QItemSelectionModel::Clear );
@@ -150,9 +152,10 @@ void CAuxDictionary::updateMatchResults(bool finished)
         if (ui->listWords->count()>0)
             ui->listWords->setCurrentRow(0);
 
-        if ( !wordFinder->getErrorString().isEmpty() )
+        if ( !wordFinder->getErrorString().isEmpty() ) {
             QMessageBox::critical(this,tr("JPReader"),
                                   tr( "WARNING: %1" ).arg( wordFinder->getErrorString() ) );
+        }
     }
 }
 

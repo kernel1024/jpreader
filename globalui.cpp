@@ -9,6 +9,9 @@
 #include "specwidgets.h"
 #include "genericfuncs.h"
 
+const int globalTooltipShowDelay = 100;
+const int globalTooltipShowDuration = 3000;
+
 CGlobalUI::CGlobalUI(QObject *parent)
     : QObject(parent)
 {
@@ -216,11 +219,11 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
                                          "%2</span>").arg(sz).arg(text);
     QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
 
-    QTimer::singleShot(100,gSet,[msg,pos](){
+    QTimer::singleShot(globalTooltipShowDelay,gSet,[msg,pos](){
         if (gSet->activeWindow==nullptr) return;
         QToolTip::showText(pos,msg,gSet->activeWindow);
 
-        QTimer::singleShot(3000,gSet,[](){
+        QTimer::singleShot(globalTooltipShowDuration,gSet,[](){
             if (gSet->activeWindow)
                 QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow);
         });

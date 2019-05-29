@@ -31,7 +31,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 0: return m_snippets[idx][QStringLiteral("title")];
             case 1: return m_snippets[idx][QStringLiteral("relevancyrating")];
             case 2: return m_snippets[idx][QStringLiteral("jp:dir")];
-            case 3: return formatSize(m_snippets[idx][QStringLiteral("fbytes")]);
+            case 3: return formatFileSize(m_snippets[idx][QStringLiteral("fbytes")]);
             case 4: return m_snippets[idx][QStringLiteral("filename")];
             default: return QVariant();
         }
@@ -103,14 +103,20 @@ QVariant CSearchModel::headerData(int section, Qt::Orientation orientation, int 
     return QVariant();
 }
 
-int CSearchModel::rowCount(const QModelIndex &) const
+int CSearchModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
+
     return m_snippets.count();
 }
 
-int CSearchModel::columnCount(const QModelIndex &) const
+int CSearchModel::columnCount(const QModelIndex &parent) const
 {
-    return 5;
+    Q_UNUSED(parent)
+
+    const int columnsCount = 5;
+
+    return columnsCount;
 }
 
 CStringHash CSearchModel::getSnippet(int idx) const
@@ -138,8 +144,10 @@ void CSearchModel::setSnippet(int idx, const CStringHash& snippet)
 QStringList CSearchModel::getDistinctValues(const QString &snippetKey)
 {
     QStringList sl;
+
     if (snippetKey.isEmpty()) return sl;
 
+    sl.reserve(m_snippets.count());
     for (int i=0;i<m_snippets.count();i++) {
         QString s = m_snippets[i][snippetKey];
         if (!s.isEmpty() && !sl.contains(s))
@@ -176,10 +184,11 @@ void CSearchProxyFilterModel::setFilter(const QString &filter)
 
 QVariant CSearchProxyFilterModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    const int headerDarkFactor = 120;
     if (orientation == Qt::Horizontal) {
         if (role == Qt::BackgroundRole && section == 2 && !m_filter.isEmpty()) {
             const QColor c = QApplication::palette("QHeaderView").background().color();
-            return c.darker(120);
+            return c.darker(headerDarkFactor);
         }
     }
 

@@ -44,7 +44,7 @@ class QxtGlobalShortcut : public QObject,
 public:
     explicit QxtGlobalShortcut(QObject* parent = nullptr);
     explicit QxtGlobalShortcut(const QKeySequence& shortcut, QObject* parent = nullptr);
-    virtual ~QxtGlobalShortcut();
+    ~QxtGlobalShortcut() override;
 
     QKeySequence shortcut() const;
     bool setShortcut(const QKeySequence& shortcut);
@@ -61,18 +61,19 @@ signals:
 
 private:
 
-    Qt::Key key;
-    Qt::KeyboardModifiers mods;
-    bool m_enabled;
+    Qt::Key key { Qt::Key(0) };
+    Qt::KeyboardModifiers mods { Qt::NoModifier };
+    bool m_enabled { false };
 
     static bool error;
     static int ref;
 
-    virtual bool nativeEventFilter(const QByteArray & eventType, void * message, long * result);
+    Q_DISABLE_COPY(QxtGlobalShortcut)
+
+    bool nativeEventFilter(const QByteArray & eventType, void * message, long * result) override;
 
     static void activateShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
 
-private:
     static xcb_keycode_t nativeKeycode(Qt::Key keycode, Qt::KeyboardModifiers modifiers);
     static uint16_t nativeModifiers(Qt::KeyboardModifiers modifiers);
 

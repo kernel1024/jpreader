@@ -12,12 +12,13 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
     u_origin = origin;
     m_autofillLogin = autofillLogin;
 
-    if (!realm.isEmpty())
+    if (!realm.isEmpty()) {
         ui->labelRealm->setText(realm);
-    else if (origin.isValid())
+    } else if (origin.isValid()) {
         ui->labelRealm->setText(origin.toString());
-    else
+    } else {
         ui->label->clear();
+    }
 
     if (origin.isValid()) {
         QString user;

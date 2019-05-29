@@ -36,7 +36,7 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     rq.setHeader(QNetworkRequest::ContentTypeHeader,
                  "application/x-www-form-urlencoded");
 
-    QNetworkReply *rpl = nam->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
+    QNetworkReply *rpl = nam()->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
     if (!waitForReply(rpl)) {
         setErrorMsg(QStringLiteral("ERROR: Google GTX translator network error"));

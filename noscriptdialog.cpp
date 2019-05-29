@@ -29,10 +29,11 @@ void CNoScriptDialog::updateHostsList()
     for (const QString& host : qAsConst(scripts)) {
         auto itm = new QListWidgetItem(host);
         itm->setFlags(itm->flags() | Qt::ItemIsUserCheckable);
-        if (gSet->containsNoScriptWhitelist(host))
+        if (gSet->containsNoScriptWhitelist(host)) {
             itm->setCheckState(Qt::Checked);
-        else
+        } else {
             itm->setCheckState(Qt::Unchecked);
+        }
 
        ui->listScripts->addItem(itm);
     }
@@ -42,8 +43,10 @@ void CNoScriptDialog::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event)
 
+    const int maxLabelLength = 200;
+
     ui->labelUrl->setText(fontMetrics().elidedText(m_origin,Qt::ElideRight,
-                                                   qMax(200,ui->labelUrl->width())));
+                                                   qMax(maxLabelLength,ui->labelUrl->width())));
 }
 
 void CNoScriptDialog::acceptScripts()

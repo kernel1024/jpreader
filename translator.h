@@ -25,8 +25,8 @@ public:
     CHTMLNode();
     ~CHTMLNode();
     CHTMLNode(const CHTMLNode& other);
-    CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
-    CHTMLNode(const QString& innerText);
+    explicit CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
+    explicit CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other);
     bool operator==(const CHTMLNode &s) const;
     bool operator!=(const CHTMLNode &s) const;
@@ -92,7 +92,7 @@ private:
 
 public:
     explicit CTranslator(QObject* parent, const QString &aUri, bool forceTranSubSentences = false);
-    ~CTranslator();
+    ~CTranslator() override;
     bool documentReparse(const QString& srcUri, QString& dst);
     QStringList getImgUrls() const;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
@@ -100,7 +100,7 @@ public:
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
 signals:
-    void calcFinished(const bool success, const QString &aUrl, const QString &error);
+    void calcFinished(bool success, const QString &aUrl, const QString &error);
     void setProgress(int value);
 
 public slots:

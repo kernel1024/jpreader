@@ -1,5 +1,5 @@
 #ifndef SNVIEWER_H
-#define SNVIEWER_H 1
+#define SNVIEWER_H
 
 #include <QWidget>
 #include <QString>
@@ -43,20 +43,20 @@ public:
     bool pageLoaded;
     bool auxContentLoaded;
 
-    CSnippetViewer(CMainWindow* parent, const QUrl& aUri = QUrl(),
-                   const QStringList& aSearchText = QStringList(),
-                   bool setFocused = true, const QString& AuxContent = QString(),
-                   const QString& zoom = QString("100%"),
-                   bool startPage = false);
+    explicit CSnippetViewer(CMainWindow* parent, const QUrl& aUri = QUrl(),
+                            const QStringList& aSearchText = QStringList(),
+                            bool setFocused = true, const QString& AuxContent = QString(),
+                            const QString& zoom = QString("100%"),
+                            bool startPage = false);
     virtual QString getDocTitle();
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
     void updateButtonsState();
     void updateWebViewAttributes();
-    bool canClose();
-    void recycleTab();
+    bool canClose() override;
+    void recycleTab() override;
     QUrl getUrl();
-    void setToolbarVisibility(bool visible);
-    void outsideDragStart();
+    void setToolbarVisibility(bool visible) override;
+    void outsideDragStart() override;
     bool isInspector();
     void printToPDF();
 public slots:

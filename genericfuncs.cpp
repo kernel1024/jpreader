@@ -9,6 +9,7 @@
 #include <QMutexLocker>
 #include <QTcpServer>
 #include <QRegExp>
+#include <QLocale>
 #include <QtTest>
 
 #include <iostream>
@@ -53,9 +54,12 @@ bool runnedFromQtCreator()
 
 int getRandomTCPPort()
 {
+    const uint minPort = 20000;
+    const uint maxPort = 40000;
+
     QTcpServer srv;
     int res = -1;
-    for (quint16 i=20000;i<40000;i++) {
+    for (quint16 i=minPort;i<maxPort;i++) {
         if (srv.listen(QHostAddress(QHostAddress(QHostAddress::LocalHost)),i)) {
             res = i;
             break;
@@ -70,6 +74,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
 {
     static bool syslogOpened = false;
     static QMutex loggerMutex;
+    const int maxMessagesCount = 5000;
 
     loggerMutex.lock();
 
@@ -78,10 +83,11 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     int line = context.line;
     QString file(context.file);
     QString category(context.category);
-    if (category==QStringLiteral("default"))
+    if (category==QStringLiteral("default")) {
         category.clear();
-    else
+    } else {
         category.append(' ');
+    }
     int logpri = LOG_NOTICE;
 
     switch (type) {
@@ -110,13 +116,13 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     if (!lmsg.isEmpty()) {
         QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime().toString("h:mm:ss"),lmsg);
         debugMessages << fmsg;
-        while (debugMessages.count()>5000)
+        while (debugMessages.count()>maxMessagesCount)
             debugMessages.removeFirst();
         fmsg.append('\n');
 
-        if (runnedFromQtCreator())
+        if (runnedFromQtCreator()) {
             fprintf(stderr, "%s", fmsg.toLocal8Bit().constData());
-        else {
+        } else {
             if (!syslogOpened) {
                 syslogOpened = true;
                 openlog("jpreader", LOG_PID, LOG_USER);
@@ -176,12 +182,14 @@ QString detectMIME(const QByteArray &buf)
     return mag;
 }
 
-QString detectEncodingName(const QByteArray& content) {
+QString detectEncodingName(const QByteArray& content)
+{
     QString codepage;
 
     if (!gSet->settings.forcedCharset.isEmpty() &&
-            QTextCodec::availableCodecs().contains(gSet->settings.forcedCharset.toLatin1()))
+            QTextCodec::availableCodecs().contains(gSet->settings.forcedCharset.toLatin1())) {
         return gSet->settings.forcedCharset;
+    }
 
     QTextCodec* enc = QTextCodec::codecForLocale();
     QByteArray icu_enc;
@@ -204,17 +212,17 @@ QString detectEncodingName(const QByteArray& content) {
     return codepage;
 }
 
-QTextCodec* detectEncoding(const QByteArray& content) {
+QTextCodec* detectEncoding(const QByteArray& content)
+{
     QString codepage = detectEncodingName(content);
 
     if (!codepage.isEmpty())
         return QTextCodec::codecForName(codepage.toLatin1());
-    else {
-        if (!QTextCodec::codecForLocale())
-            return QTextCodec::codecForName("UTF-8");
-        else
-            return QTextCodec::codecForLocale();
-    }
+
+    if (!QTextCodec::codecForLocale())
+        return QTextCodec::codecForName("UTF-8");
+
+    return QTextCodec::codecForLocale();
 }
 
 QString detectDecodeToUnicode(const QByteArray& content)
@@ -235,9 +243,10 @@ QString makeSimpleHtml(const QString &title, const QString &content,
     cn.append(QStringLiteral("<title>%1</title></head><body>").arg(title));
     if (integratedTitle) {
         cn.append(QStringLiteral("<h3>"));
-        if (!origin.isEmpty())
+        if (!origin.isEmpty()) {
             cn.append(QStringLiteral("<a href=\"%1\">%2</a>")
                       .arg(origin.toString(QUrl::FullyEncoded),title));
+        }
         cn.append(QStringLiteral("</h3>"));
     }
     cn.append(cnt);
@@ -253,18 +262,20 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
     QClipboard *cb = QApplication::clipboard();
     if (cb->mimeData(QClipboard::Clipboard)->hasText()) {
         cbContentsUnformatted = cb->mimeData(QClipboard::Clipboard)->text();
-        if (cb->mimeData(QClipboard::Clipboard)->hasHtml())
+        if (cb->mimeData(QClipboard::Clipboard)->hasHtml()) {
             cbContents = cb->mimeData(QClipboard::Clipboard)->html();
-        else
+        } else {
             cbContents = cb->mimeData(QClipboard::Clipboard)->text();
+        }
     }
 
     if (plainpre && !cbContentsUnformatted.isEmpty()) {
         res=cbContentsUnformatted;
-        if (res.indexOf(QStringLiteral("\r\n"))>=0)
+        if (res.indexOf(QStringLiteral("\r\n"))>=0) {
             res.replace(QStringLiteral("\r\n"),QStringLiteral("</p><p>"));
-        else
+        } else {
             res.replace(QStringLiteral("\n"),QStringLiteral("</p><p>"));
+        }
         res = QStringLiteral("<p>%1</p>").arg(res);
         res = makeSimpleHtml(QStringLiteral("<...>"),res);
     } else {
@@ -272,10 +283,11 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
             if (!cbContentsUnformatted.isEmpty())
                 res = cbContentsUnformatted;
         } else {
-            if (!cbContents.isEmpty())
+            if (!cbContents.isEmpty()) {
                 res = cbContents;
-            else if (!cbContentsUnformatted.isEmpty())
+            } else if (!cbContentsUnformatted.isEmpty()) {
                 res = makeSimpleHtml(QStringLiteral("<...>"),cbContentsUnformatted);
+            }
         }
     }
     return res;
@@ -283,8 +295,10 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
 
 QString fixMetaEncoding(const QString &data_utf8)
 {
+    const int headerSampleSize = 512;
+
     int pos;
-    QString header = data_utf8.left(512);
+    QString header = data_utf8.left(headerSampleSize);
     QString dt = data_utf8;
     dt.remove(0,header.length());
     bool forceMeta = true;
@@ -323,22 +337,20 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
-QString formatSize(const QString& size)
+QString formatFileSize(const QString& size)
 {
     bool ok;
     qint64 sz = size.toLong(&ok);
     if (ok)
-        return formatSize(sz);
+        return formatFileSize(sz);
 
     return size;
 }
 
-QString formatSize(qint64 size)
+QString formatFileSize(qint64 size)
 {
-    if (size<1024) return QStringLiteral("%1 bytes").arg(size);
-    if (size<1024*1024) return QStringLiteral("%1 Kb").arg(size/1024);
-    if (size<1024*1024*1024) return QStringLiteral("%1 Mb").arg(size/(1024*1024));
-    return QStringLiteral("%1 Gb").arg(size/(1024*1024*1024));
+    const int precision = 2;
+    return QLocale::c().formattedDataSize(size,precision,QLocale::DataSizeTraditionalFormat);
 }
 
 QString elideString(const QString& text, int maxlen)
@@ -371,7 +383,7 @@ QString highlightSnippet(const QString& snippet, const QStringList& terms)
 
 QString getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
-    QFileDialog::Options opts = 0;
+    QFileDialog::Options opts = nullptr;
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
@@ -398,7 +410,7 @@ QString getOpenFileNameD (QWidget * parent, const QString & caption, const QStri
 
 QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
-    QFileDialog::Options opts = 0;
+    QFileDialog::Options opts = nullptr;
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
@@ -415,7 +427,7 @@ QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const 
     if (dialog.exec() == QDialog::Accepted) {
         if (selectedFilter)
             *selectedFilter = dialog.selectedNameFilter();
-         res = dialog.selectedFiles();
+        res = dialog.selectedFiles();
     }
 
     openFileDialogSize = dialog.size();
@@ -445,9 +457,11 @@ QStringList getSuffixesFromFilter(const QString& filter)
     return res;
 }
 
-QString getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter, QString preselectFileName )
+QString getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir,
+                          const QString & filter, QString * selectedFilter,
+                          const QString & preselectFileName )
 {
-    QFileDialog::Options opts = 0;
+    QFileDialog::Options opts = nullptr;
     if (gSet->settings.dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
@@ -536,6 +550,7 @@ int compareStringLists(const QStringList &left, const QStringList &right)
 
 QString extractFileTitle(const QString& fileContents)
 {
+    const int maxFileSize = 255;
     int pos;
     int start = -1;
     int stop = -1;
@@ -544,8 +559,8 @@ QString extractFileTitle(const QString& fileContents)
         if ((pos = fileContents.indexOf(QRegExp(QStringLiteral("</title {0,}>"), Qt::CaseInsensitive))) != -1) {
             stop = pos;
             if (stop>start) {
-                if ((stop-start)>255)
-                    stop = start + 255;
+                if ((stop-start)>maxFileSize)
+                    stop = start + maxFileSize;
                 QString s = fileContents.mid(start,stop-start);
                 s.remove(QRegExp(QStringLiteral("^<title {0,}>"),Qt::CaseInsensitive));
                 s.remove('\r');
@@ -578,9 +593,8 @@ QString convertPatternToRegExp(const QString &wildcardPattern) {
 void sendStringToWidget(QWidget *widget, const QString& s)
 {
     if (widget==nullptr) return;
-    for (int i=0;i<s.length();i++) {
+    for (const auto &c : s) {
         Qt::KeyboardModifiers mod = Qt::NoModifier;
-        const QChar c = s.at(i);
         if (c.isLetter() && c.isUpper()) mod = Qt::ShiftModifier;
         QTest::sendKeyEvent(QTest::KeyAction::Click,widget,Qt::Key_A,c,mod);
     }

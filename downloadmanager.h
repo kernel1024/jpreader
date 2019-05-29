@@ -33,7 +33,7 @@ public:
     explicit CDownloadItem(QWebEngineDownloadItem* item);
     CDownloadItem(QNetworkReply* rpl, const QString& fname);
     ~CDownloadItem() = default;
-    CDownloadItem &operator=(const CDownloadItem& other);
+    CDownloadItem &operator=(const CDownloadItem& other) = default;
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
     bool isEmpty();

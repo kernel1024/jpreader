@@ -38,7 +38,7 @@ class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 private:
     CSpecTabWidget *m_tabWidget;
-    int m_browserTabs;
+    bool m_browserTabs { false };
     CSpecTabContainer* m_draggingTab;
     QPoint m_dragStart;
 
@@ -104,7 +104,7 @@ class CSpecToolTipLabel : public QLabel {
 public:
     explicit CSpecToolTipLabel(const QString &text = QString());
 private:
-    void hideEvent(QHideEvent *) override;
+    void hideEvent(QHideEvent *event) override;
 signals:
     void labelHide();
 };

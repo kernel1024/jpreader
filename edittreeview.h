@@ -62,6 +62,7 @@ private:
 
 public:
     explicit EditTreeView(QWidget *parent = nullptr);
+    ~EditTreeView() override = default;
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

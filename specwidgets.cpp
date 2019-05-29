@@ -92,7 +92,7 @@ void CSpecTabWidget::selectPrevTab()
 }
 
 CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
-    : QTabBar(p), m_browserTabs(false)
+    : QTabBar(p)
 {
     m_tabWidget = p;
     m_dragStart = QPoint(0,0);
@@ -100,7 +100,7 @@ CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
 }
 
 CSpecTabBar::CSpecTabBar(QWidget *p)
-    : QTabBar(p), m_browserTabs(false)
+    : QTabBar(p)
 {
     m_tabWidget = nullptr;
     m_dragStart = QPoint(0,0);
@@ -569,8 +569,10 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
 
-    if (gSet->mainHistory.count()>100)
-        return 100;
+    const int maxHistoryLength = 100;
+
+    if (gSet->mainHistory.count()>maxHistoryLength)
+        return maxHistoryLength;
 
     return gSet->mainHistory.count();
 }
@@ -589,7 +591,7 @@ QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
 
 Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
+    Q_UNUSED(index)
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
@@ -628,7 +630,8 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 
         } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
             std::vector<char> vc = dr->getFullData();
-            rplb = QByteArray(reinterpret_cast<const char*>(vc.data()), vc.size());
+            rplb = QByteArray(reinterpret_cast<const char*>(vc.data()),
+                              static_cast<int>(vc.size()));
 
         } else { // Dictionary error
             rplb = makeSimpleHtml(tr("Error"),

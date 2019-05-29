@@ -4,8 +4,7 @@ DEPENDPATH += $$PWD
 HEADERS += \
     $$PWD/qxttooltip.h \
     $$PWD/qxttooltip_p.h \
-    $$PWD/qxtglobalshortcut.h \
-    $$PWD/qxtglobal.h
+    $$PWD/qxtglobalshortcut.h
 
 SOURCES += \
     $$PWD/qxttooltip.cpp \

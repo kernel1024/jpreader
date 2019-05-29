@@ -17,6 +17,8 @@
 #include "recollsearch.h"
 #endif
 
+const int maxSearchFileSize = 50*1024*1024;
+
 class CIndexerSearch : public QObject
 {
     Q_OBJECT

@@ -86,20 +86,22 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
 
     bindToTab(parentWnd()->tabMain);
 
-    if (engine->getCurrentIndexerService()==seRecoll)
+    if (engine->getCurrentIndexerService()==seRecoll) {
         ui->labelMode->setText(QStringLiteral("Recoll search"));
-    else if (engine->getCurrentIndexerService()==seBaloo5)
+    } else if (engine->getCurrentIndexerService()==seBaloo5) {
         ui->labelMode->setText(QStringLiteral("Baloo KF5 search"));
-    else
+    } else {
         ui->labelMode->setText(QStringLiteral("Local file search"));
+    }
 
-    if (!engine->isValidConfig())
+    if (!engine->isValidConfig()) {
         QMessageBox::warning(parentWnd(),tr("JPReader"),
                              tr("Configuration error. \n"
                                 "You have enabled some search engine in settings, \n"
                                 "but jpreader compiled without support for this engine.\n"
                                 "Fallback to local file search.\n"
                                 "Please, check program settings and reopen new search tab."));
+    }
 
     engine->moveToThread(th);
     th->start();
@@ -135,7 +137,9 @@ void CSearchTab::gotSearchResult(const CStringHash& item)
 
 void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
 {
-    Q_UNUSED(query);
+    Q_UNUSED(query)
+
+    const int maxColumnWidth = 400;
 
     ui->buttonSearch->setEnabled(true);
     ui->searchBar->hide();
@@ -152,8 +156,8 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
 
     ui->listResults->resizeColumnsToContents();
     for (int i=0;i<model->columnCount(QModelIndex());i++) {
-        if (ui->listResults->columnWidth(i)>400)
-            ui->listResults->setColumnWidth(i,400);
+        if (ui->listResults->columnWidth(i)>maxColumnWidth)
+            ui->listResults->setColumnWidth(i,maxColumnWidth);
     }
 
     QString elapsed = QString(stats[QStringLiteral("jp:elapsedtime")])
@@ -240,6 +244,8 @@ void CSearchTab::headerMenu(const QPoint &pos)
 
 void CSearchTab::snippetMenu(const QPoint &pos)
 {
+    const int maxTitleLength = 100;
+
     if (model->rowCount()==0) return;
     const CStringHash sh = model->getSnippet(sort->mapToSource(ui->listResults->indexAt(pos)));
     if (sh.isEmpty()) return;
@@ -263,7 +269,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         ui.setupUi(dlg);
         dlg->setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
-                           .arg(elideString(sh[QStringLiteral("title")],100)));
+                           .arg(elideString(sh[QStringLiteral("title")],maxTitleLength)));
         ui.table->clear();
         ui.table->setColumnCount(2);
         ui.table->setRowCount(sh.size());
@@ -292,8 +298,10 @@ void CSearchTab::applyFilter()
     sort->setFilter(ac->data().toString());
 }
 
-void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &)
+void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelection &deselected)
 {
+    Q_UNUSED(deselected)
+
     if (selected.isEmpty()) return;
     applySnippetIdx(selected.indexes().first());
 }
@@ -407,9 +415,9 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
         } else {
-            if (!auxText.isEmpty())
+            if (!auxText.isEmpty()) {
                 s = tran->tranString(auxText);
-            else {
+            } else {
                 for (int i=0;i<queryTerms.count();i++) {
                     queryTermsTran[i] = tran->tranString(queryTerms[i]);
                 }
@@ -431,11 +439,13 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
         s=tr("File not found");
         return s;
     }
-    if (f.size()>25*1024*1024) {
-        s=tr("File too big");
-        return s;
+
+    QByteArray fc;
+    if (f.size()>maxSearchFileSize) {
+        fc = f.read(maxSearchFileSize);
+    } else {
+        fc = f.readAll();
     }
-    QByteArray fc = f.readAll();
     f.close();
 
     QTextCodec *cd = detectEncoding(fc);
@@ -461,19 +471,20 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = tran &&
+            bool makeTran = tran!=nullptr &&
                             gSet->ui.actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
             if (makeTran)
                 fspart = tran->tranString(fspart);
             QString snpColor = CSettings::snippetColors.at(i % CSettings::snippetColors.count()).name();
-            if (makeTran)
+            if (makeTran) {
                 fspart.replace(ITermT,QStringLiteral("<font color='%1'>%2</font>")
                                               .arg(snpColor,ITermT),Qt::CaseInsensitive);
-            else
+            } else {
                 fspart.replace(ITerm,QStringLiteral("<font color='%1'>%2</font>")
                                .arg(snpColor,ITerm),Qt::CaseInsensitive);
+            }
             // add occurence to collection
             snippets[i] << fspart;
         }
@@ -521,9 +532,9 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             }
             rnd -= iweights[j];
         }
-        if (snippets[itm].count()>0)
+        if (snippets[itm].count()>0) {
             rdSnippet << snippets[itm].takeFirst();
-        else { // sublist is empty, take other smallest element from collection
+        } else { // sublist is empty, take other smallest element from collection
             int maxCnt = INT_MAX;
             int idx = -1;
             for (int j=0;j<queryTerms.count();j++) {

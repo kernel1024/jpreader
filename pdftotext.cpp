@@ -46,7 +46,7 @@ extern "C" {
 #include <zlib.h>
 }
 
-#define PAGE_SEPARATOR "##JPREADER_NEWPAGE##"
+const auto sPageSeparator = "##JPREADER_NEWPAGE##";
 
 #ifdef WITH_POPPLER
 
@@ -106,9 +106,11 @@ void metaDate(QString& out, Dict *infoDict, const char* key, const QString& fmt)
 static int loggedPopplerErrors = 0;
 static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
 {
-    Q_UNUSED(data);
+    Q_UNUSED(data)
 
-    if (loggedPopplerErrors>100) return;
+    const int maxPopplerErrors = 100;
+
+    if (loggedPopplerErrors>maxPopplerErrors) return;
     loggedPopplerErrors++;
 
     int ipos = static_cast<int>(pos);
@@ -200,12 +202,15 @@ QString CPDFWorker::formatPdfText(const QString& text)
     // ! . ? 。…
 
     const static int maxParagraphLength = 150;
+    const double minimalHorizontalLen = 2.0;
+    const ushort maxControlChar = 0x1f;
 
     int sumlen = 0;
-    for (int i=0;i<m_outLengths.count();i++)
-        sumlen += m_outLengths.at(i);
+    for (const auto len : qAsConst(m_outLengths))
+        sumlen += len;
+
     double avglen = (static_cast<double>(sumlen))/m_outLengths.count();
-    bool isVerticalText = (avglen<2.0);
+    bool isVerticalText = (avglen<minimalHorizontalLen);
 
     QString s = text;
 
@@ -219,8 +224,9 @@ QString CPDFWorker::formatPdfText(const QString& text)
             QChar pm = s.at(pos-1);
             if (!((pm.isLetter() && !isVerticalText) ||
                   (pm.isLetterOrNumber() && isVerticalText) ||
-                  (pm.isPunct() && !endMarkers.contains(pm))))
+                  (pm.isPunct() && !endMarkers.contains(pm)))) {
                 s.insert(pos,QStringLiteral("</p><p>"));
+            }
         }
     }
 
@@ -228,7 +234,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
     s.remove('\n');
 
     // replace page separators
-    s = s.replace('\f',QStringLiteral("</p>" PAGE_SEPARATOR "<p>"));
+    s = s.replace('\f',QStringLiteral("</p>%1<p>").arg(sPageSeparator));
 
     s = QStringLiteral("<p>") + s + QStringLiteral("</p>");
 
@@ -236,7 +242,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
     while (idx<s.length()) { // remove-replace pass
         QChar c = s.at(idx);
 
-        if (c.unicode()<=0x1f) { // remove old control characters
+        if (c.unicode()<=maxControlChar) { // remove old control characters
             s.remove(idx,1);
             continue;
         }
@@ -280,10 +286,12 @@ QString CPDFWorker::formatPdfText(const QString& text)
                 s.insert(idx+1,'\n');
                 idx+=2;
                 clen = 0;
-            } else
+            } else {
                 clen++;
-        } else
+            }
+        } else {
             clen++;
+        }
         idx++;
     }
     s = s.replace('\n',QStringLiteral("</p>\n<p>"));
@@ -333,10 +341,11 @@ void CPDFWorker::pdfToText(const QString &filename)
     return;
 #else
     // conversion parameters
-    static const double resolution = 72.0;
-    static const bool physLayout = false;
-    static const double fixedPitch = 0;
-    static const bool rawOrder = true;
+    const double resolution = 72.0;
+    const bool physLayout = false;
+    const double fixedPitch = 0;
+    const bool rawOrder = true;
+    const int bppRGB888 = 8;
 
     QString result;
 
@@ -450,32 +459,37 @@ void CPDFWorker::pdfToText(const QString &filename)
                         int dheight = xitem.streamGetDict()->lookup("Height").getInt();
                         int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
 
-                        if (dBPP == 8) {
+                        if (dBPP == bppRGB888) {
                             img = QImage(dwidth,dheight,QImage::Format_RGB888);
                             int sz = zlibInflate(ba.constData(),ba.size(),
                                                  img.bits(),static_cast<int>(img.sizeInBytes()));
-                            if (sz<0)
+                            if (sz<0) {
                                 qWarning() << tr("Failed to uncompress page from PDF stream %1 at page %2")
                                               .arg(xo_idx).arg(pageNum);
-                        } else
+                            }
+                        } else {
                             qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3, BPP = %4)")
                                           .arg(xo_idx).arg(pageNum).arg(kind).arg(dBPP);
+                        }
                     } else if (kind==StreamKind::strDCT) { // JPEG stream
                         img = QImage::fromData(ba);
-                    } else
+                    } else {
                         qWarning() << tr("Unsupported image stream %1 at page %2 (kind = %3)")
                                       .arg(xo_idx).arg(pageNum).arg(kind);
+                    }
                     ba.clear();
 
                     if (!img.isNull()) {
                         if (img.width()>img.height()) {
-                            if (img.width()>gSet->settings.pdfImageMaxSize)
+                            if (img.width()>gSet->settings.pdfImageMaxSize) {
                                 img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
                                                         Qt::SmoothTransformation);
+                            }
                         } else {
-                            if (img.height()>gSet->settings.pdfImageMaxSize)
+                            if (img.height()>gSet->settings.pdfImageMaxSize) {
                                 img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
                                                          Qt::SmoothTransformation);
+                            }
                         }
                         ba.clear();
                         QBuffer buf(&ba);
@@ -490,7 +504,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     }
 
     m_text = formatPdfText(m_text);
-    QStringList sltext = m_text.split(QStringLiteral(PAGE_SEPARATOR));
+    QStringList sltext = m_text.split(sPageSeparator);
     m_text.clear();
     int idx = 1;
     while (!sltext.isEmpty()) {
@@ -524,10 +538,10 @@ void CPDFWorker::pdfToText(const QString &filename)
 void initPdfToText()
 {
 #ifdef WITH_POPPLER
-    char textEncoding[] = "UTF-8";
+    const auto textEncoding = "UTF-8";
     globalParams = new GlobalParams();
     setErrorCallback(&popplerError,nullptr);
-    globalParams->setTextEncoding(textEncoding);
+    globalParams->setTextEncoding(const_cast<char *>(textEncoding));
 #endif
 }
 

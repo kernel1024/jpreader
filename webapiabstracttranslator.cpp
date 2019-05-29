@@ -3,12 +3,11 @@
 #include <QTimer>
 #include "webapiabstracttranslator.h"
 
-#define MAX_BLOCK_LENGTH 5000
+const int maxTranslationStringLength = 5000;
 
 CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang)
     : CAbstractTranslator (parent, lang)
 {
-    nam = nullptr;
 }
 
 CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
@@ -23,7 +22,9 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         return QStringLiteral("ERROR:TRAN_NOT_READY");
     }
 
-    if (src.length()>=MAX_BLOCK_LENGTH) {
+    const int margin = 10;
+
+    if (src.length()>=maxTranslationStringLength) {
         // Split by separator chars
         QRegExp rx(QStringLiteral("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
@@ -33,8 +34,8 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         for (int i=0;i<srcl.count();i++) {
             QString s = srcl.at(i);
             while (!s.isEmpty()) {
-                srout << s.left(MAX_BLOCK_LENGTH-10);
-                s.remove(0,MAX_BLOCK_LENGTH-10);
+                srout << s.left(maxTranslationStringLength - margin);
+                s.remove(0,maxTranslationStringLength - margin);
             }
         }
         srcl.clear();
@@ -74,36 +75,39 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 
 void CWebAPIAbstractTranslator::initNAM()
 {
-    if (nam==nullptr) {
-        nam=new QNetworkAccessManager(this);
+    if (m_nam==nullptr) {
+        m_nam=new QNetworkAccessManager(this);
         auto cj = new CNetworkCookieJar();
-        nam->setCookieJar(cj);
+        m_nam->setCookieJar(cj);
     }
 
-    auto cj = qobject_cast<CNetworkCookieJar *>(nam->cookieJar());
+    auto cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
     auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
     cj->initAllCookies(mj->getAllCookies());
 
-    if (gSet->settings.proxyUseTranslator)
-        nam->setProxy(QNetworkProxy::DefaultProxy);
-    else
-        nam->setProxy(QNetworkProxy::NoProxy);
+    if (gSet->settings.proxyUseTranslator) {
+        m_nam->setProxy(QNetworkProxy::DefaultProxy);
+    } else {
+        m_nam->setProxy(QNetworkProxy::NoProxy);
+    }
 }
 
 void CWebAPIAbstractTranslator::deleteNAM()
 {
-    if (nam)
-        nam->deleteLater();
-    nam=nullptr;
+    if (m_nam)
+        m_nam->deleteLater();
+    m_nam=nullptr;
 }
 
-void CWebAPIAbstractTranslator::doneTran(bool)
+void CWebAPIAbstractTranslator::doneTran(bool lazyClose)
 {
+    Q_UNUSED(lazyClose)
+
     clearCredentials();
     deleteNAM();
 }
 
 bool CWebAPIAbstractTranslator::isReady()
 {
-    return isValidCredentials() && nam;
+    return isValidCredentials() && (m_nam != nullptr);
 }

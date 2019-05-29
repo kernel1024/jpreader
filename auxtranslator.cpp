@@ -38,14 +38,15 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             ssrc = ssrc.replace('\r','\n');
             const QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
             for (const QString &s : qAsConst(sl)) {
-                if (s.trimmed().isEmpty())
+                if (s.trimmed().isEmpty()) {
                     res.append('\n');
-                else {
+                } else {
                     QString r = tran->tranString(s);
-                    if (r.trimmed().isEmpty())
+                    if (r.trimmed().isEmpty()) {
                         res.append(s);
-                    else
+                    } else {
                         res.append(r);
+                    }
                     res.append('\n');
                 }
             }

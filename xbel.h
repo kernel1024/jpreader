@@ -64,15 +64,12 @@ public:
         Separator
     };
 
-    BookmarkNode(Type type = Root, BookmarkNode *parent = nullptr);
+    explicit BookmarkNode(Type nodeType = Root, BookmarkNode *parentNode = nullptr);
+    BookmarkNode(const BookmarkNode& other) = delete;
     ~BookmarkNode();
+    BookmarkNode &operator=(const BookmarkNode& other) = delete;
     bool operator==(const BookmarkNode &other);
     bool operator!=(const BookmarkNode &other);
-
-    Type type() const;
-    void setType(Type type);
-    QVector<BookmarkNode *> children() const;
-    BookmarkNode *parent() const;
 
     void add(BookmarkNode *child, int offset = -1);
     void remove(BookmarkNode *child);
@@ -80,12 +77,11 @@ public:
     QString url;
     QString title;
     QString desc;
-    bool expanded;
+    bool expanded { false };
 
-private:
-    BookmarkNode *m_parent;
-    Type m_type;
-    QVector<BookmarkNode *> m_children;
+    BookmarkNode *parent;
+    Type type;
+    QVector<BookmarkNode *> children;
 
 };
 

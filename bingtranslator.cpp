@@ -28,7 +28,7 @@ bool CBingTranslator::initTran()
     rqurl.setQuery(uq);
     QNetworkRequest rq(rqurl);
 
-    QNetworkReply *rpl = nam->post(rq,QByteArray());
+    QNetworkReply *rpl = nam()->post(rq,QByteArray());
 
     if (!waitForReply(rpl)) {
         setErrorMsg(tr("Bing connection error"));
@@ -77,7 +77,7 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     rq.setRawHeader("Content-Type","application/json");
     rq.setRawHeader("Content-Length",authHeader.toUtf8());
 
-    QNetworkReply *rpl = nam->post(rq,body);
+    QNetworkReply *rpl = nam()->post(rq,body);
 
     if (!waitForReply(rpl)) {
         setErrorMsg(QStringLiteral("ERROR: Bing translator network error"));
