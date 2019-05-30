@@ -48,7 +48,7 @@ class QxtToolTipPrivate : public QWidget
     friend class QxtToolTip;
 
 public:
-    QxtToolTipPrivate();
+    explicit QxtToolTipPrivate(QWidget *parent = nullptr);
     ~QxtToolTipPrivate() override;
 
     static QxtToolTipPrivate* instance();

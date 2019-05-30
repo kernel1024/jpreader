@@ -44,7 +44,7 @@ void CRecollSearch::recollReadyRead()
         if (u.isValid() && u.isLocalFile())
             snip[QStringLiteral("jp:fullfilename")] = u.toLocalFile();
 
-        emit addHit(snip);
+        Q_EMIT addHit(snip);
     }
 }
 
@@ -54,7 +54,7 @@ void CRecollSearch::recollFinished(int exitCode, QProcess::ExitStatus exitStatus
     Q_UNUSED(exitStatus)
 
     setWorking(false);
-    emit finished();
+    Q_EMIT finished();
 }
 
 void CRecollSearch::doSearch(const QString &qr, int maxLimit)

@@ -133,7 +133,7 @@ void QxtGlobalShortcut::activateShortcut(xcb_keycode_t nativeKey, uint16_t nativ
 {
     QxtGlobalShortcut* shortcut = shortcuts.value(qMakePair(nativeKey, nativeMods));
     if (shortcut && shortcut->isEnabled())
-        emit shortcut->activated();
+        Q_EMIT shortcut->activated();
 }
 
 QKeySequence QxtGlobalShortcut::shortcut() const

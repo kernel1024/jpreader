@@ -73,5 +73,5 @@ void EditTreeView::removeOne()
     if (!model())
         return;
     QModelIndex ci = currentIndex();
-    emit removeNode(ci);
+    Q_EMIT removeNode(ci);
 }

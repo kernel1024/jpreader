@@ -292,7 +292,7 @@ void CPixivNovelExtractor::subWorkFinished()
         m_html.replace(rx, rpl);
     }
 
-    emit novelReady(makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
+    Q_EMIT novelReady(makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
     deleteLater();
 }
 

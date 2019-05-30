@@ -18,7 +18,7 @@ public:
     explicit CAuxDictKeyFilter(QObject *parent = nullptr);
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
-signals:
+Q_SIGNALS:
     void keyPressed(int key);
 };
 
@@ -48,7 +48,7 @@ private:
 protected:
     void closeEvent(QCloseEvent * event) override;
 
-public slots:
+public Q_SLOTS:
     void translateInputChanged(const QString& text);
     void translateInputFinished();
     void wordListSelectionChanged();

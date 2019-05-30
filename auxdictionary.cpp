@@ -255,7 +255,7 @@ bool CAuxDictKeyFilter::eventFilter(QObject *obj, QEvent *event)
     if (event->type()==QEvent::KeyPress) {
         auto ev = dynamic_cast<QKeyEvent *>(event);
         if (ev)
-            emit keyPressed(ev->key());
+            Q_EMIT keyPressed(ev->key());
     }
     return QObject::eventFilter(obj,event);
 }

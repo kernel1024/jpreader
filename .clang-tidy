@@ -25,3 +25,7 @@ CheckOptions:
     value:           '0;1;2;3;4;100'
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues
     value:           '0;1;2;3;4;100'
+  - key:             hicpp-function-size.StatementThreshold
+    value:           '2000'
+  - key:             readability-function-size.StatementThreshold
+    value:           '2000'

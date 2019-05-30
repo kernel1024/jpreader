@@ -363,7 +363,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding())) {
         qCritical() << "pdfToText: Couldn't get text encoding";
-        emit error(QStringLiteral("pdfToText: Couldn't get text encoding"));
+        Q_EMIT error(QStringLiteral("pdfToText: Couldn't get text encoding"));
         return;
     }
 
@@ -373,7 +373,7 @@ void CPDFWorker::pdfToText(const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
-        emit error(QStringLiteral("pdfToText: Cannot create PDF Doc object"));
+        Q_EMIT error(QStringLiteral("pdfToText: Cannot create PDF Doc object"));
         return;
     }
 
@@ -420,7 +420,7 @@ void CPDFWorker::pdfToText(const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
-        emit error(QStringLiteral("pdfToText: Cannot create TextOutput object"));
+        Q_EMIT error(QStringLiteral("pdfToText: Cannot create TextOutput object"));
         return;
     }
 
@@ -529,7 +529,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     delete doc;
     uMap->decRefCnt();
 
-    emit gotText(result);
+    Q_EMIT gotText(result);
 #endif
 
     deleteLater();

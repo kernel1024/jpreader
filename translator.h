@@ -64,11 +64,10 @@ private:
     QStringList imgUrls;
     int atlTcpRetryCount { 0 };
     int atlTcpTimeout { 0 };
-    int translationEngine { 0 };
+    TranslationEngine translationEngine { teAtlas };
     int textNodesCnt { 0 };
     int textNodesProgress { 0 };
     TranslationMode translationMode { tmAdditive };
-    int engine { 0 };
     bool localHosting { false };
     bool useSCP { false };
     bool abortFlag { false };
@@ -99,11 +98,11 @@ public:
                              int depth = 0);
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
-signals:
+Q_SIGNALS:
     void calcFinished(bool success, const QString &aUrl, const QString &error);
     void setProgress(int value);
 
-public slots:
+public Q_SLOTS:
     void abortTranslator();
     void translate();
 

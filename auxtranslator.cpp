@@ -56,7 +56,7 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
         if (tran)
             tran->deleteLater();
     }
-    emit gotTranslation(m_text);
+    Q_EMIT gotTranslation(m_text);
     if (deleteAfter)
         deleteLater();
 }

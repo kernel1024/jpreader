@@ -29,7 +29,7 @@ private:
 
     Q_DISABLE_COPY(CAuthDlg)
 
-public slots:
+public Q_SLOTS:
     void acceptPass();
 };
 

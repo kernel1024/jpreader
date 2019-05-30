@@ -108,10 +108,10 @@ private:
     QVector<QUrl> getTabsList() const;
     void writeTabsListPrivate(const QVector<QUrl> &tabList);
 
-signals:
+Q_SIGNALS:
     void settingsUpdated();
 
-public slots:
+public Q_SLOTS:
     void writeSettings();
     void settingsDlg();
 

@@ -28,9 +28,10 @@ QString fixMetaEncoding(const QString& data_utf8);
 QString wordWrap(const QString &str, int wrapLength);
 QString formatFileSize(qint64 size);
 QString formatFileSize(const QString& size);
-QString elideString(const QString& text, int maxlen);
+QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode = Qt::ElideRight);
 QString highlightSnippet(const QString& snippet, const QStringList& terms);
-QVector<QStringList> encodingsByScript();
+const QVector<QStringList> &encodingsByScript();
+const QStringList &getSupportedImageExtensions();
 QString getTmpDir();
 bool checkAndUnpackUrl(QUrl& url);
 int getRandomTCPPort();
@@ -55,13 +56,6 @@ QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = 
 QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                 const QString & dir = QString(),
                                 QFileDialog::Options options = QFileDialog::ShowDirsOnly);
-
-
-inline QStringList getSupportedImageExtensions()
-{
-    static const QStringList supportedImageExtensions { "jpeg", "jpg", "jpe", "gif", "bmp", "png" };
-    return supportedImageExtensions;
-}
 
 
 inline QString bool2str(bool value)

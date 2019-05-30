@@ -23,27 +23,32 @@
 #include "sntrans.h"
 #include "noscriptdialog.h"
 
+const int menuActiveTimerInterval = 1000;
+const int maxRealmLabelEliding = 60;
+const int maxTranslateFragmentCharWidth = 80;
+
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
     menuActive = new QTimer(this);
     menuActive->setSingleShot(false);
+    menuActive->setInterval(menuActiveTimerInterval);
     connect(menuActive, &QTimer::timeout, this, [this](){
-        emit hideTooltips();
+        Q_EMIT hideTooltips();
     });
 }
 
-void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuData& data)
+void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& data)
 {
     QString sText;
-    QUrl linkUrl, imageUrl;
+    QUrl linkUrl;
+    QUrl imageUrl;
     QUrl origin = snv->txtBrowser->page()->url();
-    QUrlQuery originQuery(origin);
 
     if (data.isValid()) {
         sText = data.selectedText();
-        linkUrl = data.linkUrl();;
+        linkUrl = data.linkUrl();
         if (data.mediaType()==QWebEngineContextMenuData::MediaTypeImage)
             imageUrl = data.mediaUrl();
     }
@@ -365,9 +370,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("edit-rename")),
                             tr("Save username and password"));
         connect(ac, &QAction::triggered, this, [origin](){
-            QString realm = gSet->cleanUrlForRealm(origin).toString();
-            if (realm.length()>60) realm = QStringLiteral("...%1")
-                                           .arg(realm.right(60));
+            QString realm = elideString(gSet->cleanUrlForRealm(origin).toString(),
+                                        maxRealmLabelEliding,Qt::ElideLeft);
             auto dlg = new CAuthDlg(QApplication::activeWindow(),origin,realm,true);
             dlg->exec();
             dlg->setParent(nullptr);
@@ -424,7 +428,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                       snv->netHandler,&CSnNet::downloadPixivManga);
         ac->setData(origin);
 
-        QUrl fiurl("https://www.pixiv.net/favicon.ico");
+        QUrl fiurl(QStringLiteral("https://www.pixiv.net/favicon.ico"));
         auto fl = new CFaviconLoader(snv,fiurl);
         connect(fl,&CFaviconLoader::gotIcon,ac,[ac](const QIcon& icon){
             ac->setIcon(icon);
@@ -449,7 +453,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-save")),tr("Save to file..."),
                  this,&CSnCtxHandler::saveToFile);
 
-    menuActive->setInterval(1000);
     menuActive->start();
 
     connect(cm, &QMenu::aboutToHide, this, [this](){
@@ -478,6 +481,14 @@ void CSnCtxHandler::reconfigureDefaultActions()
     p->action(QWebEnginePage::DownloadImageToDisk)->setText(tr("Save image to file..."));
 }
 
+bool CSnCtxHandler::isMenuTimerActive()
+{
+    if (menuActive!=nullptr)
+        return menuActive->isActive();
+
+    return false;
+}
+
 void CSnCtxHandler::translateFragment()
 {
     auto nt = qobject_cast<QAction *>(sender());
@@ -497,7 +508,7 @@ void CSnCtxHandler::translateFragment()
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
         if (!text.isEmpty() && !menuActive->isActive()) {
-            CSpecToolTipLabel* lbl = new CSpecToolTipLabel(wordWrap(text,80));
+            CSpecToolTipLabel* lbl = new CSpecToolTipLabel(wordWrap(text,maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &CSpecToolTipLabel::close);
             QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd());
@@ -507,7 +518,7 @@ void CSnCtxHandler::translateFragment()
     at->moveToThread(th);
     th->start();
 
-    emit startTranslation(true);
+    Q_EMIT startTranslation(true);
 }
 
 void CSnCtxHandler::saveToFile()
@@ -519,13 +530,14 @@ void CSnCtxHandler::saveToFile()
         selectedText = nt->data().toString();
 
     QString fname;
-    if (selectedText.isEmpty())
+    if (selectedText.isEmpty()) {
         fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings.savedAuxSaveDir,
                                  tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
                                     "Text file (*.txt);;MHTML archive (*.mht)"));
-    else
+    } else {
         fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings.savedAuxSaveDir,
                                  tr("Text file (*.txt)"));
+    }
 
     if (fname.isNull() || fname.isEmpty()) return;
     gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
@@ -536,7 +548,8 @@ void CSnCtxHandler::saveToFile()
         f.open(QIODevice::WriteOnly|QIODevice::Truncate);
         f.write(selectedText.toUtf8());
         f.close();
-    } else if (fi.suffix().toLower().startsWith(QStringLiteral("txt")))
+
+    } else if (fi.suffix().toLower().startsWith(QStringLiteral("txt"))) {
         snv->txtBrowser->page()->toPlainText([fname](const QString& result)
         {
             QFile f(fname);
@@ -544,19 +557,23 @@ void CSnCtxHandler::saveToFile()
             f.write(result.toUtf8());
             f.close();
         });
-    else if (fi.suffix().toLower().startsWith(QStringLiteral("mht")))
+
+    } else if (fi.suffix().toLower().startsWith(QStringLiteral("mht"))) {
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
-    else if (fi.suffix().toLower()==QStringLiteral("htm"))
+
+    } else if (fi.suffix().toLower()==QStringLiteral("htm")) {
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
-    else
+
+    } else {
         snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
+    }
 }
 
 void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
     auto dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
-    if (dlg->exec())
-        emit gSet->updateAllBookmarks();
+    if (dlg->exec() == QDialog::Accepted)
+        Q_EMIT gSet->updateAllBookmarks();
     dlg->setParent(nullptr);
     delete dlg;
 }

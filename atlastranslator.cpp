@@ -216,7 +216,7 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     }
 
     for (auto it = errStrHash.constBegin(), end = errStrHash.constEnd(); it != end; ++it) {
-        emit sslCertErrors(it.key(),it.value(),errIntHash.value(it.key()));
+        Q_EMIT sslCertErrors(it.key(),it.value(),errIntHash.value(it.key()));
     }
 }
 

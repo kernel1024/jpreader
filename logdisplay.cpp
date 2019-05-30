@@ -8,8 +8,8 @@
 #include "specwidgets.h"
 #include "ui_logdisplay.h"
 
-CLogDisplay::CLogDisplay() :
-    QDialog(nullptr, Qt::Tool | Qt::CustomizeWindowHint | Qt::WindowTitleHint),
+CLogDisplay::CLogDisplay(QWidget *parent) :
+    QDialog(parent, Qt::Tool | Qt::CustomizeWindowHint | Qt::WindowTitleHint),
     ui(new Ui::CLogDisplay)
 {
     ui->setupUi(this);

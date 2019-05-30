@@ -203,7 +203,7 @@ void CSettings::readSettings(QObject *control)
 
     g->searchHistory = bigdata.value(QStringLiteral("searchHistory"),QStringList()).toStringList();
 
-    emit g->updateAllQueryLists();
+    Q_EMIT g->updateAllQueryLists();
 
     atlHostHistory = bigdata.value(QStringLiteral("atlHostHistory"),QStringList()).toStringList();
     scpHostHistory = bigdata.value(QStringLiteral("scpHostHistory"),QStringList()).toStringList();
@@ -332,7 +332,7 @@ void CSettings::readSettings(QObject *control)
     if (!hostingDir.endsWith('/')) hostingDir.append('/');
     if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
 
-    emit g->updateAllBookmarks();
+    Q_EMIT g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
     g->ui.rebuildLanguageActions(g);
 }
@@ -506,7 +506,7 @@ void CSettings::settingsDlg()
 
         gSet->searchHistory.clear();
         gSet->searchHistory.append(dlg->getQueryHistory());
-        emit gSet->updateAllQueryLists();
+        Q_EMIT gSet->updateAllQueryLists();
         gSet->adblock.clear();
         gSet->adblock.append(dlg->getAdblock());
         gSet->adblockWhiteListMutex.lock();
@@ -637,7 +637,7 @@ void CSettings::settingsDlg()
         }
 
         gSet->updateProxyWithMenuUpdate(proxyUse,true);
-        emit settingsUpdated();
+        Q_EMIT settingsUpdated();
 
         settingsDlgWidth=dlg->width();
         settingsDlgHeight=dlg->height();
@@ -651,7 +651,7 @@ void CSettings::settingsDlg()
 void CSettings::setTranslationEngine(TranslationEngine engine)
 {
     translatorEngine = engine;
-    emit settingsUpdated();
+    Q_EMIT settingsUpdated();
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)

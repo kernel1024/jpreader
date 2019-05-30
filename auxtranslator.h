@@ -15,10 +15,10 @@ private:
 public:
     explicit CAuxTranslator(QObject *parent = nullptr);
 
-signals:
+Q_SIGNALS:
     Q_SCRIPTABLE void gotTranslation(const QString& text);
     
-public slots:
+public Q_SLOTS:
     void setText(const QString& text);
     void setSrcLang(const QString& lang);
     void setDestLang(const QString& lang);

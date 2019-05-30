@@ -41,14 +41,14 @@ private:
     int calculateHitRate(const QString &fc);
     void searchInDir(const QDir &dir, const QString &qr);
 
-signals:
+Q_SIGNALS:
     void searchFinished(const CStringHash &stats, const QString &query);
     void gotResult(const CStringHash& result);
 #ifdef WITH_THREADED_SEARCH
     void startThreadedSearch(const QString &qr, int maxLimit);
 #endif
 
-public slots:
+public Q_SLOTS:
     void engineFinished();
     void doSearch(const QString &searchTerm, const QDir &searchDir);
     void addHit(const CStringHash &meta);

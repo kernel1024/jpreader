@@ -181,7 +181,7 @@ void CSearchTab::translateTitles()
     for (int i=0;i<model->rowCount();i++)
         titles << model->getSnippet(i).value(QStringLiteral("title"));
 
-    emit translateTitlesSrc(titles);
+    Q_EMIT translateTitlesSrc(titles);
 }
 
 void CSearchTab::gotTitleTranslation(const QStringList &res)
@@ -331,7 +331,7 @@ void CSearchTab::doSearch()
     QDir fsdir = QDir(QStringLiteral("/"));
     if (!ui->editDir->text().isEmpty())
         fsdir = QDir(ui->editDir->text());
-    emit startSearch(lastQuery,fsdir);
+    Q_EMIT startSearch(lastQuery,fsdir);
 }
 
 void CSearchTab::searchTerm(const QString &term, bool startSearch)

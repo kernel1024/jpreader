@@ -81,8 +81,8 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     QString lmsg = QString();
 
     int line = context.line;
-    QString file(context.file);
-    QString category(context.category);
+    QString file(QString::fromUtf8(context.file));
+    QString category(QString::fromUtf8(context.category));
     if (category==QStringLiteral("default")) {
         category.clear();
     } else {
@@ -114,7 +114,8 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
     }
 
     if (!lmsg.isEmpty()) {
-        QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime().toString("h:mm:ss"),lmsg);
+        QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime()
+                                                   .toString(QStringLiteral("h:mm:ss")),lmsg);
         debugMessages << fmsg;
         while (debugMessages.count()>maxMessagesCount)
             debugMessages.removeFirst();
@@ -125,7 +126,7 @@ void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const Q
         } else {
             if (!syslogOpened) {
                 syslogOpened = true;
-                openlog("jpreader", LOG_PID, LOG_USER);
+                openlog("jpreader", LOG_PID, LOG_USER); // NOLINT
             }
             syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
         }
@@ -154,7 +155,7 @@ bool checkAndUnpackUrl(QUrl& url)
 
 QString detectMIME(const QString &filename)
 {
-    magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
+    magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE); // NOLINT
     magic_load(myt,nullptr);
     QByteArray bma = filename.toUtf8();
     const char* bm = bma.data();
@@ -163,21 +164,21 @@ QString detectMIME(const QString &filename)
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QStringLiteral("text/plain");
     }
-    QString mag(mg);
+    QString mag = QString::fromLatin1(mg);
     magic_close(myt);
     return mag;
 }
 
 QString detectMIME(const QByteArray &buf)
 {
-    magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE);
+    magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE); // NOLINT
     magic_load(myt,nullptr);
     const char* mg = magic_buffer(myt,buf.data(),static_cast<size_t>(buf.length()));
     if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
         return QStringLiteral("text/plain");
     }
-    QString mag(mg);
+    QString mag = QString::fromLatin1(mg);
     magic_close(myt);
     return mag;
 }
@@ -207,7 +208,7 @@ QString detectEncodingName(const QByteArray& content)
     }
     ucsdet_close(csd);
 
-    codepage = QTextCodec::codecForHtml(content,enc)->name();
+    codepage = QString::fromUtf8(QTextCodec::codecForHtml(content,enc)->name());
     if (codepage.contains(QStringLiteral("x-sjis"),Qt::CaseInsensitive)) codepage=QStringLiteral("SJIS");
     return codepage;
 }
@@ -353,12 +354,21 @@ QString formatFileSize(qint64 size)
     return QLocale::c().formattedDataSize(size,precision,QLocale::DataSizeTraditionalFormat);
 }
 
-QString elideString(const QString& text, int maxlen)
+QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode)
 {
     if (text.length()<maxlen)
         return text;
 
-    return QStringLiteral("%1...").arg(text.left(maxlen));
+    if (mode == Qt::ElideRight)
+        return QStringLiteral("%1...").arg(text.left(maxlen));
+
+    if (mode == Qt::ElideLeft)
+        return QStringLiteral("...%1").arg(text.right(maxlen));
+
+    if (mode == Qt::ElideMiddle)
+        return QStringLiteral("%1...%2").arg(text.left(maxlen/2),text.right(maxlen/2));
+
+    return text;
 }
 
 QString highlightSnippet(const QString& snippet, const QStringList& terms)
@@ -400,8 +410,9 @@ QString getOpenFileNameD (QWidget * parent, const QString & caption, const QStri
     if (dialog.exec() == QDialog::Accepted) {
         if (selectedFilter)
             *selectedFilter = dialog.selectedNameFilter();
-        if (!dialog.selectedFiles().isEmpty())
-            res = dialog.selectedFiles().first();
+        const auto selectedFiles = dialog.selectedFiles();
+        if (!selectedFiles.isEmpty())
+            res = selectedFiles.first();
     }
 
     openFileDialogSize = dialog.size();
@@ -483,11 +494,14 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
         QString userFilter = dialog.selectedNameFilter();
         if (selectedFilter)
             *selectedFilter=userFilter;
-        if (!userFilter.isEmpty())
-            dialog.setDefaultSuffix(getSuffixesFromFilter(userFilter).first());
+        if (!userFilter.isEmpty()) {
+            const auto suffixes = getSuffixesFromFilter(userFilter);
+            dialog.setDefaultSuffix(suffixes.first());
+        }
 
-        if (!dialog.selectedFiles().isEmpty())
-            res = dialog.selectedFiles().first();
+        const auto selectedFiles = dialog.selectedFiles();
+        if (!selectedFiles.isEmpty())
+            res = selectedFiles.first();
     }
 
     saveFileDialogSize = dialog.size();
@@ -503,27 +517,46 @@ QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const
     return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
 }
 
-QVector<QStringList> encodingsByScript()
+const QVector<QStringList> &encodingsByScript()
 {
-    const static QVector<QStringList> enc = {
-        { "Western European", "ISO 8859-1", "ISO 8859-15", "ISO 8859-14", "cp 1252", "CP850", "x-MacRoman" },
-        { "Central European", "ISO 8859-2", "ISO 8859-3", "cp 1250", "x-MacCentralEurope" },
-        { "Baltic", "ISO 8859-4", "ISO 8859-13", "cp 1257" },
-        { "Turkish", "cp 1254", "ISO 8859-9", "x-MacTurkish" },
-        { "Cyrillic", "KOI8-R", "ISO 8859-5", "cp 1251", "KOI8-U", "CP866", "x-MacCyrillic" },
-        { "Chinese", "HZ", "GBK", "GB18030", "BIG5", "BIG5-HKSCS", "ISO-2022-CN", "ISO-2022-CN-EXT" },
-        { "Korean", "CP949", "ISO-2022-KR" },
-        { "Japanese", "EUC-JP", "SHIFT_JIS", "ISO-2022-JP", "ISO-2022-JP-2", "ISO-2022-JP-1" },
-        { "Greek", "ISO 8859-7", "cp 1253", "x-MacGreek" },
-        { "Arabic", "ISO 8859-6", "cp 1256" },
-        { "Hebrew", "ISO 8859-8", "cp 1255", "CP862" },
-        { "Thai", "CP874" },
-        { "Vietnamese", "CP1258" },
-        { "Unicode", "UTF-8", "UTF-7", "UTF-16", "UTF-16BE", "UTF-16LE", "UTF-32", "UTF-32BE", "UTF-32LE" },
-        { "Other", "windows-1258", "IBM874", "TSCII", "Macintosh" }
+    static const QVector<QStringList> enc = {
+        { QStringLiteral("Western European"), QStringLiteral("ISO 8859-1"), QStringLiteral("ISO 8859-15"),
+          QStringLiteral("ISO 8859-14"), QStringLiteral("cp 1252"), QStringLiteral("CP850"), QStringLiteral("x-MacRoman") },
+        { QStringLiteral("Central European"), QStringLiteral("ISO 8859-2"), QStringLiteral("ISO 8859-3"),
+          QStringLiteral("cp 1250"), QStringLiteral("x-MacCentralEurope") },
+        { QStringLiteral("Baltic"), QStringLiteral("ISO 8859-4"), QStringLiteral("ISO 8859-13"),
+          QStringLiteral("cp 1257") },
+        { QStringLiteral("Turkish"), QStringLiteral("cp 1254"), QStringLiteral("ISO 8859-9"), QStringLiteral("x-MacTurkish") },
+        { QStringLiteral("Cyrillic"), QStringLiteral("KOI8-R"), QStringLiteral("ISO 8859-5"), QStringLiteral("cp 1251"),
+          QStringLiteral("KOI8-U"), QStringLiteral("CP866"), QStringLiteral("x-MacCyrillic") },
+        { QStringLiteral("Chinese"), QStringLiteral("HZ"), QStringLiteral("GBK"), QStringLiteral("GB18030"),
+          QStringLiteral("BIG5"), QStringLiteral("BIG5-HKSCS"), QStringLiteral("ISO-2022-CN"),
+          QStringLiteral("ISO-2022-CN-EXT") },
+        { QStringLiteral("Korean"), QStringLiteral("CP949"), QStringLiteral("ISO-2022-KR") },
+        { QStringLiteral("Japanese"), QStringLiteral("EUC-JP"), QStringLiteral("SHIFT_JIS"), QStringLiteral("ISO-2022-JP"),
+          QStringLiteral("ISO-2022-JP-2"), QStringLiteral("ISO-2022-JP-1") },
+        { QStringLiteral("Greek"), QStringLiteral("ISO 8859-7"), QStringLiteral("cp 1253"), QStringLiteral("x-MacGreek") },
+        { QStringLiteral("Arabic"), QStringLiteral("ISO 8859-6"), QStringLiteral("cp 1256") },
+        { QStringLiteral("Hebrew"), QStringLiteral("ISO 8859-8"), QStringLiteral("cp 1255"), QStringLiteral("CP862") },
+        { QStringLiteral("Thai"), QStringLiteral("CP874") },
+        { QStringLiteral("Vietnamese"), QStringLiteral("CP1258") },
+        { QStringLiteral("Unicode"), QStringLiteral("UTF-8"), QStringLiteral("UTF-7"), QStringLiteral("UTF-16"),
+          QStringLiteral("UTF-16BE"), QStringLiteral("UTF-16LE"), QStringLiteral("UTF-32"), QStringLiteral("UTF-32BE"),
+          QStringLiteral("UTF-32LE") },
+        { QStringLiteral("Other"), QStringLiteral("windows-1258"), QStringLiteral("IBM874"), QStringLiteral("TSCII"),
+          QStringLiteral("Macintosh") }
     };
 
     return enc;
+}
+
+const QStringList &getSupportedImageExtensions()
+{
+    static const QStringList supportedImageExtensions {
+        QStringLiteral("jpeg"), QStringLiteral("jpg"), QStringLiteral("jpe"), QStringLiteral("gif"),
+                QStringLiteral("bmp"), QStringLiteral("png") };
+
+    return supportedImageExtensions;
 }
 
 QString getTmpDir()

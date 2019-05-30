@@ -159,7 +159,7 @@ private:
     void cleanTmpFiles();
     void initLanguagesList();
 
-signals:
+Q_SIGNALS:
     void startAuxTranslation();
     void stopTranslators();
 
@@ -174,7 +174,7 @@ signals:
     void addAdBlockWhiteListUrl(const QString& url);
     void addNoScriptPageHost(const QString& origin, const QString& host);
 
-public slots:
+public Q_SLOTS:
     void cleanupAndExit();
     void blockTabClose();
     void ipcMessageReceived();

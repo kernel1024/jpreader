@@ -9,7 +9,7 @@ class CBaloo5Search : public CAbstractThreadedSearch
 public:
     explicit CBaloo5Search(QObject *parent = nullptr);
 
-public slots:
+public Q_SLOTS:
     void doSearch(const QString &qr, int maxLimit) override;
 };
 

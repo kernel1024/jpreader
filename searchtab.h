@@ -45,11 +45,11 @@ protected:
     QStringList splitQuery(const QString &aQuery);
     void keyPressEvent(QKeyEvent *event) override;
 
-signals:
+Q_SIGNALS:
     void startSearch(const QString &searchTerm, const QDir &searchDir);
     void translateTitlesSrc(const QStringList &titles);
 
-public slots:
+public Q_SLOTS:
     void doNewSearch();
     void applySnippetIdx(const QModelIndex& index);
     void showSnippet();

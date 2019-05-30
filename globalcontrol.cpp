@@ -362,7 +362,7 @@ void CGlobalControl::appendRecycled(const QString& title, const QUrl& url)
 
     if (recycleBin.count()>settings.maxRecycled) recycleBin.removeLast();
 
-    emit updateAllRecycleBins();
+    Q_EMIT updateAllRecycleBins();
 }
 
 void CGlobalControl::appendMainHistory(const CUrlHolder &item)
@@ -376,7 +376,7 @@ void CGlobalControl::appendMainHistory(const CUrlHolder &item)
     while (mainHistory.count()>settings.maxHistory)
         mainHistory.removeLast();
 
-    emit updateAllHistoryLists();
+    Q_EMIT updateAllHistoryLists();
 }
 
 bool CGlobalControl::updateMainHistoryTitle(const CUrlHolder &item, const QString& newTitle)
@@ -385,7 +385,7 @@ bool CGlobalControl::updateMainHistoryTitle(const CUrlHolder &item, const QStrin
         int idx = mainHistory.indexOf(item);
         if (idx>=0) {
             mainHistory[idx].title = newTitle;
-            emit updateAllHistoryLists();
+            Q_EMIT updateAllHistoryLists();
             return true;
         }
     }
@@ -404,7 +404,7 @@ void CGlobalControl::appendRecent(const QString& filename)
     while (recentFiles.count()>settings.maxRecent)
         recentFiles.removeLast();
 
-    emit updateAllRecentLists();
+    Q_EMIT updateAllRecentLists();
 }
 
 void CGlobalControl::ipcMessageReceived()
@@ -461,7 +461,7 @@ void CGlobalControl::cleanupAndExit()
     settings.writeSettings();
     cleanTmpFiles();
 
-    emit stopTranslators();
+    Q_EMIT stopTranslators();
 
     if (mainWindows.count()>0) {
         for (CMainWindow* w : qAsConst(mainWindows)) {
@@ -510,7 +510,7 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
         }
     }
 
-    emit addAdBlockWhiteListUrl(u);
+    Q_EMIT addAdBlockWhiteListUrl(u);
 
     return false;
 }
@@ -523,7 +523,7 @@ bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
     const QString host = url.host();
     const QString key = origin.toString(CSettings::adblockUrlFmt);
 
-    emit addNoScriptPageHost(key, host);
+    Q_EMIT addNoScriptPageHost(key, host);
 
     return !(noScriptWhiteList.contains(host));
 }

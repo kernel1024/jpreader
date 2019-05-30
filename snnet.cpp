@@ -103,9 +103,9 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
         f.write(ba);
         f.close();
         gSet->createdFiles.append(fname);
-        if (createNewTab)
+        if (createNewTab) {
             new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
-        else {
+        } else {
             snv->fileChanged = false;
             snv->txtBrowser->load(QUrl::fromLocalFile(fname));
             snv->auxContentLoaded=false;
@@ -162,7 +162,7 @@ void CSnNet::loadFinished(bool ok)
     }
 }
 
-void CSnNet::userNavigationRequest(const QUrl &url, const int type, const bool isMainFrame)
+void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
 {
     Q_UNUSED(type)
 
@@ -206,10 +206,10 @@ void CSnNet::downloadPixivManga()
         QStringList sl = CPixivNovelExtractor::parseJsonIllustPage(html,origin);
         if (sl.isEmpty()) // no JSON found
             sl = CPixivNovelExtractor::parseIllustPage(html);
-        if (sl.isEmpty())
+        if (sl.isEmpty()) {
             QMessageBox::warning(snv,tr("JPReader"),
                                  tr("No pixiv manga image urls found"));
-        else {
+        } else {
             snv->netHandler->multiImgDownload(sl,origin);
         }
     });
@@ -227,7 +227,7 @@ void CSnNet::pdfConverted(const QString &html)
         snv->txtBrowser->setHtml(makeSimpleHtml(QStringLiteral("PDF conversion error"),
                                                 QStringLiteral("Empty document.")));
     }
-    if (html.length()<1024*1024) { // Small PDF files
+    if (html.length()<maxDataUrlFileSize) { // Small PDF files
         snv->txtBrowser->setHtml(html);
         snv->auxContentLoaded=false;
     } else { // Big PDF files
@@ -267,7 +267,7 @@ void CSnNet::load(const QUrl &url)
         }
         QString MIME = detectMIME(fname);
         if (MIME.startsWith(QStringLiteral("text/plain"),Qt::CaseInsensitive) &&
-                fi.size()<1024*1024) { // for small local txt files (load big files via file url directly)
+                fi.size()<maxDataUrlFileSize) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
                 QByteArray ba = data.readAll();
@@ -292,7 +292,7 @@ void CSnNet::load(const QUrl &url)
             auto pdft = new QThread();
             pdf->moveToThread(pdft);
             pdft->start();
-            emit startPdfConversion(url.toString());
+            Q_EMIT startPdfConversion(url.toString());
         } else { // for local html files
             snv->fileChanged = false;
             snv->txtBrowser->load(url);
@@ -320,11 +320,12 @@ void CSnNet::load(const QString &html, const QUrl &baseUrl)
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
 {
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
-    if (dlg->exec()) {
+    if (dlg->exec() == QDialog::Accepted) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());
-    } else
+    } else {
         *authenticator = QAuthenticator();
+    }
     dlg->setParent(nullptr);
     delete dlg;
 }
@@ -334,11 +335,12 @@ void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator 
 {
     Q_UNUSED(proxyHost)
     CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
-    if (dlg->exec()) {
+    if (dlg->exec() == QDialog::Accepted) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());
-    } else
+    } else {
         *authenticator = QAuthenticator();
+    }
     dlg->setParent(nullptr);
     delete dlg;
 }

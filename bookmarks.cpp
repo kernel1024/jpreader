@@ -174,7 +174,7 @@ void BookmarksManager::addBookmark(BookmarkNode *parent, BookmarkNode *node, int
         return;
     Q_ASSERT(parent);
     parent->add(node, row);
-    emit entryAdded(node);
+    Q_EMIT entryAdded(node);
 }
 
 void BookmarksManager::removeBookmark(BookmarkNode *node)
@@ -186,7 +186,7 @@ void BookmarksManager::removeBookmark(BookmarkNode *node)
     BookmarkNode *parent = node->parent;
     int row = parent->children.indexOf(node);
     parent->remove(node);
-    emit entryRemoved(parent,row,node);
+    Q_EMIT entryRemoved(parent,row,node);
 }
 
 void BookmarksManager::setTitle(BookmarkNode *node, const QString &newTitle)
@@ -196,7 +196,7 @@ void BookmarksManager::setTitle(BookmarkNode *node, const QString &newTitle)
 
     Q_ASSERT(node);
     node->title = newTitle;
-    emit entryChanged(node);
+    Q_EMIT entryChanged(node);
 }
 
 void BookmarksManager::setUrl(BookmarkNode *node, const QString &newUrl)
@@ -206,7 +206,7 @@ void BookmarksManager::setUrl(BookmarkNode *node, const QString &newUrl)
 
     Q_ASSERT(node);
     node->url = newUrl;
-    emit entryChanged(node);
+    Q_EMIT entryChanged(node);
 }
 
 BookmarkNode *BookmarksManager::bookmarks()
@@ -359,7 +359,7 @@ void BookmarksModel::entryRemoved(BookmarkNode *parent, int row, BookmarkNode *i
 void BookmarksModel::entryChanged(BookmarkNode *item)
 {
     QModelIndex idx = index(item);
-    emit dataChanged(idx, idx);
+    Q_EMIT dataChanged(idx, idx);
 }
 
 bool BookmarksModel::removeRows(int row, int count, const QModelIndex &parent)
@@ -811,7 +811,7 @@ void BookmarksDialog::openEx(const QModelIndex& index)
 {
     if (!index.parent().isValid())
         return;
-    emit openUrl(index.sibling(index.row(), 1).data(BookmarksModel::UrlRole).toUrl());
+    Q_EMIT openUrl(index.sibling(index.row(), 1).data(BookmarksModel::UrlRole).toUrl());
 }
 
 void BookmarksDialog::newFolder()

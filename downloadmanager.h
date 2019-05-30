@@ -51,7 +51,7 @@ public:
     explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager() override;
     void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index, int maxIndex);
-public slots:
+public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);
 
@@ -91,7 +91,7 @@ public:
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
 
-public slots:
+public Q_SLOTS:
     void appendItem(const CDownloadItem& item);
 
     void downloadFinished();

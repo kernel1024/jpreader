@@ -20,11 +20,11 @@ protected:
 public:
     explicit CAbstractThreadedSearch(QObject *parent = nullptr);
 
-signals:
+Q_SIGNALS:
     void addHit(const CStringHash &meta);
     void finished();
 
-public slots:
+public Q_SLOTS:
     virtual void doSearch(const QString &qr, int maxLimit) = 0;
 
 };

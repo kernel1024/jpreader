@@ -29,12 +29,12 @@ CSpecTabWidget::CSpecTabWidget(QWidget *p)
 
 void CSpecTabWidget::tabLeftClick(int index)
 {
-    emit tabLeftClicked(index);
+    Q_EMIT tabLeftClicked(index);
 }
 
 void CSpecTabWidget::tabRightClick(int index)
 {
-    emit tabRightClicked(index);
+    Q_EMIT tabRightClicked(index);
     if (mainTabWidget) {
         auto tb = qobject_cast<CSpecTabContainer *>(widget(index));
         if (tb && tb->parentWnd()) {
@@ -59,7 +59,7 @@ bool CSpecTabWidget::event(QEvent *event)
             gpos = e->globalPos();
             lpos = e->pos();
         }
-        emit tooltipRequested(gpos,lpos);
+        Q_EMIT tooltipRequested(gpos,lpos);
         event->accept();
         return true;
     }
@@ -121,7 +121,7 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
     for (int i=0;i<tabCount;i++) {
         if (event->button()==Qt::RightButton) {
             if (tabRect(i).contains(event->pos())) {
-                emit tabRightClicked(i);
+                Q_EMIT tabRightClicked(i);
                 return;
             }
         } else if (event->button()==Qt::LeftButton) {
@@ -130,7 +130,7 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
                     m_draggingTab = qobject_cast<CSpecTabContainer *>(m_tabWidget->widget(i));
                     m_dragStart = event->pos();
                 }
-                emit tabLeftClicked(i);
+                Q_EMIT tabLeftClicked(i);
             }
         }
     }
@@ -139,11 +139,11 @@ void CSpecTabBar::mousePressEvent(QMouseEvent *event)
     for (int i=0;i<tabCount;i++) {
         if (btn==Qt::RightButton) {
             if (tabRect(i).contains(pos)) {
-                emit tabRightPostClicked(i);
+                Q_EMIT tabRightPostClicked(i);
             }
         } else if (btn==Qt::LeftButton) {
             if (tabRect(i).contains(pos)) {
-                emit tabLeftPostClicked(i);
+                Q_EMIT tabLeftPostClicked(i);
             }
         }
     }
@@ -189,6 +189,12 @@ QSize CSpecTabBar::minimumTabSizeHint(int index) const
     return sz;
 }
 
+CSpecMenuStyle::CSpecMenuStyle(QStyle *style)
+    : QProxyStyle(style)
+{
+
+}
+
 int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
                                QStyleHintReturn *returnData) const
 {
@@ -200,18 +206,19 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
 
 void CSpecToolTipLabel::hideEvent(QHideEvent *)
 {
-    emit labelHide();
+    deleteLater();
 }
 
-CSpecToolTipLabel::CSpecToolTipLabel(const QString &text)
+CSpecToolTipLabel::CSpecToolTipLabel(const QString &text, QWidget *parent)
+    : QLabel(parent)
 {
     setText(text);
 }
 
-CSpecTabContainer::CSpecTabContainer(CMainWindow *parent)
-    : QWidget(parent),
-      m_parentWnd(parent)
+CSpecTabContainer::CSpecTabContainer(QWidget *parent)
+    : QWidget(parent)
 {
+    m_parentWnd = qobject_cast<CMainWindow *>(parent);
 }
 
 void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
@@ -384,7 +391,7 @@ CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, QObject *parent)
 bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type,
                                            bool isMainFrame)
 {
-    emit linkClickedExt(url,static_cast<int>(type),isMainFrame);
+    Q_EMIT linkClickedExt(url,static_cast<int>(type),isMainFrame);
 
     if (gSet->settings.debugNetReqLogging) {
         if (isMainFrame)
@@ -685,13 +692,13 @@ CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
 void CFaviconLoader::queryStart(bool forceCached)
 {
     if (gSet->favicons.contains(m_url.host()+m_url.path())) {
-        emit gotIcon(gSet->favicons.value(m_url.host()+m_url.path()));
+        Q_EMIT gotIcon(gSet->favicons.value(m_url.host()+m_url.path()));
         deleteLater();
         return;
     }
 
     if (gSet->favicons.contains(m_url.host())) {
-        emit gotIcon(gSet->favicons.value(m_url.host()));
+        Q_EMIT gotIcon(gSet->favicons.value(m_url.host()));
         deleteLater();
         return;
     }
@@ -704,7 +711,7 @@ void CFaviconLoader::queryStart(bool forceCached)
     if (m_url.isLocalFile()) {
         QIcon icon = QIcon(m_url.toLocalFile());
         if (!icon.isNull()) {
-            emit gotIcon(icon);
+            Q_EMIT gotIcon(icon);
             deleteLater();
         }
 
@@ -723,7 +730,7 @@ void CFaviconLoader::queryFinished()
         QPixmap p;
         if (p.loadFromData(rpl->readAll())) {
             QIcon ico(p);
-            emit gotIcon(ico);
+            Q_EMIT gotIcon(ico);
             QString host = rpl->url().host();
             QString path = rpl->url().path();
             if (!host.isEmpty()) {

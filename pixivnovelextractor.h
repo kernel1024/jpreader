@@ -39,14 +39,14 @@ public:
     static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
     static QStringList parseIllustPage(const QString &html, bool mediumMode = true);
 
-signals:
+Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
 
-public slots:
+public Q_SLOTS:
     void novelLoadFinished();
     void novelLoadError(QNetworkReply::NetworkError error);
 
-private slots:
+private Q_SLOTS:
     void subLoadFinished();
     void subWorkFinished();
     void subImageFinished();

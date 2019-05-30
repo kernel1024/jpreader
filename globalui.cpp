@@ -137,7 +137,7 @@ void CGlobalUI::startGlobalContextTranslate()
     at->moveToThread(th);
     th->start();
 
-    emit gctxStart(gctxSelection);
+    Q_EMIT gctxStart(gctxSelection);
 
     gctxSelection.clear();
 }
@@ -267,7 +267,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
         ac->setEnabled(false);
     }
 
-    emit g->updateAllLanguagesLists();
+    Q_EMIT g->updateAllLanguagesLists();
 }
 
 void CGlobalUI::actionToggled()

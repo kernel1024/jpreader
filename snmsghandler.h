@@ -17,25 +17,31 @@ private:
     QMutex lockTranEngine;
     CSnippetViewer *snv;
     qreal zoomFactor;
-public:
     QTimer *loadingBarHideTimer;
     QTimer *focusTimer;
-    CSnMsgHandler(CSnippetViewer * parent);
+
+public:
+    explicit CSnMsgHandler(CSnippetViewer * parent);
     void updateZoomFactor();
-public slots:
+    void activateFocusDelay();
+
+public Q_SLOTS:
     void linkHovered(const QString &link);
     void searchFwd();
     void searchBack();
     void searchFocus();
     void pastePassword();
-    void setZoom(QString z);
+    void setZoom(const QString& z);
     void navByClick();
-    void tranEngine(int engine);
+    void tranEngine(int index);
     void updateTranEngine();
     void hideBarLoading();
     void urlEditSetFocus();
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                                  int exitCode);
+Q_SIGNALS:
+    void loadingBarHide();
+
 };
 
 #endif // SNMSGHANDLER_H

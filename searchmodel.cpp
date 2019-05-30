@@ -138,7 +138,7 @@ void CSearchModel::setSnippet(int idx, const CStringHash& snippet)
 
     m_snippets[idx]=snippet;
 
-    emit itemContentsUpdated();
+    Q_EMIT itemContentsUpdated();
 }
 
 QStringList CSearchModel::getDistinctValues(const QString &snippetKey)

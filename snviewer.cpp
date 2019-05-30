@@ -25,12 +25,16 @@
 #include "snwaitctl.h"
 #include "snmsghandler.h"
 
-CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStringList& aSearchText,
+const int tabPreviewScreenshotDelay = 500;
+
+CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringList& aSearchText,
                                bool setFocused, const QString& AuxContent, const QString& zoom,
                                bool startPage)
 
     : CSpecTabContainer(parent)
 {
+    const int addressBarCompleterHeightFrac = 70;
+
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
@@ -54,7 +58,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
         searchEdit->addItems(aSearchText);
         searchEdit->setCurrentIndex(0);
 	}
-    bindToTab(parent->tabMain, setFocused);
+    bindToTab(parentWnd()->tabMain, setFocused);
 
     netHandler = new CSnNet(this);
     ctxHandler = new CSnCtxHandler(this);
@@ -95,8 +99,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     connect(txtBrowser->page(), &QWebEnginePage::proxyAuthenticationRequired,
             netHandler, &CSnNet::proxyAuthenticationRequired);
 
-    connect(msgHandler->loadingBarHideTimer, &QTimer::timeout, barLoading, &QProgressBar::hide);
-    connect(msgHandler->loadingBarHideTimer, &QTimer::timeout, barPlaceholder, &QFrame::show);
+    connect(msgHandler, &CSnMsgHandler::loadingBarHide, barLoading, &QProgressBar::hide);
+    connect(msgHandler, &CSnMsgHandler::loadingBarHide, barPlaceholder, &QFrame::show);
 
     connect(txtBrowser->page(), &QWebEnginePage::linkHovered,
             msgHandler, &CSnMsgHandler::linkHovered);
@@ -112,11 +116,14 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     navButton->setIcon(QIcon::fromTheme(QStringLiteral("arrow-right")));
     passwordButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-password")));
 
-    for (auto it = translationEngines.constKeyValueBegin(),
-         end = translationEngines.constKeyValueEnd(); it != end; ++it) {
+    for (auto it = translationEngines().constKeyValueBegin(),
+         end = translationEngines().constKeyValueEnd(); it != end; ++it) {
         comboTranEngine->addItem((*it).second,(*it).first);
     }
-    comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
+    int idx = comboTranEngine->findData(gSet->settings.translatorEngine);
+    if (idx>=0)
+        comboTranEngine->setCurrentIndex(idx);
+
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
             msgHandler, &CSnMsgHandler::tranEngine);
     connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
@@ -132,12 +139,13 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     errorLabel->setText(QString());
     searchPanel->setVisible(!searchList.isEmpty());
 
-    if (AuxContent.isEmpty())
+    if (AuxContent.isEmpty()) {
         netHandler->load(aUri);
-    else
+    } else {
         netHandler->load(AuxContent);
+    }
 
-    int idx = comboZoom->findText(zoom,Qt::MatchExactly);
+    idx = comboZoom->findText(zoom,Qt::MatchExactly);
     if (idx>=0) {
         comboZoom->setCurrentIndex(idx);
     } else {
@@ -145,7 +153,8 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
         comboZoom->setCurrentIndex(comboZoom->findText(zoom,Qt::MatchExactly));
     }
 
-    int mv = (70*parentWnd()->height()/(urlEdit->fontMetrics().height()*100));
+    int mv = (addressBarCompleterHeightFrac*parentWnd()->height() /
+              (urlEdit->fontMetrics().height()*100));
     completer->setMaxVisibleItems(mv);
 
     ctxHandler->reconfigureDefaultActions();
@@ -153,7 +162,7 @@ CSnippetViewer::CSnippetViewer(CMainWindow* parent, const QUrl& aUri, const QStr
     if (!startPage)
         parentWnd()->closeStartPage();
 
-    msgHandler->focusTimer->start();
+    msgHandler->activateFocusDelay();
 }
 
 void CSnippetViewer::updateButtonsState()
@@ -163,7 +172,7 @@ void CSnippetViewer::updateButtonsState()
     fwdNavButton->setEnabled(txtBrowser->history()->canGoForward());
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
     passwordButton->setEnabled((!loading) &&
-                               (txtBrowser->page()) &&
+                               (txtBrowser->page()!=nullptr) &&
                                (gSet->haveSavedPassword(txtBrowser->page()->url())));
 }
 
@@ -184,12 +193,14 @@ void CSnippetViewer::navByUrl(const QUrl& url)
 void CSnippetViewer::navByUrl(const QString& url)
 {
     QUrl u = QUrl::fromUserInput(url);
-    static const QStringList validSpecSchemes ( { "gdlookup", "about", "chrome" } );
+    static const QStringList validSpecSchemes
+            = { QStringLiteral("gdlookup"), QStringLiteral("about"), QStringLiteral("chrome") };
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
             && (!u.isValid() || !url.contains('.'))
-            && !gSet->ctxSearchEngines.isEmpty())
+            && !gSet->ctxSearchEngines.isEmpty()) {
         u = gSet->createSearchUrl(url);
+    }
 
     navByUrl(u);
 }
@@ -205,10 +216,11 @@ void CSnippetViewer::titleChanged(const QString & title)
 			s=QFileInfo(s).fileName();
 		} else {
             QStringList sl = uri.path().split('/');
-            if (!sl.isEmpty())
+            if (!sl.isEmpty()) {
                 s=sl.last();
-            else
+            } else {
                 s=uri.toString();
+            }
 		}
         if (s.isEmpty()) s = QStringLiteral("< ... >");
         s = s.trimmed();
@@ -222,10 +234,10 @@ void CSnippetViewer::titleChanged(const QString & title)
         if (txtBrowser->page()->url().isValid() &&
                 !txtBrowser->page()->url().toString().contains(
                     QStringLiteral("about:blank"),Qt::CaseInsensitive)) {
-                CUrlHolder uh(title,txtBrowser->page()->url());
-                if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
-                    gSet->appendMainHistory(uh);
-            }
+            CUrlHolder uh(title,txtBrowser->page()->url());
+            if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
+                gSet->appendMainHistory(uh);
+        }
     }
     parentWnd()->updateTitle();
     parentWnd()->updateTabs();
@@ -234,17 +246,21 @@ void CSnippetViewer::titleChanged(const QString & title)
 void CSnippetViewer::urlChanged(const QUrl & url)
 {
     if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
-            url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive))
+            url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive)) {
         urlEdit->setText(url.toString());
-    else {
+
+    } else {
         QUrl aUrl = getUrl();
         if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
-                url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive))
+                url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive)) {
             urlEdit->setText(aUrl.toString());
-        else if (netHandler->isValidLoadedUrl())
-            urlEdit->setText(netHandler->loadedUrl.toString());
-        else
+
+        } else if (netHandler->isValidLoadedUrl()) {
+            urlEdit->setText(netHandler->getLoadedUrl().toString());
+
+        } else {
             urlEdit->clear();
+        }
     }
 
     if (fileChanged) {
@@ -260,7 +276,10 @@ void CSnippetViewer::recycleTab()
 {
     if (tabTitle().isEmpty() || !txtBrowser->page()->url().isValid() ||
             txtBrowser->page()->url().toString().
-            startsWith(QStringLiteral("about"),Qt::CaseInsensitive)) return;
+            startsWith(QStringLiteral("about"),Qt::CaseInsensitive)) {
+        return;
+    }
+
     gSet->appendRecycled(tabTitle(),txtBrowser->page()->url());
 }
 
@@ -305,7 +324,7 @@ void CSnippetViewer::printToPDF()
     QPrinter printer;
     QPageSetupDialog dlg(&printer,this);
     if (dlg.exec() != QDialog::Accepted)
-            return;
+        return;
 
     QString fname = getSaveFileNameD(this,tr("Save to PDF"),gSet->settings.savedAuxSaveDir,
                                                  tr("PDF file (*.pdf)"));
@@ -325,24 +344,29 @@ QString CSnippetViewer::getDocTitle()
     QString s = txtBrowser->title();
     if (s.isEmpty()) {
         QStringList f = getUrl().path().split('/');
-        if (!f.isEmpty())
+        if (!f.isEmpty()) {
             s = f.last();
-        else
+        } else {
             s = getUrl().toString();
+        }
     }
     return s;
 }
 
 void CSnippetViewer::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key()==Qt::Key_F5)
+    if (event->key()==Qt::Key_F5) {
         closeTab();
-    else if (event->key()==Qt::Key_F3)
+
+    } else if (event->key()==Qt::Key_F3) {
         msgHandler->searchFwd();
-    else if (event->key()==Qt::Key_F2)
+
+    } else if (event->key()==Qt::Key_F2) {
         msgHandler->searchBack();
-    else
+
+    } else {
         QWidget::keyPressEvent(event);
+    }
 }
 
 void CSnippetViewer::updateWebViewAttributes()
@@ -376,7 +400,7 @@ void CSnippetViewer::takeScreenshot()
 {
     if (!pageLoaded) return;
     auto t = new QTimer(this);
-    t->setInterval(500);
+    t->setInterval(tabPreviewScreenshotDelay);
     t->setSingleShot(true);
     connect(t,&QTimer::timeout,this,[this,t](){
         pageImage = txtBrowser->grab();

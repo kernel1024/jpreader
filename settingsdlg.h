@@ -40,7 +40,7 @@ private:
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
-public slots:
+public Q_SLOTS:
     void addItem();
     void deleteItem();
 };
@@ -168,7 +168,7 @@ public:
     CLangPairVector getLangPairList();
     CStringSet getNoScriptWhitelist();
 
-public slots:
+public Q_SLOTS:
     void selectDir();
     void selectBrowser();
     void selectEditor();

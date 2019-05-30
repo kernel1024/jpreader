@@ -20,6 +20,8 @@ class CSnNet;
 class CSnTrans;
 class CSnWaitCtl;
 
+const int maxDataUrlFileSize = 1024*1024;
+
 class CSnippetViewer : public CSpecTabContainer, public Ui::SnippetViewer
 {
 	Q_OBJECT
@@ -43,10 +45,10 @@ public:
     bool pageLoaded;
     bool auxContentLoaded;
 
-    explicit CSnippetViewer(CMainWindow* parent, const QUrl& aUri = QUrl(),
+    explicit CSnippetViewer(QWidget* parent, const QUrl& aUri = QUrl(),
                             const QStringList& aSearchText = QStringList(),
                             bool setFocused = true, const QString& AuxContent = QString(),
-                            const QString& zoom = QString("100%"),
+                            const QString& zoom = QStringLiteral("100%"),
                             bool startPage = false);
     virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event) override;
@@ -59,7 +61,7 @@ public:
     void outsideDragStart() override;
     bool isInspector();
     void printToPDF();
-public slots:
+public Q_SLOTS:
     void navByUrlDefault();
     void navByUrl(const QUrl &url);
     void navByUrl(const QString &url);

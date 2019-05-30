@@ -53,7 +53,7 @@ protected:
     void mouseMoveEvent( QMouseEvent * event) override;
     QSize minimumTabSizeHint(int index) const override;
 
-signals:
+Q_SIGNALS:
 	void tabRightClicked(int index);
     void tabLeftClicked(int index);
     void tabRightPostClicked(int index);
@@ -77,14 +77,14 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     bool event(QEvent *event) override;
 
-public slots:
+public Q_SLOTS:
 	void tabRightClick(int index);
     void tabLeftClick(int index);
     void createTab();
     void selectPrevTab();
     void selectNextTab();
 
-signals:
+Q_SIGNALS:
     void tabRightClicked(int index);
     void tabLeftClicked(int index);
     void tooltipRequested(const QPoint& globalPos, const QPoint& localPos);
@@ -93,6 +93,7 @@ signals:
 class CSpecMenuStyle : public QProxyStyle {
     Q_OBJECT
 public:
+    explicit CSpecMenuStyle(QStyle *style = nullptr);
     int styleHint ( StyleHint hint,
                     const QStyleOption * option = nullptr,
                     const QWidget * widget = nullptr,
@@ -102,11 +103,9 @@ public:
 class CSpecToolTipLabel : public QLabel {
     Q_OBJECT
 public:
-    explicit CSpecToolTipLabel(const QString &text = QString());
+    explicit CSpecToolTipLabel(const QString &text = QString(), QWidget *parent = nullptr);
 private:
     void hideEvent(QHideEvent *event) override;
-signals:
-    void labelHide();
 };
 
 class CSpecTabContainer : public QWidget {
@@ -117,7 +116,7 @@ private:
     QString m_tabTitle;
 
 public:
-    explicit CSpecTabContainer(CMainWindow *parent = nullptr);
+    explicit CSpecTabContainer(QWidget *parent = nullptr);
     void bindToTab(CSpecTabWidget *tabs, bool setFocused = true);
 
     virtual bool canClose() { return true; }
@@ -130,7 +129,7 @@ public:
     QString tabTitle() const { return m_tabTitle; }
     void setTabTitle(const QString& title);
 
-public slots:
+public Q_SLOTS:
     void detachTab();
     void closeTab(bool nowait = false);
     void updateTabIcon(const QIcon& icon);
@@ -146,7 +145,7 @@ protected:
     bool certificateError(const QWebEngineCertificateError &certificateError) override;
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
                                   int lineNumber, const QString &sourceID) override;
-signals:
+Q_SIGNALS:
     void linkClickedExt(const QUrl& url, int type, bool isMainFrame);
 };
 
@@ -213,7 +212,7 @@ class CIOEventLoop : public QEventLoop {
 public:
     explicit CIOEventLoop(QObject* parent = nullptr);
 
-public slots:
+public Q_SLOTS:
     void finished();
     void timeout();
 };
@@ -235,10 +234,10 @@ private:
     QUrl m_url;
 public:
     explicit CFaviconLoader(QObject *parent, const QUrl &url);
-public slots:
+public Q_SLOTS:
     void queryStart(bool forceCached);
     void queryFinished();
-signals:
+Q_SIGNALS:
     void gotIcon(const QIcon& icon);
 };
 

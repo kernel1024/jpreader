@@ -323,7 +323,7 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
         downloads[idx].reply = nullptr;
     }
 
-    emit dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(idx,0),index(idx,3));
 
     if (downloads.at(idx).autoDelete)
         deleteDownloadItem(index(idx,0));
@@ -364,7 +364,7 @@ void CDownloadsModel::downloadFinished()
         downloads[idx].reply = nullptr;
     }
 
-    emit dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(idx,0),index(idx,3));
 
     if (item)
         item->deleteLater();
@@ -385,7 +385,7 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
         downloads[idx].errorString = item->interruptReasonString();
 
-    emit dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(idx,0),index(idx,3));
 }
 
 void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -405,7 +405,7 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     downloads[idx].received = bytesReceived;
     downloads[idx].total = bytesTotal;
 
-    emit dataChanged(index(idx,2),index(idx,3));
+    Q_EMIT dataChanged(index(idx,2),index(idx,3));
 }
 
 void CDownloadsModel::abortDownload()
@@ -493,11 +493,15 @@ void CDownloadsModel::openHere()
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
-    QStringList acceptedMime = { "text/plain", "text/html", "application/pdf",
-                                 "image/jpeg", "image/png", "image/gif",
-                                 "image/svg+xml", "image/webp" };
-    QStringList acceptedExt = { "pdf", "htm", "html", "txt", "jpg", "jpeg", "jpe",
-                                "png", "svg", "gif", "webp" };
+    static const QStringList acceptedMime
+            = { QStringLiteral("text/plain"), QStringLiteral("text/html"), QStringLiteral("application/pdf"),
+                QStringLiteral("image/jpeg"), QStringLiteral("image/png"), QStringLiteral("image/gif"),
+                QStringLiteral("image/svg+xml"), QStringLiteral("image/webp") };
+
+    static const QStringList acceptedExt
+            = { QStringLiteral("pdf"), QStringLiteral("htm"), QStringLiteral("html"), QStringLiteral("txt"),
+                QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("jpe"), QStringLiteral("png"),
+                QStringLiteral("svg"), QStringLiteral("gif"), QStringLiteral("webp") };
 
     QString fname = downloads.at(idx).fileName;
     QString mime = downloads.at(idx).mimeType;

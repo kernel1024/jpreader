@@ -12,11 +12,11 @@ public:
 private:
     bool stopReq {false};
 
-signals:
+Q_SIGNALS:
     void gotTranslation(const QStringList &res);
     void updateProgress(int pos);
 
-public slots:
+public Q_SLOTS:
     void translateTitles(const QStringList &titles);
     void stop();
 

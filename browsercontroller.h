@@ -12,7 +12,7 @@ class CBrowserController : public QObject
 public:
     explicit CBrowserController(QObject *parent = nullptr);
 
-public slots:
+public Q_SLOTS:
     void openUrl(const QString& url);
     void openDefaultSearch(const QString& text);
 

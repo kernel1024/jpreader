@@ -16,19 +16,20 @@ class CSnCtxHandler : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-public:
     QTimer *menuActive;
-    CSnCtxHandler(CSnippetViewer *parent);
-    void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
+public:
+    explicit CSnCtxHandler(CSnippetViewer *parent);
+    void contextMenu(QPoint pos, const QWebEngineContextMenuData &data);
     void reconfigureDefaultActions();
-public slots:
+    bool isMenuTimerActive();
+public Q_SLOTS:
     void translateFragment();
     void saveToFile();
     void bookmarkPage();
     void showInEditor();
     void showSource();
     void runJavaScript();
-signals:
+Q_SIGNALS:
     void startTranslation(bool deleteAfter);
     void hideTooltips();
 };

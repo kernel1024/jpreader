@@ -5,19 +5,26 @@
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 
+const int focusTimerDelay = 1000;
+const int loadingBarDelay = 1500;
+
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
     zoomFactor = 1.0;
     loadingBarHideTimer = new QTimer(this);
-    loadingBarHideTimer->setInterval(1500);
+    loadingBarHideTimer->setInterval(loadingBarDelay);
     loadingBarHideTimer->setSingleShot(true);
     focusTimer = new QTimer(this);
-    focusTimer->setInterval(1000);
+    focusTimer->setInterval(focusTimerDelay);
     focusTimer->setSingleShot(true);
 
     connect(focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
+
+    connect(loadingBarHideTimer,&QTimer::timeout,this,[this](){
+        Q_EMIT loadingBarHide();
+    });
 }
 
 void CSnMsgHandler::updateZoomFactor()
@@ -25,12 +32,19 @@ void CSnMsgHandler::updateZoomFactor()
     snv->txtBrowser->page()->setZoomFactor(zoomFactor);
 }
 
+void CSnMsgHandler::activateFocusDelay()
+{
+    focusTimer->start();
+}
+
 void CSnMsgHandler::searchFwd()
 {
     if (snv->searchEdit->currentText().isEmpty()) return ;
+
     if (snv->searchEdit->findText(snv->searchEdit->currentText(),
-                                  Qt::MatchExactly)<0)
+                                  Qt::MatchExactly)<0) {
         snv->searchEdit->addItem(snv->searchEdit->currentText());
+    }
     snv->txtBrowser->findText(snv->searchEdit->currentText());
     snv->txtBrowser->setFocus();
 }
@@ -38,9 +52,11 @@ void CSnMsgHandler::searchFwd()
 void CSnMsgHandler::searchBack()
 {
     if (snv->searchEdit->currentText().isEmpty()) return ;
+
     if (snv->searchEdit->findText(snv->searchEdit->currentText(),
-                                  Qt::MatchExactly)<0)
+                                  Qt::MatchExactly)<0) {
         snv->searchEdit->addItem(snv->searchEdit->currentText());
+    }
     snv->txtBrowser->findText(snv->searchEdit->currentText(), QWebEnginePage::FindBackward);
     snv->txtBrowser->setFocus();
 }
@@ -53,11 +69,14 @@ void CSnMsgHandler::searchFocus()
 
 void CSnMsgHandler::pastePassword()
 {
-    QString user, pass;
+    const QChar tabKey(0x9);
+    QString user;
+    QString pass;
+
     if (!gSet->haveSavedPassword(snv->txtBrowser->page()->url())) return;
 
     gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
-    QString inp = QStringLiteral("%1%2%3").arg(user,QChar(0x9),pass);
+    QString inp = QStringLiteral("%1%2%3").arg(user,tabKey,pass);
 
     auto ac = qobject_cast<QAction *>(sender());
     if (ac) {
@@ -72,10 +91,12 @@ void CSnMsgHandler::pastePassword()
         sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
 }
 
-void CSnMsgHandler::setZoom(QString z)
+void CSnMsgHandler::setZoom(const QString& z)
 {
     bool okconv;
-    int i = z.remove(QRegExp("[^0-9]")).toInt(&okconv);
+    QString s = z;
+    s.remove(QRegExp(QStringLiteral("[^0-9]")));
+    int i = s.toInt(&okconv);
     if (okconv)
         zoomFactor = static_cast<double>(i)/100.0;
     updateZoomFactor();
@@ -87,13 +108,18 @@ void CSnMsgHandler::navByClick()
     snv->navByUrl(snv->urlEdit->text());
 }
 
-void CSnMsgHandler::tranEngine(int engine)
+void CSnMsgHandler::tranEngine(int index)
 {
     if (!lockTranEngine.tryLock()) return;
 
-    TranslationEngine e = static_cast<TranslationEngine>(engine);
-    if (translationEngines.contains(e))
-        gSet->settings.setTranslationEngine(e);
+    QVariant v = snv->comboTranEngine->itemData(index);
+    bool ok;
+    int engine = v.toInt(&ok);
+    if (ok) {
+        auto e = static_cast<TranslationEngine>(engine);
+        if (translationEngines().contains(e))
+            gSet->settings.setTranslationEngine(e);
+    }
 
     lockTranEngine.unlock();
 }
@@ -102,9 +128,9 @@ void CSnMsgHandler::updateTranEngine()
 {
     if (!lockTranEngine.tryLock()) return;
 
-    if (gSet->settings.translatorEngine>=0
-            && gSet->settings.translatorEngine<snv->comboTranEngine->count())
-        snv->comboTranEngine->setCurrentIndex(gSet->settings.translatorEngine);
+    int idx = snv->comboTranEngine->findData(gSet->settings.translatorEngine);
+    if (idx>=0)
+        snv->comboTranEngine->setCurrentIndex(idx);
 
     lockTranEngine.unlock();
 }
@@ -116,10 +142,11 @@ void CSnMsgHandler::hideBarLoading()
 
 void CSnMsgHandler::urlEditSetFocus()
 {
-    if (snv->urlEdit->text().isEmpty())
+    if (snv->urlEdit->text().isEmpty()) {
         snv->urlEdit->setFocus();
-    else
+    } else {
         snv->txtBrowser->setFocus();
+    }
 }
 
 void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,

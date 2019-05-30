@@ -19,10 +19,12 @@ private:
     QUrl savedBaseUrl;
     void findWordTranslation(const QString& text);
     void openSeparateTranslationTab(const QString& html, const QUrl &baseUrl);
+
 public:
-    CSnTrans(CSnippetViewer * parent);
+    explicit CSnTrans(CSnippetViewer * parent);
     void translate(bool tranSubSentences);
-public slots:
+
+public Q_SLOTS:
     void translatePriv(const QString& aUri, bool forceTranSubSentences);
     void calcFinished(bool success, const QString &aUrl, const QString &error);
     void postTranslate();

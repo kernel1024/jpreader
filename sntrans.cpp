@@ -12,16 +12,19 @@
 
 using namespace htmlcxx;
 
+const int selectionTimerDelay = 1000;
+const int longClickTimerDelay = 1000;
+
 CSnTrans::CSnTrans(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
 
     selectionTimer = new QTimer(this);
-    selectionTimer->setInterval(1000);
+    selectionTimer->setInterval(selectionTimerDelay);
     selectionTimer->setSingleShot(true);
     longClickTimer = new QTimer(this);
-    longClickTimer->setInterval(1000);
+    longClickTimer->setInterval(longClickTimerDelay);
     longClickTimer->setSingleShot(true);
     savedBaseUrl.clear();
 
@@ -33,10 +36,11 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     });
     connect(snv->transButton, &QPushButton::released, this, [this](){
         bool ta = longClickTimer->isActive();
-        if (ta)
+        if (ta) {
             longClickTimer->stop();
-        else
+        } else {
             snv->transButton->setStyleSheet(QString());
+        }
         translate(!ta);
     });
 }
@@ -85,12 +89,13 @@ void CSnTrans::translate(bool tranSubSentences)
         });
     } else {
         QString aUri = snv->txtBrowser->page()->url().toString();
-        if (!aUri.isEmpty())
+        if (!aUri.isEmpty()) {
             translatePriv(aUri,tranSubSentences);
-        else
+        } else {
             snv->txtBrowser->page()->toHtml([this,tranSubSentences](const QString& html) {
                 translatePriv(html,tranSubSentences);
             });
+        }
     }
 }
 
@@ -173,12 +178,15 @@ void CSnTrans::calcFinished(bool success, const QString& aUrl, const QString& er
         postTranslate();
         snv->parentWnd()->updateTabs();
     } else {
-        if (aUrl.startsWith(QStringLiteral("ERROR:")))
+        if (aUrl.startsWith(QStringLiteral("ERROR:"))) {
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(aUrl));
-        else if (!error.isEmpty())
+
+        } else if (!error.isEmpty()) {
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(error));
-        else
+
+        } else {
             QMessageBox::warning(snv,tr("JPReader"),tr("Translation failed. Network error occured."));
+        }
     }
 }
 
@@ -212,18 +220,15 @@ void CSnTrans::postTranslate()
         case teYandexAPI:
         case teGoogleGTX:
             cn = snv->calculatedUrl;
-            if (cn.toUtf8().size()<1024*1024) { // chromium dataurl 2Mb limitation, QTBUG-53414
+            if (cn.toUtf8().size()<maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
                 snv->fileChanged = true;
                 snv->onceTranslated = true;
                 snv->txtBrowser->setHtml(cn,savedBaseUrl);
                 if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
-                snv->urlChanged(snv->netHandler->loadedUrl);
+                snv->urlChanged(snv->netHandler->getLoadedUrl());
             } else
                 openSeparateTranslationTab(cn, savedBaseUrl);
             break;
-        default:
-            QMessageBox::warning(snv,tr("JPReader"),tr("Unknown translation engine selected"));
-            return;
     }
     // TODO: move this to specwidgets
     if (snv->parentWnd()->tabMain->currentIndex()!=snv->parentWnd()->tabMain->indexOf(snv) &&
@@ -282,11 +287,13 @@ void CSnTrans::selectionShow()
 
 void CSnTrans::showWordTranslation(const QString &html)
 {
-    if (snv->ctxHandler->menuActive->isActive()) return;
+    const QSize maxTranslationTooltipSize(350,350);
+
+    if (snv->ctxHandler->isMenuTimerActive()) return;
     auto t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
-    t->setMaximumSize(350,350);
+    t->setMaximumSize(maxTranslationTooltipSize);
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; }"));
 
     connect(t,&CSpecToolTipLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);

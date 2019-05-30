@@ -14,10 +14,10 @@ class CLogDisplay : public QDialog
     Q_OBJECT
 
 public:
-    explicit CLogDisplay();
+    explicit CLogDisplay(QWidget *parent = nullptr);
     ~CLogDisplay() override;
 
-public slots:
+public Q_SLOTS:
     void updateMessages();
     void logCtxMenu(const QPoint& pos);
     void addToAdblock();

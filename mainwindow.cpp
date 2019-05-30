@@ -23,8 +23,8 @@
 
 const int titleRenameLockTimeout = 500;
 
-CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls)
-        : MainWindow()
+CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls, QWidget *parent)
+        : QMainWindow(parent)
 {
 	setupUi(this);
 
@@ -740,7 +740,7 @@ void CMainWindow::addBookmark()
 
     auto dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle(),this);
     if (dlg->exec() == QDialog::Accepted)
-        emit gSet->updateAllBookmarks();
+        Q_EMIT gSet->updateAllBookmarks();
 
     dlg->setParent(nullptr);
     delete dlg;
@@ -754,7 +754,7 @@ void CMainWindow::manageBookmarks()
     });
 
     dialog->exec();
-    emit gSet->updateAllBookmarks();
+    Q_EMIT gSet->updateAllBookmarks();
 }
 
 void CMainWindow::showLightTranslator()
@@ -857,7 +857,7 @@ void CMainWindow::forceCharset()
             gSet->settings.charsetHistory.removeLast();
     }
     gSet->settings.forcedCharset = cs;
-    emit gSet->updateAllCharsetLists();
+    Q_EMIT gSet->updateAllCharsetLists();
 
     if (gSet->webProfile && gSet->webProfile->settings()) {
         gSet->webProfile->settings()->setDefaultTextEncoding(cs);
@@ -919,7 +919,7 @@ void CMainWindow::reloadCharsetList()
 
 void CMainWindow::closeEvent(QCloseEvent *event)
 {
-    emit aboutToClose(this);
+    Q_EMIT aboutToClose(this);
     event->accept();
 }
 

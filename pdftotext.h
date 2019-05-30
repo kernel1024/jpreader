@@ -24,10 +24,10 @@ private:
     int zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize);
     static void outputToString(void *stream, const char *text, int len);
 
-public slots:
+public Q_SLOTS:
     void pdfToText(const QString &filename);
 
-signals:
+Q_SIGNALS:
     void gotText(const QString& result);
     void error(const QString& message);
 

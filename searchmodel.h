@@ -33,10 +33,10 @@ public:
     void setSnippet(int idx, const CStringHash &snippet);
     QStringList getDistinctValues(const QString &snippetKey);
 
-signals:
+Q_SIGNALS:
     void itemContentsUpdated();
 
-public slots:
+public Q_SLOTS:
     void deleteAllItems();
     void addItem(const CStringHash& srcSnippet);
     void addItems(const QVector<CStringHash> &srcSnippets);

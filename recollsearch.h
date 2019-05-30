@@ -13,11 +13,11 @@ public:
 private:
     QString strFromBase64(const QString &src);
 
-private slots:
+private Q_SLOTS:
     void recollReadyRead();
     void recollFinished(int exitCode, QProcess::ExitStatus exitStatus);
     
-public slots:
+public Q_SLOTS:
     void doSearch(const QString &qr, int maxLimit) override;
     
 };

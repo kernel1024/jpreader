@@ -34,10 +34,10 @@ public:
     void doneTran(bool lazyClose = false) override;
     bool isReady() override;
 
-signals:
+Q_SIGNALS:
     void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const CIntList& errCodes);
 
-public slots:
+public Q_SLOTS:
     void sslError(const QList<QSslError>& errors);
     void socketError(QAbstractSocket::SocketError error);
 

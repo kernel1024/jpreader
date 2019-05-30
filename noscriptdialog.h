@@ -26,7 +26,7 @@ private:
 protected:
     void showEvent(QShowEvent* event) override;
 
-private slots:
+private Q_SLOTS:
     void acceptScripts();
 
 };

@@ -72,7 +72,7 @@ class BookmarksManager : public QObject
 {
     Q_OBJECT
 
-signals:
+Q_SIGNALS:
     void entryAdded(BookmarkNode *item);
     void entryRemoved(BookmarkNode *parent, int row, BookmarkNode *item);
     void entryChanged(BookmarkNode *item);
@@ -97,11 +97,11 @@ public:
 
     void populateBookmarksMenu(QMenu* menu, CMainWindow *wnd, const BookmarkNode *node = nullptr);
 
-public slots:
+public Q_SLOTS:
     void importBookmarks();
     void exportBookmarks();
 
-private slots:
+private Q_SLOTS:
 
 private:
     bool m_loaded { false };
@@ -119,7 +119,7 @@ class BookmarksModel : public QAbstractItemModel
 {
     Q_OBJECT
 
-public slots:
+public Q_SLOTS:
     void entryAdded(BookmarkNode *item);
     void entryRemoved(BookmarkNode *parent, int row, BookmarkNode *item);
     void entryChanged(BookmarkNode *item);
@@ -190,7 +190,7 @@ public:
     AddBookmarkDialog(const QString &url, const QString &title, QWidget *parent = nullptr,
                       BookmarksManager *bookmarkManager = nullptr);
 
-private slots:
+private Q_SLOTS:
     void accept() override;
 
 private:
@@ -222,14 +222,14 @@ class BookmarksDialog : public QDialog
 {
     Q_OBJECT
 
-signals:
+Q_SIGNALS:
     void openUrl(const QUrl &url);
 
 public:
     explicit BookmarksDialog(QWidget *parent = nullptr, BookmarksManager *manager = nullptr);
     ~BookmarksDialog() override;
 
-private slots:
+private Q_SLOTS:
     void customContextMenuRequested(const QPoint &pos);
     void open() override;
     void openEx(const QModelIndex &index);

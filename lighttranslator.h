@@ -29,10 +29,10 @@ private:
 protected:
     void closeEvent(QCloseEvent * event) override;
 
-signals:
+Q_SIGNALS:
     void startTranslation(bool deleteAfter);
 
-public slots:
+public Q_SLOTS:
     void restoreWindow();
     void translate();
     void gotTranslation(const QString& text);

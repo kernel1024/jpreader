@@ -67,10 +67,10 @@ public:
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
-signals:
+Q_SIGNALS:
     void removeNode(const QModelIndex &node);
 
-public slots:
+public Q_SLOTS:
     void removeOne();
 };
 

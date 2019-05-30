@@ -134,3 +134,16 @@ QDataStream &operator>>(QDataStream &in, CLangPair &obj)
     obj = CLangPair(hash);
     return in;
 }
+
+const QMap<TranslationEngine, QString> &translationEngines()
+{
+    static const QMap<TranslationEngine,QString> engines = {
+        { teGoogle, QStringLiteral("Google") },
+        { teAtlas, QStringLiteral("ATLAS") },
+        { teBingAPI, QStringLiteral("Bing API") },
+        { teYandexAPI, QStringLiteral("Yandex API") },
+        { teGoogleGTX, QStringLiteral("Google GTX") }
+    };
+
+    return engines;
+}

@@ -324,7 +324,7 @@ void CSettingsDlg::clearHistory()
 {
     if (gSet) {
         gSet->mainHistory.clear();
-        emit gSet->updateAllHistoryLists();
+        Q_EMIT gSet->updateAllHistoryLists();
     }
     ui->listHistory->clear();
 }

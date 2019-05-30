@@ -59,7 +59,7 @@ void CLightTranslator::translate()
 
     ui->barTranslating->show();
 
-    emit startTranslation(true);
+    Q_EMIT startTranslation(true);
 }
 
 void CLightTranslator::gotTranslation(const QString &text)

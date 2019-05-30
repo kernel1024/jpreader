@@ -27,7 +27,6 @@ CTranslator::CTranslator(QObject* parent, const QString& aUri, bool forceTranSub
     useOverrideFont=gSet->ui.useOverrideFont();
     overrideFont=gSet->settings.overrideFont;
     translationMode=gSet->ui.getTranslationMode();
-    engine=gSet->settings.translatorEngine;
     translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
     metaSrcUrl.clear();
     imgUrls.clear();
@@ -433,7 +432,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     if (textNodesCnt>0) {
         baseProgress = 100*textNodesProgress/textNodesCnt;
     }
-    emit setProgress(baseProgress);
+    Q_EMIT setProgress(baseProgress);
 
     QString ssrc = src.text;
     ssrc = ssrc.replace(QStringLiteral("\r\n"),QStringLiteral("\n"));
@@ -545,7 +544,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
             if (textNodesCnt>0 && i%5==0) {
                 int pr = 100*textNodesProgress/textNodesCnt;
-                emit setProgress(pr);
+                Q_EMIT setProgress(pr);
             }
             textNodesProgress++;
         }
@@ -611,7 +610,7 @@ void CTranslator::translate()
     CLangPair lp(gSet->ui.getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
-        emit calcFinished(false,aUrl,lastError);
+        Q_EMIT calcFinished(false,aUrl,lastError);
     }
 
     if (translationEngine==teAtlas) {
@@ -635,7 +634,7 @@ void CTranslator::translate()
             }
         }
         if (!oktrans) {
-            emit calcFinished(false,aUrl,lastError);
+            Q_EMIT calcFinished(false,aUrl,lastError);
             deleteLater();
             return;
         }
@@ -646,18 +645,18 @@ void CTranslator::translate()
             QString lastError = tr("Translator initialization error");
             if (tran)
                 lastError = tran->getErrorMsg();
-            emit calcFinished(false,aUrl,lastError);
+            Q_EMIT calcFinished(false,aUrl,lastError);
             deleteLater();
             return;
         }
     } else {
         if (!calcLocalUrl(Uri,aUrl)) {
-            emit calcFinished(false,QString(),tr("ERROR: Url calculation error"));
+            Q_EMIT calcFinished(false,QString(),tr("ERROR: Url calculation error"));
             deleteLater();
             return;
         }
     }
-    emit calcFinished(true,aUrl,QString());
+    Q_EMIT calcFinished(true,aUrl,QString());
     deleteLater();
 }
 

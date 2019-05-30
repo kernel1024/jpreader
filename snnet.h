@@ -14,24 +14,27 @@ class CSnNet : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-public:
     QUrl loadedUrl;
-    CSnNet(CSnippetViewer * parent);
+public:
+    explicit CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab);
-signals:
+    QUrl getLoadedUrl() const { return loadedUrl; }
+
+Q_SIGNALS:
     void startPdfConversion(const QString& filename);
-public slots:
+
+public Q_SLOTS:
     void load(const QUrl & url);
-    void load(const QString & html, const QUrl& loadedUrl = QUrl());
+    void load(const QString & html, const QUrl& baseUrl = QUrl());
     void authenticationRequired(const QUrl& requestUrl, QAuthenticator* authenticator);
     void proxyAuthenticationRequired(const QUrl & requestUrl, QAuthenticator * authenticator,
                                      const QString & proxyHost);
     void loadStarted();
     void loadFinished(bool ok);
-    void userNavigationRequest(const QUrl& url, const int type, const bool isMainFrame);
+    void userNavigationRequest(const QUrl& url, int type, bool isMainFrame);
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void downloadPixivManga();
     void pixivNovelReady(const QString& html, bool focus, bool translate);

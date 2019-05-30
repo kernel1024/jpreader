@@ -49,10 +49,10 @@ private:
     QTimer gctxTimer;
     QString gctxSelection;
 
-signals:
+Q_SIGNALS:
     void gctxStart(const QString& text);
 
-public slots:
+public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
     CMainWindow* addMainWindow();
@@ -61,7 +61,7 @@ public slots:
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
 
-private slots:
+private Q_SLOTS:
     void actionToggled();
 
 };

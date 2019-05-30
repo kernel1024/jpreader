@@ -20,14 +20,6 @@ enum TranslationEngine {
     teGoogleGTX = 4
 };
 
-static const QMap<TranslationEngine,QString> translationEngines = {
-    { teGoogle, QStringLiteral("Google") },
-    { teAtlas, QStringLiteral("ATLAS") },
-    { teBingAPI, QStringLiteral("Bing API") },
-    { teYandexAPI, QStringLiteral("Yandex API") },
-    { teGoogleGTX, QStringLiteral("Google GTX") }
-};
-
 enum SearchEngine {
     seNone = 0,
     seRecoll = 2,
@@ -95,5 +87,7 @@ QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 
 QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
 QDataStream &operator>>(QDataStream &in, CLangPair &obj);
+
+const QMap<TranslationEngine, QString> &translationEngines();
 
 #endif // STRUCTURES_H

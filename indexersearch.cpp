@@ -49,7 +49,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         if ((indexerSerivce == seBaloo5) || (indexerSerivce == seRecoll)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig()) {
-                emit startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
+                Q_EMIT startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
             } else {
                 engineFinished();
             }
@@ -115,7 +115,7 @@ void CIndexerSearch::addHit(const CStringHash &meta)
         result[QStringLiteral("title")]=fi.fileName();
 
     resultCount++;
-    emit gotResult(result);
+    Q_EMIT gotResult(result);
 }
 
 void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString &title)
@@ -190,5 +190,5 @@ void CIndexerSearch::engineFinished()
     stats[QStringLiteral("jp:elapsedtime")] = QString::number(
                 static_cast<double>(searchTimer.elapsed())/oneK,'f',3);
     stats[QStringLiteral("jp:totalhits")] = QString::number(resultCount);
-    emit searchFinished(stats,m_query);
+    Q_EMIT searchFinished(stats,m_query);
 }

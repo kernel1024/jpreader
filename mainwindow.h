@@ -18,7 +18,7 @@ class CMainWindow : public QMainWindow, public Ui::MainWindow
 	Q_OBJECT
 public:
     explicit CMainWindow(bool withSearch = false, bool withViewer = true,
-                const QVector<QUrl> &viewerUrls = { });
+                const QVector<QUrl> &viewerUrls = { }, QWidget *parent = nullptr);
     ~CMainWindow() override = default;
 
     void goHistory(QUuid idx);
@@ -52,7 +52,7 @@ private:
 
     void updateHelperList();
 
-public slots:
+public Q_SLOTS:
 	void helpAbout();
 
 	void openBookmark();
@@ -95,7 +95,7 @@ public slots:
     void updateRecycled();
     void reloadLanguagesList();
 
-signals:
+Q_SIGNALS:
     void aboutToClose(CMainWindow* sender);
 
 protected:

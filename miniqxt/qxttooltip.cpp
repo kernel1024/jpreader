@@ -57,7 +57,7 @@ QxtToolTipPrivate* QxtToolTipPrivate::instance()
     return self;
 }
 
-QxtToolTipPrivate::QxtToolTipPrivate() : QWidget(nullptr, FLAGS)
+QxtToolTipPrivate::QxtToolTipPrivate(QWidget *parent) : QWidget(parent, FLAGS)
 {
     const qreal maxOpacity = 255.0;
 
