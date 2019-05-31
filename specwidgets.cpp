@@ -76,19 +76,21 @@ void CSpecTabWidget::createTab()
 void CSpecTabWidget::selectNextTab()
 {
     if (count()==0) return;
-    if (currentIndex()==(count()-1))
-        setCurrentIndex(0);
-    else
-        setCurrentIndex(currentIndex()+1);
+    int idx = currentIndex();
+    idx++;
+    if (idx>=count())
+        idx = 0;
+    setCurrentIndex(idx);
 }
 
 void CSpecTabWidget::selectPrevTab()
 {
     if (count()==0) return;
-    if (currentIndex()==0)
-        setCurrentIndex((count()-1));
-    else
-        setCurrentIndex(currentIndex()-1);
+    int idx = currentIndex();
+    idx--;
+    if (idx<0)
+        idx = count()-1;
+    setCurrentIndex(idx);
 }
 
 CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
@@ -157,11 +159,12 @@ void CSpecTabBar::mouseReleaseEvent(QMouseEvent *event)
 
 void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
 {
-    if ((m_draggingTab) &&
-            (m_tabWidget) &&
+    const QMargins mainWindowDecorationsSafeMargins(50,50,50,100);
+
+    if ((m_draggingTab!=nullptr) && (m_tabWidget!=nullptr) &&
             (event->buttons() == Qt::LeftButton)) {
 
-        QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(QMargins(50,50,50,100));
+        QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(mainWindowDecorationsSafeMargins);
 
         if (!wr.contains(event->globalPos())) {
 
@@ -204,8 +207,10 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
     return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
-void CSpecToolTipLabel::hideEvent(QHideEvent *)
+void CSpecToolTipLabel::hideEvent(QHideEvent * event)
 {
+    Q_UNUSED(event)
+
     deleteLater();
 }
 
@@ -241,12 +246,14 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
 
 void CSpecTabContainer::setTabTitle(const QString &title)
 {
+    const int tabTitleElidingWidth = 150;
+
     m_tabTitle = title;
     int idx = m_parentWnd->tabMain->indexOf(this);
     if (idx>=0 && idx<m_parentWnd->tabMain->count()) {
         m_parentWnd->startTitleRenameTimer();
         m_parentWnd->tabMain->setTabText(idx,m_tabWidget->fontMetrics()
-                                         .elidedText(m_tabTitle,Qt::ElideRight,150));
+                                         .elidedText(m_tabTitle,Qt::ElideRight,tabTitleElidingWidth));
     }
 }
 
@@ -373,7 +380,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
 {
     if (parentViewer)
-        parentViewer->ctxHandler->contextMenu(event->pos(), m_page->contextMenuData());
+        Q_EMIT contextMenuRequested(event->pos(), m_page->contextMenuData());
 }
 
 CSpecWebPage::CSpecWebPage(QObject *parent)
@@ -394,10 +401,11 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
     Q_EMIT linkClickedExt(url,static_cast<int>(type),isMainFrame);
 
     if (gSet->settings.debugNetReqLogging) {
-        if (isMainFrame)
+        if (isMainFrame) {
             qInfo() << "Net request (main frame):" << url;
-        else
+        } else {
             qInfo() << "Net request (sub frame):" << url;
+        }
     }
 
     bool blocked = gSet->isUrlBlocked(url);
@@ -416,10 +424,12 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
         {
             QWebEngineScript::InjectionPoint injectionPoint(QWebEngineScript::DocumentReady);
 
-            if (sl.at(i).getInjectionTime() == CUserScript::DocumentCreationTime)
+            if (sl.at(i).getInjectionTime() == CUserScript::DocumentCreationTime) {
                 injectionPoint = QWebEngineScript::DocumentCreation;
-            else if (sl.at(i).getInjectionTime() == CUserScript::DeferredTime)
+
+            } else if (sl.at(i).getInjectionTime() == CUserScript::DeferredTime) {
                 injectionPoint = QWebEngineScript::Deferred;
+            }
 
             QWebEngineScript script;
             script.setSourceCode(sl.at(i).getSource());
@@ -504,10 +514,11 @@ void CSpecLogHighlighter::formatBlock(const QString &text, const QRegExp &exp,
 
     QTextCharFormat fmt;
     fmt.setForeground(color);
-    if (weight)
+    if (weight) {
         fmt.setFontWeight(QFont::Bold);
-    else
+    } else {
         fmt.setFontWeight(QFont::Normal);
+    }
     fmt.setFontItalic(italic);
     fmt.setFontUnderline(underline);
     fmt.setFontStrikeOut(strikeout);
@@ -533,9 +544,10 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 
     // AdBlock
     if (gSet->isUrlBlocked(url,rule)) {
-        if (gSet->settings.debugNetReqLogging)
+        if (gSet->settings.debugNetReqLogging) {
             qWarning() << "Net request:" << url << "BLOCKED" <<
                           tr("(rule: '%1')").arg(rule);
+        }
 
         info.block(true);
 
@@ -611,7 +623,9 @@ CGDTextBrowser::CGDTextBrowser(QWidget *parent)
 
 QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
-    if (gSet && url.scheme().toLower()==QStringLiteral("gdlookup")) {
+    const int gdDictionaryResponseTimeout = 10000;
+
+    if (gSet!=nullptr && url.scheme().toLower()==QStringLiteral("gdlookup")) {
         QByteArray rplb;
 
         CIOEventLoop ev;
@@ -626,7 +640,7 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
         sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(url,mime);
 
         connect(dr.get(), &Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
-        QTimer::singleShot(15000,&ev,&CIOEventLoop::timeout);
+        QTimer::singleShot(gdDictionaryResponseTimeout,&ev,&CIOEventLoop::timeout);
 
         int ret = ev.exec();
 

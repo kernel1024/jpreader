@@ -35,7 +35,7 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     rqData.addQueryItem(QStringLiteral("lang"),QStringLiteral("%1-%2").arg(
                             language().langFrom.bcp47Name(),
                             language().langTo.bcp47Name()));
-    rqData.addQueryItem(QStringLiteral("text"),QUrl::toPercentEncoding(src));
+    rqData.addQueryItem(QStringLiteral("text"),QString::fromLatin1(QUrl::toPercentEncoding(src)));
 
     QNetworkRequest rq(rqurl);
     rq.setHeader(QNetworkRequest::ContentTypeHeader,

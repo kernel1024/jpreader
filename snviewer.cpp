@@ -38,23 +38,12 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
 	setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
-    isStartPage = startPage;
-    translationBkgdFinished=false;
-    loadingBkgdFinished=false;
-    loading = false;
-    fileChanged = false;
-    calculatedUrl.clear();
-    onceTranslated=false;
-    requestAutotranslate=false;
-    pageLoaded=false;
-    auxContentLoaded=false;
-    pageImage = QPixmap();
-    searchList.clear();
+    m_startPage = startPage;
     barLoading->setValue(0);
     barLoading->hide();
     barPlaceholder->show();
-    if (!aSearchText.isEmpty()) searchList.append(aSearchText);
-    if (searchList.count()>0) {
+    if (!aSearchText.isEmpty()) m_searchList.append(aSearchText);
+    if (m_searchList.count()>0) {
         searchEdit->addItems(aSearchText);
         searchEdit->setCurrentIndex(0);
 	}
@@ -137,7 +126,7 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     waitPanel->hide();
     errorPanel->hide();
     errorLabel->setText(QString());
-    searchPanel->setVisible(!searchList.isEmpty());
+    searchPanel->setVisible(!m_searchList.isEmpty());
 
     if (AuxContent.isEmpty()) {
         netHandler->load(aUri);
@@ -165,13 +154,46 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     msgHandler->activateFocusDelay();
 }
 
+void CSnippetViewer::updateTabColor(bool loadFinished, bool tranFinished)
+{
+    int selfIdx = parentWnd()->tabMain->indexOf(this);
+    if (selfIdx<0) return;
+
+    // reset color on focus acquiring
+    if (!loadFinished && !tranFinished) {
+        parentWnd()->tabMain->tabBar()->setTabTextColor(
+                    selfIdx,qApp->palette(parentWnd()->tabMain->tabBar()).windowText().color());
+        return;
+    }
+
+    QColor color;
+
+    // change color for background tab only
+    if (parentWnd()->tabMain->currentIndex()!=selfIdx) {
+        if (loadFinished && !m_translationBkgdFinished) {
+            m_loadingBkgdFinished=true;
+            color = QColor(Qt::blue);
+
+        } else if (tranFinished && !m_loadingBkgdFinished) {
+            m_translationBkgdFinished=true;
+            if (m_fileChanged)
+                color = QColor(Qt::red);
+        }
+
+        if (color.isValid()) {
+            parentWnd()->tabMain->tabBar()->setTabTextColor(selfIdx,Qt::blue);
+            parentWnd()->updateTabs();
+        }
+    }
+}
+
 void CSnippetViewer::updateButtonsState()
 {
-    stopButton->setEnabled(loading);
-    reloadButton->setEnabled(!loading);
+    stopButton->setEnabled(m_loading);
+    reloadButton->setEnabled(!m_loading);
     fwdNavButton->setEnabled(txtBrowser->history()->canGoForward());
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
-    passwordButton->setEnabled((!loading) &&
+    passwordButton->setEnabled((!m_loading) &&
                                (txtBrowser->page()!=nullptr) &&
                                (gSet->haveSavedPassword(txtBrowser->page()->url())));
 }
@@ -185,7 +207,7 @@ void CSnippetViewer::navByUrl(const QUrl& url)
 {
     urlEdit->setStyleSheet(QString());
 
-    fileChanged=false;
+    m_fileChanged=false;
 
     netHandler->load(url);
 }
@@ -263,7 +285,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
         }
     }
 
-    if (fileChanged) {
+    if (m_fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
         urlEdit->setStyleSheet(QStringLiteral("QLineEdit { background: #d7ffd7; }"));
     } else {
@@ -398,13 +420,27 @@ bool CSnippetViewer::canClose()
 
 void CSnippetViewer::takeScreenshot()
 {
-    if (!pageLoaded) return;
+    if (!m_pageLoaded) return;
     auto t = new QTimer(this);
     t->setInterval(tabPreviewScreenshotDelay);
     t->setSingleShot(true);
     connect(t,&QTimer::timeout,this,[this,t](){
-        pageImage = txtBrowser->grab();
+        m_pageImage = txtBrowser->grab();
         t->deleteLater();
     });
     t->start();
+}
+
+void CSnippetViewer::save()
+{
+    ctxHandler->saveToFile();
+}
+
+void CSnippetViewer::tabAcquiresFocus()
+{
+    updateTabColor();
+    m_translationBkgdFinished=false;
+    m_loadingBkgdFinished=false;
+    txtBrowser->setFocus(Qt::OtherFocusReason);
+    takeScreenshot();
 }

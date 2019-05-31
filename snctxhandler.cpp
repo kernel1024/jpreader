@@ -31,15 +31,18 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
-    menuActive = new QTimer(this);
-    menuActive->setSingleShot(false);
-    menuActive->setInterval(menuActiveTimerInterval);
-    connect(menuActive, &QTimer::timeout, this, [this](){
+    m_menuActive = new QTimer(this);
+    m_menuActive->setSingleShot(false);
+    m_menuActive->setInterval(menuActiveTimerInterval);
+
+    connect(m_menuActive, &QTimer::timeout, this, [this](){
         Q_EMIT hideTooltips();
     });
+
+    connect(snv->txtBrowser,&CSpecWebView::contextMenuRequested,this,&CSnCtxHandler::contextMenu);
 }
 
-void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& data)
+void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuData& data)
 {
     QString sText;
     QUrl linkUrl;
@@ -82,7 +85,7 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
                          tr("Open in new background tab and translate"),nullptr);
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
             auto sn = new CSnippetViewer(snv->parentWnd(),linkUrl,QStringList(),false);
-            sn->requestAutotranslate = true;
+            sn->m_requestAutotranslate = true;
         });
         cm->addAction(ac);
 
@@ -92,7 +95,7 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
 
     if ((linkUrl.isValid() && linkUrl.toString().contains(
              QStringLiteral("pixiv.net/novel/show.php"), Qt::CaseInsensitive))
-            || (!snv->fileChanged && snv->urlEdit->text().contains(
+            || (!snv->m_fileChanged && snv->urlEdit->text().contains(
                     QStringLiteral("pixiv.net/novel/show.php"), Qt::CaseInsensitive))) {
         QUrl purl = QUrl::fromUserInput(snv->urlEdit->text());
         QString title = snv->txtBrowser->page()->title();
@@ -157,7 +160,7 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
             QString s = sText;
             s = s.replace('\n',QStringLiteral("<br/>"));
             CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
-            sn->requestAutotranslate = true;
+            sn->m_requestAutotranslate = true;
         });
         cm->addAction(ac);
 
@@ -245,7 +248,7 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
                              tr("Open in new background tab and translate"),nullptr);
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
                 CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
-                sn->requestAutotranslate = true;
+                sn->m_requestAutotranslate = true;
             });
             icm->addAction(ac);
         }
@@ -275,11 +278,11 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
                      tr("Duplicate tab"),nullptr);
     connect(ac, &QAction::triggered, this, [this](){
         QString url(QStringLiteral("about://blank"));
-        if (!snv->fileChanged) url=snv->urlEdit->text();
+        if (!snv->m_fileChanged) url=snv->urlEdit->text();
 
         CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd(), url);
 
-        if (snv->fileChanged || url.isEmpty()) {
+        if (snv->m_fileChanged || url.isEmpty()) {
             snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
                 if (!html.isEmpty())
                     sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
@@ -453,10 +456,10 @@ void CSnCtxHandler::contextMenu(QPoint pos, const QWebEngineContextMenuData& dat
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-save")),tr("Save to file..."),
                  this,&CSnCtxHandler::saveToFile);
 
-    menuActive->start();
+    m_menuActive->start();
 
     connect(cm, &QMenu::aboutToHide, this, [this](){
-        menuActive->stop();
+        m_menuActive->stop();
     });
 
     cm->setAttribute(Qt::WA_DeleteOnClose,true);
@@ -483,8 +486,8 @@ void CSnCtxHandler::reconfigureDefaultActions()
 
 bool CSnCtxHandler::isMenuTimerActive()
 {
-    if (menuActive!=nullptr)
-        return menuActive->isActive();
+    if (m_menuActive!=nullptr)
+        return m_menuActive->isActive();
 
     return false;
 }
@@ -507,7 +510,7 @@ void CSnCtxHandler::translateFragment()
             at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
-        if (!text.isEmpty() && !menuActive->isActive()) {
+        if (!text.isEmpty() && !m_menuActive->isActive()) {
             CSpecToolTipLabel* lbl = new CSpecToolTipLabel(wordWrap(text,maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &CSpecToolTipLabel::close);

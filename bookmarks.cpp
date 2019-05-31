@@ -76,7 +76,6 @@
 
 const auto sBookmarksOld = "Old Bookmarks";
 const auto sBookmarksMenu = "Bookmarks Menu";
-const auto bookmarksMimeType = "application/bookmarks.xbel";
 
 BookmarksManager::BookmarksManager(QObject *parent)
     : QObject(parent)
@@ -318,6 +317,7 @@ void BookmarksManager::exportBookmarks()
 BookmarksModel::BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent)
     : QAbstractItemModel(parent)
     , m_bookmarksManager(bookmarkManager)
+    , m_bookmarksMimeType(QStringLiteral("application/bookmarks.xbel"))
 {
     connect(bookmarkManager, &BookmarksManager::entryAdded,
             this, &BookmarksModel::entryAdded);
@@ -510,7 +510,7 @@ Qt::DropActions BookmarksModel::supportedDropActions () const
 QStringList BookmarksModel::mimeTypes() const
 {
     QStringList types;
-    types << bookmarksMimeType;
+    types << m_bookmarksMimeType;
     return types;
 }
 
@@ -530,7 +530,7 @@ QMimeData *BookmarksModel::mimeData(const QModelIndexList &indexes) const
         writer.write(&buffer, parentNode);
         stream << encodedData;
     }
-    mimeData->setData(bookmarksMimeType, data);
+    mimeData->setData(m_bookmarksMimeType, data);
     return mimeData;
 }
 
@@ -540,11 +540,11 @@ bool BookmarksModel::dropMimeData(const QMimeData *data,
     if (action == Qt::IgnoreAction)
         return true;
 
-    if (!data->hasFormat(bookmarksMimeType)
+    if (!data->hasFormat(m_bookmarksMimeType)
         || column > 0)
         return false;
 
-    QByteArray ba = data->data(bookmarksMimeType);
+    QByteArray ba = data->data(m_bookmarksMimeType);
     QDataStream stream(&ba, QIODevice::ReadOnly);
     if (stream.atEnd())
         return false;
@@ -788,7 +788,7 @@ void BookmarksDialog::expandNodes(BookmarkNode *node)
     }
 }
 
-void BookmarksDialog::customContextMenuRequested(const QPoint &pos)
+void BookmarksDialog::customContextMenu(const QPoint &pos)
 {
     QMenu menu;
     QModelIndex index = ui->tree->indexAt(pos);

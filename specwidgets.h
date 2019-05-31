@@ -161,7 +161,8 @@ public:
 protected:
     QWebEngineView* createWindow(QWebEnginePage::WebWindowType type) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
-
+Q_SIGNALS:
+    void contextMenuRequested(const QPoint &pos, const QWebEngineContextMenuData &data);
 };
 
 class CSpecLogHighlighter : public QSyntaxHighlighter {

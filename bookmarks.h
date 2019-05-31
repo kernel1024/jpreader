@@ -156,8 +156,8 @@ public:
     QModelIndex index(BookmarkNode *node) const;
 
 private:
-
     BookmarksManager *m_bookmarksManager { nullptr };
+    QString m_bookmarksMimeType;
 };
 
 /*
@@ -230,7 +230,7 @@ public:
     ~BookmarksDialog() override;
 
 private Q_SLOTS:
-    void customContextMenuRequested(const QPoint &pos);
+    void customContextMenu(const QPoint &pos);
     void open() override;
     void openEx(const QModelIndex &index);
     void newFolder();

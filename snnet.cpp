@@ -23,7 +23,6 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
-    loadedUrl.clear();
 }
 
 void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
@@ -91,7 +90,7 @@ bool CSnNet::isValidLoadedUrl(const QUrl& url)
 
 bool CSnNet::isValidLoadedUrl()
 {
-    return isValidLoadedUrl(loadedUrl);
+    return isValidLoadedUrl(m_loadedUrl);
 }
 
 bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
@@ -106,9 +105,9 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
         if (createNewTab) {
             new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
         } else {
-            snv->fileChanged = false;
+            snv->m_fileChanged = false;
             snv->txtBrowser->load(QUrl::fromLocalFile(fname));
-            snv->auxContentLoaded=false;
+            snv->m_auxContentLoaded=false;
         }
         return true;
     }
@@ -123,7 +122,7 @@ void CSnNet::loadStarted()
     snv->barLoading->setValue(0);
     snv->barLoading->show();
     snv->barPlaceholder->hide();
-    snv->loading = true;
+    snv->m_loading = true;
     snv->updateButtonsState();
 }
 
@@ -131,30 +130,24 @@ void CSnNet::loadFinished(bool ok)
 {
     snv->msgHandler->updateZoomFactor();
     snv->msgHandler->hideBarLoading();
-    snv->loading = false;
+    snv->m_loading = false;
     snv->updateButtonsState();
 
     if (isValidLoadedUrl(snv->txtBrowser->url()) && ok) {
-        snv->auxContentLoaded=false;
-        loadedUrl = snv->txtBrowser->url();
+        snv->m_auxContentLoaded=false;
+        m_loadedUrl = snv->txtBrowser->url();
     }
 
-    // TODO: move this to specwidgets
-    if (snv->parentWnd()->tabMain->currentIndex()!=snv->parentWnd()->tabMain->indexOf(snv) &&
-            !snv->translationBkgdFinished) { // tab is inactive
-        snv->loadingBkgdFinished=true;
-        snv->parentWnd()->tabMain->tabBar()->setTabTextColor(snv->parentWnd()->tabMain->indexOf(snv),Qt::blue);
-        snv->parentWnd()->updateTabs();
-    }
+    snv->updateTabColor(true,false);
 
-    bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->requestAutotranslate) ||
-                            (!gSet->ui.autoTranslate() && snv->requestAutotranslate);
+    bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->m_requestAutotranslate) ||
+                            (!gSet->ui.autoTranslate() && snv->m_requestAutotranslate);
 
-    if (xorAutotranslate && !snv->onceTranslated && (isValidLoadedUrl() || snv->auxContentLoaded))
+    if (xorAutotranslate && !snv->m_onceTranslated && (isValidLoadedUrl() || snv->m_auxContentLoaded))
         snv->transButton->click();
 
-    snv->pageLoaded = true;
-    snv->requestAutotranslate = false;
+    snv->m_pageLoaded = true;
+    snv->m_requestAutotranslate = false;
 
     if (snv->tabWidget()->currentWidget()==snv) {
         snv->takeScreenshot();
@@ -168,9 +161,9 @@ void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
 
     if (!isValidLoadedUrl(url)) return;
 
-    snv->onceTranslated = false;
-    snv->fileChanged = false;
-    snv->auxContentLoaded=false;
+    snv->m_onceTranslated = false;
+    snv->m_fileChanged = false;
+    snv->m_auxContentLoaded=false;
 
     if (isMainFrame) {
         CUrlHolder uh(QStringLiteral("(blank)"),url);
@@ -218,7 +211,7 @@ void CSnNet::downloadPixivManga()
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
     auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
-    sv->requestAutotranslate = translate;
+    sv->m_requestAutotranslate = translate;
 }
 
 void CSnNet::pdfConverted(const QString &html)
@@ -229,7 +222,7 @@ void CSnNet::pdfConverted(const QString &html)
     }
     if (html.length()<maxDataUrlFileSize) { // Small PDF files
         snv->txtBrowser->setHtml(html);
-        snv->auxContentLoaded=false;
+        snv->m_auxContentLoaded=false;
     } else { // Big PDF files
         loadWithTempFile(html,false);
     }
@@ -250,17 +243,17 @@ void CSnNet::load(const QUrl &url)
     }
 
     snv->updateWebViewAttributes();
-    if (snv->isStartPage)
-        snv->isStartPage = false;
+    if (snv->m_startPage)
+        snv->m_startPage = false;
 
     QString fname = url.toLocalFile();
     if (!fname.isEmpty()) {
         QFileInfo fi(fname);
         if (!fi.exists() || !fi.isReadable()) {
             QString cn=makeSimpleHtml(tr("Error"),tr("Unable to find file '%1'.").arg(fname));
-            snv->fileChanged = false;
-            snv->translationBkgdFinished=false;
-            snv->loadingBkgdFinished=false;
+            snv->m_fileChanged = false;
+            snv->m_translationBkgdFinished=false;
+            snv->m_loadingBkgdFinished=false;
             snv->txtBrowser->setHtml(cn,url);
             QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
             return;
@@ -273,18 +266,18 @@ void CSnNet::load(const QUrl &url)
                 QByteArray ba = data.readAll();
                 QTextCodec* cd = detectEncoding(ba);
                 QString cn=makeSimpleHtml(fi.fileName(),cd->toUnicode(ba));
-                snv->fileChanged = false;
-                snv->translationBkgdFinished=false;
-                snv->loadingBkgdFinished=false;
+                snv->m_fileChanged = false;
+                snv->m_translationBkgdFinished=false;
+                snv->m_loadingBkgdFinished=false;
                 snv->txtBrowser->setHtml(cn,url);
-                snv->auxContentLoaded=false;
+                snv->m_auxContentLoaded=false;
                 data.close();
             }
         } else if (MIME.startsWith(QStringLiteral("application/pdf"),Qt::CaseInsensitive)) {
             // for local pdf files
-            snv->fileChanged = false;
-            snv->translationBkgdFinished=false;
-            snv->loadingBkgdFinished=false;
+            snv->m_fileChanged = false;
+            snv->m_translationBkgdFinished=false;
+            snv->m_loadingBkgdFinished=false;
             auto pdf = new CPDFWorker();
             connect(this,&CSnNet::startPdfConversion,pdf,&CPDFWorker::pdfToText,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
@@ -294,27 +287,27 @@ void CSnNet::load(const QUrl &url)
             pdft->start();
             Q_EMIT startPdfConversion(url.toString());
         } else { // for local html files
-            snv->fileChanged = false;
+            snv->m_fileChanged = false;
             snv->txtBrowser->load(url);
-            snv->auxContentLoaded=false;
+            snv->m_auxContentLoaded=false;
         }
         gSet->appendRecent(fname);
     } else {
         QUrl u = url;
         checkAndUnpackUrl(u);
-        snv->fileChanged = false;
+        snv->m_fileChanged = false;
         snv->txtBrowser->load(u);
-        snv->auxContentLoaded=false;
+        snv->m_auxContentLoaded=false;
     }
-    loadedUrl=url;
+    m_loadedUrl=url;
 }
 
 void CSnNet::load(const QString &html, const QUrl &baseUrl)
 {
     snv->updateWebViewAttributes();
     snv->txtBrowser->setHtml(html,baseUrl);
-    loadedUrl.clear();
-    snv->auxContentLoaded=true;
+    m_loadedUrl.clear();
+    snv->m_auxContentLoaded=true;
 }
 
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)

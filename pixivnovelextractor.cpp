@@ -47,7 +47,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             wtitle = extractFileTitle(html);
 
         QString htitle;
-        QRegExp hrx("<h1[^>]*class=\"title\"[^>]*>",Qt::CaseInsensitive);
+        QRegExp hrx(QStringLiteral("<h1[^>]*class=\"title\"[^>]*>"),Qt::CaseInsensitive);
         int hidx = hrx.indexIn(html);
         if (hidx>=0) {
             int hpos = hidx+hrx.matchedLength();
@@ -192,7 +192,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 
 void CPixivNovelExtractor::subLoadFinished()
 {
-    const QStringList supportedExt = getSupportedImageExtensions();
+    const QStringList &supportedExt = getSupportedImageExtensions();
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl==nullptr) return;
@@ -460,7 +460,7 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
         v = obj.value(QStringLiteral("urls"));
         if (v.isObject()) {
             QJsonObject uobj = v.toObject();
-            v = uobj.value("original");
+            v = uobj.value(QStringLiteral("original"));
             if (v.isString()) {
                 QFileInfo fi(v.toString());
                 path = fi.path();
@@ -547,7 +547,7 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
                 for(const auto &tag : vtags) {
                     if (tag.isObject()) {
                         tobj = tag.toObject();
-                        QJsonValue vt = tobj.value("tag");
+                        QJsonValue vt = tobj.value(QStringLiteral("tag"));
                         if (vt.isString())
                             tags.append(vt.toString());
                     }

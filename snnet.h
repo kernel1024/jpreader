@@ -14,14 +14,14 @@ class CSnNet : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-    QUrl loadedUrl;
+    QUrl m_loadedUrl;
 public:
     explicit CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab);
-    QUrl getLoadedUrl() const { return loadedUrl; }
+    QUrl getLoadedUrl() const { return m_loadedUrl; }
 
 Q_SIGNALS:
     void startPdfConversion(const QString& filename);

@@ -20,24 +20,23 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
 {
     snv = parent;
 
-    selectionTimer = new QTimer(this);
-    selectionTimer->setInterval(selectionTimerDelay);
-    selectionTimer->setSingleShot(true);
-    longClickTimer = new QTimer(this);
-    longClickTimer->setInterval(longClickTimerDelay);
-    longClickTimer->setSingleShot(true);
-    savedBaseUrl.clear();
+    m_selectionTimer = new QTimer(this);
+    m_selectionTimer->setInterval(selectionTimerDelay);
+    m_selectionTimer->setSingleShot(true);
+    m_longClickTimer = new QTimer(this);
+    m_longClickTimer->setInterval(longClickTimerDelay);
+    m_longClickTimer->setSingleShot(true);
 
     connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
-    connect(selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
-    connect(longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
+    connect(m_selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
+    connect(m_longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
     connect(snv->transButton, &QPushButton::pressed, this, [this](){
-        longClickTimer->start();
+        m_longClickTimer->start();
     });
     connect(snv->transButton, &QPushButton::released, this, [this](){
-        bool ta = longClickTimer->isActive();
+        bool ta = m_longClickTimer->isActive();
         if (ta) {
-            longClickTimer->stop();
+            m_longClickTimer->stop();
         } else {
             snv->transButton->setStyleSheet(QString());
         }
@@ -52,11 +51,11 @@ void CSnTrans::reparseDocument()
 
 void CSnTrans::reparseDocumentPriv(const QString& data)
 {
-    snv->calculatedUrl.clear();
-    snv->onceTranslated=true;
-    savedBaseUrl = snv->txtBrowser->page()->url();
-    if (savedBaseUrl.hasFragment())
-        savedBaseUrl.setFragment(QString());
+    snv->m_calculatedUrl.clear();
+    snv->m_onceTranslated=true;
+    m_savedBaseUrl = snv->txtBrowser->page()->url();
+    if (m_savedBaseUrl.hasFragment())
+        m_savedBaseUrl.setFragment(QString());
 
     auto ct = new CTranslator(nullptr,data);
     QString res;
@@ -65,7 +64,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
         return;
     }
 
-    snv->calculatedUrl=res;
+    snv->m_calculatedUrl=res;
     postTranslate();
     snv->parentWnd()->updateTabs();
 }
@@ -81,9 +80,9 @@ void CSnTrans::translate(bool tranSubSentences)
         gSet->settings.translatorEngine==teBingAPI ||
         gSet->settings.translatorEngine==teYandexAPI ||
         gSet->settings.translatorEngine==teGoogleGTX) {
-        savedBaseUrl = snv->txtBrowser->page()->url();
-        if (savedBaseUrl.hasFragment())
-            savedBaseUrl.setFragment(QString());
+        m_savedBaseUrl = snv->txtBrowser->page()->url();
+        if (m_savedBaseUrl.hasFragment())
+            m_savedBaseUrl.setFragment(QString());
         snv->txtBrowser->page()->toHtml([this,tranSubSentences](const QString& html) {
             translatePriv(html,tranSubSentences);
         });
@@ -129,8 +128,8 @@ void CSnTrans::getImgUrlsAndParse()
 
 void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
 {
-    snv->calculatedUrl.clear();
-    snv->onceTranslated=true;
+    snv->m_calculatedUrl.clear();
+    snv->m_onceTranslated=true;
 
     auto ct = new CTranslator(nullptr,aUri,forceTranSubSentences);
     auto th = new QThread();
@@ -174,7 +173,7 @@ void CSnTrans::calcFinished(bool success, const QString& aUrl, const QString& er
     snv->waitPanel->hide();
     snv->transButton->setEnabled(true);
     if (success) {
-        snv->calculatedUrl=aUrl;
+        snv->m_calculatedUrl=aUrl;
         postTranslate();
         snv->parentWnd()->updateTabs();
     } else {
@@ -192,8 +191,8 @@ void CSnTrans::calcFinished(bool success, const QString& aUrl, const QString& er
 
 void CSnTrans::postTranslate()
 {
-    if (snv->calculatedUrl.isEmpty()) return;
-    if (snv->calculatedUrl.contains(QStringLiteral("ERROR:ATLAS_SLIPPED"))) {
+    if (snv->m_calculatedUrl.isEmpty()) return;
+    if (snv->m_calculatedUrl.contains(QStringLiteral("ERROR:ATLAS_SLIPPED"))) {
         QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
         return;
     }
@@ -208,7 +207,7 @@ void CSnTrans::postTranslate()
             if (lp.isValid()) {
                 qu.addQueryItem(QStringLiteral("sl"),lp.langFrom.bcp47Name());
                 qu.addQueryItem(QStringLiteral("tl"),lp.langTo.bcp47Name());
-                qu.addQueryItem(QStringLiteral("u"),snv->calculatedUrl);
+                qu.addQueryItem(QStringLiteral("u"),snv->m_calculatedUrl);
                 url.setQuery(qu);
                 snv->txtBrowser->load(url);
                 if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
@@ -219,26 +218,19 @@ void CSnTrans::postTranslate()
         case teBingAPI:
         case teYandexAPI:
         case teGoogleGTX:
-            cn = snv->calculatedUrl;
+            cn = snv->m_calculatedUrl;
             if (cn.toUtf8().size()<maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
-                snv->fileChanged = true;
-                snv->onceTranslated = true;
-                snv->txtBrowser->setHtml(cn,savedBaseUrl);
+                snv->m_fileChanged = true;
+                snv->m_onceTranslated = true;
+                snv->txtBrowser->setHtml(cn,m_savedBaseUrl);
                 if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
                 snv->urlChanged(snv->netHandler->getLoadedUrl());
             } else
-                openSeparateTranslationTab(cn, savedBaseUrl);
+                openSeparateTranslationTab(cn, m_savedBaseUrl);
             break;
     }
-    // TODO: move this to specwidgets
-    if (snv->parentWnd()->tabMain->currentIndex()!=snv->parentWnd()->tabMain->indexOf(snv) &&
-            !snv->loadingBkgdFinished) { // tab is inactive
-        snv->translationBkgdFinished=true;
-        if (snv->fileChanged) {
-            snv->parentWnd()->tabMain->tabBar()->setTabTextColor(snv->parentWnd()->tabMain->indexOf(snv),Qt::red);
-            snv->parentWnd()->updateTabs();
-        }
-    }
+
+    snv->updateTabColor(false,true);
 }
 
 void CSnTrans::progressLoad(int progress)
@@ -248,9 +240,9 @@ void CSnTrans::progressLoad(int progress)
 
 void CSnTrans::selectionChanged()
 {
-    storedSelection = snv->txtBrowser->page()->selectedText();
-    if (!storedSelection.isEmpty() && gSet->ui.actionSelectionDictionary->isChecked())
-        selectionTimer->start();
+    m_storedSelection = snv->txtBrowser->page()->selectedText();
+    if (!m_storedSelection.isEmpty() && gSet->ui.actionSelectionDictionary->isChecked())
+        m_selectionTimer->start();
 }
 
 void CSnTrans::findWordTranslation(const QString &text)
@@ -280,9 +272,9 @@ void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseU
 
 void CSnTrans::selectionShow()
 {
-    if (storedSelection.isEmpty()) return;
+    if (m_storedSelection.isEmpty()) return;
 
-    findWordTranslation(storedSelection);
+    findWordTranslation(m_storedSelection);
 }
 
 void CSnTrans::showWordTranslation(const QString &html)

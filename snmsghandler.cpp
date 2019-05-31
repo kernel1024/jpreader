@@ -12,29 +12,29 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
-    zoomFactor = 1.0;
-    loadingBarHideTimer = new QTimer(this);
-    loadingBarHideTimer->setInterval(loadingBarDelay);
-    loadingBarHideTimer->setSingleShot(true);
-    focusTimer = new QTimer(this);
-    focusTimer->setInterval(focusTimerDelay);
-    focusTimer->setSingleShot(true);
+    m_zoomFactor = 1.0;
+    m_loadingBarHideTimer = new QTimer(this);
+    m_loadingBarHideTimer->setInterval(loadingBarDelay);
+    m_loadingBarHideTimer->setSingleShot(true);
+    m_focusTimer = new QTimer(this);
+    m_focusTimer->setInterval(focusTimerDelay);
+    m_focusTimer->setSingleShot(true);
 
-    connect(focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
+    connect(m_focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
 
-    connect(loadingBarHideTimer,&QTimer::timeout,this,[this](){
+    connect(m_loadingBarHideTimer,&QTimer::timeout,this,[this](){
         Q_EMIT loadingBarHide();
     });
 }
 
 void CSnMsgHandler::updateZoomFactor()
 {
-    snv->txtBrowser->page()->setZoomFactor(zoomFactor);
+    snv->txtBrowser->page()->setZoomFactor(m_zoomFactor);
 }
 
 void CSnMsgHandler::activateFocusDelay()
 {
-    focusTimer->start();
+    m_focusTimer->start();
 }
 
 void CSnMsgHandler::searchFwd()
@@ -98,7 +98,7 @@ void CSnMsgHandler::setZoom(const QString& z)
     s.remove(QRegExp(QStringLiteral("[^0-9]")));
     int i = s.toInt(&okconv);
     if (okconv)
-        zoomFactor = static_cast<double>(i)/100.0;
+        m_zoomFactor = static_cast<double>(i)/100.0;
     updateZoomFactor();
 }
 
@@ -110,7 +110,7 @@ void CSnMsgHandler::navByClick()
 
 void CSnMsgHandler::tranEngine(int index)
 {
-    if (!lockTranEngine.tryLock()) return;
+    if (!m_lockTranEngine.tryLock()) return;
 
     QVariant v = snv->comboTranEngine->itemData(index);
     bool ok;
@@ -121,23 +121,23 @@ void CSnMsgHandler::tranEngine(int index)
             gSet->settings.setTranslationEngine(e);
     }
 
-    lockTranEngine.unlock();
+    m_lockTranEngine.unlock();
 }
 
 void CSnMsgHandler::updateTranEngine()
 {
-    if (!lockTranEngine.tryLock()) return;
+    if (!m_lockTranEngine.tryLock()) return;
 
     int idx = snv->comboTranEngine->findData(gSet->settings.translatorEngine);
     if (idx>=0)
         snv->comboTranEngine->setCurrentIndex(idx);
 
-    lockTranEngine.unlock();
+    m_lockTranEngine.unlock();
 }
 
 void CSnMsgHandler::hideBarLoading()
 {
-    loadingBarHideTimer->start();
+    m_loadingBarHideTimer->start();
 }
 
 void CSnMsgHandler::urlEditSetFocus()

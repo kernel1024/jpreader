@@ -46,8 +46,6 @@ extern "C" {
 #include <zlib.h>
 }
 
-const auto sPageSeparator = "##JPREADER_NEWPAGE##";
-
 #ifdef WITH_POPPLER
 
 #include <poppler-config.h>
@@ -146,25 +144,27 @@ static void popplerError(void *data, ErrorCategory category, Goffset pos, const 
 #endif // WITH_POPPLER
 
 CPDFWorker::CPDFWorker(QObject *parent)
-    : QObject(parent)
+    : QObject(parent), m_pageSeparator(QStringLiteral("##JPREADER_NEWPAGE##"))
 {
 
 }
 
 void CPDFWorker::outputToString(void *stream, const char *text, int len)
 {
-    const static QString vertForm = "\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
-                                    "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
-                                    "\uFE46\uFE47\uFE48\u22EE"
-                                    "\uFE10\uFE11\uFE12\uFE13\uFE14\uFE15\uFE16\uFE17\uFE18\uFE19";
+    static const QString vertForm
+            = QStringLiteral("\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
+                             "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
+                             "\uFE46\uFE47\uFE48\u22EE"
+                             "\uFE10\uFE11\uFE12\uFE13\uFE14\uFE15\uFE16\uFE17\uFE18\uFE19");
     // ︰ ︱ ︲ ︳ ︴ ︵ ︶ ︷ ︸ ︹ ︺
     // ︻ ︼ ︽ ︾ ︿ ﹀ ﹁ ﹂ ﹃ ﹄ ﹅
     // ﹆ ﹇ ﹈ ⋮
     // ︐ ︑ ︒ ︓ ︔ ︕ ︖ ︗ ︘ ︙
-    const static QString vertFormTr = "\u2025\u2014\u2013\u005F\uFE4F\uFF08\uFF09\uFF5B\uFF5D\u3014\u3015"
-                                      "\u3010\u3011\u300A\u300B\u3008\u3009\u300C\u300D\u300E\u300F\u3002"
-                                      "\u3002\uFF3B\uFF3D\u2026"
-                                      "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026";
+    static const QString vertFormTr =
+            QStringLiteral("\u2025\u2014\u2013\u005F\uFE4F\uFF08\uFF09\uFF5B\uFF5D\u3014\u3015"
+                           "\u3010\u3011\u300A\u300B\u3008\u3009\u300C\u300D\u300E\u300F\u3002"
+                           "\u3002\uFF3B\uFF3D\u2026"
+                           "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026");
 
     if (stream==nullptr) return;
     auto worker = reinterpret_cast<CPDFWorker *>(stream);
@@ -182,7 +182,7 @@ void CPDFWorker::outputToString(void *stream, const char *text, int len)
     if (tx.length()==1 && (tx.at(0).isLetter() || tx.at(0).isPunct() || tx.at(0).isSymbol())) {
         worker->m_prevblock = true;
     } else {
-        if (!worker->m_prevblock) worker->m_text.append("\n");
+        if (!worker->m_prevblock) worker->m_text.append('\n');
         worker->m_prevblock = false;
     }
 }
@@ -234,7 +234,7 @@ QString CPDFWorker::formatPdfText(const QString& text)
     s.remove('\n');
 
     // replace page separators
-    s = s.replace('\f',QStringLiteral("</p>%1<p>").arg(sPageSeparator));
+    s = s.replace('\f',QStringLiteral("</p>%1<p>").arg(m_pageSeparator));
 
     s = QStringLiteral("<p>") + s + QStringLiteral("</p>");
 
@@ -378,7 +378,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     }
 
     // write HTML header
-    result.append("<html><head>\n");
+    result.append(QStringLiteral("<html><head>\n"));
     info = doc->getDocInfo();
     if (info.isDict()) {
         Object obj;
@@ -504,7 +504,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     }
 
     m_text = formatPdfText(m_text);
-    QStringList sltext = m_text.split(sPageSeparator);
+    QStringList sltext = m_text.split(m_pageSeparator);
     m_text.clear();
     int idx = 1;
     while (!sltext.isEmpty()) {

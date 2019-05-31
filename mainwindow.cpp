@@ -186,7 +186,7 @@ void CMainWindow::closeStartPage()
     for (int i=0;i<tabMain->count();i++) {
         auto sn = qobject_cast<CSnippetViewer *>(tabMain->widget(i));
         if (sn==nullptr) continue;
-        if (!sn->isStartPage) continue;
+        if (!sn->isStartPage()) continue;
         pt = sn;
         break;
     }
@@ -211,7 +211,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
     if (sv) {
         t = new CSpecToolTipLabel(sv->tabTitle());
 
-        QPixmap pix = sv->pageImage;
+        QPixmap pix = sv->pageImage();
         bool fillRect = false;
         if (pix.isNull()) {
             pix = QPixmap(tooltipPreviewSize);
@@ -320,7 +320,7 @@ void CMainWindow::save()
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sv==nullptr) return;
 
-    sv->ctxHandler->saveToFile();
+    sv->save();
 }
 
 void CMainWindow::splitterMoved(int pos, int index)
@@ -400,24 +400,16 @@ void CMainWindow::tabChanged(int idx)
 {
     lastTabIdx=idx;
 
-    tabMain->tabBar()->setTabTextColor(idx,QApplication::palette(tabMain->tabBar()).windowText().color());
-    if (tabMain->widget(idx)) {
+    if (tabMain->widget(idx)!=nullptr) {
         auto sn = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
-        if (sn!=nullptr) {
-            sn->translationBkgdFinished=false;
-            sn->loadingBkgdFinished=false;
-            sn->txtBrowser->setFocus(Qt::OtherFocusReason);
-            sn->takeScreenshot();
-        }
+        bool isSnippetViewer = (sn!=nullptr);
+        actionAddBM->setEnabled(isSnippetViewer);
+        if (isSnippetViewer)
+            sn->tabAcquiresFocus();
     }
 
     updateTitle();
     updateHelperList();
-
-    if (tabMain->currentWidget()) {
-        auto bt = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-        actionAddBM->setEnabled(bt!=nullptr);
-    }
 }
 
 CSnippetViewer* CMainWindow::getOpenedInspectorTab()
@@ -467,10 +459,10 @@ void CMainWindow::updateHelperList()
                     it->setStatusTip(sv->getUrl().toString());
                     it->setToolTip(sv->getUrl().toString());
 
-                    if (sv->translationBkgdFinished) {
+                    if (sv->isTranslationBkgdFinished()) {
                         it->setForeground(QBrush(Qt::green));
 
-                    } else if (sv->loadingBkgdFinished) {
+                    } else if (sv->isLoadingBkgdFinished()) {
                         it->setForeground(QBrush(Qt::blue));
 
                     } else {
@@ -709,7 +701,7 @@ void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(getClipboardContent(true));
     url.setFragment(QString());
-    QString uri = url.toString().remove(QRegExp("#$"));
+    QString uri = url.toString().remove(QRegExp(QStringLiteral("#$")));
     if (uri.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
@@ -849,7 +841,7 @@ void CMainWindow::forceCharset()
     if (!cs.isEmpty()) {
         QTextCodec* codec = QTextCodec::codecForName(cs.toLatin1().data());
         if (codec!=nullptr)
-            cs = codec->name();
+            cs = QString::fromUtf8(codec->name());
 
         gSet->settings.charsetHistory.removeAll(cs);
         gSet->settings.charsetHistory.prepend(cs);
@@ -887,7 +879,7 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    QVector<QStringList> cList = encodingsByScript();
+    const QVector<QStringList> &cList = encodingsByScript();
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
@@ -896,7 +888,7 @@ void CMainWindow::reloadCharsetList()
                 qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));
                 continue;
             }
-            QString cname = codec->name();
+            QString cname = QString::fromUtf8(codec->name());
             act = midx->addAction(cname,this,&CMainWindow::forceCharset);
             act->setData(cname);
             codec = QTextCodec::codecForName(cname.toLatin1().data());
@@ -927,7 +919,7 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
     const int fullscreenToolsShowMargin = 20;
 
-    QString cln(obj->metaObject()->className());
+    QString cln = QString::fromLatin1(obj->metaObject()->className());
     if (fullScreen && cln.contains(QStringLiteral("WebEngine"),Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
             auto mev = dynamic_cast<QMouseEvent *>(ev);

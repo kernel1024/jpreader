@@ -24,7 +24,7 @@ void CRecollSearch::recollReadyRead()
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
-    QRegExp rxname("[a-z]+");
+    QRegExp rxname(QStringLiteral("[a-z]+"));
 
     for(int i=0;i<outList.count();i++) {
         QString s = outList.at(i).trimmed();

@@ -15,6 +15,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     CSpecTabContainer(parent),
     ui(new Ui::SearchTab)
 {
+    const int searchCompleterMaxVisibleItemsFrac = 70;
+
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
@@ -80,7 +82,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->buttonOpen->setIcon(QIcon::fromTheme(QStringLiteral("document-open")));
     ui->buttonDir->setIcon(QIcon::fromTheme(QStringLiteral("folder-sync")));
 
-    int mv = (70*parentWnd()->height())/(ui->editSearch->fontMetrics().height()*100);
+    int mv = (searchCompleterMaxVisibleItemsFrac*parentWnd()->height()) /
+             (ui->editSearch->fontMetrics().height()*100);
     ui->editSearch->setMaxVisibleItems(mv);
     updateQueryHistory();
 
@@ -255,15 +258,15 @@ void CSearchTab::snippetMenu(const QPoint &pos)
     QMenu cm(this);
 
     if (fi.isFile() && fi.exists()) {
-        cm.addAction(QIcon::fromTheme("fork"),tr("Open with default DE action"),[fi](){
+        cm.addAction(QIcon::fromTheme(QStringLiteral("fork")),tr("Open with default DE action"),[fi](){
             QDesktopServices::openUrl(QUrl::fromLocalFile(fi.filePath()));
         });
-        cm.addAction(QIcon::fromTheme("document-open-folder"),tr("Open containing directory"),[fi](){
+        cm.addAction(QIcon::fromTheme(QStringLiteral("document-open-folder")),tr("Open containing directory"),[fi](){
             QDesktopServices::openUrl(QUrl::fromLocalFile(fi.path()));
         });
         cm.addSeparator();
     }
-    cm.addAction(QIcon::fromTheme("document-properties"),tr("Show indexer data..."),[this,sh](){
+    cm.addAction(QIcon::fromTheme(QStringLiteral("document-properties")),tr("Show indexer data..."),[this,sh](){
         QDialog *dlg = new QDialog(this);
         Ui::HashViewerDialog ui;
         ui.setupUi(dlg);
@@ -569,16 +572,17 @@ QStringList CSearchTab::splitQuery(const QString &aQuery) {
                 qmark=false;
                 res << tmp.trimmed();
                 i=0;
-            } else
+            } else {
                 qmark=true;
-        }
-        if ((i>0) && (!qmark))
-            if ((sltx[i]==' ') && (sltx[i-1]!=' ')) {
-                tmp=sltx.mid(0,i);
-                sltx.remove(0,i+1);
-                res << tmp.trimmed();
-                i=0;
             }
+        }
+        if ((i>0) && (!qmark) &&
+                (sltx[i]==' ') && (sltx[i-1]!=' ')) {
+            tmp=sltx.mid(0,i);
+            sltx.remove(0,i+1);
+            res << tmp.trimmed();
+            i=0;
+        }
         i++;
         if (i>=sltx.length()) {
             if (sltx.trimmed().length()>0)

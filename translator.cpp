@@ -227,11 +227,15 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     QApplication::processEvents();
 
-    static const QStringList skipTags { "style", "title" };
-    static const QStringList unhide_classes { "novel-text-wrapper", "novel-pages", "novel-page" };
-    static const QStringList denyTags { "script", "noscript", "object", "iframe" };
-    static const QStringList denyDivs { "sh_fc2blogheadbar", "fc2_bottom_bnr", "global-header" };
-    const QStringList acceptedExt = getSupportedImageExtensions();
+    static const QStringList skipTags { QStringLiteral("style"), QStringLiteral("title") };
+    static const QStringList unhide_classes { QStringLiteral("novel-text-wrapper"),
+                QStringLiteral("novel-pages"), QStringLiteral("novel-page") };
+    static const QStringList denyTags { QStringLiteral("script"), QStringLiteral("noscript"),
+                QStringLiteral("object"), QStringLiteral("iframe") };
+    static const QStringList denyDivs { QStringLiteral("sh_fc2blogheadbar"),
+                QStringLiteral("fc2_bottom_bnr"), QStringLiteral("global-header") };
+
+    const QStringList &acceptedExt = getSupportedImageExtensions();
 
     QVector<CHTMLNode> subnodes;
 
@@ -446,6 +450,10 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     QStringList srctls;
     srctls.clear();
 
+    const QChar questionMark('?');
+    const QChar fullwidthQuestionMark(0xff1f);
+    const int progressUpdateFrac = 5;
+
     for(int i=0;i<sl.count();i++) {
         abortMutex.lock();
         if (abortFlag) {
@@ -460,9 +468,9 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
         } else {
             QString srct = sl.at(i);
 
-            if (srct.trimmed().isEmpty())
+            if (srct.trimmed().isEmpty()) {
                 sout += QStringLiteral("\n");
-            else {
+            } else {
                 QString t = QString();
 
                 QString ttest = srct;
@@ -485,26 +493,30 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                                 tacc += sc;
                             if (!sc.isLetter() || (j==(srct.length()-1))) {
                                 if (!tacc.isEmpty()) {
-                                    if (sc.isLetter())
+                                    if (sc.isLetter()) {
                                         t += tran->tranString(tacc);
-                                    else {
-                                        if (sc=='?' || sc==QChar(0xff1f)) {
+                                    } else {
+                                        if (sc==questionMark || sc==fullwidthQuestionMark) {
                                             tacc += sc;
                                             t += tran->tranString(tacc);
-                                        } else
+                                        } else {
                                             t += tran->tranString(tacc) + sc;
+                                        }
                                     }
                                     tacc.clear();
-                                } else
+                                } else {
                                     t += sc;
+                                }
                             }
                             if (!tran->getErrorMsg().isEmpty())
                                 break;
                         }
-                    } else
+                    } else {
                         t = tran->tranString(srct);
-                } else
+                    }
+                } else {
                     t = srct;
+                }
 
                 if (translationMode==tmTooltip) {
                     QString ts = srct;
@@ -524,25 +536,27 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
                 if (useOverrideFont || forceFontColor) {
                     QString dstyle;
-                    if (useOverrideFont)
+                    if (useOverrideFont) {
                         dstyle+=QStringLiteral("font-family: %1; font-size: %2pt;").arg(
                                     overrideFont.family()).arg(
                                     overrideFont.pointSize());
+                    }
                     if (forceFontColor)
                         dstyle+=QStringLiteral("color: %1;").arg(forcedFontColor.name());
 
                     sout += QStringLiteral("<span style=\"%1\">%2</span>").arg(dstyle,t);
-                } else
+                } else {
                     sout += t;
+                }
 
-                if (translationMode==tmAdditive)
+                if (translationMode==tmAdditive) {
                     sout += QStringLiteral("<br/>\n");
-                else
+                } else {
                     srctls << srct;
-
+                }
             }
 
-            if (textNodesCnt>0 && i%5==0) {
+            if (textNodesCnt > 0 && (i % progressUpdateFrac == 0)) {
                 int pr = 100*textNodesProgress/textNodesCnt;
                 Q_EMIT setProgress(pr);
             }
@@ -551,11 +565,12 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     }
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
-        if (!srctls.isEmpty() && ((translationMode==tmOverwriting) || (translationMode==tmTooltip)))
+        if (!srctls.isEmpty() && ((translationMode==tmOverwriting) || (translationMode==tmTooltip))) {
             src.text = QStringLiteral("<span title=\"%1\">%2</span>")
                        .arg(srctls.join('\n').replace('"','\''),sout);
-        else
+        } else {
             src.text = sout;
+        }
     }
 
     return !failure;
@@ -624,10 +639,11 @@ void CTranslator::translate()
                     oktrans = true;
                     break;
                 }
-                if (tran)
+                if (tran) {
                     lastError = tran->getErrorMsg();
-                else
+                } else {
                     lastError = tr("ATLAS translator failed.");
+                }
                 if (tran)
                     tran->doneTran(true);
                 QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
@@ -656,6 +672,7 @@ void CTranslator::translate()
             return;
         }
     }
+
     Q_EMIT calcFinished(true,aUrl,QString());
     deleteLater();
 }
@@ -663,9 +680,11 @@ void CTranslator::translate()
 void CTranslator::abortTranslator()
 {
     // Intermediate timer, because sometimes webengine throws segfault from its insides on widget resize event
+    const int abortTimerDelay = 500;
+
     auto imt = new QTimer(this);
     imt->setSingleShot(true);
-    imt->setInterval(500);
+    imt->setInterval(abortTimerDelay);
     connect(imt,&QTimer::timeout,this,[this,imt](){
         abortMutex.lock();
         abortFlag=true;
@@ -681,10 +700,11 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reforma
         html.append(QStringLiteral("<")+src.tagName);
         for (const QString &key : qAsConst(src.attributesOrder)) {
             const QString val = src.attributes.value(key);
-            if (!val.contains('"'))
+            if (!val.contains('"')) {
                 html.append(QStringLiteral(" %1=\"%2\"").arg(key,val));
-            else
+            } else {
                 html.append(QStringLiteral(" %1='%2'").arg(key,val));
+            }
         }
         html.append(QStringLiteral(">"));
     } else {
@@ -694,8 +714,9 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reforma
             if ((txt.count(QStringLiteral("<!--"))>1) || (txt.count(QStringLiteral("-->"))>1))
                 txt.clear();
             if ((txt.count(QStringLiteral("<"))>1 || txt.count(QStringLiteral(">"))>1)
-                    && (txt.count(QStringLiteral("<"))!=txt.count(QStringLiteral(">"))))
+                    && (txt.count(QStringLiteral("<"))!=txt.count(QStringLiteral(">")))) {
                 txt.clear();
+            }
         }
         html.append(txt);
     }

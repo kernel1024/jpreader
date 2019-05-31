@@ -14,11 +14,11 @@ class CSnMsgHandler : public QObject
 {
     Q_OBJECT
 private:
-    QMutex lockTranEngine;
     CSnippetViewer *snv;
-    qreal zoomFactor;
-    QTimer *loadingBarHideTimer;
-    QTimer *focusTimer;
+    QMutex m_lockTranEngine;
+    qreal m_zoomFactor;
+    QTimer *m_loadingBarHideTimer;
+    QTimer *m_focusTimer;
 
 public:
     explicit CSnMsgHandler(CSnippetViewer * parent);

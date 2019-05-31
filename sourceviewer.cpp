@@ -13,22 +13,24 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CSourceViewer)
 {
+    const QPoint windowOffset(50,50);
+    const int windowWidthFrac = 80;
+    const int windowHeightFrac = 80;
+    const int urlElidingCharacterWidth = 90;
+
     ui->setupUi(this);
 
-    move(origin->mapToGlobal(origin->pos())+QPoint(50,50));
-    resize(5*origin->width()/6,5*origin->height()/6);
+    move(origin->mapToGlobal(origin->pos()) + windowOffset);
+    resize(windowWidthFrac*origin->width()/100,
+           windowHeightFrac*origin->height()/100);
 
     setWindowTitle(tr("Source - %1").arg(origin->getDocTitle()));
     ui->labelTitle->setText(origin->getDocTitle());
+
     QString url = origin->getUrl().toString();
     if (url.startsWith(QStringLiteral("data")))
         url = QStringLiteral("data-url (RFC 2397)");
-    if (url.length()>90) {
-        const QString bUrl = url;
-        url.truncate(80);
-        url.append(QStringLiteral("..."));
-        url.append(bUrl.rightRef(10));
-    }
+    url = elideString(url,urlElidingCharacterWidth,Qt::ElideMiddle);
     ui->labelUrl->setText(url);
 
     origin->txtBrowser->page()->toHtml([this](const QString& html) {
@@ -56,7 +58,8 @@ void CSourceViewer::updateSource(const QString &src)
 {
 #ifdef WITH_SRCHILITE
     srchilite::SourceHighlight sourceHighlight;
-    std::stringstream sin, sout;
+    std::stringstream sin;
+    std::stringstream sout;
     sin << reformatSource(src).toStdString();
     sourceHighlight.highlight(sin, sout, "html.lang");
 

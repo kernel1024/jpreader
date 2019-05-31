@@ -16,10 +16,9 @@ class CSnCtxHandler : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-    QTimer *menuActive;
+    QTimer *m_menuActive;
 public:
     explicit CSnCtxHandler(CSnippetViewer *parent);
-    void contextMenu(QPoint pos, const QWebEngineContextMenuData &data);
     void reconfigureDefaultActions();
     bool isMenuTimerActive();
 public Q_SLOTS:
@@ -29,6 +28,7 @@ public Q_SLOTS:
     void showInEditor();
     void showSource();
     void runJavaScript();
+    void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
 Q_SIGNALS:
     void startTranslation(bool deleteAfter);
     void hideTooltips();

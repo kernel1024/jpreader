@@ -15,6 +15,7 @@ public:
 
 private:
     QString m_text;
+    QString m_pageSeparator;
     CIntList m_outLengths;
     bool m_prevblock { false };
 

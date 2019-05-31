@@ -92,7 +92,7 @@ bool CLangPair::isValid() const
 
 bool CLangPair::isAtlasAcceptable() const
 {
-    static const QStringList validLangs({"en", "ja"});
+    static const QStringList validLangs({ QStringLiteral("en"), QStringLiteral("ja") });
     return (isValid() &&
             validLangs.contains(langFrom.bcp47Name()) &&
             validLangs.contains(langTo.bcp47Name()));
