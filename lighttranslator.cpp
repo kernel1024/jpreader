@@ -1,4 +1,5 @@
 #include <QMessageBox>
+#include <QThread>
 #include "lighttranslator.h"
 #include "ui_lighttranslator.h"
 #include "globalcontrol.h"
@@ -88,14 +89,14 @@ void CLightTranslator::appendSourceText(const QString &text)
 
 void CLightTranslator::reloadLanguageList()
 {
-    for (const CLangPair& pair : qAsConst(gSet->settings.translatorPairs)) {
+    for (const CLangPair& pair : qAsConst(gSet->settings()->translatorPairs)) {
         ui->comboLanguage->addItem(QStringLiteral("%1 - %2").arg(
                                       gSet->getLanguageName(pair.langFrom.bcp47Name()),
                                       gSet->getLanguageName(pair.langTo.bcp47Name())),
                                    pair.getHash());
     }
-    if (gSet->ui.languageSelector->checkedAction()) {
-        QString selectedHash = gSet->ui.languageSelector->checkedAction()->data().toString();
+    if (gSet->ui()->languageSelector->checkedAction()) {
+        QString selectedHash = gSet->ui()->languageSelector->checkedAction()->data().toString();
         int idx = ui->comboLanguage->findData(selectedHash);
         if (idx>=0)
             ui->comboLanguage->setCurrentIndex(idx);

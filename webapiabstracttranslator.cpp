@@ -1,6 +1,7 @@
 #include <QNetworkReply>
 #include <QEventLoop>
 #include <QTimer>
+#include <QNetworkCookie>
 #include "webapiabstracttranslator.h"
 
 const int maxTranslationStringLength = 5000;
@@ -82,10 +83,10 @@ void CWebAPIAbstractTranslator::initNAM()
     }
 
     auto cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
-    auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetManager->cookieJar());
+    auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
     cj->initAllCookies(mj->getAllCookies());
 
-    if (gSet->settings.proxyUseTranslator) {
+    if (gSet->settings()->proxyUseTranslator) {
         m_nam->setProxy(QNetworkProxy::DefaultProxy);
     } else {
         m_nam->setProxy(QNetworkProxy::NoProxy);

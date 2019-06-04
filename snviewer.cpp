@@ -4,12 +4,15 @@
 #include <QTimer>
 #include <QWebEngineSettings>
 #include <QWebEngineHistory>
+#include <QWebEngineProfile>
+#include <QWebEnginePage>
 #include <QCompleter>
 #include <QUrlQuery>
 #include <QDrag>
 #include <QMimeData>
 #include <QPrinter>
 #include <QPageSetupDialog>
+#include <QAuthenticator>
 
 #include <cmath>
 #include "snviewer.h"
@@ -109,13 +112,13 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
          end = translationEngines().constKeyValueEnd(); it != end; ++it) {
         comboTranEngine->addItem((*it).second,(*it).first);
     }
-    int idx = comboTranEngine->findData(gSet->settings.translatorEngine);
+    int idx = comboTranEngine->findData(gSet->settings()->translatorEngine);
     if (idx>=0)
         comboTranEngine->setCurrentIndex(idx);
 
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
             msgHandler, &CSnMsgHandler::tranEngine);
-    connect(&(gSet->settings), &CSettings::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
+    connect(gSet, &CGlobalControl::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
@@ -219,8 +222,7 @@ void CSnippetViewer::navByUrl(const QString& url)
             = { QStringLiteral("gdlookup"), QStringLiteral("about"), QStringLiteral("chrome") };
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
-            && (!u.isValid() || !url.contains('.'))
-            && !gSet->ctxSearchEngines.isEmpty()) {
+            && (!u.isValid() || !url.contains('.'))) {
         u = gSet->createSearchUrl(url);
     }
 
@@ -348,10 +350,10 @@ void CSnippetViewer::printToPDF()
     if (dlg.exec() != QDialog::Accepted)
         return;
 
-    QString fname = getSaveFileNameD(this,tr("Save to PDF"),gSet->settings.savedAuxSaveDir,
+    QString fname = getSaveFileNameD(this,tr("Save to PDF"),gSet->settings()->savedAuxSaveDir,
                                                  tr("PDF file (*.pdf)"));
     if (fname.isEmpty()) return;
-    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
     txtBrowser->page()->printToPdf(fname, printer.pageLayout());
 }
@@ -395,18 +397,18 @@ void CSnippetViewer::updateWebViewAttributes()
 {
     txtBrowser->settings()->setAttribute(
                 QWebEngineSettings::AutoLoadImages,
-                gSet->webProfile->settings()->testAttribute(
+                gSet->webProfile()->settings()->testAttribute(
                     QWebEngineSettings::AutoLoadImages));
 
-    if (gSet->settings.overrideStdFonts) {
+    if (gSet->settings()->overrideStdFonts) {
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::StandardFont,
-                                              gSet->settings.fontStandard);
+                                              gSet->settings()->fontStandard);
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::FixedFont,
-                                              gSet->settings.fontFixed);
+                                              gSet->settings()->fontFixed);
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::SerifFont,
-                                              gSet->settings.fontSerif);
+                                              gSet->settings()->fontSerif);
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,
-                                              gSet->settings.fontSansSerif);
+                                              gSet->settings()->fontSansSerif);
     }
 }
 

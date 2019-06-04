@@ -66,7 +66,6 @@ public Q_SLOTS:
     void createFromClipboardPlain();
     void clearClipboard();
     void openFromClipboard();
-    void forceCharset();
     void createSearch();
     void createStartBrowser();
     void activateTab();

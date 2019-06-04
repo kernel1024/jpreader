@@ -5,6 +5,7 @@
 #include <QMessageLogger>
 #include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
+#include <QWebEngineProfile>
 #include <QWebEngineCertificateError>
 #include <vector>
 #include <goldendictlib/goldendictmgr.hh>
@@ -231,7 +232,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     m_tabWidget=tabs;
     if (m_tabWidget==nullptr) return;
     int i = m_tabWidget->addTab(this,m_tabTitle);
-    if (gSet->settings.showTabCloseButtons) {
+    if (gSet->settings()->showTabCloseButtons) {
         QPushButton* b = new QPushButton(QIcon::fromTheme(QStringLiteral("dialog-close")),QString());
         b->setFlat(true);
         int sz = m_tabWidget->tabBar()->fontMetrics().height();
@@ -259,7 +260,7 @@ void CSpecTabContainer::setTabTitle(const QString &title)
 
 void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
-    if (!gSet->webProfile->settings()->
+    if (!gSet->webProfile()->settings()->
             testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
     if (m_tabWidget==nullptr) return;
     m_tabWidget->setTabIcon(m_tabWidget->indexOf(this),icon);
@@ -312,7 +313,7 @@ void CSpecTabContainer::detachTab()
  *  Can caught failure with Qt5 openGL backend...
  *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
 
-    CMainWindow* mwnd = gSet->ui.addMainWindowEx(false,false);
+    CMainWindow* mwnd = gSet->addMainWindowEx(false,false);
     m_tabWidget->removeTab(m_tabWidget->indexOf(this));
     m_parentWnd = mwnd;
     setParent(mwnd);
@@ -327,7 +328,7 @@ void CSpecTabContainer::closeTab(bool nowait)
     if (m_tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
 
     if (!nowait) {
-        if (gSet->blockTabCloseActive) return;
+        if (gSet->isBlockTabCloseActive()) return;
         gSet->blockTabClose();
     }
     if (m_tabWidget) {
@@ -351,7 +352,7 @@ CSpecWebView::CSpecWebView(QWidget *parent)
     if (parentViewer==nullptr)
         qCritical() << "parentViewer is nullptr";
 
-    m_page = new CSpecWebPage(gSet->webProfile, this);
+    m_page = new CSpecWebPage(gSet->webProfile(), this);
     setPage(m_page);
 }
 
@@ -359,7 +360,7 @@ CSpecWebView::CSpecWebView(CSnippetViewer *parent)
     : QWebEngineView(parent)
 {
     parentViewer = parent;
-    m_page = new CSpecWebPage(gSet->webProfile, this);
+    m_page = new CSpecWebPage(gSet->webProfile(), this);
     setPage(m_page);
 }
 
@@ -400,7 +401,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 {
     Q_EMIT linkClickedExt(url,static_cast<int>(type),isMainFrame);
 
-    if (gSet->settings.debugNetReqLogging) {
+    if (gSet->settings()->debugNetReqLogging) {
         if (isMainFrame) {
             qInfo() << "Net request (main frame):" << url;
         } else {
@@ -448,14 +449,14 @@ bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificat
     qWarning() << "SSL certificate error" << certificateError.error()
                << certificateError.errorDescription() << certificateError.url();
 
-    return gSet->settings.ignoreSSLErrors;
+    return gSet->settings()->ignoreSSLErrors;
 }
 
 void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
                                             const QString &message, int lineNumber,
                                             const QString &sourceID)
 {
-    if (!gSet->settings.jsLogConsole) return;
+    if (!gSet->settings()->jsLogConsole) return;
 
     QByteArray ssrc = sourceID.toUtf8();
     if (ssrc.isEmpty())
@@ -544,7 +545,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 
     // AdBlock
     if (gSet->isUrlBlocked(url,rule)) {
-        if (gSet->settings.debugNetReqLogging) {
+        if (gSet->settings()->debugNetReqLogging) {
             qWarning() << "Net request:" << url << "BLOCKED" <<
                           tr("(rule: '%1')").arg(rule);
         }
@@ -564,7 +565,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 
         if (gSet->isScriptBlocked(url,info.firstPartyUrl())) {
 
-            if (gSet->settings.debugNetReqLogging)
+            if (gSet->settings()->debugNetReqLogging)
                 qWarning() << "Net request:" << url << "BLOCKED by NOSCRIPT";
 
             info.block(true);
@@ -574,7 +575,7 @@ void CSpecUrlInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         }
     }
 
-    if (gSet->settings.debugNetReqLogging)
+    if (gSet->settings()->debugNetReqLogging)
         qInfo() << "Net request:" << url;
 }
 
@@ -590,20 +591,20 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 
     const int maxHistoryLength = 100;
 
-    if (gSet->mainHistory.count()>maxHistoryLength)
+    if (gSet->mainHistory().count()>maxHistoryLength)
         return maxHistoryLength;
 
-    return gSet->mainHistory.count();
+    return gSet->mainHistory().count();
 }
 
 QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
 {
     int idx = index.row();
 
-    if (idx<0 || idx>=gSet->mainHistory.count()) return QVariant();
+    if (idx<0 || idx>=gSet->mainHistory().count()) return QVariant();
 
     if (role==Qt::DisplayRole || role==Qt::EditRole)
-        return gSet->mainHistory.at(idx).url.toString();
+        return gSet->mainHistory().at(idx).url.toString();
 
     return QVariant();
 }
@@ -637,7 +638,7 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
             return rplb;
         }
 
-        sptr<Dictionary::DataRequest> dr = gSet->dictNetMan->getResource(url,mime);
+        sptr<Dictionary::DataRequest> dr = gSet->dictionaryNetworkAccessManager()->getResource(url,mime);
 
         connect(dr.get(), &Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
         QTimer::singleShot(gdDictionaryResponseTimeout,&ev,&CIOEventLoop::timeout);
@@ -705,14 +706,14 @@ CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
 
 void CFaviconLoader::queryStart(bool forceCached)
 {
-    if (gSet->favicons.contains(m_url.host()+m_url.path())) {
-        Q_EMIT gotIcon(gSet->favicons.value(m_url.host()+m_url.path()));
+    if (gSet->favicons().contains(m_url.host()+m_url.path())) {
+        Q_EMIT gotIcon(gSet->favicons().value(m_url.host()+m_url.path()));
         deleteLater();
         return;
     }
 
-    if (gSet->favicons.contains(m_url.host())) {
-        Q_EMIT gotIcon(gSet->favicons.value(m_url.host()));
+    if (gSet->favicons().contains(m_url.host())) {
+        Q_EMIT gotIcon(gSet->favicons().value(m_url.host()));
         deleteLater();
         return;
     }
@@ -730,7 +731,7 @@ void CFaviconLoader::queryStart(bool forceCached)
         }
 
     } else {
-        QNetworkReply* rpl = gSet->auxNetManager->get(QNetworkRequest(m_url));
+        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(m_url));
         connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }
@@ -748,9 +749,9 @@ void CFaviconLoader::queryFinished()
             QString host = rpl->url().host();
             QString path = rpl->url().path();
             if (!host.isEmpty()) {
-                gSet->favicons[host] = ico;
+                gSet->addFavicon(host,ico);
                 if (!path.isEmpty())
-                    gSet->favicons[host+path] = ico;
+                    gSet->addFavicon(host+path,ico);
             }
         }
     }

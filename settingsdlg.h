@@ -32,14 +32,14 @@ public:
     CLangPairModel(QObject * parent, const CLangPairVector& list, QTableView* table);
     CLangPairVector getLangPairList();
 private:
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex());
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 public Q_SLOTS:
     void addItem();
     void deleteItem();
@@ -49,7 +49,7 @@ class CLangPairDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    CLangPairDelegate(QObject *parent = nullptr);
+    explicit CLangPairDelegate(QObject *parent = nullptr);
 private:
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const override;
@@ -67,83 +67,21 @@ class CSettingsDlg : public QDialog
     Q_OBJECT
 
 public:
-    QLineEdit* hostingUrl;
-    QLineEdit* hostingDir;
-    QSpinBox* maxLimit;
-    QSpinBox* maxHistory;
-    QLineEdit* browser;
-    QLineEdit* editor;
-    QRadioButton* rbGoogle;
-    QRadioButton* rbAtlas;
-    QRadioButton* rbBingAPI;
-    QRadioButton* rbYandexAPI;
-    QRadioButton* rbGoogleGTX;
-    QCheckBox* cbSCP;
-    QLineEdit* scpParams;
-    QComboBox* scpHost;
-    QComboBox* atlHost;
-    QSpinBox* atlPort;
-    QSpinBox* atlRetryCount;
-    QSpinBox* atlRetryTimeout;
-    QLineEdit* atlToken;
-    QComboBox* atlSSLProto;
-    QSpinBox* maxRecycled;
-    QCheckBox* useJS;
-    QCheckBox* useAd;
-    QCheckBox* useNoScript;
-    QCheckBox* useOverrideFont;
-    QSpinBox* fontOverrideSize;
-    QFontComboBox* fontOverride;
-    QCheckBox* autoloadImages;
-    QCheckBox* overrideStdFonts;
-    QFontComboBox *fontStandard, *fontFixed, *fontSerif, *fontSansSerif;
-    QCheckBox *overrideFontColor;
-    QKeySequenceEdit *gctxHotkey;
-    QRadioButton* searchRecoll;
-    QRadioButton* searchNone;
-    QRadioButton* searchBaloo5;
-    QCheckBox* debugLogNetReq;
-    QCheckBox* debugDumpHtml;
-    QCheckBox* visualShowTabCloseButtons;
-    QLineEdit *proxyHost, *proxyLogin, *proxyPassword;
-    QSpinBox* proxyPort;
-    QCheckBox* proxyUse;
-    QComboBox* proxyType;
-    QCheckBox* proxyUseTranslator;
-    QCheckBox* emptyRestore;
-    QLineEdit* bingKey;
-    QLineEdit* yandexKey;
-    QCheckBox* createCoredumps;
-    QCheckBox* overrideUserAgent;
-    QComboBox* userAgent;
-    QListWidget* dictPaths;
-    QCheckBox* ignoreSSLErrors;
-    QCheckBox* visualShowFavicons;
-    QCheckBox* enablePlugins;
-    QSpinBox* cacheSize;
-    QCheckBox* jsLogConsole;
-    QSpinBox* maxRecent;
-    QCheckBox* dontUseNativeFileDialogs;
-    QSpinBox* adblockMaxWhiteListItems;
-    QCheckBox *pdfExtractImages;
-    QSpinBox *pdfImageQuality;
-    QSpinBox *pdfImageMaxSize;
-    QCheckBox* pixivNovelExtractor;
-
-    QStringList loadedDicts;
-
     explicit CSettingsDlg(QWidget *parent = nullptr);
-    virtual ~CSettingsDlg();
+    ~CSettingsDlg() override;
 
 private:
     Ui::SettingsDlg *ui;
-    QColor overridedFontColor;
+    QColor overridedFontColor { Qt::black };
+    int adblockSearchIdx { 0 };
     QList<QNetworkCookie> cookiesList;
     QVector<CAdBlockRule> adblockList;
     CLangPairModel *transModel;
-    int adblockSearchIdx;
+    QStringList loadedDicts;
 
-    void resizeEvent(QResizeEvent *event);
+    Q_DISABLE_COPY(CSettingsDlg)
+
+    void resizeEvent(QResizeEvent *event) override;
 
     void updateCookiesTable();
     QList<int> getSelectedRows(QTableWidget* table) const;
@@ -169,6 +107,9 @@ public:
     CStringSet getNoScriptWhitelist();
 
 public Q_SLOTS:
+    void loadFromGlobal();
+    void saveToGlobal(QStringList &dictPaths);
+
     void selectDir();
     void selectBrowser();
     void selectEditor();

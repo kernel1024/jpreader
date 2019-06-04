@@ -4,6 +4,7 @@
 #include <QRegExp>
 #include <QVariant>
 #include <QUrlQuery>
+#include <QNetworkReply>
 
 #include "googlegtxtranslator.h"
 
@@ -30,7 +31,7 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     rqData.addQueryItem(QStringLiteral("sl"),language().langFrom.bcp47Name());
     rqData.addQueryItem(QStringLiteral("tl"),language().langTo.bcp47Name());
     rqData.addQueryItem(QStringLiteral("dt"),QStringLiteral("t"));
-    rqData.addQueryItem(QStringLiteral("q"),QUrl::toPercentEncoding(src));
+    rqData.addQueryItem(QStringLiteral("q"),QString::fromUtf8(QUrl::toPercentEncoding(src)));
 
     QNetworkRequest rq(rqurl);
     rq.setHeader(QNetworkRequest::ContentTypeHeader,

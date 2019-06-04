@@ -91,11 +91,11 @@ public:
     QByteArray save() const;
 
     BookmarkNode *bookmarks();
-    BookmarkNode *menu();
+    BookmarkNode *menu() const;
 
     BookmarksModel *bookmarksModel();
 
-    void populateBookmarksMenu(QMenu* menu, CMainWindow *wnd, const BookmarkNode *node = nullptr);
+    void populateBookmarksMenu(QMenu* menu, CMainWindow *wnd, const BookmarkNode *node = nullptr) const;
 
 public Q_SLOTS:
     void importBookmarks();

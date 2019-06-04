@@ -4,19 +4,22 @@
 #include <QWebEngineSettings>
 #include <QNetworkCookieJar>
 #include <QStandardPaths>
-
+#include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
 #include <goldendictlib/goldendictmgr.hh>
 
+#include "logdisplay.h"
+#include "bookmarks.h"
 #include "globalcontrol.h"
 #include "lighttranslator.h"
 #include "auxtranslator.h"
 #include "translator.h"
 #include "genericfuncs.h"
 #include "auxtranslator_adaptor.h"
+#include "browsercontroller.h"
 #include "browsercontroller_adaptor.h"
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
@@ -24,78 +27,65 @@
 #include "pdftotext.h"
 #include "userscript.h"
 #include "structures.h"
+#include "globalprivate.h"
 
-const char IPC_EOF[] = "\n###";
+const auto IPC_EOF = "\n###";
+const int tabListSavePeriod = 30000;
+const int dictionariesLoadingDelay = 1500;
+const int ipcTimeout = 1000;
+const int tabCloseInterlockDelay = 500;
 
 CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
-    QObject(parent)
+    QObject(parent),
+    dptr(new CGlobalControlPrivate(this)),
+    m_settings(new CSettings(this)),
+    m_ui(new CGlobalUI(this))
 {
-    ipcServer = nullptr;
+    Q_D(CGlobalControl);
+
+    d->ipcServer = nullptr;
     if (!setupIPC())
         return;
 
-    inspectorPort = aInspectorPort;
-
-    atlCertErrorInteractive=false;
-
-    blockTabCloseActive=false;
-    adblock.clear();
-    cleaningState=false;
-    createdFiles.clear();
-    recycleBin.clear();
-    mainHistory.clear();
-    searchHistory.clear();
-    favicons.clear();
-    ctxSearchEngines.clear();
-    recentFiles.clear();
-    adblockWhiteList.clear();
-    noScriptWhiteList.clear();
-    pageScriptHosts.clear();
+    d->inspectorPort = aInspectorPort;
 
     initLanguagesList();
 
-    appIcon.addFile(QStringLiteral(":/img/globe16"));
-    appIcon.addFile(QStringLiteral(":/img/globe32"));
-    appIcon.addFile(QStringLiteral(":/img/globe48"));
-    appIcon.addFile(QStringLiteral(":/img/globe128"));
+    d->logWindow = new CLogDisplay();
+    d->downloadManager = new CDownloadManager();
+    d->bookmarksManager = new BookmarksManager(this);
 
-    userScripts.clear();
-    logWindow = new CLogDisplay();
-    downloadManager = new CDownloadManager();
-    bookmarksManager = new BookmarksManager(this);
 
-    atlCerts.clear();
-
-    activeWindow = nullptr;
-    lightTranslator = nullptr;
-    auxDictionary = nullptr;
+    d->activeWindow = nullptr;
+    d->lightTranslator = nullptr;
+    d->auxDictionary = nullptr;
 
     initPdfToText();
 
-    auxTranslatorDBus = new CAuxTranslator(this);
-    browserControllerDBus = new CBrowserController(this);
-    new AuxtranslatorAdaptor(auxTranslatorDBus);
-    new BrowsercontrollerAdaptor(browserControllerDBus);
+    d->auxTranslatorDBus = new CAuxTranslator(this);
+    d->browserControllerDBus = new CBrowserController(this);
+    new AuxtranslatorAdaptor(d->auxTranslatorDBus);
+    new BrowsercontrollerAdaptor(d->browserControllerDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    if (!dbus.registerObject(QStringLiteral("/auxTranslator"),auxTranslatorDBus))
+    if (!dbus.registerObject(QStringLiteral("/auxTranslator"),d->auxTranslatorDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerObject(QStringLiteral("/browserController"),browserControllerDBus))
+    if (!dbus.registerObject(QStringLiteral("/browserController"),d->browserControllerDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerService(DBusName))
+    if (!dbus.registerService(QString::fromLatin1(DBusName)))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
     connect(parent, &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
 
-    connect(ui.actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
+    connect(m_ui->actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
 
-    connect(ui.actionJSUsage,&QAction::toggled,this,[this](bool checked){
-        webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
+    connect(m_ui->actionJSUsage,&QAction::toggled,this,[d](bool checked){
+        d->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
     });
-    connect(ui.actionLogNetRequests,&QAction::toggled,this,[this](bool checked){
-        settings.debugNetReqLogging = checked;
+    connect(m_ui->actionLogNetRequests,&QAction::toggled,this,[this](bool checked){
+        m_settings->debugNetReqLogging = checked;
     });
 
-    webProfile = new QWebEngineProfile(QStringLiteral("jpreader"),this);
+    d->webProfile = new QWebEngineProfile(QStringLiteral("jpreader"),this);
 
     QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
@@ -104,97 +94,101 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
 
     QString fcache = fs + QStringLiteral("cache") + QDir::separator();
-    webProfile->setCachePath(fcache);
+    d->webProfile->setCachePath(fcache);
     QString fdata = fs + QStringLiteral("local_storage") + QDir::separator();
-    webProfile->setPersistentStoragePath(fdata);
+    d->webProfile->setPersistentStoragePath(fdata);
 
-    webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
-    webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+    d->webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+    d->webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
-    webProfile->setSpellCheckEnabled(false);
+    d->webProfile->setSpellCheckEnabled(false);
 
-    webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
-    webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
+    d->webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
+    d->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
 
-    connect(webProfile, &QWebEngineProfile::downloadRequested,
-            downloadManager, &CDownloadManager::handleDownload);
+    connect(d->webProfile, &QWebEngineProfile::downloadRequested,
+            d->downloadManager, &CDownloadManager::handleDownload);
 
-    webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
+    d->webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
 
-    connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
+    connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
             this, &CGlobalControl::cookieAdded);
-    connect(webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
+    connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
             this, &CGlobalControl::cookieRemoved);
-    webProfile->cookieStore()->loadAllCookies();
+    d->webProfile->cookieStore()->loadAllCookies();
 
-    settings.readSettings(this);
+    m_settings->readSettings(this);
 
-    settings.dictIndexDir = fs + QStringLiteral("dictIndex") + QDir::separator();
-    QDir dictIndex(settings.dictIndexDir);
-    if (!dictIndex.exists())
-        if (!dictIndex.mkpath(settings.dictIndexDir)) {
-            qCritical() << "Unable to create directory for dictionary indexes: " << settings.dictIndexDir;
-            settings.dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    m_settings->dictIndexDir = fs + QStringLiteral("dictIndex") + QDir::separator();
+    QDir dictIndex(settings()->dictIndexDir);
+    if (!dictIndex.exists()) {
+        if (!dictIndex.mkpath(settings()->dictIndexDir)) {
+            qCritical() << "Unable to create directory for dictionary indexes: " << settings()->dictIndexDir;
+            m_settings->dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         }
+    }
 
-    dictManager = new CGoldenDictMgr(this);
+    d->dictManager = new CGoldenDictMgr(this);
 
-    connect(dictManager,&CGoldenDictMgr::showStatusBarMessage,this,[this](const QString& msg){
-        if (activeWindow) {
-            if (msg.isEmpty())
-                activeWindow->statusBar()->clearMessage();
-            else
-                activeWindow->statusBar()->showMessage(msg);
+    connect(d->dictManager,&CGoldenDictMgr::showStatusBarMessage,this,[d](const QString& msg){
+        if (d->activeWindow) {
+            if (msg.isEmpty()) {
+                d->activeWindow->statusBar()->clearMessage();
+            } else {
+                d->activeWindow->statusBar()->showMessage(msg);
+            }
         }
     });
-    connect(dictManager,&CGoldenDictMgr::showCriticalMessage,this,[this](const QString& msg){
-        QMessageBox::critical(activeWindow,tr("JPReader"),msg);
+    connect(d->dictManager,&CGoldenDictMgr::showCriticalMessage,this,[d](const QString& msg){
+        QMessageBox::critical(d->activeWindow,tr("JPReader"),msg);
     });
 
-    dictNetMan = new ArticleNetworkAccessManager(this,dictManager);
+    d->dictNetMan = new ArticleNetworkAccessManager(this,d->dictManager);
 
-    auxNetManager = new QNetworkAccessManager(this);
-    auxNetManager->setCookieJar(new CNetworkCookieJar());
+    d->auxNetManager = new QNetworkAccessManager(this);
+    d->auxNetManager->setCookieJar(new CNetworkCookieJar());
 
-    tabsListTimer.setInterval(30000);
-    connect(&tabsListTimer, &QTimer::timeout, &settings, &CSettings::writeTabsList);
-    tabsListTimer.start();
+    d->tabsListTimer.setInterval(tabListSavePeriod);
+    connect(&d->tabsListTimer, &QTimer::timeout, settings(), &CSettings::writeTabsList);
+    d->tabsListTimer.start();
 
-    connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this](const QString& u){
+    connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this,d](const QString& u){
         // append unblocked url to cache
-        adblockWhiteListMutex.lock();
-        adblockWhiteList.append(u);
-        while(adblockWhiteList.count()>settings.maxAdblockWhiteList)
-            adblockWhiteList.removeFirst();
-        adblockWhiteListMutex.unlock();
+        d->adblockWhiteListMutex.lock();
+        d->adblockWhiteList.append(u);
+        while(d->adblockWhiteList.count()>settings()->maxAdblockWhiteList)
+            d->adblockWhiteList.removeFirst();
+        d->adblockWhiteListMutex.unlock();
     },Qt::QueuedConnection);
 
-    connect(this,&CGlobalControl::addNoScriptPageHost,this,[this](const QString& key, const QString& host){
-        noScriptMutex.lock();
-        pageScriptHosts[key].insert(host.toLower());
-        noScriptMutex.unlock();
+    connect(this,&CGlobalControl::addNoScriptPageHost,this,[d](const QString& key, const QString& host){
+        d->noScriptMutex.lock();
+        d->pageScriptHosts[key].insert(host.toLower());
+        d->noScriptMutex.unlock();
     },Qt::QueuedConnection);
 
-    QTimer::singleShot(1500,dictManager,[this](){
-        dictManager->loadDictionaries(settings.dictPaths, settings.dictIndexDir);
+    QTimer::singleShot(dictionariesLoadingDelay,d->dictManager,[this,d](){
+        d->dictManager->loadDictionaries(settings()->dictPaths, settings()->dictIndexDir);
     });
 }
 
 CGlobalControl::~CGlobalControl()
 {
-    webProfile->setParent(nullptr);
-    delete webProfile;
+    Q_D(CGlobalControl);
+    d->webProfile->setParent(nullptr);
+    delete d->webProfile;
     gSet = nullptr;
 }
 
 bool CGlobalControl::setupIPC()
 {
-    QString serverName(IPCName);
+    Q_D(CGlobalControl);
+    QString serverName = QString::fromLatin1(IPCName);
     serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
 
     auto socket = new QLocalSocket();
     socket->connectToServer(serverName);
-    if (socket->waitForConnected(1000)){
+    if (socket->waitForConnected(ipcTimeout)){
         // Connected. Process is already running, send message to it
         if (runnedFromQtCreator()) { // This is debug run, try to close old instance
             // Send close request
@@ -206,7 +200,7 @@ bool CGlobalControl::setupIPC()
             QApplication::processEvents();
             // Check for closing
             socket->connectToServer(serverName);
-            if (socket->waitForConnected(1000)) { // connected, unable to close
+            if (socket->waitForConnected(ipcTimeout)) { // connected, unable to close
                 sendIPCMessage(socket,QStringLiteral("newWindow"));
                 socket->flush();
                 socket->close();
@@ -215,9 +209,9 @@ bool CGlobalControl::setupIPC()
             }
             // Old instance closed, start new one
             QLocalServer::removeServer(serverName);
-            ipcServer = new QLocalServer();
-            ipcServer->listen(serverName);
-            connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
+            d->ipcServer = new QLocalServer();
+            d->ipcServer->listen(serverName);
+            connect(d->ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
         } else {
             sendIPCMessage(socket,QStringLiteral("newWindow"));
             socket->flush();
@@ -228,9 +222,9 @@ bool CGlobalControl::setupIPC()
     } else {
         // New process. Startup server and gSet normally, listen for new instances
         QLocalServer::removeServer(serverName);
-        ipcServer = new QLocalServer();
-        ipcServer->listen(serverName);
-        connect(ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
+        d->ipcServer = new QLocalServer();
+        d->ipcServer->listen(serverName);
+        connect(d->ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
     }
     if (socket->isOpen())
         socket->close();
@@ -242,26 +236,29 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==nullptr) return;
 
-    QString s = QStringLiteral("%1%2").arg(msg,IPC_EOF);
+    QString s = QStringLiteral("%1%2").arg(msg,QString::fromLatin1(IPC_EOF));
     socket->write(s.toUtf8());
 }
 
 void CGlobalControl::cookieAdded(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar())
-        auxNetManager->cookieJar()->insertCookie(cookie);
+    Q_D(CGlobalControl);
+    if (d->auxNetManager->cookieJar())
+        d->auxNetManager->cookieJar()->insertCookie(cookie);
 }
 
 void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
 {
-    if (auxNetManager->cookieJar())
-        auxNetManager->cookieJar()->deleteCookie(cookie);
+    Q_D(CGlobalControl);
+    if (d->auxNetManager->cookieJar())
+        d->auxNetManager->cookieJar()->deleteCookie(cookie);
 }
 
 void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QStringList &errors,
                                       const CIntList &errCodes)
 {
-    if (atlCertErrorInteractive) return;
+    Q_D(CGlobalControl);
+    if (d->atlCertErrorInteractive) return;
 
     QMessageBox mbox;
     mbox.setWindowTitle(tr("JPReader"));
@@ -277,22 +274,24 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     mbox.setDefaultButton(QMessageBox::No);
 
-    atlCertErrorInteractive = true;
+    d->atlCertErrorInteractive = true;
     if (mbox.exec()==QMessageBox::Yes) {
         for (const int errCode : qAsConst(errCodes)) {
-            if (!gSet->atlCerts[cert].contains(errCode))
-                gSet->atlCerts[cert].append(errCode);
+            if (!m_settings->atlCerts[cert].contains(errCode))
+                m_settings->atlCerts[cert].append(errCode);
         }
     }
-    atlCertErrorInteractive = false;
+    d->atlCertErrorInteractive = false;
 }
 
 void CGlobalControl::cleanTmpFiles()
 {
-    for (int i=0; i<createdFiles.count(); i++) {
-        QFile f(createdFiles[i]);
+    Q_D(CGlobalControl);
+    for (const auto & fname : qAsConst(d->createdFiles)) {
+        QFile f(fname);
         f.remove();
     }
+    d->createdFiles.clear();
 }
 
 QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
@@ -305,21 +304,227 @@ QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
     return res;
 }
 
+bool CGlobalControl::isIPCStarted() const
+{
+    Q_D(const CGlobalControl);
+    return (d->ipcServer!=nullptr);
+}
+
+void CGlobalControl::writeSettings()
+{
+    m_settings->writeSettings();
+}
+
+void CGlobalControl::addFavicon(const QString &key, const QIcon &icon)
+{
+    Q_D(CGlobalControl);
+    d->favicons[key] = icon;
+}
+
+void CGlobalControl::setTranslationEngine(TranslationEngine engine)
+{
+    m_settings->translatorEngine = engine;
+}
+
 QUrl CGlobalControl::getInspectorUrl() const
 {
+    Q_D(const CGlobalControl);
     QUrl res;
-    if (inspectorPort<=0 || !qEnvironmentVariableIsSet("QTWEBENGINE_REMOTE_DEBUGGING"))
+    if (d->inspectorPort<=0 || !qEnvironmentVariableIsSet("QTWEBENGINE_REMOTE_DEBUGGING"))
         return res;
 
     res = QUrl::fromUserInput(QString::fromUtf8(qgetenv("QTWEBENGINE_REMOTE_DEBUGGING")));
     return res;
 }
 
+QWebEngineProfile *CGlobalControl::webProfile() const
+{
+    Q_D(const CGlobalControl);
+    return d->webProfile;
+}
+
+QIcon CGlobalControl::appIcon() const
+{
+    Q_D(const CGlobalControl);
+    return d->m_appIcon;
+}
+
+void CGlobalControl::setSavedAuxSaveDir(const QString &dir)
+{
+    m_settings->savedAuxSaveDir = dir;
+}
+
+void CGlobalControl::setSavedAuxDir(const QString &dir)
+{
+    m_settings->savedAuxDir = dir;
+}
+
+CMainWindow* CGlobalControl::addMainWindow()
+{
+     return addMainWindowEx(false, true);
+}
+
+CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, const QVector<QUrl>& viewerUrls)
+{
+    Q_D(CGlobalControl);
+
+    if (gSet==nullptr) return nullptr;
+
+    auto mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
+    connect(mainWindow,&CMainWindow::aboutToClose,
+            gSet,&CGlobalControl::windowDestroyed,Qt::QueuedConnection);
+
+    d->mainWindows.append(mainWindow);
+
+    mainWindow->show();
+
+    mainWindow->menuTools->addAction(m_ui->actionLogNetRequests);
+    mainWindow->menuTools->addSeparator();
+    mainWindow->menuTools->addAction(m_ui->actionGlobalTranslator);
+    mainWindow->menuTools->addAction(m_ui->actionSelectionDictionary);
+    mainWindow->menuTools->addAction(m_ui->actionSnippetAutotranslate);
+    mainWindow->menuTools->addSeparator();
+    mainWindow->menuTools->addAction(m_ui->actionJSUsage);
+
+    mainWindow->menuSettings->addAction(m_ui->actionAutoTranslate);
+    mainWindow->menuSettings->addAction(m_ui->actionOverrideFont);
+    mainWindow->menuSettings->addAction(m_ui->actionOverrideFontColor);
+    mainWindow->menuSettings->addSeparator();
+    mainWindow->menuSettings->addAction(m_ui->actionUseProxy);
+    mainWindow->menuSettings->addAction(m_ui->actionTranslateSubSentences);
+
+    mainWindow->menuTranslationMode->addAction(m_ui->actionTMAdditive);
+    mainWindow->menuTranslationMode->addAction(m_ui->actionTMOverwriting);
+    mainWindow->menuTranslationMode->addAction(m_ui->actionTMTooltip);
+
+    m_settings->checkRestoreLoad(mainWindow);
+
+    connect(this,&CGlobalControl::updateAllBookmarks,mainWindow,&CMainWindow::updateBookmarks);
+    connect(this,&CGlobalControl::updateAllRecentLists,mainWindow,&CMainWindow::updateRecentList);
+    connect(this,&CGlobalControl::updateAllCharsetLists,mainWindow,&CMainWindow::reloadCharsetList);
+    connect(this,&CGlobalControl::updateAllHistoryLists,mainWindow,&CMainWindow::updateHistoryList);
+    connect(this,&CGlobalControl::updateAllQueryLists,mainWindow,&CMainWindow::updateQueryHistory);
+    connect(this,&CGlobalControl::updateAllRecycleBins,mainWindow,&CMainWindow::updateRecycled);
+    connect(this,&CGlobalControl::updateAllLanguagesLists,mainWindow,&CMainWindow::reloadLanguagesList);
+
+    return mainWindow;
+}
+
+void CGlobalControl::settingsDialog()
+{
+    m_settings->settingsDlg();
+}
+
+QRect CGlobalControl::getLastMainWindowGeometry() const
+{
+    Q_D(const CGlobalControl);
+
+    QRect res;
+    if (!d->mainWindows.isEmpty())
+        res = d->mainWindows.constLast()->geometry();
+
+    return res;
+}
+
+QList<QAction *> CGlobalControl::getTranslationLanguagesActions() const
+{
+    return m_ui->languageSelector->actions();
+}
+
+bool CGlobalControl::isBlockTabCloseActive() const
+{
+    Q_D(const CGlobalControl);
+    return d->blockTabCloseActive;
+}
+
+const CSettings* CGlobalControl::settings() const
+{
+    return m_settings.data();
+}
+
+const CGlobalUI *CGlobalControl::ui() const
+{
+    return m_ui.data();
+}
+
+CMainWindow *CGlobalControl::activeWindow() const
+{
+    Q_D(const CGlobalControl);
+    return d->activeWindow;
+}
+
+BookmarksManager *CGlobalControl::bookmarksManager() const
+{
+    Q_D(const CGlobalControl);
+    return d->bookmarksManager;
+}
+
+CDownloadManager *CGlobalControl::downloadManager() const
+{
+    Q_D(const CGlobalControl);
+    return d->downloadManager;
+}
+
+CLogDisplay *CGlobalControl::logWindow() const
+{
+    Q_D(const CGlobalControl);
+    return d->logWindow;
+}
+
+ArticleNetworkAccessManager *CGlobalControl::dictionaryNetworkAccessManager() const
+{
+    Q_D(const CGlobalControl);
+    return d->dictNetMan;
+}
+
+QNetworkAccessManager *CGlobalControl::auxNetworkAccessManager() const
+{
+    Q_D(const CGlobalControl);
+    return d->auxNetManager;
+}
+
+const QHash<QString, QIcon> &CGlobalControl::favicons() const
+{
+    Q_D(const CGlobalControl);
+    return d->favicons;
+}
+
+CGoldenDictMgr *CGlobalControl::dictionaryManager() const
+{
+    Q_D(const CGlobalControl);
+    return d->dictManager;
+}
+
+const CUrlHolderVector &CGlobalControl::recycleBin() const
+{
+    Q_D(const CGlobalControl);
+    return d->recycleBin;
+}
+
+const CUrlHolderVector &CGlobalControl::mainHistory() const
+{
+    Q_D(const CGlobalControl);
+    return d->mainHistory;
+}
+
+const QStringList &CGlobalControl::recentFiles() const
+{
+    Q_D(const CGlobalControl);
+    return d->recentFiles;
+}
+
+const QStringList &CGlobalControl::searchHistory() const
+{
+    Q_D(const CGlobalControl);
+    return d->searchHistory;
+}
+
 void CGlobalControl::blockTabClose()
 {
-    blockTabCloseActive=true;
-    QTimer::singleShot(500,this,[this](){
-        blockTabCloseActive=false;
+    Q_D(CGlobalControl);
+    d->blockTabCloseActive=true;
+    QTimer::singleShot(tabCloseInterlockDelay,this,[d](){
+        d->blockTabCloseActive=false;
     });
 }
 
@@ -330,61 +535,76 @@ void CGlobalControl::showDictionaryWindow()
 
 void CGlobalControl::showDictionaryWindowEx(const QString &text)
 {
-    if (auxDictionary==nullptr) {
-        auxDictionary = new CAuxDictionary();
-        auxDictionary->show();
-        auxDictionary->adjustSplitters();
+    Q_D(CGlobalControl);
+    if (d->auxDictionary==nullptr) {
+        d->auxDictionary = new CAuxDictionary();
+        d->auxDictionary->show();
+        d->auxDictionary->adjustSplitters();
     }
 
-    if (!text.isEmpty())
-        auxDictionary->findWord(text);
-    else
-        auxDictionary->restoreWindow();
+    if (!text.isEmpty()) {
+        d->auxDictionary->findWord(text);
+    } else {
+        d->auxDictionary->restoreWindow();
+    }
 }
 
 void CGlobalControl::appendSearchHistory(const QStringList& req)
 {
+    Q_D(CGlobalControl);
     for(int i=0;i<req.count();i++) {
-        int idx = searchHistory.indexOf(req.at(i));
+        int idx = d->searchHistory.indexOf(req.at(i));
         if (idx>=0)
-            searchHistory.removeAt(idx);
-        searchHistory.insert(0,req.at(i));
+            d->searchHistory.removeAt(idx);
+        d->searchHistory.insert(0,req.at(i));
     }
 }
 
 void CGlobalControl::appendRecycled(const QString& title, const QUrl& url)
 {
-    int idx = recycleBin.indexOf(CUrlHolder(title,url));
-    if (idx>=0)
-        recycleBin.move(idx,0);
-    else
-        recycleBin.prepend(CUrlHolder(title,url));
+    Q_D(CGlobalControl);
+    int idx = d->recycleBin.indexOf(CUrlHolder(title,url));
+    if (idx>=0) {
+        d->recycleBin.move(idx,0);
+    } else {
+        d->recycleBin.prepend(CUrlHolder(title,url));
+    }
 
-    if (recycleBin.count()>settings.maxRecycled) recycleBin.removeLast();
+    if (d->recycleBin.count()>settings()->maxRecycled)
+        d->recycleBin.removeLast();
 
+    Q_EMIT updateAllRecycleBins();
+}
+
+void CGlobalControl::removeRecycledItem(int idx)
+{
+    Q_D(CGlobalControl);
+    d->recycleBin.removeAt(idx);
     Q_EMIT updateAllRecycleBins();
 }
 
 void CGlobalControl::appendMainHistory(const CUrlHolder &item)
 {
+    Q_D(CGlobalControl);
     if (item.url.toString().startsWith(QStringLiteral("data:"),Qt::CaseInsensitive)) return;
 
-    if (mainHistory.contains(item))
-        mainHistory.removeOne(item);
-    mainHistory.prepend(item);
+    if (d->mainHistory.contains(item))
+        d->mainHistory.removeOne(item);
+    d->mainHistory.prepend(item);
 
-    while (mainHistory.count()>settings.maxHistory)
-        mainHistory.removeLast();
+    while (d->mainHistory.count()>settings()->maxHistory)
+        d->mainHistory.removeLast();
 
     Q_EMIT updateAllHistoryLists();
 }
 
 bool CGlobalControl::updateMainHistoryTitle(const CUrlHolder &item, const QString& newTitle)
 {
-    if (mainHistory.contains(item)) {
-        int idx = mainHistory.indexOf(item);
+    Q_D(CGlobalControl);
+    if (d->mainHistory.contains(item)) {
+        int idx = d->mainHistory.indexOf(item);
         if (idx>=0) {
-            mainHistory[idx].title = newTitle;
+            d->mainHistory[idx].title = newTitle;
             Q_EMIT updateAllHistoryLists();
             return true;
         }
@@ -394,34 +614,42 @@ bool CGlobalControl::updateMainHistoryTitle(const CUrlHolder &item, const QStrin
 
 void CGlobalControl::appendRecent(const QString& filename)
 {
+    Q_D(CGlobalControl);
     QFileInfo fi(filename);
     if (!fi.exists()) return;
 
-    if (recentFiles.contains(filename))
-        recentFiles.removeAll(filename);
-    recentFiles.prepend(filename);
+    if (d->recentFiles.contains(filename))
+        d->recentFiles.removeAll(filename);
+    d->recentFiles.prepend(filename);
 
-    while (recentFiles.count()>settings.maxRecent)
-        recentFiles.removeLast();
+    while (d->recentFiles.count()>settings()->maxRecent)
+        d->recentFiles.removeLast();
 
     Q_EMIT updateAllRecentLists();
 }
 
+void CGlobalControl::appendCreatedFiles(const QString &filename)
+{
+    Q_D(CGlobalControl);
+    d->createdFiles.append(filename);
+}
+
 void CGlobalControl::ipcMessageReceived()
 {
-    QLocalSocket *socket = ipcServer->nextPendingConnection();
+    Q_D(CGlobalControl);
+    QLocalSocket *socket = d->ipcServer->nextPendingConnection();
     QByteArray bmsg;
     do {
-        if (!socket->waitForReadyRead(2000)) return;
+        if (!socket->waitForReadyRead(ipcTimeout)) return;
         bmsg.append(socket->readAll());
     } while (!bmsg.contains(IPC_EOF));
     socket->close();
     socket->deleteLater();
 
     QStringList cmd = QString::fromUtf8(bmsg).split('\n');
-    if (cmd.first().startsWith(QStringLiteral("newWindow")))
-        ui.addMainWindow();
-    else if (cmd.first().startsWith(QStringLiteral("debugRestart"))) {
+    if (cmd.first().startsWith(QStringLiteral("newWindow"))) {
+        addMainWindow();
+    } else if (cmd.first().startsWith(QStringLiteral("debugRestart"))) {
         qInfo() << tr("Closing jpreader instance (pid: %1)"
                                           "after debugRestart request")
                    .arg(QApplication::applicationPid());
@@ -429,24 +657,27 @@ void CGlobalControl::ipcMessageReceived()
     }
 }
 
-void CGlobalControl::focusChanged(QWidget *, QWidget *now)
+void CGlobalControl::focusChanged(QWidget *old, QWidget *now)
 {
+    Q_UNUSED(old)
+    Q_D(CGlobalControl);
     if (now==nullptr) return;
     auto mw = qobject_cast<CMainWindow*>(now->window());
     if (mw==nullptr) return;
-    activeWindow=mw;
+    d->activeWindow=mw;
 }
 
 void CGlobalControl::windowDestroyed(CMainWindow *obj)
 {
+    Q_D(CGlobalControl);
     if (obj==nullptr) return;
-    mainWindows.removeOne(obj);
-    if (activeWindow==obj) {
-        if (mainWindows.count()>0) {
-            activeWindow = mainWindows.constFirst();
-            activeWindow->activateWindow();
+    d->mainWindows.removeOne(obj);
+    if (d->activeWindow==obj) {
+        if (d->mainWindows.count()>0) {
+            d->activeWindow = d->mainWindows.constFirst();
+            d->activeWindow->activateWindow();
         } else {
-            activeWindow=nullptr;
+            d->activeWindow=nullptr;
             cleanupAndExit();
         }
     }
@@ -454,35 +685,36 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
 
 void CGlobalControl::cleanupAndExit()
 {
-    if (cleaningState) return;
-    cleaningState = true;
+    Q_D(CGlobalControl);
+    if (d->cleaningState) return;
+    d->cleaningState = true;
 
-    settings.clearTabsList();
-    settings.writeSettings();
+    m_settings->clearTabsList();
+    m_settings->writeSettings();
     cleanTmpFiles();
 
     Q_EMIT stopTranslators();
 
-    if (mainWindows.count()>0) {
-        for (CMainWindow* w : qAsConst(mainWindows)) {
+    if (d->mainWindows.count()>0) {
+        for (CMainWindow* w : qAsConst(d->mainWindows)) {
             if (w)
                 w->close();
         }
     }
-    ui.gctxTranHotkey.unsetShortcut();
+    m_ui->gctxTranHotkey.unsetShortcut();
     freePdfToText();
 
-    ipcServer->close();
-    ipcServer->deleteLater();
-    ipcServer=nullptr;
+    d->ipcServer->close();
+    d->ipcServer->deleteLater();
+    d->ipcServer=nullptr;
 
-    logWindow->setParent(nullptr);
-    logWindow->deleteLater();
-    logWindow = nullptr;
+    d->logWindow->setParent(nullptr);
+    d->logWindow->deleteLater();
+    d->logWindow = nullptr;
 
-    downloadManager->setParent(nullptr);
-    downloadManager->deleteLater();
-    downloadManager = nullptr;
+    d->downloadManager->setParent(nullptr);
+    d->downloadManager->deleteLater();
+    d->downloadManager = nullptr;
 
     QMetaObject::invokeMethod(qApp,&QApplication::quit,Qt::QueuedConnection);
 }
@@ -495,15 +727,16 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url)
 
 bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 {
-    if (!settings.useAdblock) return false;
+    Q_D(const CGlobalControl);
+    if (!settings()->useAdblock) return false;
     if (!url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return false;
 
     filter.clear();
     QString u = url.toString(CSettings::adblockUrlFmt);
 
-    if (adblockWhiteList.contains(u)) return false;
+    if (d->adblockWhiteList.contains(u)) return false;
 
-    for (const CAdBlockRule& rule : qAsConst(adblock)) {
+    for (const CAdBlockRule& rule : qAsConst(d->adblock)) {
         if (rule.networkMatch(u)) {
             filter = rule.filter();
             return true;
@@ -517,7 +750,8 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 
 bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 {
-    if (!settings.useNoScript) return false;
+    Q_D(const CGlobalControl);
+    if (!settings()->useNoScript) return false;
     if (url.isRelative() || url.isLocalFile()) return false;
 
     const QString host = url.host();
@@ -525,7 +759,7 @@ bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 
     Q_EMIT addNoScriptPageHost(key, host);
 
-    return !(noScriptWhiteList.contains(host));
+    return !(d->noScriptWhiteList.contains(host));
 }
 
 void CGlobalControl::adblockAppend(const QString& url)
@@ -542,51 +776,59 @@ void CGlobalControl::adblockAppend(const CAdBlockRule& url)
 
 void CGlobalControl::adblockAppend(const QVector<CAdBlockRule> &urls)
 {
-    adblock.append(urls);
+    Q_D(CGlobalControl);
 
-    adblockWhiteListMutex.lock();
-    adblockWhiteList.clear();
-    adblockWhiteListMutex.unlock();
+    d->adblock.append(urls);
+
+    d->adblockWhiteListMutex.lock();
+    d->adblockWhiteList.clear();
+    d->adblockWhiteListMutex.unlock();
 }
 
 void CGlobalControl::clearNoScriptPageHosts(const QString &origin)
 {
-    noScriptMutex.lock();
-    pageScriptHosts[origin].clear();
-    noScriptMutex.unlock();
+    Q_D(CGlobalControl);
+    d->noScriptMutex.lock();
+    d->pageScriptHosts[origin].clear();
+    d->noScriptMutex.unlock();
 }
 
 CStringSet CGlobalControl::getNoScriptPageHosts(const QString &origin)
 {
+    Q_D(CGlobalControl);
     CStringSet res;
-    noScriptMutex.lock();
-    res = pageScriptHosts.value(origin);
-    noScriptMutex.unlock();
+    d->noScriptMutex.lock();
+    res = d->pageScriptHosts.value(origin);
+    d->noScriptMutex.unlock();
     return res;
 }
 
 void CGlobalControl::removeNoScriptWhitelistHost(const QString &host)
 {
-    noScriptMutex.lock();
-    noScriptWhiteList.remove(host);
-    noScriptMutex.unlock();
+    Q_D(CGlobalControl);
+    d->noScriptMutex.lock();
+    d->noScriptWhiteList.remove(host);
+    d->noScriptMutex.unlock();
 }
 
 void CGlobalControl::addNoScriptWhitelistHost(const QString &host)
 {
-    noScriptMutex.lock();
-    noScriptWhiteList.insert(host);
-    noScriptMutex.unlock();
+    Q_D(CGlobalControl);
+    d->noScriptMutex.lock();
+    d->noScriptWhiteList.insert(host);
+    d->noScriptMutex.unlock();
 }
 
 bool CGlobalControl::containsNoScriptWhitelist(const QString &host) const
 {
-    return noScriptWhiteList.contains(host);
+    Q_D(const CGlobalControl);
+    return d->noScriptWhiteList.contains(host);
 }
 
 bool CGlobalControl::haveSavedPassword(const QUrl &origin)
 {
-    QString user, pass;
+    QString user;
+    QString pass;
     readPassword(origin, user, pass);
     return (!user.isEmpty() || !pass.isEmpty());
 }
@@ -661,56 +903,66 @@ void CGlobalControl::removePassword(const QUrl &origin)
 
 QVector<CUserScript> CGlobalControl::getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu)
 {
-    userScriptsMutex.lock();
+    Q_D(CGlobalControl);
+
+    d->userScriptsMutex.lock();
 
     QVector<CUserScript> scripts;
 
-    for (auto it = userScripts.constBegin(), end = userScripts.constEnd(); it != end; ++it)
+    for (auto it = d->userScripts.constBegin(), end = d->userScripts.constEnd(); it != end; ++it) {
         if (it.value().isEnabledForUrl(url) &&
                 (isMainFrame || it.value().shouldRunOnSubFrames()) &&
                 ((isContextMenu && it.value().shouldRunFromContextMenu()) ||
-                 (!isContextMenu && !it.value().shouldRunFromContextMenu())))
-            scripts.append(it.value());
+                 (!isContextMenu && !it.value().shouldRunFromContextMenu()))) {
 
-    userScriptsMutex.unlock();
+            scripts.append(it.value());
+        }
+    }
+
+    d->userScriptsMutex.unlock();
 
     return scripts;
 }
 
 void CGlobalControl::initUserScripts(const CStringHash &scripts)
 {
-    userScriptsMutex.lock();
+    Q_D(CGlobalControl);
 
-    userScripts.clear();
+    d->userScriptsMutex.lock();
+
+    d->userScripts.clear();
     for (auto it = scripts.constBegin(), end = scripts.constEnd(); it != end; ++it)
-        userScripts[it.key()] = CUserScript(it.key(), it.value());
+        d->userScripts[it.key()] = CUserScript(it.key(), it.value());
 
-    userScriptsMutex.unlock();
+    d->userScriptsMutex.unlock();
 }
 
 CStringHash CGlobalControl::getUserScripts()
 {
-    userScriptsMutex.lock();
+    Q_D(CGlobalControl);
+
+    d->userScriptsMutex.lock();
 
     CStringHash res;
 
-    for (auto it = userScripts.constBegin(), end = userScripts.constEnd(); it != end; ++it)
+    for (auto it = d->userScripts.constBegin(), end = d->userScripts.constEnd(); it != end; ++it)
         res[it.key()] = (*it).getSource();
 
-    userScriptsMutex.unlock();
+    d->userScriptsMutex.unlock();
 
     return res;
 }
 
 void CGlobalControl::initLanguagesList()
 {
+    Q_D(CGlobalControl);
     const QList<QLocale> allLocales = QLocale::matchingLocales(
                 QLocale::AnyLanguage,
                 QLocale::AnyScript,
                 QLocale::AnyCountry);
 
-    langNamesList.clear();
-    langSortedBCP47List.clear();
+    d->langNamesList.clear();
+    d->langSortedBCP47List.clear();
 
     for(const QLocale &locale : allLocales) {
         QString bcp = locale.bcp47Name();
@@ -724,32 +976,35 @@ void CGlobalControl::initLanguagesList()
         if (bcp == QStringLiteral("en"))
             name = QStringLiteral("English (en)");
 
-        if (!langNamesList.contains(bcp)) {
-            langNamesList.insert(bcp,name);
-            langSortedBCP47List.insert(name,bcp);
+        if (!d->langNamesList.contains(bcp)) {
+            d->langNamesList.insert(bcp,name);
+            d->langSortedBCP47List.insert(name,bcp);
         }
     }
 }
 
-QString CGlobalControl::getLanguageName(const QString& bcp47Name)
+QString CGlobalControl::getLanguageName(const QString& bcp47Name) const
 {
-    return langNamesList.value(bcp47Name);
+    Q_D(const CGlobalControl);
+    return d->langNamesList.value(bcp47Name);
 }
 
 QStringList CGlobalControl::getLanguageCodes() const
 {
-    return langSortedBCP47List.values();
+    Q_D(const CGlobalControl);
+    return d->langSortedBCP47List.values();
 }
 
 void CGlobalControl::showLightTranslator(const QString &text)
 {
-    if (gSet->lightTranslator==nullptr)
-        gSet->lightTranslator = new CLightTranslator();
+    Q_D(CGlobalControl);
+    if (d->lightTranslator==nullptr)
+        d->lightTranslator = new CLightTranslator();
 
-    gSet->lightTranslator->restoreWindow();
+    d->lightTranslator->restoreWindow();
 
     if (!text.isEmpty())
-        gSet->lightTranslator->appendSourceText(text);
+        d->lightTranslator->appendSourceText(text);
 }
 
 void CGlobalControl::updateProxy(bool useProxy)
@@ -759,40 +1014,77 @@ void CGlobalControl::updateProxy(bool useProxy)
 
 void CGlobalControl::updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate)
 {
-    settings.proxyUse = useProxy;
+    m_settings->proxyUse = useProxy;
 
     QNetworkProxy proxy = QNetworkProxy();
 
-    if (settings.proxyUse && !settings.proxyHost.isEmpty())
-        proxy = QNetworkProxy(settings.proxyType,settings.proxyHost,
-                              settings.proxyPort,settings.proxyLogin,
-                              settings.proxyPassword);
+    if (settings()->proxyUse && !settings()->proxyHost.isEmpty()) {
+        proxy = QNetworkProxy(settings()->proxyType,settings()->proxyHost,
+                              settings()->proxyPort,settings()->proxyLogin,
+                              settings()->proxyPassword);
+    }
 
     QNetworkProxy::setApplicationProxy(proxy);
 
     if (forceMenuUpdate)
-        ui.actionUseProxy->setChecked(settings.proxyUse);
+        m_ui->actionUseProxy->setChecked(settings()->proxyUse);
 }
 
 void CGlobalControl::clearCaches()
 {
-    webProfile->clearHttpCache();
+    Q_D(CGlobalControl);
+    d->webProfile->clearHttpCache();
 }
 
-QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)
+void CGlobalControl::forceCharset()
 {
-    if (ctxSearchEngines.isEmpty())
+    const int maxCharsetHistory = 10;
+
+    auto act = qobject_cast<QAction*>(sender());
+    if (act==nullptr) return;
+
+    QString cs = act->data().toString();
+    if (!cs.isEmpty()) {
+        QTextCodec* codec = QTextCodec::codecForName(cs.toLatin1().data());
+        if (codec!=nullptr)
+            cs = QString::fromUtf8(codec->name());
+
+        m_settings->charsetHistory.removeAll(cs);
+        m_settings->charsetHistory.prepend(cs);
+        if (m_settings->charsetHistory.count()>maxCharsetHistory)
+            m_settings->charsetHistory.removeLast();
+    }
+
+    m_settings->forcedCharset = cs;
+    Q_EMIT updateAllCharsetLists();
+
+    if (webProfile()!=nullptr && webProfile()->settings()!=nullptr) {
+        webProfile()->settings()->setDefaultTextEncoding(cs);
+    }
+
+}
+
+QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine) const
+{
+    Q_D(const CGlobalControl);
+    if (d->ctxSearchEngines.isEmpty())
         return QUrl(QStringLiteral("about://blank"));
 
-    auto it = ctxSearchEngines.constKeyValueBegin();
+    auto it = d->ctxSearchEngines.constKeyValueBegin();
     QString url = (*it).second;
-    if (engine.isEmpty() && !settings.defaultSearchEngine.isEmpty())
-        url = ctxSearchEngines.value(settings.defaultSearchEngine);
-    if (!engine.isEmpty() && ctxSearchEngines.contains(engine))
-        url = ctxSearchEngines.value(engine);
+    if (engine.isEmpty() && !settings()->defaultSearchEngine.isEmpty())
+        url = d->ctxSearchEngines.value(settings()->defaultSearchEngine);
+    if (!engine.isEmpty() && d->ctxSearchEngines.contains(engine))
+        url = d->ctxSearchEngines.value(engine);
 
     url.replace(QStringLiteral("%s"),text);
-    url.replace(QStringLiteral("%ps"),QUrl::toPercentEncoding(text));
+    url.replace(QStringLiteral("%ps"),QString::fromUtf8(QUrl::toPercentEncoding(text)));
 
     return QUrl::fromUserInput(url);
+}
+
+QStringList CGlobalControl::getSearchEngines() const
+{
+    Q_D(const CGlobalControl);
+    return d->ctxSearchEngines.keys();
 }

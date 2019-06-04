@@ -37,7 +37,8 @@ CDownloadManager::~CDownloadManager()
     delete ui;
 }
 
-void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer, int index, int maxIndex)
+void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer,
+                                         int index, int maxIndex)
 {
     const int indexBase = 10;
 
@@ -56,11 +57,11 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
         show();
 
     if (fname.isNull() || fname.isEmpty()) return;
-    gSet->settings.savedAuxSaveDir = path;
+    gSet->setSavedAuxSaveDir(path);
 
     QNetworkRequest req(url);
     req.setRawHeader("referer",referer.toString().toUtf8());
-    QNetworkReply* rpl = gSet->auxNetManager->get(req);
+    QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
     connect(rpl, &QNetworkReply::finished,
             model, &CDownloadsModel::downloadFinished);
@@ -84,7 +85,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         // Async save request from user, not full html page
         QFileInfo fi(item->path());
 
-        QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings.savedAuxSaveDir,
+        QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings()->savedAuxSaveDir,
                                          QString(),nullptr,fi.fileName());
 
         if (fname.isNull() || fname.isEmpty()) {
@@ -92,7 +93,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
             item->deleteLater();
             return;
         }
-        gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
+        gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
         item->setPath(fname);
     }
@@ -508,8 +509,8 @@ void CDownloadsModel::openHere()
     QFileInfo fi(fname);
     if ((acceptedMime.contains(mime,Qt::CaseInsensitive) ||
          acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
-            && (gSet->activeWindow != nullptr))
-        new CSnippetViewer(gSet->activeWindow,QUrl::fromLocalFile(fname));
+            && (gSet->activeWindow() != nullptr))
+        new CSnippetViewer(gSet->activeWindow(),QUrl::fromLocalFile(fname));
 }
 
 void CDownloadsModel::openXdg()

@@ -3,101 +3,46 @@
 
 #include <QObject>
 #include <QWidget>
-#include <QApplication>
 #include <QString>
 #include <QUrl>
-#include <QThread>
-#include <QNetworkReply>
-#include <QNetworkProxy>
-#include <QAuthenticator>
-#include <QMutex>
-#include <QTimer>
-#include <QLocalServer>
 #include <QLocalSocket>
-#include <QWebEngineProfile>
-#include <QNetworkAccessManager>
 #include <QSslCertificate>
-#include <QDebug>
-
-#include "specwidgets.h"
-#include "logdisplay.h"
 #include "adblockrule.h"
 #include "structures.h"
 #include "settings.h"
 #include "globalui.h"
 #include "userscript.h"
-#include "browsercontroller.h"
-#include "bookmarks.h"
 
-class CMainWindow;
-class CLightTranslator;
-class CAuxTranslator;
-class CTranslator;
-class CAuxDictionary;
+class CLogDisplay;
+class CDownloadManager;
+class CGlobalControlPrivate;
+class BookmarksManager;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
-class CDownloadManager;
-class BookmarksManager;
 
 class CGlobalControl : public QObject
 {
     friend class CSettings;
+    friend class CGlobalUI;
+    friend class CSettingsDlg;
 
     Q_OBJECT
 public:
     explicit CGlobalControl(QApplication *parent, int aInspectorPort);
-    virtual ~CGlobalControl();
+    ~CGlobalControl() override;
 
-    CSettings settings;
-    CGlobalUI ui;
-
-    CMainWindow* activeWindow;
-    QVector<CMainWindow*> mainWindows;
-    CLightTranslator* lightTranslator;
-    CAuxTranslator* auxTranslatorDBus;
-    CBrowserController* browserControllerDBus;
-    QLocalServer* ipcServer;
-
-    QIcon appIcon;
-    CLogDisplay* logWindow;
-    CDownloadManager* downloadManager;
-
-    ArticleNetworkAccessManager * dictNetMan;
-    CGoldenDictMgr * dictManager;
-    CAuxDictionary* auxDictionary;
-
-    QWebEngineProfile *webProfile;
-    QNetworkAccessManager *auxNetManager;
-
-    BookmarksManager *bookmarksManager;
-
-    QStringList recentFiles;
-
-    CStringHash ctxSearchEngines;
-
-    CUrlHolderVector recycleBin;
-    CUrlHolderVector mainHistory;
-    QStringList searchHistory;
-
-    QHash<QString,QIcon> favicons;
-
-    CAdBlockVector adblock;
-
-    QStringList createdFiles;
-
-    QTimer tabsListTimer;
-
-    CSslCertificateHash atlCerts;
-
-    int inspectorPort;
-    bool blockTabCloseActive;
-
-    // History lists append
+    // History lists
+    const CUrlHolderVector &recycleBin() const;
+    const CUrlHolderVector &mainHistory() const;
+    const QStringList &recentFiles() const;
+    const QStringList &searchHistory() const;
     void appendRecycled(const QString &title, const QUrl &url);
+    void removeRecycledItem(int idx);
     void appendSearchHistory(const QStringList &req);
     void appendMainHistory(const CUrlHolder &item);
     bool updateMainHistoryTitle(const CUrlHolder &item, const QString &newTitle);
     void appendRecent(const QString &filename);
+    void appendCreatedFiles(const QString &filename);
 
     // Ad-block
     bool isUrlBlocked(const QUrl &url);
@@ -128,31 +73,53 @@ public:
 
     // Translation languages selection
     QStringList getLanguageCodes() const;
-    QString getLanguageName(const QString &bcp47Name);
+    QString getLanguageName(const QString &bcp47Name) const;
     void showLightTranslator(const QString& text = QString());
 
     // Misc
-    QUrl createSearchUrl(const QString& text, const QString& engine = QString());
+    QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
+    QStringList getSearchEngines() const;
     QString makeTmpFileName(const QString &suffix, bool withDir = false);
+    bool isIPCStarted() const;
+    const CSettings *settings() const;
+    const CGlobalUI *ui() const;
+    void writeSettings();
+    void addFavicon(const QString& key, const QIcon &icon);
+    void setTranslationEngine(TranslationEngine engine);
 
-    // Chromium Inspector console
+    // Chromium
     QUrl getInspectorUrl() const;
+    QWebEngineProfile* webProfile() const;
+
+    // UI
+    QIcon appIcon() const;
+    void setSavedAuxSaveDir(const QString& dir);
+    void setSavedAuxDir(const QString& dir);
+    CMainWindow* addMainWindow();
+    CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
+                                 const QVector<QUrl> &viewerUrls = { });
+    void settingsDialog();
+    QRect getLastMainWindowGeometry() const;
+    QList<QAction*> getTranslationLanguagesActions() const;
+    bool isBlockTabCloseActive() const;
+
+    // Owned widgets
+    CMainWindow *activeWindow() const;
+    BookmarksManager *bookmarksManager() const;
+    CDownloadManager* downloadManager() const;
+    CLogDisplay* logWindow() const;
+    ArticleNetworkAccessManager *dictionaryNetworkAccessManager() const;
+    QNetworkAccessManager* auxNetworkAccessManager() const;
+    const QHash<QString,QIcon> &favicons() const;
+    CGoldenDictMgr* dictionaryManager() const;
 
 private:
-    QHash<QString, CUserScript> userScripts;
-    QMutex userScriptsMutex;
-    bool cleaningState;
-    bool atlCertErrorInteractive;
+    Q_DISABLE_COPY(CGlobalControl)
+    Q_DECLARE_PRIVATE_D(dptr,CGlobalControl)
 
-    QStringList adblockWhiteList;
-    QMutex adblockWhiteListMutex;
-
-    CStringSet noScriptWhiteList;
-    QHash<QString,QSet<QString> > pageScriptHosts;
-    QMutex noScriptMutex;
-
-    QMap<QString,QString> langSortedBCP47List;  // names -> bcp (for sorting)
-    QHash<QString,QString> langNamesList;       // bcp -> names
+    QScopedPointer<CGlobalControlPrivate> dptr;
+    QScopedPointer<CSettings> m_settings;
+    QScopedPointer<CGlobalUI> m_ui;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
@@ -163,6 +130,7 @@ Q_SIGNALS:
     void startAuxTranslation();
     void stopTranslators();
 
+    void settingsUpdated();
     void updateAllBookmarks();
     void updateAllRecycleBins();
     void updateAllCharsetLists();
@@ -185,6 +153,7 @@ public Q_SLOTS:
     void updateProxy(bool useProxy);
     void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
     void clearCaches();
+    void forceCharset();
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

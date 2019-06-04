@@ -9,20 +9,26 @@ CBrowserController::CBrowserController(QObject *parent) : QObject(parent)
 
 void CBrowserController::openUrl(const QString &url)
 {
+    CMainWindow* w = gSet->activeWindow();
+    if (w==nullptr) return;
+
     QUrl u = QUrl::fromUserInput(url);
     if (!u.isValid()) return;
 
-    new CSnippetViewer(gSet->activeWindow,u);
-    gSet->activeWindow->showNormal();
-    gSet->activeWindow->raise();
-    gSet->activeWindow->activateWindow();
+    new CSnippetViewer(w,u);
+    w->showNormal();
+    w->raise();
+    w->activateWindow();
 }
 
 void CBrowserController::openDefaultSearch(const QString &text)
 {
+    CMainWindow* w = gSet->activeWindow();
+    if (w==nullptr) return;
+
     QUrl url = gSet->createSearchUrl(text);
-    new CSnippetViewer(gSet->activeWindow,url);
-    gSet->activeWindow->showNormal();
-    gSet->activeWindow->raise();
-    gSet->activeWindow->activateWindow();
+    new CSnippetViewer(w,url);
+    w->showNormal();
+    w->raise();
+    w->activateWindow();
 }

@@ -30,24 +30,27 @@ public:
     QAction *actionOverrideFontColor;
     QAction *actionTranslateSubSentences;
 
-    QAction *actionTMAdditive, *actionTMOverwriting, *actionTMTooltip;
-    QActionGroup *translationMode, *languageSelector;
+    QAction *actionTMAdditive;
+    QAction *actionTMOverwriting;
+    QAction *actionTMTooltip;
+    QActionGroup *translationMode;
+    QActionGroup *languageSelector;
 
-    // Actions for Settings menu
-    bool useOverrideFont();
-    bool autoTranslate();
-    bool forceFontColor();
-    void startGlobalContextTranslate();
-    bool translateSubSentences();
-    void addActionNotification(QAction* action);
+    QTimer gctxTimer;
+    QString gctxSelection;
 
     explicit CGlobalUI(QObject *parent = nullptr);
 
-    TranslationMode getTranslationMode();
+    // Actions for Settings menu
+    bool useOverrideFont() const;
+    bool autoTranslate() const;
+    bool forceFontColor() const;
+    void startGlobalContextTranslate();
+    bool translateSubSentences() const;
+    void addActionNotification(QAction* action);
+
+    TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
-private:
-    QTimer gctxTimer;
-    QString gctxSelection;
 
 Q_SIGNALS:
     void gctxStart(const QString& text);
@@ -55,13 +58,8 @@ Q_SIGNALS:
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
-    CMainWindow* addMainWindow();
-    CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
-                                 const QVector<QUrl> &viewerUrls = { });
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
-
-private Q_SLOTS:
     void actionToggled();
 
 };

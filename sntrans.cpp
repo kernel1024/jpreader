@@ -76,10 +76,10 @@ void CSnTrans::transButtonHighlight()
 
 void CSnTrans::translate(bool tranSubSentences)
 {
-    if (gSet->settings.translatorEngine==teAtlas ||
-        gSet->settings.translatorEngine==teBingAPI ||
-        gSet->settings.translatorEngine==teYandexAPI ||
-        gSet->settings.translatorEngine==teGoogleGTX) {
+    if (gSet->settings()->translatorEngine==teAtlas ||
+        gSet->settings()->translatorEngine==teBingAPI ||
+        gSet->settings()->translatorEngine==teYandexAPI ||
+        gSet->settings()->translatorEngine==teGoogleGTX) {
         m_savedBaseUrl = snv->txtBrowser->page()->url();
         if (m_savedBaseUrl.hasFragment())
             m_savedBaseUrl.setFragment(QString());
@@ -138,16 +138,16 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->settings.translatorEngine==teAtlas) {
+    if (gSet->settings()->translatorEngine==teAtlas) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==teBingAPI) {
+    } else if (gSet->settings()->translatorEngine==teBingAPI) {
         snv->waitHandler->setText(tr("Translating text with Bing API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==teYandexAPI) {
+    } else if (gSet->settings()->translatorEngine==teYandexAPI) {
         snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings.translatorEngine==teGoogleGTX) {
+    } else if (gSet->settings()->translatorEngine==teGoogleGTX) {
         snv->waitHandler->setText(tr("Translating text with Google GTX..."));
         snv->waitHandler->setProgressEnabled(true);
     } else {
@@ -200,10 +200,10 @@ void CSnTrans::postTranslate()
     QString cn;
     QUrlQuery qu;
     CLangPair lp;
-    switch (gSet->settings.translatorEngine) {
+    switch (gSet->settings()->translatorEngine) {
         case teGoogle:
             url = QUrl(QStringLiteral("http://translate.google.com/translate"));
-            lp = CLangPair(gSet->ui.getActiveLangPair());
+            lp = CLangPair(gSet->ui()->getActiveLangPair());
             if (lp.isValid()) {
                 qu.addQueryItem(QStringLiteral("sl"),lp.langFrom.bcp47Name());
                 qu.addQueryItem(QStringLiteral("tl"),lp.langTo.bcp47Name());
@@ -241,7 +241,7 @@ void CSnTrans::progressLoad(int progress)
 void CSnTrans::selectionChanged()
 {
     m_storedSelection = snv->txtBrowser->page()->selectedText();
-    if (!m_storedSelection.isEmpty() && gSet->ui.actionSelectionDictionary->isChecked())
+    if (!m_storedSelection.isEmpty() && gSet->ui()->actionSelectionDictionary->isChecked())
         m_selectionTimer->start();
 }
 
@@ -253,7 +253,7 @@ void CSnTrans::findWordTranslation(const QString &text)
     QUrlQuery requ;
     requ.addQueryItem( QStringLiteral("word"), text );
     req.setQuery(requ);
-    QNetworkReply* rep = gSet->dictNetMan->get(QNetworkRequest(req));
+    QNetworkReply* rep = gSet->dictionaryNetworkAccessManager()->get(QNetworkRequest(req));
     connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
 }
 

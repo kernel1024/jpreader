@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QMimeData>
 #include <QToolTip>
+#include <QThread>
 #include "globalui.h"
 #include "structures.h"
 #include "globalcontrol.h"
@@ -9,8 +10,9 @@
 #include "specwidgets.h"
 #include "genericfuncs.h"
 
-const int globalTooltipShowDelay = 100;
-const int globalTooltipShowDuration = 3000;
+const int globalStatusTooltipShowDelay = 100;
+const int globalStatusTooltipShowDuration = 3000;
+const int globalTranslatorDelay = 1000;
 
 CGlobalUI::CGlobalUI(QObject *parent)
     : QObject(parent)
@@ -87,7 +89,7 @@ CGlobalUI::CGlobalUI(QObject *parent)
     connect(QApplication::clipboard(),&QClipboard::changed,
             this,&CGlobalUI::clipboardChanged);
 
-    gctxTimer.setInterval(1000);
+    gctxTimer.setInterval(globalTranslatorDelay);
     gctxTimer.setSingleShot(true);
     gctxSelection.clear();
     connect(&gctxTimer,&QTimer::timeout,
@@ -98,17 +100,17 @@ CGlobalUI::CGlobalUI(QObject *parent)
             actionGlobalTranslator,&QAction::toggle);
 }
 
-bool CGlobalUI::useOverrideFont()
+bool CGlobalUI::useOverrideFont() const
 {
     return actionOverrideFont->isChecked();
 }
 
-bool CGlobalUI::autoTranslate()
+bool CGlobalUI::autoTranslate() const
 {
     return actionAutoTranslate->isChecked();
 }
 
-bool CGlobalUI::forceFontColor()
+bool CGlobalUI::forceFontColor() const
 {
     return actionOverrideFontColor->isChecked();
 }
@@ -142,7 +144,7 @@ void CGlobalUI::startGlobalContextTranslate()
     gctxSelection.clear();
 }
 
-bool CGlobalUI::translateSubSentences()
+bool CGlobalUI::translateSubSentences() const
 {
     return actionTranslateSubSentences->isChecked();
 }
@@ -154,78 +156,34 @@ void CGlobalUI::addActionNotification(QAction *action)
 
 void CGlobalUI::gctxTranslateReady(const QString &text)
 {
-    CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,80));
+    const int maxTooltipCharacterWidth = 80;
+
+    CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,maxTooltipCharacterWidth));
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,nullptr);
 }
 
-CMainWindow* CGlobalUI::addMainWindow()
-{
-     return addMainWindowEx(false, true);
-}
-
-CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withViewer, const QVector<QUrl>& viewerUrls)
-{
-    if (gSet==nullptr) return nullptr;
-
-    auto mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
-    connect(mainWindow,&CMainWindow::aboutToClose,
-            gSet,&CGlobalControl::windowDestroyed,Qt::QueuedConnection);
-
-    gSet->mainWindows.append(mainWindow);
-
-    mainWindow->show();
-
-    mainWindow->menuTools->addAction(actionLogNetRequests);
-    mainWindow->menuTools->addSeparator();
-    mainWindow->menuTools->addAction(actionGlobalTranslator);
-    mainWindow->menuTools->addAction(actionSelectionDictionary);
-    mainWindow->menuTools->addAction(actionSnippetAutotranslate);
-    mainWindow->menuTools->addSeparator();
-    mainWindow->menuTools->addAction(actionJSUsage);
-
-    mainWindow->menuSettings->addAction(actionAutoTranslate);
-    mainWindow->menuSettings->addAction(actionOverrideFont);
-    mainWindow->menuSettings->addAction(actionOverrideFontColor);
-    mainWindow->menuSettings->addSeparator();
-    mainWindow->menuSettings->addAction(actionUseProxy);
-    mainWindow->menuSettings->addAction(actionTranslateSubSentences);
-
-    mainWindow->menuTranslationMode->addAction(actionTMAdditive);
-    mainWindow->menuTranslationMode->addAction(actionTMOverwriting);
-    mainWindow->menuTranslationMode->addAction(actionTMTooltip);
-
-    gSet->settings.checkRestoreLoad(mainWindow);
-
-    connect(gSet,&CGlobalControl::updateAllBookmarks,mainWindow,&CMainWindow::updateBookmarks);
-    connect(gSet,&CGlobalControl::updateAllRecentLists,mainWindow,&CMainWindow::updateRecentList);
-    connect(gSet,&CGlobalControl::updateAllCharsetLists,mainWindow,&CMainWindow::reloadCharsetList);
-    connect(gSet,&CGlobalControl::updateAllHistoryLists,mainWindow,&CMainWindow::updateHistoryList);
-    connect(gSet,&CGlobalControl::updateAllQueryLists,mainWindow,&CMainWindow::updateQueryHistory);
-    connect(gSet,&CGlobalControl::updateAllRecycleBins,mainWindow,&CMainWindow::updateRecycled);
-    connect(gSet,&CGlobalControl::updateAllLanguagesLists,mainWindow,&CMainWindow::reloadLanguagesList);
-
-    return mainWindow;
-}
-
 void CGlobalUI::showGlobalTooltip(const QString &text)
 {
-    if (gSet->activeWindow==nullptr) return;
+    const int globalStatusTooltipFontSizeFrac = 125;
+    const QPoint globalStatusTooltipOffset(90,90);
 
-    int sz = 5*qApp->font().pointSize()/4;
+    if (gSet==nullptr || gSet->activeWindow()==nullptr) return;
+
+    int sz = globalStatusTooltipFontSizeFrac*qApp->font().pointSize()/100;
 
     QString msg = QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
                                          "%2</span>").arg(sz).arg(text);
-    QPoint pos = gSet->activeWindow->mapToGlobal(QPoint(90,90));
+    QPoint pos = gSet->activeWindow()->mapToGlobal(globalStatusTooltipOffset);
 
-    QTimer::singleShot(globalTooltipShowDelay,gSet,[msg,pos](){
-        if (gSet->activeWindow==nullptr) return;
-        QToolTip::showText(pos,msg,gSet->activeWindow);
+    QTimer::singleShot(globalStatusTooltipShowDelay,gSet,[msg,pos](){
+        if (gSet->activeWindow()==nullptr) return;
+        QToolTip::showText(pos,msg,gSet->activeWindow());
 
-        QTimer::singleShot(globalTooltipShowDuration,gSet,[](){
-            if (gSet->activeWindow)
-                QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow);
+        QTimer::singleShot(globalStatusTooltipShowDuration,gSet,[](){
+            if (gSet->activeWindow())
+                QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow());
         });
     });
 }
@@ -248,7 +206,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     languageSelector = new QActionGroup(this);
 
 
-    for (const CLangPair& pair : qAsConst(g->settings.translatorPairs)) {
+    for (const CLangPair& pair : qAsConst(g->settings()->translatorPairs)) {
         QAction *ac = languageSelector->addAction(QStringLiteral("%1 - %2").arg(
                                       g->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->getLanguageName(pair.langTo.bcp47Name())));
@@ -278,16 +236,17 @@ void CGlobalUI::actionToggled()
     QString msg = ac->text();
     msg.remove('&');
     if (ac->isCheckable()) {
-        if (ac->isChecked())
+        if (ac->isChecked()) {
             msg.append(tr(" is ON"));
-        else
+        } else {
             msg.append(tr(" is OFF"));
+        }
     }
 
     showGlobalTooltip(msg);
 }
 
-TranslationMode CGlobalUI::getTranslationMode()
+TranslationMode CGlobalUI::getTranslationMode() const
 {
     bool okconv;
     TranslationMode res = tmAdditive;

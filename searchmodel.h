@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QAbstractTableModel>
 #include <QTableView>
+#include <QSortFilterProxyModel>
 #include "indexersearch.h"
 
 const int cpSortRole = 1;

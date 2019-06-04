@@ -6,6 +6,7 @@
 #include <QAbstractNetworkCache>
 #include <QTextDocument>
 #include <QWebEngineSettings>
+#include <QWebEngineProfile>
 #include <QMimeData>
 
 #include "qxttooltip.h"
@@ -18,8 +19,11 @@
 #include "searchtab.h"
 #include "lighttranslator.h"
 #include "downloadmanager.h"
-
+#include "bookmarks.h"
+#include "settings.h"
+#include "logdisplay.h"
 #include "snctxhandler.h"
+#include "downloadmanager.h"
 
 const int titleRenameLockTimeout = 500;
 
@@ -30,7 +34,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     tabMain->setParentWnd(this);
 	lastTabIdx=0;
-    setWindowIcon(gSet->appIcon);
+    setWindowIcon(gSet->appIcon());
     setAttribute(Qt::WA_DeleteOnClose,true);
 
     tabMain->tabBar()->setBrowserTabs(true);
@@ -73,7 +77,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
     connect(actionAboutQt, &QAction::triggered, qApp, &QApplication::aboutQt);
-    connect(actionSettings, &QAction::triggered, &(gSet->settings), &CSettings::settingsDlg);
+    connect(actionSettings, &QAction::triggered, gSet, &CGlobalControl::settingsDialog);
     connect(actionExit, &QAction::triggered, this, &CMainWindow::close);
     connect(actionExitAll, &QAction::triggered, gSet, &CGlobalControl::cleanupAndExit);
     connect(actionOpen, &QAction::triggered, this, &CMainWindow::openAuxFileWithDialog);
@@ -85,7 +89,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionClearCB, &QAction::triggered, this, &CMainWindow::clearClipboard);
     connect(actionClearCache, &QAction::triggered, gSet, &CGlobalControl::clearCaches);
     connect(actionOpenClip, &QAction::triggered, this, &CMainWindow::openFromClipboard);
-    connect(actionWnd, &QAction::triggered, &(gSet->ui), &CGlobalUI::addMainWindow);
+    connect(actionWnd, &QAction::triggered, gSet, &CGlobalControl::addMainWindow);
     connect(actionNewSearch, &QAction::triggered, this, &CMainWindow::createSearch);
     connect(actionAddBM, &QAction::triggered, this, &CMainWindow::addBookmark);
     connect(actionManageBM, &QAction::triggered, this, &CMainWindow::manageBookmarks);
@@ -96,7 +100,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
     connect(actionInspector, &QAction::triggered, this, &CMainWindow::openBookmark);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
-    connect(actionSaveSettings,&QAction::triggered, &(gSet->settings), &CSettings::writeSettings);
+    connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
     connect(tabHelper, &CSpecTabBar::tabLeftPostClicked, this, &CMainWindow::helperClicked);
     connect(tabHelper, &CSpecTabBar::tabLeftClicked, this, &CMainWindow::helperPreClicked);
@@ -106,12 +110,12 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     actionInspector->setData(gSet->getInspectorUrl());
 
-    if (gSet->logWindow)
-        connect(actionShowLog, &QAction::triggered, gSet->logWindow, &CLogDisplay::show);
+    if (gSet->logWindow()!=nullptr)
+        connect(actionShowLog, &QAction::triggered, gSet->logWindow(), &CLogDisplay::show);
 
-    if (gSet->downloadManager) {
+    if (gSet->downloadManager()!=nullptr) {
         connect(actionDownloadManager, &QAction::triggered,
-                gSet->downloadManager, &CDownloadManager::show);
+                gSet->downloadManager(), &CDownloadManager::show);
     }
 
     QShortcut* sc;
@@ -354,17 +358,16 @@ void CMainWindow::centerWindow()
     QSize nw(initialWidthFrac*h/100,h);
     if (nw.width()<maxWidth) nw.setWidth(maxWidthFrac*rect.width()/100);
     resize(nw);
-    if (gSet->mainWindows.count()==0) {
+    QRect mwGeom = gSet->getLastMainWindowGeometry();
+    if (mwGeom.isNull()) {
         move(rect.width()/2 - frameGeometry().width()/2,
              rect.height()/2 - frameGeometry().height()/2);
     } else {
-        CMainWindow* w = gSet->mainWindows.constLast();
-        if (QApplication::activeWindow()) {
-            if (qobject_cast<CMainWindow *>(QApplication::activeWindow()))
-                w = qobject_cast<CMainWindow *>(QApplication::activeWindow());
-        }
-        move(w->pos().x()+newWindowLadderMargin,
-             w->pos().y()+newWindowLadderMargin);
+        if (QApplication::activeWindow()!=nullptr)
+            mwGeom = QApplication::activeWindow()->geometry();
+
+        move(mwGeom.topLeft().x()+newWindowLadderMargin,
+             mwGeom.topLeft().y()+newWindowLadderMargin);
     }
 }
 
@@ -481,15 +484,15 @@ void CMainWindow::updateHelperList()
             }
             break;
         case 1: // Recycled
-            for (int i=0;i<gSet->recycleBin.count();i++) {
-                auto it = new QListWidgetItem(gSet->recycleBin.at(i).title);
+            for (int i=0;i<gSet->recycleBin().count();i++) {
+                auto it = new QListWidgetItem(gSet->recycleBin().at(i).title);
                 it->setData(Qt::UserRole,1);
                 it->setData(Qt::UserRole+1,i);
                 helperList->addItem(it);
             }
             break;
         case 2: // History
-            for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
+            for (const CUrlHolder &t : qAsConst(gSet->mainHistory())) {
                 auto it = new QListWidgetItem(t.title);
                 it->setStatusTip(t.url.toString());
                 it->setToolTip(t.url.toString());
@@ -521,13 +524,11 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *p
             tabMain->setCurrentIndex(idx);
             break;
         case 1: // Recycled
-            if (idx<0 || idx>=gSet->recycleBin.count()) return;
-            u = gSet->recycleBin.at(idx).url;
+            if (idx<0 || idx>=gSet->recycleBin().count()) return;
+            u = gSet->recycleBin().at(idx).url;
             if (!u.isValid()) return;
             new CSnippetViewer(this, u);
-
-            gSet->recycleBin.removeAt(idx);
-            updateRecycled();
+            gSet->removeRecycledItem(idx);
             break;
         case 2: // History
             uidx = QUuid(current->data(Qt::UserRole+2).toString());
@@ -542,7 +543,7 @@ void CMainWindow::updateHistoryList()
 {
     if (!(helperVisible && tabHelper->currentIndex()==2)) return;
     helperList->clear();
-    for (const CUrlHolder &t : qAsConst(gSet->mainHistory)) {
+    for (const CUrlHolder &t : qAsConst(gSet->mainHistory())) {
         auto it = new QListWidgetItem(t.title);
         it->setStatusTip(t.url.toString());
         it->setToolTip(t.url.toString());
@@ -556,9 +557,9 @@ void CMainWindow::updateHistoryList()
 void CMainWindow::updateRecentList()
 {
     recentMenu->clear();
-    actionRecentDocuments->setEnabled(gSet->settings.maxRecent>0);
+    actionRecentDocuments->setEnabled(gSet->settings()->maxRecent>0);
 
-    for(const QString& filename : qAsConst(gSet->recentFiles)) {
+    for(const QString& filename : qAsConst(gSet->recentFiles())) {
         QFileInfo fi(filename);
         auto ac = recentMenu->addAction(fi.fileName());
         ac->setToolTip(filename);
@@ -590,7 +591,7 @@ void CMainWindow::updateTitle()
 
 void CMainWindow::goHistory(QUuid idx)
 {
-    for (const CUrlHolder& uh : qAsConst(gSet->mainHistory)) {
+    for (const CUrlHolder& uh : qAsConst(gSet->mainHistory())) {
         if (uh.uuid==idx) {
             QUrl u = uh.url;
             if (!u.isValid()) return;
@@ -629,10 +630,10 @@ void CMainWindow::openAuxFiles(const QStringList &filenames)
 
 void CMainWindow::openAuxFileWithDialog()
 {
-    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings.savedAuxDir);
+    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings()->savedAuxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+    gSet->setSavedAuxDir(QFileInfo(fnames.first()).absolutePath());
 
     openAuxFiles(fnames);
 }
@@ -662,7 +663,7 @@ void CMainWindow::openAuxFileInDir()
     QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),auxDir);
     if (fnames.isEmpty()) return;
 
-    gSet->settings.savedAuxDir = QFileInfo(fnames.first()).absolutePath();
+    gSet->setSavedAuxDir(QFileInfo(fnames.first()).absolutePath());
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;
@@ -721,7 +722,7 @@ void CMainWindow::updateBookmarks()
         }
     }
 
-    gSet->bookmarksManager->populateBookmarksMenu(menuBookmarks, this);
+    gSet->bookmarksManager()->populateBookmarksMenu(menuBookmarks, this);
 }
 
 void CMainWindow::addBookmark()
@@ -786,22 +787,20 @@ void CMainWindow::openRecycled()
     bool okconv;
     int idx = a->data().toInt(&okconv);
     if (!okconv) return;
-    if (idx<0 || idx>=gSet->recycleBin.count()) return;
-    QUrl u = gSet->recycleBin.at(idx).url;
+    if (idx<0 || idx>=gSet->recycleBin().count()) return;
+    QUrl u = gSet->recycleBin().at(idx).url;
     if (!u.isValid()) return;
     new CSnippetViewer(this, u);
-
-    gSet->recycleBin.removeAt(idx);
-    updateRecycled();
+    gSet->removeRecycledItem(idx);
 }
 
 void CMainWindow::updateRecycled()
 {
     recycledMenu->clear();
-    for (int i=0;i<gSet->recycleBin.count();i++) {
-        QAction* a = recycledMenu->addAction(gSet->recycleBin.at(i).title,this,
+    for (int i=0;i<gSet->recycleBin().count();i++) {
+        QAction* a = recycledMenu->addAction(gSet->recycleBin().at(i).title,this,
                                              &CMainWindow::openRecycled);
-        a->setStatusTip(gSet->recycleBin.at(i).url.toString());
+        a->setStatusTip(gSet->recycleBin().at(i).url.toString());
         a->setData(i);
     }
     updateHelperList();
@@ -830,50 +829,24 @@ void CMainWindow::activateTab()
     tabMain->setCurrentIndex(idx);
 }
 
-void CMainWindow::forceCharset()
-{
-    const int maxCharsetHistory = 10;
-
-    auto act = qobject_cast<QAction*>(sender());
-    if (act==nullptr) return;
-
-    QString cs = act->data().toString();
-    if (!cs.isEmpty()) {
-        QTextCodec* codec = QTextCodec::codecForName(cs.toLatin1().data());
-        if (codec!=nullptr)
-            cs = QString::fromUtf8(codec->name());
-
-        gSet->settings.charsetHistory.removeAll(cs);
-        gSet->settings.charsetHistory.prepend(cs);
-        if (gSet->settings.charsetHistory.count()>maxCharsetHistory)
-            gSet->settings.charsetHistory.removeLast();
-    }
-    gSet->settings.forcedCharset = cs;
-    Q_EMIT gSet->updateAllCharsetLists();
-
-    if (gSet->webProfile && gSet->webProfile->settings()) {
-        gSet->webProfile->settings()->setDefaultTextEncoding(cs);
-    }
-}
-
 void CMainWindow::reloadLanguagesList()
 {
     menuTranslationLanguages->clear();
-    menuTranslationLanguages->addActions(gSet->ui.languageSelector->actions());
+    menuTranslationLanguages->addActions(gSet->getTranslationLanguagesActions());
 }
 
 void CMainWindow::reloadCharsetList()
 {
     QAction* act;
     menuCharset->clear();
-    act = menuCharset->addAction(tr("Autodetect"),this,&CMainWindow::forceCharset);
+    act = menuCharset->addAction(tr("Autodetect"),gSet,&CGlobalControl::forceCharset);
     act->setData(QString());
-    if (gSet->settings.forcedCharset.isEmpty()) {
+    if (gSet->settings()->forcedCharset.isEmpty()) {
         act->setCheckable(true);
         act->setChecked(true);
     } else {
-        act = menuCharset->addAction(gSet->settings.forcedCharset,this,&CMainWindow::forceCharset);
-        act->setData(gSet->settings.forcedCharset);
+        act = menuCharset->addAction(gSet->settings()->forcedCharset,gSet,&CGlobalControl::forceCharset);
+        act->setData(gSet->settings()->forcedCharset);
         act->setCheckable(true);
         act->setChecked(true);
     }
@@ -889,10 +862,10 @@ void CMainWindow::reloadCharsetList()
                 continue;
             }
             QString cname = QString::fromUtf8(codec->name());
-            act = midx->addAction(cname,this,&CMainWindow::forceCharset);
+            act = midx->addAction(cname,gSet,&CGlobalControl::forceCharset);
             act->setData(cname);
             codec = QTextCodec::codecForName(cname.toLatin1().data());
-            if (codec!=nullptr && codec->name() == gSet->settings.forcedCharset) {
+            if (codec!=nullptr && codec->name() == gSet->settings()->forcedCharset) {
                 act->setCheckable(true);
                 act->setChecked(true);
             }
@@ -900,11 +873,10 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    for(int i=0;i<gSet->settings.charsetHistory.count();i++) {
-        if (gSet->settings.charsetHistory.at(i)==gSet->settings.forcedCharset) continue;
-        act = menuCharset->addAction(gSet->settings.charsetHistory.at(i),this,
-                                     &CMainWindow::forceCharset);
-        act->setData(gSet->settings.charsetHistory.at(i));
+    for(const auto & cs : qAsConst(gSet->settings()->charsetHistory)) {
+        if (cs==gSet->settings()->forcedCharset) continue;
+        act = menuCharset->addAction(cs,gSet,&CGlobalControl::forceCharset);
+        act->setData(cs);
         act->setCheckable(true);
     }
 }

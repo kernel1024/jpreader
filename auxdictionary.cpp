@@ -186,7 +186,7 @@ void CAuxDictionary::translateInputChanged(const QString &text)
 
     ui->listWords->setCursor( Qt::WaitCursor );
 
-    wordFinder->prefixMatch( req, gSet->dictManager->dictionaries );
+    wordFinder->prefixMatch( req, gSet->dictionaryManager()->dictionaries );
 }
 
 void CAuxDictionary::prefixMatchUpdated()

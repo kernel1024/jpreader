@@ -7,6 +7,7 @@
 #include <QRegExp>
 #include <QVariant>
 #include <QUrlQuery>
+#include <QNetworkReply>
 
 #include "globalcontrol.h"
 #include "genericfuncs.h"

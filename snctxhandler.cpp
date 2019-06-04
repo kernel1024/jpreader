@@ -8,6 +8,7 @@
 #include <QClipboard>
 #include <QMimeData>
 #include <QStringList>
+#include <QThread>
 
 #include "qxttooltip.h"
 #include "snctxhandler.h"
@@ -164,10 +165,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
         cm->addAction(ac);
 
-        if (!gSet->ctxSearchEngines.isEmpty()) {
+        QStringList searchNames = gSet->getSearchEngines();
+        if (!searchNames.isEmpty()) {
             cm->addSeparator();
 
-            QStringList searchNames = gSet->ctxSearchEngines.keys();
             searchNames.sort(Qt::CaseInsensitive);
             for (const QString& name : qAsConst(searchNames)) {
                 QUrl url = gSet->createSearchUrl(sText,name);
@@ -320,7 +321,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         }
         connect(ac,&QAction::triggered,this,&CSnCtxHandler::runJavaScript);
     }
-    if (gSet->settings.useNoScript) {
+    if (gSet->settings()->useNoScript) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
                             tr("Enable scripts for this page..."), nullptr);
         connect(ac, &QAction::triggered, this, [this](){
@@ -334,7 +335,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
         cm->addAction(ac);
     }
-    if (!scripts.isEmpty() || gSet->settings.useNoScript)
+    if (!scripts.isEmpty() || gSet->settings()->useNoScript)
         cm->addSeparator();
 
     if (!linkUrl.isEmpty()) {
@@ -403,7 +404,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ac = new QAction(QIcon::fromTheme(QStringLiteral("download")),tr("Open in browser"),nullptr);
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
     connect(ac, &QAction::triggered,this,[this](){
-        if (!QProcess::startDetached(gSet->settings.sysBrowser,
+        if (!QProcess::startDetached(gSet->settings()->sysBrowser,
                                      QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
             QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start browser."));
     });
@@ -498,7 +499,7 @@ void CSnCtxHandler::translateFragment()
     if (nt==nullptr) return;
     QString s = nt->data().toString();
     if (s.isEmpty()) return;
-    CLangPair lp(gSet->ui.getActiveLangPair());
+    CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) return;
 
     auto th = new QThread();
@@ -534,16 +535,16 @@ void CSnCtxHandler::saveToFile()
 
     QString fname;
     if (selectedText.isEmpty()) {
-        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings.savedAuxSaveDir,
+        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings()->savedAuxSaveDir,
                                  tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
                                     "Text file (*.txt);;MHTML archive (*.mht)"));
     } else {
-        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings.savedAuxSaveDir,
+        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings()->savedAuxSaveDir,
                                  tr("Text file (*.txt)"));
     }
 
     if (fname.isNull() || fname.isEmpty()) return;
-    gSet->settings.savedAuxSaveDir = QFileInfo(fname).absolutePath();
+    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
     QFileInfo fi(fname);
     if (!selectedText.isEmpty()) {
@@ -589,9 +590,9 @@ void CSnCtxHandler::showInEditor()
         tfile.open(QIODevice::WriteOnly);
         tfile.write(html.toUtf8());
         tfile.close();
-        gSet->createdFiles.append(fname);
+        gSet->appendCreatedFiles(fname);
 
-        if (!QProcess::startDetached(gSet->settings.sysEditor, QStringList() << fname))
+        if (!QProcess::startDetached(gSet->settings()->sysEditor, QStringList() << fname))
             QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
     });
 }

@@ -7,6 +7,8 @@
 #include <QDirIterator>
 #include <QRegExp>
 #include <QDialog>
+#include <QThread>
+#include <QAuthenticator>
 
 #include "snnet.h"
 #include "snmsghandler.h"
@@ -71,7 +73,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
                 index++;
             }
 
-            gSet->downloadManager->handleAuxDownload(itm->text(),dir,referer,index,ui.list->selectedItems().count());
+            gSet->downloadManager()->handleAuxDownload(itm->text(),dir,referer,index,ui.list->selectedItems().count());
         }
     }
     multiImgDialogSize=dlg->size();
@@ -101,7 +103,7 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
     if (f.open(QIODevice::WriteOnly)) {
         f.write(ba);
         f.close();
-        gSet->createdFiles.append(fname);
+        gSet->appendCreatedFiles(fname);
         if (createNewTab) {
             new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
         } else {
@@ -140,8 +142,8 @@ void CSnNet::loadFinished(bool ok)
 
     snv->updateTabColor(true,false);
 
-    bool xorAutotranslate = (gSet->ui.autoTranslate() && !snv->m_requestAutotranslate) ||
-                            (!gSet->ui.autoTranslate() && snv->m_requestAutotranslate);
+    bool xorAutotranslate = (gSet->ui()->autoTranslate() && !snv->m_requestAutotranslate) ||
+                            (!gSet->ui()->autoTranslate() && snv->m_requestAutotranslate);
 
     if (xorAutotranslate && !snv->m_onceTranslated && (isValidLoadedUrl() || snv->m_auxContentLoaded))
         snv->transButton->click();
@@ -179,7 +181,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     ex->moveToThread(th);
     th->start();
 
-    auto rpl = gSet->auxNetManager->get(QNetworkRequest(url));
+    auto rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(url));
     qApp->setOverrideCursor(Qt::BusyCursor);
 
     connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),

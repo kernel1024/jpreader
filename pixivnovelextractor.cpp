@@ -228,13 +228,13 @@ void CPixivNovelExtractor::subLoadFinished()
             m_imgUrls[QStringLiteral("%1_%2").arg(key).arg(page)] = url.toString();
 
             QFileInfo fi(url.toString());
-            if (gSet->settings.pixivFetchImages &&
+            if (gSet->settings()->pixivFetchImages &&
                     supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
                 m_worksImgFetch++;
-                QTimer::singleShot(0,gSet->auxNetManager,[this,url,rplUrl]{
+                QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url,rplUrl]{
                     QNetworkRequest req(url);
                     req.setRawHeader("referer",rplUrl.toString().toUtf8());
-                    QNetworkReply *rplImg = gSet->auxNetManager->get(req);
+                    QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
                     connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
                 });
             }
@@ -249,10 +249,10 @@ void CPixivNovelExtractor::subLoadFinished()
             qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("medium"));
             qr.addQueryItem(QStringLiteral("illust_id"),key);
             url.setQuery(qr);
-            QTimer::singleShot(0,gSet->auxNetManager,[this,url]{
+            QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
-                QNetworkReply* nrpl = gSet->auxNetManager->get(req);
+                QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
                 connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
             });
             rpl->deleteLater();
@@ -287,7 +287,7 @@ void CPixivNovelExtractor::subWorkFinished()
             rpl.append(QStringLiteral("/ >"));
         } else {
             rpl.append(QStringLiteral(" width=\"%1px;\"/ >")
-                       .arg(gSet->settings.pdfImageMaxSize));
+                       .arg(gSet->settings()->pdfImageMaxSize));
         }
         m_html.replace(rx, rpl);
     }
@@ -312,20 +312,20 @@ void CPixivNovelExtractor::subImageFinished()
                 
                 if (img.loadFromData(ba)) {
                     if (img.width()>img.height()) {
-                        if (img.width()>gSet->settings.pdfImageMaxSize) {
-                            img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
+                        if (img.width()>gSet->settings()->pdfImageMaxSize) {
+                            img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
                                                     Qt::SmoothTransformation);
                         }
                     } else {
-                        if (img.height()>gSet->settings.pdfImageMaxSize) {
-                            img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
+                        if (img.height()>gSet->settings()->pdfImageMaxSize) {
+                            img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
                                                      Qt::SmoothTransformation);
                         }
                     }
                     ba.clear();
                     QBuffer buf(&ba);
                     buf.open(QIODevice::WriteOnly);
-                    img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
+                    img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality);
                     
                     QByteArray out("data:image/jpeg;base64,");
                     out.append(QString::fromLatin1(ba.toBase64()));
@@ -365,10 +365,10 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
         qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("manga"));
         qr.addQueryItem(QStringLiteral("illust_id"),it.key());
         url.setQuery(qr);
-        QTimer::singleShot(0,gSet->auxNetManager,[this,url]{
+        QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
             QNetworkRequest req(url);
             req.setRawHeader("referer",m_origin.toString().toUtf8());
-            QNetworkReply* rpl = gSet->auxNetManager->get(req);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
         });
     }

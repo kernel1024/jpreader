@@ -21,7 +21,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     QStringList res;
     stopReq=false;
 
-    CAbstractTranslator* tran=translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
+    CAbstractTranslator* tran=translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
     if (tran==nullptr || !tran->initTran()) {
         qCritical() << tr("Unable to initialize translation engine.");
         res.clear();

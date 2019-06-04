@@ -427,7 +427,7 @@ void CPDFWorker::pdfToText(const QString &filename)
     delete textOut;
 
     QHash<int,QVector<QByteArray> > images;
-    if (gSet->settings.pdfExtractImages) {
+    if (gSet->settings()->pdfExtractImages) {
         for (int pageNum=1;pageNum<=lastPage;pageNum++) {
             Dict *dict = doc->getPage(pageNum)->getResourceDict();
             if (dict->lookup("XObject").isDict()) {
@@ -481,20 +481,20 @@ void CPDFWorker::pdfToText(const QString &filename)
 
                     if (!img.isNull()) {
                         if (img.width()>img.height()) {
-                            if (img.width()>gSet->settings.pdfImageMaxSize) {
-                                img = img.scaledToWidth(gSet->settings.pdfImageMaxSize,
+                            if (img.width()>gSet->settings()->pdfImageMaxSize) {
+                                img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
                                                         Qt::SmoothTransformation);
                             }
                         } else {
-                            if (img.height()>gSet->settings.pdfImageMaxSize) {
-                                img = img.scaledToHeight(gSet->settings.pdfImageMaxSize,
+                            if (img.height()>gSet->settings()->pdfImageMaxSize) {
+                                img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
                                                          Qt::SmoothTransformation);
                             }
                         }
                         ba.clear();
                         QBuffer buf(&ba);
                         buf.open(QIODevice::WriteOnly);
-                        img.save(&buf,"JPEG",gSet->settings.pdfImageQuality);
+                        img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality);
                         images[pageNum].append(ba);
                         ba.clear();
                     }

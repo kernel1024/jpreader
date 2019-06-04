@@ -118,7 +118,7 @@ void CSnMsgHandler::tranEngine(int index)
     if (ok) {
         auto e = static_cast<TranslationEngine>(engine);
         if (translationEngines().contains(e))
-            gSet->settings.setTranslationEngine(e);
+            gSet->setTranslationEngine(e);
     }
 
     m_lockTranEngine.unlock();
@@ -128,7 +128,7 @@ void CSnMsgHandler::updateTranEngine()
 {
     if (!m_lockTranEngine.tryLock()) return;
 
-    int idx = snv->comboTranEngine->findData(gSet->settings.translatorEngine);
+    int idx = snv->comboTranEngine->findData(gSet->settings()->translatorEngine);
     if (idx>=0)
         snv->comboTranEngine->setCurrentIndex(idx);
 

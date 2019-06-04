@@ -1,4 +1,5 @@
 #include <QProcess>
+#include <QThread>
 #include <QBuffer>
 #include "translator.h"
 #include "snviewer.h"
@@ -10,24 +11,23 @@ using namespace htmlcxx;
 CTranslator::CTranslator(QObject* parent, const QString& aUri, bool forceTranSubSentences)
     : QObject(parent)
 {
-    hostingDir=gSet->settings.hostingDir;
-    hostingUrl=gSet->settings.hostingUrl;
-    createdFiles=&(gSet->createdFiles);
+    hostingDir=gSet->settings()->hostingDir;
+    hostingUrl=gSet->settings()->hostingUrl;
     Uri=aUri;
-    useSCP=gSet->settings.useScp;
-    scpParams=gSet->settings.scpParams;
-    scpHost=gSet->settings.scpHost;
-    translationEngine=gSet->settings.translatorEngine;
+    useSCP=gSet->settings()->useScp;
+    scpParams=gSet->settings()->scpParams;
+    scpHost=gSet->settings()->scpHost;
+    translationEngine=gSet->settings()->translatorEngine;
     if (!hostingDir.endsWith('/')) hostingDir.append('/');
     if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
-    atlTcpRetryCount=gSet->settings.atlTcpRetryCount;
-    atlTcpTimeout=gSet->settings.atlTcpTimeout;
-    forceFontColor=gSet->ui.forceFontColor();
-    forcedFontColor=gSet->settings.forcedFontColor;
-    useOverrideFont=gSet->ui.useOverrideFont();
-    overrideFont=gSet->settings.overrideFont;
-    translationMode=gSet->ui.getTranslationMode();
-    translateSubSentences=(forceTranSubSentences || gSet->ui.translateSubSentences());
+    atlTcpRetryCount=gSet->settings()->atlTcpRetryCount;
+    atlTcpTimeout=gSet->settings()->atlTcpTimeout;
+    forceFontColor=gSet->ui()->forceFontColor();
+    forcedFontColor=gSet->settings()->forcedFontColor;
+    useOverrideFont=gSet->ui()->useOverrideFont();
+    overrideFont=gSet->settings()->overrideFont;
+    translationMode=gSet->ui()->getTranslationMode();
+    translateSubSentences=(forceTranSubSentences || gSet->ui()->translateSubSentences());
     metaSrcUrl.clear();
     imgUrls.clear();
 }
@@ -75,7 +75,7 @@ bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
 
     r=QFile(filename).copy(wdir+wname);
     if (r) {
-        if (createdFiles) createdFiles->append(wdir+wname);
+        gSet->appendCreatedFiles(wdir+wname);
         calculatedUrl=hostingUrl+wname;
         b = true;
     } else
@@ -90,7 +90,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     abortMutex.unlock();
 
     if (tran==nullptr && !tranInited) {
-        tran = translatorFactory(this, CLangPair(gSet->ui.getActiveLangPair()));
+        tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
     }
 
     if (tran==nullptr || !tran->initTran()) {
@@ -106,7 +106,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     QUuid token = QUuid::createUuid();
 
     QString src = srcUri.trimmed();
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("1-source"),src);
     src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
 
@@ -115,7 +115,7 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     tree<HTML::Node> tr = parser.getTree();
 
-    if (gSet->settings.debugDumpHtml) {
+    if (gSet->settings()->debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
         dumpPage(token,QStringLiteral("2-tree"),QByteArray::fromRawData(sst.str().data(),
@@ -124,29 +124,29 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("3-converted"),doc);
 
     translatorFailed = false;
     textNodesCnt=0;
     metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("4-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("5-calculated"),doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("6-translated"),doc);
 
     examineNode(doc,PXPostprocess);
     generateHTML(doc,dst);
 
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("7-finalized"),dst);
 
     tran->doneTran();
@@ -166,7 +166,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     QUuid token = QUuid::createUuid();
 
     QString src = srcUri.trimmed();
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-1-source"),src);
     src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
 
@@ -175,7 +175,7 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 
     tree<HTML::Node> tr = parser.getTree();
 
-    if (gSet->settings.debugDumpHtml) {
+    if (gSet->settings()->debugDumpHtml) {
         std::stringstream sst;
         sst << tr;
         dumpPage(token,QStringLiteral("parser-2-tree"),QByteArray::fromRawData(sst.str().data(),
@@ -184,27 +184,27 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
 
     CHTMLNode doc(tr);
 
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-3-converted"),doc);
 
     translatorFailed=false;
     textNodesCnt=0;
     metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-4-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-5-calculated"),doc);
 
     textNodesProgress=0;
     examineNode(doc,PXTranslate);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-6-translated"),doc);
 
     generateHTML(doc,dst);
-    if (gSet->settings.debugDumpHtml)
+    if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-7-finalized"),dst);
 
     return true;
@@ -622,7 +622,7 @@ void CTranslator::translate()
 {
     QString aUrl;
     QString lastError;
-    CLangPair lp(gSet->ui.getActiveLangPair());
+    CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
         Q_EMIT calcFinished(false,aUrl,lastError);

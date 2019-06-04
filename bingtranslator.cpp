@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QRegExp>
 #include <QUrlQuery>
+#include <QNetworkReply>
 
 #include "bingtranslator.h"
 #include "globalcontrol.h"

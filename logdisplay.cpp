@@ -87,10 +87,12 @@ void CLogDisplay::showEvent(QShowEvent *event)
     const int verticalMargin = 100;
 
     updateMessages();
-    if (firstShow && gSet && !gSet->mainWindows.isEmpty()) {
-        QPoint p = gSet->mainWindows.constFirst()->pos()
-                   + QPoint(horizontalMargin,verticalMargin);
-        move(p);
-        firstShow=false;
+    if (firstShow && gSet!=nullptr) {
+        QRect geom = gSet->getLastMainWindowGeometry();
+        if (!geom.isNull()) {
+            QPoint p = geom.topLeft() + QPoint(horizontalMargin,verticalMargin);
+            move(p);
+            firstShow=false;
+        }
     }
 }

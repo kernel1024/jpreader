@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     gSet = new CGlobalControl(&app, dbgport);
-    if (gSet->ipcServer==nullptr)
+    if (!gSet->isIPCStarted())
         return 0;
 
-    if (gSet->settings.createCoredumps) {
+    if (gSet->settings()->createCoredumps) {
         // create core dumps on segfaults
         rlimit rlp{};
         getrlimit(RLIMIT_CORE, &rlp);
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
         if (!u.isEmpty() && u.isValid())
             urls << u;
     }
-    gSet->ui.addMainWindowEx(false,true,urls);
+    gSet->addMainWindowEx(false,true,urls);
 
     return app.exec();
 }

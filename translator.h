@@ -60,7 +60,6 @@ private:
     QColor forcedFontColor;
     QFont overrideFont;
     QUrl metaSrcUrl;
-    QStringList* createdFiles { nullptr };
     QStringList imgUrls;
     int atlTcpRetryCount { 0 };
     int atlTcpTimeout { 0 };

@@ -214,7 +214,7 @@ BookmarkNode *BookmarksManager::bookmarks()
     return m_bookmarkRootNode;
 }
 
-BookmarkNode *BookmarksManager::menu()
+BookmarkNode *BookmarksManager::menu() const
 {
     if (!m_loaded) return nullptr;
 
@@ -234,7 +234,7 @@ BookmarksModel *BookmarksManager::bookmarksModel()
     return m_bookmarkModel;
 }
 
-void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd, const BookmarkNode* node)
+void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd, const BookmarkNode* node) const
 {
     if (!m_loaded) return;
 
@@ -636,7 +636,7 @@ AddBookmarkDialog::AddBookmarkDialog(const QString &url, const QString &title, Q
 
     setWindowFlags(Qt::Sheet);
     if (!m_bookmarksManager)
-        m_bookmarksManager = gSet->bookmarksManager;
+        m_bookmarksManager = gSet->bookmarksManager();
     ui->setupUi(this);
     m_url = url;
     auto view = new QTreeView(this);
@@ -703,7 +703,7 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
 
     m_bookmarksManager = manager;
     if (!m_bookmarksManager)
-        m_bookmarksManager = gSet->bookmarksManager;
+        m_bookmarksManager = gSet->bookmarksManager();
 
     ui->tree->setUniformRowHeights(true);
     ui->tree->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -771,7 +771,7 @@ void BookmarksDialog::removeNode(const QModelIndex &node)
 
     BookmarkNode *childNode = m_bookmarksModel->node(idx);
 
-    if (*childNode!=*(gSet->bookmarksManager->menu())) // this is not predefined folder
+    if (*childNode!=*(gSet->bookmarksManager()->menu())) // this is not predefined folder
         m_bookmarksManager->removeBookmark(childNode);
 }
 

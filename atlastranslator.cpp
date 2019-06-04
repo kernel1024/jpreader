@@ -9,15 +9,15 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16
     atlHost=host;
     atlPort=port;
     if (gSet)
-        emptyRestore=gSet->settings.emptyRestore;
+        emptyRestore=gSet->settings()->emptyRestore;
 
     QSslConfiguration conf = sock.sslConfiguration();
-    conf.setProtocol(gSet->settings.atlProto);
+    conf.setProtocol(gSet->settings()->atlProto);
     sock.setSslConfiguration(conf);
 
     QList<QSslError> expectedErrors;
-    for (auto it = gSet->atlCerts.constBegin(),
-         end = gSet->atlCerts.constEnd(); it != end; ++it) {
+    for (auto it = gSet->settings()->atlCerts.constBegin(),
+         end = gSet->settings()->atlCerts.constEnd(); it != end; ++it) {
         for (auto iit = it.value().constBegin(), iend = it.value().constEnd(); iit != iend; ++iit) {
             expectedErrors << QSslError(static_cast<QSslError::SslError>(*iit),it.key());
         }
@@ -51,7 +51,7 @@ bool CAtlasTranslator::initTran()
         return false;
     }
 
-    if (gSet->settings.proxyUseTranslator) {
+    if (gSet->settings()->proxyUseTranslator) {
         sock.setProxy(QNetworkProxy::DefaultProxy);
     } else {
         sock.setProxy(QNetworkProxy::NoProxy);
@@ -66,7 +66,7 @@ bool CAtlasTranslator::initTran()
     QByteArray buf;
 
     // INIT command and response
-    buf = QStringLiteral("INIT:%1\r\n").arg(gSet->settings.atlToken).toLatin1();
+    buf = QStringLiteral("INIT:%1\r\n").arg(gSet->settings()->atlToken).toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {
@@ -207,8 +207,8 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     QHash<QSslCertificate,CIntList> errIntHash;
 
     for (const QSslError& err : qAsConst(errors)) {
-        if (gSet->atlCerts.contains(err.certificate()) &&
-                gSet->atlCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
+        if (gSet->settings()->atlCerts.contains(err.certificate()) &&
+                gSet->settings()->atlCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
 
         qCritical() << "ATLAS SSL error: " << err.errorString();
         errStrHash[err.certificate()].append(err.errorString());

@@ -1,4 +1,5 @@
 #include <QTextCodec>
+#include <QThread>
 #include "indexersearch.h"
 #include "globalcontrol.h"
 #include "genericfuncs.h"
@@ -6,7 +7,7 @@
 CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
-    indexerSerivce = gSet->settings.searchEngine;
+    indexerSerivce = gSet->settings()->searchEngine;
     if ((indexerSerivce == seRecoll) || (indexerSerivce == seBaloo5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
@@ -49,7 +50,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         if ((indexerSerivce == seBaloo5) || (indexerSerivce == seRecoll)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig()) {
-                Q_EMIT startThreadedSearch(m_query,gSet->settings.maxSearchLimit);
+                Q_EMIT startThreadedSearch(m_query,gSet->settings()->maxSearchLimit);
             } else {
                 engineFinished();
             }
@@ -63,10 +64,10 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 bool CIndexerSearch::isValidConfig()
 {
 #ifndef WITH_RECOLL
-    if (indexerSerivce == SE_RECOLL) return false;
+    if (indexerSerivce == seRecoll) return false;
 #endif
 #ifndef WITH_BALOO5
-    if (indexerSerivce == SE_BALOO5) return false;
+    if (indexerSerivce == seBaloo5) return false;
 #endif
     return true;
 }

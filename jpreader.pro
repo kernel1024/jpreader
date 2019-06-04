@@ -1,4 +1,5 @@
 HEADERS = mainwindow.h \
+    globalprivate.h \
     snviewer.h \
     settingsdlg.h \
     specwidgets.h \
@@ -46,6 +47,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
+    globalprivate.cpp \
     mainwindow.cpp \
     settingsdlg.cpp \
     snviewer.cpp \
