@@ -7,6 +7,8 @@ extern "C" {
 }
 
 #include "logdisplay.h"
+#include "downloadmanager.h"
+#include "lighttranslator.h"
 #include "globalprivate.h"
 
 namespace CDefaults {
@@ -22,6 +24,11 @@ CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
 
     settingsSaveTimer.setInterval(CDefaults::settingsSavePeriod);
     settingsSaveTimer.setSingleShot(false);
+}
+
+CGlobalControlPrivate::~CGlobalControlPrivate()
+{
+
 }
 
 void CGlobalControlPrivate::settingsDialogDestroyed()

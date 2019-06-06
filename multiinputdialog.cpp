@@ -10,7 +10,7 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
 
     setWindowTitle(title);
 
-    formLayout = new QFormLayout();
+    formLayout = new QFormLayout(parent);
     formLayout->setObjectName(QStringLiteral("formLayout"));
 
     int i = 0;

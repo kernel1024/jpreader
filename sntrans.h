@@ -13,8 +13,8 @@ class CSnTrans : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-    QTimer *m_selectionTimer;
-    QTimer *m_longClickTimer;
+    QTimer m_selectionTimer;
+    QTimer m_longClickTimer;
     QString m_storedSelection;
     QUrl m_savedBaseUrl;
     void findWordTranslation(const QString& text);

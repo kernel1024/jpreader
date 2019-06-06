@@ -61,17 +61,16 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
 bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 {
     QEventLoop eventLoop;
-    auto timer = new QTimer(this);
+    QTimer timer;
 
     connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
-    connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
-    timer->setSingleShot(true);
-    timer->start(CDefaults::translatorConnectionTimeout);
+    connect(&timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
+    timer.setSingleShot(true);
+    timer.start(CDefaults::translatorConnectionTimeout);
 
     eventLoop.exec();
 
-    timer->stop();
-    timer->deleteLater();
+    timer.stop();
 
     return reply->isFinished() && reply->bytesAvailable()>0;
 }
@@ -80,7 +79,7 @@ void CWebAPIAbstractTranslator::initNAM()
 {
     if (m_nam==nullptr) {
         m_nam=new QNetworkAccessManager(this);
-        auto cj = new CNetworkCookieJar();
+        auto cj = new CNetworkCookieJar(m_nam);
         m_nam->setCookieJar(cj);
     }
 

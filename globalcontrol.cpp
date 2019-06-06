@@ -109,19 +109,16 @@ void CGlobalControl::initialize()
     qRegisterMetaTypeStreamOperators<CLangPairVector>("CLangPairVector");
     qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
 
-    d->ipcServer = nullptr;
     if (!setupIPC())
         ::exit(0);
 
     initLanguagesList();
 
-    d->logWindow = new CLogDisplay();
-    d->downloadManager = new CDownloadManager();
+    d->logWindow.reset(new CLogDisplay());
+    d->downloadManager.reset(new CDownloadManager());
     d->bookmarksManager = new BookmarksManager(this);
 
     d->activeWindow = nullptr;
-    d->lightTranslator = nullptr;
-    d->auxDictionary = nullptr;
 
     CPDFWorker::initPdfToText();
 
@@ -170,7 +167,7 @@ void CGlobalControl::initialize()
     d->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
 
     connect(d->webProfile, &QWebEngineProfile::downloadRequested,
-            d->downloadManager, &CDownloadManager::handleDownload);
+            d->downloadManager.data(), &CDownloadManager::handleDownload);
 
     d->webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
 
@@ -216,7 +213,7 @@ void CGlobalControl::initialize()
     d->dictNetMan = new ArticleNetworkAccessManager(this,d->dictManager);
 
     d->auxNetManager = new QNetworkAccessManager(this);
-    d->auxNetManager->setCookieJar(new CNetworkCookieJar());
+    d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
 
     d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
     connect(&d->tabsListTimer, &QTimer::timeout, settings(), &CSettings::writeTabsList);
@@ -259,13 +256,13 @@ bool CGlobalControl::setupIPC()
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
     serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
 
-    auto socket = new QLocalSocket();
+    QScopedPointer<QLocalSocket> socket(new QLocalSocket());
     socket->connectToServer(serverName);
     if (socket->waitForConnected(CDefaults::ipcTimeout)){
         // Connected. Process is already running, send message to it
         if (CGlobalControlPrivate::runnedFromQtCreator()) { // This is debug run, try to close old instance
             // Send close request
-            sendIPCMessage(socket,QStringLiteral("debugRestart"));
+            sendIPCMessage(socket.data(),QStringLiteral("debugRestart"));
             socket->flush();
             socket->close();
             QApplication::processEvents();
@@ -274,34 +271,31 @@ bool CGlobalControl::setupIPC()
             // Check for closing
             socket->connectToServer(serverName);
             if (socket->waitForConnected(CDefaults::ipcTimeout)) { // connected, unable to close
-                sendIPCMessage(socket,QStringLiteral("newWindow"));
+                sendIPCMessage(socket.data(),QStringLiteral("newWindow"));
                 socket->flush();
                 socket->close();
-                socket->deleteLater();
                 return false;
             }
             // Old instance closed, start new one
             QLocalServer::removeServer(serverName);
-            d->ipcServer = new QLocalServer();
+            d->ipcServer.reset(new QLocalServer());
             d->ipcServer->listen(serverName);
-            connect(d->ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
+            connect(d->ipcServer.data(), &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
         } else {
-            sendIPCMessage(socket,QStringLiteral("newWindow"));
+            sendIPCMessage(socket.data(),QStringLiteral("newWindow"));
             socket->flush();
             socket->close();
-            socket->deleteLater();
             return false;
         }
     } else {
         // New process. Startup server and gSet normally, listen for new instances
         QLocalServer::removeServer(serverName);
-        d->ipcServer = new QLocalServer();
+        d->ipcServer.reset(new QLocalServer());
         d->ipcServer->listen(serverName);
-        connect(d->ipcServer, &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
+        connect(d->ipcServer.data(), &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
     }
     if (socket->isOpen())
         socket->close();
-    socket->deleteLater();
     return true;
 }
 
@@ -529,13 +523,13 @@ BookmarksManager *CGlobalControl::bookmarksManager() const
 CDownloadManager *CGlobalControl::downloadManager() const
 {
     Q_D(const CGlobalControl);
-    return d->downloadManager;
+    return d->downloadManager.data();
 }
 
 CLogDisplay *CGlobalControl::logWindow() const
 {
     Q_D(const CGlobalControl);
-    return d->logWindow;
+    return d->logWindow.data();
 }
 
 ArticleNetworkAccessManager *CGlobalControl::dictionaryNetworkAccessManager() const
@@ -603,8 +597,8 @@ void CGlobalControl::showDictionaryWindow()
 void CGlobalControl::showDictionaryWindowEx(const QString &text)
 {
     Q_D(CGlobalControl);
-    if (d->auxDictionary==nullptr) {
-        d->auxDictionary = new CAuxDictionary();
+    if (d->auxDictionary.isNull()) {
+        d->auxDictionary.reset(new CAuxDictionary());
         d->auxDictionary->show();
         d->auxDictionary->adjustSplitters();
     }
@@ -772,16 +766,6 @@ void CGlobalControl::cleanupAndExit()
     CPDFWorker::freePdfToText();
 
     d->ipcServer->close();
-    d->ipcServer->deleteLater();
-    d->ipcServer=nullptr;
-
-    d->logWindow->setParent(nullptr);
-    d->logWindow->deleteLater();
-    d->logWindow = nullptr;
-
-    d->downloadManager->setParent(nullptr);
-    d->downloadManager->deleteLater();
-    d->downloadManager = nullptr;
 
     QMetaObject::invokeMethod(QApplication::instance(),&QApplication::quit,Qt::QueuedConnection);
 }
@@ -1065,8 +1049,8 @@ QStringList CGlobalControl::getLanguageCodes() const
 void CGlobalControl::showLightTranslator(const QString &text)
 {
     Q_D(CGlobalControl);
-    if (d->lightTranslator==nullptr)
-        d->lightTranslator = new CLightTranslator();
+    if (d->lightTranslator.isNull())
+        d->lightTranslator.reset(new CLightTranslator());
 
     d->lightTranslator->restoreWindow();
 

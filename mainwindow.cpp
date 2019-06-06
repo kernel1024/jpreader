@@ -215,6 +215,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
 
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv) {
+        // TODO leak
         t = new CSpecToolTipLabel(sv->tabTitle());
 
         QPixmap pix = sv->pageImage();

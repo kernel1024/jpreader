@@ -17,8 +17,8 @@ private:
     CSnippetViewer *snv;
     QMutex m_lockTranEngine;
     qreal m_zoomFactor;
-    QTimer *m_loadingBarHideTimer;
-    QTimer *m_focusTimer;
+    QTimer m_loadingBarHideTimer;
+    QTimer m_focusTimer;
 
 public:
     explicit CSnMsgHandler(CSnippetViewer * parent);

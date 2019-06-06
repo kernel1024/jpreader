@@ -166,6 +166,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
 
+    // TODO leak
     CSpecToolTipLabel* t = new CSpecToolTipLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();

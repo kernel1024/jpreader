@@ -22,7 +22,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     wordFinder = new WordFinder(this);
 
-    wordHistoryModel = new QStringListModel();
+    wordHistoryModel = new QStringListModel(this);
     ui->editWord->setCompleter(new QCompleter(wordHistoryModel));
 
     connect(ui->editWord, &QLineEdit::textChanged, this, &CAuxDictionary::translateInputChanged);

@@ -64,6 +64,7 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
             this,[this,recoll](int exitCode, QProcess::ExitStatus exitStatus){
         Q_UNUSED(exitCode)
         Q_UNUSED(exitStatus)
+
         setWorking(false);
         Q_EMIT finished();
         recoll->deleteLater();

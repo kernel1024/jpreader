@@ -1,4 +1,5 @@
 #include <QMessageBox>
+#include <QScopedPointer>
 #include <QUrlQuery>
 #include <goldendictlib/goldendictmgr.hh>
 
@@ -22,23 +23,21 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
 {
     snv = parent;
 
-    m_selectionTimer = new QTimer(this);
-    m_selectionTimer->setInterval(CDefaults::selectionTimerDelay);
-    m_selectionTimer->setSingleShot(true);
-    m_longClickTimer = new QTimer(this);
-    m_longClickTimer->setInterval(CDefaults::longClickTimerDelay);
-    m_longClickTimer->setSingleShot(true);
+    m_selectionTimer.setInterval(CDefaults::selectionTimerDelay);
+    m_selectionTimer.setSingleShot(true);
+    m_longClickTimer.setInterval(CDefaults::longClickTimerDelay);
+    m_longClickTimer.setSingleShot(true);
 
     connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
-    connect(m_selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
-    connect(m_longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
+    connect(&m_selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
+    connect(&m_longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
     connect(snv->transButton, &QPushButton::pressed, this, [this](){
-        m_longClickTimer->start();
+        m_longClickTimer.start();
     });
     connect(snv->transButton, &QPushButton::released, this, [this](){
-        bool ta = m_longClickTimer->isActive();
+        bool ta = m_longClickTimer.isActive();
         if (ta) {
-            m_longClickTimer->stop();
+            m_longClickTimer.stop();
         } else {
             snv->transButton->setStyleSheet(QString());
         }
@@ -59,7 +58,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     if (m_savedBaseUrl.hasFragment())
         m_savedBaseUrl.setFragment(QString());
 
-    auto ct = new CTranslator(nullptr,data);
+    QScopedPointer<CTranslator> ct(new CTranslator(nullptr,data));
     QString res;
     if (!ct->documentReparse(data,res)) {
         QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
@@ -104,7 +103,7 @@ void CSnTrans::getImgUrlsAndParse()
 {
     snv->txtBrowser->page()->toHtml([this](const QString& result) {
 
-        auto ct = new CTranslator(nullptr,result);
+        QScopedPointer<CTranslator> ct(new CTranslator(nullptr,result));
         QString res;
         if (!ct->documentReparse(result,res)) {
             QMessageBox::critical(snv,tr("JPReader"),
@@ -249,7 +248,7 @@ void CSnTrans::selectionChanged()
 {
     m_storedSelection = snv->txtBrowser->page()->selectedText();
     if (!m_storedSelection.isEmpty() && gSet->ui()->actionSelectionDictionary->isChecked())
-        m_selectionTimer->start();
+        m_selectionTimer.start();
 }
 
 void CSnTrans::findWordTranslation(const QString &text)
@@ -288,7 +287,8 @@ void CSnTrans::showWordTranslation(const QString &html)
 {
     const QSize maxTranslationTooltipSize(350,350);
 
-    if (snv->ctxHandler->isMenuTimerActive()) return;
+    if (snv->ctxHandler->isMenuActive()) return;
+    // TODO leak
     auto t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);

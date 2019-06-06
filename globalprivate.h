@@ -33,14 +33,17 @@ class CGlobalControlPrivate : public QObject
 public:
     CMainWindow* activeWindow { nullptr };
     QVector<CMainWindow*> mainWindows;
-    CLightTranslator* lightTranslator { nullptr };
-    CLogDisplay* logWindow { nullptr };
-    CDownloadManager* downloadManager { nullptr };
     QWebEngineProfile *webProfile { nullptr };
     QNetworkAccessManager *auxNetManager { nullptr };
     BookmarksManager *bookmarksManager { nullptr };
     ArticleNetworkAccessManager * dictNetMan { nullptr };
     CGoldenDictMgr * dictManager { nullptr };
+
+    QScopedPointer<CLogDisplay> logWindow;
+    QScopedPointer<CDownloadManager> downloadManager;
+    QScopedPointer<CAuxDictionary> auxDictionary;
+    QScopedPointer<QLocalServer> ipcServer;
+    QScopedPointer<CLightTranslator> lightTranslator;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;
@@ -53,8 +56,6 @@ public:
     int inspectorPort { CDefaults::defaultInspectorPort };
     bool blockTabCloseActive { false };
 
-    QLocalServer* ipcServer { nullptr };
-    CAuxDictionary* auxDictionary { nullptr };
     CAuxTranslator* auxTranslatorDBus { nullptr };
     CBrowserController* browserControllerDBus { nullptr };
 
@@ -89,6 +90,7 @@ public:
 
 public:
     explicit CGlobalControlPrivate(QObject *parent = nullptr);
+    ~CGlobalControlPrivate() override;
 
     static void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static bool runnedFromQtCreator();

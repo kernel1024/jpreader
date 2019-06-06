@@ -683,16 +683,11 @@ void CTranslator::abortTranslator()
     // Intermediate timer, because sometimes webengine throws segfault from its insides on widget resize event
     const int abortTimerDelay = 500;
 
-    auto imt = new QTimer(this);
-    imt->setSingleShot(true);
-    imt->setInterval(abortTimerDelay);
-    connect(imt,&QTimer::timeout,this,[this,imt](){
+    QTimer::singleShot(abortTimerDelay,this,[this](){
         abortMutex.lock();
         abortFlag=true;
         abortMutex.unlock();
-        imt->deleteLater();
     });
-    imt->start();
 }
 
 void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)

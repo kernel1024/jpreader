@@ -757,5 +757,6 @@ void CFaviconLoader::queryFinished()
     }
 
     rpl->deleteLater();
+    // TODO remove deleteLater, use explicit cleaning! Favicon loader leaking.
     deleteLater();
 }

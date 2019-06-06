@@ -182,6 +182,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     ex->moveToThread(th);
     th->start();
 
+    // TODO here some leaks too
     auto rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(url));
     gSet->app()->setOverrideCursor(Qt::BusyCursor);
 

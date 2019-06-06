@@ -15,16 +15,14 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
 {
     snv = parent;
     m_zoomFactor = 1.0;
-    m_loadingBarHideTimer = new QTimer(this);
-    m_loadingBarHideTimer->setInterval(CDefaults::loadingBarDelay);
-    m_loadingBarHideTimer->setSingleShot(true);
-    m_focusTimer = new QTimer(this);
-    m_focusTimer->setInterval(CDefaults::focusTimerDelay);
-    m_focusTimer->setSingleShot(true);
+    m_loadingBarHideTimer.setInterval(CDefaults::loadingBarDelay);
+    m_loadingBarHideTimer.setSingleShot(true);
+    m_focusTimer.setInterval(CDefaults::focusTimerDelay);
+    m_focusTimer.setSingleShot(true);
 
-    connect(m_focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
+    connect(&m_focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
 
-    connect(m_loadingBarHideTimer,&QTimer::timeout,this,[this](){
+    connect(&m_loadingBarHideTimer,&QTimer::timeout,this,[this](){
         Q_EMIT loadingBarHide();
     });
 }
@@ -36,7 +34,7 @@ void CSnMsgHandler::updateZoomFactor()
 
 void CSnMsgHandler::activateFocusDelay()
 {
-    m_focusTimer->start();
+    m_focusTimer.start();
 }
 
 void CSnMsgHandler::searchFwd()
@@ -139,7 +137,7 @@ void CSnMsgHandler::updateTranEngine()
 
 void CSnMsgHandler::hideBarLoading()
 {
-    m_loadingBarHideTimer->start();
+    m_loadingBarHideTimer.start();
 }
 
 void CSnMsgHandler::urlEditSetFocus()

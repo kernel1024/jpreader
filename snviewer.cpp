@@ -425,15 +425,12 @@ bool CSnippetViewer::canClose()
 void CSnippetViewer::takeScreenshot()
 {
     if (!m_pageLoaded) return;
-    auto t = new QTimer(this);
-    t->setInterval(CDefaults::tabPreviewScreenshotDelay);
-    t->setSingleShot(true);
-    connect(t,&QTimer::timeout,this,[this,t](){
+    QTimer::singleShot(CDefaults::tabPreviewScreenshotDelay,this,[this](){
         m_pageImage = txtBrowser->grab();
-        t->deleteLater();
     });
-    t->start();
 }
+
+// TODO find all QTimer pointers!!!
 
 void CSnippetViewer::save()
 {

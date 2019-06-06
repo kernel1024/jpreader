@@ -6,6 +6,8 @@
 #include <QString>
 #include <QTimer>
 #include <QWebEngineContextMenuData>
+#include <QMenu>
+#include <QScopedPointer>
 #include "snviewer.h"
 #include "specwidgets.h"
 
@@ -16,11 +18,11 @@ class CSnCtxHandler : public QObject
     Q_OBJECT
 private:
     CSnippetViewer *snv;
-    QTimer *m_menuActive;
+    QTimer m_menuActive;
 public:
     explicit CSnCtxHandler(CSnippetViewer *parent);
     void reconfigureDefaultActions();
-    bool isMenuTimerActive();
+    bool isMenuActive();
 public Q_SLOTS:
     void translateFragment();
     void saveToFile();
