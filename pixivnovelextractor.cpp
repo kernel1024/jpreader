@@ -44,7 +44,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QString wtitle = m_title;
         if (wtitle.isEmpty())
-            wtitle = extractFileTitle(html);
+            wtitle = CGenericFuncs::extractFileTitle(html);
 
         QString htitle;
         QRegExp hrx(QStringLiteral("<h1[^>]*class=\"title\"[^>]*>"),Qt::CaseInsensitive);
@@ -168,7 +168,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 {
     Q_UNUSED(error)
-    qApp->restoreOverrideCursor();
+    gSet->app()->restoreOverrideCursor();
 
     QString msg(QStringLiteral("Unable to load pixiv novel."));
 
@@ -179,7 +179,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
     qCritical() << msg;
 
     QWidget *w = nullptr;
-    QObject *ctx = qApp;
+    QObject *ctx = QApplication::instance();
     if (m_snv) {
         w = m_snv->parentWnd();
         ctx = m_snv;
@@ -192,7 +192,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
 
 void CPixivNovelExtractor::subLoadFinished()
 {
-    const QStringList &supportedExt = getSupportedImageExtensions();
+    const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl==nullptr) return;
@@ -210,7 +210,7 @@ void CPixivNovelExtractor::subLoadFinished()
         httpStatus = vstat.toInt(&ok);
     }
 
-    if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<httpCodeRedirect)) {
+    if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
         // valid page without redirect or error
         const CIntList idxs = m_imgList.value(key);
         QString html = QString::fromUtf8(rpl->readAll());
@@ -241,8 +241,13 @@ void CPixivNovelExtractor::subLoadFinished()
         }
         m_imgMutex.unlock();
     } else {
-        if ((!mediumMode) && ((httpStatus>=httpCodeClientError && httpStatus<httpCodeServerError) ||  // not found manga page
-                              (httpStatus>=httpCodeRedirect && httpStatus<httpCodeClientError))) { // or redirected from manga page (new style)
+        if ((!mediumMode) &&
+                // not found manga page
+                ((httpStatus>=CDefaults::httpCodeClientError && httpStatus<CDefaults::httpCodeServerError) ||
+                 // or redirected from manga page (new style)
+                 (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError)))
+
+        {
             // try single page load
             QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
             QUrlQuery qr;
@@ -268,7 +273,7 @@ void CPixivNovelExtractor::subWorkFinished()
 {
     if (m_worksPageLoad>0 || m_worksImgFetch>0) return;
 
-    qApp->restoreOverrideCursor();
+    gSet->app()->restoreOverrideCursor();
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
@@ -292,7 +297,7 @@ void CPixivNovelExtractor::subWorkFinished()
         m_html.replace(rx, rpl);
     }
 
-    Q_EMIT novelReady(makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
+    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
     deleteLater();
 }
 

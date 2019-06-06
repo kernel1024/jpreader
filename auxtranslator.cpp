@@ -1,3 +1,5 @@
+#include <QThread>
+#include <QScopedPointer>
 #include "auxtranslator.h"
 #include "specwidgets.h"
 #include "globalcontrol.h"
@@ -24,11 +26,11 @@ void CAuxTranslator::setDestLang(const QString &lang)
     m_lang.langTo = QLocale(lang);
 }
 
-void CAuxTranslator::startTranslation(bool deleteAfter)
+void CAuxTranslator::translatePriv()
 {
     if (!m_text.isEmpty()) {
-        CAbstractTranslator* tran=translatorFactory(this, m_lang);
-        if (tran==nullptr || !tran->initTran()) {
+        QScopedPointer<CAbstractTranslator> tran(translatorFactory(this, m_lang));
+        if (tran.isNull() || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             m_text = QStringLiteral("ERROR");
         } else {
@@ -53,17 +55,19 @@ void CAuxTranslator::startTranslation(bool deleteAfter)
             tran->doneTran();
             m_text = res;
         }
-        if (tran)
-            tran->deleteLater();
     }
     Q_EMIT gotTranslation(m_text);
-    if (deleteAfter)
-        deleteLater();
+}
+
+void CAuxTranslator::translateAndQuit()
+{
+    translatePriv();
+    QThread::currentThread()->quit();
 }
 
 void CAuxTranslator::startAuxTranslation(const QString &text)
 {
     setText(text);
-    startTranslation(false);
+    translatePriv();
 }
 

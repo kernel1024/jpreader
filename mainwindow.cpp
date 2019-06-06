@@ -25,15 +25,17 @@
 #include "snctxhandler.h"
 #include "downloadmanager.h"
 
+namespace CDefaults {
 const int titleRenameLockTimeout = 500;
+}
 
 CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls, QWidget *parent)
-        : QMainWindow(parent)
+    : QMainWindow(parent)
 {
-	setupUi(this);
+    setupUi(this);
 
     tabMain->setParentWnd(this);
-	lastTabIdx=0;
+    lastTabIdx=0;
     setWindowIcon(gSet->appIcon());
     setAttribute(Qt::WA_DeleteOnClose,true);
 
@@ -72,11 +74,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     menuBookmarks->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
     menuBookmarks->setToolTipsVisible(true);
 
-    titleRenamedLock.setInterval(titleRenameLockTimeout);
+    titleRenamedLock.setInterval(CDefaults::titleRenameLockTimeout);
     titleRenamedLock.setSingleShot(true);
 
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
-    connect(actionAboutQt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(actionAboutQt, &QAction::triggered, gSet->app(), &QApplication::aboutQt);
     connect(actionSettings, &QAction::triggered, gSet, &CGlobalControl::settingsDialog);
     connect(actionExit, &QAction::triggered, this, &CMainWindow::close);
     connect(actionExitAll, &QAction::triggered, gSet, &CGlobalControl::cleanupAndExit);
@@ -154,7 +156,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     savedMaximized=isMaximized();
     savedSplitterWidth=splitter->handleWidth();
 
-    qApp->installEventFilter(this);
+    QApplication::instance()->installEventFilter(this);
 
     QPushButton* addTabButton = new QPushButton(QIcon::fromTheme(QStringLiteral("list-add")),QString());
     addTabButton->setFlat(true);
@@ -239,6 +241,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         auto bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt) {
             t = new CSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
+            // TODO possible leak
         }
     }
 
@@ -630,7 +633,7 @@ void CMainWindow::openAuxFiles(const QStringList &filenames)
 
 void CMainWindow::openAuxFileWithDialog()
 {
-    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),gSet->settings()->savedAuxDir);
+    QStringList fnames = CGenericFuncs::getOpenFileNamesD(this,tr("Open text file"),gSet->settings()->savedAuxDir);
     if (fnames.isEmpty()) return;
 
     gSet->setSavedAuxDir(QFileInfo(fnames.first()).absolutePath());
@@ -660,7 +663,7 @@ void CMainWindow::openAuxFileInDir()
     }
     auxDir = QFileInfo(auxDir).absolutePath();
 
-    QStringList fnames = getOpenFileNamesD(this,tr("Open text file"),auxDir);
+    QStringList fnames = CGenericFuncs::getOpenFileNamesD(this,tr("Open text file"),auxDir);
     if (fnames.isEmpty()) return;
 
     gSet->setSavedAuxDir(QFileInfo(fnames.first()).absolutePath());
@@ -673,7 +676,7 @@ void CMainWindow::openAuxFileInDir()
 
 void CMainWindow::createFromClipboard()
 {
-    QString tx = getClipboardContent();
+    QString tx = CGenericFuncs::getClipboardContent();
     if (tx.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
@@ -684,7 +687,7 @@ void CMainWindow::createFromClipboard()
 
 void CMainWindow::createFromClipboardPlain()
 {
-    QString tx = getClipboardContent(true,true);
+    QString tx = CGenericFuncs::getClipboardContent(true,true);
     if (tx.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
@@ -700,7 +703,7 @@ void CMainWindow::clearClipboard()
 
 void CMainWindow::openFromClipboard()
 {
-    QUrl url = QUrl::fromUserInput(getClipboardContent(true));
+    QUrl url = QUrl::fromUserInput(CGenericFuncs::getClipboardContent(true));
     url.setFragment(QString());
     QString uri = url.toString().remove(QRegExp(QStringLiteral("#$")));
     if (uri.isEmpty()) {
@@ -852,7 +855,7 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    const QVector<QStringList> &cList = encodingsByScript();
+    const QVector<QStringList> &cList = CGenericFuncs::encodingsByScript();
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
@@ -927,14 +930,14 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     QHash<QString,QString> data;
     QStringList formats = ev->mimeData()->formats();
     for (int i=0;i<formats.count();i++)
-        data[formats.at(i)] = detectDecodeToUnicode(ev->mimeData()->data(formats.at(i)));
+        data[formats.at(i)] = CGenericFuncs::detectDecodeToUnicode(ev->mimeData()->data(formats.at(i)));
 
     QVector<QUrl> ul;
     bool ok = false;
 
     if (data.contains(QStringLiteral("_NETSCAPE_URL"))) {
         QString s = data.value(QStringLiteral("_NETSCAPE_URL"))
-                               .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst();
+                    .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst();
         QUrl u(s);
         if (u.isValid()) {
             ul << u;
@@ -992,13 +995,13 @@ void CMainWindow::helpAbout()
                      "Recoll backend compiled: %5\n"
                      "Baloo backend compiled: %6\n"
                      "Poppler support: %7.")
-                    .arg(QStringLiteral(BUILD_REV),
-                    debugstr,
-                    QStringLiteral(BUILD_PLATFORM),
-                    QStringLiteral(BUILD_DATE),
-                    recoll,
-                    baloo5,
-                    poppler);
+                  .arg(QStringLiteral(BUILD_REV),
+                       debugstr,
+                       QStringLiteral(BUILD_PLATFORM),
+                       QStringLiteral(BUILD_DATE),
+                       recoll,
+                       baloo5,
+                       poppler);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }

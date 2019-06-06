@@ -39,16 +39,16 @@ CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDir
 {
     if (!tranDirection.isValid()) return nullptr;
 
-    if (gSet->settings()->translatorEngine==teAtlas)
+    if (gSet->settings()->translatorEngine==CStructures::teAtlas)
         return new CAtlasTranslator(parent, gSet->settings()->atlHost, gSet->settings()->atlPort, tranDirection);
 
-    if (gSet->settings()->translatorEngine==teBingAPI)
+    if (gSet->settings()->translatorEngine==CStructures::teBingAPI)
         return new CBingTranslator(parent, tranDirection, gSet->settings()->bingKey);
 
-    if (gSet->settings()->translatorEngine==teYandexAPI)
+    if (gSet->settings()->translatorEngine==CStructures::teYandexAPI)
         return new CYandexTranslator(parent, tranDirection, gSet->settings()->yandexKey);
 
-    if (gSet->settings()->translatorEngine==teGoogleGTX)
+    if (gSet->settings()->translatorEngine==CStructures::teGoogleGTX)
         return new CGoogleGTXTranslator(parent, tranDirection);
 
     return nullptr;

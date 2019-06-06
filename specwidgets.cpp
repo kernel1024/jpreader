@@ -20,7 +20,7 @@
 #include "snctxhandler.h"
 
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
-	: QTabWidget(p)
+    : QTabWidget(p)
 {
     m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
@@ -200,7 +200,7 @@ CSpecMenuStyle::CSpecMenuStyle(QStyle *style)
 }
 
 int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
-                               QStyleHintReturn *returnData) const
+                              QStyleHintReturn *returnData) const
 {
     if ( hint == SH_DrawMenuBarSeparator)
         return static_cast<int>(true);
@@ -270,7 +270,7 @@ void CSpecTabContainer::detachTab()
 {
     if (m_tabWidget->count()<=1) return;
 
-/*  Classic method - create new tab and copy contents
+    /*  Classic method - create new tab and copy contents
  *
     CSpecTabContainer* ntab = nullptr;
 
@@ -308,7 +308,7 @@ void CSpecTabContainer::detachTab()
         ntab->parentWnd->raise();
     } */
 
-/*
+    /*
  *  Reparenting
  *  Can caught failure with Qt5 openGL backend...
  *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
@@ -634,7 +634,7 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 
         QUrlQuery qr(url);
         if ( qr.queryItemValue( QStringLiteral("blank") ) == QStringLiteral("1") ) {
-            rplb = makeSimpleHtml(QString(),QString()).toUtf8();
+            rplb = CGenericFuncs::makeSimpleHtml(QString(),QString()).toUtf8();
             return rplb;
         }
 
@@ -646,9 +646,9 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
         int ret = ev.exec();
 
         if (ret==1) { // Timeout
-            rplb = makeSimpleHtml(tr("Error"),
-                                  tr("Dictionary request timeout for query '%1'.")
-                                  .arg(url.toString())).toUtf8();
+            rplb = CGenericFuncs::makeSimpleHtml(tr("Error"),
+                                                 tr("Dictionary request timeout for query '%1'.")
+                                                 .arg(url.toString())).toUtf8();
 
         } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
             std::vector<char> vc = dr->getFullData();
@@ -656,9 +656,9 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
                               static_cast<int>(vc.size()));
 
         } else { // Dictionary error
-            rplb = makeSimpleHtml(tr("Error"),
-                                  tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
-                                  .arg(url.toString(),dr->getErrorString())).toUtf8();
+            rplb = CGenericFuncs::makeSimpleHtml(tr("Error"),
+                                                 tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
+                                                 .arg(url.toString(),dr->getErrorString())).toUtf8();
         }
         return rplb;
     }

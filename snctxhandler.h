@@ -30,7 +30,6 @@ public Q_SLOTS:
     void runJavaScript();
     void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
 Q_SIGNALS:
-    void startTranslation(bool deleteAfter);
     void hideTooltips();
 };
 

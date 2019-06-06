@@ -48,15 +48,6 @@ void CRecollSearch::recollReadyRead()
     }
 }
 
-void CRecollSearch::recollFinished(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    Q_UNUSED(exitCode)
-    Q_UNUSED(exitStatus)
-
-    setWorking(false);
-    Q_EMIT finished();
-}
-
 void CRecollSearch::doSearch(const QString &qr, int maxLimit)
 {
     if (isWorking()) return;
@@ -70,7 +61,13 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
             this,&CRecollSearch::recollReadyRead);
 
     connect(recoll,qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-            this,&CRecollSearch::recollFinished);
+            this,[this,recoll](int exitCode, QProcess::ExitStatus exitStatus){
+        Q_UNUSED(exitCode)
+        Q_UNUSED(exitStatus)
+        setWorking(false);
+        Q_EMIT finished();
+        recoll->deleteLater();
+    });
 
     recoll->start(QStringLiteral("recoll"),QStringList() << QStringLiteral("-n")
                   << QString::number(maxLimit) << QStringLiteral("-t")

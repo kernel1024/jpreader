@@ -1,5 +1,6 @@
 HEADERS = mainwindow.h \
     globalprivate.h \
+    pdfworkerprivate.h \
     snviewer.h \
     settingsdlg.h \
     specwidgets.h \
@@ -49,6 +50,7 @@ HEADERS = mainwindow.h \
 SOURCES = main.cpp \
     globalprivate.cpp \
     mainwindow.cpp \
+    pdfworkerprivate.cpp \
     settingsdlg.cpp \
     snviewer.cpp \
     atlastranslator.cpp \

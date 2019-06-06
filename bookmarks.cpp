@@ -74,8 +74,10 @@
 #include "ui_bookmarks.h"
 #include "ui_addbookmarkdialog.h"
 
+namespace CDefaults {
 const auto sBookmarksOld = "Old Bookmarks";
 const auto sBookmarksMenu = "Bookmarks Menu";
+}
 
 BookmarksManager::BookmarksManager(QObject *parent)
     : QObject(parent)
@@ -124,12 +126,12 @@ void BookmarksManager::load(const QByteArray& data)
         if (node->type == BookmarkNode::Folder) {
             // Automatically convert
             if (node->title == tr("Menu") && menu == nullptr) {
-                node->title = tr(sBookmarksMenu);
+                node->title = tr(CDefaults::sBookmarksMenu);
             }
-            if (node->title == tr(sBookmarksMenu) && menu == nullptr) {
+            if (node->title == tr(CDefaults::sBookmarksMenu) && menu == nullptr) {
                 menu = node;
             }
-            if (node->title == tr(sBookmarksOld) && old == nullptr) {
+            if (node->title == tr(CDefaults::sBookmarksOld) && old == nullptr) {
                 old = node;
             }
         } else {
@@ -141,7 +143,7 @@ void BookmarksManager::load(const QByteArray& data)
 
     if (!menu) {
         menu = new BookmarkNode(BookmarkNode::Folder, m_bookmarkRootNode);
-        menu->title = tr(sBookmarksMenu);
+        menu->title = tr(CDefaults::sBookmarksMenu);
     } else {
         m_bookmarkRootNode->add(menu);
     }
@@ -220,7 +222,7 @@ BookmarkNode *BookmarksManager::menu() const
 
     for (int i = m_bookmarkRootNode->children.count() - 1; i >= 0; --i) {
         BookmarkNode *node = m_bookmarkRootNode->children.at(i);
-        if (node->title == tr(sBookmarksMenu))
+        if (node->title == tr(CDefaults::sBookmarksMenu))
             return node;
     }
     Q_ASSERT(false);
@@ -280,9 +282,9 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
 
 void BookmarksManager::importBookmarks()
 {
-    QString fileName = getOpenFileNameD(nullptr, tr("Open File"),
-                                        QString(),
-                                        tr("XBEL (*.xbel *.xml)"));
+    QString fileName = CGenericFuncs::getOpenFileNameD(nullptr, tr("Open File"),
+                                                       QString(),
+                                                       tr("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
@@ -290,22 +292,22 @@ void BookmarksManager::importBookmarks()
     BookmarkNode *importRootNode = reader.read(fileName);
     if (reader.error() != QXmlStreamReader::NoError) {
         QMessageBox::warning(nullptr, QStringLiteral("Loading Bookmark"),
-            tr("Error when loading bookmarks on line %1, column %2:\n"
-               "%3").arg(reader.lineNumber()).arg(reader.columnNumber()).arg(reader.errorString()));
+                             tr("Error when loading bookmarks on line %1, column %2:\n"
+                                "%3").arg(reader.lineNumber()).arg(reader.columnNumber()).arg(reader.errorString()));
     }
 
     importRootNode->type = BookmarkNode::Folder;
     importRootNode->title = tr("Imported %1")
-                             .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate));
+                            .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate));
     addBookmark(menu(), importRootNode);
 }
 
 void BookmarksManager::exportBookmarks()
 {
-    QString fileName = getSaveFileNameD(nullptr, tr("Save File"),
-                                        tr("%1 Bookmarks.xbel")
-                                        .arg(QCoreApplication::applicationName()),
-                                        tr("XBEL (*.xbel *.xml)"));
+    QString fileName = CGenericFuncs::getSaveFileNameD(nullptr, tr("Save File"),
+                                                       tr("%1 Bookmarks.xbel")
+                                                       .arg(QCoreApplication::applicationName()),
+                                                       tr("XBEL (*.xbel *.xml)"));
     if (fileName.isEmpty())
         return;
 
@@ -535,13 +537,13 @@ QMimeData *BookmarksModel::mimeData(const QModelIndexList &indexes) const
 }
 
 bool BookmarksModel::dropMimeData(const QMimeData *data,
-     Qt::DropAction action, int row, int column, const QModelIndex &parent)
+                                  Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     if (action == Qt::IgnoreAction)
         return true;
 
     if (!data->hasFormat(m_bookmarksMimeType)
-        || column > 0)
+            || column > 0)
         return false;
 
     QByteArray ba = data->data(m_bookmarksMimeType);
@@ -578,25 +580,25 @@ bool BookmarksModel::setData(const QModelIndex &index, const QVariant &value, in
     BookmarkNode *item = node(index);
 
     switch (role) {
-    case Qt::EditRole:
-    case Qt::DisplayRole:
-        if (index.column() == 0) {
-            m_bookmarksManager->setTitle(item, value.toString());
+        case Qt::EditRole:
+        case Qt::DisplayRole:
+            if (index.column() == 0) {
+                m_bookmarksManager->setTitle(item, value.toString());
+                break;
+            }
+            if (index.column() == 1) {
+                m_bookmarksManager->setUrl(item, value.toString());
+                break;
+            }
+            return false;
+        case BookmarksModel::UrlRole:
+            m_bookmarksManager->setUrl(item, value.toUrl().toString());
             break;
-        }
-        if (index.column() == 1) {
+        case BookmarksModel::UrlStringRole:
             m_bookmarksManager->setUrl(item, value.toString());
             break;
-        }
-        return false;
-    case BookmarksModel::UrlRole:
-        m_bookmarksManager->setUrl(item, value.toUrl().toString());
-        break;
-    case BookmarksModel::UrlStringRole:
-        m_bookmarksManager->setUrl(item, value.toString());
-        break;
-    default:
-        return false;
+        default:
+            return false;
     }
 
     return true;

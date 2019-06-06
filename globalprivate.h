@@ -23,7 +23,9 @@ class CLogDisplay;
 class CBrowserController;
 class CSettingsDlg;
 
+namespace CDefaults {
 const int defaultInspectorPort = 50000;
+}
 
 class CGlobalControlPrivate : public QObject
 {
@@ -48,7 +50,7 @@ public:
     QHash<QString,QIcon> favicons;
     QStringList createdFiles;
 
-    int inspectorPort { defaultInspectorPort };
+    int inspectorPort { CDefaults::defaultInspectorPort };
     bool blockTabCloseActive { false };
 
     QLocalServer* ipcServer { nullptr };
@@ -81,11 +83,15 @@ public:
     CSettingsDlg* settingsDialog { nullptr };
     QSize settingsDlgSize;
 
+    QSize openFileDialogSize;
+    QSize saveFileDialogSize;
+    QStringList debugMessages;
 
 public:
     explicit CGlobalControlPrivate(QObject *parent = nullptr);
 
-Q_SIGNALS:
+    static void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static bool runnedFromQtCreator();
 
 public Q_SLOTS:
     void settingsDialogDestroyed();

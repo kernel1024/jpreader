@@ -31,7 +31,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 0: return m_snippets[idx][QStringLiteral("title")];
             case 1: return m_snippets[idx][QStringLiteral("relevancyrating")];
             case 2: return m_snippets[idx][QStringLiteral("jp:dir")];
-            case 3: return formatFileSize(m_snippets[idx][QStringLiteral("fbytes")]);
+            case 3: return CGenericFuncs::formatFileSize(m_snippets[idx][QStringLiteral("fbytes")]);
             case 4: return m_snippets[idx][QStringLiteral("filename")];
             default: return QVariant();
         }
@@ -42,7 +42,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
         if (m_snippets[idx].contains(QStringLiteral("title:saved")))
             return m_snippets[idx][QStringLiteral("title:saved")];
 
-    } else if (role == Qt::UserRole + cpSortRole) {
+    } else if (role == Qt::UserRole + CStructures::cpSortRole) {
         switch (index.column()) {
             case 0: return m_snippets[idx][QStringLiteral("title")];
             case 1:
@@ -69,7 +69,7 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             default: return QVariant();
         }
 
-    } else if (role == Qt::UserRole + cpFilterRole) {
+    } else if (role == Qt::UserRole + CStructures::cpFilterRole) {
         // column calculation removed - filtering only by directory
         return m_snippets[idx][QStringLiteral("jp:dir")];
     }
@@ -205,7 +205,7 @@ bool CSearchProxyFilterModel::filterAcceptsRow(int source_row, const QModelIndex
     QModelIndex src = sourceModel()->index(source_row,0);
     if (!src.isValid()) return false;
 
-    const QVariant v = sourceModel()->data(src,Qt::UserRole + cpFilterRole);
+    const QVariant v = sourceModel()->data(src,Qt::UserRole + CStructures::cpFilterRole);
 
     return (v.toString().contains(m_filter));
 }

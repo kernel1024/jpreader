@@ -18,6 +18,7 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 #include "logdisplay.h"
+#include "globalprivate.h"
 
 extern "C" {
 #include <unistd.h>
@@ -26,34 +27,15 @@ extern "C" {
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
-#include <syslog.h>
 }
 
-static QSize openFileDialogSize = QSize();
-static QSize saveFileDialogSize = QSize();
-
-bool runnedFromQtCreator()
+CGenericFuncs::CGenericFuncs(QObject *parent)
+    : QObject(parent)
 {
-    static int ppid = -1;
-    static bool res = true;
-    static QMutex mtx;
-    QMutexLocker locker(&mtx);
 
-    int tpid = getppid();
-    if (tpid==ppid)
-        return res;
-
-    ppid = tpid;
-    if (ppid>0) {
-        QFileInfo fi(QFile::symLinkTarget(QStringLiteral("/proc/%1/exe").arg(ppid)));
-        res = (fi.fileName().contains(QStringLiteral("creator"),Qt::CaseInsensitive) ||
-               (fi.fileName().compare(QStringLiteral("gdb"))==0));
-    }
-
-    return res;
 }
 
-int getRandomTCPPort()
+int CGenericFuncs::getRandomTCPPort()
 {
     const uint minPort = 20000;
     const uint maxPort = 40000;
@@ -71,75 +53,7 @@ int getRandomTCPPort()
     return res;
 }
 
-void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    static bool syslogOpened = false;
-    static QMutex loggerMutex;
-    const int maxMessagesCount = 5000;
-
-    loggerMutex.lock();
-
-    QString lmsg = QString();
-
-    int line = context.line;
-    QString file(QString::fromUtf8(context.file));
-    QString category(QString::fromUtf8(context.category));
-    if (category==QStringLiteral("default")) {
-        category.clear();
-    } else {
-        category.append(' ');
-    }
-    int logpri = LOG_NOTICE;
-
-    switch (type) {
-        case QtDebugMsg:
-            lmsg = QStringLiteral("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
-            logpri = LOG_DEBUG;
-            break;
-        case QtWarningMsg:
-            lmsg = QStringLiteral("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
-            logpri = LOG_WARNING;
-            break;
-        case QtCriticalMsg:
-            lmsg = QStringLiteral("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
-            logpri = LOG_CRIT;
-            break;
-        case QtFatalMsg:
-            lmsg = QStringLiteral("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
-            logpri = LOG_ALERT;
-            break;
-        case QtInfoMsg:
-            lmsg = QStringLiteral("%1Info: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
-            logpri = LOG_INFO;
-            break;
-    }
-
-    if (!lmsg.isEmpty()) {
-        QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime()
-                                                   .toString(QStringLiteral("h:mm:ss")),lmsg);
-        debugMessages << fmsg;
-        while (debugMessages.count()>maxMessagesCount)
-            debugMessages.removeFirst();
-        fmsg.append('\n');
-
-        if (runnedFromQtCreator()) {
-            fprintf(stderr, "%s", fmsg.toLocal8Bit().constData());
-        } else {
-            if (!syslogOpened) {
-                syslogOpened = true;
-                openlog("jpreader", LOG_PID, LOG_USER); // NOLINT
-            }
-            syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
-        }
-
-        if (gSet!=nullptr && gSet->logWindow()!=nullptr)
-            QMetaObject::invokeMethod(gSet->logWindow(),&CLogDisplay::updateMessages);
-    }
-
-    loggerMutex.unlock();
-}
-
-bool checkAndUnpackUrl(QUrl& url)
+bool CGenericFuncs::checkAndUnpackUrl(QUrl& url)
 {
     // Extract jump url for pixiv
     if (url.host().endsWith(QStringLiteral("pixiv.net")) && url.path().startsWith(QStringLiteral("/jump"))) {
@@ -154,7 +68,7 @@ bool checkAndUnpackUrl(QUrl& url)
     return false;
 }
 
-QString detectMIME(const QString &filename)
+QString CGenericFuncs::detectMIME(const QString &filename)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE); // NOLINT
     magic_load(myt,nullptr);
@@ -170,7 +84,7 @@ QString detectMIME(const QString &filename)
     return mag;
 }
 
-QString detectMIME(const QByteArray &buf)
+QString CGenericFuncs::detectMIME(const QByteArray &buf)
 {
     magic_t myt = magic_open(MAGIC_ERROR|MAGIC_MIME_TYPE); // NOLINT
     magic_load(myt,nullptr);
@@ -184,7 +98,7 @@ QString detectMIME(const QByteArray &buf)
     return mag;
 }
 
-QString detectEncodingName(const QByteArray& content)
+QString CGenericFuncs::detectEncodingName(const QByteArray& content)
 {
     QString codepage;
 
@@ -214,7 +128,7 @@ QString detectEncodingName(const QByteArray& content)
     return codepage;
 }
 
-QTextCodec* detectEncoding(const QByteArray& content)
+QTextCodec* CGenericFuncs::detectEncoding(const QByteArray& content)
 {
     QString codepage = detectEncodingName(content);
 
@@ -227,19 +141,19 @@ QTextCodec* detectEncoding(const QByteArray& content)
     return QTextCodec::codecForLocale();
 }
 
-QString detectDecodeToUnicode(const QByteArray& content)
+QString CGenericFuncs::detectDecodeToUnicode(const QByteArray& content)
 {
     QTextCodec *cd = detectEncoding(content);
     return cd->toUnicode(content);
 }
 
 
-QString makeSimpleHtml(const QString &title, const QString &content,
-                       bool integratedTitle, const QUrl& origin)
+QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &content,
+                                      bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
     QString cnt = s.replace(QRegExp(QStringLiteral("\n{3,}")),QStringLiteral("\n\n"))
-            .replace(QStringLiteral("\n"),QStringLiteral("<br />\n"));
+                  .replace(QStringLiteral("\n"),QStringLiteral("<br />\n"));
     QString cn(QStringLiteral("<html><head><META HTTP-EQUIV=\"Content-type\" "
                               "CONTENT=\"text/html; charset=UTF-8;\">"));
     cn.append(QStringLiteral("<title>%1</title></head><body>").arg(title));
@@ -256,7 +170,7 @@ QString makeSimpleHtml(const QString &title, const QString &content,
     return cn;
 }
 
-QString getClipboardContent(bool noFormatting, bool plainpre) {
+QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
     QString res;
     QString cbContents;
     QString cbContentsUnformatted;
@@ -295,7 +209,7 @@ QString getClipboardContent(bool noFormatting, bool plainpre) {
     return res;
 }
 
-QString fixMetaEncoding(const QString &data_utf8)
+QString CGenericFuncs::fixMetaEncoding(const QString &data_utf8)
 {
     const int headerSampleSize = 512;
 
@@ -322,7 +236,7 @@ QString fixMetaEncoding(const QString &data_utf8)
     return dt;
 }
 
-QString wordWrap(const QString &str, int wrapLength)
+QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
 {
     QStringList stl = str.split(' ');
     QString ret;
@@ -339,7 +253,7 @@ QString wordWrap(const QString &str, int wrapLength)
     return ret;
 }
 
-QString formatFileSize(const QString& size)
+QString CGenericFuncs::formatFileSize(const QString& size)
 {
     bool ok;
     qint64 sz = size.toLong(&ok);
@@ -349,13 +263,13 @@ QString formatFileSize(const QString& size)
     return size;
 }
 
-QString formatFileSize(qint64 size)
+QString CGenericFuncs::formatFileSize(qint64 size)
 {
     const int precision = 2;
     return QLocale::c().formattedDataSize(size,precision,QLocale::DataSizeTraditionalFormat);
 }
 
-QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode)
+QString CGenericFuncs::elideString(const QString& text, int maxlen, Qt::TextElideMode mode)
 {
     if (text.length()<maxlen)
         return text;
@@ -372,7 +286,7 @@ QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode)
     return text;
 }
 
-QString highlightSnippet(const QString& snippet, const QStringList& terms)
+QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringList& terms)
 {
     QString res = snippet;
 
@@ -392,7 +306,7 @@ QString highlightSnippet(const QString& snippet, const QStringList& terms)
     return res;
 }
 
-QString getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
+QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
@@ -402,8 +316,8 @@ QString getOpenFileNameD (QWidget * parent, const QString & caption, const QStri
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFile);
-    if (openFileDialogSize.isValid())
-        dialog.resize(openFileDialogSize);
+    if (gSet->d_func()->openFileDialogSize.isValid())
+        dialog.resize(gSet->d_func()->openFileDialogSize);
 
     QString res;
     if (selectedFilter && !selectedFilter->isEmpty())
@@ -416,11 +330,11 @@ QString getOpenFileNameD (QWidget * parent, const QString & caption, const QStri
             res = selectedFiles.first();
     }
 
-    openFileDialogSize = dialog.size();
+    gSet->d_func()->openFileDialogSize = dialog.size();
     return res;
 }
 
-QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
+QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
@@ -430,8 +344,8 @@ QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const 
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFiles);
-    if (openFileDialogSize.isValid())
-        dialog.resize(openFileDialogSize);
+    if (gSet->d_func()->openFileDialogSize.isValid())
+        dialog.resize(gSet->d_func()->openFileDialogSize);
 
     QStringList res;
     if (selectedFilter && !selectedFilter->isEmpty())
@@ -442,11 +356,11 @@ QStringList getOpenFileNamesD (QWidget * parent, const QString & caption, const 
         res = dialog.selectedFiles();
     }
 
-    openFileDialogSize = dialog.size();
+    gSet->d_func()->openFileDialogSize = dialog.size();
     return res;
 }
 
-QStringList getSuffixesFromFilter(const QString& filter)
+QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
 {
     QStringList res;
     res.clear();
@@ -469,9 +383,9 @@ QStringList getSuffixesFromFilter(const QString& filter)
     return res;
 }
 
-QString getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir,
-                          const QString & filter, QString * selectedFilter,
-                          const QString & preselectFileName )
+QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir,
+                                         const QString & filter, QString * selectedFilter,
+                                         const QString & preselectFileName )
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
@@ -481,8 +395,8 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
-    if (saveFileDialogSize.isValid())
-        dialog.resize(saveFileDialogSize);
+    if (gSet->d_func()->saveFileDialogSize.isValid())
+        dialog.resize(gSet->d_func()->saveFileDialogSize);
 
     if (selectedFilter && !selectedFilter->isEmpty())
         dialog.selectNameFilter(*selectedFilter);
@@ -505,11 +419,11 @@ QString getSaveFileNameD (QWidget * parent, const QString & caption, const QStri
             res = selectedFiles.first();
     }
 
-    saveFileDialogSize = dialog.size();
+    gSet->d_func()->saveFileDialogSize = dialog.size();
     return res;
 }
 
-QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
+QString	CGenericFuncs::getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
 {
     QFileDialog::Options opts = options;
     if (gSet->settings()->dontUseNativeFileDialog)
@@ -518,7 +432,39 @@ QString	getExistingDirectoryD ( QWidget * parent, const QString & caption, const
     return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
 }
 
-const QVector<QStringList> &encodingsByScript()
+QString CGenericFuncs::bool2str(bool value)
+{
+    if (value)
+        return QStringLiteral("on");
+
+    return QStringLiteral("off");
+}
+
+QString CGenericFuncs::bool2str2(bool value)
+{
+    if (value)
+        return QStringLiteral("TRUE");
+
+    return QStringLiteral("FALSE");
+}
+
+int CGenericFuncs::numDigits(int n) {
+    const int base = 10;
+    const int minusBase = ((-1)*base)+1;
+
+    if ((n >= 0) && (n < base))
+        return 1;
+
+    if ((n >= minusBase) && (n < 0))
+        return 2;
+
+    if (n<0)
+        return 2 + numDigits(abs(n) / base);
+
+    return 1 + numDigits(n / base);
+}
+
+const QVector<QStringList> &CGenericFuncs::encodingsByScript()
 {
     static const QVector<QStringList> enc = {
         { QStringLiteral("Western European"), QStringLiteral("ISO 8859-1"), QStringLiteral("ISO 8859-15"),
@@ -551,7 +497,7 @@ const QVector<QStringList> &encodingsByScript()
     return enc;
 }
 
-const QStringList &getSupportedImageExtensions()
+const QStringList &CGenericFuncs::getSupportedImageExtensions()
 {
     static const QStringList supportedImageExtensions {
         QStringLiteral("jpeg"), QStringLiteral("jpg"), QStringLiteral("jpe"), QStringLiteral("gif"),
@@ -560,7 +506,7 @@ const QStringList &getSupportedImageExtensions()
     return supportedImageExtensions;
 }
 
-QString getTmpDir()
+QString CGenericFuncs::getTmpDir()
 {
     QFileInfo fi(QDir::homePath() + QDir::separator() + QStringLiteral("tmp"));
     if (fi.exists() && fi.isDir() && fi.isWritable())
@@ -569,7 +515,7 @@ QString getTmpDir()
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 }
 
-int compareStringLists(const QStringList &left, const QStringList &right)
+int CGenericFuncs::compareStringLists(const QStringList &left, const QStringList &right)
 {
     int diff = left.count()-right.count();
     if (diff!=0) return diff;
@@ -582,7 +528,7 @@ int compareStringLists(const QStringList &left, const QStringList &right)
     return 0;
 }
 
-QString extractFileTitle(const QString& fileContents)
+QString CGenericFuncs::extractFileTitle(const QString& fileContents)
 {
     const int maxFileSize = 255;
     int pos;
@@ -607,10 +553,10 @@ QString extractFileTitle(const QString& fileContents)
 }
 
 // for url rules
-QString convertPatternToRegExp(const QString &wildcardPattern) {
+QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern) {
     QString pattern = wildcardPattern;
     return pattern.replace(QRegExp(QStringLiteral("\\*+")), QStringLiteral("*"))   // remove multiple wildcards
-            .replace(QRegExp(QStringLiteral("\\^\\|$")), QStringLiteral("^"))        // remove anchors following separator placeholder
+            .replace(QRegExp(QStringLiteral("\\^\\|$")), QStringLiteral("^")) // remove anchors following separator placeholder
             .replace(QRegExp(QStringLiteral("^(\\*)")), QString())          // remove leading wildcards
             .replace(QRegExp(QStringLiteral("(\\*)$")), QString())          // remove trailing wildcards
             .replace(QRegExp(QStringLiteral("(\\W)")), QStringLiteral("\\\\1"))      // escape special symbols
@@ -624,7 +570,7 @@ QString convertPatternToRegExp(const QString &wildcardPattern) {
             ;
 }
 
-void sendStringToWidget(QWidget *widget, const QString& s)
+void CGenericFuncs::sendStringToWidget(QWidget *widget, const QString& s)
 {
     if (widget==nullptr) return;
     for (const auto &c : s) {
@@ -634,7 +580,7 @@ void sendStringToWidget(QWidget *widget, const QString& s)
     }
 }
 
-void sendKeyboardInputToView(QWidget *widget, const QString& s)
+void CGenericFuncs::sendKeyboardInputToView(QWidget *widget, const QString& s)
 {
     if (widget==nullptr) return;
 

@@ -29,9 +29,6 @@ private:
 protected:
     void closeEvent(QCloseEvent * event) override;
 
-Q_SIGNALS:
-    void startTranslation(bool deleteAfter);
-
 public Q_SLOTS:
     void restoreWindow();
     void translate();

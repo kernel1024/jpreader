@@ -53,14 +53,15 @@ void CLightTranslator::translate()
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
-    connect(this,&CLightTranslator::startTranslation,at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
     connect(at,&CAuxTranslator::gotTranslation,this,&CLightTranslator::gotTranslation,Qt::QueuedConnection);
+    connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
     at->moveToThread(th);
     th->start();
 
     ui->barTranslating->show();
 
-    Q_EMIT startTranslation(true);
+    QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
 }
 
 void CLightTranslator::gotTranslation(const QString &text)

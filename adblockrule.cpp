@@ -220,7 +220,7 @@ QString CAdBlockRule::regExpPattern() const
 
 void CAdBlockRule::setPattern(const QString &pattern, bool isRegExp)
 {
-    m_regExp = QRegExp(isRegExp ? pattern : convertPatternToRegExp(pattern),
+    m_regExp = QRegExp(isRegExp ? pattern : CGenericFuncs::convertPatternToRegExp(pattern),
                        Qt::CaseInsensitive, QRegExp::RegExp2);
 }
 

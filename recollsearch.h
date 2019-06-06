@@ -15,7 +15,6 @@ private:
 
 private Q_SLOTS:
     void recollReadyRead();
-    void recollFinished(int exitCode, QProcess::ExitStatus exitStatus);
     
 public Q_SLOTS:
     void doSearch(const QString &qr, int maxLimit) override;

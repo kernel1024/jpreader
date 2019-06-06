@@ -5,8 +5,10 @@
 #include "globalcontrol.h"
 #include "genericfuncs.h"
 
+namespace CDefaults {
 const int focusTimerDelay = 1000;
 const int loadingBarDelay = 1500;
+}
 
 CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -14,10 +16,10 @@ CSnMsgHandler::CSnMsgHandler(CSnippetViewer *parent)
     snv = parent;
     m_zoomFactor = 1.0;
     m_loadingBarHideTimer = new QTimer(this);
-    m_loadingBarHideTimer->setInterval(loadingBarDelay);
+    m_loadingBarHideTimer->setInterval(CDefaults::loadingBarDelay);
     m_loadingBarHideTimer->setSingleShot(true);
     m_focusTimer = new QTimer(this);
-    m_focusTimer->setInterval(focusTimerDelay);
+    m_focusTimer->setInterval(CDefaults::focusTimerDelay);
     m_focusTimer->setSingleShot(true);
 
     connect(m_focusTimer,&QTimer::timeout,this,&CSnMsgHandler::urlEditSetFocus);
@@ -88,7 +90,7 @@ void CSnMsgHandler::pastePassword()
         }
     }
     if (!inp.isEmpty())
-        sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
+        CGenericFuncs::sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
 }
 
 void CSnMsgHandler::setZoom(const QString& z)
@@ -116,7 +118,7 @@ void CSnMsgHandler::tranEngine(int index)
     bool ok;
     int engine = v.toInt(&ok);
     if (ok) {
-        auto e = static_cast<TranslationEngine>(engine);
+        auto e = static_cast<CStructures::TranslationEngine>(engine);
         if (translationEngines().contains(e))
             gSet->setTranslationEngine(e);
     }

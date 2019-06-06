@@ -12,6 +12,7 @@ class CAuxTranslator : public QObject
 private:
     QString m_text;
     CLangPair m_lang;
+    void translatePriv();
 public:
     explicit CAuxTranslator(QObject *parent = nullptr);
 
@@ -22,7 +23,7 @@ public Q_SLOTS:
     void setText(const QString& text);
     void setSrcLang(const QString& lang);
     void setDestLang(const QString& lang);
-    void startTranslation(bool deleteAfter);
+    void translateAndQuit();
     void startAuxTranslation(const QString& text);
 
 };

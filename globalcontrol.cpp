@@ -6,11 +6,15 @@
 #include <QStandardPaths>
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
+#include <goldendictlib/goldendictmgr.hh>
+
+extern "C" {
+#include <sys/resource.h>
+#include <unicode/uclean.h>
+}
 
 #include "mainwindow.h"
 #include "settingsdlg.h"
-#include <goldendictlib/goldendictmgr.hh>
-
 #include "logdisplay.h"
 #include "bookmarks.h"
 #include "globalcontrol.h"
@@ -29,25 +33,85 @@
 #include "structures.h"
 #include "globalprivate.h"
 
-const auto IPC_EOF = "\n###";
+namespace CDefaults {
+const auto ipcEOF = "\n###";
 const int tabListSavePeriod = 30000;
 const int dictionariesLoadingDelay = 1500;
 const int ipcTimeout = 1000;
 const int tabCloseInterlockDelay = 500;
+}
 
-CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
+CGlobalControl::CGlobalControl(QCoreApplication *parent) :
     QObject(parent),
     dptr(new CGlobalControlPrivate(this)),
     m_settings(new CSettings(this)),
     m_ui(new CGlobalUI(this))
 {
+
+}
+
+CGlobalControl::~CGlobalControl()
+{
     Q_D(CGlobalControl);
+    qInstallMessageHandler(nullptr);
+    if (d->webProfile!=nullptr) {
+        d->webProfile->setParent(nullptr);
+        delete d->webProfile;
+    }
+    u_cleanup();
+}
+
+CGlobalControl *CGlobalControl::instance()
+{
+    static CGlobalControl* inst = nullptr;
+    static QMutex lock;
+
+    QMutexLocker locker(&lock);
+    if (inst==nullptr)
+        inst = new CGlobalControl(QApplication::instance());
+
+    return inst;
+}
+
+QApplication *CGlobalControl::app(QObject *parentApp)
+{
+    QObject* capp = parentApp;
+    if (capp==nullptr)
+        capp = QApplication::instance();
+
+    auto res = qobject_cast<QApplication *>(capp);
+    return res;
+}
+
+void CGlobalControl::initialize()
+{
+    Q_D(CGlobalControl);
+
+    int dbgport = CGenericFuncs::getRandomTCPPort();
+    if (dbgport>0) {
+        QString url = QStringLiteral("127.0.0.1:%1").arg(dbgport);
+        setenv("QTWEBENGINE_REMOTE_DEBUGGING",url.toUtf8().constData(),1);
+    }
+    d->inspectorPort = dbgport;
+
+    qInstallMessageHandler(CGlobalControlPrivate::stdConsoleOutput);
+    qRegisterMetaType<CUrlHolder>("CUrlHolder");
+    qRegisterMetaType<QDir>("QDir");
+    qRegisterMetaType<QSslCertificate>("QSslCertificate");
+    qRegisterMetaType<CIntList>("CIntList");
+    qRegisterMetaType<CLangPair>("CLangPair");
+    qRegisterMetaTypeStreamOperators<CUrlHolder>("CUrlHolder");
+    qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
+    qRegisterMetaTypeStreamOperators<CAdBlockVector>("CAdBlockVector");
+    qRegisterMetaTypeStreamOperators<CUrlHolderVector>("CUrlHolderVector");
+    qRegisterMetaTypeStreamOperators<CStringHash>("CStringHash");
+    qRegisterMetaTypeStreamOperators<CSslCertificateHash>("CSslCertificateHash");
+    qRegisterMetaTypeStreamOperators<CLangPairVector>("CLangPairVector");
+    qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
 
     d->ipcServer = nullptr;
     if (!setupIPC())
-        return;
-
-    d->inspectorPort = aInspectorPort;
+        ::exit(0);
 
     initLanguagesList();
 
@@ -55,12 +119,11 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     d->downloadManager = new CDownloadManager();
     d->bookmarksManager = new BookmarksManager(this);
 
-
     d->activeWindow = nullptr;
     d->lightTranslator = nullptr;
     d->auxDictionary = nullptr;
 
-    initPdfToText();
+    CPDFWorker::initPdfToText();
 
     d->auxTranslatorDBus = new CAuxTranslator(this);
     d->browserControllerDBus = new CBrowserController(this);
@@ -71,10 +134,10 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
     if (!dbus.registerObject(QStringLiteral("/browserController"),d->browserControllerDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerService(QString::fromLatin1(DBusName)))
+    if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
-    connect(parent, &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
+    connect(app(parent()), &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
 
     connect(m_ui->actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
 
@@ -118,6 +181,13 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     d->webProfile->cookieStore()->loadAllCookies();
 
     m_settings->readSettings(this);
+    if (gSet->settings()->createCoredumps) {
+        // create core dumps on segfaults
+        rlimit rlp{};
+        getrlimit(RLIMIT_CORE, &rlp);
+        rlp.rlim_cur = RLIM_INFINITY;
+        setrlimit(RLIMIT_CORE, &rlp);
+    }
 
     m_settings->dictIndexDir = fs + QStringLiteral("dictIndex") + QDir::separator();
     QDir dictIndex(settings()->dictIndexDir);
@@ -148,7 +218,7 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
     d->auxNetManager = new QNetworkAccessManager(this);
     d->auxNetManager->setCookieJar(new CNetworkCookieJar());
 
-    d->tabsListTimer.setInterval(tabListSavePeriod);
+    d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
     connect(&d->tabsListTimer, &QTimer::timeout, settings(), &CSettings::writeTabsList);
     d->tabsListTimer.start();
 
@@ -167,30 +237,33 @@ CGlobalControl::CGlobalControl(QApplication *parent, int aInspectorPort) :
         d->noScriptMutex.unlock();
     },Qt::QueuedConnection);
 
-    QTimer::singleShot(dictionariesLoadingDelay,d->dictManager,[this,d](){
+    QTimer::singleShot(CDefaults::dictionariesLoadingDelay,d->dictManager,[this,d](){
         d->dictManager->loadDictionaries(settings()->dictPaths, settings()->dictIndexDir);
     });
-}
 
-CGlobalControl::~CGlobalControl()
-{
-    Q_D(CGlobalControl);
-    d->webProfile->setParent(nullptr);
-    delete d->webProfile;
-    gSet = nullptr;
+    QApplication::setStyle(new CSpecMenuStyle);
+    QApplication::setQuitOnLastWindowClosed(false);
+
+    QVector<QUrl> urls;
+    for (int i=1;i<QApplication::arguments().count();i++) {
+        QUrl u(QApplication::arguments().at(i));
+        if (!u.isEmpty() && u.isValid())
+            urls << u;
+    }
+    addMainWindowEx(false,true,urls);
 }
 
 bool CGlobalControl::setupIPC()
 {
     Q_D(CGlobalControl);
-    QString serverName = QString::fromLatin1(IPCName);
+    QString serverName = QString::fromLatin1(CDefaults::IPCName);
     serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
 
     auto socket = new QLocalSocket();
     socket->connectToServer(serverName);
-    if (socket->waitForConnected(ipcTimeout)){
+    if (socket->waitForConnected(CDefaults::ipcTimeout)){
         // Connected. Process is already running, send message to it
-        if (runnedFromQtCreator()) { // This is debug run, try to close old instance
+        if (CGlobalControlPrivate::runnedFromQtCreator()) { // This is debug run, try to close old instance
             // Send close request
             sendIPCMessage(socket,QStringLiteral("debugRestart"));
             socket->flush();
@@ -200,7 +273,7 @@ bool CGlobalControl::setupIPC()
             QApplication::processEvents();
             // Check for closing
             socket->connectToServer(serverName);
-            if (socket->waitForConnected(ipcTimeout)) { // connected, unable to close
+            if (socket->waitForConnected(CDefaults::ipcTimeout)) { // connected, unable to close
                 sendIPCMessage(socket,QStringLiteral("newWindow"));
                 socket->flush();
                 socket->close();
@@ -236,7 +309,7 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==nullptr) return;
 
-    QString s = QStringLiteral("%1%2").arg(msg,QString::fromLatin1(IPC_EOF));
+    QString s = QStringLiteral("%1%2").arg(msg,QString::fromLatin1(CDefaults::ipcEOF));
     socket->write(s.toUtf8());
 }
 
@@ -304,12 +377,6 @@ QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
     return res;
 }
 
-bool CGlobalControl::isIPCStarted() const
-{
-    Q_D(const CGlobalControl);
-    return (d->ipcServer!=nullptr);
-}
-
 void CGlobalControl::writeSettings()
 {
     m_settings->writeSettings();
@@ -321,7 +388,7 @@ void CGlobalControl::addFavicon(const QString &key, const QIcon &icon)
     d->favicons[key] = icon;
 }
 
-void CGlobalControl::setTranslationEngine(TranslationEngine engine)
+void CGlobalControl::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     m_settings->translatorEngine = engine;
 }
@@ -361,7 +428,7 @@ void CGlobalControl::setSavedAuxDir(const QString &dir)
 
 CMainWindow* CGlobalControl::addMainWindow()
 {
-     return addMainWindowEx(false, true);
+    return addMainWindowEx(false, true);
 }
 
 CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, const QVector<QUrl>& viewerUrls)
@@ -523,7 +590,7 @@ void CGlobalControl::blockTabClose()
 {
     Q_D(CGlobalControl);
     d->blockTabCloseActive=true;
-    QTimer::singleShot(tabCloseInterlockDelay,this,[d](){
+    QTimer::singleShot(CDefaults::tabCloseInterlockDelay,this,[d](){
         d->blockTabCloseActive=false;
     });
 }
@@ -640,9 +707,9 @@ void CGlobalControl::ipcMessageReceived()
     QLocalSocket *socket = d->ipcServer->nextPendingConnection();
     QByteArray bmsg;
     do {
-        if (!socket->waitForReadyRead(ipcTimeout)) return;
+        if (!socket->waitForReadyRead(CDefaults::ipcTimeout)) return;
         bmsg.append(socket->readAll());
-    } while (!bmsg.contains(IPC_EOF));
+    } while (!bmsg.contains(CDefaults::ipcEOF));
     socket->close();
     socket->deleteLater();
 
@@ -651,7 +718,7 @@ void CGlobalControl::ipcMessageReceived()
         addMainWindow();
     } else if (cmd.first().startsWith(QStringLiteral("debugRestart"))) {
         qInfo() << tr("Closing jpreader instance (pid: %1)"
-                                          "after debugRestart request")
+                      "after debugRestart request")
                    .arg(QApplication::applicationPid());
         cleanupAndExit();
     }
@@ -702,7 +769,7 @@ void CGlobalControl::cleanupAndExit()
         }
     }
     m_ui->gctxTranHotkey.unsetShortcut();
-    freePdfToText();
+    CPDFWorker::freePdfToText();
 
     d->ipcServer->close();
     d->ipcServer->deleteLater();
@@ -716,7 +783,7 @@ void CGlobalControl::cleanupAndExit()
     d->downloadManager->deleteLater();
     d->downloadManager = nullptr;
 
-    QMetaObject::invokeMethod(qApp,&QApplication::quit,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(QApplication::instance(),&QApplication::quit,Qt::QueuedConnection);
 }
 
 bool CGlobalControl::isUrlBlocked(const QUrl& url)
@@ -957,9 +1024,9 @@ void CGlobalControl::initLanguagesList()
 {
     Q_D(CGlobalControl);
     const QList<QLocale> allLocales = QLocale::matchingLocales(
-                QLocale::AnyLanguage,
-                QLocale::AnyScript,
-                QLocale::AnyCountry);
+                                          QLocale::AnyLanguage,
+                                          QLocale::AnyScript,
+                                          QLocale::AnyCountry);
 
     d->langNamesList.clear();
     d->langSortedBCP47List.clear();

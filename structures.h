@@ -12,6 +12,7 @@
 #include <QSslCertificate>
 #include <QLocale>
 
+namespace CStructures {
 enum TranslationEngine {
     teGoogle = 0,
     teAtlas = 1,
@@ -32,8 +33,16 @@ enum TranslationMode {
     tmTooltip = 2
 };
 
+enum SearchModelRole {
+    cpSortRole = 1,
+    cpFilterRole = 2
+};
+}
+
+namespace CDefaults {
 const auto DBusName = "org.kernel1024.jpreader";
 const auto IPCName = "org.kernel1024.jpreader.ipc.main";
+}
 
 class CUrlHolder {
     friend QDataStream &operator<<(QDataStream &out, const CUrlHolder &obj);
@@ -88,6 +97,6 @@ QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
 QDataStream &operator>>(QDataStream &in, CLangPair &obj);
 
-const QMap<TranslationEngine, QString> &translationEngines();
+const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 
 #endif // STRUCTURES_H

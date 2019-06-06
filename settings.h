@@ -16,7 +16,7 @@
 class CMainWindow;
 class CSettingsPrivate;
 
-namespace CSettingsDefault {
+namespace CDefaults {
 const int maxHistory = 5000;
 const int maxRecent = 10;
 const int maxSearchLimit = 1000;
@@ -31,8 +31,8 @@ const int overrideFontSize = 12;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
-const SearchEngine searchEngine = seNone;
-const TranslationEngine translatorEngine = teAtlas;
+const CStructures::SearchEngine searchEngine = CStructures::seNone;
+const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
@@ -106,45 +106,45 @@ public:
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash atlCerts;
 
-    int maxHistory { CSettingsDefault::maxHistory };
-    int maxRecent { CSettingsDefault::maxRecent };
-    int maxSearchLimit { CSettingsDefault::maxSearchLimit };
-    int maxRecycled { CSettingsDefault::maxRecent };
-    int atlTcpRetryCount { CSettingsDefault::atlTcpRetryCount };
-    int atlTcpTimeout { CSettingsDefault::atlTcpTimeout };
-    int maxAdblockWhiteList { CSettingsDefault::maxAdblockWhiteList };
-    int pdfImageMaxSize { CSettingsDefault::pdfImageMaxSize };
-    int pdfImageQuality { CSettingsDefault::pdfImageQuality };
-    quint16 atlPort { CSettingsDefault::atlPort };
-    quint16 proxyPort { CSettingsDefault::proxyPort };
-    QSsl::SslProtocol atlProto { CSettingsDefault::atlProto };
-    QNetworkProxy::ProxyType proxyType { CSettingsDefault::proxyType };
-    SearchEngine searchEngine { CSettingsDefault::searchEngine };
-    TranslationEngine translatorEngine { CSettingsDefault::translatorEngine };
+    int maxHistory { CDefaults::maxHistory };
+    int maxRecent { CDefaults::maxRecent };
+    int maxSearchLimit { CDefaults::maxSearchLimit };
+    int maxRecycled { CDefaults::maxRecent };
+    int atlTcpRetryCount { CDefaults::atlTcpRetryCount };
+    int atlTcpTimeout { CDefaults::atlTcpTimeout };
+    int maxAdblockWhiteList { CDefaults::maxAdblockWhiteList };
+    int pdfImageMaxSize { CDefaults::pdfImageMaxSize };
+    int pdfImageQuality { CDefaults::pdfImageQuality };
+    quint16 atlPort { CDefaults::atlPort };
+    quint16 proxyPort { CDefaults::proxyPort };
+    QSsl::SslProtocol atlProto { CDefaults::atlProto };
+    QNetworkProxy::ProxyType proxyType { CDefaults::proxyType };
+    CStructures::SearchEngine searchEngine { CDefaults::searchEngine };
+    CStructures::TranslationEngine translatorEngine { CDefaults::translatorEngine };
 
-    bool jsLogConsole { CSettingsDefault::jsLogConsole };
-    bool dontUseNativeFileDialog { CSettingsDefault::dontUseNativeFileDialog };
-    bool overrideStdFonts { CSettingsDefault::overrideStdFonts };
-    bool showTabCloseButtons { CSettingsDefault::showTabCloseButtons };
-    bool createCoredumps { CSettingsDefault::createCoredumps };
-    bool overrideUserAgent { CSettingsDefault::overrideUserAgent };
-    bool useAdblock { CSettingsDefault::useAdblock };
-    bool useNoScript { CSettingsDefault::useNoScript };
-    bool useScp { CSettingsDefault::useScp };
-    bool emptyRestore { CSettingsDefault::emptyRestore };
-    bool debugNetReqLogging { CSettingsDefault::debugNetReqLogging };
-    bool debugDumpHtml { CSettingsDefault::debugDumpHtml };
-    bool globalContextTranslate { CSettingsDefault::globalContextTranslate };
-    bool proxyUse { CSettingsDefault::proxyUse };
-    bool proxyUseTranslator { CSettingsDefault::proxyUseTranslator };
-    bool ignoreSSLErrors { CSettingsDefault::ignoreSSLErrors };
-    bool pdfExtractImages { CSettingsDefault::pdfExtractImages };
-    bool pixivFetchImages { CSettingsDefault::pixivFetchImages };
+    bool jsLogConsole { CDefaults::jsLogConsole };
+    bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };
+    bool overrideStdFonts { CDefaults::overrideStdFonts };
+    bool showTabCloseButtons { CDefaults::showTabCloseButtons };
+    bool createCoredumps { CDefaults::createCoredumps };
+    bool overrideUserAgent { CDefaults::overrideUserAgent };
+    bool useAdblock { CDefaults::useAdblock };
+    bool useNoScript { CDefaults::useNoScript };
+    bool useScp { CDefaults::useScp };
+    bool emptyRestore { CDefaults::emptyRestore };
+    bool debugNetReqLogging { CDefaults::debugNetReqLogging };
+    bool debugDumpHtml { CDefaults::debugDumpHtml };
+    bool globalContextTranslate { CDefaults::globalContextTranslate };
+    bool proxyUse { CDefaults::proxyUse };
+    bool proxyUseTranslator { CDefaults::proxyUseTranslator };
+    bool ignoreSSLErrors { CDefaults::ignoreSSLErrors };
+    bool pdfExtractImages { CDefaults::pdfExtractImages };
+    bool pixivFetchImages { CDefaults::pixivFetchImages };
 
     explicit CSettings(QObject *parent = nullptr);
 
     void readSettings(QObject *control = nullptr);
-    void setTranslationEngine(TranslationEngine engine);
+    void setTranslationEngine(CStructures::TranslationEngine engine);
 
 private:
     QVector<QUrl> getTabsList() const;

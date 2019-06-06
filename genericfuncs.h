@@ -8,87 +8,69 @@
 #include <QWidget>
 #include <QFileDialog>
 
+namespace CDefaults {
 const int httpCodeFound = 200;
 const int httpCodeRedirect = 300;
 const int httpCodeClientError = 400;
 const int httpCodeServerError = 500;
 const int oneMB = 1024*1024;
+}
 
-extern QStringList debugMessages;
-
-void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-
-QString detectMIME(const QString& filename);
-QString detectMIME(const QByteArray& buf);
-QTextCodec* detectEncoding(const QByteArray &content);
-QString detectEncodingName(const QByteArray &content);
-QString detectDecodeToUnicode(const QByteArray &content);
-QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false, const QUrl &origin = QUrl());
-QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
-QString fixMetaEncoding(const QString& data_utf8);
-QString wordWrap(const QString &str, int wrapLength);
-QString formatFileSize(qint64 size);
-QString formatFileSize(const QString& size);
-QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode = Qt::ElideRight);
-QString highlightSnippet(const QString& snippet, const QStringList& terms);
-const QVector<QStringList> &encodingsByScript();
-const QStringList &getSupportedImageExtensions();
-QString getTmpDir();
-bool checkAndUnpackUrl(QUrl& url);
-int getRandomTCPPort();
-bool runnedFromQtCreator();
-int compareStringLists(const QStringList& left, const QStringList& right);
-QString extractFileTitle(const QString& fileContents);
-QString convertPatternToRegExp(const QString &wildcardPattern);
-void sendKeyboardInputToView(QWidget *widget, const QString& s);
-
-QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                           const QString & dir = QString(), const QString & filter = QString(),
-                           QString * selectedFilter = nullptr);
-
-QStringList getOpenFileNamesD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                               const QString & dir = QString(), const QString & filter = QString(),
-                               QString * selectedFilter = nullptr);
-
-QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = QString(),
-                          const QString & dir = QString(), const QString & filter = QString(),
-                          QString * selectedFilter = nullptr, const QString & preselectFileName = QString());
-
-QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                                const QString & dir = QString(),
-                                QFileDialog::Options options = QFileDialog::ShowDirsOnly);
-
-
-inline QString bool2str(bool value)
+class CGenericFuncs : public QObject
 {
-    if (value)
-        return QStringLiteral("on");
+    Q_OBJECT
+public:
+    explicit CGenericFuncs(QObject* parent = nullptr);
+    ~CGenericFuncs() override = default;
 
-    return QStringLiteral("off");
-}
+    static QString detectMIME(const QString& filename);
+    static QString detectMIME(const QByteArray& buf);
+    static QTextCodec* detectEncoding(const QByteArray &content);
+    static QString detectEncodingName(const QByteArray &content);
+    static QString detectDecodeToUnicode(const QByteArray &content);
+    static QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false,
+                                  const QUrl &origin = QUrl());
+    static QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
+    static QString fixMetaEncoding(const QString& data_utf8);
+    static QString wordWrap(const QString &str, int wrapLength);
+    static QString formatFileSize(qint64 size);
+    static QString formatFileSize(const QString& size);
+    static QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode = Qt::ElideRight);
+    static QString highlightSnippet(const QString& snippet, const QStringList& terms);
+    static const QVector<QStringList> &encodingsByScript();
+    static const QStringList &getSupportedImageExtensions();
+    static QString getTmpDir();
+    static bool checkAndUnpackUrl(QUrl& url);
+    static int getRandomTCPPort();
+    static int compareStringLists(const QStringList& left, const QStringList& right);
+    static QString extractFileTitle(const QString& fileContents);
+    static QString convertPatternToRegExp(const QString &wildcardPattern);
+    static void sendKeyboardInputToView(QWidget *widget, const QString& s);
+    static QString bool2str(bool value);
+    static QString bool2str2(bool value);
+    static int numDigits(int n);
 
-inline QString bool2str2(bool value)
-{
-    if (value)
-        return QStringLiteral("TRUE");
+    static QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
+                                      const QString & dir = QString(), const QString & filter = QString(),
+                                      QString * selectedFilter = nullptr);
 
-    return QStringLiteral("FALSE");
-}
+    static QStringList getOpenFileNamesD ( QWidget * parent = nullptr, const QString & caption = QString(),
+                                           const QString & dir = QString(), const QString & filter = QString(),
+                                           QString * selectedFilter = nullptr);
 
-inline int numDigits(const int n) {
-    const int base = 10;
-    const int minusBase = ((-1)*base)+1;
+    static QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = QString(),
+                                     const QString & dir = QString(), const QString & filter = QString(),
+                                     QString * selectedFilter = nullptr, const QString & preselectFileName = QString());
 
-    if ((n >= 0) && (n < base))
-        return 1;
+    static QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
+                                            const QString & dir = QString(),
+                                            QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
-    if ((n >= minusBase) && (n < 0))
-        return 2;
+private:
+    Q_DISABLE_COPY(CGenericFuncs)
 
-    if (n<0)
-        return 2 + numDigits(abs(n) / base);
-
-    return 1 + numDigits(n / base);
-}
+    static QStringList getSuffixesFromFilter(const QString &filter);
+    static void sendStringToWidget(QWidget *widget, const QString &s);
+};
 
 #endif // GENERICFUNCS_H

@@ -30,7 +30,7 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     QString url = origin->getUrl().toString();
     if (url.startsWith(QStringLiteral("data")))
         url = QStringLiteral("data-url (RFC 2397)");
-    url = elideString(url,urlElidingCharacterWidth,Qt::ElideMiddle);
+    url = CGenericFuncs::elideString(url,urlElidingCharacterWidth,Qt::ElideMiddle);
     ui->labelUrl->setText(url);
 
     origin->txtBrowser->page()->toHtml([this](const QString& html) {

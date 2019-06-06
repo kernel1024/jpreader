@@ -24,9 +24,11 @@
 #include "sntrans.h"
 #include "noscriptdialog.h"
 
+namespace CDefaults {
 const int menuActiveTimerInterval = 1000;
 const int maxRealmLabelEliding = 60;
 const int maxTranslateFragmentCharWidth = 80;
+}
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     : QObject(parent)
@@ -34,7 +36,7 @@ CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
     snv = parent;
     m_menuActive = new QTimer(this);
     m_menuActive->setSingleShot(false);
-    m_menuActive->setInterval(menuActiveTimerInterval);
+    m_menuActive->setInterval(CDefaults::menuActiveTimerInterval);
 
     connect(m_menuActive, &QTimer::timeout, this, [this](){
         Q_EMIT hideTooltips();
@@ -64,9 +66,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     if (linkUrl.isValid()) {
         QUrl nUrl = linkUrl;
-        if (checkAndUnpackUrl(nUrl)) {
+        if (CGenericFuncs::checkAndUnpackUrl(nUrl)) {
             ac = new QAction(QIcon::fromTheme(QStringLiteral("tab-new")),
-                                              tr("Open in new background tab"),nullptr);
+                             tr("Open in new background tab"),nullptr);
             connect(ac, &QAction::triggered, this, [nUrl,this]() {
                 new CSnippetViewer(snv->parentWnd(),nUrl,QStringList(),false);
             });
@@ -117,7 +119,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
 
         QAction* ac3 = new QAction(tr("Extract pixiv novel in new background tab and translate"),nullptr);
-                connect(ac3, &QAction::triggered, this, [this,purl,title](){
+        connect(ac3, &QAction::triggered, this, [this,purl,title](){
             snv->netHandler->processPixivNovel(purl,title,true,false);
         });
 
@@ -293,7 +295,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     cm->addAction(ac);
 
     cm->addAction(QIcon::fromTheme(QStringLiteral("tab-detach")),tr("Detach tab"),
-                 snv,&CSnippetViewer::detachTab);
+                  snv,&CSnippetViewer::detachTab);
 
     cm->addSeparator();
     cm->addAction(QIcon::fromTheme(QStringLiteral("bookmark-new")),
@@ -302,9 +304,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     cm->addSeparator();
     cm->addAction(QIcon::fromTheme(QStringLiteral("go-previous")),tr("Back"),
-                 snv->txtBrowser,&CSpecWebView::back,QKeySequence(Qt::CTRL + Qt::Key_Z));
+                  snv->txtBrowser,&CSpecWebView::back,QKeySequence(Qt::CTRL + Qt::Key_Z));
     cm->addAction(QIcon::fromTheme(QStringLiteral("view-refresh")),tr("Reload"),
-                 snv->txtBrowser,&CSpecWebView::reload,QKeySequence(Qt::CTRL + Qt::Key_R));
+                  snv->txtBrowser,&CSpecWebView::reload,QKeySequence(Qt::CTRL + Qt::Key_R));
 
     if (cb->mimeData(QClipboard::Clipboard)->hasText())
         cm->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
@@ -323,7 +325,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     }
     if (gSet->settings()->useNoScript) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
-                            tr("Enable scripts for this page..."), nullptr);
+                         tr("Enable scripts for this page..."), nullptr);
         connect(ac, &QAction::triggered, this, [this](){
             const QUrl origin = snv->getUrl();
             if (origin.isLocalFile() || origin.isRelative()) return;
@@ -340,7 +342,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     if (!linkUrl.isEmpty()) {
         ac = new QAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
-                            tr("Add AdBlock rule for link url..."), nullptr);
+                         tr("Add AdBlock rule for link url..."), nullptr);
         connect(ac, &QAction::triggered, this, [linkUrl,this](){
             QString u = linkUrl.toString();
             bool ok;
@@ -354,7 +356,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     }
 
     ccm = cm->addMenu(QIcon::fromTheme(QStringLiteral("dialog-password")),
-                             tr("Form autofill"));
+                      tr("Form autofill"));
     if (gSet->haveSavedPassword(origin)) {
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("tools-wizard")),
                             tr("Insert username and password"),
@@ -374,8 +376,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("edit-rename")),
                             tr("Save username and password"));
         connect(ac, &QAction::triggered, this, [origin](){
-            QString realm = elideString(gSet->cleanUrlForRealm(origin).toString(),
-                                        maxRealmLabelEliding,Qt::ElideLeft);
+            QString realm = CGenericFuncs::elideString(gSet->cleanUrlForRealm(origin).toString(),
+                                                       CDefaults::maxRealmLabelEliding,Qt::ElideLeft);
             auto dlg = new CAuthDlg(QApplication::activeWindow(),origin,realm,true);
             dlg->exec();
             dlg->setParent(nullptr);
@@ -399,7 +401,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme(QStringLiteral("documentation")),tr("Show in editor"),
-                 this,&CSnCtxHandler::showInEditor);
+                   this,&CSnCtxHandler::showInEditor);
 
     ac = new QAction(QIcon::fromTheme(QStringLiteral("download")),tr("Open in browser"),nullptr);
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
@@ -429,7 +431,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                 Qt::CaseInsensitive)) {
 
         ac = ccm->addAction(tr("Download all images from Pixiv illustration"),
-                      snv->netHandler,&CSnNet::downloadPixivManga);
+                            snv->netHandler,&CSnNet::downloadPixivManga);
         ac->setData(origin);
 
         QUrl fiurl(QStringLiteral("https://www.pixiv.net/favicon.ico"));
@@ -446,7 +448,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addSeparator();
     ccm->addAction(snv->parentWnd()->actionFullscreen);
     ccm->addAction(QIcon::fromTheme(QStringLiteral("dialog-close")),tr("Close tab"),
-                 snv,&CSnippetViewer::closeTab);
+                   snv,&CSnippetViewer::closeTab);
     ccm->addSeparator();
     if (!sText.isEmpty()) {
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("document-save-as")),
@@ -455,7 +457,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         ac->setData(sText);
     }
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-save")),tr("Save to file..."),
-                 this,&CSnCtxHandler::saveToFile);
+                   this,&CSnCtxHandler::saveToFile);
 
     m_menuActive->start();
 
@@ -507,12 +509,13 @@ void CSnCtxHandler::translateFragment()
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
-    connect(this,&CSnCtxHandler::startTranslation,
-            at,&CAuxTranslator::startTranslation,Qt::QueuedConnection);
+    connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
         if (!text.isEmpty() && !m_menuActive->isActive()) {
-            CSpecToolTipLabel* lbl = new CSpecToolTipLabel(wordWrap(text,maxTranslateFragmentCharWidth));
+            CSpecToolTipLabel* lbl = new CSpecToolTipLabel(CGenericFuncs::wordWrap(
+                                                               text,CDefaults::maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &CSpecToolTipLabel::close);
             QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd());
@@ -522,7 +525,7 @@ void CSnCtxHandler::translateFragment()
     at->moveToThread(th);
     th->start();
 
-    Q_EMIT startTranslation(true);
+    QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
 }
 
 void CSnCtxHandler::saveToFile()
@@ -535,12 +538,12 @@ void CSnCtxHandler::saveToFile()
 
     QString fname;
     if (selectedText.isEmpty()) {
-        fname = getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings()->savedAuxSaveDir,
-                                 tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
-                                    "Text file (*.txt);;MHTML archive (*.mht)"));
+        fname = CGenericFuncs::getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings()->savedAuxSaveDir,
+                                                tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
+                                                   "Text file (*.txt);;MHTML archive (*.mht)"));
     } else {
-        fname = getSaveFileNameD(snv,tr("Save to file"),gSet->settings()->savedAuxSaveDir,
-                                 tr("Text file (*.txt)"));
+        fname = CGenericFuncs::getSaveFileNameD(snv,tr("Save to file"),gSet->settings()->savedAuxSaveDir,
+                                                tr("Text file (*.txt)"));
     }
 
     if (fname.isNull() || fname.isEmpty()) return;

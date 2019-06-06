@@ -30,9 +30,9 @@ const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
 CSettings::CSettings(QObject *parent)
     : QObject(parent)
 {
-    fontFixed=QString::fromUtf8(CSettingsDefault::fontFixed);
-    fontSerif=QString::fromUtf8(CSettingsDefault::fontSerif);
-    fontSansSerif=QString::fromUtf8(CSettingsDefault::fontSansSerif);
+    fontFixed=QString::fromUtf8(CDefaults::fontFixed);
+    fontSerif=QString::fromUtf8(CDefaults::fontSerif);
+    fontSansSerif=QString::fromUtf8(CDefaults::fontSansSerif);
 
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=savedAuxDir;
@@ -40,11 +40,11 @@ CSettings::CSettings(QObject *parent)
     fontStandard=QApplication::font().family();
 
 #if WITH_RECOLL
-    searchEngine = seRecoll;
+    searchEngine = CStructures::seRecoll;
 #elif WITH_BALOO5
-    searchEngine = seBaloo5;
+    searchEngine = CStructures::seBaloo5;
 #else
-    searchEngine = seNone;
+    searchEngine = CStructures::seNone;
 #endif
 
     auto g = qobject_cast<CGlobalControl *>(parent);
@@ -201,27 +201,27 @@ void CSettings::readSettings(QObject *control)
 
     hostingDir = settings.value(QStringLiteral("hostingDir"),QString()).toString();
     hostingUrl = settings.value(QStringLiteral("hostingUrl"),"about:blank").toString();
-    maxSearchLimit = settings.value(QStringLiteral("maxLimit"),CSettingsDefault::maxSearchLimit).toInt();
-    maxHistory = settings.value(QStringLiteral("maxHistory"),CSettingsDefault::maxHistory).toInt();
-    maxRecent = settings.value(QStringLiteral("maxRecent"),CSettingsDefault::maxRecent).toInt();
+    maxSearchLimit = settings.value(QStringLiteral("maxLimit"),CDefaults::maxSearchLimit).toInt();
+    maxHistory = settings.value(QStringLiteral("maxHistory"),CDefaults::maxHistory).toInt();
+    maxRecent = settings.value(QStringLiteral("maxRecent"),CDefaults::maxRecent).toInt();
     maxAdblockWhiteList = settings.value(QStringLiteral("maxAdblockWhiteList"),
-                                         CSettingsDefault::maxAdblockWhiteList).toInt();
-    sysBrowser = settings.value(QStringLiteral("browser"),CSettingsDefault::sysBrowser).toString();
-    sysEditor = settings.value(QStringLiteral("editor"),CSettingsDefault::sysEditor).toString();
-    translatorEngine = static_cast<TranslationEngine>(
-                           settings.value(QStringLiteral("tr_engine"),CSettingsDefault::translatorEngine).toInt());
-    useScp = settings.value(QStringLiteral("scp"),CSettingsDefault::useScp).toBool();
+                                         CDefaults::maxAdblockWhiteList).toInt();
+    sysBrowser = settings.value(QStringLiteral("browser"),CDefaults::sysBrowser).toString();
+    sysEditor = settings.value(QStringLiteral("editor"),CDefaults::sysEditor).toString();
+    translatorEngine = static_cast<CStructures::TranslationEngine>(
+                           settings.value(QStringLiteral("tr_engine"),CDefaults::translatorEngine).toInt());
+    useScp = settings.value(QStringLiteral("scp"),CDefaults::useScp).toBool();
     scpHost = settings.value(QStringLiteral("scphost"),QString()).toString();
     scpParams = settings.value(QStringLiteral("scpparams"),QString()).toString();
     atlHost = settings.value(QStringLiteral("atlasHost"),"localhost").toString();
-    atlPort = static_cast<quint16>(settings.value(QStringLiteral("atlasPort"),CSettingsDefault::atlPort).toUInt());
+    atlPort = static_cast<quint16>(settings.value(QStringLiteral("atlasPort"),CDefaults::atlPort).toUInt());
     atlToken = settings.value(QStringLiteral("atlasToken"),QString()).toString();
     atlProto = static_cast<QSsl::SslProtocol>(settings.value(QStringLiteral("atlasProto"),
-                                                             CSettingsDefault::atlProto).toInt());
+                                                             CDefaults::atlProto).toInt());
     savedAuxDir = settings.value(QStringLiteral("auxDir"),QDir::homePath()).toString();
     savedAuxSaveDir = settings.value(QStringLiteral("auxSaveDir"),QDir::homePath()).toString();
-    emptyRestore = settings.value(QStringLiteral("emptyRestore"),CSettingsDefault::emptyRestore).toBool();
-    maxRecycled = settings.value(QStringLiteral("recycledCount"),CSettingsDefault::maxRecycled).toInt();
+    emptyRestore = settings.value(QStringLiteral("emptyRestore"),CDefaults::emptyRestore).toBool();
+    maxRecycled = settings.value(QStringLiteral("recycledCount"),CDefaults::maxRecycled).toInt();
     bool jsstate = settings.value(QStringLiteral("javascript"),true).toBool();
     g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
     g->m_ui->actionJSUsage->setChecked(jsstate);
@@ -230,19 +230,19 @@ void CSettings::readSettings(QObject *control)
     g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                          settings.value(QStringLiteral("enablePlugins"),false).toBool());
 
-    useAdblock=settings.value(QStringLiteral("useAdblock"),CSettingsDefault::useAdblock).toBool();
-    useNoScript=settings.value(QStringLiteral("useNoScript"),CSettingsDefault::useNoScript).toBool();
+    useAdblock=settings.value(QStringLiteral("useAdblock"),CDefaults::useAdblock).toBool();
+    useNoScript=settings.value(QStringLiteral("useNoScript"),CDefaults::useNoScript).toBool();
     g->m_ui->actionOverrideFont->setChecked(settings.value(QStringLiteral("useOverrideFont"),
                                                         false).toBool());
     overrideFont.setFamily(settings.value(QStringLiteral("overrideFont"),"Verdana").toString());
     overrideFont.setPointSize(settings.value(QStringLiteral("overrideFontSize"),
-                                             CSettingsDefault::overrideFontSize).toInt());
+                                             CDefaults::overrideFontSize).toInt());
     overrideStdFonts=settings.value(QStringLiteral("overrideStdFonts"),
-                                    CSettingsDefault::overrideStdFonts).toBool();
+                                    CDefaults::overrideStdFonts).toBool();
     fontStandard=settings.value(QStringLiteral("standardFont"),QApplication::font().family()).toString();
-    fontFixed=settings.value(QStringLiteral("fixedFont"),CSettingsDefault::fontFixed).toString();
-    fontSerif=settings.value(QStringLiteral("serifFont"),CSettingsDefault::fontSerif).toString();
-    fontSansSerif=settings.value(QStringLiteral("sansSerifFont"),CSettingsDefault::fontSansSerif).toString();
+    fontFixed=settings.value(QStringLiteral("fixedFont"),CDefaults::fontFixed).toString();
+    fontSerif=settings.value(QStringLiteral("serifFont"),CDefaults::fontSerif).toString();
+    fontSansSerif=settings.value(QStringLiteral("sansSerifFont"),CDefaults::fontSansSerif).toString();
     g->m_ui->actionOverrideFontColor->setChecked(settings.value(
                                                   QStringLiteral("forceFontColor"),false).toBool());
     forcedFontColor=QColor(settings.value(
@@ -256,35 +256,35 @@ void CSettings::readSettings(QObject *control)
         if (!g->m_ui->gctxTranHotkey.shortcut().isEmpty())
             g->m_ui->gctxTranHotkey.setEnabled();
     }
-    searchEngine = static_cast<SearchEngine>(settings.value(
+    searchEngine = static_cast<CStructures::SearchEngine>(settings.value(
                                                  QStringLiteral("searchEngine"),
-                                                 CSettingsDefault::searchEngine).toInt());
+                                                 CDefaults::searchEngine).toInt());
     atlTcpRetryCount = settings.value(QStringLiteral("atlTcpRetryCount"),
-                                      CSettingsDefault::atlTcpRetryCount).toInt();
+                                      CDefaults::atlTcpRetryCount).toInt();
     atlTcpTimeout = settings.value(QStringLiteral("atlTcpTimeout"),
-                                   CSettingsDefault::atlTcpTimeout).toInt();
+                                   CDefaults::atlTcpTimeout).toInt();
     showTabCloseButtons = settings.value(QStringLiteral("showTabCloseButtons"),
-                                         CSettingsDefault::showTabCloseButtons).toBool();
+                                         CDefaults::showTabCloseButtons).toBool();
     proxyHost = settings.value(QStringLiteral("proxyHost"),QString()).toString();
     proxyPort = static_cast<quint16>(settings.value(QStringLiteral("proxyPort"),
-                                                    CSettingsDefault::proxyPort).toUInt());
+                                                    CDefaults::proxyPort).toUInt());
     proxyType = static_cast<QNetworkProxy::ProxyType>(
                     settings.value(QStringLiteral("proxyType"),
                                    QNetworkProxy::HttpCachingProxy).toInt());
     proxyLogin = settings.value(QStringLiteral("proxyLogin"),QString()).toString();
     proxyPassword = settings.value(QStringLiteral("proxyPassword"),QString()).toString();
-    proxyUse = settings.value(QStringLiteral("proxyUse"),CSettingsDefault::proxyUse).toBool();
+    proxyUse = settings.value(QStringLiteral("proxyUse"),CDefaults::proxyUse).toBool();
     proxyUseTranslator = settings.value(QStringLiteral("proxyUseTranslator"),
-                                        CSettingsDefault::proxyUseTranslator).toBool();
+                                        CDefaults::proxyUseTranslator).toBool();
     bingKey = settings.value(QStringLiteral("bingKey"),QString()).toString();
     yandexKey = settings.value(QStringLiteral("yandexKey"),QString()).toString();
-    jsLogConsole = settings.value(QStringLiteral("jsLogConsole"),CSettingsDefault::jsLogConsole).toBool();
+    jsLogConsole = settings.value(QStringLiteral("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     dontUseNativeFileDialog = settings.value(QStringLiteral("dontUseNativeFileDialog"),
-                                             CSettingsDefault::dontUseNativeFileDialog).toBool();
+                                             CDefaults::dontUseNativeFileDialog).toBool();
     createCoredumps = settings.value(QStringLiteral("createCoredumps"),
-                                     CSettingsDefault::createCoredumps).toBool();
+                                     CDefaults::createCoredumps).toBool();
     ignoreSSLErrors = settings.value(QStringLiteral("ignoreSSLErrors"),
-                                     CSettingsDefault::ignoreSSLErrors).toBool();
+                                     CDefaults::ignoreSSLErrors).toBool();
     g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
                                             settings.value(QStringLiteral("showFavicons"),true).toBool());
     defaultSearchEngine = settings.value(QStringLiteral("defaultSearchEngine"),QString()).toString();
@@ -292,17 +292,17 @@ void CSettings::readSettings(QObject *control)
     g->d_func()->settingsDlgSize=settings.value(QStringLiteral("settingsDlgSize"),defaultSettingsDlgSize).toSize();
 
     pdfExtractImages = settings.value(QStringLiteral("pdfExtractImages"),
-                                      CSettingsDefault::pdfExtractImages).toBool();
+                                      CDefaults::pdfExtractImages).toBool();
     pdfImageMaxSize = settings.value(QStringLiteral("pdfImageMaxSize"),
-                                     CSettingsDefault::pdfImageMaxSize).toInt();
+                                     CDefaults::pdfImageMaxSize).toInt();
     pdfImageQuality = settings.value(QStringLiteral("pdfImageQuality"),
-                                     CSettingsDefault::pdfImageQuality).toInt();
+                                     CDefaults::pdfImageQuality).toInt();
 
     pixivFetchImages = settings.value(QStringLiteral("pixivFetchImages"),
-                                      CSettingsDefault::pixivFetchImages).toBool();
+                                      CDefaults::pixivFetchImages).toBool();
 
     overrideUserAgent=settings.value(QStringLiteral("overrideUserAgent"),
-                                     CSettingsDefault::overrideUserAgent).toBool();
+                                     CDefaults::overrideUserAgent).toBool();
     userAgent=settings.value(QStringLiteral("userAgent"),QString()).toString();
     if (userAgent.isEmpty()) {
         overrideUserAgent=false;
@@ -398,7 +398,7 @@ void CSettings::settingsDlg()
 
         gSet->d_func()->ctxSearchEngines = dlg->getSearchEngines();
 
-        if (compareStringLists(dictPaths,dPaths)!=0) {
+        if (CGenericFuncs::compareStringLists(dictPaths,dPaths)!=0) {
             dictPaths.clear();
             dictPaths.append(dPaths);
             gSet->d_func()->dictManager->loadDictionaries(dictPaths, dictIndexDir);
@@ -416,7 +416,7 @@ void CSettings::settingsDlg()
     dlg->deleteLater();
 }
 
-void CSettings::setTranslationEngine(TranslationEngine engine)
+void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     translatorEngine = engine;
     Q_EMIT gSet->settingsUpdated();

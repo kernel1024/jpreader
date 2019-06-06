@@ -4,6 +4,7 @@
 #include "logdisplay.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
+#include "globalprivate.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "ui_logdisplay.h"
@@ -31,12 +32,12 @@ CLogDisplay::~CLogDisplay()
 
 void CLogDisplay::updateMessages()
 {
-    if (qApp->closingDown()) return;
+    if (QApplication::closingDown()) return;
     if (!isVisible()) return;
-    if (debugMessages.isEmpty()) return;
+    if (gSet->d_func()->debugMessages.isEmpty()) return;
 
-    QString log = debugMessages.join('\n');
-    debugMessages.clear();
+    QString log = gSet->d_func()->debugMessages.join('\n');
+    gSet->d_func()->debugMessages.clear();
     log.append('\n');
 
     ui->logView->moveCursor(QTextCursor::End);

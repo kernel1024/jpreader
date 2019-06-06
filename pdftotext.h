@@ -2,28 +2,25 @@
 #define PDFTOTEXT_H
 
 #include <QObject>
-#include <QUrl>
 #include <QString>
 #include "structures.h"
+
+class CPDFWorkerPrivate;
 
 class CPDFWorker : public QObject
 {
     Q_OBJECT
 public:
     explicit CPDFWorker(QObject* parent = nullptr);
-    ~CPDFWorker() override = default;
+    ~CPDFWorker() override;
+    static void initPdfToText();
+    static void freePdfToText();
 
 private:
-    QString m_text;
-    QString m_pageSeparator;
-    CIntList m_outLengths;
-    bool m_prevblock { false };
+    QScopedPointer<CPDFWorkerPrivate> dptr;
 
     Q_DISABLE_COPY(CPDFWorker)
-
-    QString formatPdfText(const QString &text);
-    int zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize);
-    static void outputToString(void *stream, const char *text, int len);
+    Q_DECLARE_PRIVATE_D(dptr,CPDFWorker)
 
 public Q_SLOTS:
     void pdfToText(const QString &filename);
@@ -31,11 +28,10 @@ public Q_SLOTS:
 Q_SIGNALS:
     void gotText(const QString& result);
     void error(const QString& message);
+    void finished();
 
 };
 
-void initPdfToText();
-void freePdfToText();
 
 #endif // PDFTOTEXT_H
 

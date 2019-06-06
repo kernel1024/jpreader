@@ -63,7 +63,8 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
     dlg->setWindowTitle(tr("Multiple images download"));
 
     if (dlg->exec()==QDialog::Accepted) {
-        QString dir = getExistingDirectoryD(snv,tr("Save images to directory"),getTmpDir());
+        QString dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
+                                                           CGenericFuncs::getTmpDir());
         int index = 0;
         const QList<QListWidgetItem *> itml = ui.list->selectedItems();
         for (const QListWidgetItem* itm : itml){
@@ -182,7 +183,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     th->start();
 
     auto rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(url));
-    qApp->setOverrideCursor(Qt::BusyCursor);
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
     connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
             ex,&CPixivNovelExtractor::novelLoadError,Qt::QueuedConnection);
@@ -219,10 +220,10 @@ void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 void CSnNet::pdfConverted(const QString &html)
 {
     if (html.isEmpty()) {
-        snv->txtBrowser->setHtml(makeSimpleHtml(QStringLiteral("PDF conversion error"),
-                                                QStringLiteral("Empty document.")));
+        snv->txtBrowser->setHtml(CGenericFuncs::makeSimpleHtml(QStringLiteral("PDF conversion error"),
+                                                               QStringLiteral("Empty document.")));
     }
-    if (html.length()<maxDataUrlFileSize) { // Small PDF files
+    if (html.length()<CDefaults::maxDataUrlFileSize) { // Small PDF files
         snv->txtBrowser->setHtml(html);
         snv->m_auxContentLoaded=false;
     } else { // Big PDF files
@@ -232,7 +233,7 @@ void CSnNet::pdfConverted(const QString &html)
 
 void CSnNet::pdfError(const QString &message)
 {
-    QString cn=makeSimpleHtml(tr("Error"),tr("Unable to open PDF file.<br>%1").arg(message));
+    QString cn=CGenericFuncs::makeSimpleHtml(tr("Error"),tr("Unable to open PDF file.<br>%1").arg(message));
     snv->txtBrowser->setHtml(cn);
     QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
 }
@@ -252,7 +253,7 @@ void CSnNet::load(const QUrl &url)
     if (!fname.isEmpty()) {
         QFileInfo fi(fname);
         if (!fi.exists() || !fi.isReadable()) {
-            QString cn=makeSimpleHtml(tr("Error"),tr("Unable to find file '%1'.").arg(fname));
+            QString cn=CGenericFuncs::makeSimpleHtml(tr("Error"),tr("Unable to find file '%1'.").arg(fname));
             snv->m_fileChanged = false;
             snv->m_translationBkgdFinished=false;
             snv->m_loadingBkgdFinished=false;
@@ -260,14 +261,14 @@ void CSnNet::load(const QUrl &url)
             QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
             return;
         }
-        QString MIME = detectMIME(fname);
+        QString MIME = CGenericFuncs::detectMIME(fname);
         if (MIME.startsWith(QStringLiteral("text/plain"),Qt::CaseInsensitive) &&
-                fi.size()<maxDataUrlFileSize) { // for small local txt files (load big files via file url directly)
+                fi.size()<CDefaults::maxDataUrlFileSize) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
                 QByteArray ba = data.readAll();
-                QTextCodec* cd = detectEncoding(ba);
-                QString cn=makeSimpleHtml(fi.fileName(),cd->toUnicode(ba));
+                QTextCodec* cd = CGenericFuncs::detectEncoding(ba);
+                QString cn=CGenericFuncs::makeSimpleHtml(fi.fileName(),cd->toUnicode(ba));
                 snv->m_fileChanged = false;
                 snv->m_translationBkgdFinished=false;
                 snv->m_loadingBkgdFinished=false;
@@ -285,6 +286,9 @@ void CSnNet::load(const QUrl &url)
             connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::error,this,&CSnNet::pdfError,Qt::QueuedConnection);
             auto pdft = new QThread();
+            connect(pdf,&CPDFWorker::finished,pdft,&QThread::quit);
+            connect(pdft,&QThread::finished,pdf,&CPDFWorker::deleteLater);
+            connect(pdft,&QThread::finished,pdft,&QThread::deleteLater);
             pdf->moveToThread(pdft);
             pdft->start();
             Q_EMIT startPdfConversion(url.toString());
@@ -296,7 +300,7 @@ void CSnNet::load(const QUrl &url)
         gSet->appendRecent(fname);
     } else {
         QUrl u = url;
-        checkAndUnpackUrl(u);
+        CGenericFuncs::checkAndUnpackUrl(u);
         snv->m_fileChanged = false;
         snv->txtBrowser->load(u);
         snv->m_auxContentLoaded=false;

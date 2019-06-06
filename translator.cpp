@@ -235,7 +235,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     static const QStringList denyDivs { QStringLiteral("sh_fc2blogheadbar"),
                 QStringLiteral("fc2_bottom_bnr"), QStringLiteral("global-header") };
 
-    const QStringList &acceptedExt = getSupportedImageExtensions();
+    const QStringList &acceptedExt = CGenericFuncs::getSupportedImageExtensions();
 
     QVector<CHTMLNode> subnodes;
 
@@ -518,13 +518,13 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     t = srct;
                 }
 
-                if (translationMode==tmTooltip) {
+                if (translationMode==CStructures::tmTooltip) {
                     QString ts = srct;
                     srct = t;
                     t = ts;
                 }
 
-                if (translationMode==tmAdditive)
+                if (translationMode==CStructures::tmAdditive)
                     sout += srct + QStringLiteral("<br/>");
 
                 if (!tran->getErrorMsg().isEmpty()) {
@@ -549,7 +549,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     sout += t;
                 }
 
-                if (translationMode==tmAdditive) {
+                if (translationMode==CStructures::tmAdditive) {
                     sout += QStringLiteral("<br/>\n");
                 } else {
                     srctls << srct;
@@ -565,7 +565,8 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     }
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
-        if (!srctls.isEmpty() && ((translationMode==tmOverwriting) || (translationMode==tmTooltip))) {
+        if (!srctls.isEmpty() && ((translationMode==CStructures::tmOverwriting)
+                                  || (translationMode==CStructures::tmTooltip))) {
             src.text = QStringLiteral("<span title=\"%1\">%2</span>")
                        .arg(srctls.join('\n').replace('"','\''),sout);
         } else {
@@ -578,7 +579,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
 void CTranslator::dumpPage(QUuid token, const QString &suffix, const QString &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString()
+    QString fname = CGenericFuncs::getTmpDir() + QDir::separator() + token.toString()
             + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -591,7 +592,7 @@ void CTranslator::dumpPage(QUuid token, const QString &suffix, const QString &pa
 
 void CTranslator::dumpPage(QUuid token, const QString &suffix, const CHTMLNode &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString()
+    QString fname = CGenericFuncs::getTmpDir() + QDir::separator() + token.toString()
             + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -607,7 +608,7 @@ void CTranslator::dumpPage(QUuid token, const QString &suffix, const CHTMLNode &
 
 void CTranslator::dumpPage(QUuid token, const QString &suffix, const QByteArray &page)
 {
-    QString fname = getTmpDir() + QDir::separator() + token.toString()
+    QString fname = CGenericFuncs::getTmpDir() + QDir::separator() + token.toString()
             + QStringLiteral("-") + suffix + QStringLiteral(".html");
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -628,7 +629,7 @@ void CTranslator::translate()
         Q_EMIT calcFinished(false,aUrl,lastError);
     }
 
-    if (translationEngine==teAtlas) {
+    if (translationEngine==CStructures::teAtlas) {
         bool oktrans = false;
 
         if (!lp.isAtlasAcceptable()) {
@@ -651,30 +652,30 @@ void CTranslator::translate()
         }
         if (!oktrans) {
             Q_EMIT calcFinished(false,aUrl,lastError);
-            deleteLater();
+            Q_EMIT finished();
             return;
         }
-    } else if (translationEngine==teBingAPI ||
-               translationEngine==teYandexAPI ||
-               translationEngine==teGoogleGTX) {
+    } else if (translationEngine==CStructures::teBingAPI ||
+               translationEngine==CStructures::teYandexAPI ||
+               translationEngine==CStructures::teGoogleGTX) {
         if (!translateDocument(Uri,aUrl)) {
             QString lastError = tr("Translator initialization error");
             if (tran)
                 lastError = tran->getErrorMsg();
             Q_EMIT calcFinished(false,aUrl,lastError);
-            deleteLater();
+            Q_EMIT finished();
             return;
         }
     } else {
         if (!calcLocalUrl(Uri,aUrl)) {
             Q_EMIT calcFinished(false,QString(),tr("ERROR: Url calculation error"));
-            deleteLater();
+            Q_EMIT finished();
             return;
         }
     }
 
     Q_EMIT calcFinished(true,aUrl,QString());
-    deleteLater();
+    Q_EMIT finished();
 }
 
 void CTranslator::abortTranslator()

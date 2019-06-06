@@ -49,11 +49,8 @@ public:
     bool translateSubSentences() const;
     void addActionNotification(QAction* action);
 
-    TranslationMode getTranslationMode() const;
+    CStructures::TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
-
-Q_SIGNALS:
-    void gctxStart(const QString& text);
 
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);

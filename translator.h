@@ -63,10 +63,10 @@ private:
     QStringList imgUrls;
     int atlTcpRetryCount { 0 };
     int atlTcpTimeout { 0 };
-    TranslationEngine translationEngine { teAtlas };
+    CStructures::TranslationEngine translationEngine { CStructures::teAtlas };
     int textNodesCnt { 0 };
     int textNodesProgress { 0 };
-    TranslationMode translationMode { tmAdditive };
+    CStructures::TranslationMode translationMode { CStructures::tmAdditive };
     bool localHosting { false };
     bool useSCP { false };
     bool abortFlag { false };
@@ -100,6 +100,7 @@ public:
 Q_SIGNALS:
     void calcFinished(bool success, const QString &aUrl, const QString &error);
     void setProgress(int value);
+    void finished();
 
 public Q_SLOTS:
     void abortTranslator();

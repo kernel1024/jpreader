@@ -103,11 +103,11 @@ void CSettingsDlg::loadFromGlobal()
                                        testAttribute(QWebEngineSettings::PluginsEnabled));
 
     switch (gSet->m_settings->translatorEngine) {
-        case teGoogle: ui->radioGoogle->setChecked(true); break;
-        case teAtlas: ui->radioAtlas->setChecked(true); break;
-        case teBingAPI: ui->radioBingAPI->setChecked(true); break;
-        case teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
-        case teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
+        case CStructures::teGoogle: ui->radioGoogle->setChecked(true); break;
+        case CStructures::teAtlas: ui->radioAtlas->setChecked(true); break;
+        case CStructures::teBingAPI: ui->radioBingAPI->setChecked(true); break;
+        case CStructures::teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
+        case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
     }
     ui->editScpHost->clear();
     ui->editScpHost->addItems(gSet->m_settings->scpHostHistory);
@@ -166,9 +166,9 @@ void CSettingsDlg::loadFromGlobal()
 #ifndef WITH_BALOO5
     ui->radioSearchBaloo5->setEnabled(false);
 #endif
-    if ((gSet->m_settings->searchEngine==seRecoll) && (ui->radioSearchRecoll->isEnabled())) {
+    if ((gSet->m_settings->searchEngine==CStructures::seRecoll) && (ui->radioSearchRecoll->isEnabled())) {
         ui->radioSearchRecoll->setChecked(true);
-    } else if ((gSet->m_settings->searchEngine==seBaloo5) && (ui->radioSearchBaloo5->isEnabled())) {
+    } else if ((gSet->m_settings->searchEngine==CStructures::seBaloo5) && (ui->radioSearchBaloo5->isEnabled())) {
         ui->radioSearchBaloo5->setChecked(true);
     } else {
         ui->radioSearchNone->setChecked(true);
@@ -192,7 +192,7 @@ void CSettingsDlg::loadFromGlobal()
     loadedDicts.append(gSet->d_func()->dictManager->getLoadedDictionaries());
 
     ui->checkDontUseNativeFileDialogs->setChecked(gSet->m_settings->dontUseNativeFileDialog);
-    ui->spinCacheSize->setValue(gSet->webProfile()->httpCacheMaximumSize()/oneMB);
+    ui->spinCacheSize->setValue(gSet->webProfile()->httpCacheMaximumSize()/CDefaults::oneMB);
     ui->checkIgnoreSSLErrors->setChecked(gSet->m_settings->ignoreSSLErrors);
     ui->checkTabFavicon->setChecked(gSet->webProfile()->settings()->
                                     testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
@@ -249,12 +249,12 @@ void CSettingsDlg::saveToGlobal(QStringList &dictPaths)
     gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                                  ui->checkEnablePlugins->isChecked());
 
-    if (ui->radioGoogle->isChecked()) gSet->m_settings->translatorEngine=teGoogle;
-    else if (ui->radioAtlas->isChecked()) gSet->m_settings->translatorEngine=teAtlas;
-    else if (ui->radioBingAPI->isChecked()) gSet->m_settings->translatorEngine=teBingAPI;
-    else if (ui->radioYandexAPI->isChecked()) gSet->m_settings->translatorEngine=teYandexAPI;
-    else if (ui->radioGoogleGTX->isChecked()) gSet->m_settings->translatorEngine=teGoogleGTX;
-    else gSet->m_settings->translatorEngine=teAtlas;
+    if (ui->radioGoogle->isChecked()) gSet->m_settings->translatorEngine=CStructures::teGoogle;
+    else if (ui->radioAtlas->isChecked()) gSet->m_settings->translatorEngine=CStructures::teAtlas;
+    else if (ui->radioBingAPI->isChecked()) gSet->m_settings->translatorEngine=CStructures::teBingAPI;
+    else if (ui->radioYandexAPI->isChecked()) gSet->m_settings->translatorEngine=CStructures::teYandexAPI;
+    else if (ui->radioGoogleGTX->isChecked()) gSet->m_settings->translatorEngine=CStructures::teGoogleGTX;
+    else gSet->m_settings->translatorEngine=CStructures::teAtlas;
     gSet->m_settings->useScp=ui->checkSCP->isChecked();
     gSet->m_settings->scpHost=ui->editScpHost->lineEdit()->text();
     gSet->m_settings->scpParams=ui->editScpParams->text();
@@ -286,11 +286,11 @@ void CSettingsDlg::saveToGlobal(QStringList &dictPaths)
 
     gSet->m_settings->createCoredumps=ui->checkCreateCoredumps->isChecked();
     if (ui->radioSearchRecoll->isChecked()) {
-        gSet->m_settings->searchEngine = seRecoll;
+        gSet->m_settings->searchEngine = CStructures::seRecoll;
     } else if (ui->radioSearchBaloo5->isChecked()) {
-        gSet->m_settings->searchEngine = seBaloo5;
+        gSet->m_settings->searchEngine = CStructures::seBaloo5;
     } else {
-        gSet->m_settings->searchEngine = seNone;
+        gSet->m_settings->searchEngine = CStructures::seNone;
     }
 
     gSet->m_settings->showTabCloseButtons = ui->checkTabCloseBtn->isChecked();
@@ -314,7 +314,7 @@ void CSettingsDlg::saveToGlobal(QStringList &dictPaths)
     gSet->m_settings->pixivFetchImages = ui->checkPixivFetchImages->isChecked();
 
     gSet->m_settings->dontUseNativeFileDialog = ui->checkDontUseNativeFileDialogs->isChecked();
-    gSet->webProfile()->setHttpCacheMaximumSize(ui->spinCacheSize->value()*oneMB);
+    gSet->webProfile()->setHttpCacheMaximumSize(ui->spinCacheSize->value()*CDefaults::oneMB);
     gSet->m_settings->ignoreSSLErrors = ui->checkIgnoreSSLErrors->isChecked();
     gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
                                                  ui->checkTabFavicon->isChecked());
@@ -482,19 +482,19 @@ void CSettingsDlg::updateAdblockList()
 
 void CSettingsDlg::selectDir()
 {
-    QString dir = getExistingDirectoryD(this,tr("Hosting directory"),ui->editHostingDir->text());
+    QString dir = CGenericFuncs::getExistingDirectoryD(this,tr("Hosting directory"),ui->editHostingDir->text());
     if (!dir.isEmpty()) ui->editHostingDir->setText(dir);
 }
 
 void CSettingsDlg::selectBrowser()
 {
-    QString s = getOpenFileNameD(this,tr("Select browser"),ui->editBrowser->text());
+    QString s = CGenericFuncs::getOpenFileNameD(this,tr("Select browser"),ui->editBrowser->text());
     if (!s.isEmpty()) ui->editBrowser->setText(s);
 }
 
 void CSettingsDlg::selectEditor()
 {
-    QString s = getOpenFileNameD(this,tr("Select editor"),ui->editEditor->text());
+    QString s = CGenericFuncs::getOpenFileNameD(this,tr("Select editor"),ui->editEditor->text());
     if (!s.isEmpty()) ui->editEditor->setText(s);
 }
 
@@ -562,7 +562,7 @@ void CSettingsDlg::delAdAll()
 
 void CSettingsDlg::importAd()
 {
-    QString fname = getOpenFileNameD(this,tr("Import rules from text file"),QDir::homePath());
+    QString fname = CGenericFuncs::getOpenFileNameD(this,tr("Import rules from text file"),QDir::homePath());
     if (fname.isEmpty()) return;
 
     QFile f(fname);
@@ -606,9 +606,9 @@ void CSettingsDlg::exportAd()
     for (const QTreeWidgetItem* i : il)
         r << i->data(0,Qt::UserRole+1).toInt();
 
-    QString fname = getSaveFileNameD(this,tr("Save AdBlock patterns to file"),
-                                     gSet->settings()->savedAuxSaveDir,
-                                     tr("Text file (*.txt)"));
+    QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save AdBlock patterns to file"),
+                                                    gSet->settings()->savedAuxSaveDir,
+                                                    tr("Text file (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
@@ -636,7 +636,7 @@ void CSettingsDlg::fontColorDlg()
 
 void CSettingsDlg::addDictPath()
 {
-    QString s = getExistingDirectoryD(this,tr("Select directory"));
+    QString s = CGenericFuncs::getExistingDirectoryD(this,tr("Select directory"));
     if (!s.isEmpty())
         ui->listDictPaths->addItem(s);
 }
@@ -694,8 +694,8 @@ void CSettingsDlg::exportCookies()
         return;
     }
 
-    QString fname = getSaveFileNameD(this,tr("Save cookies to file"),gSet->settings()->savedAuxSaveDir,
-                                     tr("Text file, Netscape format (*.txt)"));
+    QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save cookies to file"),gSet->settings()->savedAuxSaveDir,
+                                                    tr("Text file, Netscape format (*.txt)"));
 
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
@@ -711,11 +711,11 @@ void CSettingsDlg::exportCookies()
         int idx = r.at(i);
         fs << cookiesList.at(idx).domain()
            << '\t'
-           << bool2str2(cookiesList.at(idx).domain().startsWith('.'))
+           << CGenericFuncs::bool2str2(cookiesList.at(idx).domain().startsWith('.'))
            << '\t'
            << cookiesList.at(idx).path()
            << '\t'
-           << bool2str2(cookiesList.at(idx).isSecure())
+           << CGenericFuncs::bool2str2(cookiesList.at(idx).isSecure())
            << '\t'
            << cookiesList.at(idx).expirationDate().toSecsSinceEpoch()
            << '\t'
@@ -904,8 +904,8 @@ void CSettingsDlg::deleteUserScript()
 
 void CSettingsDlg::importUserScript()
 {
-    QString fname = getOpenFileNameD(this,tr("Import user script from text file"),QDir::homePath(),
-                                     tr("JavaScript files (*.js);;All files (*)"));
+    QString fname = CGenericFuncs::getOpenFileNameD(this,tr("Import user script from text file"),QDir::homePath(),
+                                                    tr("JavaScript files (*.js);;All files (*)"));
     if (fname.isEmpty()) return;
 
     QFile f(fname);

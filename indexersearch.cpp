@@ -8,25 +8,27 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
     indexerSerivce = gSet->settings()->searchEngine;
-    if ((indexerSerivce == seRecoll) || (indexerSerivce == seBaloo5)) {
+    if ((indexerSerivce == CStructures::seRecoll) || (indexerSerivce == CStructures::seBaloo5)) {
 #ifdef WITH_THREADED_SEARCH
         if (!isValidConfig()) {
-            engine = nullptr;
+            engine.reset(nullptr);
             return;
         }
         auto th = new QThread();
-        if (indexerSerivce == seRecoll) {
-            engine = new CRecollSearch();
+        if (indexerSerivce == CStructures::seRecoll) {
+            engine.reset(new CRecollSearch());
         } else {
-            engine = new CBaloo5Search();
+            engine.reset(new CBaloo5Search());
         }
-        connect(engine,&CAbstractThreadedSearch::addHit,
+        connect(engine.data(),&CAbstractThreadedSearch::addHit,
                 this,&CIndexerSearch::addHit,Qt::QueuedConnection);
-        connect(engine,&CAbstractThreadedSearch::finished,
+        connect(engine.data(),&CAbstractThreadedSearch::finished,
                 this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
         connect(this,&CIndexerSearch::startThreadedSearch,
-                engine,&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
+                engine.data(),&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
         engine->moveToThread(th);
+        connect(engine.data(),&CAbstractThreadedSearch::destroyed,th,&QThread::quit);
+        connect(th,&QThread::finished,th,&QThread::deleteLater);
         th->start();
 #endif
     }
@@ -47,7 +49,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
         searchInDir(searchDir,m_query);
         engineFinished();
     } else {
-        if ((indexerSerivce == seBaloo5) || (indexerSerivce == seRecoll)) {
+        if ((indexerSerivce == CStructures::seBaloo5) || (indexerSerivce == CStructures::seRecoll)) {
 #ifdef WITH_THREADED_SEARCH
             if (isValidConfig()) {
                 Q_EMIT startThreadedSearch(m_query,gSet->settings()->maxSearchLimit);
@@ -77,7 +79,7 @@ bool CIndexerSearch::isWorking()
     return working;
 }
 
-SearchEngine CIndexerSearch::getCurrentIndexerService()
+CStructures::SearchEngine CIndexerSearch::getCurrentIndexerService()
 {
     return indexerSerivce;
 }
@@ -129,21 +131,21 @@ void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString 
         return;
     }
     QByteArray fb;
-    if (f.size()<maxSearchFileSize) {
+    if (f.size()<CDefaults::maxSearchFileSize) {
         fb = f.readAll();
     } else {
-        fb = f.read(maxSearchFileSize);
+        fb = f.read(CDefaults::maxSearchFileSize);
     }
     f.close();
 
-    QTextCodec *cd = detectEncoding(fb);
+    QTextCodec *cd = CGenericFuncs::detectEncoding(fb);
     QString fc = cd->toUnicode(fb.constData());
 
     hitRate = calculateHitRate(fc);
 
-    QString mime = detectMIME(fb);
+    QString mime = CGenericFuncs::detectMIME(fb);
     if (mime.contains(QStringLiteral("html"),Qt::CaseInsensitive)) {
-        title = extractFileTitle(fc);
+        title = CGenericFuncs::extractFileTitle(fc);
         if (title.isEmpty())
             title = fi.fileName();
     } else {

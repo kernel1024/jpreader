@@ -12,8 +12,10 @@
 
 using namespace htmlcxx;
 
+namespace CDefaults {
 const int selectionTimerDelay = 1000;
 const int longClickTimerDelay = 1000;
+}
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
     : QObject(parent)
@@ -21,10 +23,10 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     snv = parent;
 
     m_selectionTimer = new QTimer(this);
-    m_selectionTimer->setInterval(selectionTimerDelay);
+    m_selectionTimer->setInterval(CDefaults::selectionTimerDelay);
     m_selectionTimer->setSingleShot(true);
     m_longClickTimer = new QTimer(this);
-    m_longClickTimer->setInterval(longClickTimerDelay);
+    m_longClickTimer->setInterval(CDefaults::longClickTimerDelay);
     m_longClickTimer->setSingleShot(true);
 
     connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
@@ -76,10 +78,10 @@ void CSnTrans::transButtonHighlight()
 
 void CSnTrans::translate(bool tranSubSentences)
 {
-    if (gSet->settings()->translatorEngine==teAtlas ||
-        gSet->settings()->translatorEngine==teBingAPI ||
-        gSet->settings()->translatorEngine==teYandexAPI ||
-        gSet->settings()->translatorEngine==teGoogleGTX) {
+    if (gSet->settings()->translatorEngine==CStructures::teAtlas ||
+        gSet->settings()->translatorEngine==CStructures::teBingAPI ||
+        gSet->settings()->translatorEngine==CStructures::teYandexAPI ||
+        gSet->settings()->translatorEngine==CStructures::teGoogleGTX) {
         m_savedBaseUrl = snv->txtBrowser->page()->url();
         if (m_savedBaseUrl.hasFragment())
             m_savedBaseUrl.setFragment(QString());
@@ -135,19 +137,24 @@ void CSnTrans::translatePriv(const QString &aUri, bool forceTranSubSentences)
     auto th = new QThread();
     connect(ct,&CTranslator::calcFinished,
             this,&CSnTrans::calcFinished,Qt::QueuedConnection);
+
+    connect(ct,&CTranslator::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    if (gSet->settings()->translatorEngine==teAtlas) {
+    if (gSet->settings()->translatorEngine==CStructures::teAtlas) {
         snv->waitHandler->setText(tr("Translating text with ATLAS..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings()->translatorEngine==teBingAPI) {
+    } else if (gSet->settings()->translatorEngine==CStructures::teBingAPI) {
         snv->waitHandler->setText(tr("Translating text with Bing API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings()->translatorEngine==teYandexAPI) {
+    } else if (gSet->settings()->translatorEngine==CStructures::teYandexAPI) {
         snv->waitHandler->setText(tr("Translating text with Yandex.Translate API..."));
         snv->waitHandler->setProgressEnabled(true);
-    } else if (gSet->settings()->translatorEngine==teGoogleGTX) {
+    } else if (gSet->settings()->translatorEngine==CStructures::teGoogleGTX) {
         snv->waitHandler->setText(tr("Translating text with Google GTX..."));
         snv->waitHandler->setProgressEnabled(true);
     } else {
@@ -201,7 +208,7 @@ void CSnTrans::postTranslate()
     QUrlQuery qu;
     CLangPair lp;
     switch (gSet->settings()->translatorEngine) {
-        case teGoogle:
+        case CStructures::teGoogle:
             url = QUrl(QStringLiteral("http://translate.google.com/translate"));
             lp = CLangPair(gSet->ui()->getActiveLangPair());
             if (lp.isValid()) {
@@ -214,12 +221,12 @@ void CSnTrans::postTranslate()
             } else
                 QMessageBox::warning(snv,tr("JPReader"),tr("No active language pair selected"));
             break;
-        case teAtlas: // Url contains translated file itself
-        case teBingAPI:
-        case teYandexAPI:
-        case teGoogleGTX:
+        case CStructures::teAtlas: // Url contains translated file itself
+        case CStructures::teBingAPI:
+        case CStructures::teYandexAPI:
+        case CStructures::teGoogleGTX:
             cn = snv->m_calculatedUrl;
-            if (cn.toUtf8().size()<maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
+            if (cn.toUtf8().size()<CDefaults::maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
                 snv->m_fileChanged = true;
                 snv->m_onceTranslated = true;
                 snv->txtBrowser->setHtml(cn,m_savedBaseUrl);

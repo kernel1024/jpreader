@@ -131,7 +131,7 @@ QString CAtlasTranslator::tranString(const QString &src)
     QByteArray sumbuf;
     while(true) {
         if (!sock.canReadLine()) {
-            if (!sock.waitForReadyRead(translatorConnectionTimeout)) {
+            if (!sock.waitForReadyRead(CDefaults::translatorConnectionTimeout)) {
                 qCritical() << "ATLAS: translation timeout error";
                 sock.close();
                 setErrorMsg(QStringLiteral("ERROR: ATLAS socket error"));

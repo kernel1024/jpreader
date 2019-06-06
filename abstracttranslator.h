@@ -5,7 +5,9 @@
 #include <QString>
 #include "globalcontrol.h"
 
+namespace CDefaults {
 const int translatorConnectionTimeout = 60000;
+}
 
 class CAbstractTranslator : public QObject
 {

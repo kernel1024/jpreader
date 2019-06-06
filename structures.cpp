@@ -135,14 +135,14 @@ QDataStream &operator>>(QDataStream &in, CLangPair &obj)
     return in;
 }
 
-const QMap<TranslationEngine, QString> &translationEngines()
+const QMap<CStructures::TranslationEngine, QString> &translationEngines()
 {
-    static const QMap<TranslationEngine,QString> engines = {
-        { teGoogle, QStringLiteral("Google") },
-        { teAtlas, QStringLiteral("ATLAS") },
-        { teBingAPI, QStringLiteral("Bing API") },
-        { teYandexAPI, QStringLiteral("Yandex API") },
-        { teGoogleGTX, QStringLiteral("Google GTX") }
+    static const QMap<CStructures::TranslationEngine,QString> engines = {
+        { CStructures::teGoogle, QStringLiteral("Google") },
+        { CStructures::teAtlas, QStringLiteral("ATLAS") },
+        { CStructures::teBingAPI, QStringLiteral("Bing API") },
+        { CStructures::teYandexAPI, QStringLiteral("Yandex API") },
+        { CStructures::teGoogleGTX, QStringLiteral("Google GTX") }
     };
 
     return engines;

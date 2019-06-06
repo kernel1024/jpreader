@@ -28,7 +28,9 @@
 #include "snwaitctl.h"
 #include "snmsghandler.h"
 
+namespace CDefaults {
 const int tabPreviewScreenshotDelay = 500;
+}
 
 CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringList& aSearchText,
                                bool setFocused, const QString& AuxContent, const QString& zoom,
@@ -165,7 +167,7 @@ void CSnippetViewer::updateTabColor(bool loadFinished, bool tranFinished)
     // reset color on focus acquiring
     if (!loadFinished && !tranFinished) {
         parentWnd()->tabMain->tabBar()->setTabTextColor(
-                    selfIdx,qApp->palette(parentWnd()->tabMain->tabBar()).windowText().color());
+                    selfIdx,gSet->app()->palette(parentWnd()->tabMain->tabBar()).windowText().color());
         return;
     }
 
@@ -184,7 +186,7 @@ void CSnippetViewer::updateTabColor(bool loadFinished, bool tranFinished)
         }
 
         if (color.isValid()) {
-            parentWnd()->tabMain->tabBar()->setTabTextColor(selfIdx,Qt::blue);
+            parentWnd()->tabMain->tabBar()->setTabTextColor(selfIdx,color);
             parentWnd()->updateTabs();
         }
     }
@@ -350,8 +352,8 @@ void CSnippetViewer::printToPDF()
     if (dlg.exec() != QDialog::Accepted)
         return;
 
-    QString fname = getSaveFileNameD(this,tr("Save to PDF"),gSet->settings()->savedAuxSaveDir,
-                                                 tr("PDF file (*.pdf)"));
+    QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save to PDF"),gSet->settings()->savedAuxSaveDir,
+                                                    tr("PDF file (*.pdf)"));
     if (fname.isEmpty()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
@@ -424,7 +426,7 @@ void CSnippetViewer::takeScreenshot()
 {
     if (!m_pageLoaded) return;
     auto t = new QTimer(this);
-    t->setInterval(tabPreviewScreenshotDelay);
+    t->setInterval(CDefaults::tabPreviewScreenshotDelay);
     t->setSingleShot(true);
     connect(t,&QTimer::timeout,this,[this,t](){
         m_pageImage = txtBrowser->grab();

@@ -11,6 +11,7 @@
 #include "structures.h"
 #include "settings.h"
 #include "globalui.h"
+#include "genericfuncs.h"
 #include "userscript.h"
 
 class CLogDisplay;
@@ -20,16 +21,23 @@ class BookmarksManager;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
 
+#define gSet (CGlobalControl::instance())
+
 class CGlobalControl : public QObject
 {
     friend class CSettings;
     friend class CGlobalUI;
     friend class CSettingsDlg;
+    friend class CGenericFuncs;
+    friend class CLogDisplay;
 
     Q_OBJECT
 public:
-    explicit CGlobalControl(QApplication *parent, int aInspectorPort);
+    explicit CGlobalControl(QCoreApplication *parent);
     ~CGlobalControl() override;
+    static CGlobalControl* instance();
+    QApplication* app(QObject *parentApp = nullptr);
+    void initialize();
 
     // History lists
     const CUrlHolderVector &recycleBin() const;
@@ -80,12 +88,11 @@ public:
     QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
     QStringList getSearchEngines() const;
     QString makeTmpFileName(const QString &suffix, bool withDir = false);
-    bool isIPCStarted() const;
     const CSettings *settings() const;
     const CGlobalUI *ui() const;
     void writeSettings();
     void addFavicon(const QString& key, const QIcon &icon);
-    void setTranslationEngine(TranslationEngine engine);
+    void setTranslationEngine(CStructures::TranslationEngine engine);
 
     // Chromium
     QUrl getInspectorUrl() const;
@@ -125,6 +132,7 @@ private:
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
     void cleanTmpFiles();
     void initLanguagesList();
+    void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
 Q_SIGNALS:
     void startAuxTranslation();
@@ -163,7 +171,5 @@ public Q_SLOTS:
     void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors,
                           const CIntList& errCodes);
 };
-
-extern CGlobalControl* gSet;
 
 #endif // QGLOBALSETTINGS_H

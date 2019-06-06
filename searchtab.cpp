@@ -14,16 +14,14 @@
 
 CSearchTab::CSearchTab(CMainWindow *parent) :
     CSpecTabContainer(parent),
-    ui(new Ui::SearchTab)
+    ui(new Ui::SearchTab),
+    engine(new CIndexerSearch()),
+    titleTran(new CTitlesTranslator())
 {
     const int searchCompleterMaxVisibleItemsFrac = 70;
 
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
-
-    auto th = new QThread();
-    engine = new CIndexerSearch();
-    titleTran = new CTitlesTranslator();
 
     lastQuery.clear();
     setTabTitle(tr("Search"));
@@ -37,9 +35,9 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     ui->translateFrame->hide();
 
     model = new CSearchModel(this,ui->listResults);
-    sort = new CSearchProxyFilterModel;
+    sort = new CSearchProxyFilterModel(this);
     sort->setSourceModel(model);
-    sort->setSortRole(Qt::UserRole + cpSortRole);
+    sort->setSortRole(Qt::UserRole + CStructures::cpSortRole);
     ui->listResults->setModel(sort);
     ui->listResults->sortByColumn(1,Qt::DescendingOrder);
 
@@ -63,21 +61,21 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(ui->listResults, &QTableView::doubleClicked, this, &CSearchTab::execSnippet);
     connect(ui->editSearch->lineEdit(), &QLineEdit::returnPressed, ui->buttonSearch, &QPushButton::click);
 
-    connect(engine, &CIndexerSearch::searchFinished,
+    connect(engine.data(), &CIndexerSearch::searchFinished,
             this, &CSearchTab::searchFinished, Qt::QueuedConnection);
     connect(this, &CSearchTab::startSearch,
-            engine, &CIndexerSearch::doSearch, Qt::QueuedConnection);
-    connect(engine, &CIndexerSearch::gotResult,
+            engine.data(), &CIndexerSearch::doSearch, Qt::QueuedConnection);
+    connect(engine.data(), &CIndexerSearch::gotResult,
             this, &CSearchTab::gotSearchResult, Qt::QueuedConnection);
 
-    connect(titleTran, &CTitlesTranslator::gotTranslation,
+    connect(titleTran.data(), &CTitlesTranslator::gotTranslation,
             this, &CSearchTab::gotTitleTranslation,Qt::QueuedConnection);
-    connect(titleTran, &CTitlesTranslator::updateProgress,
+    connect(titleTran.data(), &CTitlesTranslator::updateProgress,
             this, &CSearchTab::updateProgress,Qt::QueuedConnection);
     connect(ui->translateStopBtn, &QPushButton::clicked,
-            titleTran, &CTitlesTranslator::stop,Qt::QueuedConnection);
+            titleTran.data(), &CTitlesTranslator::stop,Qt::QueuedConnection);
     connect(this, &CSearchTab::translateTitlesSrc,
-            titleTran, &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
+            titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
 
     ui->buttonSearch->setIcon(QIcon::fromTheme(QStringLiteral("document-preview")));
     ui->buttonOpen->setIcon(QIcon::fromTheme(QStringLiteral("document-open")));
@@ -90,9 +88,9 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
 
     bindToTab(parentWnd()->tabMain);
 
-    if (engine->getCurrentIndexerService()==seRecoll) {
+    if (engine->getCurrentIndexerService()==CStructures::seRecoll) {
         ui->labelMode->setText(QStringLiteral("Recoll search"));
-    } else if (engine->getCurrentIndexerService()==seBaloo5) {
+    } else if (engine->getCurrentIndexerService()==CStructures::seBaloo5) {
         ui->labelMode->setText(QStringLiteral("Baloo KF5 search"));
     } else {
         ui->labelMode->setText(QStringLiteral("Local file search"));
@@ -107,11 +105,17 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
                                 "Please, check program settings and reopen new search tab."));
     }
 
+    auto th = new QThread();
     engine->moveToThread(th);
+    connect(engine.data(),&CIndexerSearch::destroyed,th,&QThread::quit);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
     th->start();
+
 
     auto th2 = new QThread();
     titleTran->moveToThread(th2);
+    connect(titleTran.data(),&CIndexerSearch::destroyed,th2,&QThread::quit);
+    connect(th2,&QThread::finished,th2,&QThread::deleteLater);
     th2->start();
 }
 
@@ -130,7 +134,8 @@ void CSearchTab::updateQueryHistory()
 
 void CSearchTab::selectDir()
 {
-    QString dir = getExistingDirectoryD(parentWnd(),tr("Search in"),gSet->settings()->savedAuxDir);
+    QString dir = CGenericFuncs::getExistingDirectoryD(parentWnd(),tr("Search in"),
+                                                       gSet->settings()->savedAuxDir);
     if (!dir.isEmpty()) ui->editDir->setText(dir);
 }
 
@@ -273,7 +278,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         ui.setupUi(dlg);
         dlg->setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
-                           .arg(elideString(sh[QStringLiteral("title")],maxTitleLength)));
+                           .arg(CGenericFuncs::elideString(sh[QStringLiteral("title")],maxTitleLength)));
         ui.table->clear();
         ui.table->setColumnCount(2);
         ui.table->setRowCount(sh.size());
@@ -376,7 +381,7 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         if ((row < 0) || (row >= model->rowCount())) return;
         CStringHash snip = model->getSnippet(row);
         QString s = snip[QStringLiteral("abstract")];
-        QString tranState = bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
+        QString tranState = CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
         if (s.isEmpty() || tranState!=snip.value(QStringLiteral("abstract:tran"))) {
             snip[QStringLiteral("abstract:untran")]=
                     createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],true,s);
@@ -384,7 +389,7 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
                     createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
             s = snip[QStringLiteral("abstract")];
             snip[QStringLiteral("abstract:tran")] =
-                    bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
+                    CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
         s=QStringLiteral("<font size='+1'>%1</font>").arg(s);
@@ -410,7 +415,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     }
 
     if (!auxText.isEmpty())
-        s = highlightSnippet(auxText,queryTerms);
+        s = CGenericFuncs::highlightSnippet(auxText,queryTerms);
 
     QStringList queryTermsTran = queryTerms;
     CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
@@ -445,14 +450,14 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     }
 
     QByteArray fc;
-    if (f.size()>maxSearchFileSize) {
-        fc = f.read(maxSearchFileSize);
+    if (f.size()>CDefaults::maxSearchFileSize) {
+        fc = f.read(CDefaults::maxSearchFileSize);
     } else {
         fc = f.readAll();
     }
     f.close();
 
-    QTextCodec *cd = detectEncoding(fc);
+    QTextCodec *cd = CGenericFuncs::detectEncoding(fc);
 
     QString fileContents = cd->toUnicode(fc.constData());
 

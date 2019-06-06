@@ -62,9 +62,9 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     }
 
     QJsonObject jroot = jdoc.object();
-    int code = jroot.value(QStringLiteral("code")).toInt(httpCodeServerError);
+    int code = jroot.value(QStringLiteral("code")).toInt(CDefaults::httpCodeServerError);
 
-    if (code!=httpCodeFound || !jroot.value(QStringLiteral("text")).isArray()) {
+    if (code!=CDefaults::httpCodeFound || !jroot.value(QStringLiteral("text")).isArray()) {
         qCritical() << "Yandex error:" << jroot.value(QStringLiteral("message")).toString();
         setErrorMsg(QStringLiteral("ERROR: Yandex translator error: %1")
                     .arg(jroot.value(QStringLiteral("message")).toString()));

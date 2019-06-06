@@ -8,6 +8,7 @@
 #include <QTime>
 #include <QDir>
 #include <QFileInfo>
+#include <QScopedPointer>
 
 #include "globalcontrol.h"
 
@@ -17,7 +18,9 @@
 #include "recollsearch.h"
 #endif
 
+namespace CDefaults {
 const int maxSearchFileSize = 50*1024*1024;
+}
 
 class CIndexerSearch : public QObject
 {
@@ -26,15 +29,15 @@ public:
     explicit CIndexerSearch(QObject *parent = nullptr);
     bool isValidConfig();
     bool isWorking();
-    SearchEngine getCurrentIndexerService();
+    CStructures::SearchEngine getCurrentIndexerService();
     
 private:
 #ifdef WITH_THREADED_SEARCH
-    CAbstractThreadedSearch *engine;
+    QScopedPointer<CAbstractThreadedSearch> engine;
 #endif
     QString m_query;
     QTime searchTimer;
-    SearchEngine indexerSerivce;
+    CStructures::SearchEngine indexerSerivce;
     bool working { false };
     int resultCount { 0 };
     void processFile(const QString &filename, int &hitRate, QString &title);

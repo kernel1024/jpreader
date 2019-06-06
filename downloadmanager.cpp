@@ -49,7 +49,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     if (!fname.endsWith('/')) fname.append('/');
     if (index>=0) {
         fname.append(QStringLiteral("%1_")
-                     .arg(index,numDigits(maxIndex),indexBase,QLatin1Char('0')));
+                     .arg(index,CGenericFuncs::numDigits(maxIndex),indexBase,QLatin1Char('0')));
     }
     fname.append(url.fileName());
 
@@ -85,8 +85,8 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         // Async save request from user, not full html page
         QFileInfo fi(item->path());
 
-        QString fname = getSaveFileNameD(this,tr("Save file"),gSet->settings()->savedAuxSaveDir,
-                                         QString(),nullptr,fi.fileName());
+        QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save file"),gSet->settings()->savedAuxSaveDir,
+                                                        QString(),nullptr,fi.fileName());
 
         if (fname.isNull() || fname.isEmpty()) {
             item->cancel();
@@ -222,7 +222,8 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
                 if (!t.errorString.isEmpty())
                     return t.errorString;
                 return QStringLiteral("%1 / %2")
-                        .arg(formatFileSize(t.received),formatFileSize(t.total));
+                        .arg(CGenericFuncs::formatFileSize(t.received),
+                             CGenericFuncs::formatFileSize(t.total));
             default: return QVariant();
         }
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
@@ -650,23 +651,23 @@ void CDownloadBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
                                  const QModelIndex &index) const
 {
     if (index.column() == 2) {
-            int progress = index.data(Qt::UserRole+1).toInt();
-            const int topMargin = 10;
-            const int bottomMargin = 5;
+        int progress = index.data(Qt::UserRole+1).toInt();
+        const int topMargin = 10;
+        const int bottomMargin = 5;
 
-            QStyleOptionProgressBar progressBarOption;
-            QRect r = option.rect;
-            r.setHeight(r.height()-topMargin); r.moveTop(r.top()+bottomMargin);
-            progressBarOption.rect = r;
-            progressBarOption.minimum = 0;
-            progressBarOption.maximum = 100;
-            progressBarOption.progress = progress;
-            progressBarOption.text = QString::number(progress) + "%";
-            progressBarOption.textVisible = true;
+        QStyleOptionProgressBar progressBarOption;
+        QRect r = option.rect;
+        r.setHeight(r.height()-topMargin); r.moveTop(r.top()+bottomMargin);
+        progressBarOption.rect = r;
+        progressBarOption.minimum = 0;
+        progressBarOption.maximum = 100;
+        progressBarOption.progress = progress;
+        progressBarOption.text = QString::number(progress) + "%";
+        progressBarOption.textVisible = true;
 
-            QApplication::style()->drawControl(QStyle::CE_ProgressBar,
-                                               &progressBarOption, painter);
-        }
+        QApplication::style()->drawControl(QStyle::CE_ProgressBar,
+                                           &progressBarOption, painter);
+    }
 }
 
 QSize CDownloadBarDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const

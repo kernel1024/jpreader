@@ -10,9 +10,11 @@
 #include "specwidgets.h"
 #include "genericfuncs.h"
 
+namespace CDefaults {
 const int globalStatusTooltipShowDelay = 100;
 const int globalStatusTooltipShowDuration = 3000;
 const int globalTranslatorDelay = 1000;
+}
 
 CGlobalUI::CGlobalUI(QObject *parent)
     : QObject(parent)
@@ -47,17 +49,17 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionTMAdditive = new QAction(tr("Additive"),this);
     actionTMAdditive->setCheckable(true);
     actionTMAdditive->setActionGroup(translationMode);
-    actionTMAdditive->setData(tmAdditive);
+    actionTMAdditive->setData(CStructures::tmAdditive);
 
     actionTMOverwriting = new QAction(tr("Overwriting"),this);
     actionTMOverwriting->setCheckable(true);
     actionTMOverwriting->setActionGroup(translationMode);
-    actionTMOverwriting->setData(tmOverwriting);
+    actionTMOverwriting->setData(CStructures::tmOverwriting);
 
     actionTMTooltip = new QAction(tr("Tooltip"),this);
     actionTMTooltip->setCheckable(true);
     actionTMTooltip->setActionGroup(translationMode);
-    actionTMTooltip->setData(tmTooltip);
+    actionTMTooltip->setData(CStructures::tmTooltip);
 
     actionTMAdditive->setChecked(true);
 
@@ -89,7 +91,7 @@ CGlobalUI::CGlobalUI(QObject *parent)
     connect(QApplication::clipboard(),&QClipboard::changed,
             this,&CGlobalUI::clipboardChanged);
 
-    gctxTimer.setInterval(globalTranslatorDelay);
+    gctxTimer.setInterval(CDefaults::globalTranslatorDelay);
     gctxTimer.setSingleShot(true);
     gctxSelection.clear();
     connect(&gctxTimer,&QTimer::timeout,
@@ -130,16 +132,22 @@ void CGlobalUI::clipboardChanged(QClipboard::Mode mode)
 void CGlobalUI::startGlobalContextTranslate()
 {
     if (gctxSelection.isEmpty()) return;
+    CLangPair lp(gSet->ui()->getActiveLangPair());
+    if (!lp.isValid()) return;
+
     auto th = new QThread();
     auto at = new CAuxTranslator();
-    connect(this,&CGlobalUI::gctxStart,
-            at,&CAuxTranslator::startAuxTranslation,Qt::QueuedConnection);
+    at->setText(gctxSelection);
+    at->setSrcLang(lp.langFrom.bcp47Name());
+    at->setDestLang(lp.langTo.bcp47Name());
+    connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
     connect(at,&CAuxTranslator::gotTranslation,
             this,&CGlobalUI::gctxTranslateReady,Qt::QueuedConnection);
     at->moveToThread(th);
     th->start();
 
-    Q_EMIT gctxStart(gctxSelection);
+    QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
 
     gctxSelection.clear();
 }
@@ -158,7 +166,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
 
-    CSpecToolTipLabel* t = new CSpecToolTipLabel(wordWrap(text,maxTooltipCharacterWidth));
+    CSpecToolTipLabel* t = new CSpecToolTipLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,nullptr);
@@ -171,17 +179,17 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
 
     if (gSet==nullptr || gSet->activeWindow()==nullptr) return;
 
-    int sz = globalStatusTooltipFontSizeFrac*qApp->font().pointSize()/100;
+    int sz = globalStatusTooltipFontSizeFrac * gSet->app()->font().pointSize()/100;
 
     QString msg = QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
                                          "%2</span>").arg(sz).arg(text);
     QPoint pos = gSet->activeWindow()->mapToGlobal(globalStatusTooltipOffset);
 
-    QTimer::singleShot(globalStatusTooltipShowDelay,gSet,[msg,pos](){
+    QTimer::singleShot(CDefaults::globalStatusTooltipShowDelay,gSet,[msg,pos](){
         if (gSet->activeWindow()==nullptr) return;
         QToolTip::showText(pos,msg,gSet->activeWindow());
 
-        QTimer::singleShot(globalStatusTooltipShowDuration,gSet,[](){
+        QTimer::singleShot(CDefaults::globalStatusTooltipShowDuration,gSet,[](){
             if (gSet->activeWindow())
                 QToolTip::showText(QPoint(0,0),QString(),gSet->activeWindow());
         });
@@ -246,14 +254,14 @@ void CGlobalUI::actionToggled()
     showGlobalTooltip(msg);
 }
 
-TranslationMode CGlobalUI::getTranslationMode() const
+CStructures::TranslationMode CGlobalUI::getTranslationMode() const
 {
     bool okconv;
-    TranslationMode res = tmAdditive;
+    CStructures::TranslationMode res = CStructures::tmAdditive;
     if (translationMode->checkedAction()) {
-        res = static_cast<TranslationMode>(translationMode->checkedAction()->data().toInt(&okconv));
+        res = static_cast<CStructures::TranslationMode>(translationMode->checkedAction()->data().toInt(&okconv));
         if (!okconv)
-            res = tmAdditive;
+            res = CStructures::tmAdditive;
     }
     return res;
 }

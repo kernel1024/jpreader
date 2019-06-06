@@ -246,7 +246,8 @@ bool CUserScript::checkUrl(const QUrl &url, const QStringList &rules) const
     {
         QString rule(rules[i]);
 
-        QRegExp m_regexp(convertPatternToRegExp(rule), Qt::CaseInsensitive, QRegExp::RegExp2);
+        QRegExp m_regexp(CGenericFuncs::convertPatternToRegExp(rule),
+                         Qt::CaseInsensitive, QRegExp::RegExp2);
 
         if (uenc.contains(m_regexp))
             return true;

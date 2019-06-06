@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QKeyEvent>
 #include <QSortFilterProxyModel>
+#include <QScopedPointer>
 #include "mainwindow.h"
 #include "indexersearch.h"
 #include "titlestranslator.h"
@@ -34,8 +35,8 @@ private:
     QString lastQuery;
     QString selectedUri;
 
-    CIndexerSearch *engine;
-    CTitlesTranslator *titleTran;
+    QScopedPointer<CIndexerSearch> engine;
+    QScopedPointer<CTitlesTranslator> titleTran;
 
     Q_DISABLE_COPY(CSearchTab)
 

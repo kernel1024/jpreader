@@ -4,7 +4,9 @@
 #include <QNetworkCookie>
 #include "webapiabstracttranslator.h"
 
+namespace CDefaults {
 const int maxTranslationStringLength = 5000;
+}
 
 CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang)
     : CAbstractTranslator (parent, lang)
@@ -25,7 +27,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
 
     const int margin = 10;
 
-    if (src.length()>=maxTranslationStringLength) {
+    if (src.length()>=CDefaults::maxTranslationStringLength) {
         // Split by separator chars
         QRegExp rx(QStringLiteral("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
@@ -35,8 +37,8 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
         for (int i=0;i<srcl.count();i++) {
             QString s = srcl.at(i);
             while (!s.isEmpty()) {
-                srout << s.left(maxTranslationStringLength - margin);
-                s.remove(0,maxTranslationStringLength - margin);
+                srout << s.left(CDefaults::maxTranslationStringLength - margin);
+                s.remove(0,CDefaults::maxTranslationStringLength - margin);
             }
         }
         srcl.clear();
@@ -64,7 +66,7 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
     connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
     connect(timer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
     timer->setSingleShot(true);
-    timer->start(translatorConnectionTimeout);
+    timer->start(CDefaults::translatorConnectionTimeout);
 
     eventLoop.exec();
 

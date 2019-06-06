@@ -20,7 +20,9 @@ class CSnNet;
 class CSnTrans;
 class CSnWaitCtl;
 
+namespace CDefaults {
 const int maxDataUrlFileSize = 1024*1024;
+}
 
 class CSnippetViewer : public CSpecTabContainer, public Ui::SnippetViewer
 {

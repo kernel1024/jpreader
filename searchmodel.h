@@ -7,9 +7,6 @@
 #include <QSortFilterProxyModel>
 #include "indexersearch.h"
 
-const int cpSortRole = 1;
-const int cpFilterRole = 2;
-
 class CSearchModel : public QAbstractTableModel
 {
     Q_OBJECT
