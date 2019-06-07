@@ -709,18 +709,18 @@ void CFaviconLoader::queryStart(bool forceCached)
 {
     if (gSet->favicons().contains(m_url.host()+m_url.path())) {
         Q_EMIT gotIcon(gSet->favicons().value(m_url.host()+m_url.path()));
-        deleteLater();
+        Q_EMIT finished();
         return;
     }
 
     if (gSet->favicons().contains(m_url.host())) {
         Q_EMIT gotIcon(gSet->favicons().value(m_url.host()));
-        deleteLater();
+        Q_EMIT finished();
         return;
     }
 
     if (forceCached) {
-        deleteLater();
+        Q_EMIT finished();
         return;
     }
 
@@ -728,11 +728,13 @@ void CFaviconLoader::queryStart(bool forceCached)
         QIcon icon = QIcon(m_url.toLocalFile());
         if (!icon.isNull()) {
             Q_EMIT gotIcon(icon);
-            deleteLater();
+            Q_EMIT finished();
         }
 
     } else {
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(m_url));
+        QNetworkRequest req(m_url);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+        // TODO memory leak
         connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }
@@ -740,7 +742,10 @@ void CFaviconLoader::queryStart(bool forceCached)
 void CFaviconLoader::queryFinished()
 {
     auto rpl = qobject_cast<QNetworkReply*>(sender());
-    if (rpl==nullptr) return;
+    if (rpl==nullptr) {
+        Q_EMIT finished();
+        return;
+    }
 
     if (rpl->error() == QNetworkReply::NoError) {
         QPixmap p;
@@ -758,7 +763,5 @@ void CFaviconLoader::queryFinished()
     }
 
     rpl->deleteLater();
-    // TODO remove deleteLater, use explicit cleaning! Favicon loader leaking.
-    // TODO remove self deleteLater from all thread workers.
-    deleteLater();
+    Q_EMIT finished();
 }

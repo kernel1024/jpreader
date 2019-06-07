@@ -240,6 +240,7 @@ public Q_SLOTS:
     void queryFinished();
 Q_SIGNALS:
     void gotIcon(const QIcon& icon);
+    void finished();
 };
 
 

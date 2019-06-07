@@ -177,19 +177,20 @@ void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
 void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate, bool focus)
 {
     auto ex = new CPixivNovelExtractor();
-    ex->setParams(snv,title,translate,focus);
     auto th = new QThread();
+    ex->setParams(snv,url,title,translate,focus);
+
+    connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::pixivNovelReady,Qt::QueuedConnection);
+    connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
     ex->moveToThread(th);
     th->start();
 
-    // TODO here some leaks too
-    auto rpl = gSet->auxNetworkAccessManager()->get(QNetworkRequest(url));
     gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
-    connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-            ex,&CPixivNovelExtractor::novelLoadError,Qt::QueuedConnection);
-    connect(rpl,&QNetworkReply::finished,ex,&CPixivNovelExtractor::novelLoadFinished,Qt::QueuedConnection);
-    connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::pixivNovelReady,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::start,Qt::QueuedConnection);
 }
 
 void CSnNet::downloadPixivManga()

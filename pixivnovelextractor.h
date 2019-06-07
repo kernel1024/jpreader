@@ -24,6 +24,7 @@ private:
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
     QUrl m_origin;
+    QUrl m_source;
     QString m_novelId;
     QString m_html;
 
@@ -34,15 +35,17 @@ private:
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
-    void setParams(CSnippetViewer* viewer, const QString& title,
+    void setParams(CSnippetViewer* viewer, const QUrl& source, const QString& title,
                    bool translate, bool focus);
     static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
     static QStringList parseIllustPage(const QString &html, bool mediumMode = true);
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
+    void finished();
 
 public Q_SLOTS:
+    void start();
     void novelLoadFinished();
     void novelLoadError(QNetworkReply::NetworkError error);
 

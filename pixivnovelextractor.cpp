@@ -21,13 +21,31 @@ CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
 
 }
 
-void CPixivNovelExtractor::setParams(CSnippetViewer *viewer, const QString &title,
+void CPixivNovelExtractor::setParams(CSnippetViewer *viewer, const QUrl &source, const QString &title,
                                      bool translate, bool focus)
 {
     m_snv = viewer;
     m_title = title;
     m_translate = translate;
     m_focus = focus;
+    m_source = source;
+}
+
+void CPixivNovelExtractor::start()
+{
+    if (!m_source.isValid()) {
+        Q_EMIT finished();
+        return;
+    }
+
+    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+        QNetworkRequest req(m_source);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+                this,&CPixivNovelExtractor::novelLoadError);
+        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
+    });
 }
 
 void CPixivNovelExtractor::novelLoadFinished()
@@ -187,7 +205,7 @@ void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
     QTimer::singleShot(0,ctx,[msg,w](){
         QMessageBox::warning(w,tr("JPReader"),msg);
     });
-    deleteLater();
+    Q_EMIT finished();
 }
 
 void CPixivNovelExtractor::subLoadFinished()
@@ -298,7 +316,7 @@ void CPixivNovelExtractor::subWorkFinished()
     }
 
     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
-    deleteLater();
+    Q_EMIT finished();
 }
 
 void CPixivNovelExtractor::subImageFinished()
