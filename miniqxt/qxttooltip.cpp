@@ -48,12 +48,18 @@
 
 static const Qt::WindowFlags FLAGS = Qt::ToolTip;
 
-QxtToolTipPrivate* QxtToolTipPrivate::self = nullptr;
-
 QxtToolTipPrivate* QxtToolTipPrivate::instance()
 {
-    if (!self)
+    static QxtToolTipPrivate* self = nullptr;
+    if (!self) {
         self = new QxtToolTipPrivate();
+
+        connect(QApplication::instance(),&QCoreApplication::aboutToQuit,self,[](){
+            self->deleteLater();
+            self = nullptr;
+        });
+
+    }
     return self;
 }
 
@@ -75,7 +81,6 @@ QxtToolTipPrivate::QxtToolTipPrivate(QWidget *parent) : QWidget(parent, FLAGS)
 QxtToolTipPrivate::~QxtToolTipPrivate()
 {
     QApplication::instance()->removeEventFilter(this); // not really necessary but rather for completeness :)
-    self = nullptr;
 }
 
 void QxtToolTipPrivate::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, bool allowMouseEnter)

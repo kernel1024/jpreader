@@ -64,37 +64,35 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QAction *ac;
     QMenu *ccm;
 
-    QMenu *m_menu = new QMenu(snv);
-    // TODO add this attribute to all context menus - memory leak prevention
-    m_menu->setAttribute(Qt::WA_DeleteOnClose);
+    QMenu m_menu;
 
     if (linkUrl.isValid()) {
         QUrl nUrl = linkUrl;
         if (CGenericFuncs::checkAndUnpackUrl(nUrl)) {
-            ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
+            ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
                              tr("Open in new background tab"));
             connect(ac, &QAction::triggered, this, [nUrl,this]() {
                 new CSnippetViewer(snv->parentWnd(),nUrl,QStringList(),false);
             });
-            ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
+            ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
                              tr("Open in new tab"));
             connect(ac, &QAction::triggered, this, [nUrl,this]() {
                 new CSnippetViewer(snv->parentWnd(),nUrl,QStringList());
             });
         } else {
-            m_menu->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewBackgroundTab));
-            m_menu->addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewTab));
+            m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewBackgroundTab));
+            m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewTab));
         }
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
                          tr("Open in new background tab and translate"));
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
             auto sn = new CSnippetViewer(snv->parentWnd(),linkUrl,QStringList(),false);
             sn->m_requestAutotranslate = true;
         });
 
-        m_menu->addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
-        m_menu->addSeparator();
+        m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
+        m_menu.addSeparator();
     }
 
     if ((linkUrl.isValid() && linkUrl.toString().contains(
@@ -109,17 +107,17 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         }
 
         purl.setFragment(QString());
-        ac = m_menu->addAction(tr("Extract pixiv novel in new background tab"));
+        ac = m_menu.addAction(tr("Extract pixiv novel in new background tab"));
         connect(ac, &QAction::triggered, this, [this,purl,title](){
             snv->netHandler->processPixivNovel(purl,title,false,false);
         });
 
-        QAction* ac2 = m_menu->addAction(tr("Extract pixiv novel in new tab"));
+        QAction* ac2 = m_menu.addAction(tr("Extract pixiv novel in new tab"));
         connect(ac2, &QAction::triggered, this, [this,purl,title](){
             snv->netHandler->processPixivNovel(purl,title,false,true);
         });
 
-        QAction* ac3 = m_menu->addAction(tr("Extract pixiv novel in new background tab and translate"));
+        QAction* ac3 = m_menu.addAction(tr("Extract pixiv novel in new background tab and translate"));
         connect(ac3, &QAction::triggered, this, [this,purl,title](){
             snv->netHandler->processPixivNovel(purl,title,true,false);
         });
@@ -134,18 +132,18 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
         fl->queryStart(false);
 
-        m_menu->addSeparator();
+        m_menu.addSeparator();
     }
 
     if (!sText.isEmpty()) {
-        m_menu->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
+        m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
                          tr("Translate"));
         ac->setData(sText);
         connect(ac, &QAction::triggered,this, &CSnCtxHandler::translateFragment);
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-new-background")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-new-background")),
                          tr("Create plain text in separate tab"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
@@ -153,7 +151,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
         });
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-new-background")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-new-background")),
                          tr("Translate plain text in separate tab"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
@@ -164,13 +162,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         QStringList searchNames = gSet->getSearchEngines();
         if (!searchNames.isEmpty()) {
-            m_menu->addSeparator();
+            m_menu.addSeparator();
 
             searchNames.sort(Qt::CaseInsensitive);
             for (const QString& name : qAsConst(searchNames)) {
                 QUrl url = gSet->createSearchUrl(sText,name);
 
-                ac = m_menu->addAction(name);
+                ac = m_menu.addAction(name);
                 connect(ac, &QAction::triggered, this, [url,this](){
                     new CSnippetViewer(snv->parentWnd(), url);
                 });
@@ -187,16 +185,16 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             }
         }
 
-        m_menu->addSeparator();
+        m_menu.addSeparator();
 
-        ac = m_menu->addAction(QIcon(QStringLiteral(":/img/nepomuk")),
+        ac = m_menu.addAction(QIcon(QStringLiteral(":/img/nepomuk")),
                          tr("Local indexed search"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             auto bt = new CSearchTab(snv->parentWnd());
             bt->searchTerm(sText);
         });
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("edit-find")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("edit-find")),
                          tr("Search on page"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             snv->searchPanel->show();
@@ -204,13 +202,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             snv->fwdButton->click();
         });
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("accessories-dictionary")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("accessories-dictionary")),
                          tr("Local dictionary"));
         connect(ac, &QAction::triggered, this, [sText](){
             gSet->showDictionaryWindowEx(sText);
         });
 
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
                          tr("Light translator"));
         connect(ac, &QAction::triggered, this, [sText](){
             gSet->showLightTranslator(sText);
@@ -218,9 +216,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         QUrl selectedUrl = QUrl::fromUserInput(sText);
         if (selectedUrl.isValid() && !selectedUrl.isLocalFile() && !selectedUrl.isRelative()) {
-            m_menu->addSeparator();
+            m_menu.addSeparator();
 
-            QMenu* icm = m_menu->addMenu(QIcon::fromTheme(QStringLiteral("go-jump-locationbar")),
+            QMenu* icm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("go-jump-locationbar")),
                                      tr("Open selected link"));
 
             ac = icm->addAction(QIcon::fromTheme(QStringLiteral("tab-new")),
@@ -243,11 +241,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             });
         }
 
-        m_menu->addSeparator();
+        m_menu.addSeparator();
     }
 
     if (imageUrl.isValid()) {
-        QMenu* icm = m_menu->addMenu(QIcon::fromTheme(QStringLiteral("view-preview")),
+        QMenu* icm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("view-preview")),
                                  tr("Image"));
 
         icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyImageToClipboard));
@@ -260,10 +258,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
 
         icm->addAction(snv->txtBrowser->pageAction(QWebEnginePage::DownloadImageToDisk));
-        m_menu->addSeparator();
+        m_menu.addSeparator();
     }
 
-    ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-duplicate")),
+    ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-duplicate")),
                      tr("Duplicate tab"));
     connect(ac, &QAction::triggered, this, [this](){
         QString url(QStringLiteral("about://blank"));
@@ -279,28 +277,28 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         }
     });
 
-    m_menu->addAction(QIcon::fromTheme(QStringLiteral("tab-detach")),tr("Detach tab"),
+    m_menu.addAction(QIcon::fromTheme(QStringLiteral("tab-detach")),tr("Detach tab"),
                   snv,&CSnippetViewer::detachTab);
 
-    m_menu->addSeparator();
-    m_menu->addAction(QIcon::fromTheme(QStringLiteral("bookmark-new")),
+    m_menu.addSeparator();
+    m_menu.addAction(QIcon::fromTheme(QStringLiteral("bookmark-new")),
                   tr("Add current page to bookmarks"),
                   this, &CSnCtxHandler::bookmarkPage);
 
-    m_menu->addSeparator();
-    m_menu->addAction(QIcon::fromTheme(QStringLiteral("go-previous")),tr("Back"),
+    m_menu.addSeparator();
+    m_menu.addAction(QIcon::fromTheme(QStringLiteral("go-previous")),tr("Back"),
                   snv->txtBrowser,&CSpecWebView::back,QKeySequence(Qt::CTRL + Qt::Key_Z));
-    m_menu->addAction(QIcon::fromTheme(QStringLiteral("view-refresh")),tr("Reload"),
+    m_menu.addAction(QIcon::fromTheme(QStringLiteral("view-refresh")),tr("Reload"),
                   snv->txtBrowser,&CSpecWebView::reload,QKeySequence(Qt::CTRL + Qt::Key_R));
 
     if (cb->mimeData(QClipboard::Clipboard)->hasText())
-        m_menu->addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
-    m_menu->addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
-    m_menu->addSeparator();
+        m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
+    m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
+    m_menu.addSeparator();
 
     const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,true);
     if (!scripts.isEmpty()) {
-        ccm = m_menu->addMenu(QIcon::fromTheme(QStringLiteral("run-build")),
+        ccm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("run-build")),
                           tr("Start user script"));
         for (const auto& script : scripts) {
             ac = ccm->addAction(script.getTitle());
@@ -309,7 +307,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(ac,&QAction::triggered,this,&CSnCtxHandler::runJavaScript);
     }
     if (gSet->settings()->useNoScript) {
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("dialog-cancel")),
                          tr("Enable scripts for this page..."));
         connect(ac, &QAction::triggered, this, [this](){
             const QUrl origin = snv->getUrl();
@@ -322,10 +320,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         });
     }
     if (!scripts.isEmpty() || gSet->settings()->useNoScript)
-        m_menu->addSeparator();
+        m_menu.addSeparator();
 
     if (!linkUrl.isEmpty()) {
-        ac = m_menu->addAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
+        ac = m_menu.addAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
                          tr("Add AdBlock rule for link url..."));
         connect(ac, &QAction::triggered, this, [linkUrl,this](){
             QString u = linkUrl.toString();
@@ -335,10 +333,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             if (ok)
                 gSet->adblockAppend(u);
         });
-        m_menu->addSeparator();
+        m_menu.addSeparator();
     }
 
-    ccm = m_menu->addMenu(QIcon::fromTheme(QStringLiteral("dialog-password")),
+    ccm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("dialog-password")),
                       tr("Form autofill"));
     if (gSet->haveSavedPassword(origin)) {
         ac = ccm->addAction(QIcon::fromTheme(QStringLiteral("tools-wizard")),
@@ -367,9 +365,9 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             delete dlg;
         });
     }
-    m_menu->addSeparator();
+    m_menu.addSeparator();
 
-    ccm = m_menu->addMenu(QIcon::fromTheme(QStringLiteral("system-run")),tr("Service"));
+    ccm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("system-run")),tr("Service"));
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
                    tr("Show source"),
                    this,&CSnCtxHandler::showSource,QKeySequence(Qt::CTRL + Qt::Key_E));
@@ -442,12 +440,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     m_menuActive.start();
 
-    connect(m_menu, &QMenu::aboutToHide, this, [this](){
+    connect(&m_menu, &QMenu::aboutToHide, this, [this](){
         m_menuActive.stop();
     });
 
-    m_menu->setAttribute(Qt::WA_DeleteOnClose,true);
-    m_menu->popup(snv->txtBrowser->mapToGlobal(pos));
+    m_menu.exec(snv->txtBrowser->mapToGlobal(pos));
 }
 
 void CSnCtxHandler::reconfigureDefaultActions()

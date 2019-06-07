@@ -212,6 +212,7 @@ void CSpecToolTipLabel::hideEvent(QHideEvent * event)
 {
     Q_UNUSED(event)
 
+    clear();
     deleteLater();
 }
 
@@ -758,5 +759,6 @@ void CFaviconLoader::queryFinished()
 
     rpl->deleteLater();
     // TODO remove deleteLater, use explicit cleaning! Favicon loader leaking.
+    // TODO remove self deleteLater from all thread workers.
     deleteLater();
 }

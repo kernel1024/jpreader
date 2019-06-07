@@ -288,7 +288,6 @@ void CSnTrans::showWordTranslation(const QString &html)
     const QSize maxTranslationTooltipSize(350,350);
 
     if (snv->ctxHandler->isMenuActive()) return;
-    // TODO leak
     auto t = new CSpecToolTipLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);

@@ -65,7 +65,6 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    static QxtToolTipPrivate* self;
     QWidget* currentParent;
     QRect currentRect;
     QHash<WidgetPtr, WidgetArea> tooltips;

@@ -61,8 +61,8 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
         ac->setData(su);
     }
 
-    cm->setAttribute(Qt::WA_DeleteOnClose,true);
-    cm->popup(ui->logView->mapToGlobal(pos));
+    cm->exec(ui->logView->mapToGlobal(pos));
+    cm->deleteLater();
 }
 
 void CLogDisplay::addToAdblock()

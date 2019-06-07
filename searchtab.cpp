@@ -229,7 +229,7 @@ void CSearchTab::headerMenu(const QPoint &pos)
 
     int column = hh->logicalIndexAt(pos);
 
-    QMenu cm(this);
+    QMenu cm;
 
     if (column == 2) { // Directory filter
         QStringList sl = model->getDistinctValues(QStringLiteral("jp:dir"));
@@ -261,7 +261,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
 
     const QFileInfo fi(sh[QStringLiteral("jp:fullfilename")]);
 
-    QMenu cm(this);
+    QMenu cm;
 
     if (fi.isFile() && fi.exists()) {
         cm.addAction(QIcon::fromTheme(QStringLiteral("fork")),tr("Open with default DE action"),[fi](){

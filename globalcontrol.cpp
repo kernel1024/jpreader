@@ -216,7 +216,7 @@ void CGlobalControl::initialize()
     d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
 
     d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
-    connect(&d->tabsListTimer, &QTimer::timeout, settings(), &CSettings::writeTabsList);
+    connect(&(d->tabsListTimer), &QTimer::timeout, settings(), &CSettings::writeTabsList);
     d->tabsListTimer.start();
 
     connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this,d](const QString& u){

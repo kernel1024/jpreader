@@ -116,31 +116,30 @@ void CDownloadManager::contextMenu(const QPoint &pos)
     CDownloadItem item = model->getDownloadItem(idx);
     if (item.isEmpty()) return;
 
-    auto cm = new QMenu(this);
+    QMenu cm;
     QAction *acm;
 
     if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
-        acm = cm->addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
+        acm = cm.addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
         acm->setData(idx.row());
-        cm->addSeparator();
+        cm.addSeparator();
     }
 
-    acm = cm->addAction(tr("Remove"),model,&CDownloadsModel::cleanDownload);
+    acm = cm.addAction(tr("Remove"),model,&CDownloadsModel::cleanDownload);
     acm->setData(idx.row());
 
     if (item.state==QWebEngineDownloadItem::DownloadCompleted ||
             item.state==QWebEngineDownloadItem::DownloadInProgress) {
-        cm->addSeparator();
-        acm = cm->addAction(tr("Open here"),model,&CDownloadsModel::openHere);
+        cm.addSeparator();
+        acm = cm.addAction(tr("Open here"),model,&CDownloadsModel::openHere);
         acm->setData(idx.row());
-        acm = cm->addAction(tr("Open with associated application"),model,&CDownloadsModel::openXdg);
+        acm = cm.addAction(tr("Open with associated application"),model,&CDownloadsModel::openXdg);
         acm->setData(idx.row());
-        acm = cm->addAction(tr("Open containing directory"),model,&CDownloadsModel::openDirectory);
+        acm = cm.addAction(tr("Open containing directory"),model,&CDownloadsModel::openDirectory);
         acm->setData(idx.row());
     }
 
-    cm->setAttribute(Qt::WA_DeleteOnClose,true);
-    cm->popup(ui->tableDownloads->mapToGlobal(pos));
+    cm.exec(ui->tableDownloads->mapToGlobal(pos));
 }
 
 void CDownloadManager::closeEvent(QCloseEvent *event)

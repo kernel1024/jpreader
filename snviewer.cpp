@@ -430,8 +430,6 @@ void CSnippetViewer::takeScreenshot()
     });
 }
 
-// TODO find all QTimer pointers!!!
-
 void CSnippetViewer::save()
 {
     ctxHandler->saveToFile();

@@ -215,7 +215,6 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
 
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv) {
-        // TODO leak
         t = new CSpecToolTipLabel(sv->tabTitle());
 
         QPixmap pix = sv->pageImage();
@@ -237,12 +236,12 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         dc.setPen(t->palette().toolTipText().color());
         dc.drawText(rx,Qt::AlignLeft | Qt::AlignVCenter,sv->tabTitle());
 
+        // BUG QLabel leaking with QPixmap. Create custom widget for QImage'd tooltip
         t->setPixmap(pix);
     } else {
         auto bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt) {
             t = new CSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
-            // TODO possible leak
         }
     }
 
