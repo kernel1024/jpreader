@@ -208,20 +208,6 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
     return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
-void CSpecToolTipLabel::hideEvent(QHideEvent * event)
-{
-    Q_UNUSED(event)
-
-    clear();
-    deleteLater();
-}
-
-CSpecToolTipLabel::CSpecToolTipLabel(const QString &text, QWidget *parent)
-    : QLabel(parent)
-{
-    setText(text);
-}
-
 CSpecTabContainer::CSpecTabContainer(QWidget *parent)
     : QWidget(parent)
 {
@@ -734,7 +720,6 @@ void CFaviconLoader::queryStart(bool forceCached)
     } else {
         QNetworkRequest req(m_url);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
-        // TODO memory leak
         connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }

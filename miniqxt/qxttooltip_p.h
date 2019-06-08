@@ -65,12 +65,11 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    QWidget* currentParent;
     QRect currentRect;
-    QHash<WidgetPtr, WidgetArea> tooltips;
     QVBoxLayout* vbox;
-    bool ignoreEnterEvent;
-    bool allowCloseOnLeave;
+    bool ignoreEnterEvent { false };
+    bool allowCloseOnLeave { false };
+    void removeAllWidgets();
 
     Q_DISABLE_COPY(QxtToolTipPrivate)
 };

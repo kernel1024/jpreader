@@ -211,12 +211,8 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
     int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
 
-    CSpecToolTipLabel* t = nullptr;
-
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
     if (sv) {
-        t = new CSpecToolTipLabel(sv->tabTitle());
-
         QPixmap pix = sv->pageImage();
         bool fillRect = false;
         if (pix.isNull()) {
@@ -230,23 +226,22 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         f.setPointSize(tooltipFontSize);
         dc.setFont(f);
         if (fillRect)
-            dc.fillRect(rx,t->palette().window());
+            dc.fillRect(rx,palette().window());
         rx.setHeight(dc.fontMetrics().height());
-        dc.fillRect(rx,t->palette().toolTipBase());
-        dc.setPen(t->palette().toolTipText().color());
+        dc.fillRect(rx,palette().toolTipBase());
+        dc.setPen(palette().toolTipText().color());
         dc.drawText(rx,Qt::AlignLeft | Qt::AlignVCenter,sv->tabTitle());
 
-        // BUG QLabel leaking with QPixmap. Create custom widget for QImage'd tooltip
+        auto t = new QLabel();
         t->setPixmap(pix);
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
     } else {
         auto bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
         if (bt) {
-            t = new CSpecToolTipLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
+            auto t = new QLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
+            QxtToolTip::show(globalPos,t,tabMain->tabBar());
         }
     }
-
-    if (t)
-        QxtToolTip::show(globalPos,t,tabMain->tabBar());
 }
 
 void CMainWindow::detachTab()

@@ -44,24 +44,11 @@ public:
                      QRect rect = QRect(), bool allowMouseEnter = false);
     static void hide();
 
-    static QWidget* toolTip(QWidget* parent);
-    static void setToolTip(QWidget* parent, QWidget* tooltip, QRect rect = QRect());
-
-    static QRect toolTipRect(QWidget* parent);
-    static void setToolTipRect(QWidget* parent, QRect rect);
-
     static int margin();
     static void setMargin(int margin);
 
     static qreal opacity();
     static void setOpacity(qreal level);
 };
-
-QT_BEGIN_NAMESPACE
-inline uint qHash(const QPointer<QWidget> &key)
-{
-    return static_cast<uint>(reinterpret_cast<quint64>(key ? (&*key) : nullptr));
-}
-QT_END_NAMESPACE
 
 #endif // QXTTOOLTIP_H

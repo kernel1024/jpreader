@@ -49,10 +49,7 @@ CPDFWorker::CPDFWorker(QObject *parent)
 
 }
 
-CPDFWorker::~CPDFWorker()
-{
-
-}
+CPDFWorker::~CPDFWorker() = default;
 
 void CPDFWorker::pdfToText(const QString &filename)
 {

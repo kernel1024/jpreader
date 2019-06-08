@@ -26,10 +26,7 @@ CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
     settingsSaveTimer.setSingleShot(false);
 }
 
-CGlobalControlPrivate::~CGlobalControlPrivate()
-{
-
-}
+CGlobalControlPrivate::~CGlobalControlPrivate() = default;
 
 void CGlobalControlPrivate::settingsDialogDestroyed()
 {

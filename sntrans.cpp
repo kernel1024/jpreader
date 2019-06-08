@@ -288,14 +288,14 @@ void CSnTrans::showWordTranslation(const QString &html)
     const QSize maxTranslationTooltipSize(350,350);
 
     if (snv->ctxHandler->isMenuActive()) return;
-    auto t = new CSpecToolTipLabel(html);
+    auto t = new QLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(maxTranslationTooltipSize);
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; }"));
 
-    connect(t,&CSpecToolTipLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
-    connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&CSpecToolTipLabel::close);
+    connect(t,&QLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
+    connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&QLabel::close);
 
     QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true);
 }

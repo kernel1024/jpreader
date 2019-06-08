@@ -100,14 +100,6 @@ public:
                     QStyleHintReturn * returnData = nullptr ) const override;
 };
 
-class CSpecToolTipLabel : public QLabel {
-    Q_OBJECT
-public:
-    explicit CSpecToolTipLabel(const QString &text = QString(), QWidget *parent = nullptr);
-private:
-    void hideEvent(QHideEvent *event) override;
-};
-
 class CSpecTabContainer : public QWidget {
     Q_OBJECT
 private:

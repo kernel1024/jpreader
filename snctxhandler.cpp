@@ -491,10 +491,10 @@ void CSnCtxHandler::translateFragment()
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
         if (!text.isEmpty() && !isMenuActive()) {
-            CSpecToolTipLabel* lbl = new CSpecToolTipLabel(CGenericFuncs::wordWrap(
-                                                               text,CDefaults::maxTranslateFragmentCharWidth));
+            auto lbl = new QLabel(CGenericFuncs::wordWrap(
+                                      text,CDefaults::maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
-            connect(this, &CSnCtxHandler::hideTooltips,lbl, &CSpecToolTipLabel::close);
+            connect(this, &CSnCtxHandler::hideTooltips,lbl, &QLabel::close);
             QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd());
         }
     },Qt::QueuedConnection);
