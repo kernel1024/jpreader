@@ -125,6 +125,7 @@ public Q_SLOTS:
     void detachTab();
     void closeTab(bool nowait = false);
     void updateTabIcon(const QIcon& icon);
+    void setTabFocused();
 };
 
 class CSpecWebPage : public QWebEnginePage {

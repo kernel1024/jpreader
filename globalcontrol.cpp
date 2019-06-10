@@ -14,7 +14,7 @@ extern "C" {
 }
 
 #include "mainwindow.h"
-#include "settingsdlg.h"
+#include "settingstab.h"
 #include "logdisplay.h"
 #include "bookmarks.h"
 #include "globalcontrol.h"

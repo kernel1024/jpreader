@@ -9,7 +9,7 @@
 #include "mainwindow.h"
 #include "globalcontrol.h"
 #include "globalprivate.h"
-#include "settingsdlg.h"
+#include "settingstab.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "genericfuncs.h"
 #include "snviewer.h"
@@ -145,7 +145,6 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("jsLogConsole"),jsLogConsole);
     settings.setValue(QStringLiteral("dontUseNativeFileDialog"),dontUseNativeFileDialog);
     settings.setValue(QStringLiteral("defaultSearchEngine"),defaultSearchEngine);
-    settings.setValue(QStringLiteral("settingsDlgSize"),gSet->d_func()->settingsDlgSize);
 
     settings.setValue(QStringLiteral("pdfExtractImages"),pdfExtractImages);
     settings.setValue(QStringLiteral("pdfImageMaxSize"),pdfImageMaxSize);
@@ -162,8 +161,6 @@ void CSettings::readSettings(QObject *control)
 {
     auto g = qobject_cast<CGlobalControl *>(control);
     if (!g) return;
-
-    const QSize defaultSettingsDlgSize(850,380);
 
     QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
     QSettings bigdata(QStringLiteral("kernel1024"), QStringLiteral("jpreader-bigdata"));
@@ -289,7 +286,6 @@ void CSettings::readSettings(QObject *control)
                                             settings.value(QStringLiteral("showFavicons"),true).toBool());
     defaultSearchEngine = settings.value(QStringLiteral("defaultSearchEngine"),QString()).toString();
     g->d_func()->webProfile->setHttpCacheMaximumSize(settings.value(QStringLiteral("diskCacheSize"),0).toInt());
-    g->d_func()->settingsDlgSize=settings.value(QStringLiteral("settingsDlgSize"),defaultSettingsDlgSize).toSize();
 
     pdfExtractImages = settings.value(QStringLiteral("pdfExtractImages"),
                                       CDefaults::pdfExtractImages).toBool();
@@ -326,100 +322,17 @@ void CSettings::readSettings(QObject *control)
 
 void CSettings::settingsDlg()
 {
-    if (!gSet) return;
-    auto dlg = gSet->d_func()->settingsDialog;
+    auto dlg = CSettingsTab::instance();
     if (dlg!=nullptr) {
         dlg->activateWindow();
-        return;
+        dlg->setTabFocused();
     }
-    dlg = new CSettingsDlg();
-    gSet->d_func()->settingsDialog = dlg;
-
-    if (!scpHostHistory.contains(scpHost))
-        scpHostHistory.append(scpHost);
-    if (!atlHostHistory.contains(atlHost))
-        atlHostHistory.append(atlHost);
-
-    dlg->loadFromGlobal();
-
-    dlg->setMainHistory(gSet->d_func()->mainHistory);
-    dlg->setQueryHistory(gSet->d_func()->searchHistory);
-    dlg->setAdblock(gSet->d_func()->adblock);
-    dlg->setNoScriptWhitelist(gSet->d_func()->noScriptWhiteList);
-    dlg->setUserScripts(gSet->getUserScripts());
-
-    dlg->resize(gSet->d_func()->settingsDlgSize);
-
-    if (dlg->exec()==QDialog::Accepted) {
-        QStringList dPaths;
-        dlg->saveToGlobal(dPaths);
-
-        if (!gSet->m_settings->hostingDir.endsWith('/')) gSet->m_settings->hostingDir.append('/');
-        if (!gSet->m_settings->hostingUrl.endsWith('/')) gSet->m_settings->hostingUrl.append('/');
-
-        gSet->d_func()->searchHistory.clear();
-        gSet->d_func()->searchHistory.append(dlg->getQueryHistory());
-
-        gSet->d_func()->adblock.clear();
-        gSet->d_func()->adblock.append(dlg->getAdblock());
-        gSet->d_func()->adblockWhiteListMutex.lock();
-        gSet->d_func()->adblockWhiteList.clear();
-        gSet->d_func()->adblockWhiteListMutex.unlock();
-        gSet->initUserScripts(dlg->getUserScripts());
-
-        gSet->d_func()->noScriptWhiteList = dlg->getNoScriptWhitelist();
-
-        if (scpHostHistory.contains(scpHost)) {
-            scpHostHistory.move(scpHostHistory.indexOf(scpHost),0);
-        } else {
-            scpHostHistory.prepend(scpHost);
-        }
-        if (atlHostHistory.contains(atlHost)) {
-            atlHostHistory.move(atlHostHistory.indexOf(atlHost),0);
-        } else {
-            atlHostHistory.prepend(atlHost);
-        }
-
-        translatorPairs = dlg->getLangPairList();
-        gSet->m_ui->rebuildLanguageActions();
-
-        forcedFontColor=dlg->getOverridedFontColor();
-
-        if (!gSet->m_ui->gctxTranHotkey.shortcut().isEmpty())
-            gSet->m_ui->gctxTranHotkey.setEnabled();
-
-        if (!userAgentHistory.contains(userAgent))
-            userAgentHistory << userAgent;
-
-        if (userAgent.isEmpty())
-            overrideUserAgent=false;
-        if (overrideUserAgent)
-            gSet->webProfile()->setHttpUserAgent(userAgent);
-
-        gSet->d_func()->ctxSearchEngines = dlg->getSearchEngines();
-
-        if (CGenericFuncs::compareStringLists(dictPaths,dPaths)!=0) {
-            dictPaths.clear();
-            dictPaths.append(dPaths);
-            gSet->d_func()->dictManager->loadDictionaries(dictPaths, dictIndexDir);
-        }
-
-        gSet->updateProxyWithMenuUpdate(proxyUse,true);
-
-        Q_EMIT gSet->updateAllQueryLists();
-        Q_EMIT gSet->settingsUpdated();
-
-        gSet->d_func()->settingsDlgSize = dlg->size();
-    }
-
-    connect(dlg,&CSettingsDlg::destroyed,gSet->d_func(),&CGlobalControlPrivate::settingsDialogDestroyed);
-    dlg->deleteLater();
 }
 
 void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     translatorEngine = engine;
-    Q_EMIT gSet->settingsUpdated();
+    Q_EMIT gSet->translationEngineChanged();
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)

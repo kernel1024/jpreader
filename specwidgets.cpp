@@ -227,7 +227,8 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
         connect(b, &QPushButton::clicked,this,&CSpecTabContainer::closeTab);
         m_tabWidget->tabBar()->setTabButton(i,QTabBar::RightSide,b);
     }
-    if (setFocused) m_tabWidget->setCurrentWidget(this);
+    if (setFocused)
+        setTabFocused();
     m_parentWnd->updateTitle();
     m_parentWnd->updateTabs();
 }
@@ -251,6 +252,12 @@ void CSpecTabContainer::updateTabIcon(const QIcon &icon)
             testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
     if (m_tabWidget==nullptr) return;
     m_tabWidget->setTabIcon(m_tabWidget->indexOf(this),icon);
+}
+
+void CSpecTabContainer::setTabFocused()
+{
+    if (m_tabWidget==nullptr) return;
+    m_tabWidget->setCurrentWidget(this);
 }
 
 void CSpecTabContainer::detachTab()

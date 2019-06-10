@@ -17,6 +17,7 @@
 class CLogDisplay;
 class CDownloadManager;
 class CGlobalControlPrivate;
+class CLangPairModel;
 class BookmarksManager;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
@@ -27,9 +28,10 @@ class CGlobalControl : public QObject
 {
     friend class CSettings;
     friend class CGlobalUI;
-    friend class CSettingsDlg;
+    friend class CSettingsTab;
     friend class CGenericFuncs;
     friend class CLogDisplay;
+    friend class CLangPairModel;
 
     Q_OBJECT
 public:
@@ -138,7 +140,7 @@ Q_SIGNALS:
     void startAuxTranslation();
     void stopTranslators();
 
-    void settingsUpdated();
+    void translationEngineChanged();
     void updateAllBookmarks();
     void updateAllRecycleBins();
     void updateAllCharsetLists();

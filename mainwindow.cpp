@@ -12,7 +12,7 @@
 #include "qxttooltip.h"
 #include "mainwindow.h"
 #include "snviewer.h"
-#include "settingsdlg.h"
+#include "settingstab.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 #include "specwidgets.h"
@@ -24,6 +24,7 @@
 #include "logdisplay.h"
 #include "snctxhandler.h"
 #include "downloadmanager.h"
+#include "settingstab.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -235,12 +236,21 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         auto t = new QLabel();
         t->setPixmap(pix);
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
-    } else {
-        auto bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
-        if (bt) {
-            auto t = new QLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
-            QxtToolTip::show(globalPos,t,tabMain->tabBar());
-        }
+        return;
+    }
+
+    auto bt = qobject_cast<CSearchTab *>(tabMain->widget(idx));
+    if (bt) {
+        auto t = new QLabel(tr("<b>Search:</b> %1").arg(bt->getLastQuery()));
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
+        return;
+    }
+
+    auto st = qobject_cast<CSettingsTab *>(tabMain->widget(idx));
+    if (st) {
+        auto t = new QLabel(tr("Settings tab"));
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
+        return;
     }
 }
 
@@ -457,8 +467,9 @@ void CMainWindow::updateHelperList()
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
                 if (sv!=nullptr) {
                     it->setText(sv->tabTitle());
-                    it->setStatusTip(sv->getUrl().toString());
-                    it->setToolTip(sv->getUrl().toString());
+                    QString url = CGenericFuncs::elideString(sv->getUrl().toString(),80);
+                    it->setStatusTip(url);
+                    it->setToolTip(url);
 
                     if (sv->isTranslationBkgdFinished()) {
                         it->setForeground(QBrush(Qt::green));
@@ -477,6 +488,11 @@ void CMainWindow::updateHelperList()
                     if (qr.isEmpty()) qr = tr("(empty)");
                     it->setText(tr("Search: %1").arg(qr));
                     it->setToolTip(qr);
+                }
+
+                auto st = qobject_cast<CSettingsTab*>(tabMain->widget(i));
+                if (st!=nullptr) {
+                    it->setText(tr("Settings tab"));
                 }
                 helperList->addItem(it);
             }
@@ -583,6 +599,10 @@ void CMainWindow::updateTitle()
         auto bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
         if (bv!=nullptr && !bv->getLastQuery().isEmpty())
             t = tr("[%1] search - %2").arg(bv->getLastQuery(),t);
+
+        auto st = qobject_cast<CSettingsTab*>(tabMain->currentWidget());
+        if (st!=nullptr)
+            t = tr("Settings - %1").arg(t);
     }
     setWindowTitle(t);
 }

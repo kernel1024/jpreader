@@ -28,11 +28,6 @@ CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
 
 CGlobalControlPrivate::~CGlobalControlPrivate() = default;
 
-void CGlobalControlPrivate::settingsDialogDestroyed()
-{
-    settingsDialog = nullptr;
-}
-
 bool CGlobalControlPrivate::runnedFromQtCreator()
 {
     static int ppid = -1;

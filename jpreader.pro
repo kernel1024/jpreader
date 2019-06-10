@@ -1,8 +1,8 @@
 HEADERS = mainwindow.h \
     globalprivate.h \
     pdfworkerprivate.h \
+    settingstab.h \
     snviewer.h \
-    settingsdlg.h \
     specwidgets.h \
     atlastranslator.h \
     genericfuncs.h \
@@ -51,7 +51,7 @@ SOURCES = main.cpp \
     globalprivate.cpp \
     mainwindow.cpp \
     pdfworkerprivate.cpp \
-    settingsdlg.cpp \
+    settingstab.cpp \
     snviewer.cpp \
     atlastranslator.cpp \
     specwidgets.cpp \
@@ -101,8 +101,8 @@ RESOURCES = \
     jpreader.qrc
 
 FORMS = main.ui \
-    settingsdlg.ui \
     authdlg.ui \
+    settingstab.ui \
     snviewer.ui \
     searchtab.ui \
     lighttranslator.ui \

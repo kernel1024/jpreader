@@ -21,7 +21,6 @@ class CDownloadManager;
 class BookmarksManager;
 class CLogDisplay;
 class CBrowserController;
-class CSettingsDlg;
 
 namespace CDefaults {
 const int defaultInspectorPort = 50000;
@@ -81,8 +80,6 @@ public:
 
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
-    CSettingsDlg* settingsDialog { nullptr };
-    QSize settingsDlgSize;
 
     QSize openFileDialogSize;
     QSize saveFileDialogSize;
@@ -95,8 +92,6 @@ public:
     static void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static bool runnedFromQtCreator();
 
-public Q_SLOTS:
-    void settingsDialogDestroyed();
 };
 
 #endif // GLOBALPRIVATE_H

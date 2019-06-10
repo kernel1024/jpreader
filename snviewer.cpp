@@ -120,7 +120,7 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
 
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
             msgHandler, &CSnMsgHandler::tranEngine);
-    connect(gSet, &CGlobalControl::settingsUpdated, msgHandler, &CSnMsgHandler::updateTranEngine);
+    connect(gSet, &CGlobalControl::translationEngineChanged, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
