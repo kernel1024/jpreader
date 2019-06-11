@@ -110,6 +110,8 @@ void CSettingsTab::loadFromGlobal()
 {
     if (gSet==nullptr) return;
 
+    m_loadingInterlock = true;
+
     if (!gSet->m_settings->atlHostHistory.contains(gSet->m_settings->atlHost))
         gSet->m_settings->atlHostHistory.append(gSet->m_settings->atlHost);
 
@@ -247,6 +249,8 @@ void CSettingsTab::loadFromGlobal()
     updateAdblockList();
     updateNoScriptWhitelist();
     updateUserScripts();
+
+    m_loadingInterlock = false;
 }
 
 void CSettingsTab::resizeEvent(QResizeEvent *event)
@@ -261,65 +265,80 @@ void CSettingsTab::resizeEvent(QResizeEvent *event)
 
 void CSettingsTab::setupSettingsObservers()
 {
-    connect(ui->spinMaxLimit,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinMaxLimit,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->maxSearchLimit=val;
     });
-    connect(ui->spinMaxHistory,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinMaxHistory,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->maxHistory=val;
     });
-    connect(ui->editEditor,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editEditor,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->sysEditor=val;
     });
-    connect(ui->editBrowser,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editBrowser,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->sysBrowser=val;
     });
-    connect(ui->spinMaxRecycled,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinMaxRecycled,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->maxRecycled=val;
     });
-    connect(ui->spinMaxRecent,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinMaxRecent,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->maxRecent=val;
     });
-    connect(ui->spinMaxWhiteListItems,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinMaxWhiteListItems,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->maxAdblockWhiteList=val;
     });
 
-    connect(ui->checkJS,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkJS,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,val);
         gSet->m_ui->actionJSUsage->setChecked(val);
     });
-    connect(ui->checkAutoloadImages,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkAutoloadImages,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,val);
     });
-    connect(ui->checkEnablePlugins,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkEnablePlugins,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,val);
     });
 
-    connect(ui->radioAtlas,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioAtlas,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val) {
             gSet->m_settings->translatorEngine=CStructures::teAtlas;
             Q_EMIT gSet->translationEngineChanged();
         }
     });
-    connect(ui->radioBingAPI,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioBingAPI,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val) {
             gSet->m_settings->translatorEngine=CStructures::teBingAPI;
             Q_EMIT gSet->translationEngineChanged();
         }
     });
-    connect(ui->radioYandexAPI,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioYandexAPI,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val) {
             gSet->m_settings->translatorEngine=CStructures::teYandexAPI;
             Q_EMIT gSet->translationEngineChanged();
         }
     });
-    connect(ui->radioGoogleGTX,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioGoogleGTX,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val) {
             gSet->m_settings->translatorEngine=CStructures::teGoogleGTX;
             Q_EMIT gSet->translationEngineChanged();
         }
     });
 
-    connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlHost=val;
         if (gSet->m_settings->atlHostHistory.contains(val)) {
             gSet->m_settings->atlHostHistory.move(gSet->m_settings->atlHostHistory.indexOf(val),0);
@@ -327,105 +346,134 @@ void CSettingsTab::setupSettingsObservers()
             gSet->m_settings->atlHostHistory.prepend(val);
         }
     });
-    connect(ui->atlPort,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->atlPort,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlPort=static_cast<quint16>(val);
     });
-    connect(ui->atlRetryCnt,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->atlRetryCnt,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlTcpRetryCount=val;
     });
-    connect(ui->atlRetryTimeout,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->atlRetryTimeout,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlTcpTimeout=val;
     });
-    connect(ui->atlToken,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->atlToken,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlToken=val;
     });
-    connect(ui->atlSSLProto,qOverload<int>(&QComboBox::currentIndexChanged),gSet,[this](int val){
+    connect(ui->atlSSLProto,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
         Q_UNUSED(val)
+        if (m_loadingInterlock) return;
         gSet->m_settings->atlProto=static_cast<QSsl::SslProtocol>(ui->atlSSLProto->currentData().toInt());
     });
 
-    connect(ui->editBingKey,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editBingKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->bingKey=val;
     });
-    connect(ui->editYandexKey,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editYandexKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->yandexKey=val;
     });
-    connect(ui->checkEmptyRestore,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->emptyRestore=val;
     });
-    connect(ui->checkJSLogConsole,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkJSLogConsole,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->jsLogConsole=val;
     });
 
-    connect(ui->checkTransFont,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkTransFont,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_ui->actionOverrideFont->setChecked(val);
     });
-    connect(ui->checkStdFonts,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkStdFonts,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->overrideStdFonts=val;
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,gSet,[](const QFont& val){
+    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->overrideFont=val;
     });
-    connect(ui->transFontSize,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->transFontSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->overrideFont.setPointSize(val);
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,gSet,[](const QFont& val){
+    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->fontStandard=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,gSet,[](const QFont& val){
+    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->fontFixed=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,gSet,[](const QFont& val){
+    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->fontSerif=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,gSet,[](const QFont& val){
+    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->fontSansSerif=val.family();
     });
-    connect(ui->checkFontColorOverride,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkFontColorOverride,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_ui->actionOverrideFontColor->setChecked(val);
     });
 
-    connect(ui->checkUseAd,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkUseAd,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->useAdblock=val;
     });
-    connect(ui->checkUseNoScript,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkUseNoScript,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->useNoScript=val;
     });
 
-    connect(ui->gctxHotkey,&QKeySequenceEdit::keySequenceChanged,gSet,[](const QKeySequence& val){
+    connect(ui->gctxHotkey,&QKeySequenceEdit::keySequenceChanged,this,[this](const QKeySequence& val){
+        if (m_loadingInterlock) return;
         gSet->m_ui->gctxTranHotkey.setShortcut(val);
         if (!gSet->m_ui->gctxTranHotkey.shortcut().isEmpty())
             gSet->m_ui->gctxTranHotkey.setEnabled();
     });
 
-    connect(ui->radioSearchRecoll,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioSearchRecoll,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val)
             gSet->m_settings->searchEngine = CStructures::seRecoll;
     });
-    connect(ui->radioSearchBaloo5,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioSearchBaloo5,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val)
             gSet->m_settings->searchEngine = CStructures::seBaloo5;
     });
-    connect(ui->radioSearchNone,&QRadioButton::toggled,gSet,[](bool val){
+    connect(ui->radioSearchNone,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         if (val)
             gSet->m_settings->searchEngine = CStructures::seNone;
     });
 
-    connect(ui->checkTabCloseBtn,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkTabCloseBtn,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->showTabCloseButtons = val;
     });
 
-    connect(ui->checkCreateCoredumps,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkCreateCoredumps,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->createCoredumps=val;
     });
-    connect(ui->checkLogNetworkRequests,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkLogNetworkRequests,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_ui->actionLogNetRequests->setChecked(val);
     });
-    connect(ui->checkDumpHtml,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkDumpHtml,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->debugDumpHtml = val;
     });
 
-    connect(ui->checkUserAgent,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkUserAgent,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->overrideUserAgent = val;
         if (gSet->m_settings->overrideUserAgent && !gSet->m_settings->userAgent.isEmpty()) {
             gSet->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
@@ -433,7 +481,8 @@ void CSettingsTab::setupSettingsObservers()
             gSet->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
         }
     });
-    connect(ui->editUserAgent->lineEdit(),&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editUserAgent->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->userAgent = val;
         if (gSet->m_settings->overrideUserAgent && !gSet->m_settings->userAgent.isEmpty()) {
             gSet->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
@@ -442,59 +491,74 @@ void CSettingsTab::setupSettingsObservers()
         }
     });
 
-    connect(ui->checkPdfExtractImages,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkPdfExtractImages,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->pdfExtractImages = val;
     });
-    connect(ui->spinPdfImageMaxSize,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinPdfImageMaxSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->pdfImageMaxSize = val;
     });
-    connect(ui->spinPdfImageQuality,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinPdfImageQuality,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->pdfImageQuality = val;
     });
 
-    connect(ui->checkPixivFetchImages,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkPixivFetchImages,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->pixivFetchImages = val;
     });
 
-    connect(ui->checkDontUseNativeFileDialogs,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkDontUseNativeFileDialogs,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->dontUseNativeFileDialog = val;
     });
-    connect(ui->spinCacheSize,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinCacheSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->webProfile()->setHttpCacheMaximumSize(val*CDefaults::oneMB);
     });
-    connect(ui->checkIgnoreSSLErrors,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkIgnoreSSLErrors,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->ignoreSSLErrors = val;
     });
-    connect(ui->checkTabFavicon,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkTabFavicon,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,val);
     });
 
 
-    connect(ui->editProxyHost,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editProxyHost,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyHost = val;
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->spinProxyPort,qOverload<int>(&QSpinBox::valueChanged),gSet,[](int val){
+    connect(ui->spinProxyPort,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyPort = static_cast<quint16>(val);
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->editProxyLogin,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editProxyLogin,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyLogin = val;
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->editProxyPassword,&QLineEdit::textChanged,gSet,[](const QString& val){
+    connect(ui->editProxyPassword,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyPassword = val;
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->checkUseProxy,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkUseProxy,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyUse = val;
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->checkUseProxyTranslator,&QCheckBox::toggled,gSet,[](bool val){
+    connect(ui->checkUseProxyTranslator,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
         gSet->m_settings->proxyUseTranslator = val;
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-    connect(ui->listProxyType,qOverload<int>(&QComboBox::currentIndexChanged),gSet,[](int val){
+    connect(ui->listProxyType,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
         switch (val) {
             case 0: gSet->m_settings->proxyType = QNetworkProxy::HttpCachingProxy; break;
             case 1: gSet->m_settings->proxyType = QNetworkProxy::HttpProxy; break;

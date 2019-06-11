@@ -75,6 +75,7 @@ private:
     Ui::SettingsTab *ui;
     int adblockSearchIdx { 0 };
     CLangPairModel *transModel;
+    bool m_loadingInterlock { false };
 
     Q_DISABLE_COPY(CSettingsTab)
 
