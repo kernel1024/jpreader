@@ -85,12 +85,14 @@ public:
     QSize saveFileDialogSize;
     QStringList debugMessages;
 
-public:
     explicit CGlobalControlPrivate(QObject *parent = nullptr);
     ~CGlobalControlPrivate() override;
 
     static void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static bool runnedFromQtCreator();
+
+private:
+    Q_DISABLE_COPY(CGlobalControlPrivate)
 
 };
 

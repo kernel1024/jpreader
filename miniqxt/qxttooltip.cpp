@@ -154,9 +154,7 @@ void QxtToolTipPrivate::removeAllWidgets()
     while (vbox->count()>0) {
         QLayoutItem* item = vbox->takeAt(0);
         QWidget* widget = item->widget();
-        if (widget!=nullptr) {
-            delete widget;
-        }
+        delete widget;
         delete item;
     }
 }

@@ -8,104 +8,50 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, const QString& aUri, bool forceTranSubSentences)
+CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceTranSubSentences)
     : QObject(parent)
 {
-    hostingDir=gSet->settings()->hostingDir;
-    hostingUrl=gSet->settings()->hostingUrl;
-    Uri=aUri;
-    useSCP=gSet->settings()->useScp;
-    scpParams=gSet->settings()->scpParams;
-    scpHost=gSet->settings()->scpHost;
-    translationEngine=gSet->settings()->translatorEngine;
-    if (!hostingDir.endsWith('/')) hostingDir.append('/');
-    if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
-    atlTcpRetryCount=gSet->settings()->atlTcpRetryCount;
-    atlTcpTimeout=gSet->settings()->atlTcpTimeout;
-    forceFontColor=gSet->ui()->forceFontColor();
-    forcedFontColor=gSet->settings()->forcedFontColor;
-    useOverrideFont=gSet->ui()->useOverrideFont();
-    overrideFont=gSet->settings()->overrideFont;
-    translationMode=gSet->ui()->getTranslationMode();
-    translateSubSentences=(forceTranSubSentences || gSet->ui()->translateSubSentences());
-    metaSrcUrl.clear();
-    imgUrls.clear();
+    m_sourceHtml=sourceHtml;
+    m_translationEngine=gSet->settings()->translatorEngine;
+    m_atlTcpRetryCount=gSet->settings()->atlTcpRetryCount;
+    m_atlTcpTimeout=gSet->settings()->atlTcpTimeout;
+    m_forceFontColor=gSet->ui()->forceFontColor();
+    m_forcedFontColor=gSet->settings()->forcedFontColor;
+    m_useOverrideFont=gSet->ui()->useOverrideFont();
+    m_overrideFont=gSet->settings()->overrideFont;
+    m_translationMode=gSet->ui()->getTranslationMode();
+    m_translateSubSentences=(forceTranSubSentences || gSet->ui()->translateSubSentences());
 }
 
 CTranslator::~CTranslator()
 {
-    if (tran)
-        tran->deleteLater();
+    if (m_tran)
+        m_tran->deleteLater();
 }
 
-bool CTranslator::calcLocalUrl(const QString& aUri, QString& calculatedUrl)
+bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 {
-    QString wdir = hostingDir;
-    if (wdir.isEmpty()
-            || hostingUrl.isEmpty()
-            || !hostingUrl.startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return false;
-    QString filename = QUrl(aUri).toLocalFile();
-    if (filename.isEmpty()) {
-        calculatedUrl=aUri;
-        return true;
-    }
-    if (!useSCP) {
-        QFileInfo fd(wdir);
-        if (!fd.exists()) {
-            QDir qd;
-            qd.mkpath(wdir);
-        }
-    }
-    QFileInfo fi(filename);
-    QString wname=gSet->makeTmpFileName(fi.completeSuffix());
+    m_abortMutex.lock();
+    m_abortFlag=false;
+    m_abortMutex.unlock();
 
-    calculatedUrl.clear();
-
-    bool b;
-    bool r;
-    if (useSCP) {
-        QStringList scpp;
-        scpp << scpParams.split(' ');
-        scpp << filename;
-        scpp << QStringLiteral("%1:%2%3").arg(scpHost,wdir,wname);
-        r=(QProcess::execute(QStringLiteral("scp"),scpp)==0);
-        if (r) calculatedUrl=hostingUrl+wname;
-        return r;
+    if (m_tran==nullptr && !m_tranInited) {
+        m_tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
     }
 
-    r=QFile(filename).copy(wdir+wname);
-    if (r) {
-        gSet->appendCreatedFiles(wdir+wname);
-        calculatedUrl=hostingUrl+wname;
-        b = true;
-    } else
-        b = false;
-    return b;
-}
-
-bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
-{
-    abortMutex.lock();
-    abortFlag=false;
-    abortMutex.unlock();
-
-    if (tran==nullptr && !tranInited) {
-        tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
-    }
-
-    if (tran==nullptr || !tran->initTran()) {
-        dst=tr("Unable to initialize translation engine.");
+    if (m_tran==nullptr || !m_tran->initTran()) {
+        dstHtml=tr("Unable to initialize translation engine.");
         qCritical() << tr("Unable to initialize translation engine.");
         return false;
     }
-    tranInited = true;
+    m_tranInited = true;
 
-    dst.clear();
-    if (srcUri.isEmpty()) return false;
+    dstHtml.clear();
+    if (srcHtml.isEmpty()) return false;
 
     QUuid token = QUuid::createUuid();
 
-    QString src = srcUri.trimmed();
+    QString src = srcHtml.trimmed();
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("1-source"),src);
     src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
@@ -127,9 +73,9 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("3-converted"),doc);
 
-    translatorFailed = false;
-    textNodesCnt=0;
-    metaSrcUrl.clear();
+    m_translatorFailed = false;
+    m_textNodesCnt=0;
+    m_metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("4-preprocessed"),doc);
@@ -138,34 +84,34 @@ bool CTranslator::translateDocument(const QString &srcUri, QString &dst)
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("5-calculated"),doc);
 
-    textNodesProgress=0;
+    m_textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("6-translated"),doc);
 
     examineNode(doc,PXPostprocess);
-    generateHTML(doc,dst);
+    generateHTML(doc,dstHtml);
 
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QStringLiteral("7-finalized"),dst);
+        dumpPage(token,QStringLiteral("7-finalized"),dstHtml);
 
-    tran->doneTran();
+    m_tran->doneTran();
 
-    return !translatorFailed;
+    return !m_translatorFailed;
 }
 
-bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
+bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
 {
-    abortMutex.lock();
-    abortFlag=false;
-    abortMutex.unlock();
+    m_abortMutex.lock();
+    m_abortFlag=false;
+    m_abortMutex.unlock();
 
-    dst.clear();
-    if (srcUri.isEmpty()) return false;
+    destHtml.clear();
+    if (sourceHtml.isEmpty()) return false;
 
     QUuid token = QUuid::createUuid();
 
-    QString src = srcUri.trimmed();
+    QString src = sourceHtml.trimmed();
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-1-source"),src);
     src = src.remove(0,src.indexOf(QStringLiteral("<html"),Qt::CaseInsensitive));
@@ -187,9 +133,9 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-3-converted"),doc);
 
-    translatorFailed=false;
-    textNodesCnt=0;
-    metaSrcUrl.clear();
+    m_translatorFailed=false;
+    m_textNodesCnt=0;
+    m_metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-4-preprocessed"),doc);
@@ -198,32 +144,32 @@ bool CTranslator::documentReparse(const QString &srcUri, QString &dst)
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-5-calculated"),doc);
 
-    textNodesProgress=0;
+    m_textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QStringLiteral("parser-6-translated"),doc);
 
-    generateHTML(doc,dst);
+    generateHTML(doc,destHtml);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QStringLiteral("parser-7-finalized"),dst);
+        dumpPage(token,QStringLiteral("parser-7-finalized"),destHtml);
 
     return true;
 }
 
 QStringList CTranslator::getImgUrls() const
 {
-    return imgUrls;
+    return m_imgUrls;
 }
 
 void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 {
-    if (translatorFailed) return;
-    abortMutex.lock();
-    if (abortFlag) {
-        abortMutex.unlock();
+    if (m_translatorFailed) return;
+    m_abortMutex.lock();
+    if (m_abortFlag) {
+        m_abortMutex.unlock();
         return;
     }
-    abortMutex.unlock();
+    m_abortMutex.unlock();
 
     QApplication::processEvents();
 
@@ -239,14 +185,14 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
     QVector<CHTMLNode> subnodes;
 
-    if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && tranInited) {
+    if ((xmlPass==PXTranslate || xmlPass==PXCalculate) && m_tranInited) {
         if (skipTags.contains(node.tagName,Qt::CaseInsensitive)) return;
 
         if (xmlPass==PXCalculate && !node.isTag && !node.isComment) {
             translateParagraph(node,xmlPass);
         }
         if (xmlPass==PXTranslate && !node.isTag && !node.isComment) {
-            if (!translateParagraph(node,xmlPass)) translatorFailed=true;
+            if (!translateParagraph(node,xmlPass)) m_translatorFailed=true;
         }
     }
 
@@ -265,13 +211,13 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             if (node.children.at(idx).tagName.toLower()==QStringLiteral("meta")) {
                 if (node.children.at(idx).attributes.value(QStringLiteral("property"))
                         .toLower().trimmed()==QStringLiteral("og:url"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("content")).toLower().trimmed());
+                    m_metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("content")).toLower().trimmed());
             }
 
             if (node.children.at(idx).tagName.toLower()==QStringLiteral("link")) {
                 if (node.children.at(idx).attributes.value(QStringLiteral("rel"))
                         .toLower().trimmed()==QStringLiteral("canonical"))
-                    metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("href")).toLower().trimmed());
+                    m_metaSrcUrl = QUrl(node.children.at(idx).attributes.value(QStringLiteral("href")).toLower().trimmed());
 
                 if ((node.children.at(idx).attributes.value(QStringLiteral("type"))
                      .toLower().trimmed()==QStringLiteral("text/css")) &&
@@ -279,7 +225,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                              QRegExp(QStringLiteral("blog.*\\.jp.*site.css\\?_="),Qt::CaseInsensitive)) ||
                          (node.children.at(idx).attributes.value(QStringLiteral("href")).contains(
                              QRegExp(QStringLiteral("/css/.*static.css\\?"),Qt::CaseInsensitive)) &&
-                          metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive))))) {
+                          m_metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive))))) {
                     CHTMLNode st;
                     st.tagName=QStringLiteral("style");
                     st.closingText=QStringLiteral("</style>");
@@ -366,7 +312,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
 
             // remove floating headers for fc2 and goo blogs
-            if (metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive)) &&
+            if (m_metaSrcUrl.host().contains(QRegExp(QStringLiteral("blog"),Qt::CaseInsensitive)) &&
                     node.children.at(idx).tagName.toLower()==QStringLiteral("div") &&
                     node.children.at(idx).attributes.contains(QStringLiteral("id")) &&
                     denyDivs.contains(node.children.at(idx).attributes.value(QStringLiteral("id")),
@@ -392,7 +338,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             if (node.attributes.contains(QStringLiteral("src"))) {
                 QString src = node.attributes.value(QStringLiteral("src")).trimmed();
                 if (!src.isEmpty())
-                    imgUrls << src;
+                    m_imgUrls << src;
             }
         }
         if (node.tagName.toLower()==QStringLiteral("a")) {
@@ -400,7 +346,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 QString src = node.attributes.value(QStringLiteral("href")).trimmed();
                 QFileInfo fi(src);
                 if (acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
-                    imgUrls << src;
+                    m_imgUrls << src;
             }
         }
     }
@@ -419,7 +365,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         }
     }
 
-    if (translatorFailed) return;
+    if (m_translatorFailed) return;
 
     for(auto &child : node.children) {
         examineNode(child,xmlPass);
@@ -428,13 +374,13 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
 bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xmlPass)
 {
-    if (tran==nullptr) return false;
+    if (m_tran==nullptr) return false;
 
     bool failure = false;
 
     int baseProgress = 0;
-    if (textNodesCnt>0) {
-        baseProgress = 100*textNodesProgress/textNodesCnt;
+    if (m_textNodesCnt>0) {
+        baseProgress = 100*m_textNodesProgress/m_textNodesCnt;
     }
     Q_EMIT setProgress(baseProgress);
 
@@ -455,16 +401,16 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     const int progressUpdateFrac = 5;
 
     for(int i=0;i<sl.count();i++) {
-        abortMutex.lock();
-        if (abortFlag) {
-            abortMutex.unlock();
+        m_abortMutex.lock();
+        if (m_abortFlag) {
+            m_abortMutex.unlock();
             sout = tr("ATLAS: Translation thread aborted.");
             break;
         }
-        abortMutex.unlock();
+        m_abortMutex.unlock();
 
         if (xmlPass!=PXTranslate) {
-            textNodesCnt++;
+            m_textNodesCnt++;
         } else {
             QString srct = sl.at(i);
 
@@ -484,7 +430,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 }
 
                 if (!noText) {
-                    if (translateSubSentences) {
+                    if (m_translateSubSentences) {
                         QString tacc = QString();
                         for (int j=0;j<srct.length();j++) {
                             QChar sc = srct.at(j);
@@ -494,13 +440,13 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                             if (!sc.isLetter() || (j==(srct.length()-1))) {
                                 if (!tacc.isEmpty()) {
                                     if (sc.isLetter()) {
-                                        t += tran->tranString(tacc);
+                                        t += m_tran->tranString(tacc);
                                     } else {
                                         if (sc==questionMark || sc==fullwidthQuestionMark) {
                                             tacc += sc;
-                                            t += tran->tranString(tacc);
+                                            t += m_tran->tranString(tacc);
                                         } else {
-                                            t += tran->tranString(tacc) + sc;
+                                            t += m_tran->tranString(tacc) + sc;
                                         }
                                     }
                                     tacc.clear();
@@ -508,65 +454,65 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                                     t += sc;
                                 }
                             }
-                            if (!tran->getErrorMsg().isEmpty())
+                            if (!m_tran->getErrorMsg().isEmpty())
                                 break;
                         }
                     } else {
-                        t = tran->tranString(srct);
+                        t = m_tran->tranString(srct);
                     }
                 } else {
                     t = srct;
                 }
 
-                if (translationMode==CStructures::tmTooltip) {
+                if (m_translationMode==CStructures::tmTooltip) {
                     QString ts = srct;
                     srct = t;
                     t = ts;
                 }
 
-                if (translationMode==CStructures::tmAdditive)
+                if (m_translationMode==CStructures::tmAdditive)
                     sout += srct + QStringLiteral("<br/>");
 
-                if (!tran->getErrorMsg().isEmpty()) {
-                    tran->doneTran();
+                if (!m_tran->getErrorMsg().isEmpty()) {
+                    m_tran->doneTran();
                     sout += t;
                     failure = true;
                     break;
                 }
 
-                if (useOverrideFont || forceFontColor) {
+                if (m_useOverrideFont || m_forceFontColor) {
                     QString dstyle;
-                    if (useOverrideFont) {
+                    if (m_useOverrideFont) {
                         dstyle+=QStringLiteral("font-family: %1; font-size: %2pt;").arg(
-                                    overrideFont.family()).arg(
-                                    overrideFont.pointSize());
+                                    m_overrideFont.family()).arg(
+                                    m_overrideFont.pointSize());
                     }
-                    if (forceFontColor)
-                        dstyle+=QStringLiteral("color: %1;").arg(forcedFontColor.name());
+                    if (m_forceFontColor)
+                        dstyle+=QStringLiteral("color: %1;").arg(m_forcedFontColor.name());
 
                     sout += QStringLiteral("<span style=\"%1\">%2</span>").arg(dstyle,t);
                 } else {
                     sout += t;
                 }
 
-                if (translationMode==CStructures::tmAdditive) {
+                if (m_translationMode==CStructures::tmAdditive) {
                     sout += QStringLiteral("<br/>\n");
                 } else {
                     srctls << srct;
                 }
             }
 
-            if (textNodesCnt > 0 && (i % progressUpdateFrac == 0)) {
-                int pr = 100*textNodesProgress/textNodesCnt;
+            if (m_textNodesCnt > 0 && (i % progressUpdateFrac == 0)) {
+                int pr = 100*m_textNodesProgress/m_textNodesCnt;
                 Q_EMIT setProgress(pr);
             }
-            textNodesProgress++;
+            m_textNodesProgress++;
         }
     }
 
     if (xmlPass==PXTranslate && !sout.isEmpty()) {
-        if (!srctls.isEmpty() && ((translationMode==CStructures::tmOverwriting)
-                                  || (translationMode==CStructures::tmTooltip))) {
+        if (!srctls.isEmpty() && ((m_translationMode==CStructures::tmOverwriting)
+                                  || (m_translationMode==CStructures::tmTooltip))) {
             src.text = QStringLiteral("<span title=\"%1\">%2</span>")
                        .arg(srctls.join('\n').replace('"','\''),sout);
         } else {
@@ -621,60 +567,52 @@ void CTranslator::dumpPage(QUuid token, const QString &suffix, const QByteArray 
 
 void CTranslator::translate()
 {
-    QString aUrl;
+    QString translatedHtml;
     QString lastError;
     CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
-        Q_EMIT calcFinished(false,aUrl,lastError);
+        Q_EMIT translationFinished(false,translatedHtml,lastError);
     }
 
-    if (translationEngine==CStructures::teAtlas) {
+    if (m_translationEngine==CStructures::teAtlas) {
         bool oktrans = false;
 
         if (!lp.isAtlasAcceptable()) {
             lastError = tr("ATLAS error: Unacceptable translation pair. Only English and Japanese is supported.");
         } else {
-            for (int i=0;i<atlTcpRetryCount;i++) {
-                if (translateDocument(Uri,aUrl)) {
+            for (int i=0;i<m_atlTcpRetryCount;i++) {
+                if (translateDocument(m_sourceHtml,translatedHtml)) {
                     oktrans = true;
                     break;
                 }
-                if (tran) {
-                    lastError = tran->getErrorMsg();
+                if (m_tran) {
+                    lastError = m_tran->getErrorMsg();
                 } else {
                     lastError = tr("ATLAS translator failed.");
                 }
-                if (tran)
-                    tran->doneTran(true);
-                QThread::sleep(static_cast<unsigned long>(atlTcpTimeout));
+                if (m_tran)
+                    m_tran->doneTran(true);
+                QThread::sleep(static_cast<unsigned long>(m_atlTcpTimeout));
             }
         }
         if (!oktrans) {
-            Q_EMIT calcFinished(false,aUrl,lastError);
-            Q_EMIT finished();
-            return;
-        }
-    } else if (translationEngine==CStructures::teBingAPI ||
-               translationEngine==CStructures::teYandexAPI ||
-               translationEngine==CStructures::teGoogleGTX) {
-        if (!translateDocument(Uri,aUrl)) {
-            QString lastError = tr("Translator initialization error");
-            if (tran)
-                lastError = tran->getErrorMsg();
-            Q_EMIT calcFinished(false,aUrl,lastError);
+            Q_EMIT translationFinished(false,translatedHtml,lastError);
             Q_EMIT finished();
             return;
         }
     } else {
-        if (!calcLocalUrl(Uri,aUrl)) {
-            Q_EMIT calcFinished(false,QString(),tr("ERROR: Url calculation error"));
+        if (!translateDocument(m_sourceHtml,translatedHtml)) {
+            QString lastError = tr("Translator initialization error");
+            if (m_tran)
+                lastError = m_tran->getErrorMsg();
+            Q_EMIT translationFinished(false,translatedHtml,lastError);
             Q_EMIT finished();
             return;
         }
     }
 
-    Q_EMIT calcFinished(true,aUrl,QString());
+    Q_EMIT translationFinished(true,translatedHtml,QString());
     Q_EMIT finished();
 }
 
@@ -684,9 +622,9 @@ void CTranslator::abortTranslator()
     const int abortTimerDelay = 500;
 
     QTimer::singleShot(abortTimerDelay,this,[this](){
-        abortMutex.lock();
-        abortFlag=true;
-        abortMutex.unlock();
+        m_abortMutex.lock();
+        m_abortFlag=true;
+        m_abortMutex.unlock();
     });
 }
 

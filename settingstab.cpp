@@ -29,7 +29,6 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->listTransDirections->setModel(transModel);
     ui->listTransDirections->setItemDelegate(new CLangPairDelegate());
 
-    connect(ui->buttonHostingDir, &QPushButton::clicked, this, &CSettingsTab::selectDir);
     connect(ui->buttonBrowser, &QPushButton::clicked, this, &CSettingsTab::selectBrowser);
     connect(ui->buttonEditor, &QPushButton::clicked, this, &CSettingsTab::selectEditor);
     connect(ui->buttonDelQr, &QPushButton::clicked, this, &CSettingsTab::delQrs);
@@ -111,13 +110,9 @@ void CSettingsTab::loadFromGlobal()
 {
     if (gSet==nullptr) return;
 
-    if (!gSet->m_settings->scpHostHistory.contains(gSet->m_settings->scpHost))
-        gSet->m_settings->scpHostHistory.append(gSet->m_settings->scpHost);
     if (!gSet->m_settings->atlHostHistory.contains(gSet->m_settings->atlHost))
         gSet->m_settings->atlHostHistory.append(gSet->m_settings->atlHost);
 
-    ui->editHostingDir->setText(gSet->m_settings->hostingDir);
-    ui->editHostingUrl->setText(gSet->m_settings->hostingUrl);
     ui->spinMaxLimit->setValue(gSet->m_settings->maxSearchLimit);
     ui->spinMaxHistory->setValue(gSet->m_settings->maxHistory);
     ui->spinMaxRecent->setValue(gSet->m_settings->maxRecent);
@@ -133,17 +128,11 @@ void CSettingsTab::loadFromGlobal()
                                        testAttribute(QWebEngineSettings::PluginsEnabled));
 
     switch (gSet->m_settings->translatorEngine) {
-        case CStructures::teGoogle: ui->radioGoogle->setChecked(true); break;
         case CStructures::teAtlas: ui->radioAtlas->setChecked(true); break;
         case CStructures::teBingAPI: ui->radioBingAPI->setChecked(true); break;
         case CStructures::teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
         case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
     }
-    ui->editScpHost->clear();
-    ui->editScpHost->addItems(gSet->m_settings->scpHostHistory);
-    ui->editScpHost->setEditText(gSet->m_settings->scpHost);
-    ui->editScpParams->setText(gSet->m_settings->scpParams);
-    ui->checkSCP->setChecked(gSet->m_settings->useScp);
 
     ui->atlHost->clear();
     ui->atlHost->addItems(gSet->m_settings->atlHostHistory);
@@ -305,12 +294,6 @@ void CSettingsTab::setupSettingsObservers()
         gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,val);
     });
 
-    connect(ui->radioGoogle,&QRadioButton::toggled,gSet,[](bool val){
-        if (val) {
-            gSet->m_settings->translatorEngine=CStructures::teGoogle;
-            Q_EMIT gSet->translationEngineChanged();
-        }
-    });
     connect(ui->radioAtlas,&QRadioButton::toggled,gSet,[](bool val){
         if (val) {
             gSet->m_settings->translatorEngine=CStructures::teAtlas;
@@ -334,29 +317,6 @@ void CSettingsTab::setupSettingsObservers()
             gSet->m_settings->translatorEngine=CStructures::teGoogleGTX;
             Q_EMIT gSet->translationEngineChanged();
         }
-    });
-
-    connect(ui->checkSCP,&QCheckBox::toggled,gSet,[](bool val){
-        gSet->m_settings->useScp=val;
-    });
-    connect(ui->editScpHost->lineEdit(),&QLineEdit::textChanged,gSet,[](const QString& val){
-        gSet->m_settings->scpHost=val;
-        if (gSet->m_settings->scpHostHistory.contains(val)) {
-            gSet->m_settings->scpHostHistory.move(gSet->m_settings->scpHostHistory.indexOf(val),0);
-        } else {
-            gSet->m_settings->scpHostHistory.prepend(val);
-        }
-    });
-    connect(ui->editScpParams,&QLineEdit::textChanged,gSet,[](const QString& val){
-        gSet->m_settings->scpParams=val;
-    });
-    connect(ui->editHostingDir,&QLineEdit::textChanged,gSet,[](const QString& val){
-        gSet->m_settings->hostingDir=val;
-        if (!gSet->m_settings->hostingDir.endsWith('/')) gSet->m_settings->hostingDir.append('/');
-    });
-    connect(ui->editHostingUrl,&QLineEdit::textChanged,gSet,[](const QString& val){
-        gSet->m_settings->hostingUrl=val;
-        if (!gSet->m_settings->hostingUrl.endsWith('/')) gSet->m_settings->hostingUrl.append('/');
     });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,gSet,[](const QString& val){
@@ -543,12 +503,6 @@ void CSettingsTab::setupSettingsObservers()
         }
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-}
-
-void CSettingsTab::selectDir()
-{
-    QString dir = CGenericFuncs::getExistingDirectoryD(this,tr("Hosting directory"),ui->editHostingDir->text());
-    if (!dir.isEmpty()) ui->editHostingDir->setText(dir);
 }
 
 void CSettingsTab::selectBrowser()
@@ -1226,7 +1180,7 @@ void CSettingsTab::updateFontColorPreview()
 
 void CSettingsTab::delQrs()
 {
-    QList<QListWidgetItem *> dl = ui->listQr->selectedItems();
+    QList<QListWidgetItem *> dl = ui->listQueries->selectedItems();
     for (QListWidgetItem* i : dl)
         gSet->d_func()->searchHistory.removeAll(i->text());
 
@@ -1236,9 +1190,9 @@ void CSettingsTab::delQrs()
 
 void CSettingsTab::updateQueryHistory()
 {
-    ui->listQr->clear();
+    ui->listQueries->clear();
     for (const auto &i : qAsConst(gSet->d_func()->searchHistory))
-        ui->listQr->addItem(i);
+        ui->listQueries->addItem(i);
 }
 
 

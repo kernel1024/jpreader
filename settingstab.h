@@ -105,7 +105,6 @@ public:
 public Q_SLOTS:
     void loadFromGlobal();
 
-    void selectDir();
     void selectBrowser();
     void selectEditor();
 	void delQrs();

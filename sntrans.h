@@ -25,8 +25,8 @@ public:
     void translate(bool tranSubSentences);
 
 public Q_SLOTS:
-    void translatePriv(const QString& aUri, bool forceTranSubSentences);
-    void calcFinished(bool success, const QString &aUrl, const QString &error);
+    void translatePriv(const QString& sourceHtml, bool forceTranSubSentences);
+    void translationFinished(bool success, const QString &resultHtml, const QString &error);
     void postTranslate();
     void progressLoad(int progress);
     void selectionChanged();

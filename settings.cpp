@@ -70,7 +70,6 @@ void CSettings::writeSettings()
     bigdata.setValue(QStringLiteral("adblock"),QVariant::fromValue(gSet->d_func()->adblock));
     bigdata.setValue(QStringLiteral("noScriptWhitelist"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList));
     bigdata.setValue(QStringLiteral("atlHostHistory"),QVariant::fromValue(atlHostHistory));
-    bigdata.setValue(QStringLiteral("scpHostHistory"),QVariant::fromValue(scpHostHistory));
     bigdata.setValue(QStringLiteral("userAgentHistory"),QVariant::fromValue(userAgentHistory));
     bigdata.setValue(QStringLiteral("dictPaths"),QVariant::fromValue(dictPaths));
     bigdata.setValue(QStringLiteral("ctxSearchEngines"),QVariant::fromValue(gSet->d_func()->ctxSearchEngines));
@@ -80,8 +79,6 @@ void CSettings::writeSettings()
     bigdata.setValue(QStringLiteral("bookmarks2"),QVariant::fromValue(gSet->d_func()->bookmarksManager->save()));
     bigdata.setValue(QStringLiteral("translatorPairs"),QVariant::fromValue(translatorPairs));
 
-    settings.setValue(QStringLiteral("hostingDir"),hostingDir);
-    settings.setValue(QStringLiteral("hostingUrl"),hostingUrl);
     settings.setValue(QStringLiteral("maxLimit"),maxSearchLimit);
     settings.setValue(QStringLiteral("maxHistory"),maxHistory);
     settings.setValue(QStringLiteral("maxRecent"),maxRecent);
@@ -89,9 +86,6 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("browser"),sysBrowser);
     settings.setValue(QStringLiteral("editor"),sysEditor);
     settings.setValue(QStringLiteral("tr_engine"),translatorEngine);
-    settings.setValue(QStringLiteral("scp"),useScp);
-    settings.setValue(QStringLiteral("scphost"),scpHost);
-    settings.setValue(QStringLiteral("scpparams"),scpParams);
     settings.setValue(QStringLiteral("atlasHost"),atlHost);
     settings.setValue(QStringLiteral("atlasPort"),atlPort);
     settings.setValue(QStringLiteral("atlasToken"),atlToken);
@@ -172,7 +166,6 @@ void CSettings::readSettings(QObject *control)
     Q_EMIT g->updateAllQueryLists();
 
     atlHostHistory = bigdata.value(QStringLiteral("atlHostHistory"),QStringList()).toStringList();
-    scpHostHistory = bigdata.value(QStringLiteral("scpHostHistory"),QStringList()).toStringList();
     g->d_func()->mainHistory = bigdata.value(QStringLiteral("history")).value<CUrlHolderVector>();
     userAgentHistory = bigdata.value(QStringLiteral("userAgentHistory"),QStringList()).toStringList();
     dictPaths = bigdata.value(QStringLiteral("dictPaths"),QStringList()).toStringList();
@@ -196,8 +189,6 @@ void CSettings::readSettings(QObject *control)
     g->d_func()->adblock = bigdata.value(QStringLiteral("adblock")).value<CAdBlockVector>();
     g->d_func()->noScriptWhiteList = bigdata.value(QStringLiteral("noScriptWhitelist")).value<CStringSet>();
 
-    hostingDir = settings.value(QStringLiteral("hostingDir"),QString()).toString();
-    hostingUrl = settings.value(QStringLiteral("hostingUrl"),"about:blank").toString();
     maxSearchLimit = settings.value(QStringLiteral("maxLimit"),CDefaults::maxSearchLimit).toInt();
     maxHistory = settings.value(QStringLiteral("maxHistory"),CDefaults::maxHistory).toInt();
     maxRecent = settings.value(QStringLiteral("maxRecent"),CDefaults::maxRecent).toInt();
@@ -207,9 +198,6 @@ void CSettings::readSettings(QObject *control)
     sysEditor = settings.value(QStringLiteral("editor"),CDefaults::sysEditor).toString();
     translatorEngine = static_cast<CStructures::TranslationEngine>(
                            settings.value(QStringLiteral("tr_engine"),CDefaults::translatorEngine).toInt());
-    useScp = settings.value(QStringLiteral("scp"),CDefaults::useScp).toBool();
-    scpHost = settings.value(QStringLiteral("scphost"),QString()).toString();
-    scpParams = settings.value(QStringLiteral("scpparams"),QString()).toString();
     atlHost = settings.value(QStringLiteral("atlasHost"),"localhost").toString();
     atlPort = static_cast<quint16>(settings.value(QStringLiteral("atlasPort"),CDefaults::atlPort).toUInt());
     atlToken = settings.value(QStringLiteral("atlasToken"),QString()).toString();
@@ -312,8 +300,6 @@ void CSettings::readSettings(QObject *control)
 
     settings.endGroup();
     bigdata.endGroup();
-    if (!hostingDir.endsWith('/')) hostingDir.append('/');
-    if (!hostingUrl.endsWith('/')) hostingUrl.append('/');
 
     Q_EMIT g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);

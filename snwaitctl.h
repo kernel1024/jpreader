@@ -13,6 +13,7 @@ private:
 public:
     explicit CSnWaitCtl(CSnippetViewer *parent);
     void setText(const QString &aMsg);
+    void setLanguage(const QString &aLang);
 public Q_SLOTS:
     void setProgressEnabled(bool show);
     void setProgressValue(int val);

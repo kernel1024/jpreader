@@ -101,7 +101,7 @@ bool CLangPair::isAtlasAcceptable() const
 QString CLangPair::getHash() const
 {
     return QStringLiteral("%1#%2").arg(langFrom.bcp47Name(),
-                                langTo.bcp47Name());
+                                       langTo.bcp47Name());
 }
 
 bool CLangPair::operator==(const CLangPair &s) const
@@ -138,7 +138,6 @@ QDataStream &operator>>(QDataStream &in, CLangPair &obj)
 const QMap<CStructures::TranslationEngine, QString> &translationEngines()
 {
     static const QMap<CStructures::TranslationEngine,QString> engines = {
-        { CStructures::teGoogle, QStringLiteral("Google") },
         { CStructures::teAtlas, QStringLiteral("ATLAS") },
         { CStructures::teBingAPI, QStringLiteral("Bing API") },
         { CStructures::teYandexAPI, QStringLiteral("Yandex API") },

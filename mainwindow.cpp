@@ -467,7 +467,7 @@ void CMainWindow::updateHelperList()
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
                 if (sv!=nullptr) {
                     it->setText(sv->tabTitle());
-                    QString url = CGenericFuncs::elideString(sv->getUrl().toString(),80);
+                    QString url = CGenericFuncs::elideString(sv->getUrl().toString(),CDefaults::maxTitleElideLength);
                     it->setStatusTip(url);
                     it->setToolTip(url);
 

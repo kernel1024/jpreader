@@ -253,8 +253,6 @@ void CSearchTab::headerMenu(const QPoint &pos)
 
 void CSearchTab::snippetMenu(const QPoint &pos)
 {
-    const int maxTitleLength = 100;
-
     if (model->rowCount()==0) return;
     const CStringHash sh = model->getSnippet(sort->mapToSource(ui->listResults->indexAt(pos)));
     if (sh.isEmpty()) return;
@@ -278,7 +276,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         ui.setupUi(dlg);
         dlg->setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
-                           .arg(CGenericFuncs::elideString(sh[QStringLiteral("title")],maxTitleLength)));
+                           .arg(CGenericFuncs::elideString(sh[QStringLiteral("title")],CDefaults::maxTitleElideLength)));
         ui.table->clear();
         ui.table->setColumnCount(2);
         ui.table->setRowCount(sh.size());

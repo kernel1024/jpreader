@@ -43,7 +43,7 @@ private:
 
     QPixmap m_pageImage;
     QStringList m_searchList;
-    QString m_calculatedUrl;
+    QString m_translatedHtml;
     bool m_startPage;
     bool m_fileChanged { false };
     bool m_translationBkgdFinished { false };

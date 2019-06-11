@@ -14,7 +14,6 @@
 
 namespace CStructures {
 enum TranslationEngine {
-    teGoogle = 0,
     teAtlas = 1,
     teBingAPI = 2,
     teYandexAPI = 3,
@@ -42,6 +41,7 @@ enum SearchModelRole {
 namespace CDefaults {
 const auto DBusName = "org.kernel1024.jpreader";
 const auto IPCName = "org.kernel1024.jpreader.ipc.main";
+const int maxTitleElideLength = 100;
 }
 
 class CUrlHolder {

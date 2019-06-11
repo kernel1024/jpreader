@@ -49,37 +49,29 @@ private:
         PXPostprocess
     };
 
-    QString hostingDir;
-    QString hostingUrl;
-    QString Uri;
-    QString scpParams;
-    QString scpHost;
-    QString translatorError;
-    QMutex abortMutex;
-    CAbstractTranslator* tran { nullptr };
-    QColor forcedFontColor;
-    QFont overrideFont;
-    QUrl metaSrcUrl;
-    QStringList imgUrls;
-    int atlTcpRetryCount { 0 };
-    int atlTcpTimeout { 0 };
-    CStructures::TranslationEngine translationEngine { CStructures::teAtlas };
-    int textNodesCnt { 0 };
-    int textNodesProgress { 0 };
-    CStructures::TranslationMode translationMode { CStructures::tmAdditive };
-    bool localHosting { false };
-    bool useSCP { false };
-    bool abortFlag { false };
-    bool translatorFailed { false };
-    bool tranInited { false };
-    bool useOverrideFont { false };
-    bool forceFontColor { false };
-    bool translateSubSentences { false };
+    QString m_sourceHtml;
+    QMutex m_abortMutex;
+    CAbstractTranslator* m_tran { nullptr };
+    QColor m_forcedFontColor;
+    QFont m_overrideFont;
+    QUrl m_metaSrcUrl;
+    QStringList m_imgUrls;
+    int m_atlTcpRetryCount { 0 };
+    int m_atlTcpTimeout { 0 };
+    int m_textNodesCnt { 0 };
+    int m_textNodesProgress { 0 };
+    bool m_abortFlag { false };
+    bool m_translatorFailed { false };
+    bool m_tranInited { false };
+    bool m_useOverrideFont { false };
+    bool m_forceFontColor { false };
+    bool m_translateSubSentences { false };
+    CStructures::TranslationEngine m_translationEngine { CStructures::teAtlas };
+    CStructures::TranslationMode m_translationMode { CStructures::tmAdditive };
 
     Q_DISABLE_COPY(CTranslator)
 
-    bool calcLocalUrl(const QString& aUri, QString& calculatedUrl);
-    bool translateDocument(const QString& srcUri, QString& dst);
+    bool translateDocument(const QString& srcHtml, QString& dstHtml);
 
     void examineNode(CHTMLNode & node, XMLPassMode xmlPass);
     bool translateParagraph(CHTMLNode & src, XMLPassMode xmlPass);
@@ -89,16 +81,16 @@ private:
     void dumpPage(QUuid token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, const QString &aUri, bool forceTranSubSentences = false);
+    explicit CTranslator(QObject* parent, const QString &sourceHtml, bool forceTranSubSentences = false);
     ~CTranslator() override;
-    bool documentReparse(const QString& srcUri, QString& dst);
+    bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
 Q_SIGNALS:
-    void calcFinished(bool success, const QString &aUrl, const QString &error);
+    void translationFinished(bool success, const QString &resultHtml, const QString &error);
     void setProgress(int value);
     void finished();
 

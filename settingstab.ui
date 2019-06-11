@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1033</width>
+    <width>854</width>
     <height>567</height>
    </rect>
   </property>
@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>999</width>
-        <height>4358</height>
+        <y>-1721</y>
+        <width>820</width>
+        <height>4112</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -505,13 +505,6 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <item>
-              <widget class="QRadioButton" name="radioGoogle">
-               <property name="text">
-                <string>&amp;Google</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QRadioButton" name="radioAtlas">
                <property name="text">
                 <string>&amp;ATLAS by TCP</string>
@@ -544,84 +537,6 @@
           </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QGroupBox" name="groupBox_12">
-              <property name="title">
-               <string>Google</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QLabel" name="label_24">
-                 <property name="text">
-                  <string>Local hosting parameters</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QFormLayout" name="formLayout_2">
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>&amp;Hosting directory</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>editHostingDir</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <layout class="QHBoxLayout" name="horizontalLayout">
-                   <item>
-                    <widget class="QLineEdit" name="editHostingDir"/>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonHostingDir">
-                     <property name="text">
-                      <string>...</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>&amp;Url with hosted directory</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>editHostingUrl</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="editHostingUrl"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkSCP">
-                 <property name="text">
-                  <string>Use SCP for copying</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_9">
-                 <property name="text">
-                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Verdana'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In case of SCP copying &amp;quot;Hosting directory&amp;quot; must be a &lt;span style=&quot; font-weight:600;&quot;&gt;full path&lt;/span&gt; on remote system&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
             <item>
              <widget class="QGroupBox" name="groupBox_13">
               <property name="title">
@@ -871,64 +786,64 @@ p, li { white-space: pre-wrap; }
               </layout>
              </widget>
             </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxDictionary">
+         <property name="title">
+          <string>Local dictionary</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_27">
+            <property name="text">
+             <string>Searc&amp;h paths</string>
+            </property>
+            <property name="buddy">
+             <cstring>listDictPaths</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listDictPaths"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_20">
             <item>
-             <widget class="QGroupBox" name="groupBox_16">
-              <property name="title">
-               <string>Local dictionary</string>
+             <widget class="QPushButton" name="buttonAddDictPath">
+              <property name="text">
+               <string>Add path...</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_5">
-               <item>
-                <widget class="QLabel" name="label_27">
-                 <property name="text">
-                  <string>Searc&amp;h paths</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>listDictPaths</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QListWidget" name="listDictPaths"/>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_20">
-                 <item>
-                  <widget class="QPushButton" name="buttonAddDictPath">
-                   <property name="text">
-                    <string>Add path...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="buttonDelDictPath">
-                   <property name="text">
-                    <string>Delete</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_6">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="buttonLoadedDicts">
-                   <property name="text">
-                    <string>Loaded dictionaries...</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDelDictPath">
+              <property name="text">
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonLoadedDicts">
+              <property name="text">
+               <string>Loaded dictionaries...</string>
+              </property>
              </widget>
             </item>
            </layout>
@@ -1228,42 +1143,6 @@ p, li { white-space: pre-wrap; }
               </item>
              </layout>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>SCP &amp;Host</string>
-              </property>
-              <property name="buddy">
-               <cstring>editScpHost</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QComboBox" name="editScpHost">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QLineEdit" name="editScpParams"/>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>SCP P&amp;arams</string>
-              </property>
-              <property name="buddy">
-               <cstring>editScpParams</cstring>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
          </layout>
@@ -1276,7 +1155,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_36">
           <item>
-           <widget class="QListWidget" name="listQr">
+           <widget class="QListWidget" name="listQueries">
             <property name="selectionMode">
              <enum>QAbstractItemView::ExtendedSelection</enum>
             </property>
@@ -1925,15 +1804,10 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonAddSearch</tabstop>
   <tabstop>buttonDefaultSearch</tabstop>
   <tabstop>buttonDelSearch</tabstop>
-  <tabstop>radioGoogle</tabstop>
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>
   <tabstop>radioYandexAPI</tabstop>
   <tabstop>radioGoogleGTX</tabstop>
-  <tabstop>editHostingDir</tabstop>
-  <tabstop>buttonHostingDir</tabstop>
-  <tabstop>editHostingUrl</tabstop>
-  <tabstop>checkSCP</tabstop>
   <tabstop>atlHost</tabstop>
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
@@ -1966,9 +1840,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>buttonBrowser</tabstop>
   <tabstop>editEditor</tabstop>
   <tabstop>buttonEditor</tabstop>
-  <tabstop>editScpHost</tabstop>
-  <tabstop>editScpParams</tabstop>
-  <tabstop>listQr</tabstop>
+  <tabstop>listQueries</tabstop>
   <tabstop>buttonDelQr</tabstop>
   <tabstop>listHistory</tabstop>
   <tabstop>buttonCleanHistory</tabstop>

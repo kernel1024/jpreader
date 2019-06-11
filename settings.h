@@ -75,10 +75,6 @@ public:
     QString fontSansSerif;
     QString userAgent;
 
-    QString scpHost;
-    QString scpParams;
-    QString hostingDir;
-    QString hostingUrl;
     QString atlHost;
     QString sysBrowser;
     QString sysEditor;
@@ -100,7 +96,6 @@ public:
 
     QStringList userAgentHistory;
     QStringList atlHostHistory;
-    QStringList scpHostHistory;
     QStringList charsetHistory;
 
     QVector<CLangPair> translatorPairs;
@@ -130,7 +125,6 @@ public:
     bool overrideUserAgent { CDefaults::overrideUserAgent };
     bool useAdblock { CDefaults::useAdblock };
     bool useNoScript { CDefaults::useNoScript };
-    bool useScp { CDefaults::useScp };
     bool emptyRestore { CDefaults::emptyRestore };
     bool debugNetReqLogging { CDefaults::debugNetReqLogging };
     bool debugDumpHtml { CDefaults::debugDumpHtml };
