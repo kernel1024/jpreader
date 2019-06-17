@@ -760,7 +760,7 @@ void CSettingsTab::exportCookies()
     }
 
     QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save cookies to file"),gSet->settings()->savedAuxSaveDir,
-                                                    tr("Text file, Netscape format (*.txt)"));
+                                                    QStringList( { tr("Text file, Netscape format (*.txt)") } ) );
 
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
@@ -962,7 +962,7 @@ void CSettingsTab::exportAd()
 
     QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save AdBlock patterns to file"),
                                                     gSet->settings()->savedAuxSaveDir,
-                                                    tr("Text file (*.txt)"));
+                                                    QStringList( { tr("Text file (*.txt)") } ) );
 
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
@@ -1107,7 +1107,8 @@ void CSettingsTab::deleteUserScript()
 void CSettingsTab::importUserScript()
 {
     QString fname = CGenericFuncs::getOpenFileNameD(this,tr("Import user script from text file"),QDir::homePath(),
-                                                    tr("JavaScript files (*.js);;All files (*)"));
+                                                    QStringList( { tr("JavaScript files (*.js)"),
+                                                                   tr("All files (*)") } ));
     if (fname.isEmpty()) return;
 
     QFile f(fname);

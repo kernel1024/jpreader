@@ -507,20 +507,28 @@ void CSnCtxHandler::translateFragment()
 
 void CSnCtxHandler::saveToFile()
 {
+    const int fFullHtml = 0;
+    const int fHtml = 1;
+    const int fMHT = 2;
+    const int fTxt = 3;
+    static const QStringList filters ( { tr("Complete HTML (*.html)"),
+                                         tr("HTML file (*.html)"),
+                                         tr("MHTML archive (*.mhtml)"),
+                                         tr("Text file (*.txt)") } );
+
     QString selectedText;
-    selectedText.clear();
     auto nt = qobject_cast<QAction *>(sender());
     if (nt)
         selectedText = nt->data().toString();
 
     QString fname;
+    QString selectedFilter;
     if (selectedText.isEmpty()) {
         fname = CGenericFuncs::getSaveFileNameD(snv,tr("Save to HTML"),gSet->settings()->savedAuxSaveDir,
-                                                tr("HTML file (*.htm);;Complete HTML with files (*.html);;"
-                                                   "Text file (*.txt);;MHTML archive (*.mht)"));
+                                                filters,&selectedFilter);
     } else {
         fname = CGenericFuncs::getSaveFileNameD(snv,tr("Save to file"),gSet->settings()->savedAuxSaveDir,
-                                                tr("Text file (*.txt)"));
+                                                QStringList( { filters.at(fTxt) } ));
     }
 
     if (fname.isNull() || fname.isEmpty()) return;
@@ -533,23 +541,29 @@ void CSnCtxHandler::saveToFile()
         f.write(selectedText.toUtf8());
         f.close();
 
-    } else if (fi.suffix().toLower().startsWith(QStringLiteral("txt"))) {
-        snv->txtBrowser->page()->toPlainText([fname](const QString& result)
-        {
-            QFile f(fname);
-            f.open(QIODevice::WriteOnly|QIODevice::Truncate);
-            f.write(result.toUtf8());
-            f.close();
-        });
-
-    } else if (fi.suffix().toLower().startsWith(QStringLiteral("mht"))) {
-        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
-
-    } else if (fi.suffix().toLower()==QStringLiteral("htm")) {
-        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
-
     } else {
-        snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
+        int fmt = filters.indexOf(selectedFilter);
+        if (fmt == fTxt) {
+            snv->txtBrowser->page()->toPlainText([fname](const QString& result)
+            {
+                QFile f(fname);
+                f.open(QIODevice::WriteOnly|QIODevice::Truncate);
+                f.write(result.toUtf8());
+                f.close();
+            });
+
+        } else if (fmt == fMHT) {
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
+
+        } else if (fmt == fHtml) {
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
+
+        } else if (fmt == fFullHtml){
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
+
+        } else {
+            qCritical() << "Unknown selected filter" << selectedFilter;
+        }
     }
 }
 

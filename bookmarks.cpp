@@ -284,7 +284,7 @@ void BookmarksManager::importBookmarks()
 {
     QString fileName = CGenericFuncs::getOpenFileNameD(nullptr, tr("Open File"),
                                                        QString(),
-                                                       tr("XBEL (*.xbel *.xml)"));
+                                                       QStringList( { tr("XBEL (*.xbel *.xml)") } ));
     if (fileName.isEmpty())
         return;
 
@@ -307,7 +307,7 @@ void BookmarksManager::exportBookmarks()
     QString fileName = CGenericFuncs::getSaveFileNameD(nullptr, tr("Save File"),
                                                        tr("%1 Bookmarks.xbel")
                                                        .arg(QCoreApplication::applicationName()),
-                                                       tr("XBEL (*.xbel *.xml)"));
+                                                       QStringList( { tr("XBEL (*.xbel *.xml)") } ));
     if (fileName.isEmpty())
         return;
 

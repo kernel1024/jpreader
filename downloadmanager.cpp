@@ -86,7 +86,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         QFileInfo fi(item->path());
 
         QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save file"),gSet->settings()->savedAuxSaveDir,
-                                                        QString(),nullptr,fi.fileName());
+                                                        QStringList(),nullptr,fi.fileName());
 
         if (fname.isNull() || fname.isEmpty()) {
             item->cancel();

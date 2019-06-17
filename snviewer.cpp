@@ -356,7 +356,7 @@ void CSnippetViewer::printToPDF()
         return;
 
     QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save to PDF"),gSet->settings()->savedAuxSaveDir,
-                                                    tr("PDF file (*.pdf)"));
+                                                    QStringList( { tr("PDF file (*.pdf)") } ));
     if (fname.isEmpty()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 

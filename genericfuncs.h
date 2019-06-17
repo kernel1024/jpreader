@@ -51,15 +51,15 @@ public:
     static int numDigits(int n);
 
     static QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                                      const QString & dir = QString(), const QString & filter = QString(),
+                                      const QString & dir = QString(), const QStringList & filters = QStringList(),
                                       QString * selectedFilter = nullptr);
 
-    static QStringList getOpenFileNamesD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                                           const QString & dir = QString(), const QString & filter = QString(),
+    static QStringList getOpenFileNamesD (QWidget * parent = nullptr, const QString & caption = QString(),
+                                           const QString & dir = QString(), const QStringList &filters = QStringList(),
                                            QString * selectedFilter = nullptr);
 
     static QString getSaveFileNameD (QWidget * parent = nullptr, const QString & caption = QString(),
-                                     const QString & dir = QString(), const QString & filter = QString(),
+                                     const QString & dir = QString(), const QStringList &filters = QStringList(),
                                      QString * selectedFilter = nullptr, const QString & preselectFileName = QString());
 
     static QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),

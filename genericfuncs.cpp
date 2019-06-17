@@ -306,16 +306,18 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
     return res;
 }
 
-QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
+QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir,
+                                         const QStringList & filters, QString * selectedFilter)
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    QFileDialog dialog(parent,caption,dir,filter);
+    QFileDialog dialog(parent,caption,dir);
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilters(filters);
     if (gSet->d_func()->openFileDialogSize.isValid())
         dialog.resize(gSet->d_func()->openFileDialogSize);
 
@@ -334,16 +336,18 @@ QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & capti
     return res;
 }
 
-QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir, const QString & filter, QString * selectedFilter)
+QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir,
+                                              const QStringList & filters, QString * selectedFilter)
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    QFileDialog dialog(parent,caption,dir,filter);
+    QFileDialog dialog(parent,caption,dir);
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFiles);
+    dialog.setNameFilters(filters);
     if (gSet->d_func()->openFileDialogSize.isValid())
         dialog.resize(gSet->d_func()->openFileDialogSize);
 
@@ -384,17 +388,18 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
 }
 
 QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & caption, const QString & dir,
-                                         const QString & filter, QString * selectedFilter,
+                                         const QStringList & filters, QString * selectedFilter,
                                          const QString & preselectFileName )
 {
     QFileDialog::Options opts = nullptr;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    QFileDialog dialog(parent,caption,dir,filter);
+    QFileDialog dialog(parent,caption,dir);
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilters(filters);
     if (gSet->d_func()->saveFileDialogSize.isValid())
         dialog.resize(gSet->d_func()->saveFileDialogSize);
 
