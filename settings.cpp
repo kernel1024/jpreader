@@ -56,7 +56,7 @@ CSettings::CSettings(QObject *parent)
 void CSettings::writeSettings()
 {
     if (!gSet) return;
-    if (gSet->d_func()->settingsSaveMutex.tryLock()) return;
+    if (!gSet->d_func()->settingsSaveMutex.tryLock()) return;
 
     QSettings settings(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
     QSettings bigdata(QStringLiteral("kernel1024"), QStringLiteral("jpreader-bigdata"));

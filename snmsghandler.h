@@ -37,6 +37,7 @@ public Q_SLOTS:
     void updateTranEngine();
     void hideBarLoading();
     void urlEditSetFocus();
+    void languageContextMenu(const QPoint& pos);
     void renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                                  int exitCode);
 Q_SIGNALS:

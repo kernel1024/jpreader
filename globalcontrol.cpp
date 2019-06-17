@@ -384,7 +384,7 @@ void CGlobalControl::addFavicon(const QString &key, const QIcon &icon)
 
 void CGlobalControl::setTranslationEngine(CStructures::TranslationEngine engine)
 {
-    m_settings->translatorEngine = engine;
+    m_settings->setTranslationEngine(engine);
 }
 
 QUrl CGlobalControl::getInspectorUrl() const

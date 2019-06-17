@@ -120,6 +120,9 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
 
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
             msgHandler, &CSnMsgHandler::tranEngine);
+    comboTranEngine->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(comboTranEngine, &QComboBox::customContextMenuRequested,
+            msgHandler, &CSnMsgHandler::languageContextMenu);
     connect(gSet, &CGlobalControl::translationEngineChanged, msgHandler, &CSnMsgHandler::updateTranEngine);
 
     QShortcut* sc;

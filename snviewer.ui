@@ -299,7 +299,8 @@
         <item>
          <widget class="QComboBox" name="comboTranEngine">
           <property name="toolTip">
-           <string>Translation engine</string>
+           <string>Translation engine.
+Right click to select language pair.</string>
           </property>
          </widget>
         </item>
@@ -505,11 +506,11 @@ Long press forces subsentences mode.</string>
   <tabstop>backButton</tabstop>
   <tabstop>fwdButton</tabstop>
   <tabstop>comboZoom</tabstop>
+  <tabstop>passwordButton</tabstop>
   <tabstop>comboTranEngine</tabstop>
   <tabstop>transButton</tabstop>
   <tabstop>abortBtn</tabstop>
   <tabstop>hideErrorButton</tabstop>
-  <tabstop>passwordButton</tabstop>
  </tabstops>
  <resources/>
  <connections>

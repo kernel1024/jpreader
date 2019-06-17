@@ -149,6 +149,13 @@ void CSnMsgHandler::urlEditSetFocus()
     }
 }
 
+void CSnMsgHandler::languageContextMenu(const QPoint &pos)
+{
+    QMenu cm;
+    cm.addActions(gSet->getTranslationLanguagesActions());
+    cm.exec(snv->comboTranEngine->mapToGlobal(pos));
+}
+
 void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus,
                                             int exitCode)
 {

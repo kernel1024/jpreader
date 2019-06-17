@@ -310,31 +310,23 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->radioAtlas,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        if (val) {
-            gSet->m_settings->translatorEngine=CStructures::teAtlas;
-            Q_EMIT gSet->translationEngineChanged();
-        }
+        if (val)
+            gSet->setTranslationEngine(CStructures::teAtlas);
     });
     connect(ui->radioBingAPI,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        if (val) {
-            gSet->m_settings->translatorEngine=CStructures::teBingAPI;
-            Q_EMIT gSet->translationEngineChanged();
-        }
+        if (val)
+            gSet->setTranslationEngine(CStructures::teBingAPI);
     });
     connect(ui->radioYandexAPI,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        if (val) {
-            gSet->m_settings->translatorEngine=CStructures::teYandexAPI;
-            Q_EMIT gSet->translationEngineChanged();
-        }
+        if (val)
+            gSet->setTranslationEngine(CStructures::teYandexAPI);
     });
     connect(ui->radioGoogleGTX,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        if (val) {
-            gSet->m_settings->translatorEngine=CStructures::teGoogleGTX;
-            Q_EMIT gSet->translationEngineChanged();
-        }
+        if (val)
+            gSet->setTranslationEngine(CStructures::teGoogleGTX);
     });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
