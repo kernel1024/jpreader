@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1721</y>
+        <y>0</y>
         <width>820</width>
-        <height>4112</height>
+        <height>4249</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -532,6 +532,13 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QRadioButton" name="radioAmazonAWS">
+               <property name="text">
+                <string>Amazon Translate</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -782,6 +789,54 @@
                   <widget class="QLineEdit" name="editYandexKey"/>
                  </item>
                 </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_12">
+              <property name="title">
+               <string>Amazon Translate</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Region</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>editAWSRegion</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="editAWSRegion"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Access key</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>editAWSAccessKey</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="editAWSAccessKey"/>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Secret key</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>editAWSSecretKey</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="editAWSSecretKey"/>
                </item>
               </layout>
              </widget>
@@ -1808,6 +1863,7 @@
   <tabstop>radioBingAPI</tabstop>
   <tabstop>radioYandexAPI</tabstop>
   <tabstop>radioGoogleGTX</tabstop>
+  <tabstop>radioAmazonAWS</tabstop>
   <tabstop>atlHost</tabstop>
   <tabstop>atlPort</tabstop>
   <tabstop>atlRetryCnt</tabstop>
@@ -1819,6 +1875,9 @@
   <tabstop>gctxHotkey</tabstop>
   <tabstop>editBingKey</tabstop>
   <tabstop>editYandexKey</tabstop>
+  <tabstop>editAWSRegion</tabstop>
+  <tabstop>editAWSAccessKey</tabstop>
+  <tabstop>editAWSSecretKey</tabstop>
   <tabstop>listDictPaths</tabstop>
   <tabstop>buttonAddDictPath</tabstop>
   <tabstop>buttonDelDictPath</tabstop>

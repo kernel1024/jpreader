@@ -3,6 +3,7 @@
 #include "bingtranslator.h"
 #include "yandextranslator.h"
 #include "googlegtxtranslator.h"
+#include "awstranslator.h"
 
 void CAbstractTranslator::setErrorMsg(const QString &msg)
 {
@@ -50,6 +51,10 @@ CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDir
 
     if (gSet->settings()->translatorEngine==CStructures::teGoogleGTX)
         return new CGoogleGTXTranslator(parent, tranDirection);
+
+    if (gSet->settings()->translatorEngine==CStructures::teAmazonAWS)
+        return new CAWSTranslator(parent, tranDirection, gSet->settings()->awsRegion,
+                                  gSet->settings()->awsAccessKey, gSet->settings()->awsSecretKey);
 
     return nullptr;
 }

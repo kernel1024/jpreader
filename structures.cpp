@@ -141,7 +141,8 @@ const QMap<CStructures::TranslationEngine, QString> &translationEngines()
         { CStructures::teAtlas, QStringLiteral("ATLAS") },
         { CStructures::teBingAPI, QStringLiteral("Bing API") },
         { CStructures::teYandexAPI, QStringLiteral("Yandex API") },
-        { CStructures::teGoogleGTX, QStringLiteral("Google GTX") }
+        { CStructures::teGoogleGTX, QStringLiteral("Google GTX") },
+        { CStructures::teAmazonAWS, QStringLiteral("Amazon Translate") }
     };
 
     return engines;

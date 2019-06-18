@@ -134,6 +134,8 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teBingAPI: ui->radioBingAPI->setChecked(true); break;
         case CStructures::teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
         case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
+        case CStructures::teAmazonAWS: ui->radioAmazonAWS->setChecked(true); break;
+
     }
 
     ui->atlHost->clear();
@@ -151,6 +153,9 @@ void CSettingsTab::loadFromGlobal()
 
     ui->editBingKey->setText(gSet->m_settings->bingKey);
     ui->editYandexKey->setText(gSet->m_settings->yandexKey);
+    ui->editAWSRegion->setText(gSet->m_settings->awsRegion);
+    ui->editAWSAccessKey->setText(gSet->m_settings->awsAccessKey);
+    ui->editAWSSecretKey->setText(gSet->m_settings->awsSecretKey);
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
 
@@ -328,6 +333,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->setTranslationEngine(CStructures::teGoogleGTX);
     });
+    connect(ui->radioAmazonAWS,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->setTranslationEngine(CStructures::teAmazonAWS);
+    });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
@@ -367,6 +377,18 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->editYandexKey,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->yandexKey=val;
+    });
+    connect(ui->editAWSRegion,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->awsRegion=val;
+    });
+    connect(ui->editAWSAccessKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->awsAccessKey=val;
+    });
+    connect(ui->editAWSSecretKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->awsSecretKey=val;
     });
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;

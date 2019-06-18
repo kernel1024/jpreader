@@ -1,4 +1,5 @@
 HEADERS = mainwindow.h \
+    awstranslator.h \
     globalprivate.h \
     pdfworkerprivate.h \
     settingstab.h \
@@ -48,6 +49,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
+    awstranslator.cpp \
     globalprivate.cpp \
     mainwindow.cpp \
     pdfworkerprivate.cpp \

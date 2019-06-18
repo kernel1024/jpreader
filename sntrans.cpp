@@ -147,6 +147,8 @@ void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranSubSentenc
             snv->waitHandler->setText(tr("Translating text with Yandex.Translate API")); break;
         case CStructures::teGoogleGTX:
             snv->waitHandler->setText(tr("Translating text with Google GTX")); break;
+        case CStructures::teAmazonAWS:
+            snv->waitHandler->setText(tr("Translating text with Amazon Translate API")); break;
     }
 
     connect(gSet,&CGlobalControl::stopTranslators,

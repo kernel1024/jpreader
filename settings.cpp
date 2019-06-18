@@ -129,6 +129,9 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("proxyUseTranslator"),proxyUseTranslator);
     settings.setValue(QStringLiteral("bingKey"),bingKey);
     settings.setValue(QStringLiteral("yandexKey"),yandexKey);
+    settings.setValue(QStringLiteral("awsRegion"),awsRegion);
+    settings.setValue(QStringLiteral("awsAccessKey"),awsAccessKey);
+    settings.setValue(QStringLiteral("awsSecretKey"),awsSecretKey);
     settings.setValue(QStringLiteral("createCoredumps"),createCoredumps);
     settings.setValue(QStringLiteral("overrideUserAgent"),overrideUserAgent);
     settings.setValue(QStringLiteral("userAgent"),userAgent);
@@ -263,6 +266,9 @@ void CSettings::readSettings(QObject *control)
                                         CDefaults::proxyUseTranslator).toBool();
     bingKey = settings.value(QStringLiteral("bingKey"),QString()).toString();
     yandexKey = settings.value(QStringLiteral("yandexKey"),QString()).toString();
+    awsRegion = settings.value(QStringLiteral("awsRegion"),QString()).toString();
+    awsAccessKey = settings.value(QStringLiteral("awsAccessKey"),QString()).toString();
+    awsSecretKey = settings.value(QStringLiteral("awsSecretKey"),QString()).toString();
     jsLogConsole = settings.value(QStringLiteral("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     dontUseNativeFileDialog = settings.value(QStringLiteral("dontUseNativeFileDialog"),
                                              CDefaults::dontUseNativeFileDialog).toBool();

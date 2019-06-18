@@ -17,7 +17,8 @@ enum TranslationEngine {
     teAtlas = 1,
     teBingAPI = 2,
     teYandexAPI = 3,
-    teGoogleGTX = 4
+    teGoogleGTX = 4,
+    teAmazonAWS = 5
 };
 
 enum SearchEngine {

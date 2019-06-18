@@ -52,6 +52,7 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
 
     QByteArray ra = rpl->readAll();
 
+    rpl->close();
     rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);

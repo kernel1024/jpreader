@@ -86,6 +86,9 @@ public:
     QString atlToken;
     QString bingKey;
     QString yandexKey;
+    QString awsRegion;
+    QString awsAccessKey;
+    QString awsSecretKey;
 
     QString proxyHost;
     QString proxyLogin;

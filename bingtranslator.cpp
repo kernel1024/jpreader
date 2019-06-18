@@ -87,6 +87,7 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     QByteArray ra = rpl->readAll();
 
+    rpl->close();
     rpl->deleteLater();
 
     doc = QJsonDocument::fromJson(ra);
