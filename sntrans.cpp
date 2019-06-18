@@ -264,7 +264,7 @@ void CSnTrans::showWordTranslation(const QString &html)
     connect(t,&QLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
     connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&QLabel::close);
 
-    QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true);
+    QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true,true);
 }
 
 void CSnTrans::showSuggestedTranslation(const QString &link)

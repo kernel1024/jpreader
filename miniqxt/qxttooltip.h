@@ -41,7 +41,7 @@ class QxtToolTip
 
 public:
     static void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
-                     QRect rect = QRect(), bool allowMouseEnter = false);
+                     QRect rect = QRect(), bool allowMouseEnter = false, bool forceReplace = false);
     static void hide();
 
     static int margin();

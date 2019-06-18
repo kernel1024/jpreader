@@ -169,7 +169,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     auto t = new QLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
     t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
-    QxtToolTip::show(p,t,nullptr);
+    QxtToolTip::show(p,t,nullptr,QRect(),false,true);
 }
 
 void CGlobalUI::showGlobalTooltip(const QString &text)

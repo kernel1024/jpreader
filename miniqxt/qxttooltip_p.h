@@ -52,8 +52,8 @@ public:
     ~QxtToolTipPrivate() override;
 
     static QxtToolTipPrivate* instance();
-    void show(QPoint pos, QWidget* tooltip, QWidget* parent = nullptr,
-              QRect rect = QRect(), bool allowMouseEnter = false);
+    void show(QPoint pos, QWidget* tooltip, QWidget* parent,
+              QRect rect, bool allowMouseEnter, bool forceReplace);
     void setToolTip(QWidget* tooltip);
     bool eventFilter(QObject* object, QEvent* event) override;
     void hideLater();

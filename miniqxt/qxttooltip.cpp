@@ -80,9 +80,9 @@ QxtToolTipPrivate::~QxtToolTipPrivate()
     QApplication::instance()->removeEventFilter(this); // not really necessary but rather for completeness :)
 }
 
-void QxtToolTipPrivate::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, bool allowMouseEnter)
+void QxtToolTipPrivate::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, bool allowMouseEnter, bool forceReplace)
 {
-    if (!isVisible())
+    if (!isVisible() || forceReplace)
     {
         QScreen *screen = nullptr;
 
@@ -181,22 +181,21 @@ bool QxtToolTipPrivate::eventFilter(QObject* object, QEvent* event)
             break;
         }
         case QEvent::Leave:
-        {
             if (!ignoreEnterEvent)
                 hideLater();
             break;
-        }
+
         case QEvent::WindowActivate:
         case QEvent::WindowDeactivate:
-        case QEvent::MouseButtonPress:
-        case QEvent::MouseButtonRelease:
-        case QEvent::MouseButtonDblClick:
         case QEvent::FocusIn:
         case QEvent::FocusOut:
         case QEvent::Wheel:
             hideLater();
             break;
 
+        case QEvent::MouseButtonPress:
+        case QEvent::MouseButtonRelease:
+        case QEvent::MouseButtonDblClick:
         case QEvent::MouseMove:
         {
             const QPoint pos = dynamic_cast<QMouseEvent*>(event)->pos();
@@ -248,9 +247,9 @@ QPoint QxtToolTipPrivate::calculatePos(QScreen *scr, QPoint eventPos) const
 QxtToolTip::QxtToolTip()
 = default;
 
-void QxtToolTip::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, bool allowMouseEnter)
+void QxtToolTip::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect, bool allowMouseEnter, bool forceReplace)
 {
-    QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect, allowMouseEnter);
+    QxtToolTipPrivate::instance()->show(pos, tooltip, parent, rect, allowMouseEnter, forceReplace);
 }
 
 void QxtToolTip::hide()

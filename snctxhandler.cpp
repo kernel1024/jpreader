@@ -495,7 +495,7 @@ void CSnCtxHandler::translateFragment()
                                       text,CDefaults::maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &QLabel::close);
-            QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd());
+            QxtToolTip::show(QCursor::pos(),lbl,snv->parentWnd(),QRect(),false,true);
         }
     },Qt::QueuedConnection);
 
