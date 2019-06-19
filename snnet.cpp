@@ -31,6 +31,8 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
 {
     static QSize multiImgDialogSize = QSize();
 
+    if (gSet->downloadManager()==nullptr) return;
+
     QDialog *dlg = new QDialog(snv);
     Ui::SelectableListDlg ui;
     ui.setupUi(dlg);

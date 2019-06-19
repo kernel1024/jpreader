@@ -80,8 +80,6 @@ void CLightTranslator::gotTranslation(const QString &text)
 
 CLightTranslator::~CLightTranslator()
 {
-    // BUG: some crashing here
-
     delete ui;
 }
 

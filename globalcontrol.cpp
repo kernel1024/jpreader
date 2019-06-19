@@ -253,6 +253,8 @@ void CGlobalControl::initialize()
 bool CGlobalControl::setupIPC()
 {
     Q_D(CGlobalControl);
+    if (!d->ipcServer.isNull()) return false;
+
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
     serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
 
@@ -765,7 +767,13 @@ void CGlobalControl::cleanupAndExit()
     m_ui->gctxTranHotkey.unsetShortcut();
     CPDFWorker::freePdfToText();
 
+    // free global objects
+    d->logWindow.reset(nullptr);
+    d->downloadManager.reset(nullptr);
+    d->auxDictionary.reset(nullptr);
+    d->lightTranslator.reset(nullptr);
     d->ipcServer->close();
+    d->ipcServer.reset(nullptr);
 
     QMetaObject::invokeMethod(QApplication::instance(),&QApplication::quit,Qt::QueuedConnection);
 }

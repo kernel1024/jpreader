@@ -38,11 +38,11 @@ public:
     ArticleNetworkAccessManager * dictNetMan { nullptr };
     CGoldenDictMgr * dictManager { nullptr };
 
-    QScopedPointer<CLogDisplay> logWindow;
-    QScopedPointer<CDownloadManager> downloadManager;
-    QScopedPointer<CAuxDictionary> auxDictionary;
-    QScopedPointer<QLocalServer> ipcServer;
-    QScopedPointer<CLightTranslator> lightTranslator;
+    QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;
+    QScopedPointer<CDownloadManager, QScopedPointerDeleteLater> downloadManager;
+    QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
+    QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
+    QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;
