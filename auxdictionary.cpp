@@ -30,6 +30,8 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     connect(ui->listWords, &QListWidget::itemSelectionChanged,
             this, &CAuxDictionary::wordListSelectionChanged);
+    connect(ui->listWords, &QListWidget::itemDoubleClicked,
+            this, &CAuxDictionary::wordListLookupItem);
 
     connect(wordFinder, &WordFinder::updated, this, &CAuxDictionary::prefixMatchUpdated);
     connect(wordFinder, &WordFinder::finished, this, &CAuxDictionary::prefixMatchFinished);
@@ -85,7 +87,11 @@ void CAuxDictionary::editKeyPressed(int key)
 
 void CAuxDictionary::dictLoadUrl(const QUrl &url)
 {
-    viewArticles->setSource(url);
+    if (viewArticles->source() == url) {
+        viewArticles->reload();
+    } else {
+        viewArticles->setSource(url);
+    }
 }
 
 void CAuxDictionary::updateMatchResults(bool finished)
@@ -222,6 +228,11 @@ void CAuxDictionary::wordListSelectionChanged()
 
         showTranslationFor(newValue);
     }
+}
+
+void CAuxDictionary::wordListLookupItem(QListWidgetItem *item)
+{
+    ui->editWord->setText(item->text());
 }
 
 void CAuxDictionary::articleLoadFinished()

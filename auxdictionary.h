@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QStringListModel>
 #include <QTextBrowser>
+#include <QListWidgetItem>
 
 namespace Ui {
 class CAuxDictionary;
@@ -52,6 +53,7 @@ public Q_SLOTS:
     void translateInputChanged(const QString& text);
     void translateInputFinished();
     void wordListSelectionChanged();
+    void wordListLookupItem(QListWidgetItem* item);
     void prefixMatchUpdated();
     void prefixMatchFinished();
     void articleLoadFinished();
