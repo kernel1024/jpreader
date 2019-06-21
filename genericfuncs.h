@@ -13,6 +13,7 @@ const int httpCodeFound = 200;
 const int httpCodeRedirect = 300;
 const int httpCodeClientError = 400;
 const int httpCodeServerError = 500;
+const int httpCodeClientUnknownError = 499;
 const int oneMB = 1024*1024;
 }
 

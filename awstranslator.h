@@ -2,6 +2,7 @@
 #define AWSTRANSLATOR_H
 
 #include <QObject>
+#include "structures.h"
 #include "webapiabstracttranslator.h"
 
 class CAWSTranslator : public CWebAPIAbstractTranslator
@@ -20,6 +21,8 @@ private:
 
     QByteArray getSignatureKey(const QString& key, const QString& dateStamp,
                              const QString& regionName, const QString& serviceName) const;
+    QNetworkRequest createAWSRequest(const QString &service, const QString &amz_target,
+                                     const CStringHash &additionalHeaders, const QByteArray &payload);
 
 protected:
     QString tranStringInternal(const QString& src) override;

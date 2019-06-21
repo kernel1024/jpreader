@@ -52,9 +52,10 @@ CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDir
     if (gSet->settings()->translatorEngine==CStructures::teGoogleGTX)
         return new CGoogleGTXTranslator(parent, tranDirection);
 
-    if (gSet->settings()->translatorEngine==CStructures::teAmazonAWS)
+    if (gSet->settings()->translatorEngine==CStructures::teAmazonAWS) {
         return new CAWSTranslator(parent, tranDirection, gSet->settings()->awsRegion,
                                   gSet->settings()->awsAccessKey, gSet->settings()->awsSecretKey);
+    }
 
     return nullptr;
 }

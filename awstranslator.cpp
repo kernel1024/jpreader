@@ -5,6 +5,7 @@
 #include <QNetworkReply>
 #include <QMessageAuthenticationCode>
 #include <QCryptographicHash>
+#include <algorithm>
 #include "awstranslator.h"
 
 CAWSTranslator::CAWSTranslator(QObject *parent, const CLangPair &lang, const QString &region,
@@ -25,7 +26,7 @@ bool CAWSTranslator::initTran()
 }
 
 QByteArray CAWSTranslator::getSignatureKey(const QString &key, const QString &dateStamp,
-                                      const QString &regionName, const QString &serviceName) const
+                                           const QString &regionName, const QString &serviceName) const
 {
     QByteArray bKey = QStringLiteral("AWS4%1").arg(key).toUtf8();
     QByteArray kDate = QMessageAuthenticationCode::hash(dateStamp.toUtf8(),bKey,QCryptographicHash::Sha256);
@@ -35,41 +36,47 @@ QByteArray CAWSTranslator::getSignatureKey(const QString &key, const QString &da
     return kSigning;
 }
 
-QString CAWSTranslator::tranStringInternal(const QString &src)
+QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
+                                                 const QString& amz_target,
+                                                 const CStringHash& additionalHeaders,
+                                                 const QByteArray& payload)
 {
-    QJsonObject reqtext;
-    reqtext[QStringLiteral("Text")] = src;
-    reqtext[QStringLiteral("SourceLanguageCode")] = language().langFrom.bcp47Name();
-    reqtext[QStringLiteral("TargetLanguageCode")] = language().langTo.bcp47Name();
-    QJsonDocument doc(reqtext);
-    QByteArray payload = doc.toJson(QJsonDocument::Compact);
-
-
-    const int httpUnknownErrorCode = 499;
-    const QString service("translate");
-    const QString algorithm("AWS4-HMAC-SHA256");
-    const QString signedHeaders = QStringLiteral("content-type;host;x-amz-date;x-amz-target");
-    const QString amz_target("AWSShineFrontendService_20170701.TranslateText");
-    const QString contentType("application/x-amz-json-1.1");
+    const QString algorithm(QStringLiteral("AWS4-HMAC-SHA256"));
 
     QString host = QStringLiteral("%1.%2.amazonaws.com").arg(service,m_region);
     QDateTime dt = QDateTime::currentDateTimeUtc();
     QString amz_date = dt.toString(QStringLiteral("yyyyMMddThhmmssZ"));
-    QString dateStamp = dt.toString("yyyyMMdd");
+    QString dateStamp = dt.toString(QStringLiteral("yyyyMMdd"));
+
+    QUrl rqurl = QUrl(QStringLiteral("https://%1/").arg(host));
+    QNetworkRequest rq(rqurl);
+
+    CStringHash headers = additionalHeaders;
+    headers[QStringLiteral("host")] = host;
+    headers[QStringLiteral("x-amz-date")] = amz_date;
+    headers[QStringLiteral("x-amz-target")] = amz_target;
+
+    QStringList headerNames;
+    CStringHash lheaders;
+    for (auto it = headers.constKeyValueBegin(), end = headers.constKeyValueEnd(); it!=end; ++it) {
+        const QString lkey = (*it).first.toLower();
+        lheaders[lkey] = (*it).second;
+        headerNames.append(lkey);
+        rq.setRawHeader((*it).first.toLatin1(),(*it).second.toLatin1());
+    }
+    std::sort(headerNames.begin(),headerNames.end());
+
+    QString signedHeaders = headerNames.join(QChar(';'));
+
+    QString canonicalHeaders;
+    for (const auto& key : qAsConst(headerNames)) {
+        canonicalHeaders.append(QStringLiteral("%1:%2\n").arg(key,lheaders.value(key)));
+    }
 
     QString credentialScope = QStringLiteral("%1/%2/%3/aws4_request").arg(
-                                    dateStamp,
-                                    m_region,
-                                    service);
-
-    QString canonicalHeaders = QStringLiteral("content-type:%1\n"
-                                              "host:%2\n"
-                                              "x-amz-date:%3\n"
-                                              "x-amz-target:%4\n").arg(
-                                   contentType,
-                                   host,
-                                   amz_date,
-                                   amz_target);
+                                  dateStamp,
+                                  m_region,
+                                  service);
 
     QString payloadHash = QString::fromLatin1(QCryptographicHash::hash(payload,QCryptographicHash::Sha256).toHex());
 
@@ -94,20 +101,34 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
                                                                                              service),
                                                                              QCryptographicHash::Sha256).toHex());
 
-    QByteArray authorization_header = QString("%1 Credential=%2/%3, "
-                                              "SignedHeaders=%4, "
-                                              "Signature=%5").arg(algorithm,m_accessKey,credentialScope,
-                                                                  signedHeaders,
-                                                                  signature).toLatin1();
+    QByteArray authorization_header = QStringLiteral("%1 Credential=%2/%3, "
+                                                     "SignedHeaders=%4, "
+                                                     "Signature=%5").arg(algorithm,m_accessKey,credentialScope,
+                                                                         signedHeaders,
+                                                                         signature).toLatin1();
 
-
-    QUrl rqurl = QUrl(QStringLiteral("https://%1/").arg(host));
-
-    QNetworkRequest rq(rqurl);
-    rq.setRawHeader("Content-Type",contentType.toLatin1());
-    rq.setRawHeader("X-Amz-Date",amz_date.toLatin1());
-    rq.setRawHeader("X-Amz-Target",amz_target.toLatin1());
     rq.setRawHeader("Authorization",authorization_header);
+
+    return rq;
+}
+
+QString CAWSTranslator::tranStringInternal(const QString &src)
+{
+    QJsonObject reqtext;
+    reqtext[QStringLiteral("Text")] = src;
+    reqtext[QStringLiteral("SourceLanguageCode")] = language().langFrom.bcp47Name();
+    reqtext[QStringLiteral("TargetLanguageCode")] = language().langTo.bcp47Name();
+    QJsonDocument doc(reqtext);
+    QByteArray payload = doc.toJson(QJsonDocument::Compact);
+
+    const QString service(QStringLiteral("translate"));
+    const QString amz_target(QStringLiteral("AWSShineFrontendService_20170701.TranslateText"));
+    const QString contentType(QStringLiteral("application/x-amz-json-1.1"));
+
+    CStringHash signedHeaders;
+    signedHeaders[QStringLiteral("Content-Type")] = contentType;
+
+    QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
 
     QNetworkReply *rpl = nam()->post(rq,payload);
 
@@ -122,7 +143,7 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
     bool ok;
     int status = vstatus.toInt(&ok);
     if (!ok)
-        status = httpUnknownErrorCode;
+        status = CDefaults::httpCodeClientUnknownError;
 
     rpl->close();
 
@@ -137,13 +158,12 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
     QJsonValue errType = vobj.value(QStringLiteral("__type"));
     if (err.isString()) {
         setErrorMsg(tr("ERROR: AWS translator JSON error #%1: %2, HTTP status: %3")
-                    .arg(errType.toString())
-                    .arg(err.toString())
+                    .arg(errType.toString(),err.toString())
                     .arg(status));
         return QStringLiteral("ERROR:TRAN_AWS_JSON_ERROR");
     }
 
-    if (status!=200) {
+    if (status!=CDefaults::httpCodeFound) {
         setErrorMsg(QStringLiteral("ERROR: AWS translator HTTP generic error, HTTP status: %1").arg(status));
         return QStringLiteral("ERROR:TRAN_AWS_HTTP_ERROR");
     }
