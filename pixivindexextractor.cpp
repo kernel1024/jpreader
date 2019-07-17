@@ -268,7 +268,7 @@ void CPixivIndexExtractor::addNovelInfoBlock(const QString& workId, const QStrin
                                              const QString& author, const QString& authorId,
                                              const QStringList& tags, const QString& description)
 {
-    m_html.append(QStringLiteral("<div style='border-top:1px black solid;padding-top:10px;'>"));
+    m_html.append(QStringLiteral("<div style='border-top:1px black solid;padding-top:10px;overflow:auto;'>"));
     m_html.append(QStringLiteral("<div style='width:120px;float:left;margin-right:20px;'>"));
     m_html.append(QStringLiteral("<a href=\"https://www.pixiv.net/novel/show.php?"
                                  "id=%1\"><img src=\"%2\" style='width:120px;'/></a>")
@@ -318,8 +318,11 @@ void CPixivIndexExtractor::finalizeHtml()
     header = QStringLiteral("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/member.php?"
                             "id=%2\">%3</a>.</h3>").arg(header,m_authorId,author);
 
-    if (m_html.isEmpty())
+    if (m_html.isEmpty()) {
         m_html = tr("Nothing found.");
+    } else {
+        header.append(tr("Found %1 novels.").arg(m_infoBlockCount));
+    }
     m_html.prepend(header);
     m_html = CGenericFuncs::makeSimpleHtml(title,m_html);
 

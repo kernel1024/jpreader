@@ -95,18 +95,23 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         m_menu.addSeparator();
     }
 
-    if ((linkUrl.isValid() && linkUrl.toString().contains(
-             QStringLiteral("pixiv.net/novel/show.php"), Qt::CaseInsensitive))
-            || (!snv->m_fileChanged && snv->urlEdit->text().contains(
-                    QStringLiteral("pixiv.net/novel/show.php"), Qt::CaseInsensitive))) {
+    QString title = snv->txtBrowser->page()->title();
+    pixivUrl.clear();
+    if (!snv->m_fileChanged)
         pixivUrl = QUrl::fromUserInput(snv->urlEdit->text());
-        QString title = snv->txtBrowser->page()->title();
-        if (linkUrl.isValid()) {
-            pixivUrl = linkUrl;
-            title.clear();
-        }
+    if (linkUrl.isValid()) {
+        pixivUrl = linkUrl;
+        title.clear();
+    }
+    if (!pixivUrl.host().contains(QStringLiteral("pixiv.net")))
+        pixivUrl.clear();
+    pixivUrl.setFragment(QString());
+    QUrlQuery puq(pixivUrl);
+    QString pixivId = puq.queryItemValue(QStringLiteral("id"));
+    pixivId.remove(QRegExp(QStringLiteral("[^0-9]")));
 
-        pixivUrl.setFragment(QString());
+    if (pixivUrl.isValid() && pixivUrl.toString().contains(
+             QStringLiteral("pixiv.net/novel/show.php"), Qt::CaseInsensitive)) {
         ac = m_menu.addAction(tr("Extract pixiv novel in new background tab"));
         connect(ac, &QAction::triggered, this, [this,pixivUrl,title](){
             snv->netHandler->processPixivNovel(pixivUrl,title,false,false);
@@ -128,19 +133,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         m_menu.addSeparator();
     }
 
-    if ((linkUrl.isValid() && linkUrl.toString().contains(
-             QStringLiteral("pixiv.net/novel/member.php"), Qt::CaseInsensitive))
-            || (!snv->m_fileChanged && snv->urlEdit->text().contains(
-                    QStringLiteral("pixiv.net/novel/member.php"), Qt::CaseInsensitive))) {
-        pixivUrl = QUrl::fromUserInput(snv->urlEdit->text());
-        QString title = snv->txtBrowser->page()->title();
-        if (linkUrl.isValid()) {
-            pixivUrl = linkUrl;
-            title.clear();
-        }
-        QUrlQuery puq(pixivUrl);
-        QString pixivId = puq.queryItemValue(QStringLiteral("id"));
-        pixivId.remove(QRegExp(QStringLiteral("[^0-9]")));
+    if ((pixivUrl.isValid() && !pixivId.isEmpty() && (
+             pixivUrl.toString().contains(QStringLiteral("pixiv.net/member.php"), Qt::CaseInsensitive) ||
+             pixivUrl.toString().contains(QStringLiteral("pixiv.net/novel/member.php"), Qt::CaseInsensitive) ||
+             pixivUrl.toString().contains(QStringLiteral("pixiv.net/novel/bookmark.php"), Qt::CaseInsensitive)))) {
 
         ac = m_menu.addAction(tr("Extract novel list for author in new tab"));
         connect(ac, &QAction::triggered, this, [this,pixivId](){

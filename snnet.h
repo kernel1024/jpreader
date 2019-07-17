@@ -22,7 +22,7 @@ public:
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
-    bool loadWithTempFile(const QString & html, bool createNewTab);
+    bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);
     QUrl getLoadedUrl() const { return m_loadedUrl; }
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);

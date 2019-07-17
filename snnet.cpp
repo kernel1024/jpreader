@@ -99,7 +99,7 @@ bool CSnNet::isValidLoadedUrl()
     return isValidLoadedUrl(m_loadedUrl);
 }
 
-bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
+bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoTranslate)
 {
     QByteArray ba = html.toUtf8();
     QString fname = gSet->makeTmpFileName(QStringLiteral("html"),true);
@@ -109,9 +109,11 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab)
         f.close();
         gSet->appendCreatedFiles(fname);
         if (createNewTab) {
-            new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
+            auto sv = new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
+            sv->m_requestAutotranslate = autoTranslate;
         } else {
             snv->m_fileChanged = false;
+            snv->m_requestAutotranslate = autoTranslate;
             snv->txtBrowser->load(QUrl::fromLocalFile(fname));
             snv->m_auxContentLoaded=false;
         }
@@ -246,13 +248,21 @@ void CSnNet::downloadPixivManga()
 
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
-    auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
-    sv->m_requestAutotranslate = translate;
+    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
+        auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
+        sv->m_requestAutotranslate = translate;
+    } else {
+        loadWithTempFile(html,true,translate);
+    }
 }
 
 void CSnNet::pixivListReady(const QString &html)
 {
-    new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
+    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
+        new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
+    } else {
+        loadWithTempFile(html,true);
+    }
 }
 
 void CSnNet::pdfConverted(const QString &html)
