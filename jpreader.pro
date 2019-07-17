@@ -2,6 +2,7 @@ HEADERS = mainwindow.h \
     awstranslator.h \
     globalprivate.h \
     pdfworkerprivate.h \
+    pixivindexextractor.h \
     settingstab.h \
     snviewer.h \
     specwidgets.h \
@@ -53,6 +54,7 @@ SOURCES = main.cpp \
     globalprivate.cpp \
     mainwindow.cpp \
     pdfworkerprivate.cpp \
+    pixivindexextractor.cpp \
     settingstab.cpp \
     snviewer.cpp \
     atlastranslator.cpp \

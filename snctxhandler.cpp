@@ -128,6 +128,35 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         m_menu.addSeparator();
     }
 
+    if ((linkUrl.isValid() && linkUrl.toString().contains(
+             QStringLiteral("pixiv.net/novel/member.php"), Qt::CaseInsensitive))
+            || (!snv->m_fileChanged && snv->urlEdit->text().contains(
+                    QStringLiteral("pixiv.net/novel/member.php"), Qt::CaseInsensitive))) {
+        pixivUrl = QUrl::fromUserInput(snv->urlEdit->text());
+        QString title = snv->txtBrowser->page()->title();
+        if (linkUrl.isValid()) {
+            pixivUrl = linkUrl;
+            title.clear();
+        }
+        QUrlQuery puq(pixivUrl);
+        QString pixivId = puq.queryItemValue(QStringLiteral("id"));
+        pixivId.remove(QRegExp(QStringLiteral("[^0-9]")));
+
+        ac = m_menu.addAction(tr("Extract novel list for author in new tab"));
+        connect(ac, &QAction::triggered, this, [this,pixivId](){
+            snv->netHandler->processPixivNovelList(pixivId,CPixivIndexExtractor::WorkIndex);
+        });
+        pixivActions.append(ac);
+
+        ac = m_menu.addAction(tr("Extract novel bookmarks list for author in new tab"));
+        connect(ac, &QAction::triggered, this, [this,pixivId](){
+            snv->netHandler->processPixivNovelList(pixivId,CPixivIndexExtractor::BookmarksIndex);
+        });
+        pixivActions.append(ac);
+
+        m_menu.addSeparator();
+    }
+
     if (!sText.isEmpty()) {
         m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
 
@@ -534,7 +563,6 @@ void CSnCtxHandler::saveToFile()
     if (fname.isNull() || fname.isEmpty()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    QFileInfo fi(fname);
     if (!selectedText.isEmpty()) {
         QFile f(fname);
         f.open(QIODevice::WriteOnly|QIODevice::Truncate);

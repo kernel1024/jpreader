@@ -47,7 +47,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     void start();
     void novelLoadFinished();
-    void novelLoadError(QNetworkReply::NetworkError error);
+    void loadError(QNetworkReply::NetworkError error);
 
 private Q_SLOTS:
     void subLoadFinished();

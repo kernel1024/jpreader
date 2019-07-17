@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QWebEngineScript>
 #include <QNetworkReply>
+#include "pixivindexextractor.h"
 
 class CSnippetViewer;
 
@@ -15,6 +16,7 @@ class CSnNet : public QObject
 private:
     CSnippetViewer *snv;
     QUrl m_loadedUrl;
+
 public:
     explicit CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QStringList& urls, const QUrl &referer);
@@ -22,6 +24,8 @@ public:
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab);
     QUrl getLoadedUrl() const { return m_loadedUrl; }
+    void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
+    void processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);
 
 Q_SIGNALS:
     void startPdfConversion(const QString& filename);
@@ -35,9 +39,9 @@ public Q_SLOTS:
     void loadStarted();
     void loadFinished(bool ok);
     void userNavigationRequest(const QUrl& url, int type, bool isMainFrame);
-    void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void downloadPixivManga();
     void pixivNovelReady(const QString& html, bool focus, bool translate);
+    void pixivListReady(const QString& html);
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

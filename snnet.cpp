@@ -18,6 +18,7 @@
 #include "downloadmanager.h"
 #include "genericfuncs.h"
 #include "pixivnovelextractor.h"
+#include "pixivindexextractor.h"
 #include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
@@ -195,6 +196,34 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::start,Qt::QueuedConnection);
 }
 
+void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode)
+{
+    auto ex = new CPixivIndexExtractor();
+    auto th = new QThread();
+    ex->setParams(snv,pixivId);
+
+    connect(ex,&CPixivIndexExtractor::listReady,this,&CSnNet::pixivListReady,Qt::QueuedConnection);
+    connect(ex,&CPixivIndexExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
+    ex->moveToThread(th);
+    th->start();
+
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+    switch (mode) {
+        case CPixivIndexExtractor::WorkIndex:
+            QMetaObject::invokeMethod(ex,&CPixivIndexExtractor::createNovelList,Qt::QueuedConnection);
+            break;
+        case CPixivIndexExtractor::BookmarksIndex:
+            QMetaObject::invokeMethod(ex,&CPixivIndexExtractor::createNovelBookmarksList,Qt::QueuedConnection);
+            break;
+        default:
+            qCritical() << "Unknown pixiv index mode " << mode;
+    }
+}
+
 void CSnNet::downloadPixivManga()
 {
     auto ac = qobject_cast<QAction*>(sender());
@@ -219,6 +248,11 @@ void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 {
     auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
     sv->m_requestAutotranslate = translate;
+}
+
+void CSnNet::pixivListReady(const QString &html)
+{
+    new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
 }
 
 void CSnNet::pdfConverted(const QString &html)

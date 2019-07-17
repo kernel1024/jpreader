@@ -43,7 +43,7 @@ void CPixivNovelExtractor::start()
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
         connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivNovelExtractor::novelLoadError);
+                this,&CPixivNovelExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
     });
 }
@@ -58,6 +58,10 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QUrl origin = rpl->url();
         QUrlQuery qr(origin);
+
+        QString hauthor;
+        QString hauthornum;
+
         m_novelId = qr.queryItemValue(QStringLiteral("id"));
 
         QString wtitle = m_title;
@@ -73,8 +77,6 @@ void CPixivNovelExtractor::novelLoadFinished()
             htitle = html.mid(hpos, hlen);
         }
 
-        QString hauthor;
-        QString hauthornum;
         QRegExp arx(QStringLiteral("<a[^>]*class=\"user-name\"[^>]*>"),Qt::CaseInsensitive);
         int aidx = arx.indexIn(html);
         if (aidx>=0) {
@@ -170,11 +172,12 @@ void CPixivNovelExtractor::novelLoadFinished()
         }
         if (!hauthor.isEmpty()) {
             html.prepend(QStringLiteral("Author: <a href=\"https://www.pixiv.net/member.php?"
-                                                "id=%1\">%2</a>\n\n")
+                                        "id=%1\">%2</a>\n\n")
                          .arg(hauthornum,hauthor));
         }
         if (!htitle.isEmpty())
             html.prepend(QStringLiteral("Title: <b>%1</b>\n\n").arg(htitle));
+
 
         m_html = html;
 
@@ -183,12 +186,12 @@ void CPixivNovelExtractor::novelLoadFinished()
     rpl->deleteLater();
 }
 
-void CPixivNovelExtractor::novelLoadError(QNetworkReply::NetworkError error)
+void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
 {
     Q_UNUSED(error)
     gSet->app()->restoreOverrideCursor();
 
-    QString msg(QStringLiteral("Unable to load pixiv novel."));
+    QString msg(QStringLiteral("Unable to load from pixiv."));
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
@@ -448,9 +451,9 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
         if (doc.isObject()) {
             QJsonObject obj = doc.object();
 
-            QJsonValue v = obj.value(QStringLiteral("error"));
-            if (v.isString()) {
-                qWarning() << QStringLiteral("Images extractor error: %1").arg(v.toString());
+            QString err = obj.value(QStringLiteral("error")).toString();
+            if (!err.isNull()) {
+                qWarning() << QStringLiteral("Images extractor error: %1").arg(err);
                 return res;
             }
         }
@@ -466,29 +469,21 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QJsonValue v = obj.value(QStringLiteral("error"));
-        if (v.isString()) {
-            qWarning() << QStringLiteral("Images extractor error: %1").arg(v.toString());
+        QString err = obj.value(QStringLiteral("error")).toString();
+        if (!err.isNull()) {
+            qWarning() << QStringLiteral("Images extractor error: %1").arg(err);
             return res;
         }
 
-        v = obj.value(QStringLiteral("illustId"));
-        if (v.isString())
-            illustId = v.toString();
+        illustId = obj.value(QStringLiteral("illustId")).toString();
+        pageCount = qRound(obj.value(QStringLiteral("pageCount")).toDouble(-1.0));
 
-        v = obj.value(QStringLiteral("pageCount"));
-        if (v.isDouble())
-            pageCount = qRound(v.toDouble(-1.0));
-
-        v = obj.value(QStringLiteral("urls"));
-        if (v.isObject()) {
-            QJsonObject uobj = v.toObject();
-            v = uobj.value(QStringLiteral("original"));
-            if (v.isString()) {
-                QFileInfo fi(v.toString());
-                path = fi.path();
-                suffix = fi.completeSuffix();
-            }
+        QString fname = obj.value(QStringLiteral("urls")).toObject()
+                        .value(QStringLiteral("original")).toString();
+        if (!fname.isNull()) {
+            QFileInfo fi(fname);
+            path = fi.path();
+            suffix = fi.completeSuffix();
         }
     }
 
@@ -543,62 +538,40 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QJsonValue v = obj.value(QStringLiteral("error"));
-        if (v.isString()) {
-            res = QStringLiteral("Novel extractor error: %1").arg(v.toString());
-            return res;
-        }
+        QString err = obj.value(QStringLiteral("error")).toString();
+        if (!err.isNull())
+            return QStringLiteral("Novel extractor error: %1").arg(err);
 
-        v = obj.value(QStringLiteral("content"));
-        if (v.isString())
-            res = v.toString();
+        res = obj.value(QStringLiteral("content")).toString();
+        title = obj.value(QStringLiteral("title")).toString();
+        authorNum = obj.value(QStringLiteral("userId")).toString();
 
-        v = obj.value(QStringLiteral("title"));
-        if (v.isString())
-            title = v.toString();
-
-        v = obj.value(QStringLiteral("userId"));
-        if (v.isString())
-            authorNum = v.toString();
-
-        v = obj.value(QStringLiteral("tags"));
-        if (v.isObject()) {
-            QJsonObject tobj = v.toObject();
-            v = tobj.value(QStringLiteral("tags"));
-            if (v.isArray()) {
-                const QJsonArray vtags = v.toArray();
-                for(const auto &tag : vtags) {
-                    if (tag.isObject()) {
-                        tobj = tag.toObject();
-                        QJsonValue vt = tobj.value(QStringLiteral("tag"));
-                        if (vt.isString())
-                            tags.append(vt.toString());
-                    }
-                }
-            }
+        const QJsonArray vtags = obj.value(QStringLiteral("tags")).toObject()
+                                 .value(QStringLiteral("tags")).toArray();
+        for(const auto &tag : vtags) {
+            QString t = tag.toObject().value(QStringLiteral("tag")).toString();
+            if (!t.isEmpty())
+                tags.append(t);
         }
 
     } else {
-        res = tr("ERROR: Unable to find novel subdocument.");
-        return res;
+        return tr("ERROR: Unable to find novel subdocument.");
+
     }
 
     doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(authorNum));
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QJsonValue v = obj.value(QStringLiteral("error"));
-        if (v.isString()) {
-            res = QStringLiteral("Author parser error: %1").arg(v.toString());
-            return res;
-        }
+        QString err = obj.value(QStringLiteral("error")).toString();
+        if (!err.isNull())
+            return QStringLiteral("Author parser error: %1").arg(err);
 
-        v = obj.value(QStringLiteral("name"));
-        if (v.isString())
-            author = v.toString();
+        author = obj.value(QStringLiteral("name")).toString();
+
     } else {
-        res = tr("ERROR: Unable to find author subdocument.");
-        return res;
+        return tr("ERROR: Unable to find author subdocument.");
+
     }
 
     return res;
