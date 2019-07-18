@@ -19,7 +19,8 @@ private:
 
 public:
     explicit CSnNet(CSnippetViewer * parent);
-    void multiImgDownload(const QStringList& urls, const QUrl &referer);
+    void multiImgDownload(const QStringList& urls, const QUrl &referer,
+                          const QString &preselectedName = QString());
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);

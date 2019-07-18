@@ -28,7 +28,7 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     snv = parent;
 }
 
-void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
+void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, const QString& preselectedName)
 {
     static QSize multiImgDialogSize = QSize();
 
@@ -64,10 +64,21 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer)
     ui.syntax->setCurrentIndex(0);
     ui.list->addItems(urls);
     dlg->setWindowTitle(tr("Multiple images download"));
+    if (!preselectedName.isEmpty())
+        ui.list->selectAll();
 
     if (dlg->exec()==QDialog::Accepted) {
-        QString dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
-                                                           CGenericFuncs::getTmpDir());
+        QString dir;
+        if (ui.checkZipFile->isChecked()) {
+            QString fname = preselectedName;
+            if (!fname.endsWith(QStringLiteral(".zip"),Qt::CaseInsensitive))
+                fname += QStringLiteral(".zip");
+            dir = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+                                                  QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
+        } else {
+            dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
+                                                       CGenericFuncs::getTmpDir());
+        }
         int index = 0;
         const QList<QListWidgetItem *> itml = ui.list->selectedItems();
         for (const QListWidgetItem* itm : itml){
@@ -237,11 +248,14 @@ void CSnNet::downloadPixivManga()
         QStringList sl = CPixivNovelExtractor::parseJsonIllustPage(html,origin);
         if (sl.isEmpty()) // no JSON found
             sl = CPixivNovelExtractor::parseIllustPage(html);
-        if (sl.isEmpty()) {
+        QUrlQuery qr(origin);
+        QString id = qr.queryItemValue(QStringLiteral("illust_id"));
+        if (sl.isEmpty() || id.isEmpty()) {
             QMessageBox::warning(snv,tr("JPReader"),
                                  tr("No pixiv manga image urls found"));
         } else {
-            snv->netHandler->multiImgDownload(sl,origin);
+
+            snv->netHandler->multiImgDownload(sl,origin,id);
         }
     });
 }

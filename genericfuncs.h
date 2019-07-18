@@ -51,6 +51,8 @@ public:
     static QString bool2str2(bool value);
     static int numDigits(int n);
 
+    static bool writeBytesToZip(const QString& zipFile, const QString& fileName, const QByteArray& data);
+
     static QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                       const QString & dir = QString(), const QStringList & filters = QStringList(),
                                       QString * selectedFilter = nullptr);

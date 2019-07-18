@@ -18,7 +18,7 @@ class CDownloadItem
 {
 public:
     quint32 id;
-    QString fileName, mimeType, errorString;
+    QString pathName, mimeType, errorString;
     QWebEngineDownloadItem::DownloadState state;
     qint64 received, total;
     QWebEngineDownloadItem* downloadItem;
@@ -37,6 +37,8 @@ public:
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
     bool isEmpty();
+    QString getFileName() const;
+    QString getZipName() const;
 };
 
 Q_DECLARE_METATYPE(CDownloadItem)

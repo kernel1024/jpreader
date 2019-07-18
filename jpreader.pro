@@ -148,6 +148,12 @@ exists( /usr/include/magic.h ) {
     error("icu not found.");
 }
 
+packagesExist(libzip) {
+    PKGCONFIG += libzip
+} else {
+    error("libzip not found.")
+}
+
 PKGCONFIG += icu-uc icu-io icu-i18n xcb xcb-keysyms
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {

@@ -107,7 +107,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     while ((len < maxQueryLen) && !m_ids.isEmpty()) {
         QString v = m_ids.takeFirst();
         uq.addQueryItem(key,v);
-        len += key.length()+v.length()+8; // &, = and %5B%5D
+        len += key.length()+v.length()+2;
     }
     QUrl url(QStringLiteral("https://www.pixiv.net/ajax/user/%1/profile/novels")
              .arg(m_authorId));

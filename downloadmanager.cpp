@@ -11,6 +11,10 @@
 #include "snviewer.h"
 #include "ui_downloadmanager.h"
 
+namespace CDefaults {
+const char zipSeparator = 0x00;
+}
+
 CDownloadManager::CDownloadManager(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CDownloadManager)
@@ -45,13 +49,17 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     QUrl url = QUrl(src);
     if (!url.isValid() || url.isRelative()) return;
 
-    QString fname = path;
-    if (!fname.endsWith('/')) fname.append('/');
+    QString fname;
     if (index>=0) {
         fname.append(QStringLiteral("%1_")
                      .arg(index,CGenericFuncs::numDigits(maxIndex),indexBase,QLatin1Char('0')));
     }
     fname.append(url.fileName());
+    if (path.endsWith(QStringLiteral(".zip"),Qt::CaseInsensitive)) {
+        fname = QStringLiteral("%1%2%3").arg(path).arg(CDefaults::zipSeparator).arg(fname);
+    } else {
+        fname = QDir(path).filePath(fname);
+    }
 
     if (!isVisible())
         show();
@@ -195,6 +203,8 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
     const QSize iconSize(16,16);
 
     CDownloadItem t = downloads.at(idx);
+    QString zfname = t.getZipName();
+
     if (role == Qt::DecorationRole) {
         if (index.column()==0) {
             switch (t.state) {
@@ -211,9 +221,16 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
             return QVariant();
         }
     } else if (role == Qt::DisplayRole) {
-        QFileInfo fi(t.fileName);
         switch (index.column()) {
-            case 1: return fi.fileName();
+            case 1: {
+                QFileInfo fi(t.getFileName());
+                if (!zfname.isEmpty()) {
+                    QFileInfo zfi(zfname);
+                    return tr("%1 (zip: %2)").arg(fi.fileName(),zfi.fileName());
+                }
+
+                return fi.fileName();
+            }
             case 2:
                 if (t.total==0) return QStringLiteral("0%");
                 return QStringLiteral("%1%").arg(100*t.received/t.total);
@@ -228,7 +245,9 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (!t.errorString.isEmpty() && index.column()==0)
             return t.errorString;
-        return t.fileName;
+        if (!zfname.isEmpty())
+            return tr("%1\nZip: %2)").arg(t.getFileName(),zfname);
+        return t.getFileName();
     } else if (role == Qt::UserRole+1) {
         if (t.total==0)
             return 0;
@@ -354,12 +373,19 @@ void CDownloadsModel::downloadFinished()
     downloads[idx].downloadItem = nullptr;
 
     if (rpl) {
-        QFile f(downloads.at(idx).fileName);
-        if (f.open(QIODevice::WriteOnly)) {
-            f.write(rpl->readAll());
-            f.close();
-        } else
-            downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+        if (!downloads.at(idx).getZipName().isEmpty()) {
+            if (!CGenericFuncs::writeBytesToZip(downloads.at(idx).getZipName(),
+                                                downloads.at(idx).getFileName(),
+                                                rpl->readAll()))
+                downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+        } else {
+            QFile f(downloads.at(idx).getFileName()); // TODO: continuous file download for big files
+            if (f.open(QIODevice::WriteOnly)) {
+                f.write(rpl->readAll());
+                f.close();
+            } else
+                downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+        }
 
         rpl->deleteLater();
         downloads[idx].reply = nullptr;
@@ -480,7 +506,10 @@ void CDownloadsModel::openDirectory()
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
 
-    QFileInfo fi(downloads.at(idx).fileName);
+    QString fname = downloads.at(idx).getZipName();
+    if (fname.isEmpty())
+        fname = downloads.at(idx).getFileName();
+    QFileInfo fi(fname);
 
     if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << fi.path()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
@@ -504,11 +533,13 @@ void CDownloadsModel::openHere()
                 QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("jpe"), QStringLiteral("png"),
                 QStringLiteral("svg"), QStringLiteral("gif"), QStringLiteral("webp") };
 
-    QString fname = downloads.at(idx).fileName;
-    QString mime = downloads.at(idx).mimeType;
+    const QString fname = downloads.at(idx).getFileName();
+    const QString mime = downloads.at(idx).mimeType;
+    const QString zipName = downloads.at(idx).getZipName();
     QFileInfo fi(fname);
-    if ((acceptedMime.contains(mime,Qt::CaseInsensitive) ||
-         acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
+    if (zipName.isEmpty() &&
+            (acceptedMime.contains(mime,Qt::CaseInsensitive) ||
+             acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
             && (gSet->activeWindow() != nullptr))
         new CSnippetViewer(gSet->activeWindow(),QUrl::fromLocalFile(fname));
 }
@@ -520,15 +551,16 @@ void CDownloadsModel::openXdg()
 
     int idx = acm->data().toInt();
     if (idx<0 || idx>=downloads.count()) return;
+    if (!downloads.at(idx).getZipName().isEmpty()) return;
 
-    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << downloads.at(idx).fileName))
+    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << downloads.at(idx).getFileName()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
 CDownloadItem::CDownloadItem()
 {
     id = 0;
-    fileName.clear();
+    pathName.clear();
     mimeType.clear();
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
@@ -542,7 +574,7 @@ CDownloadItem::CDownloadItem()
 CDownloadItem::CDownloadItem(const CDownloadItem &other)
 {
     id = other.id;
-    fileName = other.fileName;
+    pathName = other.pathName;
     mimeType = other.mimeType;
     errorString = other.errorString;
     state = other.state;
@@ -556,7 +588,7 @@ CDownloadItem::CDownloadItem(const CDownloadItem &other)
 CDownloadItem::CDownloadItem(quint32 itemId)
 {
     id = itemId;
-    fileName.clear();
+    pathName.clear();
     mimeType.clear();
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
@@ -570,7 +602,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
 CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 {
     id = 0;
-    fileName.clear();
+    pathName.clear();
     mimeType.clear();
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadRequested;
@@ -585,7 +617,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
 {
     if (item==nullptr) {
         id = 0;
-        fileName.clear();
+        pathName.clear();
         mimeType.clear();
         errorString.clear();
         state = QWebEngineDownloadItem::DownloadRequested;
@@ -596,7 +628,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         reply = nullptr;
     } else {
         id = item->id();
-        fileName = item->path();
+        pathName = item->path();
         mimeType = item->mimeType();
         errorString.clear();
         state = item->state();
@@ -611,7 +643,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
 {
     id = 0;
-    fileName = fname;
+    pathName = fname;
     mimeType = QStringLiteral("application/download");
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadInProgress;
@@ -637,7 +669,23 @@ bool CDownloadItem::operator!=(const CDownloadItem &s) const
 
 bool CDownloadItem::isEmpty()
 {
-    return (id==0 && reply==nullptr && downloadItem==nullptr && fileName.isEmpty());
+    return (id==0 && reply==nullptr && downloadItem==nullptr && pathName.isEmpty());
+}
+
+QString CDownloadItem::getFileName() const
+{
+    if (pathName.contains(CDefaults::zipSeparator))
+        return pathName.split(CDefaults::zipSeparator).last();
+
+    return pathName;
+}
+
+QString CDownloadItem::getZipName() const
+{
+    if (pathName.contains(CDefaults::zipSeparator))
+        return pathName.split(CDefaults::zipSeparator).first();
+
+    return QString();
 }
 
 CDownloadBarDelegate::CDownloadBarDelegate(QObject *parent, CDownloadsModel *model)

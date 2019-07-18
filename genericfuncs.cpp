@@ -27,6 +27,7 @@ extern "C" {
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
+#include <zip.h>
 }
 
 CGenericFuncs::CGenericFuncs(QObject *parent)
@@ -467,6 +468,33 @@ int CGenericFuncs::numDigits(int n) {
         return 2 + numDigits(abs(n) / base);
 
     return 1 + numDigits(n / base);
+}
+
+bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileName, const QByteArray &data)
+{
+    static QMutex zipLock;
+    QMutexLocker locker(&zipLock);
+
+    int errorp;
+    zip_t* zip = zip_open(zipFile.toUtf8().constData(),ZIP_CREATE,&errorp);
+    if (zip == nullptr) {
+        zip_error_t ziperror;
+        zip_error_init_with_code(&ziperror, errorp);
+        qCritical() << "Unable to open zip file " << zipFile << fileName << zip_error_strerror(&ziperror);
+        return false;
+    }
+
+    zip_source_t* src;
+    if ((src = zip_source_buffer(zip, data.constData(), static_cast<uint64_t>(data.size()), 0)) == nullptr ||
+            zip_file_add(zip, fileName.toUtf8().constData(), src, ZIP_FL_ENC_UTF_8) < 0) {
+        zip_source_free(src);
+        zip_close(zip);
+        qCritical() << "error adding file " << zipFile << fileName << zip_strerror(zip);
+        return false;
+    }
+
+    zip_close(zip);
+    return true;
 }
 
 const QVector<QStringList> &CGenericFuncs::encodingsByScript()
