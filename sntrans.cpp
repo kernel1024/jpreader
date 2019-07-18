@@ -138,18 +138,8 @@ void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranSubSentenc
                                   .arg(gSet->getLanguageName(lp.langFrom.bcp47Name()),
                                        arrow,
                                        gSet->getLanguageName(lp.langTo.bcp47Name())));
-    switch (gSet->settings()->translatorEngine) {
-        case CStructures::teAtlas:
-            snv->waitHandler->setText(tr("Translating text with ATLAS")); break;
-        case CStructures::teBingAPI:
-            snv->waitHandler->setText(tr("Translating text with Bing API")); break;
-        case CStructures::teYandexAPI:
-            snv->waitHandler->setText(tr("Translating text with Yandex.Translate API")); break;
-        case CStructures::teGoogleGTX:
-            snv->waitHandler->setText(tr("Translating text with Google GTX")); break;
-        case CStructures::teAmazonAWS:
-            snv->waitHandler->setText(tr("Translating text with Amazon Translate API")); break;
-    }
+    snv->waitHandler->setText(tr("Translating text with %1")
+                              .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
     connect(gSet,&CGlobalControl::stopTranslators,
             ct,&CTranslator::abortTranslator,Qt::QueuedConnection);

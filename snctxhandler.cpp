@@ -396,13 +396,11 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                    tr("Show source"),
                    this,&CSnCtxHandler::showSource,QKeySequence(Qt::CTRL + Qt::Key_E));
 
-#if QT_VERSION >= 0x050b00
     ac = ccm->addAction(tr("Inspect page"));
     connect(ac, &QAction::triggered, this, [this](){
         auto sv = new CSnippetViewer(snv->parentWnd());
         sv->txtBrowser->page()->setInspectedPage(snv->txtBrowser->page());
     });
-#endif
 
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme(QStringLiteral("documentation")),tr("Show in editor"),

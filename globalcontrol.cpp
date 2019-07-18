@@ -169,8 +169,11 @@ void CGlobalControl::initialize()
     connect(d->webProfile, &QWebEngineProfile::downloadRequested,
             d->downloadManager.data(), &CDownloadManager::handleDownload);
 
+#if QT_VERSION >= 0x050d00
+    d->webProfile->setUrlRequestInterceptor(new CSpecUrlInterceptor(this));
+#else
     d->webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
-
+#endif
     connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
             this, &CGlobalControl::cookieAdded);
     connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,

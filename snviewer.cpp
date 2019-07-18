@@ -110,8 +110,8 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     navButton->setIcon(QIcon::fromTheme(QStringLiteral("arrow-right")));
     passwordButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-password")));
 
-    for (auto it = translationEngines().constKeyValueBegin(),
-         end = translationEngines().constKeyValueEnd(); it != end; ++it) {
+    for (auto it = CStructures::translationEngines().constKeyValueBegin(),
+         end = CStructures::translationEngines().constKeyValueEnd(); it != end; ++it) {
         comboTranEngine->addItem((*it).second,(*it).first);
     }
     int idx = comboTranEngine->findData(gSet->settings()->translatorEngine);

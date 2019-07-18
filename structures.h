@@ -37,6 +37,9 @@ enum SearchModelRole {
     cpSortRole = 1,
     cpFilterRole = 2
 };
+
+const QMap<CStructures::TranslationEngine, QString> &translationEngines();
+
 }
 
 namespace CDefaults {
@@ -97,7 +100,5 @@ QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 
 QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
 QDataStream &operator>>(QDataStream &in, CLangPair &obj);
-
-const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 
 #endif // STRUCTURES_H

@@ -117,7 +117,7 @@ void CSnMsgHandler::tranEngine(int index)
     int engine = v.toInt(&ok);
     if (ok) {
         auto e = static_cast<CStructures::TranslationEngine>(engine);
-        if (translationEngines().contains(e))
+        if (CStructures::translationEngines().contains(e))
             gSet->setTranslationEngine(e);
     }
 
