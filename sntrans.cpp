@@ -197,7 +197,7 @@ void CSnTrans::postTranslate()
     if (cn.toUtf8().size()<CDefaults::maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
         snv->m_fileChanged = true;
         snv->m_onceTranslated = true;
-        snv->txtBrowser->setHtml(cn,m_savedBaseUrl);
+        snv->txtBrowser->setHtmlInterlocked(cn,m_savedBaseUrl);
         if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
         snv->urlChanged(snv->netHandler->getLoadedUrl());
     } else

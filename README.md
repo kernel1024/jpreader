@@ -6,7 +6,7 @@ Integrated with KDE Frameworks 5 Baloo API support and Recoll support (through C
 
 Library dependencies:
 
-    Qt 5.10 (core, gui, network, xml, webengine, dbus, printing)
+    Qt 5.11 (core, gui, network, xml, webengine, dbus, printing)
     icu ( http://www.icu-project.org/ )
     libmagic
     recoll engine (optional)

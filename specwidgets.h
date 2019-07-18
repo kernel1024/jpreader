@@ -151,6 +151,7 @@ public:
     explicit CSpecWebView(QWidget* parent);
     explicit CSpecWebView(CSnippetViewer* parent);
     CSpecWebPage* customPage() const;
+    void setHtmlInterlocked(const QString& html, const QUrl& baseUrl = QUrl());
 protected:
     QWebEngineView* createWindow(QWebEnginePage::WebWindowType type) override;
     void contextMenuEvent(QContextMenuEvent* event) override;

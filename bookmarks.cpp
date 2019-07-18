@@ -722,7 +722,7 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     ui->tree->setExpanded(m_proxyModel->index(0, 0), true);
     ui->tree->setAlternatingRowColors(true);
     QFontMetrics fm(font());
-    int header = fm.width(QLatin1Char('m')) * headerMaxCharWidth;
+    int header = fm.boundingRect(QLatin1Char('m')).width() * headerMaxCharWidth;
     ui->tree->header()->resizeSection(0, header);
     ui->tree->header()->setStretchLastSection(true);
     connect(ui->tree, &EditTreeView::activated,

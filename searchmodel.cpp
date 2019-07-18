@@ -187,7 +187,7 @@ QVariant CSearchProxyFilterModel::headerData(int section, Qt::Orientation orient
     const int headerDarkFactor = 120;
     if (orientation == Qt::Horizontal) {
         if (role == Qt::BackgroundRole && section == 2 && !m_filter.isEmpty()) {
-            const QColor c = QApplication::palette("QHeaderView").background().color();
+            const QColor c = QApplication::palette("QHeaderView").window().color();
             return c.darker(headerDarkFactor);
         }
     }

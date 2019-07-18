@@ -363,6 +363,14 @@ CSpecWebPage *CSpecWebView::customPage() const
     return m_page;
 }
 
+void CSpecWebView::setHtmlInterlocked(const QString &html, const QUrl &baseUrl)
+{
+    static QMutex dataUrlLock;
+    QMutexLocker locker(&dataUrlLock);
+
+    setHtml(html,baseUrl);
+}
+
 QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     if (parentViewer==nullptr) return nullptr;

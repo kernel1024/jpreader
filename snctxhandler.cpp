@@ -290,8 +290,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         if (snv->m_fileChanged || url.isEmpty()) {
             snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
-                if (!html.isEmpty())
-                    sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
+                if (!html.isEmpty()) {
+                    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
+                        sv->txtBrowser->setHtmlInterlocked(html,snv->txtBrowser->page()->url());
+                    } else {
+                        sv->netHandler->loadWithTempFile(html,false);
+                    }
+                }
             });
         }
     });

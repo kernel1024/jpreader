@@ -268,11 +268,11 @@ void CSnNet::pixivListReady(const QString &html)
 void CSnNet::pdfConverted(const QString &html)
 {
     if (html.isEmpty()) {
-        snv->txtBrowser->setHtml(CGenericFuncs::makeSimpleHtml(QStringLiteral("PDF conversion error"),
-                                                               QStringLiteral("Empty document.")));
+        snv->txtBrowser->setHtmlInterlocked(CGenericFuncs::makeSimpleHtml(QStringLiteral("PDF conversion error"),
+                                                                          QStringLiteral("Empty document.")));
     }
     if (html.length()<CDefaults::maxDataUrlFileSize) { // Small PDF files
-        snv->txtBrowser->setHtml(html);
+        snv->txtBrowser->setHtmlInterlocked(html);
         snv->m_auxContentLoaded=false;
     } else { // Big PDF files
         loadWithTempFile(html,false);
@@ -282,7 +282,7 @@ void CSnNet::pdfConverted(const QString &html)
 void CSnNet::pdfError(const QString &message)
 {
     QString cn=CGenericFuncs::makeSimpleHtml(tr("Error"),tr("Unable to open PDF file.<br>%1").arg(message));
-    snv->txtBrowser->setHtml(cn);
+    snv->txtBrowser->setHtmlInterlocked(cn);
     QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
 }
 
@@ -305,7 +305,7 @@ void CSnNet::load(const QUrl &url)
             snv->m_fileChanged = false;
             snv->m_translationBkgdFinished=false;
             snv->m_loadingBkgdFinished=false;
-            snv->txtBrowser->setHtml(cn,url);
+            snv->txtBrowser->setHtmlInterlocked(cn,url);
             QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
             return;
         }
@@ -320,7 +320,7 @@ void CSnNet::load(const QUrl &url)
                 snv->m_fileChanged = false;
                 snv->m_translationBkgdFinished=false;
                 snv->m_loadingBkgdFinished=false;
-                snv->txtBrowser->setHtml(cn,url);
+                snv->txtBrowser->setHtmlInterlocked(cn,url);
                 snv->m_auxContentLoaded=false;
                 data.close();
             }
@@ -358,10 +358,14 @@ void CSnNet::load(const QUrl &url)
 
 void CSnNet::load(const QString &html, const QUrl &baseUrl)
 {
-    snv->updateWebViewAttributes();
-    snv->txtBrowser->setHtml(html,baseUrl);
-    m_loadedUrl.clear();
-    snv->m_auxContentLoaded=true;
+    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
+        snv->updateWebViewAttributes();
+        snv->txtBrowser->setHtmlInterlocked(html,baseUrl);
+        m_loadedUrl.clear();
+        snv->m_auxContentLoaded=true;
+    } else {
+        loadWithTempFile(html,false);
+    }
 }
 
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
