@@ -173,6 +173,34 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
     return cn;
 }
 
+QString CGenericFuncs::makeSpecialUrlsHtml()
+{
+    static const QStringList internalUrls({
+                                              QStringLiteral("chrome://accessibility"),
+                                              QStringLiteral("chrome://appcache-internals"),
+                                              QStringLiteral("chrome://blob-internals"),
+                                              QStringLiteral("chrome://dino"),
+                                              QStringLiteral("chrome://gpu"),
+                                              QStringLiteral("chrome://histograms"),
+                                              QStringLiteral("chrome://indexeddb-internals"),
+                                              QStringLiteral("chrome://media-internals"),
+                                              QStringLiteral("chrome://network-errors"),
+                                              QStringLiteral("chrome://process-internals"),
+                                              QStringLiteral("chrome://quota-internals"),
+                                              QStringLiteral("chrome://sandbox"),
+                                              QStringLiteral("chrome://serviceworker-internals"),
+                                              QStringLiteral("chrome://webrtc-internals")
+                                          });
+
+    QString html;
+    html.append(tr("Open these URLs in separate tab or copy-paste them."));
+    html.append(QStringLiteral("<ul>"));
+    for (const auto &url : internalUrls)
+        html.append(QStringLiteral("<li><a href=\"%1\">%1</a></li>").arg(url));
+    html.append(QStringLiteral("</ul>"));
+    return makeSimpleHtml(tr("Chromium URLs"),html,true);
+}
+
 QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
     QString res;
     QString cbContents;
@@ -244,9 +272,9 @@ QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
     QStringList stl = str.split(' ');
     QString ret;
     int cnt = 0;
-    for (int i=0;i<stl.count();i++) {
-        ret += stl.at(i) + ' ';
-        cnt += stl.at(i).length()+1;
+    for (const auto &st : stl) {
+        ret += st + ' ';
+        cnt += st.length()+1;
         if (cnt>wrapLength) {
             ret += '\n';
             cnt = 0;
@@ -293,8 +321,9 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
 {
     QString res = snippet;
 
-    for (int i=0;i<terms.count();i++) {
-        QString ITerm = terms.value(i).trimmed();
+    int i = 0;
+    for (const auto &term : terms) {
+        QString ITerm = term.trimmed();
         QString snpColor = CSettings::snippetColors[i % CSettings::snippetColors.count()].name();
         int start = 0;
         int pos;
@@ -305,6 +334,7 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
             res.insert(pos2,QStringLiteral("</font>"));
             start = pos2;
         }
+        i++;
     }
     return res;
 }
@@ -376,11 +406,9 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     QStringList filters = filter.split(QStringLiteral(";;"),QString::SkipEmptyParts);
     if (filters.isEmpty()) return res;
 
-    for (int i=0;i<filters.count();i++) {
-        QString ex = filters.at(i);
-
-        if (ex.isEmpty()) continue;
-
+    for (const auto &filter : filters) {
+        if (filter.isEmpty()) continue;
+        QString ex = filter;
         ex.remove(QRegExp(QStringLiteral("^.*\\(")));
         ex.remove(QRegExp(QStringLiteral("\\).*$")));
         ex.remove(QRegExp(QStringLiteral("^.*\\.")));

@@ -31,6 +31,7 @@ public:
     static QString detectDecodeToUnicode(const QByteArray &content);
     static QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false,
                                   const QUrl &origin = QUrl());
+    static QString makeSpecialUrlsHtml();
     static QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
     static QString fixMetaEncoding(const QString& data_utf8);
     static QString wordWrap(const QString &str, int wrapLength);

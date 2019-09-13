@@ -61,7 +61,8 @@ public Q_SLOTS:
     void openAuxFileInDir();
     void openEmptyBrowser();
     void openRecycled();
-	void tabChanged(int idx);
+    void openChromiumURLs();
+    void tabChanged(int idx);
     void createFromClipboard();
     void createFromClipboardPlain();
     void clearClipboard();

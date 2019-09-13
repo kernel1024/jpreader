@@ -102,6 +102,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionDictionary, &QAction::triggered, gSet, &CGlobalControl::showDictionaryWindow);
     connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
     connect(actionInspector, &QAction::triggered, this, &CMainWindow::openBookmark);
+    connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
@@ -810,6 +811,11 @@ void CMainWindow::openRecycled()
     if (!u.isValid()) return;
     new CSnippetViewer(this, u);
     gSet->removeRecycledItem(idx);
+}
+
+void CMainWindow::openChromiumURLs()
+{
+    new CSnippetViewer(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
 }
 
 void CMainWindow::updateRecycled()

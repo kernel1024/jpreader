@@ -812,9 +812,13 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 
 bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 {
+    static const QStringList allowedScheme({ QStringLiteral("chrome"), QStringLiteral("about")});
+
     Q_D(const CGlobalControl);
+
     if (!settings()->useNoScript) return false;
     if (url.isRelative() || url.isLocalFile()) return false;
+    if (allowedScheme.contains(url.scheme(),Qt::CaseInsensitive)) return false;
 
     const QString host = url.host();
     const QString key = origin.toString(CSettings::adblockUrlFmt);

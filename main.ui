@@ -175,6 +175,7 @@
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
     <addaction name="actionInspector"/>
+    <addaction name="actionChromiumURLs"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -499,6 +500,11 @@
   <action name="actionManageBM">
    <property name="text">
     <string>&amp;Manage bookmarks</string>
+   </property>
+  </action>
+  <action name="actionChromiumURLs">
+   <property name="text">
+    <string>Chromium URLs</string>
    </property>
   </action>
  </widget>
