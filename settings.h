@@ -27,7 +27,10 @@ const int atlTcpTimeout = 2;
 const int maxAdblockWhiteList = 5000;
 const int pdfImageMaxSize = 250;
 const int pdfImageQuality = 75;
-const int overrideFontSize = 12;
+const int overrideTransFontSize = 12;
+const int fontSizeMinimal = 12;
+const int fontSizeDefault = 12;
+const int fontSizeFixed = 12;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
@@ -36,6 +39,7 @@ const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
+const bool overrideFontSizes = false;
 const bool showTabCloseButtons = true;
 const bool createCoredumps = false;
 const bool overrideUserAgent = false;
@@ -94,7 +98,7 @@ public:
     QString proxyLogin;
     QString proxyPassword;
 
-    QFont overrideFont;
+    QFont overrideTransFont;
     QColor forcedFontColor;
 
     QStringList userAgentHistory;
@@ -113,6 +117,9 @@ public:
     int maxAdblockWhiteList { CDefaults::maxAdblockWhiteList };
     int pdfImageMaxSize { CDefaults::pdfImageMaxSize };
     int pdfImageQuality { CDefaults::pdfImageQuality };
+    int fontSizeMinimal { CDefaults::fontSizeMinimal };
+    int fontSizeDefault { CDefaults::fontSizeDefault };
+    int fontSizeFixed { CDefaults::fontSizeFixed };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };
@@ -123,6 +130,7 @@ public:
     bool jsLogConsole { CDefaults::jsLogConsole };
     bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };
     bool overrideStdFonts { CDefaults::overrideStdFonts };
+    bool overrideFontSizes { CDefaults::overrideFontSizes };
     bool showTabCloseButtons { CDefaults::showTabCloseButtons };
     bool createCoredumps { CDefaults::createCoredumps };
     bool overrideUserAgent { CDefaults::overrideUserAgent };

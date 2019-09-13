@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>854</width>
-    <height>567</height>
+    <width>856</width>
+    <height>569</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>JPReader Settings</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_39">
+  <layout class="QVBoxLayout" name="verticalLayout_8">
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="verticalScrollBarPolicy">
@@ -26,684 +26,314 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>820</width>
-        <height>4249</height>
+        <y>-1838</y>
+        <width>822</width>
+        <height>4153</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_31">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="groupBoxBrowser">
-         <property name="title">
-          <string>Browser</string>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_34">
-          <item>
-           <widget class="QGroupBox" name="groupBox_2">
-            <property name="title">
-             <string>Options</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_14">
-             <item>
-              <widget class="QCheckBox" name="checkTabFavicon">
-               <property name="text">
-                <string>Show tab favicons</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkAutoloadImages">
-               <property name="text">
-                <string>Autoload images</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkEnablePlugins">
-               <property name="text">
-                <string>Enable plugins</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkJS">
-               <property name="text">
-                <string>Enable JavaScript</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkIgnoreSSLErrors">
-               <property name="text">
-                <string>Ignore SSL errors</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkLogNetworkRequests">
-               <property name="text">
-                <string>Log network requests</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkJSLogConsole">
-               <property name="text">
-                <string>JavaScript log console</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkPixivFetchImages">
-               <property name="toolTip">
-                <string>Fetch and embedd illustrations for novels with pixiv novel extractor</string>
-               </property>
-               <property name="text">
-                <string>Fetch images for novels</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_30">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_36">
-              <item>
-               <widget class="QGroupBox" name="groupBox_11">
-                <property name="title">
-                 <string>PDF converter</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_27">
-                 <item>
-                  <widget class="QCheckBox" name="checkPdfExtractImages">
-                   <property name="toolTip">
-                    <string>Extracts images from PDF streams (JPEG and PNG) to embedded data-url</string>
-                   </property>
-                   <property name="text">
-                    <string>Extract images</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_35">
-                   <item>
-                    <widget class="QLabel" name="label_25">
-                     <property name="text">
-                      <string>&amp;JPEG quality</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinPdfImageQuality</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinPdfImageQuality">
-                     <property name="suffix">
-                      <string> %</string>
-                     </property>
-                     <property name="minimum">
-                      <number>5</number>
-                     </property>
-                     <property name="maximum">
-                      <number>100</number>
-                     </property>
-                     <property name="value">
-                      <number>75</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_32">
-                   <item>
-                    <widget class="QLabel" name="label_34">
-                     <property name="text">
-                      <string>&amp;Max image size</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinPdfImageMaxSize</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinPdfImageMaxSize">
-                     <property name="suffix">
-                      <string> px</string>
-                     </property>
-                     <property name="minimum">
-                      <number>10</number>
-                     </property>
-                     <property name="maximum">
-                      <number>9999</number>
-                     </property>
-                     <property name="value">
-                      <number>250</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacer_17">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_10">
-                <property name="title">
-                 <string>History limits</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_22">
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_19">
-                   <item>
-                    <widget class="QLabel" name="label_32">
-                     <property name="text">
-                      <string>&amp;Recent items</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinMaxRecent</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinMaxRecent"/>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_12">
-                   <item>
-                    <widget class="QLabel" name="label_12">
-                     <property name="text">
-                      <string>R&amp;ecycled items</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinMaxRecycled</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinMaxRecycled"/>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_13">
-                   <item>
-                    <widget class="QLabel" name="label_13">
-                     <property name="text">
-                      <string>History &amp;items</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinMaxHistory</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinMaxHistory">
-                     <property name="maximum">
-                      <number>100000</number>
-                     </property>
-                     <property name="value">
-                      <number>5000</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_22">
-                   <item>
-                    <widget class="QLabel" name="label_29">
-                     <property name="text">
-                      <string>Dis&amp;k cache size</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>spinCacheSize</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="spinCacheSize">
-                     <property name="specialValueText">
-                      <string>Auto</string>
-                     </property>
-                     <property name="suffix">
-                      <string> Mb</string>
-                     </property>
-                     <property name="maximum">
-                      <number>999</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_18">
-              <item>
-               <widget class="QCheckBox" name="checkUserAgent">
-                <property name="text">
-                 <string>Override user agent</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="editUserAgent">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>600</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="editable">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_18">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>24</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBoxSearch">
-         <property name="title">
-          <string>Search</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_40">
+        <widget class="QWidget" name="widget" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_15">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_32">
-            <item>
-             <widget class="QGroupBox" name="groupBox_8">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="title">
-               <string>Search</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_4">
-               <item>
-                <widget class="QRadioButton" name="radioSearchNone">
-                 <property name="text">
-                  <string>&amp;File search</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="radioSearchRecoll">
-                 <property name="text">
-                  <string>&amp;Recoll</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="radioSearchBaloo5">
-                 <property name="text">
-                  <string>&amp;Baloo</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_26">
-              <item>
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>&amp;Max results count</string>
-                </property>
-                <property name="buddy">
-                 <cstring>spinMaxLimit</cstring>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spinMaxLimit">
-                <property name="minimum">
-                 <number>50</number>
-                </property>
-                <property name="maximum">
-                 <number>100000</number>
-                </property>
-                <property name="singleStep">
-                 <number>50</number>
-                </property>
-                <property name="value">
-                 <number>1000</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_5">
+           <widget class="QGroupBox" name="groupBoxBrowser">
             <property name="title">
-             <string>Browser context menu search engines</string>
+             <string>Browser</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_12">
+            <layout class="QHBoxLayout" name="horizontalLayout_16">
              <item>
-              <widget class="QListWidget" name="listSearch">
-               <property name="selectionMode">
-                <enum>QAbstractItemView::ExtendedSelection</enum>
+              <widget class="QGroupBox" name="groupBox_2">
+               <property name="title">
+                <string>Options</string>
                </property>
+               <layout class="QVBoxLayout" name="verticalLayout_14">
+                <item>
+                 <widget class="QCheckBox" name="checkTabFavicon">
+                  <property name="text">
+                   <string>Show tab favicons</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkAutoloadImages">
+                  <property name="text">
+                   <string>Autoload images</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkEnablePlugins">
+                  <property name="text">
+                   <string>Enable plugins</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkJS">
+                  <property name="text">
+                   <string>Enable JavaScript</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkIgnoreSSLErrors">
+                  <property name="text">
+                   <string>Ignore SSL errors</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkLogNetworkRequests">
+                  <property name="text">
+                   <string>Log network requests</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkJSLogConsole">
+                  <property name="text">
+                   <string>JavaScript log console</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkPixivFetchImages">
+                  <property name="toolTip">
+                   <string>Fetch and embedd illustrations for novels with pixiv novel extractor</string>
+                  </property>
+                  <property name="text">
+                   <string>Fetch images for novels</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <layout class="QVBoxLayout" name="verticalLayout_30">
                <item>
-                <widget class="QPushButton" name="buttonAddSearch">
-                 <property name="text">
-                  <string>Add...</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_8">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QPushButton" name="buttonDefaultSearch">
-                 <property name="text">
-                  <string>Use by default</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QPushButton" name="buttonDelSearch">
-                 <property name="text">
-                  <string>Delete</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxTranslator">
-         <property name="title">
-          <string>Translator</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QGroupBox" name="groupBox">
-            <property name="title">
-             <string>Online translation serivce</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <widget class="QRadioButton" name="radioAtlas">
-               <property name="text">
-                <string>&amp;ATLAS by TCP</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="radioBingAPI">
-               <property name="text">
-                <string>&amp;Bing API</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="radioYandexAPI">
-               <property name="text">
-                <string>&amp;Yandex API</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="radioGoogleGTX">
-               <property name="text">
-                <string>Google GT&amp;X</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="radioAmazonAWS">
-               <property name="text">
-                <string>Amazon Translate</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QGroupBox" name="groupBox_13">
-              <property name="title">
-               <string>ATLAS</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_31">
+                <layout class="QHBoxLayout" name="horizontalLayout_36">
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_23">
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_28">
-                     <item>
-                      <widget class="QLabel" name="label_10">
-                       <property name="text">
-                        <string>&amp;Host</string>
-                       </property>
-                       <property name="buddy">
-                        <cstring>atlHost</cstring>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="atlHost">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="editable">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_11">
-                       <property name="text">
-                        <string>&amp;Port</string>
-                       </property>
-                       <property name="buddy">
-                        <cstring>atlPort</cstring>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QSpinBox" name="atlPort">
-                       <property name="maximum">
-                        <number>65535</number>
-                       </property>
-                       <property name="value">
-                        <number>18000</number>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_26">
-                     <item>
-                      <widget class="QLabel" name="label_18">
-                       <property name="text">
-                        <string>Retrie&amp;s</string>
-                       </property>
-                       <property name="buddy">
-                        <cstring>atlRetryCnt</cstring>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QSpinBox" name="atlRetryCnt">
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_19">
-                       <property name="text">
-                        <string>&amp;Delay</string>
-                       </property>
-                       <property name="buddy">
-                        <cstring>atlRetryTimeout</cstring>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QSpinBox" name="atlRetryTimeout">
-                       <property name="suffix">
-                        <string> s</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_27">
-                     <item>
-                      <widget class="QLabel" name="label_31">
-                       <property name="text">
-                        <string>A&amp;uth token</string>
-                       </property>
-                       <property name="buddy">
-                        <cstring>atlToken</cstring>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="atlToken"/>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QGroupBox" name="groupBox_9">
+                  <widget class="QGroupBox" name="groupBox_11">
                    <property name="title">
-                    <string>SSL/TLS protocol</string>
+                    <string>PDF converter</string>
                    </property>
-                   <layout class="QVBoxLayout" name="verticalLayout_7">
+                   <layout class="QVBoxLayout" name="verticalLayout_27">
                     <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_29">
-                      <item>
-                       <widget class="QLabel" name="label_33">
-                        <property name="text">
-                         <string>Forc&amp;e protocol</string>
-                        </property>
-                        <property name="buddy">
-                         <cstring>atlSSLProto</cstring>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QComboBox" name="atlSSLProto"/>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <widget class="Line" name="line_2">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
+                     <widget class="QCheckBox" name="checkPdfExtractImages">
+                      <property name="toolTip">
+                       <string>Extracts images from PDF streams (JPEG and PNG) to embedded data-url</string>
+                      </property>
+                      <property name="text">
+                       <string>Extract images</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_30">
+                     <layout class="QHBoxLayout" name="horizontalLayout_35">
                       <item>
-                       <widget class="QLabel" name="atlCertsLabel">
+                       <widget class="QLabel" name="label_25">
                         <property name="text">
-                         <string>Te&amp;xtLabel</string>
+                         <string>&amp;JPEG quality</string>
                         </property>
-                        <property name="wordWrap">
-                         <bool>true</bool>
+                        <property name="buddy">
+                         <cstring>spinPdfImageQuality</cstring>
                         </property>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QPushButton" name="buttonAtlClean">
+                       <widget class="QSpinBox" name="spinPdfImageQuality">
+                        <property name="suffix">
+                         <string> %</string>
+                        </property>
+                        <property name="minimum">
+                         <number>5</number>
+                        </property>
+                        <property name="maximum">
+                         <number>100</number>
+                        </property>
+                        <property name="value">
+                         <number>75</number>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_32">
+                      <item>
+                       <widget class="QLabel" name="label_34">
                         <property name="text">
-                         <string>Clean</string>
+                         <string>&amp;Max image size</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinPdfImageMaxSize</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="spinPdfImageMaxSize">
+                        <property name="suffix">
+                         <string> px</string>
+                        </property>
+                        <property name="minimum">
+                         <number>10</number>
+                        </property>
+                        <property name="maximum">
+                         <number>9999</number>
+                        </property>
+                        <property name="value">
+                         <number>250</number>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <spacer name="verticalSpacer_17">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="groupBox_10">
+                   <property name="title">
+                    <string>History limits</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_22">
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_19">
+                      <item>
+                       <widget class="QLabel" name="label_32">
+                        <property name="text">
+                         <string>&amp;Recent items</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinMaxRecent</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="spinMaxRecent"/>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_12">
+                      <item>
+                       <widget class="QLabel" name="label_12">
+                        <property name="text">
+                         <string>R&amp;ecycled items</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinMaxRecycled</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="spinMaxRecycled"/>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_13">
+                      <item>
+                       <widget class="QLabel" name="label_13">
+                        <property name="text">
+                         <string>History &amp;items</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinMaxHistory</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="spinMaxHistory">
+                        <property name="maximum">
+                         <number>100000</number>
+                        </property>
+                        <property name="value">
+                         <number>5000</number>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_22">
+                      <item>
+                       <widget class="QLabel" name="label_29">
+                        <property name="text">
+                         <string>Dis&amp;k cache size</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinCacheSize</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="spinCacheSize">
+                        <property name="specialValueText">
+                         <string>Auto</string>
+                        </property>
+                        <property name="suffix">
+                         <string> Mb</string>
+                        </property>
+                        <property name="maximum">
+                         <number>999</number>
                         </property>
                        </widget>
                       </item>
@@ -715,1063 +345,983 @@
                 </layout>
                </item>
                <item>
-                <widget class="QCheckBox" name="checkEmptyRestore">
-                 <property name="text">
-                  <string>When ATLAS returns spaces or empty - replace with original text</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
-                  <widget class="QLabel" name="label_17">
+                  <widget class="QCheckBox" name="checkUserAgent">
                    <property name="text">
-                    <string>Global translator hot&amp;key</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>gctxHotkey</cstring>
+                    <string>Override user agent</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QKeySequenceEdit" name="gctxHotkey"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_14">
-              <property name="title">
-               <string>Bing API</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_2">
-               <item>
-                <layout class="QFormLayout" name="formLayout_7">
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_26">
-                   <property name="text">
-                    <string>Client &amp;key</string>
+                  <widget class="QComboBox" name="editUserAgent">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
-                   <property name="buddy">
-                    <cstring>editBingKey</cstring>
+                   <property name="maximumSize">
+                    <size>
+                     <width>600</width>
+                     <height>16777215</height>
+                    </size>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="editBingKey"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_15">
-              <property name="title">
-               <string>Yandex API</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_3">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_24">
-                 <item>
-                  <widget class="QLabel" name="label_28">
-                   <property name="text">
-                    <string>Client &amp;key</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>editYandexKey</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="editYandexKey"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_12">
-              <property name="title">
-               <string>Amazon Translate</string>
-              </property>
-              <layout class="QFormLayout" name="formLayout">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>Region</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>editAWSRegion</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="editAWSRegion"/>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>Access key</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>editAWSAccessKey</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="editAWSAccessKey"/>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>Secret key</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>editAWSSecretKey</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="editAWSSecretKey"/>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxDictionary">
-         <property name="title">
-          <string>Local dictionary</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_27">
-            <property name="text">
-             <string>Searc&amp;h paths</string>
-            </property>
-            <property name="buddy">
-             <cstring>listDictPaths</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QListWidget" name="listDictPaths"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_20">
-            <item>
-             <widget class="QPushButton" name="buttonAddDictPath">
-              <property name="text">
-               <string>Add path...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonDelDictPath">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonLoadedDicts">
-              <property name="text">
-               <string>Loaded dictionaries...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxTranslationPairs">
-         <property name="title">
-          <string>Translation pairs</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_35">
-          <item>
-           <widget class="QTableView" name="listTransDirections">
-            <property name="selectionMode">
-             <enum>QAbstractItemView::SingleSelection</enum>
-            </property>
-            <property name="gridStyle">
-             <enum>Qt::DotLine</enum>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <widget class="QPushButton" name="buttonAddTrDir">
-              <property name="text">
-               <string>Add</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonDelTrDir">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxFonts">
-         <property name="title">
-          <string>Fonts</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_33">
-          <item>
-           <widget class="QCheckBox" name="checkTransFont">
-            <property name="text">
-             <string>Override font for translated text</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QFontComboBox" name="transFont">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="transFontSize">
-              <property name="minimum">
-               <number>4</number>
-              </property>
-              <property name="value">
-               <number>12</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_15">
-            <item>
-             <widget class="QGroupBox" name="groupBox_3">
-              <property name="title">
-               <string>Default fonts</string>
-              </property>
-              <layout class="QFormLayout" name="formLayout_4">
-               <property name="fieldGrowthPolicy">
-                <enum>QFormLayout::ExpandingFieldsGrow</enum>
-               </property>
-               <item row="0" column="1">
-                <widget class="QCheckBox" name="checkStdFonts">
-                 <property name="text">
-                  <string>Override default fonts</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_3">
-                 <property name="text">
-                  <string>St&amp;andard</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>fontStandard</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QFontComboBox" name="fontStandard"/>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_14">
-                 <property name="text">
-                  <string>F&amp;ixed</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>fontFixed</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QFontComboBox" name="fontFixed"/>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="label_15">
-                 <property name="text">
-                  <string>S&amp;erif</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>fontSerif</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QFontComboBox" name="fontSerif"/>
-               </item>
-               <item row="4" column="0">
-                <widget class="QLabel" name="label_16">
-                 <property name="text">
-                  <string>Sa&amp;ns Serif</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>fontSansSerif</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QFontComboBox" name="fontSansSerif"/>
-               </item>
-              </layout>
-              <zorder>fontSansSerif</zorder>
-              <zorder>fontSerif</zorder>
-              <zorder>fontStandard</zorder>
-              <zorder>label_16</zorder>
-              <zorder>label_3</zorder>
-              <zorder>label_14</zorder>
-              <zorder>fontFixed</zorder>
-              <zorder>label_15</zorder>
-              <zorder>checkStdFonts</zorder>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_4">
-              <property name="title">
-               <string>Translated text color</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_10">
-               <item>
-                <widget class="QCheckBox" name="checkFontColorOverride">
-                 <property name="text">
-                  <string>Override text color</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
-                 <item>
-                  <widget class="QFrame" name="frameFontColorOverride">
-                   <property name="autoFillBackground">
+                   <property name="editable">
                     <bool>true</bool>
                    </property>
-                   <property name="frameShape">
-                    <enum>QFrame::Panel</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Sunken</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="buttonFontColorOverride">
-                   <property name="text">
-                    <string>Color...</string>
-                   </property>
                   </widget>
                  </item>
                 </layout>
                </item>
                <item>
-                <spacer name="verticalSpacer_10">
+                <spacer name="verticalSpacer_18">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>70</height>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
                </item>
               </layout>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxPrograms">
-         <property name="title">
-          <string>Programs</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_34">
-          <item>
-           <layout class="QFormLayout" name="formLayout_3">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::ExpandingFieldsGrow</enum>
-            </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Bro&amp;wser</string>
-              </property>
-              <property name="buddy">
-               <cstring>editBrowser</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLineEdit" name="editBrowser"/>
-              </item>
-              <item>
-               <widget class="QPushButton" name="buttonBrowser">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>&amp;Editor</string>
-              </property>
-              <property name="buddy">
-               <cstring>editEditor</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QLineEdit" name="editEditor"/>
-              </item>
-              <item>
-               <widget class="QPushButton" name="buttonEditor">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxQueryHistory">
-         <property name="title">
-          <string>Query history</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_36">
-          <item>
-           <widget class="QListWidget" name="listQueries">
-            <property name="selectionMode">
-             <enum>QAbstractItemView::ExtendedSelection</enum>
-            </property>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="buttonDelQr">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxBrowsingHistory">
-         <property name="title">
-          <string>Browsing history</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_37">
-          <item>
-           <widget class="QListWidget" name="listHistory">
-            <property name="selectionMode">
-             <enum>QAbstractItemView::SingleSelection</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QPushButton" name="buttonCleanHistory">
-              <property name="text">
-               <string>Clear history</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonGoHistory">
-              <property name="text">
-               <string>Open</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxAdblock">
-         <property name="title">
-          <string>AdBlock</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_38">
-          <item>
-           <widget class="QTreeWidget" name="treeAdblock">
-            <property name="editTriggers">
-             <set>QAbstractItemView::NoEditTriggers</set>
-            </property>
-            <property name="selectionMode">
-             <enum>QAbstractItemView::ExtendedSelection</enum>
-            </property>
-            <column>
-             <property name="text">
-              <string notr="true">1</string>
-             </property>
-            </column>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QLabel" name="label_30">
-              <property name="text">
-               <string>S&amp;earch</string>
-              </property>
-              <property name="buddy">
-               <cstring>editAdSearch</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="editAdSearch"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdSearchBwd">
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>&lt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdSearchFwd">
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkUseAd">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Enable AdBlock</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QPushButton" name="buttonAdAdd">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Add...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdDel">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdDelAll">
-              <property name="text">
-               <string>Delete all</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="Line" name="line">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblAdblockTotalRules">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="Line" name="line_4">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_36">
-              <property name="text">
-               <string>&amp;Whitelist cache size</string>
-              </property>
-              <property name="buddy">
-               <cstring>spinMaxWhiteListItems</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spinMaxWhiteListItems">
-              <property name="minimum">
-               <number>10</number>
-              </property>
-              <property name="maximum">
-               <number>100000</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="Line" name="line_3">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdImport">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Import...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonAdExport">
-              <property name="text">
-               <string>Export...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxNoScript">
-         <property name="title">
-          <string>NoScript</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_39">
-          <item>
-           <widget class="QListWidget" name="listNoScriptWhitelist"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_38">
-            <item>
-             <widget class="QPushButton" name="buttonAddNoScript">
-              <property name="text">
-               <string>Add...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonDelNoScript">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_11">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_35">
-              <property name="text">
-               <string>NoScript whitelist</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_10">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkUseNoScript">
-              <property name="text">
-               <string>Enable NoScript</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxCookies">
-         <property name="title">
-          <string>Cookies</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_40">
-          <item>
-           <widget class="QTableWidget" name="tableCookies">
-            <property name="editTriggers">
-             <set>QAbstractItemView::NoEditTriggers</set>
-            </property>
-            <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
-            </property>
-            <property name="sortingEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="cornerButtonEnabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_17">
-            <item>
-             <widget class="QPushButton" name="buttonExportCookies">
-              <property name="text">
-               <string>Export...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonDelCookies">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonClearCookies">
-              <property name="text">
-               <string>Clear cookies</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxUserscripts">
-         <property name="title">
-          <string>User scripts</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_41">
-          <item>
-           <widget class="QListWidget" name="listUserScripts"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_33">
-            <item>
-             <widget class="QPushButton" name="buttonUserScriptAdd">
-              <property name="text">
-               <string>Add...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonUserScriptEdit">
-              <property name="text">
-               <string>Edit...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonUserScriptImport">
-              <property name="text">
-               <string>Import...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_9">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="buttonUserScriptDelete">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxNetworkLogging">
-         <property name="title">
-          <string>Network and logging</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_42">
-          <item>
-           <widget class="QGroupBox" name="groupBoxProxy">
+           <widget class="QGroupBox" name="groupBoxSearch">
             <property name="title">
-             <string>Proxy</string>
+             <string>Search</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="checkUseProxy">
-               <property name="text">
-                <string>Use proxy</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QCheckBox" name="checkUseProxyTranslator">
-               <property name="text">
-                <string>Use proxy for translation engine connections</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <layout class="QFormLayout" name="formLayout_6">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_20">
-                 <property name="text">
-                  <string>P&amp;roxy address</string>
+            <layout class="QHBoxLayout" name="horizontalLayout_40">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_32">
+               <item>
+                <widget class="QGroupBox" name="groupBox_8">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <property name="buddy">
-                  <cstring>editProxyHost</cstring>
+                 <property name="title">
+                  <string>Search</string>
                  </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <widget class="QRadioButton" name="radioSearchNone">
+                    <property name="text">
+                     <string>&amp;File search</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioSearchRecoll">
+                    <property name="text">
+                     <string>&amp;Recoll</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioSearchBaloo5">
+                    <property name="text">
+                     <string>&amp;Baloo</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
                </item>
-               <item row="0" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_18">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_26">
                  <item>
-                  <widget class="QLineEdit" name="editProxyHost"/>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>&amp;Max results count</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>spinMaxLimit</cstring>
+                   </property>
+                  </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="spinProxyPort">
+                  <widget class="QSpinBox" name="spinMaxLimit">
                    <property name="minimum">
-                    <number>1</number>
+                    <number>50</number>
                    </property>
                    <property name="maximum">
-                    <number>65535</number>
+                    <number>100000</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>50</number>
+                   </property>
+                   <property name="value">
+                    <number>1000</number>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_23">
-                 <property name="text">
-                  <string>Pro&amp;xy type</string>
+              </layout>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_5">
+               <property name="title">
+                <string>Browser context menu search engines</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <item>
+                 <widget class="QListWidget" name="listSearch">
+                  <property name="selectionMode">
+                   <enum>QAbstractItemView::ExtendedSelection</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_21">
+                  <item>
+                   <widget class="QPushButton" name="buttonAddSearch">
+                    <property name="text">
+                     <string>Add...</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_8">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="buttonDefaultSearch">
+                    <property name="text">
+                     <string>Use by default</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_5">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="buttonDelSearch">
+                    <property name="text">
+                     <string>Delete</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxTranslator">
+            <property name="title">
+             <string>Translator</string>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QGroupBox" name="groupBox">
+               <property name="title">
+                <string>Online translation serivce</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <item>
+                 <widget class="QRadioButton" name="radioAtlas">
+                  <property name="text">
+                   <string>&amp;ATLAS by TCP</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioBingAPI">
+                  <property name="text">
+                   <string>&amp;Bing API</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioYandexAPI">
+                  <property name="text">
+                   <string>&amp;Yandex API</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioGoogleGTX">
+                  <property name="text">
+                   <string>Google GT&amp;X</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioAmazonAWS">
+                  <property name="text">
+                   <string>Amazon Translate</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout">
+               <item>
+                <widget class="QGroupBox" name="groupBox_13">
+                 <property name="title">
+                  <string>ATLAS</string>
                  </property>
-                 <property name="buddy">
-                  <cstring>listProxyType</cstring>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_31">
+                    <item>
+                     <layout class="QVBoxLayout" name="verticalLayout_23">
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_28">
+                        <item>
+                         <widget class="QLabel" name="label_10">
+                          <property name="text">
+                           <string>&amp;Host</string>
+                          </property>
+                          <property name="buddy">
+                           <cstring>atlHost</cstring>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QComboBox" name="atlHost">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="editable">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="label_11">
+                          <property name="text">
+                           <string>&amp;Port</string>
+                          </property>
+                          <property name="buddy">
+                           <cstring>atlPort</cstring>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="atlPort">
+                          <property name="maximum">
+                           <number>65535</number>
+                          </property>
+                          <property name="value">
+                           <number>18000</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_26">
+                        <item>
+                         <widget class="QLabel" name="label_18">
+                          <property name="text">
+                           <string>Retrie&amp;s</string>
+                          </property>
+                          <property name="buddy">
+                           <cstring>atlRetryCnt</cstring>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="atlRetryCnt">
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="label_19">
+                          <property name="text">
+                           <string>&amp;Delay</string>
+                          </property>
+                          <property name="buddy">
+                           <cstring>atlRetryTimeout</cstring>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="atlRetryTimeout">
+                          <property name="suffix">
+                           <string> s</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_27">
+                        <item>
+                         <widget class="QLabel" name="label_31">
+                          <property name="text">
+                           <string>A&amp;uth token</string>
+                          </property>
+                          <property name="buddy">
+                           <cstring>atlToken</cstring>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="atlToken"/>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <widget class="QGroupBox" name="groupBox_9">
+                      <property name="title">
+                       <string>SSL/TLS protocol</string>
+                      </property>
+                      <layout class="QVBoxLayout" name="verticalLayout_7">
+                       <item>
+                        <layout class="QHBoxLayout" name="horizontalLayout_29">
+                         <item>
+                          <widget class="QLabel" name="label_33">
+                           <property name="text">
+                            <string>Forc&amp;e protocol</string>
+                           </property>
+                           <property name="buddy">
+                            <cstring>atlSSLProto</cstring>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QComboBox" name="atlSSLProto"/>
+                         </item>
+                        </layout>
+                       </item>
+                       <item>
+                        <widget class="Line" name="line_2">
+                         <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <layout class="QHBoxLayout" name="horizontalLayout_30">
+                         <item>
+                          <widget class="QLabel" name="atlCertsLabel">
+                           <property name="text">
+                            <string>Te&amp;xtLabel</string>
+                           </property>
+                           <property name="wordWrap">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="buttonAtlClean">
+                           <property name="text">
+                            <string>Clean</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkEmptyRestore">
+                    <property name="text">
+                     <string>When ATLAS returns spaces or empty - replace with original text</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <item>
+                     <widget class="QLabel" name="label_17">
+                      <property name="text">
+                       <string>Global translator hot&amp;key</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>gctxHotkey</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QKeySequenceEdit" name="gctxHotkey"/>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_14">
+                 <property name="title">
+                  <string>Bing API</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_2">
+                  <item>
+                   <layout class="QFormLayout" name="formLayout_7">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_26">
+                      <property name="text">
+                       <string>Client &amp;key</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>editBingKey</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QLineEdit" name="editBingKey"/>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_15">
+                 <property name="title">
+                  <string>Yandex API</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_24">
+                    <item>
+                     <widget class="QLabel" name="label_28">
+                      <property name="text">
+                       <string>Client &amp;key</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>editYandexKey</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="editYandexKey"/>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_12">
+                 <property name="title">
+                  <string>Amazon Translate</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Region</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editAWSRegion</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="editAWSRegion"/>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Access key</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editAWSAccessKey</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="editAWSAccessKey"/>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_7">
+                    <property name="text">
+                     <string>Secret key</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editAWSSecretKey</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QLineEdit" name="editAWSSecretKey"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxDictionary">
+            <property name="title">
+             <string>Local dictionary</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>Searc&amp;h paths</string>
+               </property>
+               <property name="buddy">
+                <cstring>listDictPaths</cstring>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="listDictPaths"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item>
+                <widget class="QPushButton" name="buttonAddDictPath">
+                 <property name="text">
+                  <string>Add path...</string>
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
-                <widget class="QComboBox" name="listProxyType">
+               <item>
+                <widget class="QPushButton" name="buttonDelDictPath">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonLoadedDicts">
+                 <property name="text">
+                  <string>Loaded dictionaries...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxTranslationPairs">
+            <property name="title">
+             <string>Translation pairs</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_35">
+             <item>
+              <widget class="QTableView" name="listTransDirections">
+               <property name="selectionMode">
+                <enum>QAbstractItemView::SingleSelection</enum>
+               </property>
+               <property name="gridStyle">
+                <enum>Qt::DotLine</enum>
+               </property>
+               <property name="wordWrap">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QPushButton" name="buttonAddTrDir">
+                 <property name="text">
+                  <string>Add</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDelTrDir">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxFonts">
+            <property name="title">
+             <string>Fonts</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_33">
+             <item>
+              <widget class="QCheckBox" name="checkTransFont">
+               <property name="text">
+                <string>Override font for translated text</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <item>
+                <widget class="QFontComboBox" name="transFont">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>HTTP proxy</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>HTTP transparent proxy</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>SOCKS5 proxy</string>
-                  </property>
-                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="transFontSize">
+                 <property name="minimum">
+                  <number>4</number>
+                 </property>
+                 <property name="value">
+                  <number>12</number>
+                 </property>
                 </widget>
                </item>
               </layout>
              </item>
-             <item row="1" column="1">
-              <layout class="QFormLayout" name="formLayout_5">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_21">
-                 <property name="text">
-                  <string>&amp;Login</string>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <item>
+                <widget class="QGroupBox" name="groupBox_3">
+                 <property name="title">
+                  <string>Default fonts</string>
                  </property>
-                 <property name="buddy">
-                  <cstring>editProxyLogin</cstring>
-                 </property>
+                 <layout class="QFormLayout" name="formLayout_4">
+                  <property name="fieldGrowthPolicy">
+                   <enum>QFormLayout::ExpandingFieldsGrow</enum>
+                  </property>
+                  <item row="0" column="1">
+                   <widget class="QCheckBox" name="checkStdFonts">
+                    <property name="text">
+                     <string>Override</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_3">
+                    <property name="text">
+                     <string>St&amp;andard</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>fontStandard</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QFontComboBox" name="fontStandard"/>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_14">
+                    <property name="text">
+                     <string>F&amp;ixed</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>fontFixed</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QFontComboBox" name="fontFixed"/>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="label_15">
+                    <property name="text">
+                     <string>S&amp;erif</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>fontSerif</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QFontComboBox" name="fontSerif"/>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="label_16">
+                    <property name="text">
+                     <string>Sa&amp;ns Serif</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>fontSansSerif</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QFontComboBox" name="fontSansSerif"/>
+                  </item>
+                 </layout>
+                 <zorder>fontSansSerif</zorder>
+                 <zorder>fontSerif</zorder>
+                 <zorder>fontStandard</zorder>
+                 <zorder>label_16</zorder>
+                 <zorder>label_3</zorder>
+                 <zorder>label_14</zorder>
+                 <zorder>fontFixed</zorder>
+                 <zorder>label_15</zorder>
+                 <zorder>checkStdFonts</zorder>
                 </widget>
                </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="editProxyLogin"/>
+               <item>
+                <widget class="QGroupBox" name="groupBox_16">
+                 <property name="title">
+                  <string>Font size</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_2">
+                  <item row="0" column="1">
+                   <widget class="QCheckBox" name="checkFontSizeOverride">
+                    <property name="text">
+                     <string>Override</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_8">
+                    <property name="text">
+                     <string>Minimum</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>spinFontSizeMinimum</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QSpinBox" name="spinFontSizeMinimum">
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>999</number>
+                    </property>
+                    <property name="value">
+                     <number>12</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_9">
+                    <property name="text">
+                     <string>Standard</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>spinFontSizeDefault</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QSpinBox" name="spinFontSizeDefault">
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>999</number>
+                    </property>
+                    <property name="value">
+                     <number>12</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="label_24">
+                    <property name="text">
+                     <string>Fixed</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>spinFontSizeFixed</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QSpinBox" name="spinFontSizeFixed">
+                    <property name="value">
+                     <number>12</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
                </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_4">
+                 <property name="title">
+                  <string>Translated text color</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <widget class="QCheckBox" name="checkFontColorOverride">
+                    <property name="text">
+                     <string>Override</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_14">
+                    <item>
+                     <widget class="QFrame" name="frameFontColorOverride">
+                      <property name="autoFillBackground">
+                       <bool>true</bool>
+                      </property>
+                      <property name="frameShape">
+                       <enum>QFrame::Panel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Sunken</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="buttonFontColorOverride">
+                      <property name="text">
+                       <string>Color...</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_10">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>70</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxPrograms">
+            <property name="title">
+             <string>Programs</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_34">
+             <item>
+              <layout class="QFormLayout" name="formLayout_3">
+               <property name="fieldGrowthPolicy">
+                <enum>QFormLayout::ExpandingFieldsGrow</enum>
+               </property>
                <item row="1" column="0">
-                <widget class="QLabel" name="label_22">
+                <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>P&amp;assword</string>
+                  <string>Bro&amp;wser</string>
                  </property>
                  <property name="buddy">
-                  <cstring>editProxyPassword</cstring>
+                  <cstring>editBrowser</cstring>
                  </property>
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="editProxyPassword"/>
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLineEdit" name="editBrowser"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="buttonBrowser">
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>&amp;Editor</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>editEditor</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QLineEdit" name="editEditor"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="buttonEditor">
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </item>
@@ -1779,46 +1329,624 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_6">
+           <widget class="QGroupBox" name="groupBoxQueryHistory">
             <property name="title">
-             <string>Debug tools</string>
+             <string>Query history</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="checkDumpHtml">
-               <property name="text">
-                <string>Dump converted and translated pages to tmp</string>
+            <layout class="QVBoxLayout" name="verticalLayout_36">
+             <item>
+              <widget class="QListWidget" name="listQueries">
+               <property name="selectionMode">
+                <enum>QAbstractItemView::ExtendedSelection</enum>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QCheckBox" name="checkCreateCoredumps">
-               <property name="text">
-                <string>Create core dumps on segfaults</string>
-               </property>
-              </widget>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QPushButton" name="buttonDelQr">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_7">
+           <widget class="QGroupBox" name="groupBoxBrowsingHistory">
             <property name="title">
-             <string>Visual features</string>
+             <string>Browsing history</string>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_23">
+            <layout class="QVBoxLayout" name="verticalLayout_37">
              <item>
-              <widget class="QCheckBox" name="checkTabCloseBtn">
-               <property name="text">
-                <string>Show tab close button on each tab</string>
+              <widget class="QListWidget" name="listHistory">
+               <property name="selectionMode">
+                <enum>QAbstractItemView::SingleSelection</enum>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkDontUseNativeFileDialogs">
-               <property name="text">
-                <string>Dont use native file dialogs</string>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QPushButton" name="buttonCleanHistory">
+                 <property name="text">
+                  <string>Clear history</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonGoHistory">
+                 <property name="text">
+                  <string>Open</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxAdblock">
+            <property name="title">
+             <string>AdBlock</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_38">
+             <item>
+              <widget class="QTreeWidget" name="treeAdblock">
+               <property name="editTriggers">
+                <set>QAbstractItemView::NoEditTriggers</set>
                </property>
+               <property name="selectionMode">
+                <enum>QAbstractItemView::ExtendedSelection</enum>
+               </property>
+               <column>
+                <property name="text">
+                 <string notr="true">1</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <item>
+                <widget class="QLabel" name="label_30">
+                 <property name="text">
+                  <string>S&amp;earch</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>editAdSearch</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="editAdSearch"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdSearchBwd">
+                 <property name="maximumSize">
+                  <size>
+                   <width>32</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>&lt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdSearchFwd">
+                 <property name="maximumSize">
+                  <size>
+                   <width>32</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkUseAd">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>Enable AdBlock</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <widget class="QPushButton" name="buttonAdAdd">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>Add...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdDel">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdDelAll">
+                 <property name="text">
+                  <string>Delete all</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="lblAdblockTotalRules">
+                 <property name="text">
+                  <string>TextLabel</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_36">
+                 <property name="text">
+                  <string>&amp;Whitelist cache size</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>spinMaxWhiteListItems</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="spinMaxWhiteListItems">
+                 <property name="minimum">
+                  <number>10</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100000</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdImport">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>Import...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAdExport">
+                 <property name="text">
+                  <string>Export...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxNoScript">
+            <property name="title">
+             <string>NoScript</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_39">
+             <item>
+              <widget class="QListWidget" name="listNoScriptWhitelist"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_38">
+               <item>
+                <widget class="QPushButton" name="buttonAddNoScript">
+                 <property name="text">
+                  <string>Add...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDelNoScript">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_11">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_35">
+                 <property name="text">
+                  <string>NoScript whitelist</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkUseNoScript">
+                 <property name="text">
+                  <string>Enable NoScript</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxCookies">
+            <property name="title">
+             <string>Cookies</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_40">
+             <item>
+              <widget class="QTableWidget" name="tableCookies">
+               <property name="editTriggers">
+                <set>QAbstractItemView::NoEditTriggers</set>
+               </property>
+               <property name="selectionBehavior">
+                <enum>QAbstractItemView::SelectRows</enum>
+               </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+               <property name="cornerButtonEnabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_17">
+               <item>
+                <widget class="QPushButton" name="buttonExportCookies">
+                 <property name="text">
+                  <string>Export...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDelCookies">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonClearCookies">
+                 <property name="text">
+                  <string>Clear cookies</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxUserscripts">
+            <property name="title">
+             <string>User scripts</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_41">
+             <item>
+              <widget class="QListWidget" name="listUserScripts"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_33">
+               <item>
+                <widget class="QPushButton" name="buttonUserScriptAdd">
+                 <property name="text">
+                  <string>Add...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonUserScriptEdit">
+                 <property name="text">
+                  <string>Edit...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonUserScriptImport">
+                 <property name="text">
+                  <string>Import...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonUserScriptDelete">
+                 <property name="text">
+                  <string>Delete</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxNetworkLogging">
+            <property name="title">
+             <string>Network and logging</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_42">
+             <item>
+              <widget class="QGroupBox" name="groupBoxProxy">
+               <property name="title">
+                <string>Proxy</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkUseProxy">
+                  <property name="text">
+                   <string>Use proxy</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkUseProxyTranslator">
+                  <property name="text">
+                   <string>Use proxy for translation engine connections</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <layout class="QFormLayout" name="formLayout_6">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_20">
+                    <property name="text">
+                     <string>P&amp;roxy address</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editProxyHost</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_18">
+                    <item>
+                     <widget class="QLineEdit" name="editProxyHost"/>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinProxyPort">
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>65535</number>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_23">
+                    <property name="text">
+                     <string>Pro&amp;xy type</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>listProxyType</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QComboBox" name="listProxyType">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>HTTP proxy</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>HTTP transparent proxy</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>SOCKS5 proxy</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="1">
+                 <layout class="QFormLayout" name="formLayout_5">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_21">
+                    <property name="text">
+                     <string>&amp;Login</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editProxyLogin</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="editProxyLogin"/>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_22">
+                    <property name="text">
+                     <string>P&amp;assword</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editProxyPassword</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="editProxyPassword"/>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_6">
+               <property name="title">
+                <string>Debug tools</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_2">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkDumpHtml">
+                  <property name="text">
+                   <string>Dump converted and translated pages to tmp</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkCreateCoredumps">
+                  <property name="text">
+                   <string>Create core dumps on segfaults</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_7">
+               <property name="title">
+                <string>Visual features</string>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_23">
+                <item>
+                 <widget class="QCheckBox" name="checkTabCloseBtn">
+                  <property name="text">
+                   <string>Show tab close button on each tab</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkDontUseNativeFileDialogs">
+                  <property name="text">
+                   <string>Dont use native file dialogs</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>
@@ -1826,6 +1954,19 @@
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>24</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -1893,6 +2034,10 @@
   <tabstop>fontFixed</tabstop>
   <tabstop>fontSerif</tabstop>
   <tabstop>fontSansSerif</tabstop>
+  <tabstop>checkFontSizeOverride</tabstop>
+  <tabstop>spinFontSizeMinimum</tabstop>
+  <tabstop>spinFontSizeDefault</tabstop>
+  <tabstop>spinFontSizeFixed</tabstop>
   <tabstop>checkFontColorOverride</tabstop>
   <tabstop>buttonFontColorOverride</tabstop>
   <tabstop>editBrowser</tabstop>
@@ -1950,12 +2095,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>125</x>
-     <y>82</y>
+     <x>173</x>
+     <y>122</y>
     </hint>
     <hint type="destinationlabel">
-     <x>123</x>
-     <y>111</y>
+     <x>172</x>
+     <y>154</y>
     </hint>
    </hints>
   </connection>
@@ -1966,12 +2111,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>695</x>
-     <y>82</y>
+     <x>743</x>
+     <y>122</y>
     </hint>
     <hint type="destinationlabel">
-     <x>827</x>
-     <y>114</y>
+     <x>791</x>
+     <y>155</y>
     </hint>
    </hints>
   </connection>
@@ -1982,12 +2127,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>276</x>
-     <y>175</y>
+     <x>216</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
-     <y>200</y>
+     <x>416</x>
+     <y>249</y>
     </hint>
    </hints>
   </connection>
@@ -1998,12 +2143,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>266</x>
-     <y>171</y>
+     <x>216</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
-     <y>229</y>
+     <x>416</x>
+     <y>280</y>
     </hint>
    </hints>
   </connection>
@@ -2014,12 +2159,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>276</x>
-     <y>175</y>
+     <x>216</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
-     <y>258</y>
+     <x>416</x>
+     <y>311</y>
     </hint>
    </hints>
   </connection>
@@ -2030,12 +2175,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>276</x>
-     <y>175</y>
+     <x>216</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
-     <x>308</x>
-     <y>295</y>
+     <x>416</x>
+     <y>342</y>
     </hint>
    </hints>
   </connection>
@@ -2046,12 +2191,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>121</x>
-     <y>95</y>
+     <x>181</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>340</x>
-     <y>130</y>
+     <x>335</x>
+     <y>2247</y>
     </hint>
    </hints>
   </connection>
@@ -2062,12 +2207,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>94</x>
-     <y>80</y>
+     <x>154</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>390</x>
-     <y>128</y>
+     <x>415</x>
+     <y>2248</y>
     </hint>
    </hints>
   </connection>
@@ -2078,12 +2223,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>40</x>
-     <y>77</y>
+     <x>100</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>757</x>
-     <y>126</y>
+     <x>779</x>
+     <y>2246</y>
     </hint>
    </hints>
   </connection>
@@ -2094,12 +2239,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>113</x>
-     <y>95</y>
+     <x>173</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>757</x>
-     <y>155</y>
+     <x>779</x>
+     <y>2277</y>
     </hint>
    </hints>
   </connection>
@@ -2110,12 +2255,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>71</x>
-     <y>90</y>
+     <x>131</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>146</x>
-     <y>144</y>
+     <x>305</x>
+     <y>2280</y>
     </hint>
    </hints>
   </connection>
@@ -2126,12 +2271,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>161</x>
-     <y>86</y>
+     <x>221</x>
+     <y>2214</y>
     </hint>
     <hint type="destinationlabel">
-     <x>572</x>
-     <y>98</y>
+     <x>780</x>
+     <y>2214</y>
     </hint>
    </hints>
   </connection>
@@ -2142,12 +2287,60 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>826</x>
-     <y>214</y>
+     <x>790</x>
+     <y>-1456</y>
     </hint>
     <hint type="destinationlabel">
-     <x>826</x>
-     <y>244</y>
+     <x>790</x>
+     <y>-1425</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkFontSizeOverride</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinFontSizeMinimum</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>522</x>
+     <y>203</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>534</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkFontSizeOverride</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinFontSizeDefault</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>580</x>
+     <y>262</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkFontSizeOverride</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>spinFontSizeFixed</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>207</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>598</x>
+     <y>304</y>
     </hint>
    </hints>
   </connection>

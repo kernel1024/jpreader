@@ -17,8 +17,8 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceT
     m_atlTcpTimeout=gSet->settings()->atlTcpTimeout;
     m_forceFontColor=gSet->ui()->forceFontColor();
     m_forcedFontColor=gSet->settings()->forcedFontColor;
-    m_useOverrideFont=gSet->ui()->useOverrideFont();
-    m_overrideFont=gSet->settings()->overrideFont;
+    m_useOverrideTransFont=gSet->ui()->useOverrideTransFont();
+    m_overrideTransFont=gSet->settings()->overrideTransFont;
     m_translationMode=gSet->ui()->getTranslationMode();
     m_translateSubSentences=(forceTranSubSentences || gSet->ui()->translateSubSentences());
 }
@@ -480,12 +480,12 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     break;
                 }
 
-                if (m_useOverrideFont || m_forceFontColor) {
+                if (m_useOverrideTransFont || m_forceFontColor) {
                     QString dstyle;
-                    if (m_useOverrideFont) {
+                    if (m_useOverrideTransFont) {
                         dstyle+=QStringLiteral("font-family: %1; font-size: %2pt;").arg(
-                                    m_overrideFont.family()).arg(
-                                    m_overrideFont.pointSize());
+                                    m_overrideTransFont.family()).arg(
+                                    m_overrideTransFont.pointSize());
                     }
                     if (m_forceFontColor)
                         dstyle+=QStringLiteral("color: %1;").arg(m_forcedFontColor.name());

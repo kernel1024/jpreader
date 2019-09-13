@@ -157,7 +157,9 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
                   .replace(QStringLiteral("\n"),QStringLiteral("<br />\n"));
     QString cn(QStringLiteral("<html><head><META HTTP-EQUIV=\"Content-type\" "
                               "CONTENT=\"text/html; charset=UTF-8;\">"));
-    cn.append(QStringLiteral("<title>%1</title></head><body>").arg(title));
+    cn.append(QStringLiteral("<title>%1</title>").arg(title));
+    cn.append(QStringLiteral("<style> body { font-family:\"%1\"; } </style>").arg(gSet->settings()->fontFixed));
+    cn.append(QStringLiteral("</head><body>"));
     if (integratedTitle) {
         cn.append(QStringLiteral("<h3>"));
         if (!origin.isEmpty()) {

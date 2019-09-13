@@ -135,7 +135,6 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
         case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
         case CStructures::teAmazonAWS: ui->radioAmazonAWS->setChecked(true); break;
-
     }
 
     ui->atlHost->clear();
@@ -162,9 +161,9 @@ void CSettingsTab::loadFromGlobal()
     ui->checkUseAd->setChecked(gSet->m_settings->useAdblock);
     ui->checkUseNoScript->setChecked(gSet->m_settings->useNoScript);
 
-    ui->checkTransFont->setChecked(gSet->m_ui->useOverrideFont());
+    ui->checkTransFont->setChecked(gSet->m_ui->useOverrideTransFont());
     ui->checkStdFonts->setChecked(gSet->m_settings->overrideStdFonts);
-    ui->transFont->setCurrentFont(gSet->m_settings->overrideFont);
+    ui->transFont->setCurrentFont(gSet->m_settings->overrideTransFont);
     QFont f = QApplication::font();
     f.setFamily(gSet->m_settings->fontStandard);
     ui->fontStandard->setCurrentFont(f);
@@ -174,13 +173,20 @@ void CSettingsTab::loadFromGlobal()
     ui->fontSerif->setCurrentFont(f);
     f.setFamily(gSet->m_settings->fontSansSerif);
     ui->fontSansSerif->setCurrentFont(f);
-    ui->transFontSize->setValue(gSet->m_settings->overrideFont.pointSize());
-    ui->transFont->setEnabled(gSet->m_ui->useOverrideFont());
-    ui->transFontSize->setEnabled(gSet->m_ui->useOverrideFont());
+    ui->transFontSize->setValue(gSet->m_settings->overrideTransFont.pointSize());
+    ui->transFont->setEnabled(gSet->m_ui->useOverrideTransFont());
+    ui->transFontSize->setEnabled(gSet->m_ui->useOverrideTransFont());
     ui->fontStandard->setEnabled(gSet->m_settings->overrideStdFonts);
     ui->fontFixed->setEnabled(gSet->m_settings->overrideStdFonts);
     ui->fontSerif->setEnabled(gSet->m_settings->overrideStdFonts);
     ui->fontSansSerif->setEnabled(gSet->m_settings->overrideStdFonts);
+    ui->checkFontSizeOverride->setChecked(gSet->m_settings->overrideFontSizes);
+    ui->spinFontSizeMinimum->setValue(gSet->m_settings->fontSizeMinimal);
+    ui->spinFontSizeDefault->setValue(gSet->m_settings->fontSizeDefault);
+    ui->spinFontSizeFixed->setValue(gSet->m_settings->fontSizeFixed);
+    ui->spinFontSizeMinimum->setEnabled(gSet->m_settings->overrideFontSizes);
+    ui->spinFontSizeDefault->setEnabled(gSet->m_settings->overrideFontSizes);
+    ui->spinFontSizeFixed->setEnabled(gSet->m_settings->overrideFontSizes);
     ui->checkFontColorOverride->setChecked(gSet->m_ui->forceFontColor());
 
     ui->gctxHotkey->setKeySequence(gSet->m_ui->gctxTranHotkey.shortcut());
@@ -401,7 +407,7 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->checkTransFont,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->actionOverrideFont->setChecked(val);
+        gSet->m_ui->actionOverrideTransFont->setChecked(val);
     });
     connect(ui->checkStdFonts,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
@@ -409,31 +415,49 @@ void CSettingsTab::setupSettingsObservers()
     });
     connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
         if (m_loadingInterlock) return;
-        gSet->m_settings->overrideFont=val;
+        gSet->m_settings->overrideTransFont=val;
     });
     connect(ui->transFontSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
-        gSet->m_settings->overrideFont.setPointSize(val);
+        gSet->m_settings->overrideTransFont.setPointSize(val);
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+    connect(ui->fontStandard,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->fontStandard=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+    connect(ui->fontFixed,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->fontFixed=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+    connect(ui->fontSerif,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->fontSerif=val.family();
     });
-    connect(ui->transFont,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
+    connect(ui->fontSansSerif,&QFontComboBox::currentFontChanged,this,[this](const QFont& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->fontSansSerif=val.family();
     });
+    connect(ui->checkFontSizeOverride,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->overrideFontSizes=val;
+    });
+    connect(ui->spinFontSizeMinimum,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->fontSizeMinimal=val;
+    });
+    connect(ui->spinFontSizeDefault,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->fontSizeDefault=val;
+    });
+    connect(ui->spinFontSizeFixed,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->fontSizeFixed=val;
+    });
+
+
     connect(ui->checkFontColorOverride,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->actionOverrideFontColor->setChecked(val);
+        gSet->m_ui->actionOverrideTransFontColor->setChecked(val);
     });
 
     connect(ui->checkUseAd,&QCheckBox::toggled,this,[this](bool val){

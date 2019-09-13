@@ -453,8 +453,8 @@ CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, c
     mainWindow->menuTools->addAction(m_ui->actionJSUsage);
 
     mainWindow->menuSettings->addAction(m_ui->actionAutoTranslate);
-    mainWindow->menuSettings->addAction(m_ui->actionOverrideFont);
-    mainWindow->menuSettings->addAction(m_ui->actionOverrideFontColor);
+    mainWindow->menuSettings->addAction(m_ui->actionOverrideTransFont);
+    mainWindow->menuSettings->addAction(m_ui->actionOverrideTransFontColor);
     mainWindow->menuSettings->addSeparator();
     mainWindow->menuSettings->addAction(m_ui->actionUseProxy);
     mainWindow->menuSettings->addAction(m_ui->actionTranslateSubSentences);

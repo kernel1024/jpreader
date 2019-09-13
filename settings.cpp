@@ -36,7 +36,7 @@ CSettings::CSettings(QObject *parent)
 
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=savedAuxDir;
-    overrideFont=QApplication::font();
+    overrideTransFont=QApplication::font();
     fontStandard=QApplication::font().family();
 
 #if WITH_RECOLL
@@ -103,16 +103,20 @@ void CSettings::writeSettings()
 
     settings.setValue(QStringLiteral("useAdblock"),useAdblock);
     settings.setValue(QStringLiteral("useNoScript"),useNoScript);
-    settings.setValue(QStringLiteral("useOverrideFont"),gSet->m_ui->useOverrideFont());
-    settings.setValue(QStringLiteral("overrideFont"),overrideFont.family());
-    settings.setValue(QStringLiteral("overrideFontSize"),overrideFont.pointSize());
+    settings.setValue(QStringLiteral("useOverrideTransFont"),gSet->m_ui->useOverrideTransFont());
+    settings.setValue(QStringLiteral("overrideTransFont"),overrideTransFont.family());
+    settings.setValue(QStringLiteral("overrideTransFontSize"),overrideTransFont.pointSize());
     settings.setValue(QStringLiteral("overrideStdFonts"),overrideStdFonts);
     settings.setValue(QStringLiteral("standardFont"),fontStandard);
     settings.setValue(QStringLiteral("fixedFont"),fontFixed);
     settings.setValue(QStringLiteral("serifFont"),fontSerif);
     settings.setValue(QStringLiteral("sansSerifFont"),fontSansSerif);
-    settings.setValue(QStringLiteral("forceFontColor"),gSet->m_ui->forceFontColor());
-    settings.setValue(QStringLiteral("forcedFontColor"),forcedFontColor.name());
+    settings.setValue(QStringLiteral("overrideFontSizes"),overrideFontSizes);
+    settings.setValue(QStringLiteral("fontSizeMinimal"),fontSizeMinimal);
+    settings.setValue(QStringLiteral("fontSizeDefault"),fontSizeDefault);
+    settings.setValue(QStringLiteral("fontSizeFixed"),fontSizeFixed);
+    settings.setValue(QStringLiteral("forceTransFontColor"),gSet->m_ui->forceFontColor());
+    settings.setValue(QStringLiteral("forcedTransFontColor"),forcedFontColor.name());
     settings.setValue(QStringLiteral("gctxHotkey"),gSet->m_ui->gctxTranHotkey.shortcut().toString());
     settings.setValue(QStringLiteral("translateSubSentences"),gSet->m_ui->translateSubSentences());
 
@@ -220,21 +224,25 @@ void CSettings::readSettings(QObject *control)
 
     useAdblock=settings.value(QStringLiteral("useAdblock"),CDefaults::useAdblock).toBool();
     useNoScript=settings.value(QStringLiteral("useNoScript"),CDefaults::useNoScript).toBool();
-    g->m_ui->actionOverrideFont->setChecked(settings.value(QStringLiteral("useOverrideFont"),
+    g->m_ui->actionOverrideTransFont->setChecked(settings.value(QStringLiteral("useOverrideTransFont"),
                                                         false).toBool());
-    overrideFont.setFamily(settings.value(QStringLiteral("overrideFont"),"Verdana").toString());
-    overrideFont.setPointSize(settings.value(QStringLiteral("overrideFontSize"),
-                                             CDefaults::overrideFontSize).toInt());
+    overrideTransFont.setFamily(settings.value(QStringLiteral("overrideTransFont"),"Verdana").toString());
+    overrideTransFont.setPointSize(settings.value(QStringLiteral("overrideTransFontSize"),
+                                             CDefaults::overrideTransFontSize).toInt());
     overrideStdFonts=settings.value(QStringLiteral("overrideStdFonts"),
                                     CDefaults::overrideStdFonts).toBool();
     fontStandard=settings.value(QStringLiteral("standardFont"),QApplication::font().family()).toString();
     fontFixed=settings.value(QStringLiteral("fixedFont"),CDefaults::fontFixed).toString();
     fontSerif=settings.value(QStringLiteral("serifFont"),CDefaults::fontSerif).toString();
     fontSansSerif=settings.value(QStringLiteral("sansSerifFont"),CDefaults::fontSansSerif).toString();
-    g->m_ui->actionOverrideFontColor->setChecked(settings.value(
-                                                  QStringLiteral("forceFontColor"),false).toBool());
+    overrideFontSizes=settings.value(QStringLiteral("overrideFontSizes"),CDefaults::overrideFontSizes).toBool();
+    fontSizeMinimal=settings.value(QStringLiteral("fontSizeMinimal"),CDefaults::fontSizeMinimal).toInt();
+    fontSizeDefault=settings.value(QStringLiteral("fontSizeDefault"),CDefaults::fontSizeDefault).toInt();
+    fontSizeFixed=settings.value(QStringLiteral("fontSizeFixed"),CDefaults::fontSizeFixed).toInt();
+    g->m_ui->actionOverrideTransFontColor->setChecked(settings.value(
+                                                  QStringLiteral("forceTransFontColor"),false).toBool());
     forcedFontColor=QColor(settings.value(
-                               QStringLiteral("forcedFontColor"),"#000000").toString());
+                               QStringLiteral("forcedTransFontColor"),"#000000").toString());
     QString hk = settings.value(QStringLiteral("gctxHotkey"),QString()).toString();
     g->m_ui->actionTranslateSubSentences->setChecked(settings.value(
                                                       QStringLiteral("translateSubSentences"),

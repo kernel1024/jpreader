@@ -70,15 +70,15 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionAutoTranslate->setShortcut(Qt::Key_F8);
     addActionNotification(actionAutoTranslate);
 
-    actionOverrideFont = new QAction(QIcon::fromTheme(QStringLiteral("character-set")),
+    actionOverrideTransFont = new QAction(QIcon::fromTheme(QStringLiteral("character-set")),
                                      tr("Override font for translated text"),this);
-    actionOverrideFont->setCheckable(true);
-    actionOverrideFont->setChecked(false);
+    actionOverrideTransFont->setCheckable(true);
+    actionOverrideTransFont->setChecked(false);
 
-    actionOverrideFontColor = new QAction(QIcon::fromTheme(QStringLiteral("format-text-color")),
+    actionOverrideTransFontColor = new QAction(QIcon::fromTheme(QStringLiteral("format-text-color")),
                                           tr("Force translated text color"),this);
-    actionOverrideFontColor->setCheckable(true);
-    actionOverrideFontColor->setChecked(false);
+    actionOverrideTransFontColor->setCheckable(true);
+    actionOverrideTransFontColor->setChecked(false);
 
     actionLogNetRequests = new QAction(tr("Log network requests"),this);
     actionLogNetRequests->setCheckable(true);
@@ -102,9 +102,9 @@ CGlobalUI::CGlobalUI(QObject *parent)
             actionGlobalTranslator,&QAction::toggle);
 }
 
-bool CGlobalUI::useOverrideFont() const
+bool CGlobalUI::useOverrideTransFont() const
 {
-    return actionOverrideFont->isChecked();
+    return actionOverrideTransFont->isChecked();
 }
 
 bool CGlobalUI::autoTranslate() const
@@ -114,7 +114,7 @@ bool CGlobalUI::autoTranslate() const
 
 bool CGlobalUI::forceFontColor() const
 {
-    return actionOverrideFontColor->isChecked();
+    return actionOverrideTransFontColor->isChecked();
 }
 
 void CGlobalUI::clipboardChanged(QClipboard::Mode mode)

@@ -53,7 +53,7 @@ private:
     QMutex m_abortMutex;
     CAbstractTranslator* m_tran { nullptr };
     QColor m_forcedFontColor;
-    QFont m_overrideFont;
+    QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
     int m_atlTcpRetryCount { 0 };
@@ -63,7 +63,7 @@ private:
     bool m_abortFlag { false };
     bool m_translatorFailed { false };
     bool m_tranInited { false };
-    bool m_useOverrideFont { false };
+    bool m_useOverrideTransFont { false };
     bool m_forceFontColor { false };
     bool m_translateSubSentences { false };
     CStructures::TranslationEngine m_translationEngine { CStructures::teAtlas };

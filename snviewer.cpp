@@ -415,6 +415,14 @@ void CSnippetViewer::updateWebViewAttributes()
         txtBrowser->settings()->setFontFamily(QWebEngineSettings::SansSerifFont,
                                               gSet->settings()->fontSansSerif);
     }
+    if (gSet->settings()->overrideFontSizes) {
+        txtBrowser->settings()->setFontSize(QWebEngineSettings::MinimumFontSize,
+                                            gSet->settings()->fontSizeMinimal);
+        txtBrowser->settings()->setFontSize(QWebEngineSettings::DefaultFontSize,
+                                            gSet->settings()->fontSizeDefault);
+        txtBrowser->settings()->setFontSize(QWebEngineSettings::DefaultFixedFontSize,
+                                            gSet->settings()->fontSizeFixed);
+    }
 }
 
 bool CSnippetViewer::canClose()

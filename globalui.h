@@ -26,8 +26,8 @@ public:
     QAction *actionLogNetRequests;
 
     QAction *actionAutoTranslate;
-    QAction *actionOverrideFont;
-    QAction *actionOverrideFontColor;
+    QAction *actionOverrideTransFont;
+    QAction *actionOverrideTransFontColor;
     QAction *actionTranslateSubSentences;
 
     QAction *actionTMAdditive;
@@ -42,7 +42,7 @@ public:
     explicit CGlobalUI(QObject *parent = nullptr);
 
     // Actions for Settings menu
-    bool useOverrideFont() const;
+    bool useOverrideTransFont() const;
     bool autoTranslate() const;
     bool forceFontColor() const;
     void startGlobalContextTranslate();
