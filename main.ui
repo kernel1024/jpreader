@@ -174,7 +174,6 @@
     <addaction name="actionDownloadManager"/>
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
-    <addaction name="actionInspector"/>
     <addaction name="actionChromiumURLs"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
@@ -291,11 +290,6 @@
     <string>Open with &amp;Url from clipboard</string>
    </property>
   </action>
-  <action name="actionAutodetection">
-   <property name="text">
-    <string>Autodetection</string>
-   </property>
-  </action>
   <action name="actionWnd">
    <property name="icon">
     <iconset theme="window-new">
@@ -311,11 +305,6 @@
   <action name="actionNewSearch">
    <property name="text">
     <string>New sea&amp;rch</string>
-   </property>
-  </action>
-  <action name="actionClearCaches">
-   <property name="text">
-    <string>C&amp;lear caches</string>
    </property>
   </action>
   <action name="actionSaveSettings">
@@ -351,14 +340,6 @@
     <string>F2</string>
    </property>
   </action>
-  <action name="actionGlobalContextTranslator">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Global context translator</string>
-   </property>
-  </action>
   <action name="actionExitAll">
    <property name="icon">
     <iconset theme="application-exit">
@@ -366,14 +347,6 @@
    </property>
    <property name="text">
     <string>&amp;Exit and close all</string>
-   </property>
-  </action>
-  <action name="actionUseHTTPProxy">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Use HTTP Proxy</string>
    </property>
   </action>
   <action name="actionDetachTab">
@@ -388,35 +361,6 @@
   <action name="actionShowLog">
    <property name="text">
     <string>&amp;Show log</string>
-   </property>
-  </action>
-  <action name="actionTModeAdditive">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Additive translation</string>
-   </property>
-  </action>
-  <action name="actionTModeOverwriting">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Overwriting translation</string>
-   </property>
-  </action>
-  <action name="actionTModeTooltip">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Tooltip translation</string>
-   </property>
-  </action>
-  <action name="actionBlah">
-   <property name="text">
-    <string>blah</string>
    </property>
   </action>
   <action name="actionFindText">
@@ -469,11 +413,6 @@
   <action name="actionClearCache">
    <property name="text">
     <string>C&amp;lear cache</string>
-   </property>
-  </action>
-  <action name="actionInspector">
-   <property name="text">
-    <string>&amp;Chromium Inspector</string>
    </property>
   </action>
   <action name="actionPrintPDF">

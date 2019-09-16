@@ -97,7 +97,6 @@ public:
     void setTranslationEngine(CStructures::TranslationEngine engine);
 
     // Chromium
-    QUrl getInspectorUrl() const;
     QWebEngineProfile* webProfile() const;
 
     // UI

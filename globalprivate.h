@@ -22,10 +22,6 @@ class BookmarksManager;
 class CLogDisplay;
 class CBrowserController;
 
-namespace CDefaults {
-const int defaultInspectorPort = 50000;
-}
-
 class CGlobalControlPrivate : public QObject
 {
     Q_OBJECT
@@ -52,7 +48,6 @@ public:
     QHash<QString,QIcon> favicons;
     QStringList createdFiles;
 
-    int inspectorPort { CDefaults::defaultInspectorPort };
     bool blockTabCloseActive { false };
 
     CAuxTranslator* auxTranslatorDBus { nullptr };

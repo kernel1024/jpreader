@@ -7,7 +7,6 @@
 #include <QFileInfo>
 #include <QMutex>
 #include <QMutexLocker>
-#include <QTcpServer>
 #include <QRegExp>
 #include <QLocale>
 #include <QtTest>
@@ -34,24 +33,6 @@ CGenericFuncs::CGenericFuncs(QObject *parent)
     : QObject(parent)
 {
 
-}
-
-int CGenericFuncs::getRandomTCPPort()
-{
-    const uint minPort = 20000;
-    const uint maxPort = 40000;
-
-    QTcpServer srv;
-    int res = -1;
-    for (quint16 i=minPort;i<maxPort;i++) {
-        if (srv.listen(QHostAddress(QHostAddress(QHostAddress::LocalHost)),i)) {
-            res = i;
-            break;
-        }
-    }
-    if (srv.isListening())
-        srv.close();
-    return res;
 }
 
 bool CGenericFuncs::checkAndUnpackUrl(QUrl& url)

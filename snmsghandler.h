@@ -27,6 +27,7 @@ public:
 
 public Q_SLOTS:
     void linkHovered(const QString &link);
+    void showInspector();
     void searchFwd();
     void searchBack();
     void searchFocus();

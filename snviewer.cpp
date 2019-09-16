@@ -136,6 +136,10 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     errorLabel->setText(QString());
     searchPanel->setVisible(!m_searchList.isEmpty());
 
+    splitter->setChildrenCollapsible(true);
+    QList<int> heights({ 1, 0 });
+    splitter->setSizes(heights);
+
     if (AuxContent.isEmpty()) {
         netHandler->load(aUri);
     } else {
@@ -332,20 +336,6 @@ void CSnippetViewer::outsideDragStart()
     drag->setMimeData(mime);
 
     drag->exec(Qt::MoveAction);
-}
-
-bool CSnippetViewer::isInspector()
-{
-    QUrl u = gSet->getInspectorUrl();
-    QUrl uc = txtBrowser->url();
-    u.setFragment(QString());
-    u.setQuery(QString());
-    u.setPath(QString());
-    uc.setFragment(QString());
-    uc.setQuery(QString());
-    uc.setPath(QString());
-
-    return (u==uc);
 }
 
 void CSnippetViewer::printToPDF()

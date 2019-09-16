@@ -101,7 +101,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionFindText, &QAction::triggered, this, &CMainWindow::findText);
     connect(actionDictionary, &QAction::triggered, gSet, &CGlobalControl::showDictionaryWindow);
     connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
-    connect(actionInspector, &QAction::triggered, this, &CMainWindow::openBookmark);
     connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
@@ -111,8 +110,6 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(helperList, &QListWidget::currentItemChanged, this, &CMainWindow::helperItemClicked);
     connect(splitter, &QSplitter::splitterMoved, this, &CMainWindow::splitterMoved);
     connect(tabMain, &CSpecTabWidget::tooltipRequested, this, &CMainWindow::tabBarTooltip);
-
-    actionInspector->setData(gSet->getInspectorUrl());
 
     if (gSet->logWindow()!=nullptr)
         connect(actionShowLog, &QAction::triggered, gSet->logWindow(), &CLogDisplay::show);
@@ -424,18 +421,6 @@ void CMainWindow::tabChanged(int idx)
     updateHelperList();
 }
 
-CSnippetViewer* CMainWindow::getOpenedInspectorTab()
-{
-    for (int i=0;i<tabMain->count();i++) {
-        auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
-        if (sv==nullptr) continue;
-
-        if (sv->isInspector())
-            return sv;
-    }
-    return nullptr;
-}
-
 void CMainWindow::setSearchStatus(const QString &text)
 {
     stSearchStatus->setText(text);
@@ -697,6 +682,7 @@ void CMainWindow::createFromClipboard()
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
     }
+    tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard"),tx);
     CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
@@ -708,6 +694,7 @@ void CMainWindow::createFromClipboardPlain()
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
     }
+    tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard plain"),tx);
     CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }

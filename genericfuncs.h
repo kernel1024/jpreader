@@ -43,7 +43,6 @@ public:
     static const QStringList &getSupportedImageExtensions();
     static QString getTmpDir();
     static bool checkAndUnpackUrl(QUrl& url);
-    static int getRandomTCPPort();
     static int compareStringLists(const QStringList& left, const QStringList& right);
     static QString extractFileTitle(const QString& fileContents);
     static QString convertPatternToRegExp(const QString &wildcardPattern);

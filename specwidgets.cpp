@@ -342,18 +342,18 @@ void CSpecTabContainer::closeTab(bool nowait)
 CSpecWebView::CSpecWebView(QWidget *parent)
     : QWebEngineView(parent)
 {
-    parentViewer = qobject_cast<CSnippetViewer *>(parent);
+    QWidget * w = parent;
+    while (w) {
+        auto viewer = qobject_cast<CSnippetViewer *>(w);
+        if (viewer) {
+            parentViewer = viewer;
+            break;
+        }
+        w = w->parentWidget();
+    }
     if (parentViewer==nullptr)
         qCritical() << "parentViewer is nullptr";
 
-    m_page = new CSpecWebPage(gSet->webProfile(), this);
-    setPage(m_page);
-}
-
-CSpecWebView::CSpecWebView(CSnippetViewer *parent)
-    : QWebEngineView(parent)
-{
-    parentViewer = parent;
     m_page = new CSpecWebPage(gSet->webProfile(), this);
     setPage(m_page);
 }

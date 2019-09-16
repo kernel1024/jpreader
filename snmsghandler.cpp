@@ -187,3 +187,11 @@ void CSnMsgHandler::linkHovered(const QString &link)
 {
     snv->statusBarMsg(link);
 }
+
+void CSnMsgHandler::showInspector()
+{
+    QList<int> heights({ 3*snv->splitter->height()/4,
+                         snv->splitter->height()/4});
+    snv->splitter->setSizes(heights);
+    snv->inspector->page()->setInspectedPage(snv->txtBrowser->page());
+}

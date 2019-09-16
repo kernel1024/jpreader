@@ -149,7 +149,6 @@ private:
     CSpecWebPage* m_page;
 public:
     explicit CSpecWebView(QWidget* parent);
-    explicit CSpecWebView(CSnippetViewer* parent);
     CSpecWebPage* customPage() const;
     void setHtmlInterlocked(const QString& html, const QUrl& baseUrl = QUrl());
 protected:

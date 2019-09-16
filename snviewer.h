@@ -71,7 +71,6 @@ public:
     QUrl getUrl();
     void setToolbarVisibility(bool visible) override;
     void outsideDragStart() override;
-    bool isInspector();
     void printToPDF();
     bool isStartPage() const { return m_startPage; }
     QPixmap pageImage() const { return m_pageImage; }

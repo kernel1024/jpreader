@@ -87,13 +87,6 @@ void CGlobalControl::initialize()
 {
     Q_D(CGlobalControl);
 
-    int dbgport = CGenericFuncs::getRandomTCPPort();
-    if (dbgport>0) {
-        QString url = QStringLiteral("127.0.0.1:%1").arg(dbgport);
-        setenv("QTWEBENGINE_REMOTE_DEBUGGING",url.toUtf8().constData(),1);
-    }
-    d->inspectorPort = dbgport;
-
     qInstallMessageHandler(CGlobalControlPrivate::stdConsoleOutput);
     qRegisterMetaType<CUrlHolder>("CUrlHolder");
     qRegisterMetaType<QDir>("QDir");
@@ -390,17 +383,6 @@ void CGlobalControl::addFavicon(const QString &key, const QIcon &icon)
 void CGlobalControl::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     m_settings->setTranslationEngine(engine);
-}
-
-QUrl CGlobalControl::getInspectorUrl() const
-{
-    Q_D(const CGlobalControl);
-    QUrl res;
-    if (d->inspectorPort<=0 || !qEnvironmentVariableIsSet("QTWEBENGINE_REMOTE_DEBUGGING"))
-        return res;
-
-    res = QUrl::fromUserInput(QString::fromUtf8(qgetenv("QTWEBENGINE_REMOTE_DEBUGGING")));
-    return res;
 }
 
 QWebEngineProfile *CGlobalControl::webProfile() const

@@ -11,8 +11,6 @@
 #include <QTimer>
 #include "ui_main.h"
 
-class CSnippetViewer;
-
 class CMainWindow : public QMainWindow, public Ui::MainWindow
 {
 	Q_OBJECT
@@ -25,7 +23,6 @@ public:
     void updateTitle();
     void checkTabs();
     void updateTabs();
-    CSnippetViewer *getOpenedInspectorTab();
     void setSearchStatus(const QString& text);
     void startTitleRenameTimer();
     bool isTitleRenameTimerActive() const;

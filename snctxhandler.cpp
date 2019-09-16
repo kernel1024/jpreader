@@ -166,6 +166,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
             s = s.replace('\n',QStringLiteral("<br/>"));
+            s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
         });
 
@@ -174,6 +175,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
             s = s.replace('\n',QStringLiteral("<br/>"));
+            s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
             sn->m_requestAutotranslate = true;
         });
@@ -397,10 +399,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                    this,&CSnCtxHandler::showSource,QKeySequence(Qt::CTRL + Qt::Key_E));
 
     ac = ccm->addAction(tr("Inspect page"));
-    connect(ac, &QAction::triggered, this, [this](){
-        auto sv = new CSnippetViewer(snv->parentWnd());
-        sv->txtBrowser->page()->setInspectedPage(snv->txtBrowser->page());
-    });
+    connect(ac, &QAction::triggered, snv->msgHandler, &CSnMsgHandler::showInspector);
 
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme(QStringLiteral("documentation")),tr("Show in editor"),
