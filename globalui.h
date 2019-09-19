@@ -28,7 +28,6 @@ public:
     QAction *actionAutoTranslate;
     QAction *actionOverrideTransFont;
     QAction *actionOverrideTransFontColor;
-    QAction *actionTranslateSubSentences;
 
     QAction *actionTMAdditive;
     QAction *actionTMOverwriting;
@@ -46,7 +45,6 @@ public:
     bool autoTranslate() const;
     bool forceFontColor() const;
     void startGlobalContextTranslate();
-    bool translateSubSentences() const;
     void addActionNotification(QAction* action);
 
     CStructures::TranslationMode getTranslationMode() const;

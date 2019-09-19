@@ -95,6 +95,7 @@ public:
     void writeSettings();
     void addFavicon(const QString& key, const QIcon &icon);
     void setTranslationEngine(CStructures::TranslationEngine engine);
+    void setSubsentencesMode(CStructures::TranslationEngine engine, bool translateSubSentences);
 
     // Chromium
     QWebEngineProfile* webProfile() const;

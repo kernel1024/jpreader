@@ -75,13 +75,13 @@ void CSnTrans::transButtonHighlight()
     snv->transButton->setStyleSheet(QStringLiteral("QPushButton { background: #d7ffd7; }"));
 }
 
-void CSnTrans::translate(bool tranSubSentences)
+void CSnTrans::translate(bool forceTranslateSubSentences)
 {
     m_savedBaseUrl = snv->txtBrowser->page()->url();
     if (m_savedBaseUrl.hasFragment())
         m_savedBaseUrl.setFragment(QString());
-    snv->txtBrowser->page()->toHtml([this,tranSubSentences](const QString& html) {
-        translatePriv(html,tranSubSentences);
+    snv->txtBrowser->page()->toHtml([this,forceTranslateSubSentences](const QString& html) {
+        translatePriv(html,forceTranslateSubSentences);
     });
 }
 
@@ -113,12 +113,12 @@ void CSnTrans::getImgUrlsAndParse()
     });
 }
 
-void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranSubSentences)
+void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranslateSubSentences)
 {
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
 
-    auto ct = new CTranslator(nullptr,sourceHtml,forceTranSubSentences);
+    auto ct = new CTranslator(nullptr,sourceHtml,forceTranslateSubSentences);
     auto th = new QThread();
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);

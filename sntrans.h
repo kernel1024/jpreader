@@ -22,10 +22,10 @@ private:
 
 public:
     explicit CSnTrans(CSnippetViewer * parent);
-    void translate(bool tranSubSentences);
+    void translate(bool forceTranslateSubSentences);
 
 public Q_SLOTS:
-    void translatePriv(const QString& sourceHtml, bool forceTranSubSentences);
+    void translatePriv(const QString& sourceHtml, bool forceTranslateSubSentences);
     void translationFinished(bool success, const QString &resultHtml, const QString &error);
     void postTranslate();
     void progressLoad(int progress);

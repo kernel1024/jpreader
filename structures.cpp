@@ -147,3 +147,17 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
 
     return engines;
 }
+
+QDataStream &operator<<(QDataStream &out, const CStructures::TranslationEngine &obj)
+{
+    out << static_cast<int>(obj);
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, CStructures::TranslationEngine &obj)
+{
+    int buf;
+    in >> buf;
+    obj = static_cast<CStructures::TranslationEngine>(buf);
+    return in;
+}

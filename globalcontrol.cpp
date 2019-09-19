@@ -101,6 +101,7 @@ void CGlobalControl::initialize()
     qRegisterMetaTypeStreamOperators<CSslCertificateHash>("CSslCertificateHash");
     qRegisterMetaTypeStreamOperators<CLangPairVector>("CLangPairVector");
     qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
+    qRegisterMetaTypeStreamOperators<CSubsentencesMode>("CSubsentencesMode");
 
     if (!setupIPC())
         ::exit(0);
@@ -385,6 +386,11 @@ void CGlobalControl::setTranslationEngine(CStructures::TranslationEngine engine)
     m_settings->setTranslationEngine(engine);
 }
 
+void CGlobalControl::setSubsentencesMode(CStructures::TranslationEngine engine, bool translateSubSentences)
+{
+    m_settings->subsentencesMode[engine] = translateSubSentences;
+}
+
 QWebEngineProfile *CGlobalControl::webProfile() const
 {
     Q_D(const CGlobalControl);
@@ -439,7 +445,6 @@ CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, c
     mainWindow->menuSettings->addAction(m_ui->actionOverrideTransFontColor);
     mainWindow->menuSettings->addSeparator();
     mainWindow->menuSettings->addAction(m_ui->actionUseProxy);
-    mainWindow->menuSettings->addAction(m_ui->actionTranslateSubSentences);
 
     mainWindow->menuTranslationMode->addAction(m_ui->actionTMAdditive);
     mainWindow->menuTranslationMode->addAction(m_ui->actionTMOverwriting);

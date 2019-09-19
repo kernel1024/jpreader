@@ -1,6 +1,7 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
+#include <QObject>
 #include <QString>
 #include <QDataStream>
 #include <QUrl>
@@ -13,6 +14,8 @@
 #include <QLocale>
 
 namespace CStructures {
+Q_NAMESPACE
+
 enum TranslationEngine {
     teAtlas = 1,
     teBingAPI = 2,
@@ -20,23 +23,27 @@ enum TranslationEngine {
     teGoogleGTX = 4,
     teAmazonAWS = 5
 };
+Q_ENUM_NS(TranslationEngine)
 
 enum SearchEngine {
     seNone = 0,
     seRecoll = 2,
     seBaloo5 = 3
 };
+Q_ENUM_NS(SearchEngine)
 
 enum TranslationMode {
     tmAdditive = 0,
     tmOverwriting = 1,
     tmTooltip = 2
 };
+Q_ENUM_NS(TranslationMode)
 
 enum SearchModelRole {
     cpSortRole = 1,
     cpFilterRole = 2
 };
+Q_ENUM_NS(SearchModelRole)
 
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 
@@ -94,11 +101,15 @@ using CUrlHolderVector = QVector<CUrlHolder>;
 using CSslCertificateHash = QHash<QSslCertificate,CIntList>;
 using CLangPairVector = QVector<CLangPair>;
 using CStringSet = QSet<QString>;
+using CSubsentencesMode = QHash<CStructures::TranslationEngine,bool>;
 
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
 QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 
 QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
 QDataStream &operator>>(QDataStream &in, CLangPair &obj);
+
+QDataStream &operator<<(QDataStream &out, const CStructures::TranslationEngine &obj);
+QDataStream &operator>>(QDataStream &in, CStructures::TranslationEngine &obj);
 
 #endif // STRUCTURES_H

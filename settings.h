@@ -107,6 +107,7 @@ public:
 
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash atlCerts;
+    CSubsentencesMode subsentencesMode;
 
     int maxHistory { CDefaults::maxHistory };
     int maxRecent { CDefaults::maxRecent };

@@ -453,6 +453,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addAction(QIcon::fromTheme(QStringLiteral("document-save")),tr("Save to file..."),
                    this,&CSnCtxHandler::saveToFile);
 
+    ccm = m_menu.addMenu(QIcon::fromTheme(QStringLiteral("document-edit-verify")),
+                         tr("Translator options"));
+    snv->msgHandler->addTranslatorOptionsMenu(ccm);
+
     if (!pixivActions.isEmpty()) {
         QUrl pixivIconUrl(QStringLiteral("http://www.pixiv.net/favicon.ico"));
         if (pixivUrl.isValid())

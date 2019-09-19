@@ -84,10 +84,6 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionLogNetRequests->setCheckable(true);
     actionLogNetRequests->setChecked(false);
 
-    actionTranslateSubSentences = new QAction(tr("Translate subsentences"),this);
-    actionTranslateSubSentences->setCheckable(true);
-    actionTranslateSubSentences->setChecked(false);
-
     connect(QApplication::clipboard(),&QClipboard::changed,
             this,&CGlobalUI::clipboardChanged);
 
@@ -150,11 +146,6 @@ void CGlobalUI::startGlobalContextTranslate()
     QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
 
     gctxSelection.clear();
-}
-
-bool CGlobalUI::translateSubSentences() const
-{
-    return actionTranslateSubSentences->isChecked();
 }
 
 void CGlobalUI::addActionNotification(QAction *action)

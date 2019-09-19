@@ -78,6 +78,7 @@ void CSettings::writeSettings()
     bigdata.setValue(QStringLiteral("userScripts"),QVariant::fromValue(gSet->getUserScripts()));
     bigdata.setValue(QStringLiteral("bookmarks2"),QVariant::fromValue(gSet->d_func()->bookmarksManager->save()));
     bigdata.setValue(QStringLiteral("translatorPairs"),QVariant::fromValue(translatorPairs));
+    bigdata.setValue(QStringLiteral("subsentencesMode"),QVariant::fromValue(subsentencesMode));
 
     settings.setValue(QStringLiteral("maxLimit"),maxSearchLimit);
     settings.setValue(QStringLiteral("maxHistory"),maxHistory);
@@ -118,7 +119,6 @@ void CSettings::writeSettings()
     settings.setValue(QStringLiteral("forceTransFontColor"),gSet->m_ui->forceFontColor());
     settings.setValue(QStringLiteral("forcedTransFontColor"),forcedFontColor.name());
     settings.setValue(QStringLiteral("gctxHotkey"),gSet->m_ui->gctxTranHotkey.shortcut().toString());
-    settings.setValue(QStringLiteral("translateSubSentences"),gSet->m_ui->translateSubSentences());
 
     settings.setValue(QStringLiteral("searchEngine"),static_cast<int>(searchEngine));
     settings.setValue(QStringLiteral("atlTcpRetryCount"),atlTcpRetryCount);
@@ -182,6 +182,7 @@ void CSettings::readSettings(QObject *control)
     g->initUserScripts(bigdata.value(QStringLiteral("userScripts")).value<CStringHash>());
     g->d_func()->bookmarksManager->load(bigdata.value(QStringLiteral("bookmarks2"),QByteArray()).toByteArray());
     translatorPairs = bigdata.value(QStringLiteral("translatorPairs")).value<CLangPairVector>();
+    subsentencesMode = bigdata.value(QStringLiteral("subsentencesMode")).value<CSubsentencesMode>();
 
     int idx=0;
     while (idx<g->d_func()->mainHistory.count()) {
@@ -244,9 +245,6 @@ void CSettings::readSettings(QObject *control)
     forcedFontColor=QColor(settings.value(
                                QStringLiteral("forcedTransFontColor"),"#000000").toString());
     QString hk = settings.value(QStringLiteral("gctxHotkey"),QString()).toString();
-    g->m_ui->actionTranslateSubSentences->setChecked(settings.value(
-                                                      QStringLiteral("translateSubSentences"),
-                                                      false).toBool());
     if (!hk.isEmpty()) {
         g->m_ui->gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
         if (!g->m_ui->gctxTranHotkey.shortcut().isEmpty())

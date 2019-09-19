@@ -81,7 +81,7 @@ private:
     void dumpPage(QUuid token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, const QString &sourceHtml, bool forceTranSubSentences = false);
+    explicit CTranslator(QObject* parent, const QString &sourceHtml, bool forceTranslateSubSentences = false);
     ~CTranslator() override;
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
