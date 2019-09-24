@@ -21,7 +21,7 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowIcon(QIcon::fromTheme(QStringLiteral("folder-downloads")));
+    setWindowIcon(QIcon::fromTheme(QSL("folder-downloads")));
 
     model = new CDownloadsModel(this);
     ui->tableDownloads->setModel(model);
@@ -51,12 +51,12 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
 
     QString fname;
     if (index>=0) {
-        fname.append(QStringLiteral("%1_")
+        fname.append(QSL("%1_")
                      .arg(index,CGenericFuncs::numDigits(maxIndex),indexBase,QLatin1Char('0')));
     }
     fname.append(url.fileName());
-    if (path.endsWith(QStringLiteral(".zip"),Qt::CaseInsensitive)) {
-        fname = QStringLiteral("%1%2%3").arg(path).arg(CDefaults::zipSeparator).arg(fname);
+    if (path.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
+        fname = QSL("%1%2%3").arg(path).arg(CDefaults::zipSeparator).arg(fname);
     } else {
         fname = QDir(path).filePath(fname);
     }
@@ -209,14 +209,14 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         if (index.column()==0) {
             switch (t.state) {
                 case QWebEngineDownloadItem::DownloadCancelled:
-                    return QIcon::fromTheme(QStringLiteral("task-reject")).pixmap(iconSize);
+                    return QIcon::fromTheme(QSL("task-reject")).pixmap(iconSize);
                 case QWebEngineDownloadItem::DownloadCompleted:
-                    return QIcon::fromTheme(QStringLiteral("task-complete")).pixmap(iconSize);
+                    return QIcon::fromTheme(QSL("task-complete")).pixmap(iconSize);
                 case QWebEngineDownloadItem::DownloadInProgress:
                 case QWebEngineDownloadItem::DownloadRequested:
-                    return QIcon::fromTheme(QStringLiteral("arrow-right")).pixmap(iconSize);
+                    return QIcon::fromTheme(QSL("arrow-right")).pixmap(iconSize);
                 case QWebEngineDownloadItem::DownloadInterrupted:
-                    return QIcon::fromTheme(QStringLiteral("task-attention")).pixmap(iconSize);
+                    return QIcon::fromTheme(QSL("task-attention")).pixmap(iconSize);
             }
             return QVariant();
         }
@@ -232,12 +232,12 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
                 return fi.fileName();
             }
             case 2:
-                if (t.total==0) return QStringLiteral("0%");
-                return QStringLiteral("%1%").arg(100*t.received/t.total);
+                if (t.total==0) return QSL("0%");
+                return QSL("%1%").arg(100*t.received/t.total);
             case 3:
                 if (!t.errorString.isEmpty())
                     return t.errorString;
-                return QStringLiteral("%1 / %2")
+                return QSL("%1 / %2")
                         .arg(CGenericFuncs::formatFileSize(t.received),
                              CGenericFuncs::formatFileSize(t.total));
             default: return QVariant();
@@ -263,7 +263,7 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
 
     if (role == Qt::DisplayRole) {
         switch (section) {
-            case 0: return QStringLiteral(" ");
+            case 0: return QSL(" ");
             case 1: return tr("Filename");
             case 2: return tr("Completion");
             case 3: return tr("Downloaded");
@@ -511,7 +511,7 @@ void CDownloadsModel::openDirectory()
         fname = downloads.at(idx).getFileName();
     QFileInfo fi(fname);
 
-    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << fi.path()))
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << fi.path()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
 }
 
@@ -524,14 +524,14 @@ void CDownloadsModel::openHere()
     if (idx<0 || idx>=downloads.count()) return;
 
     static const QStringList acceptedMime
-            = { QStringLiteral("text/plain"), QStringLiteral("text/html"), QStringLiteral("application/pdf"),
-                QStringLiteral("image/jpeg"), QStringLiteral("image/png"), QStringLiteral("image/gif"),
-                QStringLiteral("image/svg+xml"), QStringLiteral("image/webp") };
+            = { QSL("text/plain"), QSL("text/html"), QSL("application/pdf"),
+                QSL("image/jpeg"), QSL("image/png"), QSL("image/gif"),
+                QSL("image/svg+xml"), QSL("image/webp") };
 
     static const QStringList acceptedExt
-            = { QStringLiteral("pdf"), QStringLiteral("htm"), QStringLiteral("html"), QStringLiteral("txt"),
-                QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("jpe"), QStringLiteral("png"),
-                QStringLiteral("svg"), QStringLiteral("gif"), QStringLiteral("webp") };
+            = { QSL("pdf"), QSL("htm"), QSL("html"), QSL("txt"),
+                QSL("jpg"), QSL("jpeg"), QSL("jpe"), QSL("png"),
+                QSL("svg"), QSL("gif"), QSL("webp") };
 
     const QString fname = downloads.at(idx).getFileName();
     const QString mime = downloads.at(idx).mimeType;
@@ -553,7 +553,7 @@ void CDownloadsModel::openXdg()
     if (idx<0 || idx>=downloads.count()) return;
     if (!downloads.at(idx).getZipName().isEmpty()) return;
 
-    if (!QProcess::startDetached(QStringLiteral("xdg-open"), QStringList() << downloads.at(idx).getFileName()))
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << downloads.at(idx).getFileName()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
@@ -644,7 +644,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
 {
     id = 0;
     pathName = fname;
-    mimeType = QStringLiteral("application/download");
+    mimeType = QSL("application/download");
     errorString.clear();
     state = QWebEngineDownloadItem::DownloadInProgress;
     received = 0;

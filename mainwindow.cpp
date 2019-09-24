@@ -69,10 +69,10 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     actionRecentDocuments->setMenu(recentMenu);
 
     menuBar()->addSeparator();
-    tabsMenu = menuBar()->addMenu(QIcon::fromTheme(QStringLiteral("tab-detach")),QString());
-    recycledMenu = menuBar()->addMenu(QIcon::fromTheme(QStringLiteral("user-trash")),QString());
+    tabsMenu = menuBar()->addMenu(QIcon::fromTheme(QSL("tab-detach")),QString());
+    recycledMenu = menuBar()->addMenu(QIcon::fromTheme(QSL("user-trash")),QString());
 
-    menuBookmarks->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
+    menuBookmarks->setStyleSheet(QSL("QMenu { menu-scrollable: 1; }"));
     menuBookmarks->setToolTipsVisible(true);
 
     titleRenamedLock.setInterval(CDefaults::titleRenameLockTimeout);
@@ -157,7 +157,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     QApplication::instance()->installEventFilter(this);
 
-    QPushButton* addTabButton = new QPushButton(QIcon::fromTheme(QStringLiteral("list-add")),QString());
+    QPushButton* addTabButton = new QPushButton(QIcon::fromTheme(QSL("list-add")),QString());
     addTabButton->setFlat(true);
     tabMain->setCornerWidget(addTabButton);
     connect(addTabButton,&QPushButton::clicked,actionNew,&QAction::trigger);
@@ -577,7 +577,7 @@ void CMainWindow::updateTitle()
         if (sv!=nullptr && !sv->tabTitle().isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle());
-            t = QStringLiteral("%1 - %2").arg(doc.toPlainText(), t);
+            t = QSL("%1 - %2").arg(doc.toPlainText(), t);
             t.remove('\r');
             t.remove('\n');
         }
@@ -612,11 +612,11 @@ void CMainWindow::createSearch()
 
 void CMainWindow::createStartBrowser()
 {
-    QFile f(QStringLiteral(":/data/startpage"));
+    QFile f(QSL(":/data/startpage"));
     QString html;
     if (f.open(QIODevice::ReadOnly))
         html = QString::fromUtf8(f.readAll());
-    new CSnippetViewer(this,QUrl(),QStringList(),true,html,QStringLiteral("100%"),true);
+    new CSnippetViewer(this,QUrl(),QStringList(),true,html,QSL("100%"),true);
 }
 
 void CMainWindow::checkTabs()
@@ -708,7 +708,7 @@ void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(CGenericFuncs::getClipboardContent(true));
     url.setFragment(QString());
-    QString uri = url.toString().remove(QRegExp(QStringLiteral("#$")));
+    QString uri = url.toString().remove(QRegExp(QSL("#$")));
     if (uri.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
@@ -903,7 +903,7 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
     const int fullscreenToolsShowMargin = 20;
 
     QString cln = QString::fromLatin1(obj->metaObject()->className());
-    if (fullScreen && cln.contains(QStringLiteral("WebEngine"),Qt::CaseInsensitive)) {
+    if (fullScreen && cln.contains(QSL("WebEngine"),Qt::CaseInsensitive)) {
         if (ev->type()==QEvent::MouseMove) {
             auto mev = dynamic_cast<QMouseEvent *>(ev);
             if (mev) {
@@ -922,11 +922,11 @@ void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
 {
     QStringList formats = ev->mimeData()->formats();
 
-    if (formats.contains(QStringLiteral("_NETSCAPE_URL")) ||
-            formats.contains(QStringLiteral("text/uri-list"))) {
+    if (formats.contains(QSL("_NETSCAPE_URL")) ||
+            formats.contains(QSL("text/uri-list"))) {
         ev->acceptProposedAction();
 
-    } else if (formats.contains(QStringLiteral("text/plain"))) {
+    } else if (formats.contains(QSL("text/plain"))) {
         QUrl u(ev->mimeData()->text());
         if (u.isValid())
             ev->acceptProposedAction();
@@ -943,18 +943,18 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     QVector<QUrl> ul;
     bool ok = false;
 
-    if (data.contains(QStringLiteral("_NETSCAPE_URL"))) {
-        QString s = data.value(QStringLiteral("_NETSCAPE_URL"))
-                    .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst();
+    if (data.contains(QSL("_NETSCAPE_URL"))) {
+        QString s = data.value(QSL("_NETSCAPE_URL"))
+                    .split(QRegExp(QSL("\n|\r\n|\r"))).constFirst();
         QUrl u(s);
         if (u.isValid()) {
             ul << u;
             ok = true;
         }
     }
-    if (!ok && data.contains(QStringLiteral("text/uri-list"))) {
-        QStringList sl = data.value(QStringLiteral("text/uri-list"))
-                         .split(QRegExp(QStringLiteral("\n|\r\n|\r")));
+    if (!ok && data.contains(QSL("text/uri-list"))) {
+        QStringList sl = data.value(QSL("text/uri-list"))
+                         .split(QRegExp(QSL("\n|\r\n|\r")));
         for (int i=0;i<sl.count();i++) {
             if (sl.at(i).startsWith('#')) continue;
             QUrl u(sl.at(i));
@@ -964,9 +964,9 @@ void CMainWindow::dropEvent(QDropEvent *ev)
             }
         }
     }
-    if (!ok && data.contains(QStringLiteral("text/plain"))) {
-        QUrl u(data.value(QStringLiteral("text/plain"))
-               .split(QRegExp(QStringLiteral("\n|\r\n|\r"))).constFirst());
+    if (!ok && data.contains(QSL("text/plain"))) {
+        QUrl u(data.value(QSL("text/plain"))
+               .split(QRegExp(QSL("\n|\r\n|\r"))).constFirst());
         if (u.isValid())
             ul << u;
     }
@@ -1003,10 +1003,10 @@ void CMainWindow::helpAbout()
                      "Recoll backend compiled: %5\n"
                      "Baloo backend compiled: %6\n"
                      "Poppler support: %7.")
-                  .arg(QStringLiteral(BUILD_REV),
+                  .arg(QSL(BUILD_REV),
                        debugstr,
-                       QStringLiteral(BUILD_PLATFORM),
-                       QStringLiteral(BUILD_DATE),
+                       QSL(BUILD_PLATFORM),
+                       QSL(BUILD_DATE),
                        recoll,
                        baloo5,
                        poppler);

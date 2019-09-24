@@ -23,6 +23,7 @@
 
 #include "userscript.h"
 #include "genericfuncs.h"
+#include "structures.h"
 #include <QRegularExpression>
 #include <QRegExp>
 #include <QTextStream>
@@ -87,11 +88,11 @@ void CUserScript::setSource(const QString &src)
     while (!stream.atEnd())
     {
         QString line(stream.readLine().trimmed());
-        if (!line.startsWith(QStringLiteral("//")))
+        if (!line.startsWith(QSL("//")))
             continue;
 
         line = line.mid(2).trimmed();
-        if (line.startsWith(QStringLiteral("==UserScript==")))
+        if (line.startsWith(QSL("==UserScript==")))
         {
             hasHeader = true;
             continue;
@@ -104,33 +105,33 @@ void CUserScript::setSource(const QString &src)
 
         const QString keyword(line.section(' ', 0, 0));
 
-        if (keyword == QStringLiteral("description")) {
+        if (keyword == QSL("description")) {
             m_description = line.section(' ', 1, -1).trimmed();
 
-        } else if (keyword == QStringLiteral("exclude")) {
+        } else if (keyword == QSL("exclude")) {
             m_excludeRules.append(line.section(' ', 1, -1).trimmed());
 
-        } else if (keyword == QStringLiteral("homepage")) {
+        } else if (keyword == QSL("homepage")) {
             m_homePage = QUrl(line.section(' ', 1, -1).trimmed());
 
-        } else if (keyword == QStringLiteral("include")) {
+        } else if (keyword == QSL("include")) {
             m_includeRules.append(line.section(' ', 1, -1).trimmed());
 
-        } else if (keyword == QStringLiteral("match")) {
+        } else if (keyword == QSL("match")) {
             line = line.section(' ', 1, -1).trimmed();
 
-            if (QRegularExpression(QStringLiteral("^.+://.*/.*")).match(line).hasMatch()
+            if (QRegularExpression(QSL("^.+://.*/.*")).match(line).hasMatch()
                     && (!line.startsWith('*') || line.at(1) == QLatin1Char(':')))
             {
-                const QString scheme(line.left(line.indexOf(QStringLiteral("://"))));
+                const QString scheme(line.left(line.indexOf(QSL("://"))));
 
-                if (scheme == QStringLiteral("*") ||
-                        scheme == QStringLiteral("http") ||
-                        scheme == QStringLiteral("https") ||
-                        scheme == QStringLiteral("file") ||
-                        scheme == QStringLiteral("ftp"))
+                if (scheme == QSL("*") ||
+                        scheme == QSL("http") ||
+                        scheme == QSL("https") ||
+                        scheme == QSL("file") ||
+                        scheme == QSL("ftp"))
                 {
-                    const QString pathAndDomain(line.mid(line.indexOf(QStringLiteral("://")) + 3));
+                    const QString pathAndDomain(line.mid(line.indexOf(QSL("://")) + 3));
                     const QString domain(pathAndDomain.left(pathAndDomain.indexOf('/')));
 
                     if (domain.indexOf('*') < 0 ||
@@ -146,32 +147,32 @@ void CUserScript::setSource(const QString &src)
 
             qWarning() << "Invalid match rule for User Script, line:" << line;
 
-        } else if (keyword == QStringLiteral("name")) {
+        } else if (keyword == QSL("name")) {
             m_title = line.section(' ', 1, -1).trimmed();
 
-        } else if (keyword == QStringLiteral("noframes")) {
+        } else if (keyword == QSL("noframes")) {
             m_shouldRunOnSubFrames = true;
 
-        } else if (keyword == QStringLiteral("run-at")) {
+        } else if (keyword == QSL("run-at")) {
             const QString injectionTime(line.section(' ', 1, -1).trimmed());
 
-            if (injectionTime == QStringLiteral("document-start")) {
+            if (injectionTime == QSL("document-start")) {
                 m_injectionTime = DocumentCreationTime;
 
-            } else if (injectionTime == QStringLiteral("document-idle")) {
+            } else if (injectionTime == QSL("document-idle")) {
                 m_injectionTime = DeferredTime;
 
-            } else if (injectionTime == QStringLiteral("context-menu")) {
+            } else if (injectionTime == QSL("context-menu")) {
                 m_runFromContextMenu = true;
                 m_injectionTime = DocumentReadyTime;
 
             } else {
                 m_injectionTime = DocumentReadyTime;
             }
-        } else if (keyword == QStringLiteral("updateURL")) {
+        } else if (keyword == QSL("updateURL")) {
             m_updateUrl = QUrl(line.section(' ', 1, -1).trimmed());
 
-        } else if (keyword == QStringLiteral("version")) {
+        } else if (keyword == QSL("version")) {
             m_version = line.section(' ', 1, -1).trimmed();
         }
     }
@@ -215,10 +216,10 @@ CUserScript::InjectionTime CUserScript::getInjectionTime() const
 
 bool CUserScript::isEnabledForUrl(const QUrl &url) const
 {
-    if (url.scheme() != QStringLiteral("http") &&
-            url.scheme() != QStringLiteral("https") &&
-            url.scheme() != QStringLiteral("file") &&
-            url.scheme() != QStringLiteral("ftp"))
+    if (url.scheme() != QSL("http") &&
+            url.scheme() != QSL("https") &&
+            url.scheme() != QSL("file") &&
+            url.scheme() != QSL("ftp"))
     {
         return false;
     }

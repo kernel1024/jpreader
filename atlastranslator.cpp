@@ -45,7 +45,7 @@ bool CAtlasTranslator::initTran()
     if (sock.isOpen()) return true;
 
     if (!language().isValid() || !language().isAtlasAcceptable()) {
-        setErrorMsg(QStringLiteral("ATLAS: Unacceptable language pair. "
+        setErrorMsg(QSL("ATLAS: Unacceptable language pair. "
                                    "Only english and japanese is supported."));
         qCritical() << "ATLAS: Unacceptable language pair";
         return false;
@@ -59,52 +59,52 @@ bool CAtlasTranslator::initTran()
 
     sock.connectToHostEncrypted(atlHost,atlPort);
     if (!sock.waitForEncrypted()) {
-        setErrorMsg(QStringLiteral("ATLAS: SSL connection timeout"));
+        setErrorMsg(QSL("ATLAS: SSL connection timeout"));
         qCritical() << "ATLAS: SSL connection timeout";
         return false;
     }
     QByteArray buf;
 
     // INIT command and response
-    buf = QStringLiteral("INIT:%1\r\n").arg(gSet->settings()->atlToken).toLatin1();
+    buf = QSL("INIT:%1\r\n").arg(gSet->settings()->atlToken).toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
-            setErrorMsg(QStringLiteral("ATLAS: initialization timeout"));
+            setErrorMsg(QSL("ATLAS: initialization timeout"));
             qCritical() << "ATLAS: initialization timeout";
             sock.close();
             return false;
         }
     }
     buf = sock.readLine().simplified();
-    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QStringLiteral("OK")))) {
-        setErrorMsg(QStringLiteral("ATLAS: initialization error"));
+    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QSL("OK")))) {
+        setErrorMsg(QSL("ATLAS: initialization error"));
         qCritical() << "ATLAS: initialization error";
         sock.close();
         return false;
     }
 
     // DIR command and response
-    QString trandir = QStringLiteral("DIR:AUTO\r\n");
-    if (language().langTo.bcp47Name().startsWith(QStringLiteral("en")))
-        trandir = QStringLiteral("DIR:JE\r\n");
-    if (language().langTo.bcp47Name().startsWith(QStringLiteral("ja")))
-        trandir = QStringLiteral("DIR:EJ\r\n");
+    QString trandir = QSL("DIR:AUTO\r\n");
+    if (language().langTo.bcp47Name().startsWith(QSL("en")))
+        trandir = QSL("DIR:JE\r\n");
+    if (language().langTo.bcp47Name().startsWith(QSL("ja")))
+        trandir = QSL("DIR:EJ\r\n");
     buf = trandir.toLatin1();
     sock.write(buf);
     sock.flush();
     if (!sock.canReadLine()) {
         if (!sock.waitForReadyRead()) {
-            setErrorMsg(QStringLiteral("ATLAS: direction timeout error"));
+            setErrorMsg(QSL("ATLAS: direction timeout error"));
             qCritical() << "ATLAS: direction timeout error";
             sock.close();
             return false;
         }
     }
     buf = sock.readLine().simplified();
-    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QStringLiteral("OK")))) {
-        setErrorMsg(QStringLiteral("ATLAS: direction error"));
+    if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QSL("OK")))) {
+        setErrorMsg(QSL("ATLAS: direction error"));
         qCritical() << "ATLAS: direction error";
         sock.close();
         return false;
@@ -117,15 +117,15 @@ bool CAtlasTranslator::initTran()
 QString CAtlasTranslator::tranString(const QString &src)
 {
     if (!sock.isOpen()) {
-        setErrorMsg(QStringLiteral("ERROR: ATLAS socket not opened"));
-        return QStringLiteral("ERROR:TRAN_ATLAS_SOCK_NOT_OPENED");
+        setErrorMsg(QSL("ERROR: ATLAS socket not opened"));
+        return QSL("ERROR:TRAN_ATLAS_SOCK_NOT_OPENED");
     }
 
     // TR command and response
     QString s = QString::fromLatin1(QUrl::toPercentEncoding(src," ")).trimmed();
     if (s.isEmpty()) return QString();
 //    qDebug() << "TO TRAN: " << s;
-    QByteArray buf = QStringLiteral("TR:%1\r\n").arg(s).toLatin1();
+    QByteArray buf = QSL("TR:%1\r\n").arg(s).toLatin1();
     sock.write(buf);
     sock.flush();
     QByteArray sumbuf;
@@ -134,8 +134,8 @@ QString CAtlasTranslator::tranString(const QString &src)
             if (!sock.waitForReadyRead(CDefaults::translatorConnectionTimeout)) {
                 qCritical() << "ATLAS: translation timeout error";
                 sock.close();
-                setErrorMsg(QStringLiteral("ERROR: ATLAS socket error"));
-                return QStringLiteral("ERROR:TRAN_ATLAS_SOCKET_ERROR");
+                setErrorMsg(QSL("ERROR: ATLAS socket error"));
+                return QSL("ERROR:TRAN_ATLAS_SOCKET_ERROR");
             }
         }
         buf = sock.readLine();
@@ -146,21 +146,21 @@ QString CAtlasTranslator::tranString(const QString &src)
     sumbuf = sumbuf.simplified();
     sumbuf.replace('+',' ');
     s = QString::fromLatin1(sumbuf);
-    if (sumbuf.isEmpty() || !s.contains(QRegExp(QStringLiteral("^RES:")))) {
-        if (s.contains(QStringLiteral("NEED_RESTART"))) {
+    if (sumbuf.isEmpty() || !s.contains(QRegExp(QSL("^RES:")))) {
+        if (s.contains(QSL("NEED_RESTART"))) {
             qCritical() << "ATLAS: translation engine slipped. Please restart again.";
             sock.close();
-            setErrorMsg(QStringLiteral("ERROR: ATLAS slipped"));
-            return QStringLiteral("ERROR:ATLAS_SLIPPED");
+            setErrorMsg(QSL("ERROR: ATLAS slipped"));
+            return QSL("ERROR:ATLAS_SLIPPED");
         }
 
         qCritical() << "ATLAS: translation error";
         sock.close();
-        setErrorMsg(QStringLiteral("ERROR: ATLAS translation error"));
-        return QStringLiteral("ERROR:TRAN_ATLAS_TRAN_ERROR");
+        setErrorMsg(QSL("ERROR: ATLAS translation error"));
+        return QSL("ERROR:TRAN_ATLAS_TRAN_ERROR");
     }
 
-    s = s.remove(QRegExp(QStringLiteral("^RES:")));
+    s = s.remove(QRegExp(QSL("^RES:")));
     QString res = QUrl::fromPercentEncoding(s.toLatin1());
     if (res.trimmed().isEmpty() && emptyRestore)
         return src;
@@ -175,7 +175,7 @@ void CAtlasTranslator::doneTran(bool lazyClose)
 
     if (!lazyClose) {
         // FIN command and response
-        QByteArray buf = QStringLiteral("FIN\r\n").toLatin1();
+        QByteArray buf = QSL("FIN\r\n").toLatin1();
         sock.write(buf);
         sock.flush();
         if (!sock.canReadLine()) {
@@ -186,7 +186,7 @@ void CAtlasTranslator::doneTran(bool lazyClose)
             }
         }
         buf = sock.readLine().simplified();
-        if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QStringLiteral("OK")))) {
+        if (buf.isEmpty() || (!QString::fromLatin1(buf).startsWith(QSL("OK")))) {
             qCritical() << "ATLAS: finalization error";
             sock.close();
             return;

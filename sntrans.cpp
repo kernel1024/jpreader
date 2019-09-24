@@ -72,7 +72,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
 
 void CSnTrans::transButtonHighlight()
 {
-    snv->transButton->setStyleSheet(QStringLiteral("QPushButton { background: #d7ffd7; }"));
+    snv->transButton->setStyleSheet(QSL("QPushButton { background: #d7ffd7; }"));
 }
 
 void CSnTrans::translate(bool forceTranslateSubSentences)
@@ -134,7 +134,7 @@ void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranslateSubSe
 
     const CLangPair lp = CLangPair(gSet->ui()->getActiveLangPair());
     const QChar arrow(0x2192);
-    snv->waitHandler->setLanguage(QStringLiteral("%1 %2 %3")
+    snv->waitHandler->setLanguage(QSL("%1 %2 %3")
                                   .arg(gSet->getLanguageName(lp.langFrom.bcp47Name()),
                                        arrow,
                                        gSet->getLanguageName(lp.langTo.bcp47Name())));
@@ -163,7 +163,7 @@ void CSnTrans::translationFinished(bool success, const QString& resultHtml, cons
         postTranslate();
         snv->parentWnd()->updateTabs();
     } else {
-        if (resultHtml.startsWith(QStringLiteral("ERROR:"))) {
+        if (resultHtml.startsWith(QSL("ERROR:"))) {
             QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(resultHtml));
 
         } else if (!error.isEmpty()) {
@@ -178,7 +178,7 @@ void CSnTrans::translationFinished(bool success, const QString& resultHtml, cons
 void CSnTrans::postTranslate()
 {
     if (snv->m_translatedHtml.isEmpty()) return;
-    if (snv->m_translatedHtml.contains(QStringLiteral("ERROR:ATLAS_SLIPPED"))) {
+    if (snv->m_translatedHtml.contains(QSL("ERROR:ATLAS_SLIPPED"))) {
         QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
         return;
     }
@@ -211,10 +211,10 @@ void CSnTrans::selectionChanged()
 void CSnTrans::findWordTranslation(const QString &text)
 {
     QUrl req;
-    req.setScheme( QStringLiteral("gdlookup") );
-    req.setHost( QStringLiteral("localhost") );
+    req.setScheme( QSL("gdlookup") );
+    req.setHost( QSL("localhost") );
     QUrlQuery requ;
-    requ.addQueryItem( QStringLiteral("word"), text );
+    requ.addQueryItem( QSL("word"), text );
     req.setQuery(requ);
     QNetworkReply* rep = gSet->dictionaryNetworkAccessManager()->get(QNetworkRequest(req));
     connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
@@ -249,7 +249,7 @@ void CSnTrans::showWordTranslation(const QString &html)
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(maxTranslationTooltipSize);
-    t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; }"));
+    t->setStyleSheet(QSL("QLabel { background: #fefdeb; }"));
 
     connect(t,&QLabel::linkActivated,this,&CSnTrans::showSuggestedTranslation);
     connect(snv->ctxHandler,&CSnCtxHandler::hideTooltips,t,&QLabel::close);
@@ -261,7 +261,7 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
 {
     QUrl url(link);
     QUrlQuery requ(url);
-    QString word = requ.queryItemValue(QStringLiteral("word"));
+    QString word = requ.queryItemValue(QSL("word"));
     if (word.startsWith('%')) {
         QByteArray bword = word.toLatin1();
         if (!bword.isNull() && !bword.isEmpty())

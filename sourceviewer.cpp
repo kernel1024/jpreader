@@ -28,8 +28,8 @@ CSourceViewer::CSourceViewer(CSnippetViewer *origin, QWidget *parent) :
     ui->labelTitle->setText(origin->getDocTitle());
 
     QString url = origin->getUrl().toString();
-    if (url.startsWith(QStringLiteral("data")))
-        url = QStringLiteral("data-url (RFC 2397)");
+    if (url.startsWith(QSL("data")))
+        url = QSL("data-url (RFC 2397)");
     url = CGenericFuncs::elideString(url,urlElidingCharacterWidth,Qt::ElideMiddle);
     ui->labelUrl->setText(url);
 

@@ -25,7 +25,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     if (tran==nullptr || !tran->initTran()) {
         qCritical() << tr("Unable to initialize translation engine.");
         res.clear();
-        res << QStringLiteral("ERROR");
+        res << QSL("ERROR");
         Q_EMIT gotTranslation(res);
         if (tran)
             tran->deleteLater();
@@ -38,7 +38,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
             break;
         }
         QString s = tran->tranString(titles.at(i));
-        if (s.contains(QStringLiteral("ERROR"))) break;
+        if (s.contains(QSL("ERROR"))) break;
         res << s;
         if (100*i/titles.count()!=p) {
             Q_EMIT updateProgress(100*i/titles.count());

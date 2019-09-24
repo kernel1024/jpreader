@@ -11,19 +11,19 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
     setWindowTitle(title);
 
     formLayout = new QFormLayout(parent);
-    formLayout->setObjectName(QStringLiteral("formLayout"));
+    formLayout->setObjectName(QSL("formLayout"));
 
     int i = 0;
     for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
         QLabel *label = new QLabel(this);
-        label->setObjectName(QStringLiteral("label_%1").arg(i));
+        label->setObjectName(QSL("label_%1").arg(i));
         label->setText(it.key());
         labels << label;
 
         formLayout->setWidget(i, QFormLayout::LabelRole, label);
 
         auto lineEdit = new QLineEdit(this);
-        lineEdit->setObjectName(QStringLiteral("lineEdit_%1").arg(i));
+        lineEdit->setObjectName(QSL("lineEdit_%1").arg(i));
         lineEdit->setText(it.value());
         edits << lineEdit;
 
@@ -36,7 +36,7 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
 
     if (!helperText.isEmpty()) {
         QLabel* hlp = new QLabel(this);
-        hlp->setObjectName(QStringLiteral("label_helper"));
+        hlp->setObjectName(QSL("label_helper"));
         hlp->setText(helperText);
         ui->verticalLayout->insertWidget(0,hlp);
     }

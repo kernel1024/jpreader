@@ -24,8 +24,8 @@ bool CBingTranslator::initTran()
     initNAM();
 
     QUrlQuery uq;
-    uq.addQueryItem(QStringLiteral("Subscription-Key"),clientKey);
-    QUrl rqurl = QUrl(QStringLiteral("https://api.cognitive.microsoft.com/sts/v1.0/issueToken"));
+    uq.addQueryItem(QSL("Subscription-Key"),clientKey);
+    QUrl rqurl = QUrl(QSL("https://api.cognitive.microsoft.com/sts/v1.0/issueToken"));
     rqurl.setQuery(uq);
     QNetworkRequest rq(rqurl);
 
@@ -50,25 +50,25 @@ bool CBingTranslator::initTran()
 
     rpl->deleteLater();
 
-    authHeader = QStringLiteral("Bearer %1").arg(QString::fromUtf8(ra));
+    authHeader = QSL("Bearer %1").arg(QString::fromUtf8(ra));
     clearErrorMsg();
     return true;
 }
 
 QString CBingTranslator::tranStringInternal(const QString &src)
 {
-    QUrl rqurl = QUrl(QStringLiteral("https://api.cognitive.microsofttranslator.com/translate"));
+    QUrl rqurl = QUrl(QSL("https://api.cognitive.microsofttranslator.com/translate"));
 
     QUrlQuery rqData;
-    rqData.addQueryItem(QStringLiteral("textType"),QStringLiteral("plain"));
-    rqData.addQueryItem(QStringLiteral("from"),language().langFrom.bcp47Name());
-    rqData.addQueryItem(QStringLiteral("to"),language().langTo.bcp47Name());
-    rqData.addQueryItem(QStringLiteral("api-version"),QStringLiteral("3.0"));
+    rqData.addQueryItem(QSL("textType"),QSL("plain"));
+    rqData.addQueryItem(QSL("from"),language().langFrom.bcp47Name());
+    rqData.addQueryItem(QSL("to"),language().langTo.bcp47Name());
+    rqData.addQueryItem(QSL("api-version"),QSL("3.0"));
     rqurl.setQuery(rqData);
 
     QJsonObject obj = QJsonObject();
     QJsonObject reqtext;
-    reqtext[QStringLiteral("Text")] = src;
+    reqtext[QSL("Text")] = src;
     QJsonArray reqlist({ reqtext });
     QJsonDocument doc(reqlist);
     QByteArray body = doc.toJson(QJsonDocument::Compact);
@@ -81,8 +81,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     QNetworkReply *rpl = nam()->post(rq,body);
 
     if (!waitForReply(rpl)) {
-        setErrorMsg(QStringLiteral("ERROR: Bing translator network error"));
-        return QStringLiteral("ERROR:TRAN_BING_NETWORK_ERROR");
+        setErrorMsg(QSL("ERROR: Bing translator network error"));
+        return QSL("ERROR:TRAN_BING_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
@@ -92,34 +92,34 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     doc = QJsonDocument::fromJson(ra);
     if (doc.isNull()) {
-        setErrorMsg(QStringLiteral("ERROR: Bing translator JSON error"));
-        return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
+        setErrorMsg(QSL("ERROR: Bing translator JSON error"));
+        return QSL("ERROR:TRAN_BING_JSON_ERROR");
     }
 
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
-        QJsonValue err = obj.value(QStringLiteral("error"));
+        QJsonValue err = obj.value(QSL("error"));
         if (err.isObject()) {
             setErrorMsg(tr("ERROR: Bing translator JSON error #%1: %2")
-                    .arg(err.toObject().value(QStringLiteral("code")).toInt())
-                    .arg(err.toObject().value(QStringLiteral("message")).toString()));
-            return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
+                    .arg(err.toObject().value(QSL("code")).toInt())
+                    .arg(err.toObject().value(QSL("message")).toString()));
+            return QSL("ERROR:TRAN_BING_JSON_ERROR");
         }
-        setErrorMsg(QStringLiteral("ERROR: Bing translator JSON generic error"));
-        return QStringLiteral("ERROR:TRAN_BING_JSON_ERROR");
+        setErrorMsg(QSL("ERROR: Bing translator JSON generic error"));
+        return QSL("ERROR:TRAN_BING_JSON_ERROR");
     }
 
     QString res;
     const QJsonArray rootlist = doc.array();
     for (const QJsonValue &rv : qAsConst(rootlist)) {
         if (!rv.isObject() ||
-                !rv.toObject().contains(QStringLiteral("translations")) ||
-                !rv.toObject().value(QStringLiteral("translations")).isArray()) continue;
-        const QJsonArray translist = rv.toObject().value(QStringLiteral("translations")).toArray();
+                !rv.toObject().contains(QSL("translations")) ||
+                !rv.toObject().value(QSL("translations")).isArray()) continue;
+        const QJsonArray translist = rv.toObject().value(QSL("translations")).toArray();
         for (const QJsonValue &tv : qAsConst(translist)) {
             if (tv.isObject() &&
-                    tv.toObject().contains(QStringLiteral("text"))) {
-                res+=tv.toObject().value(QStringLiteral("text")).toString();
+                    tv.toObject().contains(QSL("text"))) {
+                res+=tv.toObject().value(QSL("text")).toString();
             }
 
         }

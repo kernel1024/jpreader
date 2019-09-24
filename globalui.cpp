@@ -63,19 +63,19 @@ CGlobalUI::CGlobalUI(QObject *parent)
 
     actionTMAdditive->setChecked(true);
 
-    actionAutoTranslate = new QAction(QIcon::fromTheme(QStringLiteral("document-edit-decrypt")),
+    actionAutoTranslate = new QAction(QIcon::fromTheme(QSL("document-edit-decrypt")),
                                       tr("Automatic translation"),this);
     actionAutoTranslate->setCheckable(true);
     actionAutoTranslate->setChecked(false);
     actionAutoTranslate->setShortcut(Qt::Key_F8);
     addActionNotification(actionAutoTranslate);
 
-    actionOverrideTransFont = new QAction(QIcon::fromTheme(QStringLiteral("character-set")),
+    actionOverrideTransFont = new QAction(QIcon::fromTheme(QSL("character-set")),
                                      tr("Override font for translated text"),this);
     actionOverrideTransFont->setCheckable(true);
     actionOverrideTransFont->setChecked(false);
 
-    actionOverrideTransFontColor = new QAction(QIcon::fromTheme(QStringLiteral("format-text-color")),
+    actionOverrideTransFontColor = new QAction(QIcon::fromTheme(QSL("format-text-color")),
                                           tr("Force translated text color"),this);
     actionOverrideTransFontColor->setCheckable(true);
     actionOverrideTransFontColor->setChecked(false);
@@ -158,7 +158,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     const int maxTooltipCharacterWidth = 80;
 
     auto t = new QLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
-    t->setStyleSheet(QStringLiteral("QLabel { background: #fefdeb; color: black; }"));
+    t->setStyleSheet(QSL("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,nullptr,QRect(),false,true);
 }
@@ -172,7 +172,7 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
 
     int sz = globalStatusTooltipFontSizeFrac * gSet->app()->font().pointSize()/100;
 
-    QString msg = QStringLiteral("<span style='font-size:%1pt;white-space:nowrap;'>"
+    QString msg = QSL("<span style='font-size:%1pt;white-space:nowrap;'>"
                                          "%2</span>").arg(sz).arg(text);
     QPoint pos = gSet->activeWindow()->mapToGlobal(globalStatusTooltipOffset);
 
@@ -206,7 +206,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
 
     for (const CLangPair& pair : qAsConst(g->settings()->translatorPairs)) {
-        QAction *ac = languageSelector->addAction(QStringLiteral("%1 - %2").arg(
+        QAction *ac = languageSelector->addAction(QSL("%1 - %2").arg(
                                       g->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->getLanguageName(pair.langTo.bcp47Name())));
         ac->setCheckable(true);
@@ -220,7 +220,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     }
 
     if (languageSelector->actions().isEmpty()) {
-        QAction *ac = languageSelector->addAction(QStringLiteral("(empty)"));
+        QAction *ac = languageSelector->addAction(QSL("(empty)"));
         ac->setEnabled(false);
     }
 

@@ -220,7 +220,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     if (m_tabWidget==nullptr) return;
     int i = m_tabWidget->addTab(this,m_tabTitle);
     if (gSet->settings()->showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme(QStringLiteral("dialog-close")),QString());
+        QPushButton* b = new QPushButton(QIcon::fromTheme(QSL("dialog-close")),QString());
         b->setFlat(true);
         int sz = m_tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
@@ -488,21 +488,21 @@ CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
 
 void CSpecLogHighlighter::highlightBlock(const QString &text)
 {
-    formatBlock(text,QRegExp(QStringLiteral("^\\S{,8}"),
+    formatBlock(text,QRegExp(QSL("^\\S{,8}"),
                              Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Debug:\\s"),
+    formatBlock(text,QRegExp(QSL("\\s(\\S+\\s)?Debug:\\s"),
                              Qt::CaseInsensitive),Qt::black,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Warning:\\s"),
+    formatBlock(text,QRegExp(QSL("\\s(\\S+\\s)?Warning:\\s"),
                              Qt::CaseInsensitive),Qt::darkRed,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Critical:\\s"),
+    formatBlock(text,QRegExp(QSL("\\s(\\S+\\s)?Critical:\\s"),
                              Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Fatal:\\s"),
+    formatBlock(text,QRegExp(QSL("\\s(\\S+\\s)?Fatal:\\s"),
                              Qt::CaseInsensitive),Qt::red,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\s(\\S+\\s)?Info:\\s"),
+    formatBlock(text,QRegExp(QSL("\\s(\\S+\\s)?Info:\\s"),
                              Qt::CaseInsensitive),Qt::darkBlue,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\sBLOCKED\\s"),
+    formatBlock(text,QRegExp(QSL("\\sBLOCKED\\s"),
                              Qt::CaseSensitive),Qt::darkRed,true);
-    formatBlock(text,QRegExp(QStringLiteral("\\(\\S+\\)$"),
+    formatBlock(text,QRegExp(QSL("\\(\\S+\\)$"),
                              Qt::CaseInsensitive),Qt::gray,false,true);
 }
 
@@ -628,14 +628,14 @@ QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
 {
     const int gdDictionaryResponseTimeout = 10000;
 
-    if (gSet!=nullptr && url.scheme().toLower()==QStringLiteral("gdlookup")) {
+    if (gSet!=nullptr && url.scheme().toLower()==QSL("gdlookup")) {
         QByteArray rplb;
 
         CIOEventLoop ev;
         QString mime;
 
         QUrlQuery qr(url);
-        if ( qr.queryItemValue( QStringLiteral("blank") ) == QStringLiteral("1") ) {
+        if ( qr.queryItemValue( QSL("blank") ) == QSL("1") ) {
             rplb = CGenericFuncs::makeSimpleHtml(QString(),QString()).toUtf8();
             return rplb;
         }

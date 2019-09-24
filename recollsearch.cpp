@@ -24,7 +24,7 @@ void CRecollSearch::recollReadyRead()
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
-    QRegExp rxname(QStringLiteral("[a-z]+"));
+    QRegExp rxname(QSL("[a-z]+"));
 
     for(int i=0;i<outList.count();i++) {
         QString s = outList.at(i).trimmed();
@@ -40,9 +40,9 @@ void CRecollSearch::recollReadyRead()
             snip[name] = strFromBase64(sl.at(idx++)).trimmed();
         }
 
-        QUrl u = QUrl(snip.value(QStringLiteral("url")));
+        QUrl u = QUrl(snip.value(QSL("url")));
         if (u.isValid() && u.isLocalFile())
-            snip[QStringLiteral("jp:fullfilename")] = u.toLocalFile();
+            snip[QSL("jp:fullfilename")] = u.toLocalFile();
 
         Q_EMIT addHit(snip);
     }
@@ -70,10 +70,10 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
         recoll->deleteLater();
     });
 
-    recoll->start(QStringLiteral("recoll"),QStringList() << QStringLiteral("-n")
-                  << QString::number(maxLimit) << QStringLiteral("-t")
-                  << QStringLiteral("-F") << QString() << QStringLiteral("-N")
-                  << QStringLiteral("-q") << qr);
+    recoll->start(QSL("recoll"),QStringList() << QSL("-n")
+                  << QString::number(maxLimit) << QSL("-t")
+                  << QSL("-F") << QString() << QSL("-N")
+                  << QSL("-q") << qr);
 
     recoll->waitForStarted();
 }

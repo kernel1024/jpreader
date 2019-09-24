@@ -253,7 +253,7 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
         switch (subnode->type) {
             case BookmarkNode::Folder:
                 submenu = menuWidget->addMenu(subnode->title);
-                submenu->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
+                submenu->setStyleSheet(QSL("QMenu { menu-scrollable: 1; }"));
                 submenu->setToolTipsVisible(true);
                 populateBookmarksMenu(submenu, wnd, subnode);
                 break;
@@ -291,7 +291,7 @@ void BookmarksManager::importBookmarks()
     XbelReader reader;
     BookmarkNode *importRootNode = reader.read(fileName);
     if (reader.error() != QXmlStreamReader::NoError) {
-        QMessageBox::warning(nullptr, QStringLiteral("Loading Bookmark"),
+        QMessageBox::warning(nullptr, QSL("Loading Bookmark"),
                              tr("Error when loading bookmarks on line %1, column %2:\n"
                                 "%3").arg(reader.lineNumber()).arg(reader.columnNumber()).arg(reader.errorString()));
     }
@@ -319,7 +319,7 @@ void BookmarksManager::exportBookmarks()
 BookmarksModel::BookmarksModel(BookmarksManager *bookmarkManager, QObject *parent)
     : QAbstractItemModel(parent)
     , m_bookmarksManager(bookmarkManager)
-    , m_bookmarksMimeType(QStringLiteral("application/bookmarks.xbel"))
+    , m_bookmarksMimeType(QSL("application/bookmarks.xbel"))
 {
     connect(bookmarkManager, &BookmarksManager::entryAdded,
             this, &BookmarksModel::entryAdded);

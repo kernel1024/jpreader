@@ -45,11 +45,11 @@ void CPDFWorkerPrivate::metaString(QString& out, Dict *infoDict, const char* key
         const GooString *s1 = obj.getString();
         QByteArray ba(s1->c_str());
         res = CGenericFuncs::detectDecodeToUnicode(ba);
-        res.replace(QStringLiteral("&"),  QStringLiteral("&amp;"));
-        res.replace(QStringLiteral("'"),  QStringLiteral("&apos;" ));
-        res.replace(QStringLiteral("\""), QStringLiteral("&quot;" ));
-        res.replace(QStringLiteral("<"),  QStringLiteral("&lt;" ));
-        res.replace(QStringLiteral(">"),  QStringLiteral("&gt;" ));
+        res.replace(QSL("&"),  QSL("&amp;"));
+        res.replace(QSL("'"),  QSL("&apos;" ));
+        res.replace(QSL("\""), QSL("&quot;" ));
+        res.replace(QSL("<"),  QSL("&lt;" ));
+        res.replace(QSL(">"),  QSL("&gt;" ));
     }
     if (!res.isEmpty())
         out.append(QString(fmt).arg(res));
@@ -61,7 +61,7 @@ void CPDFWorkerPrivate::metaDate(QString& out, Dict *infoDict, const char* key, 
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
         QString s = QString::fromUtf8(obj.getString()->c_str());
-        if (s.startsWith(QStringLiteral("D:")))
+        if (s.startsWith(QSL("D:")))
             s.remove(0,2);
         out.append(QString(fmt).arg(s));
     }
@@ -108,7 +108,7 @@ void CPDFWorkerPrivate::popplerError(void *data, ErrorCategory category, Goffset
 
 CPDFWorkerPrivate::CPDFWorkerPrivate(QObject *parent)
     : QObject(parent),
-      m_pageSeparator(QStringLiteral("##JPREADER_NEWPAGE##"))
+      m_pageSeparator(QSL("##JPREADER_NEWPAGE##"))
 {
 
 }
@@ -116,7 +116,7 @@ CPDFWorkerPrivate::CPDFWorkerPrivate(QObject *parent)
 void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
 {
     static const QString vertForm
-            = QStringLiteral("\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
+            = QSL("\uFE30\uFE31\uFE32\uFE33\uFE34\uFE35\uFE36\uFE37\uFE38\uFE39\uFE3A"
                              "\uFE3B\uFE3C\uFE3D\uFE3E\uFE3F\uFE40\uFE41\uFE42\uFE43\uFE44\uFE45"
                              "\uFE46\uFE47\uFE48\u22EE"
                              "\uFE10\uFE11\uFE12\uFE13\uFE14\uFE15\uFE16\uFE17\uFE18\uFE19");
@@ -125,7 +125,7 @@ void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
     // ﹆ ﹇ ﹈ ⋮
     // ︐ ︑ ︒ ︓ ︔ ︕ ︖ ︗ ︘ ︙
     static const QString vertFormTr =
-            QStringLiteral("\u2025\u2014\u2013\u005F\uFE4F\uFF08\uFF09\uFF5B\uFF5D\u3014\u3015"
+            QSL("\u2025\u2014\u2013\u005F\uFE4F\uFF08\uFF09\uFF5B\uFF5D\u3014\u3015"
                            "\u3010\u3011\u300A\u300B\u3008\u3009\u300C\u300D\u300E\u300F\u3002"
                            "\u3002\uFF3B\uFF3D\u2026"
                            "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026");
@@ -154,15 +154,15 @@ void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
 QString CPDFWorkerPrivate::formatPdfText(const QString& text)
 {
     const static QString openingQuotation =
-            QStringLiteral("\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
+            QSL("\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\u301A\u201C"
                            "\u00AB\u2039\u2018\u0022\u0028\u005B\uFF08\uFF3B");
     // 〈《「『【〔〖〘〚 “ « ‹ ‘ " ( [
     const static QString closingQuotation =
-            QStringLiteral("\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
+            QSL("\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\u301B\u201D"
                            "\u00BB\u203A\u2019\u0022\u0029\u005D\uFF09\uFF3D");
     //  〉》」』】〕〗〙〛” » › ’ " ) ]
     const static QString endMarkers =
-            QStringLiteral("\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026");
+            QSL("\u0021\u002E\u003F\uFF01\uFF0E\uFF1F\u3002\u2026");
     // ! . ? 。…
 
     const static int maxParagraphLength = 150;
@@ -179,7 +179,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
     QString s = text;
 
     // replace multi-newlines with paragraph markers
-    QRegExp exp(QStringLiteral("\n{2,}"));
+    QRegExp exp(QSL("\n{2,}"));
     int pos = 0;
     while ((pos=exp.indexIn(s,pos)) != -1) {
         int length = exp.matchedLength();
@@ -189,7 +189,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
             if (!((pm.isLetter() && !isVerticalText) ||
                   (pm.isLetterOrNumber() && isVerticalText) ||
                   (pm.isPunct() && !endMarkers.contains(pm)))) {
-                s.insert(pos,QStringLiteral("</p><p>"));
+                s.insert(pos,QSL("</p><p>"));
             }
         }
     }
@@ -198,9 +198,9 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
     s.remove('\n');
 
     // replace page separators
-    s = s.replace('\f',QStringLiteral("</p>%1<p>").arg(m_pageSeparator));
+    s = s.replace('\f',QSL("</p>%1<p>").arg(m_pageSeparator));
 
-    s = QStringLiteral("<p>") + s + QStringLiteral("</p>");
+    s = QSL("<p>") + s + QSL("</p>");
 
     int idx = 0;
     while (idx<s.length()) { // remove-replace pass
@@ -258,7 +258,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
         }
         idx++;
     }
-    s = s.replace('\n',QStringLiteral("</p>\n<p>"));
+    s = s.replace('\n',QSL("</p>\n<p>"));
 
     return s;
 }
@@ -319,7 +319,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding())) {
         qCritical() << "pdfToText: Couldn't get text encoding";
-        result = QStringLiteral("pdfToText: Couldn't get text encoding");
+        result = QSL("pdfToText: Couldn't get text encoding");
         *error = true;
         return result;
     }
@@ -330,38 +330,38 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
-        result = QStringLiteral("pdfToText: Cannot create PDF Doc object");
+        result = QSL("pdfToText: Cannot create PDF Doc object");
         *error = true;
         return result;
     }
 
     // write HTML header
-    result.append(QStringLiteral("<html><head>\n"));
+    result.append(QSL("<html><head>\n"));
     info = doc->getDocInfo();
     if (info.isDict()) {
         Object obj;
         if (static_cast<void>(obj = info.getDict()->lookup("Title")), obj.isString()) {
-            metaString(result, info.getDict(), "Title", QStringLiteral("<title>%1</title>\n"));
+            metaString(result, info.getDict(), "Title", QSL("<title>%1</title>\n"));
         } else {
-            result.append(QStringLiteral("<title>%1</title>\n").arg(fi.baseName()));
+            result.append(QSL("<title>%1</title>\n").arg(fi.baseName()));
         }
         metaString(result, info.getDict(), "Subject",
-                   QStringLiteral("<meta name=\"Subject\" content=\"%1\"/>\n"));
+                   QSL("<meta name=\"Subject\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Keywords",
-                   QStringLiteral("<meta name=\"Keywords\" content=\"%1\"/>\n"));
+                   QSL("<meta name=\"Keywords\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Author",
-                   QStringLiteral("<meta name=\"Author\" content=\"%1\"/>\n"));
+                   QSL("<meta name=\"Author\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Creator",
-                   QStringLiteral("<meta name=\"Creator\" content=\"%1\"/>\n"));
+                   QSL("<meta name=\"Creator\" content=\"%1\"/>\n"));
         metaString(result, info.getDict(), "Producer",
-                   QStringLiteral("<meta name=\"Producer\" content=\"%1\"/>\n"));
+                   QSL("<meta name=\"Producer\" content=\"%1\"/>\n"));
         metaDate(result, info.getDict(), "CreationDate",
-                 QStringLiteral("<meta name=\"CreationDate\" content=\"%1\"/>\n"));
+                 QSL("<meta name=\"CreationDate\" content=\"%1\"/>\n"));
         metaDate(result, info.getDict(), "LastModifiedDate",
-                 QStringLiteral("<meta name=\"ModDate\" content=\"%1\"/>\n"));
+                 QSL("<meta name=\"ModDate\" content=\"%1\"/>\n"));
     }
-    result.append(QStringLiteral("</head>\n"));
-    result.append(QStringLiteral("<body>\n"));
+    result.append(QSL("</head>\n"));
+    result.append(QSL("<body>\n"));
 
     lastPage = doc->getNumPages();
 
@@ -378,7 +378,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
         delete doc;
         uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
-        result = QStringLiteral("pdfToText: Cannot create TextOutput object");
+        result = QSL("pdfToText: Cannot create TextOutput object");
         *error = true;
         return result;
     }
@@ -468,13 +468,13 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     int idx = 1;
     while (!sltext.isEmpty()) {
         if (idx>1)
-            m_text.append(QStringLiteral("<hr>"));
+            m_text.append(QSL("<hr>"));
 
         const auto imgList = images.value(idx);
         for (const QByteArray& img : imgList) {
-            m_text.append(QStringLiteral("<img src=\"data:image/jpeg;base64,"));
+            m_text.append(QSL("<img src=\"data:image/jpeg;base64,"));
             m_text.append(QString::fromLatin1(img.toBase64()));
-            m_text.append(QStringLiteral("\" />&nbsp;"));
+            m_text.append(QSL("\" />&nbsp;"));
         }
         m_text.append(sltext.takeFirst());
         idx++;
@@ -482,8 +482,8 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 
 
     result.append(m_text);
-    result.append(QStringLiteral("</body>\n"));
-    result.append(QStringLiteral("</html>\n"));
+    result.append(QSL("</body>\n"));
+    result.append(QSL("</html>\n"));
 
     delete doc;
     uMap->decRefCnt();

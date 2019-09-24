@@ -103,6 +103,8 @@ using CLangPairVector = QVector<CLangPair>;
 using CStringSet = QSet<QString>;
 using CSubsentencesMode = QHash<CStructures::TranslationEngine,bool>;
 
+#define QSL QStringLiteral
+
 QDataStream &operator<<(QDataStream &out, const QSslCertificate &obj);
 QDataStream &operator>>(QDataStream &in, QSslCertificate &obj);
 

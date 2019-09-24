@@ -1,7 +1,6 @@
 #include <QString>
 #include <QChar>
 #include "Node.h"
-
 #include <QDebug>
 
 using namespace std;
@@ -19,13 +18,13 @@ void Node::parseAttributes()
     mAttributes.clear();
     mAttributesOrder.clear();
 
-    if (!lText.contains(QStringLiteral("<"))) return;
+    if (!lText.contains(QLatin1Char('<'))) return;
 
     QString::Iterator end;
     QString::Iterator ptr = lText.data();
 
     // Skip up to tag start
-    ptr += lText.indexOf(QStringLiteral("<"));
+    ptr += lText.indexOf(QLatin1Char('<'));
 
     // Chop opening braces
     ++ptr;

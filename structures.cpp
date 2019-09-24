@@ -92,7 +92,7 @@ bool CLangPair::isValid() const
 
 bool CLangPair::isAtlasAcceptable() const
 {
-    static const QStringList validLangs({ QStringLiteral("en"), QStringLiteral("ja") });
+    static const QStringList validLangs({ QSL("en"), QSL("ja") });
     return (isValid() &&
             validLangs.contains(langFrom.bcp47Name()) &&
             validLangs.contains(langTo.bcp47Name()));
@@ -100,7 +100,7 @@ bool CLangPair::isAtlasAcceptable() const
 
 QString CLangPair::getHash() const
 {
-    return QStringLiteral("%1#%2").arg(langFrom.bcp47Name(),
+    return QSL("%1#%2").arg(langFrom.bcp47Name(),
                                        langTo.bcp47Name());
 }
 
@@ -138,11 +138,11 @@ QDataStream &operator>>(QDataStream &in, CLangPair &obj)
 const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEngines()
 {
     static const QMap<CStructures::TranslationEngine,QString> engines = {
-        { teAtlas, QStringLiteral("ATLAS") },
-        { teBingAPI, QStringLiteral("Bing API") },
-        { teYandexAPI, QStringLiteral("Yandex API") },
-        { teGoogleGTX, QStringLiteral("Google GTX") },
-        { teAmazonAWS, QStringLiteral("Amazon Translate") }
+        { teAtlas, QSL("ATLAS") },
+        { teBingAPI, QSL("Bing API") },
+        { teYandexAPI, QSL("Yandex API") },
+        { teGoogleGTX, QSL("Google GTX") },
+        { teAmazonAWS, QSL("Amazon Translate") }
     };
 
     return engines;

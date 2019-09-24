@@ -38,7 +38,7 @@ CGenericFuncs::CGenericFuncs(QObject *parent)
 bool CGenericFuncs::checkAndUnpackUrl(QUrl& url)
 {
     // Extract jump url for pixiv
-    if (url.host().endsWith(QStringLiteral("pixiv.net")) && url.path().startsWith(QStringLiteral("/jump"))) {
+    if (url.host().endsWith(QSL("pixiv.net")) && url.path().startsWith(QSL("/jump"))) {
         QUrl ju(url.query(QUrl::FullyDecoded));
         if (ju.isValid()) {
             url = ju;
@@ -59,7 +59,7 @@ QString CGenericFuncs::detectMIME(const QString &filename)
     const char* mg = magic_file(myt,bm);
     if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
-        return QStringLiteral("text/plain");
+        return QSL("text/plain");
     }
     QString mag = QString::fromLatin1(mg);
     magic_close(myt);
@@ -73,7 +73,7 @@ QString CGenericFuncs::detectMIME(const QByteArray &buf)
     const char* mg = magic_buffer(myt,buf.data(),static_cast<size_t>(buf.length()));
     if (mg==nullptr) {
         qCritical() << "libmagic error: " << magic_errno(myt) << QString::fromUtf8(magic_error(myt));
-        return QStringLiteral("text/plain");
+        return QSL("text/plain");
     }
     QString mag = QString::fromLatin1(mg);
     magic_close(myt);
@@ -106,7 +106,7 @@ QString CGenericFuncs::detectEncodingName(const QByteArray& content)
     ucsdet_close(csd);
 
     codepage = QString::fromUtf8(QTextCodec::codecForHtml(content,enc)->name());
-    if (codepage.contains(QStringLiteral("x-sjis"),Qt::CaseInsensitive)) codepage=QStringLiteral("SJIS");
+    if (codepage.contains(QSL("x-sjis"),Qt::CaseInsensitive)) codepage=QSL("SJIS");
     return codepage;
 }
 
@@ -134,51 +134,51 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
                                       bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
-    QString cnt = s.replace(QRegExp(QStringLiteral("\n{3,}")),QStringLiteral("\n\n"))
-                  .replace(QStringLiteral("\n"),QStringLiteral("<br />\n"));
-    QString cn(QStringLiteral("<html><head><META HTTP-EQUIV=\"Content-type\" "
+    QString cnt = s.replace(QRegExp(QSL("\n{3,}")),QSL("\n\n"))
+                  .replace(QSL("\n"),QSL("<br />\n"));
+    QString cn(QSL("<html><head><META HTTP-EQUIV=\"Content-type\" "
                               "CONTENT=\"text/html; charset=UTF-8;\">"));
-    cn.append(QStringLiteral("<title>%1</title>").arg(title));
-    cn.append(QStringLiteral("<style> body { font-family:\"%1\"; } </style>").arg(gSet->settings()->fontFixed));
-    cn.append(QStringLiteral("</head><body>"));
+    cn.append(QSL("<title>%1</title>").arg(title));
+    cn.append(QSL("<style> body { font-family:\"%1\"; } </style>").arg(gSet->settings()->fontFixed));
+    cn.append(QSL("</head><body>"));
     if (integratedTitle) {
-        cn.append(QStringLiteral("<h3>"));
+        cn.append(QSL("<h3>"));
         if (!origin.isEmpty()) {
-            cn.append(QStringLiteral("<a href=\"%1\">%2</a>")
+            cn.append(QSL("<a href=\"%1\">%2</a>")
                       .arg(origin.toString(QUrl::FullyEncoded),title));
         }
-        cn.append(QStringLiteral("</h3>"));
+        cn.append(QSL("</h3>"));
     }
     cn.append(cnt);
-    cn.append(QStringLiteral("</body></html>"));
+    cn.append(QSL("</body></html>"));
     return cn;
 }
 
 QString CGenericFuncs::makeSpecialUrlsHtml()
 {
     static const QStringList internalUrls({
-                                              QStringLiteral("chrome://accessibility"),
-                                              QStringLiteral("chrome://appcache-internals"),
-                                              QStringLiteral("chrome://blob-internals"),
-                                              QStringLiteral("chrome://dino"),
-                                              QStringLiteral("chrome://gpu"),
-                                              QStringLiteral("chrome://histograms"),
-                                              QStringLiteral("chrome://indexeddb-internals"),
-                                              QStringLiteral("chrome://media-internals"),
-                                              QStringLiteral("chrome://network-errors"),
-                                              QStringLiteral("chrome://process-internals"),
-                                              QStringLiteral("chrome://quota-internals"),
-                                              QStringLiteral("chrome://sandbox"),
-                                              QStringLiteral("chrome://serviceworker-internals"),
-                                              QStringLiteral("chrome://webrtc-internals")
+                                              QSL("chrome://accessibility"),
+                                              QSL("chrome://appcache-internals"),
+                                              QSL("chrome://blob-internals"),
+                                              QSL("chrome://dino"),
+                                              QSL("chrome://gpu"),
+                                              QSL("chrome://histograms"),
+                                              QSL("chrome://indexeddb-internals"),
+                                              QSL("chrome://media-internals"),
+                                              QSL("chrome://network-errors"),
+                                              QSL("chrome://process-internals"),
+                                              QSL("chrome://quota-internals"),
+                                              QSL("chrome://sandbox"),
+                                              QSL("chrome://serviceworker-internals"),
+                                              QSL("chrome://webrtc-internals")
                                           });
 
     QString html;
     html.append(tr("Open these URLs in separate tab or copy-paste them."));
-    html.append(QStringLiteral("<ul>"));
+    html.append(QSL("<ul>"));
     for (const auto &url : internalUrls)
-        html.append(QStringLiteral("<li><a href=\"%1\">%1</a></li>").arg(url));
-    html.append(QStringLiteral("</ul>"));
+        html.append(QSL("<li><a href=\"%1\">%1</a></li>").arg(url));
+    html.append(QSL("</ul>"));
     return makeSimpleHtml(tr("Chromium URLs"),html,true);
 }
 
@@ -199,13 +199,13 @@ QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
 
     if (plainpre && !cbContentsUnformatted.isEmpty()) {
         res=cbContentsUnformatted;
-        if (res.indexOf(QStringLiteral("\r\n"))>=0) {
-            res.replace(QStringLiteral("\r\n"),QStringLiteral("</p><p>"));
+        if (res.indexOf(QSL("\r\n"))>=0) {
+            res.replace(QSL("\r\n"),QSL("</p><p>"));
         } else {
-            res.replace(QStringLiteral("\n"),QStringLiteral("</p><p>"));
+            res.replace(QSL("\n"),QSL("</p><p>"));
         }
-        res = QStringLiteral("<p>%1</p>").arg(res);
-        res = makeSimpleHtml(QStringLiteral("<...>"),res);
+        res = QSL("<p>%1</p>").arg(res);
+        res = makeSimpleHtml(QSL("<...>"),res);
     } else {
         if (noFormatting) {
             if (!cbContentsUnformatted.isEmpty())
@@ -214,7 +214,7 @@ QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
             if (!cbContents.isEmpty()) {
                 res = cbContents;
             } else if (!cbContentsUnformatted.isEmpty()) {
-                res = makeSimpleHtml(QStringLiteral("<...>"),cbContentsUnformatted);
+                res = makeSimpleHtml(QSL("<...>"),cbContentsUnformatted);
             }
         }
     }
@@ -230,19 +230,19 @@ QString CGenericFuncs::fixMetaEncoding(const QString &data_utf8)
     QString dt = data_utf8;
     dt.remove(0,header.length());
     bool forceMeta = true;
-    if ((pos = header.indexOf(QRegExp(QStringLiteral("http-equiv {0,}="),Qt::CaseInsensitive))) != -1) {
-        if ((pos = header.lastIndexOf(QStringLiteral("<meta "), pos, Qt::CaseInsensitive)) != -1) {
-            QRegExp rxcs(QStringLiteral("charset {0,}="),Qt::CaseInsensitive);
+    if ((pos = header.indexOf(QRegExp(QSL("http-equiv {0,}="),Qt::CaseInsensitive))) != -1) {
+        if ((pos = header.lastIndexOf(QSL("<meta "), pos, Qt::CaseInsensitive)) != -1) {
+            QRegExp rxcs(QSL("charset {0,}="),Qt::CaseInsensitive);
             pos = rxcs.indexIn(header,pos) + rxcs.matchedLength();
             if (pos > -1) {
-                int pos2 = header.indexOf(QRegExp(QStringLiteral("['\"]"),Qt::CaseInsensitive), pos+1);
-                header.replace(pos, pos2-pos,QStringLiteral("UTF-8"));
+                int pos2 = header.indexOf(QRegExp(QSL("['\"]"),Qt::CaseInsensitive), pos+1);
+                header.replace(pos, pos2-pos,QSL("UTF-8"));
                 forceMeta = false;
             }
         }
     }
-    if (forceMeta && ((pos = header.indexOf(QRegExp(QStringLiteral("</head"),Qt::CaseInsensitive))) != -1)) {
-        header.insert(pos,QStringLiteral("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"));
+    if (forceMeta && ((pos = header.indexOf(QRegExp(QSL("</head"),Qt::CaseInsensitive))) != -1)) {
+        header.insert(pos,QSL("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"));
     }
     dt = header+dt;
     return dt;
@@ -287,13 +287,13 @@ QString CGenericFuncs::elideString(const QString& text, int maxlen, Qt::TextElid
         return text;
 
     if (mode == Qt::ElideRight)
-        return QStringLiteral("%1...").arg(text.left(maxlen));
+        return QSL("%1...").arg(text.left(maxlen));
 
     if (mode == Qt::ElideLeft)
-        return QStringLiteral("...%1").arg(text.right(maxlen));
+        return QSL("...%1").arg(text.right(maxlen));
 
     if (mode == Qt::ElideMiddle)
-        return QStringLiteral("%1...%2").arg(text.left(maxlen/2),text.right(maxlen/2));
+        return QSL("%1...%2").arg(text.left(maxlen/2),text.right(maxlen/2));
 
     return text;
 }
@@ -309,10 +309,10 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
         int start = 0;
         int pos;
         while ((pos = res.indexOf(ITerm,start,Qt::CaseInsensitive))>=0) {
-            QString tag = QStringLiteral("<font color='%1'>").arg(snpColor);
+            QString tag = QSL("<font color='%1'>").arg(snpColor);
             int pos2 = pos + tag.length() + ITerm.length();
             res.insert(pos,tag);
-            res.insert(pos2,QStringLiteral("</font>"));
+            res.insert(pos2,QSL("</font>"));
             start = pos2;
         }
         i++;
@@ -384,15 +384,15 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     res.clear();
     if (filter.isEmpty()) return res;
 
-    QStringList filters = filter.split(QStringLiteral(";;"),QString::SkipEmptyParts);
+    QStringList filters = filter.split(QSL(";;"),QString::SkipEmptyParts);
     if (filters.isEmpty()) return res;
 
     for (const auto &filter : filters) {
         if (filter.isEmpty()) continue;
         QString ex = filter;
-        ex.remove(QRegExp(QStringLiteral("^.*\\(")));
-        ex.remove(QRegExp(QStringLiteral("\\).*$")));
-        ex.remove(QRegExp(QStringLiteral("^.*\\.")));
+        ex.remove(QRegExp(QSL("^.*\\(")));
+        ex.remove(QRegExp(QSL("\\).*$")));
+        ex.remove(QRegExp(QSL("^.*\\.")));
         res.append(ex.split(' '));
     }
 
@@ -452,17 +452,17 @@ QString	CGenericFuncs::getExistingDirectoryD ( QWidget * parent, const QString &
 QString CGenericFuncs::bool2str(bool value)
 {
     if (value)
-        return QStringLiteral("on");
+        return QSL("on");
 
-    return QStringLiteral("off");
+    return QSL("off");
 }
 
 QString CGenericFuncs::bool2str2(bool value)
 {
     if (value)
-        return QStringLiteral("TRUE");
+        return QSL("TRUE");
 
-    return QStringLiteral("FALSE");
+    return QSL("FALSE");
 }
 
 int CGenericFuncs::numDigits(int n) {
@@ -511,31 +511,31 @@ bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileN
 const QVector<QStringList> &CGenericFuncs::encodingsByScript()
 {
     static const QVector<QStringList> enc = {
-        { QStringLiteral("Western European"), QStringLiteral("ISO 8859-1"), QStringLiteral("ISO 8859-15"),
-          QStringLiteral("ISO 8859-14"), QStringLiteral("cp 1252"), QStringLiteral("CP850"), QStringLiteral("x-MacRoman") },
-        { QStringLiteral("Central European"), QStringLiteral("ISO 8859-2"), QStringLiteral("ISO 8859-3"),
-          QStringLiteral("cp 1250"), QStringLiteral("x-MacCentralEurope") },
-        { QStringLiteral("Baltic"), QStringLiteral("ISO 8859-4"), QStringLiteral("ISO 8859-13"),
-          QStringLiteral("cp 1257") },
-        { QStringLiteral("Turkish"), QStringLiteral("cp 1254"), QStringLiteral("ISO 8859-9"), QStringLiteral("x-MacTurkish") },
-        { QStringLiteral("Cyrillic"), QStringLiteral("KOI8-R"), QStringLiteral("ISO 8859-5"), QStringLiteral("cp 1251"),
-          QStringLiteral("KOI8-U"), QStringLiteral("CP866"), QStringLiteral("x-MacCyrillic") },
-        { QStringLiteral("Chinese"), QStringLiteral("HZ"), QStringLiteral("GBK"), QStringLiteral("GB18030"),
-          QStringLiteral("BIG5"), QStringLiteral("BIG5-HKSCS"), QStringLiteral("ISO-2022-CN"),
-          QStringLiteral("ISO-2022-CN-EXT") },
-        { QStringLiteral("Korean"), QStringLiteral("CP949"), QStringLiteral("ISO-2022-KR") },
-        { QStringLiteral("Japanese"), QStringLiteral("EUC-JP"), QStringLiteral("SHIFT_JIS"), QStringLiteral("ISO-2022-JP"),
-          QStringLiteral("ISO-2022-JP-2"), QStringLiteral("ISO-2022-JP-1") },
-        { QStringLiteral("Greek"), QStringLiteral("ISO 8859-7"), QStringLiteral("cp 1253"), QStringLiteral("x-MacGreek") },
-        { QStringLiteral("Arabic"), QStringLiteral("ISO 8859-6"), QStringLiteral("cp 1256") },
-        { QStringLiteral("Hebrew"), QStringLiteral("ISO 8859-8"), QStringLiteral("cp 1255"), QStringLiteral("CP862") },
-        { QStringLiteral("Thai"), QStringLiteral("CP874") },
-        { QStringLiteral("Vietnamese"), QStringLiteral("CP1258") },
-        { QStringLiteral("Unicode"), QStringLiteral("UTF-8"), QStringLiteral("UTF-7"), QStringLiteral("UTF-16"),
-          QStringLiteral("UTF-16BE"), QStringLiteral("UTF-16LE"), QStringLiteral("UTF-32"), QStringLiteral("UTF-32BE"),
-          QStringLiteral("UTF-32LE") },
-        { QStringLiteral("Other"), QStringLiteral("windows-1258"), QStringLiteral("IBM874"), QStringLiteral("TSCII"),
-          QStringLiteral("Macintosh") }
+        { QSL("Western European"), QSL("ISO 8859-1"), QSL("ISO 8859-15"),
+          QSL("ISO 8859-14"), QSL("cp 1252"), QSL("CP850"), QSL("x-MacRoman") },
+        { QSL("Central European"), QSL("ISO 8859-2"), QSL("ISO 8859-3"),
+          QSL("cp 1250"), QSL("x-MacCentralEurope") },
+        { QSL("Baltic"), QSL("ISO 8859-4"), QSL("ISO 8859-13"),
+          QSL("cp 1257") },
+        { QSL("Turkish"), QSL("cp 1254"), QSL("ISO 8859-9"), QSL("x-MacTurkish") },
+        { QSL("Cyrillic"), QSL("KOI8-R"), QSL("ISO 8859-5"), QSL("cp 1251"),
+          QSL("KOI8-U"), QSL("CP866"), QSL("x-MacCyrillic") },
+        { QSL("Chinese"), QSL("HZ"), QSL("GBK"), QSL("GB18030"),
+          QSL("BIG5"), QSL("BIG5-HKSCS"), QSL("ISO-2022-CN"),
+          QSL("ISO-2022-CN-EXT") },
+        { QSL("Korean"), QSL("CP949"), QSL("ISO-2022-KR") },
+        { QSL("Japanese"), QSL("EUC-JP"), QSL("SHIFT_JIS"), QSL("ISO-2022-JP"),
+          QSL("ISO-2022-JP-2"), QSL("ISO-2022-JP-1") },
+        { QSL("Greek"), QSL("ISO 8859-7"), QSL("cp 1253"), QSL("x-MacGreek") },
+        { QSL("Arabic"), QSL("ISO 8859-6"), QSL("cp 1256") },
+        { QSL("Hebrew"), QSL("ISO 8859-8"), QSL("cp 1255"), QSL("CP862") },
+        { QSL("Thai"), QSL("CP874") },
+        { QSL("Vietnamese"), QSL("CP1258") },
+        { QSL("Unicode"), QSL("UTF-8"), QSL("UTF-7"), QSL("UTF-16"),
+          QSL("UTF-16BE"), QSL("UTF-16LE"), QSL("UTF-32"), QSL("UTF-32BE"),
+          QSL("UTF-32LE") },
+        { QSL("Other"), QSL("windows-1258"), QSL("IBM874"), QSL("TSCII"),
+          QSL("Macintosh") }
     };
 
     return enc;
@@ -544,17 +544,17 @@ const QVector<QStringList> &CGenericFuncs::encodingsByScript()
 const QStringList &CGenericFuncs::getSupportedImageExtensions()
 {
     static const QStringList supportedImageExtensions {
-        QStringLiteral("jpeg"), QStringLiteral("jpg"), QStringLiteral("jpe"), QStringLiteral("gif"),
-                QStringLiteral("bmp"), QStringLiteral("png") };
+        QSL("jpeg"), QSL("jpg"), QSL("jpe"), QSL("gif"),
+                QSL("bmp"), QSL("png") };
 
     return supportedImageExtensions;
 }
 
 QString CGenericFuncs::getTmpDir()
 {
-    QFileInfo fi(QDir::homePath() + QDir::separator() + QStringLiteral("tmp"));
+    QFileInfo fi(QDir::homePath() + QDir::separator() + QSL("tmp"));
     if (fi.exists() && fi.isDir() && fi.isWritable())
-        return QDir::homePath() + QDir::separator() + QStringLiteral("tmp");
+        return QDir::homePath() + QDir::separator() + QSL("tmp");
 
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 }
@@ -578,15 +578,15 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
     int pos;
     int start = -1;
     int stop = -1;
-    if ((pos = fileContents.indexOf(QRegExp(QStringLiteral("<title {0,}>"),Qt::CaseInsensitive))) != -1) {
+    if ((pos = fileContents.indexOf(QRegExp(QSL("<title {0,}>"),Qt::CaseInsensitive))) != -1) {
         start = pos;
-        if ((pos = fileContents.indexOf(QRegExp(QStringLiteral("</title {0,}>"), Qt::CaseInsensitive))) != -1) {
+        if ((pos = fileContents.indexOf(QRegExp(QSL("</title {0,}>"), Qt::CaseInsensitive))) != -1) {
             stop = pos;
             if (stop>start) {
                 if ((stop-start)>maxFileSize)
                     stop = start + maxFileSize;
                 QString s = fileContents.mid(start,stop-start);
-                s.remove(QRegExp(QStringLiteral("^<title {0,}>"),Qt::CaseInsensitive));
+                s.remove(QRegExp(QSL("^<title {0,}>"),Qt::CaseInsensitive));
                 s.remove('\r');
                 s.remove('\n');
                 return s;
@@ -599,18 +599,18 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
 // for url rules
 QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern) {
     QString pattern = wildcardPattern;
-    return pattern.replace(QRegExp(QStringLiteral("\\*+")), QStringLiteral("*"))   // remove multiple wildcards
-            .replace(QRegExp(QStringLiteral("\\^\\|$")), QStringLiteral("^")) // remove anchors following separator placeholder
-            .replace(QRegExp(QStringLiteral("^(\\*)")), QString())          // remove leading wildcards
-            .replace(QRegExp(QStringLiteral("(\\*)$")), QString())          // remove trailing wildcards
-            .replace(QRegExp(QStringLiteral("(\\W)")), QStringLiteral("\\\\1"))      // escape special symbols
-            .replace(QRegExp(QStringLiteral("^\\\\\\|\\\\\\|")),
-                     QStringLiteral("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
-            .replace(QRegExp(QStringLiteral("\\\\\\^")),
-                     QStringLiteral("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
-            .replace(QRegExp(QStringLiteral("^\\\\\\|")), QStringLiteral("^"))       // process anchor at expression start
-            .replace(QRegExp(QStringLiteral("\\\\\\|$")), QStringLiteral("$"))       // process anchor at expression end
-            .replace(QRegExp(QStringLiteral("\\\\\\*")), QStringLiteral(".*"))       // replace wildcards by .*
+    return pattern.replace(QRegExp(QSL("\\*+")), QSL("*"))   // remove multiple wildcards
+            .replace(QRegExp(QSL("\\^\\|$")), QSL("^")) // remove anchors following separator placeholder
+            .replace(QRegExp(QSL("^(\\*)")), QString())          // remove leading wildcards
+            .replace(QRegExp(QSL("(\\*)$")), QString())          // remove trailing wildcards
+            .replace(QRegExp(QSL("(\\W)")), QSL("\\\\1"))      // escape special symbols
+            .replace(QRegExp(QSL("^\\\\\\|\\\\\\|")),
+                     QSL("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
+            .replace(QRegExp(QSL("\\\\\\^")),
+                     QSL("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
+            .replace(QRegExp(QSL("^\\\\\\|")), QSL("^"))       // process anchor at expression start
+            .replace(QRegExp(QSL("\\\\\\|$")), QSL("$"))       // process anchor at expression end
+            .replace(QRegExp(QSL("\\\\\\*")), QSL(".*"))       // replace wildcards by .*
             ;
 }
 

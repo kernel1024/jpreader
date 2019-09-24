@@ -71,8 +71,8 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
         QString dir;
         if (ui.checkZipFile->isChecked()) {
             QString fname = preselectedName;
-            if (!fname.endsWith(QStringLiteral(".zip"),Qt::CaseInsensitive))
-                fname += QStringLiteral(".zip");
+            if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
+                fname += QSL(".zip");
             dir = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
                                                   QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
         } else {
@@ -101,7 +101,7 @@ bool CSnNet::isValidLoadedUrl(const QUrl& url)
     // loadedUrl points to non-empty page
     if (!url.isValid()) return false;
     if (!url.toLocalFile().isEmpty()) return true;
-    if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return true;
+    if (url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive)) return true;
     return false;
 }
 
@@ -113,7 +113,7 @@ bool CSnNet::isValidLoadedUrl()
 bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoTranslate)
 {
     QByteArray ba = html.toUtf8();
-    QString fname = gSet->makeTmpFileName(QStringLiteral("html"),true);
+    QString fname = gSet->makeTmpFileName(QSL("html"),true);
     QFile f(fname);
     if (f.open(QIODevice::WriteOnly)) {
         f.write(ba);
@@ -185,7 +185,7 @@ void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
     snv->m_auxContentLoaded=false;
 
     if (isMainFrame) {
-        CUrlHolder uh(QStringLiteral("(blank)"),url);
+        CUrlHolder uh(QSL("(blank)"),url);
         gSet->appendMainHistory(uh);
     }
 }
@@ -249,7 +249,7 @@ void CSnNet::downloadPixivManga()
         if (sl.isEmpty()) // no JSON found
             sl = CPixivNovelExtractor::parseIllustPage(html);
         QUrlQuery qr(origin);
-        QString id = qr.queryItemValue(QStringLiteral("illust_id"));
+        QString id = qr.queryItemValue(QSL("illust_id"));
         if (sl.isEmpty() || id.isEmpty()) {
             QMessageBox::warning(snv,tr("JPReader"),
                                  tr("No pixiv manga image urls found"));
@@ -282,8 +282,8 @@ void CSnNet::pixivListReady(const QString &html)
 void CSnNet::pdfConverted(const QString &html)
 {
     if (html.isEmpty()) {
-        snv->txtBrowser->setHtmlInterlocked(CGenericFuncs::makeSimpleHtml(QStringLiteral("PDF conversion error"),
-                                                                          QStringLiteral("Empty document.")));
+        snv->txtBrowser->setHtmlInterlocked(CGenericFuncs::makeSimpleHtml(QSL("PDF conversion error"),
+                                                                          QSL("Empty document.")));
     }
     if (html.length()<CDefaults::maxDataUrlFileSize) { // Small PDF files
         snv->txtBrowser->setHtmlInterlocked(html);
@@ -324,7 +324,7 @@ void CSnNet::load(const QUrl &url)
             return;
         }
         QString MIME = CGenericFuncs::detectMIME(fname);
-        if (MIME.startsWith(QStringLiteral("text/plain"),Qt::CaseInsensitive) &&
+        if (MIME.startsWith(QSL("text/plain"),Qt::CaseInsensitive) &&
                 fi.size()<CDefaults::maxDataUrlFileSize) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
@@ -338,7 +338,7 @@ void CSnNet::load(const QUrl &url)
                 snv->m_auxContentLoaded=false;
                 data.close();
             }
-        } else if (MIME.startsWith(QStringLiteral("application/pdf"),Qt::CaseInsensitive)) {
+        } else if (MIME.startsWith(QSL("application/pdf"),Qt::CaseInsensitive)) {
             // for local pdf files
             snv->m_fileChanged = false;
             snv->m_translationBkgdFinished=false;

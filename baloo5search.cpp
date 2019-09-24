@@ -22,7 +22,7 @@ void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
     while (i.next()) {
         QString fname = i.filePath();
         if (fname.endsWith('/') || fname.endsWith('\\')) continue;
-        Q_EMIT addHit({ { QStringLiteral("jp:fullfilename"), fname } });
+        Q_EMIT addHit({ { QSL("jp:fullfilename"), fname } });
     }
     setWorking(false);
 #else

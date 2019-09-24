@@ -62,14 +62,14 @@ void CPixivNovelExtractor::novelLoadFinished()
         QString hauthor;
         QString hauthornum;
 
-        m_novelId = qr.queryItemValue(QStringLiteral("id"));
+        m_novelId = qr.queryItemValue(QSL("id"));
 
         QString wtitle = m_title;
         if (wtitle.isEmpty())
             wtitle = CGenericFuncs::extractFileTitle(html);
 
         QString htitle;
-        QRegExp hrx(QStringLiteral("<h1[^>]*class=\"title\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp hrx(QSL("<h1[^>]*class=\"title\"[^>]*>"),Qt::CaseInsensitive);
         int hidx = hrx.indexIn(html);
         if (hidx>=0) {
             int hpos = hidx+hrx.matchedLength();
@@ -77,11 +77,11 @@ void CPixivNovelExtractor::novelLoadFinished()
             htitle = html.mid(hpos, hlen);
         }
 
-        QRegExp arx(QStringLiteral("<a[^>]*class=\"user-name\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp arx(QSL("<a[^>]*class=\"user-name\"[^>]*>"),Qt::CaseInsensitive);
         int aidx = arx.indexIn(html);
         if (aidx>=0) {
             QString acap = arx.cap();
-            int anpos = acap.indexOf(QStringLiteral("id="))+3;
+            int anpos = acap.indexOf(QSL("id="))+3;
             int anlen = acap.indexOf('\"',anpos) - anpos;
             hauthornum = acap.mid(anpos,anlen);
 
@@ -91,10 +91,10 @@ void CPixivNovelExtractor::novelLoadFinished()
         }
 
         QStringList tags;
-        QRegExp trx(QStringLiteral("<li[^>]*class=\"tag\"[^>]*>"),Qt::CaseInsensitive);
-        QRegExp ttrx(QStringLiteral("class=\"text\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp trx(QSL("<li[^>]*class=\"tag\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp ttrx(QSL("class=\"text\"[^>]*>"),Qt::CaseInsensitive);
         int tpos = 0;
-        int tstop = html.indexOf(QStringLiteral("template-work-tags"),Qt::CaseInsensitive);
+        int tstop = html.indexOf(QSL("template-work-tags"),Qt::CaseInsensitive);
         int tidx = trx.indexIn(html,tpos);
         while (tidx>=0) {
             tpos = tidx + trx.matchedLength();
@@ -106,20 +106,20 @@ void CPixivNovelExtractor::novelLoadFinished()
             tidx = trx.indexIn(html,tpos);
         }
 
-        QRegExp rx(QStringLiteral("<textarea[^>]*id=\"novel_text\"[^>]*>"),Qt::CaseInsensitive);
+        QRegExp rx(QSL("<textarea[^>]*id=\"novel_text\"[^>]*>"),Qt::CaseInsensitive);
         int idx = rx.indexIn(html);
         if (idx<0) {
             // something wrong here - try pixiv novel JSON parser
-            idx = html.indexOf(QStringLiteral("{token:"));
+            idx = html.indexOf(QSL("{token:"));
             if (idx<=0) {
                 // something very wrong here
                 html = tr("Unable to extract novel. Unknown page structure.");
             } else {
                 html.remove(0,idx);
-                idx = html.indexOf(QStringLiteral("</script>"));
+                idx = html.indexOf(QSL("</script>"));
                 if (idx>=0)
                     html.truncate(idx);
-                idx = html.lastIndexOf(QStringLiteral("})"));
+                idx = html.lastIndexOf(QSL("})"));
                 if (idx>0)
                     html.truncate(idx+1);
 
@@ -128,19 +128,19 @@ void CPixivNovelExtractor::novelLoadFinished()
             }
         } else {
             html.remove(0,idx+rx.matchedLength());
-            idx = html.indexOf(QStringLiteral("</textarea>"),0,Qt::CaseInsensitive);
+            idx = html.indexOf(QSL("</textarea>"),0,Qt::CaseInsensitive);
             if (idx>=0)
                 html.truncate(idx);
         }
 
-        QRegExp rbrx(QStringLiteral("\\[\\[rb\\:.*\\]\\]"));
+        QRegExp rbrx(QSL("\\[\\[rb\\:.*\\]\\]"));
         rbrx.setMinimal(true);
         int pos = 0;
         while ((pos = rbrx.indexIn(html,pos)) != -1) {
             QString rb = rbrx.cap(0);
-            rb.replace(QStringLiteral("&gt;"), QStringLiteral(">"));
-            rb.remove(QRegExp(QStringLiteral("^.*rb\\:")));
-            rb.remove(QRegExp(QStringLiteral("\\>.*")));
+            rb.replace(QSL("&gt;"), QSL(">"));
+            rb.remove(QRegExp(QSL("^.*rb\\:")));
+            rb.remove(QRegExp(QSL("\\>.*")));
             rb = rb.trimmed();
             if (!rb.isEmpty()) {
                 html.replace(pos,rbrx.matchedLength(),rb);
@@ -149,12 +149,12 @@ void CPixivNovelExtractor::novelLoadFinished()
             }
         }
 
-        QRegExp imrx(QStringLiteral("\\[pixivimage\\:\\S+\\]"));
+        QRegExp imrx(QSL("\\[pixivimage\\:\\S+\\]"));
         pos = 0;
         QStringList imgs;
         while ((pos = imrx.indexIn(html,pos)) != -1) {
             QString im = imrx.cap(0);
-            im.remove(QRegExp(QStringLiteral(".*\\:")));
+            im.remove(QRegExp(QSL(".*\\:")));
             im.remove(']');
             im = im.trimmed();
             if (!im.isEmpty())
@@ -167,16 +167,16 @@ void CPixivNovelExtractor::novelLoadFinished()
         handleImages(imgs);
 
         if (!tags.isEmpty()) {
-            html.prepend(QStringLiteral("Tags: %1\n\n")
-                         .arg(tags.join(QStringLiteral(" / "))));
+            html.prepend(QSL("Tags: %1\n\n")
+                         .arg(tags.join(QSL(" / "))));
         }
         if (!hauthor.isEmpty()) {
-            html.prepend(QStringLiteral("Author: <a href=\"https://www.pixiv.net/member.php?"
+            html.prepend(QSL("Author: <a href=\"https://www.pixiv.net/member.php?"
                                         "id=%1\">%2</a>\n\n")
                          .arg(hauthornum,hauthor));
         }
         if (!htitle.isEmpty())
-            html.prepend(QStringLiteral("Title: <b>%1</b>\n\n").arg(htitle));
+            html.prepend(QSL("Title: <b>%1</b>\n\n").arg(htitle));
 
 
         m_html = html;
@@ -191,11 +191,11 @@ void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
     Q_UNUSED(error)
     gSet->app()->restoreOverrideCursor();
 
-    QString msg(QStringLiteral("Unable to load from pixiv."));
+    QString msg(QSL("Unable to load from pixiv."));
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
-        msg.append(QStringLiteral(" %1").arg(rpl->errorString()));
+        msg.append(QSL(" %1").arg(rpl->errorString()));
 
     qCritical() << msg;
 
@@ -220,9 +220,9 @@ void CPixivNovelExtractor::subLoadFinished()
 
     QUrl rplUrl = rpl->url();
     QUrlQuery qr(rplUrl);
-    QString key = qr.queryItemValue(QStringLiteral("illust_id"));
-    QString mode = qr.queryItemValue(QStringLiteral("mode"));
-    bool mediumMode = (QStringLiteral("medium").compare(mode,Qt::CaseInsensitive) == 0);
+    QString key = qr.queryItemValue(QSL("illust_id"));
+    QString mode = qr.queryItemValue(QSL("mode"));
+    bool mediumMode = (QSL("medium").compare(mode,Qt::CaseInsensitive) == 0);
 
     int httpStatus = -1;
     QVariant vstat = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
@@ -246,7 +246,7 @@ void CPixivNovelExtractor::subLoadFinished()
             int page = (*it);
             if (page<1 || page>imageUrls.count()) continue;
             QUrl url = QUrl(imageUrls.at(page-1));
-            m_imgUrls[QStringLiteral("%1_%2").arg(key).arg(page)] = url.toString();
+            m_imgUrls[QSL("%1_%2").arg(key).arg(page)] = url.toString();
 
             QFileInfo fi(url.toString());
             if (gSet->settings()->pixivFetchImages &&
@@ -270,10 +270,10 @@ void CPixivNovelExtractor::subLoadFinished()
 
         {
             // try single page load
-            QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
+            QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
             QUrlQuery qr;
-            qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("medium"));
-            qr.addQueryItem(QStringLiteral("illust_id"),key);
+            qr.addQueryItem(QSL("mode"),QSL("medium"));
+            qr.addQueryItem(QSL("illust_id"),key);
             url.setQuery(qr);
             QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
                 QNetworkRequest req(url);
@@ -301,18 +301,18 @@ void CPixivNovelExtractor::subWorkFinished()
         QStringList kl = it.key().split('_');
 
         QRegExp rx;
-        if (kl.last()==QStringLiteral("1")) {
-            rx = QRegExp(QStringLiteral("\\[pixivimage\\:%1(-1)?\\]").arg(kl.first()));
+        if (kl.last()==QSL("1")) {
+            rx = QRegExp(QSL("\\[pixivimage\\:%1(-1)?\\]").arg(kl.first()));
         } else {
-            rx = QRegExp(QStringLiteral("\\[pixivimage\\:%1-%2\\]")
+            rx = QRegExp(QSL("\\[pixivimage\\:%1-%2\\]")
                          .arg(kl.first(),kl.last()));
         }
 
-        QString rpl = QStringLiteral("<img src=\"%1\"").arg(it.value());
-        if (it.value().startsWith(QStringLiteral("data:"))) {
-            rpl.append(QStringLiteral("/ >"));
+        QString rpl = QSL("<img src=\"%1\"").arg(it.value());
+        if (it.value().startsWith(QSL("data:"))) {
+            rpl.append(QSL("/ >"));
         } else {
-            rpl.append(QStringLiteral(" width=\"%1px;\"/ >")
+            rpl.append(QSL(" width=\"%1px;\"/ >")
                        .arg(gSet->settings()->pdfImageMaxSize));
         }
         m_html.replace(rx, rpl);
@@ -386,10 +386,10 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     m_worksPageLoad = m_imgList.count();
     m_worksImgFetch = 0;
     for(auto it  = m_imgList.constBegin(), end = m_imgList.constEnd(); it != end; ++it) {
-        QUrl url(QStringLiteral("https://www.pixiv.net/member_illust.php"));
+        QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
         QUrlQuery qr;
-        qr.addQueryItem(QStringLiteral("mode"),QStringLiteral("manga"));
-        qr.addQueryItem(QStringLiteral("illust_id"),it.key());
+        qr.addQueryItem(QSL("mode"),QSL("manga"));
+        qr.addQueryItem(QSL("illust_id"),it.key());
         url.setQuery(qr);
         QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
             QNetworkRequest req(url);
@@ -418,7 +418,7 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
         if (err.error == QJsonParseError::GarbageAtEnd) {
             cnt.truncate(err.offset);
         } else {
-            const QString s = QStringLiteral(R"({"error":"JSON parser error %1 at %2."})")
+            const QString s = QSL(R"({"error":"JSON parser error %1 at %2."})")
                               .arg(err.error)
                               .arg(err.offset);
             doc = QJsonDocument::fromJson(s.toUtf8());
@@ -428,7 +428,7 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
     // try again
     doc = QJsonDocument::fromJson(cnt,&err);
     if (doc.isNull()) {
-        const QString s = QStringLiteral(R"({"error":"JSON reparser error %1 at %2."})")
+        const QString s = QSL(R"({"error":"JSON reparser error %1 at %2."})")
                           .arg(err.error)
                           .arg(err.offset);
         doc = QJsonDocument::fromJson(s.toUtf8());
@@ -444,16 +444,16 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
     QJsonDocument doc;
 
     QUrlQuery qr(origin);
-    QString key = qr.queryItemValue(QStringLiteral("illust_id"));
-    QString jstart = QStringLiteral("illust: { %1: {").arg(key);
+    QString key = qr.queryItemValue(QSL("illust_id"));
+    QString jstart = QSL("illust: { %1: {").arg(key);
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
         if (doc.isObject()) {
             QJsonObject obj = doc.object();
 
-            QString err = obj.value(QStringLiteral("error")).toString();
+            QString err = obj.value(QSL("error")).toString();
             if (!err.isNull()) {
-                qWarning() << QStringLiteral("Images extractor error: %1").arg(err);
+                qWarning() << QSL("Images extractor error: %1").arg(err);
                 return res;
             }
         }
@@ -469,17 +469,17 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QString err = obj.value(QStringLiteral("error")).toString();
+        QString err = obj.value(QSL("error")).toString();
         if (!err.isNull()) {
-            qWarning() << QStringLiteral("Images extractor error: %1").arg(err);
+            qWarning() << QSL("Images extractor error: %1").arg(err);
             return res;
         }
 
-        illustId = obj.value(QStringLiteral("illustId")).toString();
-        pageCount = qRound(obj.value(QStringLiteral("pageCount")).toDouble(-1.0));
+        illustId = obj.value(QSL("illustId")).toString();
+        pageCount = qRound(obj.value(QSL("pageCount")).toDouble(-1.0));
 
-        QString fname = obj.value(QStringLiteral("urls")).toObject()
-                        .value(QStringLiteral("original")).toString();
+        QString fname = obj.value(QSL("urls")).toObject()
+                        .value(QSL("original")).toString();
         if (!fname.isNull()) {
             QFileInfo fi(fname);
             path = fi.path();
@@ -491,7 +491,7 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
         if (path.isEmpty() || illustId.isEmpty() || suffix.isEmpty())
             continue;
 
-        res << QStringLiteral("%1/%2_p%3.%4")
+        res << QSL("%1/%2_p%3.%4")
                .arg(path,illustId,QString::number(i),suffix);
     }
 
@@ -503,9 +503,9 @@ QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool medi
     QStringList res;
     int pos = 0;
 
-    QRegExp rx(QStringLiteral("data-src=\\\".*\\\""),Qt::CaseInsensitive);
+    QRegExp rx(QSL("data-src=\\\".*\\\""),Qt::CaseInsensitive);
     if (mediumMode) {
-        rx = QRegExp(QStringLiteral(
+        rx = QRegExp(QSL(
                          "\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\""),
                      Qt::CaseInsensitive);
     }
@@ -517,7 +517,7 @@ QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool medi
         if (mediumMode) {
             u.remove('\\');
         } else {
-            u.remove(QStringLiteral("data-src="),Qt::CaseInsensitive);
+            u.remove(QSL("data-src="),Qt::CaseInsensitive);
         }
         u.remove('\"');
         res << u;
@@ -534,22 +534,22 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
     QByteArray cnt = html.toUtf8();
     QString res;
 
-    QJsonDocument doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(m_novelId));
+    QJsonDocument doc = parseJsonSubDocument(cnt,QSL("%1: {").arg(m_novelId));
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QString err = obj.value(QStringLiteral("error")).toString();
+        QString err = obj.value(QSL("error")).toString();
         if (!err.isNull())
-            return QStringLiteral("Novel extractor error: %1").arg(err);
+            return QSL("Novel extractor error: %1").arg(err);
 
-        res = obj.value(QStringLiteral("content")).toString();
-        title = obj.value(QStringLiteral("title")).toString();
-        authorNum = obj.value(QStringLiteral("userId")).toString();
+        res = obj.value(QSL("content")).toString();
+        title = obj.value(QSL("title")).toString();
+        authorNum = obj.value(QSL("userId")).toString();
 
-        const QJsonArray vtags = obj.value(QStringLiteral("tags")).toObject()
-                                 .value(QStringLiteral("tags")).toArray();
+        const QJsonArray vtags = obj.value(QSL("tags")).toObject()
+                                 .value(QSL("tags")).toArray();
         for(const auto &tag : vtags) {
-            QString t = tag.toObject().value(QStringLiteral("tag")).toString();
+            QString t = tag.toObject().value(QSL("tag")).toString();
             if (!t.isEmpty())
                 tags.append(t);
         }
@@ -559,15 +559,15 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
 
     }
 
-    doc = parseJsonSubDocument(cnt,QStringLiteral("%1: {").arg(authorNum));
+    doc = parseJsonSubDocument(cnt,QSL("%1: {").arg(authorNum));
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
-        QString err = obj.value(QStringLiteral("error")).toString();
+        QString err = obj.value(QSL("error")).toString();
         if (!err.isNull())
-            return QStringLiteral("Author parser error: %1").arg(err);
+            return QSL("Author parser error: %1").arg(err);
 
-        author = obj.value(QStringLiteral("name")).toString();
+        author = obj.value(QSL("name")).toString();
 
     } else {
         return tr("ERROR: Unable to find author subdocument.");

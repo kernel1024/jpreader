@@ -11,6 +11,7 @@
 #include <QDebug>
 #include "adblockrule.h"
 #include "genericfuncs.h"
+#include "structures.h"
 
 CAdBlockRule::CAdBlockRule()
 {
@@ -100,11 +101,11 @@ void CAdBlockRule::setFilter(const QString &filter)
         parsedLine = parsedLine.left(options);
     }
 
-    bool hasWildcards = parsedLine.contains(QRegExp(QStringLiteral("[\\*\\$]")));
+    bool hasWildcards = parsedLine.contains(QRegExp(QSL("[\\*\\$]")));
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
         (!parsedLine.contains('^') || parsedLine.endsWith('^'))) {
         m_plainRule = parsedLine;
-        if (m_plainRule.startsWith(QStringLiteral("||")))
+        if (m_plainRule.startsWith(QSL("||")))
             m_plainRule = m_plainRule.mid(2);
         if (m_plainRule.endsWith('^'))
             m_plainRule = m_plainRule.left(m_plainRule.length()-1);
@@ -112,9 +113,9 @@ void CAdBlockRule::setFilter(const QString &filter)
 
     setPattern(parsedLine, regExpRule);
 
-    if (m_options.contains(QStringLiteral("match-case"))) {
+    if (m_options.contains(QSL("match-case"))) {
         m_regExp.setCaseSensitivity(Qt::CaseSensitive);
-        m_options.removeOne(QStringLiteral("match-case"));
+        m_options.removeOne(QSL("match-case"));
     }
 }
 
@@ -207,7 +208,7 @@ void CAdBlockRule::setEnabled(bool enabled)
 {
     m_enabled = enabled;
     if (!enabled) {
-        m_filter = QStringLiteral("!") + m_filter;
+        m_filter = QSL("!") + m_filter;
     } else {
         m_filter = m_filter.mid(1);
     }

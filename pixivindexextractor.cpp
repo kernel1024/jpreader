@@ -60,33 +60,33 @@ void CPixivIndexExtractor::fetchNovelsInfo()
 
             if (doc.isObject()) {
                 QJsonObject obj = doc.object();
-                if (obj.value(QStringLiteral("error")).toBool(false)) {
+                if (obj.value(QSL("error")).toBool(false)) {
                     showError(tr("Novel list extractor error: %1")
-                              .arg(obj.value(QStringLiteral("message")).toString()));
+                              .arg(obj.value(QSL("message")).toString()));
                     rpl->deleteLater();
                     return;
                 }
 
-                const QJsonObject tworks = obj.value(QStringLiteral("body")).toObject()
-                                           .value(QStringLiteral("works")).toObject();
+                const QJsonObject tworks = obj.value(QSL("body")).toObject()
+                                           .value(QSL("works")).toObject();
 
                 for (const auto& work : qAsConst(tworks)) {
                     const auto w = work.toObject();
 
                     QStringList tags;
-                    const QJsonArray wtags = w.value(QStringLiteral("tags")).toArray();
+                    const QJsonArray wtags = w.value(QSL("tags")).toArray();
                     tags.reserve(wtags.count());
                     for (const auto& t : qAsConst(wtags))
                         tags.append(t.toString());
 
-                    addNovelInfoBlock(w.value(QStringLiteral("id")).toString(),
-                                      w.value(QStringLiteral("url")).toString(),
-                                      w.value(QStringLiteral("title")).toString(),
-                                      w.value(QStringLiteral("textCount")).toInt(),
-                                      w.value(QStringLiteral("userName")).toString(),
-                                      w.value(QStringLiteral("userId")).toString(),
+                    addNovelInfoBlock(w.value(QSL("id")).toString(),
+                                      w.value(QSL("url")).toString(),
+                                      w.value(QSL("title")).toString(),
+                                      w.value(QSL("textCount")).toInt(),
+                                      w.value(QSL("userName")).toString(),
+                                      w.value(QSL("userId")).toString(),
                                       tags,
-                                      w.value(QStringLiteral("description")).toString());
+                                      w.value(QSL("description")).toString());
                 }
             }
         }
@@ -99,7 +99,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
         return;
     }
 
-    const QString key = QStringLiteral("ids%5B%5D");
+    const QString key = QSL("ids%5B%5D");
     const int maxQueryLen = 1024;
 
     QUrlQuery uq;
@@ -109,7 +109,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
         uq.addQueryItem(key,v);
         len += key.length()+v.length()+2;
     }
-    QUrl url(QStringLiteral("https://www.pixiv.net/ajax/user/%1/profile/novels")
+    QUrl url(QSL("https://www.pixiv.net/ajax/user/%1/profile/novels")
              .arg(m_authorId));
     url.setQuery(uq);
 
@@ -127,11 +127,11 @@ void CPixivIndexExtractor::loadError(QNetworkReply::NetworkError error)
 {
     Q_UNUSED(error)
 
-    QString msg(QStringLiteral("Unable to load from pixiv."));
+    QString msg(QSL("Unable to load from pixiv."));
 
     auto rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
-        msg.append(QStringLiteral(" %1").arg(rpl->errorString()));
+        msg.append(QSL(" %1").arg(rpl->errorString()));
 
     showError(msg);
 }
@@ -144,7 +144,7 @@ void CPixivIndexExtractor::createNovelList()
         m_infoBlockCount = 0;
         m_indexMode = WorkIndex;
 
-        QUrl u(QStringLiteral("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_authorId));
+        QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_authorId));
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
@@ -162,7 +162,7 @@ void CPixivIndexExtractor::createNovelBookmarksList()
         m_infoBlockCount = 0;
         m_indexMode = BookmarksIndex;
 
-        QUrl u(QStringLiteral("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
+        QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
                               "tag=&offset=0&limit=65535&rest=show").arg(m_authorId));
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
@@ -191,15 +191,15 @@ void CPixivIndexExtractor::profileAjax()
 
         if (doc.isObject()) {
             QJsonObject obj = doc.object();
-            if (obj.value(QStringLiteral("error")).toBool(false)) {
+            if (obj.value(QSL("error")).toBool(false)) {
                 showError(tr("Novel list extractor error: %1")
-                          .arg(obj.value(QStringLiteral("message")).toString()));
+                          .arg(obj.value(QSL("message")).toString()));
                 rpl->deleteLater();
                 return;
             }
 
-            m_ids = obj.value(QStringLiteral("body")).toObject()
-                    .value(QStringLiteral("novels")).toObject().keys();
+            m_ids = obj.value(QSL("body")).toObject()
+                    .value(QSL("novels")).toObject().keys();
 
             QTimer::singleShot(0,this,[this]{
                 fetchNovelsInfo();
@@ -227,33 +227,33 @@ void CPixivIndexExtractor::bookmarksAjax()
 
         if (doc.isObject()) {
             QJsonObject obj = doc.object();
-            if (obj.value(QStringLiteral("error")).toBool(false)) {
+            if (obj.value(QSL("error")).toBool(false)) {
                 showError(tr("Novel list extractor error: %1")
-                          .arg(obj.value(QStringLiteral("message")).toString()));
+                          .arg(obj.value(QSL("message")).toString()));
                 rpl->deleteLater();
                 return;
             }
 
-            const QJsonArray tworks = obj.value(QStringLiteral("body")).toObject()
-                                      .value(QStringLiteral("works")).toArray();
+            const QJsonArray tworks = obj.value(QSL("body")).toObject()
+                                      .value(QSL("works")).toArray();
 
             for (const auto& work : qAsConst(tworks)) {
                 const auto w = work.toObject();
 
                 QStringList tags;
-                const QJsonArray wtags = w.value(QStringLiteral("tags")).toArray();
+                const QJsonArray wtags = w.value(QSL("tags")).toArray();
                 tags.reserve(wtags.count());
                 for (const auto& t : qAsConst(wtags))
                     tags.append(t.toString());
 
-                addNovelInfoBlock(w.value(QStringLiteral("id")).toString(),
-                                  w.value(QStringLiteral("url")).toString(),
-                                  w.value(QStringLiteral("title")).toString(),
-                                  w.value(QStringLiteral("textCount")).toInt(),
-                                  w.value(QStringLiteral("userName")).toString(),
-                                  w.value(QStringLiteral("userId")).toString(),
+                addNovelInfoBlock(w.value(QSL("id")).toString(),
+                                  w.value(QSL("url")).toString(),
+                                  w.value(QSL("title")).toString(),
+                                  w.value(QSL("textCount")).toInt(),
+                                  w.value(QSL("userName")).toString(),
+                                  w.value(QSL("userId")).toString(),
                                   tags,
-                                  w.value(QStringLiteral("description")).toString());
+                                  w.value(QSL("description")).toString());
             }
 
             finalizeHtml();
@@ -268,33 +268,33 @@ void CPixivIndexExtractor::addNovelInfoBlock(const QString& workId, const QStrin
                                              const QString& author, const QString& authorId,
                                              const QStringList& tags, const QString& description)
 {
-    m_html.append(QStringLiteral("<div style='border-top:1px black solid;padding-top:10px;overflow:auto;'>"));
-    m_html.append(QStringLiteral("<div style='width:120px;float:left;margin-right:20px;'>"));
-    m_html.append(QStringLiteral("<a href=\"https://www.pixiv.net/novel/show.php?"
+    m_html.append(QSL("<div style='border-top:1px black solid;padding-top:10px;overflow:auto;'>"));
+    m_html.append(QSL("<div style='width:120px;float:left;margin-right:20px;'>"));
+    m_html.append(QSL("<a href=\"https://www.pixiv.net/novel/show.php?"
                                  "id=%1\"><img src=\"%2\" style='width:120px;'/></a>")
                   .arg(workId,workImgUrl));
-    m_html.append(QStringLiteral("</div><div style='float:none;'>"));
+    m_html.append(QSL("</div><div style='float:none;'>"));
 
-    m_html.append(QStringLiteral("<b>Title:</b> <a href=\"https://www.pixiv.net/novel/show.php?"
+    m_html.append(QSL("<b>Title:</b> <a href=\"https://www.pixiv.net/novel/show.php?"
                                  "id=%1\">%2</a>.<br/>")
                   .arg(workId,title));
 
-    m_html.append(QStringLiteral("<b>Size:</b> %1 characters.<br/>")
+    m_html.append(QSL("<b>Size:</b> %1 characters.<br/>")
                   .arg(length));
 
-    m_html.append(QStringLiteral("<b>Author:</b> <a href=\"https://www.pixiv.net/member.php?"
+    m_html.append(QSL("<b>Author:</b> <a href=\"https://www.pixiv.net/member.php?"
                                  "id=%1\">%2</a>.<br/>")
                   .arg(authorId,author));
 
     if (!tags.isEmpty()) {
-        m_html.append(QStringLiteral("<b>Tags:</b> %1.<br/>")
-                      .arg(tags.join(QStringLiteral(" / "))));
+        m_html.append(QSL("<b>Tags:</b> %1.<br/>")
+                      .arg(tags.join(QSL(" / "))));
     }
 
-    m_html.append(QStringLiteral("<b>Description:</b> %1.<br/>")
+    m_html.append(QSL("<b>Description:</b> %1.<br/>")
                   .arg(description));
 
-    m_html.append(QStringLiteral("</div></div>\n"));
+    m_html.append(QSL("</div></div>\n"));
 
     m_authors[authorId] = author;
     m_infoBlockCount++;
@@ -315,7 +315,7 @@ void CPixivIndexExtractor::finalizeHtml()
         author = tr("author");
 
     QString title = tr("Pixiv %1 list for %2").arg(header,author);
-    header = QStringLiteral("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/member.php?"
+    header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/member.php?"
                             "id=%2\">%3</a>.</h3>").arg(header,m_authorId,author);
 
     if (m_html.isEmpty()) {

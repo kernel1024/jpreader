@@ -18,7 +18,7 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     viewArticles = ui->browser;
 
-    ui->btnClear->setIcon(QIcon::fromTheme(QStringLiteral("edit-clear")));
+    ui->btnClear->setIcon(QIcon::fromTheme(QSL("edit-clear")));
 
     wordFinder = new WordFinder(this);
 
@@ -68,10 +68,10 @@ void CAuxDictionary::findWord(const QString &text)
 void CAuxDictionary::showTranslationFor(const QString &text)
 {
     QUrl req;
-    req.setScheme( QStringLiteral( "gdlookup" ));
-    req.setHost( QStringLiteral( "localhost" ));
+    req.setScheme( QSL( "gdlookup" ));
+    req.setHost( QSL( "localhost" ));
     QUrlQuery requ;
-    requ.addQueryItem( QStringLiteral( "word" ), text );
+    requ.addQueryItem( QSL( "word" ), text );
     req.setQuery(requ);
     dictLoadUrl(req);
 

@@ -28,25 +28,25 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-            case 0: return m_snippets[idx][QStringLiteral("title")];
-            case 1: return m_snippets[idx][QStringLiteral("relevancyrating")];
-            case 2: return m_snippets[idx][QStringLiteral("jp:dir")];
-            case 3: return CGenericFuncs::formatFileSize(m_snippets[idx][QStringLiteral("fbytes")]);
-            case 4: return m_snippets[idx][QStringLiteral("filename")];
+            case 0: return m_snippets[idx][QSL("title")];
+            case 1: return m_snippets[idx][QSL("relevancyrating")];
+            case 2: return m_snippets[idx][QSL("jp:dir")];
+            case 3: return CGenericFuncs::formatFileSize(m_snippets[idx][QSL("fbytes")]);
+            case 4: return m_snippets[idx][QSL("filename")];
             default: return QVariant();
         }
 
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (index.column()==2) // show full path in tooltips
-            return m_snippets[idx][QStringLiteral("jp:filepath")];
-        if (m_snippets[idx].contains(QStringLiteral("title:saved")))
-            return m_snippets[idx][QStringLiteral("title:saved")];
+            return m_snippets[idx][QSL("jp:filepath")];
+        if (m_snippets[idx].contains(QSL("title:saved")))
+            return m_snippets[idx][QSL("title:saved")];
 
     } else if (role == Qt::UserRole + CStructures::cpSortRole) {
         switch (index.column()) {
-            case 0: return m_snippets[idx][QStringLiteral("title")];
+            case 0: return m_snippets[idx][QSL("title")];
             case 1:
-                score = m_snippets[idx][QStringLiteral("relevancyrating")];
+                score = m_snippets[idx][QSL("relevancyrating")];
                 if (score.endsWith('%'))
                     score.remove('%');
 
@@ -56,22 +56,22 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
 
                 return score;
 
-            case 2: return m_snippets[idx][QStringLiteral("jp:filepath")];
+            case 2: return m_snippets[idx][QSL("jp:filepath")];
             case 3:
-                score = m_snippets[idx][QStringLiteral("fbytes")];
+                score = m_snippets[idx][QSL("fbytes")];
                 sc = score.toInt(&ok);
                 if (ok)
                     return sc;
 
                 return score;
 
-            case 4: return m_snippets[idx][QStringLiteral("filename")];
+            case 4: return m_snippets[idx][QSL("filename")];
             default: return QVariant();
         }
 
     } else if (role == Qt::UserRole + CStructures::cpFilterRole) {
         // column calculation removed - filtering only by directory
-        return m_snippets[idx][QStringLiteral("jp:dir")];
+        return m_snippets[idx][QSL("jp:dir")];
     }
     return QVariant();
 }

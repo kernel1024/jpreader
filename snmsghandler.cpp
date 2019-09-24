@@ -76,7 +76,7 @@ void CSnMsgHandler::pastePassword()
     if (!gSet->haveSavedPassword(snv->txtBrowser->page()->url())) return;
 
     gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
-    QString inp = QStringLiteral("%1%2%3").arg(user,tabKey,pass);
+    QString inp = QSL("%1%2%3").arg(user,tabKey,pass);
 
     auto ac = qobject_cast<QAction *>(sender());
     if (ac) {
@@ -95,7 +95,7 @@ void CSnMsgHandler::setZoom(const QString& z)
 {
     bool okconv;
     QString s = z;
-    s.remove(QRegExp(QStringLiteral("[^0-9]")));
+    s.remove(QRegExp(QSL("[^0-9]")));
     int i = s.toInt(&okconv);
     if (okconv)
         m_zoomFactor = static_cast<double>(i)/100.0;

@@ -44,7 +44,7 @@ void CLogDisplay::updateMessages()
     ui->logView->insertPlainText(log);
     ui->logView->moveCursor(QTextCursor::End);
 
-    ui->linesCount->setText(QStringLiteral("%1 messages").arg(ui->logView->document()->lineCount()));
+    ui->linesCount->setText(QSL("%1 messages").arg(ui->logView->document()->lineCount()));
 }
 
 void CLogDisplay::logCtxMenu(const QPoint &pos)
@@ -55,7 +55,7 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
     if (su.isValid()) {
         cm->addSeparator();
 
-        QAction* ac = cm->addAction(QIcon::fromTheme(QStringLiteral("preferences-web-browser-adblock")),
+        QAction* ac = cm->addAction(QIcon::fromTheme(QSL("preferences-web-browser-adblock")),
                                     tr("Add AdBlock rule for url..."),this,
                                     &CLogDisplay::addToAdblock);
         ac->setData(su);

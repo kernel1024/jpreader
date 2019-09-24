@@ -22,14 +22,14 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
 {
     if (!isReady()) {
         setErrorMsg(tr("ERROR: Translator not ready"));
-        return QStringLiteral("ERROR:TRAN_NOT_READY");
+        return QSL("ERROR:TRAN_NOT_READY");
     }
 
     const int margin = 10;
 
     if (src.length()>=CDefaults::maxTranslationStringLength) {
         // Split by separator chars
-        QRegExp rx(QStringLiteral("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+        QRegExp rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
         // Check for max length
         QStringList srout;

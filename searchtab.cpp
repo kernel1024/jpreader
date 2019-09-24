@@ -77,9 +77,9 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(this, &CSearchTab::translateTitlesSrc,
             titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
 
-    ui->buttonSearch->setIcon(QIcon::fromTheme(QStringLiteral("document-preview")));
-    ui->buttonOpen->setIcon(QIcon::fromTheme(QStringLiteral("document-open")));
-    ui->buttonDir->setIcon(QIcon::fromTheme(QStringLiteral("folder-sync")));
+    ui->buttonSearch->setIcon(QIcon::fromTheme(QSL("document-preview")));
+    ui->buttonOpen->setIcon(QIcon::fromTheme(QSL("document-open")));
+    ui->buttonDir->setIcon(QIcon::fromTheme(QSL("folder-sync")));
 
     int mv = (searchCompleterMaxVisibleItemsFrac*parentWnd()->height()) /
              (ui->editSearch->fontMetrics().height()*100);
@@ -89,11 +89,11 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     bindToTab(parentWnd()->tabMain);
 
     if (engine->getCurrentIndexerService()==CStructures::seRecoll) {
-        ui->labelMode->setText(QStringLiteral("Recoll search"));
+        ui->labelMode->setText(QSL("Recoll search"));
     } else if (engine->getCurrentIndexerService()==CStructures::seBaloo5) {
-        ui->labelMode->setText(QStringLiteral("Baloo KF5 search"));
+        ui->labelMode->setText(QSL("Baloo KF5 search"));
     } else {
-        ui->labelMode->setText(QStringLiteral("Local file search"));
+        ui->labelMode->setText(QSL("Local file search"));
     }
 
     if (!engine->isValidConfig()) {
@@ -169,10 +169,10 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
             ui->listResults->setColumnWidth(i,maxColumnWidth);
     }
 
-    QString elapsed = QString(stats[QStringLiteral("jp:elapsedtime")])
-                      .remove(QRegExp(QStringLiteral("[s]")));
+    QString elapsed = QString(stats[QSL("jp:elapsedtime")])
+                      .remove(QRegExp(QSL("[s]")));
     QString statusmsg(tr("Found %1 results at %2 seconds").
-            arg(stats[QStringLiteral("jp:totalhits")],elapsed));
+            arg(stats[QSL("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
     parentWnd()->setSearchStatus(tr("Ready"));
     parentWnd()->updateTitle();
@@ -188,14 +188,14 @@ void CSearchTab::translateTitles()
     QStringList titles;
     titles.reserve(model->rowCount());
     for (int i=0;i<model->rowCount();i++)
-        titles << model->getSnippet(i).value(QStringLiteral("title"));
+        titles << model->getSnippet(i).value(QSL("title"));
 
     Q_EMIT translateTitlesSrc(titles);
 }
 
 void CSearchTab::gotTitleTranslation(const QStringList &res)
 {
-    if (!res.isEmpty() && res.last().contains(QStringLiteral("ERROR"))) {
+    if (!res.isEmpty() && res.last().contains(QSL("ERROR"))) {
         QMessageBox::warning(this,tr("JPReader"),tr("Title translation failed."));
         return;
     }
@@ -204,9 +204,9 @@ void CSearchTab::gotTitleTranslation(const QStringList &res)
 
     for (int i=0;i<res.count();i++) {
         CStringHash snip = model->getSnippet(i);
-        if (!snip.contains(QStringLiteral("title:saved")))
-            snip[QStringLiteral("title:saved")]=snip[QStringLiteral("title")];
-        snip[QStringLiteral("title")]=res.at(i);
+        if (!snip.contains(QSL("title:saved")))
+            snip[QSL("title:saved")]=snip[QSL("title")];
+        snip[QSL("title")]=res.at(i);
         model->setSnippet(i,snip);
     }
 }
@@ -232,10 +232,10 @@ void CSearchTab::headerMenu(const QPoint &pos)
     QMenu cm;
 
     if (column == 2) { // Directory filter
-        QStringList sl = model->getDistinctValues(QStringLiteral("jp:dir"));
+        QStringList sl = model->getDistinctValues(QSL("jp:dir"));
         if (!sl.isEmpty()) {
             QMenu *cmf = cm.addMenu(tr("Filter"));
-            cmf->setStyleSheet(QStringLiteral("QMenu { menu-scrollable: 1; }"));
+            cmf->setStyleSheet(QSL("QMenu { menu-scrollable: 1; }"));
             QAction *ac = cmf->addAction(tr("Clear filter"),this,&CSearchTab::applyFilter);
             ac->setData(QString());
             cmf->addSeparator();
@@ -257,26 +257,26 @@ void CSearchTab::snippetMenu(const QPoint &pos)
     const CStringHash sh = model->getSnippet(sort->mapToSource(ui->listResults->indexAt(pos)));
     if (sh.isEmpty()) return;
 
-    const QFileInfo fi(sh[QStringLiteral("jp:fullfilename")]);
+    const QFileInfo fi(sh[QSL("jp:fullfilename")]);
 
     QMenu cm;
 
     if (fi.isFile() && fi.exists()) {
-        cm.addAction(QIcon::fromTheme(QStringLiteral("fork")),tr("Open with default DE action"),[fi](){
+        cm.addAction(QIcon::fromTheme(QSL("fork")),tr("Open with default DE action"),[fi](){
             QDesktopServices::openUrl(QUrl::fromLocalFile(fi.filePath()));
         });
-        cm.addAction(QIcon::fromTheme(QStringLiteral("document-open-folder")),tr("Open containing directory"),[fi](){
+        cm.addAction(QIcon::fromTheme(QSL("document-open-folder")),tr("Open containing directory"),[fi](){
             QDesktopServices::openUrl(QUrl::fromLocalFile(fi.path()));
         });
         cm.addSeparator();
     }
-    cm.addAction(QIcon::fromTheme(QStringLiteral("document-properties")),tr("Show indexer data..."),[this,sh](){
+    cm.addAction(QIcon::fromTheme(QSL("document-properties")),tr("Show indexer data..."),[this,sh](){
         QDialog *dlg = new QDialog(this);
         Ui::HashViewerDialog ui;
         ui.setupUi(dlg);
         dlg->setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
-                           .arg(CGenericFuncs::elideString(sh[QStringLiteral("title")],CDefaults::maxTitleElideLength)));
+                           .arg(CGenericFuncs::elideString(sh[QSL("title")],CDefaults::maxTitleElideLength)));
         ui.table->clear();
         ui.table->setColumnCount(2);
         ui.table->setRowCount(sh.size());
@@ -335,7 +335,7 @@ void CSearchTab::doSearch()
 
     ui->editSearch->setCurrentIndex(0);
 
-    QDir fsdir = QDir(QStringLiteral("/"));
+    QDir fsdir = QDir(QSL("/"));
     if (!ui->editDir->text().isEmpty())
         fsdir = QDir(ui->editDir->text());
     Q_EMIT startSearch(lastQuery,fsdir);
@@ -378,25 +378,25 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         int row = sort->mapToSource(index).row();
         if ((row < 0) || (row >= model->rowCount())) return;
         CStringHash snip = model->getSnippet(row);
-        QString s = snip[QStringLiteral("abstract")];
+        QString s = snip[QSL("abstract")];
         QString tranState = CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
-        if (s.isEmpty() || tranState!=snip.value(QStringLiteral("abstract:tran"))) {
-            snip[QStringLiteral("abstract:untran")]=
-                    createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],true,s);
-            snip[QStringLiteral("abstract")]=
-                    createSpecSnippet(snip[QStringLiteral("jp:fullfilename")],false,s);
-            s = snip[QStringLiteral("abstract")];
-            snip[QStringLiteral("abstract:tran")] =
+        if (s.isEmpty() || tranState!=snip.value(QSL("abstract:tran"))) {
+            snip[QSL("abstract:untran")]=
+                    createSpecSnippet(snip[QSL("jp:fullfilename")],true,s);
+            snip[QSL("abstract")]=
+                    createSpecSnippet(snip[QSL("jp:fullfilename")],false,s);
+            s = snip[QSL("abstract")];
+            snip[QSL("abstract:tran")] =
                     CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
-        s=QStringLiteral("<font size='+1'>%1</font>").arg(s);
+        s=QSL("<font size='+1'>%1</font>").arg(s);
         ui->snippetBrowser->setHtml(s);
         if (gSet->ui()->actionSnippetAutotranslate->isChecked() &&
-            snip.value(QStringLiteral("abstract"))!=snip.value(QStringLiteral("abstract:untran")))
-            ui->snippetBrowser->setToolTip(snip.value(QStringLiteral("abstract:untran")));
+            snip.value(QSL("abstract"))!=snip.value(QSL("abstract:untran")))
+            ui->snippetBrowser->setToolTip(snip.value(QSL("abstract:untran")));
 
-        selectFile(snip[QStringLiteral("url")], snip[QStringLiteral("jp:fullfilename")]);
+        selectFile(snip[QSL("url")], snip[QSL("jp:fullfilename")]);
     }
 }
 
@@ -459,7 +459,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     QString fileContents = cd->toUnicode(fc.constData());
 
-    fileContents.remove(QRegExp(QStringLiteral("<[^>]*>")));
+    fileContents.remove(QRegExp(QSL("<[^>]*>")));
     fileContents.remove('\n');
     fileContents.remove('\r');
     QHash<int,QStringList> snippets;
@@ -486,10 +486,10 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
                 fspart = tran->tranString(fspart);
             QString snpColor = CSettings::snippetColors.at(i % CSettings::snippetColors.count()).name();
             if (makeTran) {
-                fspart.replace(ITermT,QStringLiteral("<font color='%1'>%2</font>")
+                fspart.replace(ITermT,QSL("<font color='%1'>%2</font>")
                                               .arg(snpColor,ITermT),Qt::CaseInsensitive);
             } else {
-                fspart.replace(ITerm,QStringLiteral("<font color='%1'>%2</font>")
+                fspart.replace(ITerm,QSL("<font color='%1'>%2</font>")
                                .arg(snpColor,ITerm),Qt::CaseInsensitive);
             }
             // add occurence to collection

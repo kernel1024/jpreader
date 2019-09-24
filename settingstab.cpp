@@ -63,13 +63,13 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
 
-    ui->atlSSLProto->addItem(QStringLiteral("Secure"),static_cast<int>(QSsl::SecureProtocols));
-    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
-    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.1"),static_cast<int>(QSsl::TlsV1_1));
-    ui->atlSSLProto->addItem(QStringLiteral("TLS 1.0"),static_cast<int>(QSsl::TlsV1_0));
-    ui->atlSSLProto->addItem(QStringLiteral("SSL V3"),static_cast<int>(QSsl::SslV3));
-    ui->atlSSLProto->addItem(QStringLiteral("SSL V2"),static_cast<int>(QSsl::SslV2));
-    ui->atlSSLProto->addItem(QStringLiteral("Any"),static_cast<int>(QSsl::AnyProtocol));
+    ui->atlSSLProto->addItem(QSL("Secure"),static_cast<int>(QSsl::SecureProtocols));
+    ui->atlSSLProto->addItem(QSL("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
+    ui->atlSSLProto->addItem(QSL("TLS 1.1"),static_cast<int>(QSsl::TlsV1_1));
+    ui->atlSSLProto->addItem(QSL("TLS 1.0"),static_cast<int>(QSsl::TlsV1_0));
+    ui->atlSSLProto->addItem(QSL("SSL V3"),static_cast<int>(QSsl::SslV3));
+    ui->atlSSLProto->addItem(QSL("SSL V2"),static_cast<int>(QSsl::SslV2));
+    ui->atlSSLProto->addItem(QSL("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
     setupSettingsObservers();
@@ -709,7 +709,7 @@ void CSettingsTab::updateMainHistory()
 {
     ui->listHistory->clear();
     for (const CUrlHolder &t : qAsConst(gSet->d_func()->mainHistory)) {
-        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ]")
+        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ]")
                                                   .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
@@ -1035,7 +1035,7 @@ void CSettingsTab::updateSearchEngines()
     ui->listSearch->clear();
     const auto &engines = gSet->d_func()->ctxSearchEngines;
     for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
-        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ] %3").
+        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
                                                   arg(it.key(),
                                                       it.value(),
                                                       it.key()==gSet->m_settings->defaultSearchEngine ?
@@ -1049,8 +1049,8 @@ void CSettingsTab::updateSearchEngines()
 void CSettingsTab::addSearchEngine()
 {
     CStringHash data;
-    data[QStringLiteral("Url template")]=QString();
-    data[QStringLiteral("Menu title")]=QString();
+    data[QSL("Url template")]=QString();
+    data[QSL("Menu title")]=QString();
 
     static const QString hlp = tr("In the url template you can use following substitutions\n"
                                   "  %s - search text\n"
@@ -1060,13 +1060,13 @@ void CSettingsTab::addSearchEngine()
     if (dlg->exec()==QDialog::Accepted) {
         data = dlg->getInputData();
 
-        QListWidgetItem* li = new QListWidgetItem(QStringLiteral("%1 [ %2 ] %3").
-                                                  arg(data[QStringLiteral("Menu title")],
-                                                  data[QStringLiteral("Url template")],
-                data[QStringLiteral("Menu title")]==gSet->m_settings->defaultSearchEngine ?
+        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
+                                                  arg(data[QSL("Menu title")],
+                                                  data[QSL("Url template")],
+                data[QSL("Menu title")]==gSet->m_settings->defaultSearchEngine ?
                     tr("(default)") : QString()));
-        li->setData(Qt::UserRole,data[QStringLiteral("Menu title")]);
-        li->setData(Qt::UserRole+1,data[QStringLiteral("Url template")]);
+        li->setData(Qt::UserRole,data[QSL("Menu title")]);
+        li->setData(Qt::UserRole+1,data[QSL("Url template")]);
         ui->listSearch->addItem(li);
     }
     dlg->deleteLater();
@@ -1166,7 +1166,7 @@ void CSettingsTab::importUserScript()
     QString src = fs.readAll();
     f.close();
 
-    CUserScript us(QStringLiteral("loader"),src);
+    CUserScript us(QSL("loader"),src);
 
     QListWidgetItem *itm = new QListWidgetItem(us.getTitle());
     itm->setData(Qt::UserRole,src);
@@ -1255,7 +1255,7 @@ void CSettingsTab::cleanAtlCerts()
 void CSettingsTab::updateAtlCertLabel()
 {
     if (gSet) {
-        ui->atlCertsLabel->setText(QStringLiteral("Trusted:\n%1 certificates")
+        ui->atlCertsLabel->setText(QSL("Trusted:\n%1 certificates")
                                    .arg(gSet->m_settings->atlCerts.count()));
     }
 }
@@ -1274,7 +1274,7 @@ void CSettingsTab::saveSearchEngines()
 
 void CSettingsTab::updateFontColorPreview()
 {
-    ui->frameFontColorOverride->setStyleSheet(QStringLiteral("QFrame { background: %1; }")
+    ui->frameFontColorOverride->setStyleSheet(QSL("QFrame { background: %1; }")
                                               .arg(gSet->m_settings->forcedFontColor.name(QColor::HexRgb)));
 }
 
@@ -1370,8 +1370,8 @@ QVariant CLangPairModel::headerData(int section, Qt::Orientation orientation, in
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
-            case 0: return QVariant(QStringLiteral("Source language"));
-            case 1: return QVariant(QStringLiteral("Destination language"));
+            case 0: return QVariant(QSL("Source language"));
+            case 1: return QVariant(QSL("Destination language"));
             default: return QVariant();
         }
     }
@@ -1425,7 +1425,7 @@ bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
 {
     beginInsertRows(parent, row, row+count-1);
     for (int i=0;i<count;i++)
-        gSet->m_settings->translatorPairs.insert(row, CLangPair(QStringLiteral("ja"),QStringLiteral("en")));
+        gSet->m_settings->translatorPairs.insert(row, CLangPair(QSL("ja"),QSL("en")));
     endInsertRows();
     gSet->m_ui->rebuildLanguageActions();
     return true;

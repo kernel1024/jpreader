@@ -121,9 +121,9 @@ void CGlobalControl::initialize()
     new AuxtranslatorAdaptor(d->auxTranslatorDBus);
     new BrowsercontrollerAdaptor(d->browserControllerDBus);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    if (!dbus.registerObject(QStringLiteral("/auxTranslator"),d->auxTranslatorDBus))
+    if (!dbus.registerObject(QSL("/auxTranslator"),d->auxTranslatorDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerObject(QStringLiteral("/browserController"),d->browserControllerDBus))
+    if (!dbus.registerObject(QSL("/browserController"),d->browserControllerDBus))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
     if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
         qCritical() << dbus.lastError().name() << dbus.lastError().message();
@@ -139,17 +139,17 @@ void CGlobalControl::initialize()
         m_settings->debugNetReqLogging = checked;
     });
 
-    d->webProfile = new QWebEngineProfile(QStringLiteral("jpreader"),this);
+    d->webProfile = new QWebEngineProfile(QSL("jpreader"),this);
 
     QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
-    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QStringLiteral(".cache")
-                           + QDir::separator() + QStringLiteral("jpreader");
+    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QSL(".cache")
+                           + QDir::separator() + QSL("jpreader");
     if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
 
-    QString fcache = fs + QStringLiteral("cache") + QDir::separator();
+    QString fcache = fs + QSL("cache") + QDir::separator();
     d->webProfile->setCachePath(fcache);
-    QString fdata = fs + QStringLiteral("local_storage") + QDir::separator();
+    QString fdata = fs + QSL("local_storage") + QDir::separator();
     d->webProfile->setPersistentStoragePath(fdata);
 
     d->webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
@@ -183,7 +183,7 @@ void CGlobalControl::initialize()
         setrlimit(RLIMIT_CORE, &rlp);
     }
 
-    m_settings->dictIndexDir = fs + QStringLiteral("dictIndex") + QDir::separator();
+    m_settings->dictIndexDir = fs + QSL("dictIndex") + QDir::separator();
     QDir dictIndex(settings()->dictIndexDir);
     if (!dictIndex.exists()) {
         if (!dictIndex.mkpath(settings()->dictIndexDir)) {
@@ -253,7 +253,7 @@ bool CGlobalControl::setupIPC()
     if (!d->ipcServer.isNull()) return false;
 
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
-    serverName.replace(QRegExp(QStringLiteral("[^\\w\\-. ]")), QString());
+    serverName.replace(QRegExp(QSL("[^\\w\\-. ]")), QString());
 
     QScopedPointer<QLocalSocket> socket(new QLocalSocket());
     socket->connectToServer(serverName);
@@ -261,7 +261,7 @@ bool CGlobalControl::setupIPC()
         // Connected. Process is already running, send message to it
         if (CGlobalControlPrivate::runnedFromQtCreator()) { // This is debug run, try to close old instance
             // Send close request
-            sendIPCMessage(socket.data(),QStringLiteral("debugRestart"));
+            sendIPCMessage(socket.data(),QSL("debugRestart"));
             socket->flush();
             socket->close();
             QApplication::processEvents();
@@ -270,7 +270,7 @@ bool CGlobalControl::setupIPC()
             // Check for closing
             socket->connectToServer(serverName);
             if (socket->waitForConnected(CDefaults::ipcTimeout)) { // connected, unable to close
-                sendIPCMessage(socket.data(),QStringLiteral("newWindow"));
+                sendIPCMessage(socket.data(),QSL("newWindow"));
                 socket->flush();
                 socket->close();
                 return false;
@@ -281,7 +281,7 @@ bool CGlobalControl::setupIPC()
             d->ipcServer->listen(serverName);
             connect(d->ipcServer.data(), &QLocalServer::newConnection, this, &CGlobalControl::ipcMessageReceived);
         } else {
-            sendIPCMessage(socket.data(),QStringLiteral("newWindow"));
+            sendIPCMessage(socket.data(),QSL("newWindow"));
             socket->flush();
             socket->close();
             return false;
@@ -302,7 +302,7 @@ void  CGlobalControl::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 {
     if (socket==nullptr) return;
 
-    QString s = QStringLiteral("%1%2").arg(msg,QString::fromLatin1(CDefaults::ipcEOF));
+    QString s = QSL("%1%2").arg(msg,QString::fromLatin1(CDefaults::ipcEOF));
     socket->write(s.toUtf8());
 }
 
@@ -332,7 +332,7 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
                     "Add this certificate to trusted list?"));
     QString imsg;
     for(int i=0;i<errors.count();i++)
-        imsg+=QStringLiteral("%1. %2\n").arg(i+1).arg(errors.at(i));
+        imsg+=QSL("%1. %2\n").arg(i+1).arg(errors.at(i));
     mbox.setInformativeText(imsg);
 
     mbox.setDetailedText(cert.toText());
@@ -362,9 +362,9 @@ void CGlobalControl::cleanTmpFiles()
 
 QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
 {
-    QString res = QUuid::createUuid().toString().remove(QRegExp(QStringLiteral("[^a-z,A-Z,0,1-9,-]")));
+    QString res = QUuid::createUuid().toString().remove(QRegExp(QSL("[^a-z,A-Z,0,1-9,-]")));
     if (!suffix.isEmpty())
-        res.append(QStringLiteral(".%1").arg(suffix));
+        res.append(QSL(".%1").arg(suffix));
     if (withDir)
         res = QDir::temp().absoluteFilePath(res);
     return res;
@@ -639,7 +639,7 @@ void CGlobalControl::removeRecycledItem(int idx)
 void CGlobalControl::appendMainHistory(const CUrlHolder &item)
 {
     Q_D(CGlobalControl);
-    if (item.url.toString().startsWith(QStringLiteral("data:"),Qt::CaseInsensitive)) return;
+    if (item.url.toString().startsWith(QSL("data:"),Qt::CaseInsensitive)) return;
 
     if (d->mainHistory.contains(item))
         d->mainHistory.removeOne(item);
@@ -700,9 +700,9 @@ void CGlobalControl::ipcMessageReceived()
     socket->deleteLater();
 
     QStringList cmd = QString::fromUtf8(bmsg).split('\n');
-    if (cmd.first().startsWith(QStringLiteral("newWindow"))) {
+    if (cmd.first().startsWith(QSL("newWindow"))) {
         addMainWindow();
-    } else if (cmd.first().startsWith(QStringLiteral("debugRestart"))) {
+    } else if (cmd.first().startsWith(QSL("debugRestart"))) {
         qInfo() << tr("Closing jpreader instance (pid: %1)"
                       "after debugRestart request")
                    .arg(QApplication::applicationPid());
@@ -778,7 +778,7 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 {
     Q_D(const CGlobalControl);
     if (!settings()->useAdblock) return false;
-    if (!url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive)) return false;
+    if (!url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive)) return false;
 
     filter.clear();
     QString u = url.toString(CSettings::adblockUrlFmt);
@@ -799,7 +799,7 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 
 bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 {
-    static const QStringList allowedScheme({ QStringLiteral("chrome"), QStringLiteral("about")});
+    static const QStringList allowedScheme({ QSL("chrome"), QSL("about")});
 
     Q_D(const CGlobalControl);
 
@@ -910,12 +910,12 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
 
-    QSettings params(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
-    params.beginGroup(QStringLiteral("passwords"));
+    QSettings params(QSL("kernel1024"), QSL("jpreader"));
+    params.beginGroup(QSL("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
 
-    QString u = params.value(QStringLiteral("%1-user").arg(key),QString()).toString();
-    QByteArray ba = params.value(QStringLiteral("%1-pass").arg(key),QByteArray()).toByteArray();
+    QString u = params.value(QSL("%1-user").arg(key),QString()).toString();
+    QByteArray ba = params.value(QSL("%1-pass").arg(key),QByteArray()).toByteArray();
     QString p;
     if (!ba.isEmpty()) {
         p = QString::fromUtf8(QByteArray::fromBase64(ba));
@@ -933,11 +933,11 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
 
-    QSettings params(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
-    params.beginGroup(QStringLiteral("passwords"));
+    QSettings params(QSL("kernel1024"), QSL("jpreader"));
+    params.beginGroup(QSL("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
-    params.setValue(QStringLiteral("%1-user").arg(key),user);
-    params.setValue(QStringLiteral("%1-pass").arg(key),password.toUtf8().toBase64());
+    params.setValue(QSL("%1-user").arg(key),user);
+    params.setValue(QSL("%1-pass").arg(key),password.toUtf8().toBase64());
     params.endGroup();
 }
 
@@ -946,11 +946,11 @@ void CGlobalControl::removePassword(const QUrl &origin)
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
 
-    QSettings params(QStringLiteral("kernel1024"), QStringLiteral("jpreader"));
-    params.beginGroup(QStringLiteral("passwords"));
+    QSettings params(QSL("kernel1024"), QSL("jpreader"));
+    params.beginGroup(QSL("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
-    params.remove(QStringLiteral("%1-user").arg(key));
-    params.remove(QStringLiteral("%1-pass").arg(key));
+    params.remove(QSL("%1-user").arg(key));
+    params.remove(QSL("%1-pass").arg(key));
     params.endGroup();
 }
 
@@ -1019,15 +1019,15 @@ void CGlobalControl::initLanguagesList()
 
     for(const QLocale &locale : allLocales) {
         QString bcp = locale.bcp47Name();
-        QString name = QStringLiteral("%1 (%2)")
+        QString name = QSL("%1 (%2)")
                        .arg(QLocale::languageToString(locale.language()),bcp);
 
         // filter out unsupported codes for dialects
-        if (bcp.contains('-') && !bcp.startsWith(QStringLiteral("zh"))) continue;
+        if (bcp.contains('-') && !bcp.startsWith(QSL("zh"))) continue;
 
         // replace C locale with English
-        if (bcp == QStringLiteral("en"))
-            name = QStringLiteral("English (en)");
+        if (bcp == QSL("en"))
+            name = QSL("English (en)");
 
         if (!d->langNamesList.contains(bcp)) {
             d->langNamesList.insert(bcp,name);
@@ -1121,7 +1121,7 @@ QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)
 {
     Q_D(const CGlobalControl);
     if (d->ctxSearchEngines.isEmpty())
-        return QUrl(QStringLiteral("about://blank"));
+        return QUrl(QSL("about://blank"));
 
     auto it = d->ctxSearchEngines.constKeyValueBegin();
     QString url = (*it).second;
@@ -1130,8 +1130,8 @@ QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine)
     if (!engine.isEmpty() && d->ctxSearchEngines.contains(engine))
         url = d->ctxSearchEngines.value(engine);
 
-    url.replace(QStringLiteral("%s"),text);
-    url.replace(QStringLiteral("%ps"),QString::fromUtf8(QUrl::toPercentEncoding(text)));
+    url.replace(QSL("%s"),text);
+    url.replace(QSL("%ps"),QString::fromUtf8(QUrl::toPercentEncoding(text)));
 
     return QUrl::fromUserInput(url);
 }

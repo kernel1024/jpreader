@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QWebEngineView>
 
+#include "structures.h"
 #include "specwidgets.h"
 #include "ui_snviewer.h"
 
@@ -60,7 +61,7 @@ public:
     explicit CSnippetViewer(QWidget* parent, const QUrl& aUri = QUrl(),
                             const QStringList& aSearchText = QStringList(),
                             bool setFocused = true, const QString& AuxContent = QString(),
-                            const QString& zoom = QStringLiteral("100%"),
+                            const QString& zoom = QSL("100%"),
                             bool startPage = false);
     virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event) override;

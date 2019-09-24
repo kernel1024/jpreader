@@ -28,7 +28,7 @@ bool CAWSTranslator::initTran()
 QByteArray CAWSTranslator::getSignatureKey(const QString &key, const QString &dateStamp,
                                            const QString &regionName, const QString &serviceName) const
 {
-    QByteArray bKey = QStringLiteral("AWS4%1").arg(key).toUtf8();
+    QByteArray bKey = QSL("AWS4%1").arg(key).toUtf8();
     QByteArray kDate = QMessageAuthenticationCode::hash(dateStamp.toUtf8(),bKey,QCryptographicHash::Sha256);
     QByteArray kRegion = QMessageAuthenticationCode::hash(regionName.toUtf8(),kDate,QCryptographicHash::Sha256);
     QByteArray kService = QMessageAuthenticationCode::hash(serviceName.toUtf8(),kRegion,QCryptographicHash::Sha256);
@@ -41,20 +41,20 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
                                                  const CStringHash& additionalHeaders,
                                                  const QByteArray& payload)
 {
-    const QString algorithm(QStringLiteral("AWS4-HMAC-SHA256"));
+    const QString algorithm(QSL("AWS4-HMAC-SHA256"));
 
-    QString host = QStringLiteral("%1.%2.amazonaws.com").arg(service,m_region);
+    QString host = QSL("%1.%2.amazonaws.com").arg(service,m_region);
     QDateTime dt = QDateTime::currentDateTimeUtc();
-    QString amz_date = dt.toString(QStringLiteral("yyyyMMddThhmmssZ"));
-    QString dateStamp = dt.toString(QStringLiteral("yyyyMMdd"));
+    QString amz_date = dt.toString(QSL("yyyyMMddThhmmssZ"));
+    QString dateStamp = dt.toString(QSL("yyyyMMdd"));
 
-    QUrl rqurl = QUrl(QStringLiteral("https://%1/").arg(host));
+    QUrl rqurl = QUrl(QSL("https://%1/").arg(host));
     QNetworkRequest rq(rqurl);
 
     CStringHash headers = additionalHeaders;
-    headers[QStringLiteral("host")] = host;
-    headers[QStringLiteral("x-amz-date")] = amz_date;
-    headers[QStringLiteral("x-amz-target")] = amz_target;
+    headers[QSL("host")] = host;
+    headers[QSL("x-amz-date")] = amz_date;
+    headers[QSL("x-amz-target")] = amz_target;
 
     QStringList headerNames;
     CStringHash lheaders;
@@ -70,19 +70,19 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
 
     QString canonicalHeaders;
     for (const auto& key : qAsConst(headerNames)) {
-        canonicalHeaders.append(QStringLiteral("%1:%2\n").arg(key,lheaders.value(key)));
+        canonicalHeaders.append(QSL("%1:%2\n").arg(key,lheaders.value(key)));
     }
 
-    QString credentialScope = QStringLiteral("%1/%2/%3/aws4_request").arg(
+    QString credentialScope = QSL("%1/%2/%3/aws4_request").arg(
                                   dateStamp,
                                   m_region,
                                   service);
 
     QString payloadHash = QString::fromLatin1(QCryptographicHash::hash(payload,QCryptographicHash::Sha256).toHex());
 
-    QString canonicalRequest = QStringLiteral("%1\n%2\n%3\n%4\n%5\n%6").arg(
-                                   QStringLiteral("POST"), // method
-                                   QStringLiteral("/"), // canonical_uri
+    QString canonicalRequest = QSL("%1\n%2\n%3\n%4\n%5\n%6").arg(
+                                   QSL("POST"), // method
+                                   QSL("/"), // canonical_uri
                                    QString(), // canonical_querystring
                                    canonicalHeaders, // canonical_headers
                                    signedHeaders, // signed_headers
@@ -91,7 +91,7 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
     QString canonicalRequestDigest = QString::fromLatin1(QCryptographicHash::hash(canonicalRequest.toUtf8(),
                                                                                   QCryptographicHash::Sha256).toHex());
 
-    QString stringToSign = QStringLiteral("%1\n%2\n%3\n%4").arg(algorithm,amz_date,
+    QString stringToSign = QSL("%1\n%2\n%3\n%4").arg(algorithm,amz_date,
                                                                 credentialScope,canonicalRequestDigest);
 
     QString signature = QString::fromLatin1(QMessageAuthenticationCode::hash(stringToSign.toUtf8(),
@@ -101,7 +101,7 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
                                                                                              service),
                                                                              QCryptographicHash::Sha256).toHex());
 
-    QByteArray authorization_header = QStringLiteral("%1 Credential=%2/%3, "
+    QByteArray authorization_header = QSL("%1 Credential=%2/%3, "
                                                      "SignedHeaders=%4, "
                                                      "Signature=%5").arg(algorithm,m_accessKey,credentialScope,
                                                                          signedHeaders,
@@ -115,26 +115,26 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
 QString CAWSTranslator::tranStringInternal(const QString &src)
 {
     QJsonObject reqtext;
-    reqtext[QStringLiteral("Text")] = src;
-    reqtext[QStringLiteral("SourceLanguageCode")] = language().langFrom.bcp47Name();
-    reqtext[QStringLiteral("TargetLanguageCode")] = language().langTo.bcp47Name();
+    reqtext[QSL("Text")] = src;
+    reqtext[QSL("SourceLanguageCode")] = language().langFrom.bcp47Name();
+    reqtext[QSL("TargetLanguageCode")] = language().langTo.bcp47Name();
     QJsonDocument doc(reqtext);
     QByteArray payload = doc.toJson(QJsonDocument::Compact);
 
-    const QString service(QStringLiteral("translate"));
-    const QString amz_target(QStringLiteral("AWSShineFrontendService_20170701.TranslateText"));
-    const QString contentType(QStringLiteral("application/x-amz-json-1.1"));
+    const QString service(QSL("translate"));
+    const QString amz_target(QSL("AWSShineFrontendService_20170701.TranslateText"));
+    const QString contentType(QSL("application/x-amz-json-1.1"));
 
     CStringHash signedHeaders;
-    signedHeaders[QStringLiteral("Content-Type")] = contentType;
+    signedHeaders[QSL("Content-Type")] = contentType;
 
     QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
 
     QNetworkReply *rpl = nam()->post(rq,payload);
 
     if (!waitForReply(rpl)) {
-        setErrorMsg(QStringLiteral("ERROR: AWS translator network error"));
-        return QStringLiteral("ERROR:TRAN_AWS_NETWORK_ERROR");
+        setErrorMsg(QSL("ERROR: AWS translator network error"));
+        return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
@@ -149,31 +149,31 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
 
     doc = QJsonDocument::fromJson(ra);
     if (doc.isNull()) {
-        setErrorMsg(QStringLiteral("ERROR: AWS translator JSON error, HTTP status: %1").arg(status));
-        return QStringLiteral("ERROR:TRAN_AWS_JSON_ERROR");
+        setErrorMsg(QSL("ERROR: AWS translator JSON error, HTTP status: %1").arg(status));
+        return QSL("ERROR:TRAN_AWS_JSON_ERROR");
     }
 
     QJsonObject vobj = doc.object();
-    QJsonValue err = vobj.value(QStringLiteral("message"));
-    QJsonValue errType = vobj.value(QStringLiteral("__type"));
+    QJsonValue err = vobj.value(QSL("message"));
+    QJsonValue errType = vobj.value(QSL("__type"));
     if (err.isString()) {
         setErrorMsg(tr("ERROR: AWS translator JSON error #%1: %2, HTTP status: %3")
                     .arg(errType.toString(),err.toString())
                     .arg(status));
-        return QStringLiteral("ERROR:TRAN_AWS_JSON_ERROR");
+        return QSL("ERROR:TRAN_AWS_JSON_ERROR");
     }
 
     if (status!=CDefaults::httpCodeFound) {
-        setErrorMsg(QStringLiteral("ERROR: AWS translator HTTP generic error, HTTP status: %1").arg(status));
-        return QStringLiteral("ERROR:TRAN_AWS_HTTP_ERROR");
+        setErrorMsg(QSL("ERROR: AWS translator HTTP generic error, HTTP status: %1").arg(status));
+        return QSL("ERROR:TRAN_AWS_HTTP_ERROR");
     }
 
-    QJsonValue vres = vobj.value(QStringLiteral("TranslatedText"));
+    QJsonValue vres = vobj.value(QSL("TranslatedText"));
     if (vres.isString())
         return vres.toString();
 
-    setErrorMsg(QStringLiteral("ERROR: AWS translator TranslatedText missing from JSON response, HTTP status: %1").arg(status));
-    return QStringLiteral("ERROR:TRAN_AWS_RESPONSE_ERROR");
+    setErrorMsg(QSL("ERROR: AWS translator TranslatedText missing from JSON response, HTTP status: %1").arg(status));
+    return QSL("ERROR:TRAN_AWS_RESPONSE_ERROR");
 }
 
 void CAWSTranslator::clearCredentials()

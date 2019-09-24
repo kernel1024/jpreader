@@ -101,14 +101,14 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     connect(txtBrowser->customPage(), &CSpecWebPage::linkClickedExt,
             netHandler, &CSnNet::userNavigationRequest);
 
-    backNavButton->setIcon(QIcon::fromTheme(QStringLiteral("go-previous")));
-    fwdNavButton->setIcon(QIcon::fromTheme(QStringLiteral("go-next")));
-    backButton->setIcon(QIcon::fromTheme(QStringLiteral("go-up-search")));
-    fwdButton->setIcon(QIcon::fromTheme(QStringLiteral("go-down-search")));
-    reloadButton->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
-    stopButton->setIcon(QIcon::fromTheme(QStringLiteral("process-stop")));
-    navButton->setIcon(QIcon::fromTheme(QStringLiteral("arrow-right")));
-    passwordButton->setIcon(QIcon::fromTheme(QStringLiteral("dialog-password")));
+    backNavButton->setIcon(QIcon::fromTheme(QSL("go-previous")));
+    fwdNavButton->setIcon(QIcon::fromTheme(QSL("go-next")));
+    backButton->setIcon(QIcon::fromTheme(QSL("go-up-search")));
+    fwdButton->setIcon(QIcon::fromTheme(QSL("go-down-search")));
+    reloadButton->setIcon(QIcon::fromTheme(QSL("view-refresh")));
+    stopButton->setIcon(QIcon::fromTheme(QSL("process-stop")));
+    navButton->setIcon(QIcon::fromTheme(QSL("arrow-right")));
+    passwordButton->setIcon(QIcon::fromTheme(QSL("dialog-password")));
 
     for (auto it = CStructures::translationEngines().constKeyValueBegin(),
          end = CStructures::translationEngines().constKeyValueEnd(); it != end; ++it) {
@@ -228,7 +228,7 @@ void CSnippetViewer::navByUrl(const QString& url)
 {
     QUrl u = QUrl::fromUserInput(url);
     static const QStringList validSpecSchemes
-            = { QStringLiteral("gdlookup"), QStringLiteral("about"), QStringLiteral("chrome") };
+            = { QSL("gdlookup"), QSL("about"), QSL("chrome") };
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
             && (!u.isValid() || !url.contains('.'))) {
@@ -255,7 +255,7 @@ void CSnippetViewer::titleChanged(const QString & title)
                 s=uri.toString();
             }
 		}
-        if (s.isEmpty()) s = QStringLiteral("< ... >");
+        if (s.isEmpty()) s = QSL("< ... >");
         s = s.trimmed();
     } else {
         s = title.trimmed();
@@ -266,7 +266,7 @@ void CSnippetViewer::titleChanged(const QString & title)
     if (!title.isEmpty()) {
         if (txtBrowser->page()->url().isValid() &&
                 !txtBrowser->page()->url().toString().contains(
-                    QStringLiteral("about:blank"),Qt::CaseInsensitive)) {
+                    QSL("about:blank"),Qt::CaseInsensitive)) {
             CUrlHolder uh(title,txtBrowser->page()->url());
             if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
                 gSet->appendMainHistory(uh);
@@ -278,14 +278,14 @@ void CSnippetViewer::titleChanged(const QString & title)
 
 void CSnippetViewer::urlChanged(const QUrl & url)
 {
-    if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
-            url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive)) {
+    if (url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive) ||
+            url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive)) {
         urlEdit->setText(url.toString());
 
     } else {
         QUrl aUrl = getUrl();
-        if (url.scheme().startsWith(QStringLiteral("http"),Qt::CaseInsensitive) ||
-                url.scheme().startsWith(QStringLiteral("file"),Qt::CaseInsensitive)) {
+        if (url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive) ||
+                url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive)) {
             urlEdit->setText(aUrl.toString());
 
         } else if (netHandler->isValidLoadedUrl()) {
@@ -298,7 +298,7 @@ void CSnippetViewer::urlChanged(const QUrl & url)
 
     if (m_fileChanged) {
         urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
-        urlEdit->setStyleSheet(QStringLiteral("QLineEdit { background: #d7ffd7; }"));
+        urlEdit->setStyleSheet(QSL("QLineEdit { background: #d7ffd7; }"));
     } else {
         urlEdit->setToolTip(tr("Displayed URL"));
         urlEdit->setStyleSheet(QString());
@@ -309,7 +309,7 @@ void CSnippetViewer::recycleTab()
 {
     if (tabTitle().isEmpty() || !txtBrowser->page()->url().isValid() ||
             txtBrowser->page()->url().toString().
-            startsWith(QStringLiteral("about"),Qt::CaseInsensitive)) {
+            startsWith(QSL("about"),Qt::CaseInsensitive)) {
         return;
     }
 
@@ -331,8 +331,8 @@ void CSnippetViewer::outsideDragStart()
     auto drag = new QDrag(this);
     auto mime = new QMimeData();
 
-    QString s = QStringLiteral("%1\n%2").arg(getUrl().toString(),tabTitle());
-    mime->setData(QStringLiteral("_NETSCAPE_URL"),s.toUtf8());
+    QString s = QSL("%1\n%2").arg(getUrl().toString(),tabTitle());
+    mime->setData(QSL("_NETSCAPE_URL"),s.toUtf8());
     drag->setMimeData(mime);
 
     drag->exec(Qt::MoveAction);

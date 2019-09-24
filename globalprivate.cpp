@@ -17,10 +17,10 @@ const int settingsSavePeriod = 60000;
 
 CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
 {
-    m_appIcon.addFile(QStringLiteral(":/img/globe16"));
-    m_appIcon.addFile(QStringLiteral(":/img/globe32"));
-    m_appIcon.addFile(QStringLiteral(":/img/globe48"));
-    m_appIcon.addFile(QStringLiteral(":/img/globe128"));
+    m_appIcon.addFile(QSL(":/img/globe16"));
+    m_appIcon.addFile(QSL(":/img/globe32"));
+    m_appIcon.addFile(QSL(":/img/globe48"));
+    m_appIcon.addFile(QSL(":/img/globe128"));
 
     settingsSaveTimer.setInterval(CDefaults::settingsSavePeriod);
     settingsSaveTimer.setSingleShot(false);
@@ -41,9 +41,9 @@ bool CGlobalControlPrivate::runnedFromQtCreator()
 
     ppid = tpid;
     if (ppid>0) {
-        QFileInfo fi(QFile::symLinkTarget(QStringLiteral("/proc/%1/exe").arg(ppid)));
-        res = (fi.fileName().contains(QStringLiteral("creator"),Qt::CaseInsensitive) ||
-               (fi.fileName().compare(QStringLiteral("gdb"))==0));
+        QFileInfo fi(QFile::symLinkTarget(QSL("/proc/%1/exe").arg(ppid)));
+        res = (fi.fileName().contains(QSL("creator"),Qt::CaseInsensitive) ||
+               (fi.fileName().compare(QSL("gdb"))==0));
     }
 
     return res;
@@ -63,7 +63,7 @@ void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogCo
     int line = context.line;
     QString file(QString::fromUtf8(context.file));
     QString category(QString::fromUtf8(context.category));
-    if (category==QStringLiteral("default")) {
+    if (category==QSL("default")) {
         category.clear();
     } else {
         category.append(' ');
@@ -72,30 +72,30 @@ void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogCo
 
     switch (type) {
         case QtDebugMsg:
-            lmsg = QStringLiteral("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
+            lmsg = QSL("%1Debug: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_DEBUG;
             break;
         case QtWarningMsg:
-            lmsg = QStringLiteral("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
+            lmsg = QSL("%1Warning: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_WARNING;
             break;
         case QtCriticalMsg:
-            lmsg = QStringLiteral("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
+            lmsg = QSL("%1Critical: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_CRIT;
             break;
         case QtFatalMsg:
-            lmsg = QStringLiteral("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
+            lmsg = QSL("%1Fatal: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_ALERT;
             break;
         case QtInfoMsg:
-            lmsg = QStringLiteral("%1Info: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
+            lmsg = QSL("%1Info: %2 (%3:%4)").arg(category, msg, file, QString::number(line));
             logpri = LOG_INFO;
             break;
     }
 
     if (!lmsg.isEmpty()) {
-        QString fmsg = QStringLiteral("%1 %2").arg(QTime::currentTime()
-                                                   .toString(QStringLiteral("h:mm:ss")),lmsg);
+        QString fmsg = QSL("%1 %2").arg(QTime::currentTime()
+                                                   .toString(QSL("h:mm:ss")),lmsg);
         gSet->d_func()->debugMessages << fmsg;
         while (gSet->d_func()->debugMessages.count()>maxMessagesCount)
             gSet->d_func()->debugMessages.removeFirst();
