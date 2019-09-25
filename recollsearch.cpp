@@ -5,6 +5,7 @@
 #include <QString>
 #include <QStringList>
 #include <QByteArray>
+#include <QRegularExpression>
 #include "recollsearch.h"
 
 CRecollSearch::CRecollSearch(QObject *parent) :
@@ -24,7 +25,7 @@ void CRecollSearch::recollReadyRead()
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
-    QRegExp rxname(QSL("[a-z]+"));
+    QRegularExpression rxname(QSL("^[a-z]+$"));
 
     for(int i=0;i<outList.count();i++) {
         QString s = outList.at(i).trimmed();
@@ -32,7 +33,9 @@ void CRecollSearch::recollReadyRead()
         CStringHash snip;
 
         if ((sl.count() % 2) != 0) continue; // must be even elements
-        if (!rxname.exactMatch(sl.first())) continue; // must be started with field name
+
+        auto match = rxname.match(sl.first());
+        if (!match.hasMatch()) continue; // must be started with field name
 
         int idx = 0;
         while (idx<sl.count()) {

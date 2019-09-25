@@ -8,6 +8,7 @@
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QMimeData>
+#include <QRegularExpression>
 
 #include "qxttooltip.h"
 #include "mainwindow.h"
@@ -708,7 +709,7 @@ void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(CGenericFuncs::getClipboardContent(true));
     url.setFragment(QString());
-    QString uri = url.toString().remove(QRegExp(QSL("#$")));
+    QString uri = url.toString().remove(QRegularExpression(QSL("#.*$")));
     if (uri.isEmpty()) {
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
@@ -945,7 +946,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
 
     if (data.contains(QSL("_NETSCAPE_URL"))) {
         QString s = data.value(QSL("_NETSCAPE_URL"))
-                    .split(QRegExp(QSL("\n|\r\n|\r"))).constFirst();
+                    .split(QRegularExpression(QSL("\n|\r\n|\r"))).constFirst();
         QUrl u(s);
         if (u.isValid()) {
             ul << u;
@@ -954,7 +955,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     }
     if (!ok && data.contains(QSL("text/uri-list"))) {
         QStringList sl = data.value(QSL("text/uri-list"))
-                         .split(QRegExp(QSL("\n|\r\n|\r")));
+                         .split(QRegularExpression(QSL("\n|\r\n|\r")));
         for (int i=0;i<sl.count();i++) {
             if (sl.at(i).startsWith('#')) continue;
             QUrl u(sl.at(i));
@@ -966,7 +967,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     }
     if (!ok && data.contains(QSL("text/plain"))) {
         QUrl u(data.value(QSL("text/plain"))
-               .split(QRegExp(QSL("\n|\r\n|\r"))).constFirst());
+               .split(QRegularExpression(QSL("\n|\r\n|\r"))).constFirst());
         if (u.isValid())
             ul << u;
     }

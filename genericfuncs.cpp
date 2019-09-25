@@ -7,7 +7,7 @@
 #include <QFileInfo>
 #include <QMutex>
 #include <QMutexLocker>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QLocale>
 #include <QtTest>
 
@@ -134,7 +134,7 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
                                       bool integratedTitle, const QUrl& origin)
 {
     QString s = content;
-    QString cnt = s.replace(QRegExp(QSL("\n{3,}")),QSL("\n\n"))
+    QString cnt = s.replace(QRegularExpression(QSL("\n{3,}")),QSL("\n\n"))
                   .replace(QSL("\n"),QSL("<br />\n"));
     QString cn(QSL("<html><head><META HTTP-EQUIV=\"Content-type\" "
                               "CONTENT=\"text/html; charset=UTF-8;\">"));
@@ -219,33 +219,6 @@ QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
         }
     }
     return res;
-}
-
-QString CGenericFuncs::fixMetaEncoding(const QString &data_utf8)
-{
-    const int headerSampleSize = 512;
-
-    int pos;
-    QString header = data_utf8.left(headerSampleSize);
-    QString dt = data_utf8;
-    dt.remove(0,header.length());
-    bool forceMeta = true;
-    if ((pos = header.indexOf(QRegExp(QSL("http-equiv {0,}="),Qt::CaseInsensitive))) != -1) {
-        if ((pos = header.lastIndexOf(QSL("<meta "), pos, Qt::CaseInsensitive)) != -1) {
-            QRegExp rxcs(QSL("charset {0,}="),Qt::CaseInsensitive);
-            pos = rxcs.indexIn(header,pos) + rxcs.matchedLength();
-            if (pos > -1) {
-                int pos2 = header.indexOf(QRegExp(QSL("['\"]"),Qt::CaseInsensitive), pos+1);
-                header.replace(pos, pos2-pos,QSL("UTF-8"));
-                forceMeta = false;
-            }
-        }
-    }
-    if (forceMeta && ((pos = header.indexOf(QRegExp(QSL("</head"),Qt::CaseInsensitive))) != -1)) {
-        header.insert(pos,QSL("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"));
-    }
-    dt = header+dt;
-    return dt;
 }
 
 QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
@@ -390,9 +363,9 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     for (const auto &filter : filters) {
         if (filter.isEmpty()) continue;
         QString ex = filter;
-        ex.remove(QRegExp(QSL("^.*\\(")));
-        ex.remove(QRegExp(QSL("\\).*$")));
-        ex.remove(QRegExp(QSL("^.*\\.")));
+        ex.remove(QRegularExpression(QSL("^.*\\(")));
+        ex.remove(QRegularExpression(QSL("\\).*$")));
+        ex.remove(QRegularExpression(QSL("^.*\\.")));
         res.append(ex.split(' '));
     }
 
@@ -578,15 +551,17 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
     int pos;
     int start = -1;
     int stop = -1;
-    if ((pos = fileContents.indexOf(QRegExp(QSL("<title {0,}>"),Qt::CaseInsensitive))) != -1) {
+    if ((pos = fileContents.indexOf(QRegularExpression(QSL("<title {0,}>"),
+                                                       QRegularExpression::CaseInsensitiveOption))) != -1) {
         start = pos;
-        if ((pos = fileContents.indexOf(QRegExp(QSL("</title {0,}>"), Qt::CaseInsensitive))) != -1) {
+        if ((pos = fileContents.indexOf(QRegularExpression(QSL("</title {0,}>"),
+                                                           QRegularExpression::CaseInsensitiveOption))) != -1) {
             stop = pos;
             if (stop>start) {
                 if ((stop-start)>maxFileSize)
                     stop = start + maxFileSize;
                 QString s = fileContents.mid(start,stop-start);
-                s.remove(QRegExp(QSL("^<title {0,}>"),Qt::CaseInsensitive));
+                s.remove(QRegularExpression(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption));
                 s.remove('\r');
                 s.remove('\n');
                 return s;
@@ -599,18 +574,18 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
 // for url rules
 QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern) {
     QString pattern = wildcardPattern;
-    return pattern.replace(QRegExp(QSL("\\*+")), QSL("*"))   // remove multiple wildcards
-            .replace(QRegExp(QSL("\\^\\|$")), QSL("^")) // remove anchors following separator placeholder
-            .replace(QRegExp(QSL("^(\\*)")), QString())          // remove leading wildcards
-            .replace(QRegExp(QSL("(\\*)$")), QString())          // remove trailing wildcards
-            .replace(QRegExp(QSL("(\\W)")), QSL("\\\\1"))      // escape special symbols
-            .replace(QRegExp(QSL("^\\\\\\|\\\\\\|")),
+    return pattern.replace(QRegularExpression(QSL("\\*+")), QSL("*"))   // remove multiple wildcards
+            .replace(QRegularExpression(QSL("\\^\\|$")), QSL("^")) // remove anchors following separator placeholder
+            .replace(QRegularExpression(QSL("^(\\*)")), QString())          // remove leading wildcards
+            .replace(QRegularExpression(QSL("(\\*)$")), QString())          // remove trailing wildcards
+            .replace(QRegularExpression(QSL("(\\W)")), QSL("\\\\1"))      // escape special symbols
+            .replace(QRegularExpression(QSL("^\\\\\\|\\\\\\|")),
                      QSL("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
-            .replace(QRegExp(QSL("\\\\\\^")),
+            .replace(QRegularExpression(QSL("\\\\\\^")),
                      QSL("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
-            .replace(QRegExp(QSL("^\\\\\\|")), QSL("^"))       // process anchor at expression start
-            .replace(QRegExp(QSL("\\\\\\|$")), QSL("$"))       // process anchor at expression end
-            .replace(QRegExp(QSL("\\\\\\*")), QSL(".*"))       // replace wildcards by .*
+            .replace(QRegularExpression(QSL("^\\\\\\|")), QSL("^"))       // process anchor at expression start
+            .replace(QRegularExpression(QSL("\\\\\\|$")), QSL("$"))       // process anchor at expression end
+            .replace(QRegularExpression(QSL("\\\\\\*")), QSL(".*"))       // replace wildcards by .*
             ;
 }
 

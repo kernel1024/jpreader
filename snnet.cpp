@@ -5,7 +5,6 @@
 #include <QUrlQuery>
 #include <QWebEngineScriptCollection>
 #include <QDirIterator>
-#include <QRegExp>
 #include <QDialog>
 #include <QThread>
 #include <QAuthenticator>

@@ -179,10 +179,12 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
     QString s = text;
 
     // replace multi-newlines with paragraph markers
-    QRegExp exp(QSL("\n{2,}"));
+    QRegularExpression exp(QSL("\n{2,}"));
     int pos = 0;
-    while ((pos=exp.indexIn(s,pos)) != -1) {
-        int length = exp.matchedLength();
+    QRegularExpressionMatch match;
+    while (s.indexOf(exp,pos,&match) != -1) {
+        int pos = match.capturedStart(0);
+        int length = match.capturedLength(0);
         s.remove(pos,length);
         if (pos>0) {
             QChar pm = s.at(pos-1);
@@ -190,6 +192,8 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
                   (pm.isLetterOrNumber() && isVerticalText) ||
                   (pm.isPunct() && !endMarkers.contains(pm)))) {
                 s.insert(pos,QSL("</p><p>"));
+            } else if (pm.script()<=QChar::Script_Syriac) { // still insert spaces for common european scripts
+                s.insert(pos,QLatin1Char(' '));
             }
         }
     }

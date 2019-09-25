@@ -1,7 +1,6 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QRegExp>
 #include <QVariant>
 #include <QUrlQuery>
 #include <QNetworkReply>

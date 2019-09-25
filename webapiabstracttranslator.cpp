@@ -2,6 +2,7 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QNetworkCookie>
+#include <QRegularExpression>
 #include "webapiabstracttranslator.h"
 
 namespace CDefaults {
@@ -29,7 +30,7 @@ QString CWebAPIAbstractTranslator::tranString(const QString& src)
 
     if (src.length()>=CDefaults::maxTranslationStringLength) {
         // Split by separator chars
-        QRegExp rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+        QRegularExpression rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
         QStringList srcl = src.split(rx);
         // Check for max length
         QStringList srout;

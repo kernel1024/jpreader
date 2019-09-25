@@ -25,7 +25,6 @@
 #include "genericfuncs.h"
 #include "structures.h"
 #include <QRegularExpression>
-#include <QRegExp>
 #include <QTextStream>
 #include <QDebug>
 
@@ -247,8 +246,8 @@ bool CUserScript::checkUrl(const QUrl &url, const QStringList &rules) const
     {
         QString rule(rules[i]);
 
-        QRegExp m_regexp(CGenericFuncs::convertPatternToRegExp(rule),
-                         Qt::CaseInsensitive, QRegExp::RegExp2);
+        QRegularExpression m_regexp(CGenericFuncs::convertPatternToRegExp(rule),
+                                    QRegularExpression::CaseInsensitiveOption);
 
         if (uenc.contains(m_regexp))
             return true;

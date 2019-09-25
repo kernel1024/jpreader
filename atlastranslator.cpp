@@ -1,4 +1,4 @@
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QUrl>
 #include "atlastranslator.h"
 
@@ -146,7 +146,7 @@ QString CAtlasTranslator::tranString(const QString &src)
     sumbuf = sumbuf.simplified();
     sumbuf.replace('+',' ');
     s = QString::fromLatin1(sumbuf);
-    if (sumbuf.isEmpty() || !s.contains(QRegExp(QSL("^RES:")))) {
+    if (sumbuf.isEmpty() || !s.contains(QRegularExpression(QSL("^RES:")))) {
         if (s.contains(QSL("NEED_RESTART"))) {
             qCritical() << "ATLAS: translation engine slipped. Please restart again.";
             sock.close();
@@ -160,7 +160,7 @@ QString CAtlasTranslator::tranString(const QString &src)
         return QSL("ERROR:TRAN_ATLAS_TRAN_ERROR");
     }
 
-    s = s.remove(QRegExp(QSL("^RES:")));
+    s = s.remove(QRegularExpression(QSL("^RES:")));
     QString res = QUrl::fromPercentEncoding(s.toLatin1());
     if (res.trimmed().isEmpty() && emptyRestore)
         return src;

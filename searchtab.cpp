@@ -170,7 +170,7 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
     }
 
     QString elapsed = QString(stats[QSL("jp:elapsedtime")])
-                      .remove(QRegExp(QSL("[s]")));
+                      .remove(QRegularExpression(QSL("[s]")));
     QString statusmsg(tr("Found %1 results at %2 seconds").
             arg(stats[QSL("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
@@ -459,7 +459,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     QString fileContents = cd->toUnicode(fc.constData());
 
-    fileContents.remove(QRegExp(QSL("<[^>]*>")));
+    fileContents.remove(QRegularExpression(QSL("<[^>]*>")));
     fileContents.remove('\n');
     fileContents.remove('\r');
     QHash<int,QStringList> snippets;

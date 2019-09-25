@@ -12,7 +12,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 
 class CAdBlockRule
@@ -53,7 +53,7 @@ private:
 
     QString m_listID;
 
-    QRegExp m_regExp;
+    QRegularExpression m_regExp;
     QString m_plainRule;
     QStringList m_options;
 

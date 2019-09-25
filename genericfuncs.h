@@ -33,7 +33,6 @@ public:
                                   const QUrl &origin = QUrl());
     static QString makeSpecialUrlsHtml();
     static QString getClipboardContent(bool noFormatting = false, bool plainpre = false);
-    static QString fixMetaEncoding(const QString& data_utf8);
     static QString wordWrap(const QString &str, int wrapLength);
     static QString formatFileSize(qint64 size);
     static QString formatFileSize(const QString& size);

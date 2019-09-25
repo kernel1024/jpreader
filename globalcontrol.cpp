@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
+#include <QRegularExpression>
 #include <goldendictlib/goldendictmgr.hh>
 
 extern "C" {
@@ -253,7 +254,7 @@ bool CGlobalControl::setupIPC()
     if (!d->ipcServer.isNull()) return false;
 
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
-    serverName.replace(QRegExp(QSL("[^\\w\\-. ]")), QString());
+    serverName.replace(QRegularExpression(QSL("[^\\w\\-.]")), QString());
 
     QScopedPointer<QLocalSocket> socket(new QLocalSocket());
     socket->connectToServer(serverName);
@@ -362,7 +363,7 @@ void CGlobalControl::cleanTmpFiles()
 
 QString CGlobalControl::makeTmpFileName(const QString& suffix, bool withDir)
 {
-    QString res = QUuid::createUuid().toString().remove(QRegExp(QSL("[^a-z,A-Z,0,1-9,-]")));
+    QString res = QUuid::createUuid().toString().remove(QRegularExpression(QSL("[^a-z,A-Z,0,1-9,-]")));
     if (!suffix.isEmpty())
         res.append(QSL(".%1").arg(suffix));
     if (withDir)

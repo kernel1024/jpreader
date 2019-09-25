@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QStringList>
 #include <QThread>
+#include <QRegularExpression>
 
 #include "qxttooltip.h"
 #include "snctxhandler.h"
@@ -108,7 +109,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     pixivUrl.setFragment(QString());
     QUrlQuery puq(pixivUrl);
     QString pixivId = puq.queryItemValue(QSL("id"));
-    pixivId.remove(QRegExp(QSL("[^0-9]")));
+    pixivId.remove(QRegularExpression(QSL("[^0-9]")));
 
     if (pixivUrl.isValid() && pixivUrl.toString().contains(
              QSL("pixiv.net/novel/show.php"), Qt::CaseInsensitive)) {

@@ -1,6 +1,7 @@
 #include <QProcess>
 #include <QThread>
 #include <QBuffer>
+#include <QRegularExpression>
 #include "translator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
@@ -223,10 +224,12 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 if ((node.children.at(idx).attributes.value(QSL("type"))
                      .toLower().trimmed()==QSL("text/css")) &&
                         (node.children.at(idx).attributes.value(QSL("href")).contains(
-                             QRegExp(QSL("blog.*\\.jp.*site.css\\?_="),Qt::CaseInsensitive)) ||
+                             QRegularExpression(QSL("blog.*\\.jp.*site.css\\?_="),
+                                                QRegularExpression::CaseInsensitiveOption)) ||
                          (node.children.at(idx).attributes.value(QSL("href")).contains(
-                             QRegExp(QSL("/css/.*static.css\\?"),Qt::CaseInsensitive)) &&
-                          m_metaSrcUrl.host().contains(QRegExp(QSL("blog"),Qt::CaseInsensitive))))) {
+                             QRegularExpression(QSL("/css/.*static.css\\?"),
+                                                QRegularExpression::CaseInsensitiveOption)) &&
+                          m_metaSrcUrl.host().contains(QSL("blog"),Qt::CaseInsensitive)))) {
                     CHTMLNode st;
                     st.tagName=QSL("style");
                     st.closingText=QSL("</style>");
@@ -313,7 +316,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             }
 
             // remove floating headers for fc2 and goo blogs
-            if (m_metaSrcUrl.host().contains(QRegExp(QSL("blog"),Qt::CaseInsensitive)) &&
+            if (m_metaSrcUrl.host().contains(QSL("blog"),Qt::CaseInsensitive) &&
                     node.children.at(idx).tagName.toLower()==QSL("div") &&
                     node.children.at(idx).attributes.contains(QSL("id")) &&
                     denyDivs.contains(node.children.at(idx).attributes.value(QSL("id")),
@@ -388,7 +391,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     QString ssrc = src.text;
     ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
     ssrc = ssrc.replace('\r','\n');
-    ssrc = ssrc.replace(QRegExp(QSL("\n{2,}")),QSL("\n"));
+    ssrc = ssrc.replace(QRegularExpression(QSL("\n{2,}")),QSL("\n"));
     QStringList sl = ssrc.split('\n',QString::SkipEmptyParts);
 
     QString sout;
@@ -422,7 +425,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
                 QString ttest = srct;
                 bool noText = true;
-                ttest.remove(QRegExp(QSL("&\\w+;")));
+                ttest.remove(QRegularExpression(QSL("&\\w+;")));
                 for (const QChar &tc : qAsConst(ttest)) {
                     if (tc.isLetter()) {
                         noText = false;

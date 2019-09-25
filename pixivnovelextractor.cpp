@@ -15,6 +15,8 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
+// TODO: migrate from QRegExp to QRegularExpression
+
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : QObject(parent)
 {

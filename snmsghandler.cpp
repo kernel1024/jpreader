@@ -1,4 +1,5 @@
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QDebug>
 #include "snviewer.h"
 #include "snmsghandler.h"
@@ -95,7 +96,7 @@ void CSnMsgHandler::setZoom(const QString& z)
 {
     bool okconv;
     QString s = z;
-    s.remove(QRegExp(QSL("[^0-9]")));
+    s.remove(QRegularExpression(QSL("[^0-9]")));
     int i = s.toInt(&okconv);
     if (okconv)
         m_zoomFactor = static_cast<double>(i)/100.0;

@@ -101,7 +101,7 @@ void CAdBlockRule::setFilter(const QString &filter)
         parsedLine = parsedLine.left(options);
     }
 
-    bool hasWildcards = parsedLine.contains(QRegExp(QSL("[\\*\\$]")));
+    bool hasWildcards = parsedLine.contains(QRegularExpression(QSL("[\\*\\$]")));
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
         (!parsedLine.contains('^') || parsedLine.endsWith('^'))) {
         m_plainRule = parsedLine;
@@ -114,8 +114,10 @@ void CAdBlockRule::setFilter(const QString &filter)
     setPattern(parsedLine, regExpRule);
 
     if (m_options.contains(QSL("match-case"))) {
-        m_regExp.setCaseSensitivity(Qt::CaseSensitive);
+        m_regExp.setPatternOptions(m_regExp.patternOptions() & (~QRegularExpression::CaseInsensitiveOption));
         m_options.removeOne(QSL("match-case"));
+    } else {
+        m_regExp.setPatternOptions(m_regExp.patternOptions() | QRegularExpression::CaseInsensitiveOption);
     }
 }
 
@@ -221,7 +223,7 @@ QString CAdBlockRule::regExpPattern() const
 
 void CAdBlockRule::setPattern(const QString &pattern, bool isRegExp)
 {
-    m_regExp = QRegExp(isRegExp ? pattern : CGenericFuncs::convertPatternToRegExp(pattern),
-                       Qt::CaseInsensitive, QRegExp::RegExp2);
+    m_regExp = QRegularExpression(isRegExp ? pattern : CGenericFuncs::convertPatternToRegExp(pattern),
+                                  QRegularExpression::CaseInsensitiveOption);
 }
 

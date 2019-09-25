@@ -4,7 +4,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QRegExp>
 #include <QUrlQuery>
 #include <QNetworkReply>
 
