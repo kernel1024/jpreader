@@ -2,7 +2,6 @@
 #include <QPointer>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QUrlQuery>
 #include <QWebEngineScriptCollection>
 #include <QDirIterator>
 #include <QDialog>
@@ -245,10 +244,7 @@ void CSnNet::downloadPixivManga()
 
     snv->txtBrowser->page()->toHtml([this,origin](const QString& html){
         QStringList sl = CPixivNovelExtractor::parseJsonIllustPage(html,origin);
-        if (sl.isEmpty()) // no JSON found
-            sl = CPixivNovelExtractor::parseIllustPage(html);
-        QUrlQuery qr(origin);
-        QString id = qr.queryItemValue(QSL("illust_id"));
+        QString id = origin.fileName();
         if (sl.isEmpty() || id.isEmpty()) {
             QMessageBox::warning(snv,tr("JPReader"),
                                  tr("No pixiv manga image urls found"));

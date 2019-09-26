@@ -23,6 +23,7 @@ private:
     QMutex m_imgMutex;
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
+    QHash<QString,int> m_redirectCounter;
     QUrl m_origin;
     QUrl m_source;
     QString m_novelId;
@@ -38,7 +39,6 @@ public:
     void setParams(CSnippetViewer* viewer, const QUrl& source, const QString& title,
                    bool translate, bool focus);
     static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
-    static QStringList parseIllustPage(const QString &html, bool mediumMode = true);
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);

@@ -38,6 +38,7 @@ void CPixivNovelExtractor::start()
         Q_EMIT finished();
         return;
     }
+    m_redirectCounter.clear();
 
     QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(m_source);
@@ -215,10 +216,7 @@ void CPixivNovelExtractor::subLoadFinished()
     if (rpl==nullptr) return;
 
     QUrl rplUrl = rpl->url();
-    QUrlQuery qr(rplUrl);
-    QString key = qr.queryItemValue(QSL("illust_id"));
-    QString mode = qr.queryItemValue(QSL("mode"));
-    bool mediumMode = (QSL("medium").compare(mode,Qt::CaseInsensitive) == 0);
+    QString key = rplUrl.fileName();
 
     int httpStatus = -1;
     QVariant vstat = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
@@ -231,11 +229,9 @@ void CPixivNovelExtractor::subLoadFinished()
         // valid page without redirect or error
         const CIntList idxs = m_imgList.value(key);
         QString html = QString::fromUtf8(rpl->readAll());
+        m_redirectCounter.remove(key);
 
-        QStringList imageUrls = parseJsonIllustPage(html,rplUrl); // try JSON parser
-        if (imageUrls.isEmpty()) { // no JSON found
-            imageUrls = parseIllustPage(html,mediumMode);
-        }
+        QStringList imageUrls = parseJsonIllustPage(html,rplUrl);
 
         m_imgMutex.lock();
         for (auto it = idxs.constBegin(), end = idxs.constEnd(); it != end; ++it) {
@@ -257,28 +253,28 @@ void CPixivNovelExtractor::subLoadFinished()
             }
         }
         m_imgMutex.unlock();
-    } else if ((!mediumMode) &&
-               // not found manga page
-               ((httpStatus>=CDefaults::httpCodeClientError && httpStatus<CDefaults::httpCodeServerError) ||
-                // or redirected from manga page (new style)
-                (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError)))
-
-    {
-        // try single page load
-        QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
-        QUrlQuery qr;
-        qr.addQueryItem(QSL("mode"),QSL("medium"));
-        qr.addQueryItem(QSL("illust_id"),key);
-        url.setQuery(qr);
-        QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
-            QNetworkRequest req(url);
-            req.setRawHeader("referer",m_origin.toString().toUtf8());
-            QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
-            connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-        });
-        rpl->deleteLater();
-        return;
+    } else if (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError) {
+        // redirect
+        m_redirectCounter[key]++;
+        if (m_redirectCounter.value(key)>CDefaults::httpMaxRedirects) {
+            qCritical() << "Too many redirects for " << rplUrl;
+        } else {
+            QUrl url(rpl->rawHeader("Location"));
+            if (url.isRelative()) {
+                QUrl base(QSL("https://www.pixiv.net"));
+                url = base.resolved(url);
+            }
+            QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
+                QNetworkRequest req(url);
+                req.setRawHeader("referer",m_origin.toString().toUtf8());
+                QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
+                connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+            });
+            rpl->deleteLater();
+            return;
+        }
     } else {
+        m_redirectCounter.remove(key);
         qWarning() << "Failed to fetch image from " << rplUrl;
         qDebug() << rpl->rawHeaderPairs();
     }
@@ -383,11 +379,7 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     m_worksPageLoad = m_imgList.count();
     m_worksImgFetch = 0;
     for(auto it  = m_imgList.constBegin(), end = m_imgList.constEnd(); it != end; ++it) {
-        QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
-        QUrlQuery qr;
-        qr.addQueryItem(QSL("mode"),QSL("manga"));
-        qr.addQueryItem(QSL("illust_id"),it.key());
-        url.setQuery(qr);
+        QUrl url(QSL("https://www.pixiv.net/artworks/%1").arg(it.key()));
         QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
             QNetworkRequest req(url);
             req.setRawHeader("referer",m_origin.toString().toUtf8());
@@ -440,8 +432,7 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
     QStringList res;
     QJsonDocument doc;
 
-    QUrlQuery qr(origin);
-    QString key = qr.queryItemValue(QSL("illust_id"));
+    QString key = origin.fileName();
     QString jstart = QSL("illust: { %1: {").arg(key);
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
@@ -490,33 +481,6 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
 
         res << QSL("%1/%2_p%3.%4")
                .arg(path,illustId,QString::number(i),suffix);
-    }
-
-    return res;
-}
-
-QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool mediumMode)
-{
-    QStringList res;
-
-    QRegularExpression rx(QSL("data-src=\".*?\""),QRegularExpression::CaseInsensitiveOption);
-    if (mediumMode) {
-        rx = QRegularExpression(QSL("\"https://i\\.pximg\\.net/img-original/.*?\""),
-                                QRegularExpression::CaseInsensitiveOption);
-    }
-
-    auto it = rx.globalMatch(html);
-    while (it.hasNext())
-    {
-        auto match = it.next();
-        QString u = match.captured();
-        if (mediumMode) {
-            u.remove('\\');
-        } else {
-            u.remove(QSL("data-src="),Qt::CaseInsensitive);
-        }
-        u.remove('\"');
-        res << u;
     }
 
     return res;

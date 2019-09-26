@@ -15,6 +15,7 @@ const int httpCodeClientError = 400;
 const int httpCodeServerError = 500;
 const int httpCodeClientUnknownError = 499;
 const int oneMB = 1024*1024;
+const int httpMaxRedirects = 10;
 }
 
 class CGenericFuncs : public QObject

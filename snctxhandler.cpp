@@ -427,9 +427,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
                    snv->transHandler,&CSnTrans::getImgUrlsAndParse);
 
-    if (origin.toString().startsWith(
-                QSL("https://www.pixiv.net/member_illust.php?mode=medium"),
-                Qt::CaseInsensitive)) {
+    if (origin.toString().contains(QRegularExpression(QSL("pixiv.net/.*?artworks/\\d+"),
+                                                      QRegularExpression::CaseInsensitiveOption))) {
 
         ac = ccm->addAction(tr("Download all images from Pixiv illustration"),
                             snv->netHandler,&CSnNet::downloadPixivManga);
