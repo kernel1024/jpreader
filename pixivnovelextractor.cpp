@@ -10,12 +10,11 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QRegularExpression>
 
 #include "pixivnovelextractor.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
-
-// TODO: migrate from QRegExp to QRegularExpression
 
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : QObject(parent)
@@ -71,45 +70,39 @@ void CPixivNovelExtractor::novelLoadFinished()
             wtitle = CGenericFuncs::extractFileTitle(html);
 
         QString htitle;
-        QRegExp hrx(QSL("<h1[^>]*class=\"title\"[^>]*>"),Qt::CaseInsensitive);
-        int hidx = hrx.indexIn(html);
-        if (hidx>=0) {
-            int hpos = hidx+hrx.matchedLength();
-            int hlen = html.indexOf('<',hpos) - hpos;
-            htitle = html.mid(hpos, hlen);
+        QRegularExpressionMatch match;
+        QRegularExpression hrx(QSL("<h1[^>]*class=\"title\"[^>]*>(?<title>[\\w\\s]+)</h1>"),
+                               QRegularExpression::CaseInsensitiveOption |
+                               QRegularExpression::UseUnicodePropertiesOption);
+        match = hrx.match(html);
+        if (match.hasMatch()) {
+            htitle = match.captured(QSL("title"));
         }
 
-        QRegExp arx(QSL("<a[^>]*class=\"user-name\"[^>]*>"),Qt::CaseInsensitive);
-        int aidx = arx.indexIn(html);
-        if (aidx>=0) {
-            QString acap = arx.cap();
-            int anpos = acap.indexOf(QSL("id="))+3;
-            int anlen = acap.indexOf('\"',anpos) - anpos;
-            hauthornum = acap.mid(anpos,anlen);
-
-            int apos = aidx+arx.matchedLength();
-            int alen = html.indexOf('<',apos) - apos;
-            hauthor = html.mid(apos, alen);
+        QRegularExpression arx(QSL("<h2[^>]*class=\"name\"[^>]*>[^<>]*<a[^>]*href=\"/member\\."
+                                   "php\\?id=(?<id>\\d+)\"[^>]*>(?<name>[\\w\\s]+)</a>"),
+                               QRegularExpression::CaseInsensitiveOption |
+                               QRegularExpression::UseUnicodePropertiesOption);
+        match = arx.match(html);
+        if (match.hasMatch()) {
+            hauthornum = match.captured(QSL("id"));
+            hauthor = match.captured(QSL("name"));
         }
 
         QStringList tags;
-        QRegExp trx(QSL("<li[^>]*class=\"tag\"[^>]*>"),Qt::CaseInsensitive);
-        QRegExp ttrx(QSL("class=\"text\"[^>]*>"),Qt::CaseInsensitive);
-        int tpos = 0;
-        int tstop = html.indexOf(QSL("template-work-tags"),Qt::CaseInsensitive);
-        int tidx = trx.indexIn(html,tpos);
-        while (tidx>=0) {
-            tpos = tidx + trx.matchedLength();
-            int ttidx = ttrx.indexIn(html,tpos) + ttrx.matchedLength();
-            int ttlen = html.indexOf('<',ttidx) - ttidx;
-            if (ttidx>=0 && ttlen>=0 && ttidx<tstop) {
-                tags << html.mid(ttidx,ttlen);
-            }
-            tidx = trx.indexIn(html,tpos);
+        QRegularExpression trx(QSL("<li[^>]*class=\"tag\"[^>]*>[^<>]*<a[^>]*class=\"text "
+                                   "tag-value\"[^>]*>(?<tag>[\\w\\s]+).*?</li>"),
+                               QRegularExpression::CaseInsensitiveOption |
+                               QRegularExpression::UseUnicodePropertiesOption);
+        auto it = trx.globalMatch(html);
+        while (it.hasNext()) {
+            match = it.next();
+            tags << match.captured(QSL("tag"));
         }
 
-        QRegExp rx(QSL("<textarea[^>]*id=\"novel_text\"[^>]*>"),Qt::CaseInsensitive);
-        int idx = rx.indexIn(html);
+        QRegularExpression rx(QSL("<textarea[^>]*id=\"novel_text\"[^>]*>"),
+                              QRegularExpression::CaseInsensitiveOption);
+        int idx = html.indexOf(rx,0,&match);
         if (idx<0) {
             // something wrong here - try pixiv novel JSON parser
             idx = html.indexOf(QSL("{token:"));
@@ -129,39 +122,40 @@ void CPixivNovelExtractor::novelLoadFinished()
 
             }
         } else {
-            html.remove(0,idx+rx.matchedLength());
+            html.remove(0,idx+match.capturedLength());
             idx = html.indexOf(QSL("</textarea>"),0,Qt::CaseInsensitive);
             if (idx>=0)
                 html.truncate(idx);
         }
 
-        QRegExp rbrx(QSL("\\[\\[rb\\:.*\\]\\]"));
-        rbrx.setMinimal(true);
+        QRegularExpression rbrx(QSL("\\[\\[rb\\:.*?\\]\\]"));
         int pos = 0;
-        while ((pos = rbrx.indexIn(html,pos)) != -1) {
-            QString rb = rbrx.cap(0);
+        match = rbrx.match(html,pos);
+        while (match.hasMatch()) {
+            QString rb = match.captured();
             rb.replace(QSL("&gt;"), QSL(">"));
-            rb.remove(QRegExp(QSL("^.*rb\\:")));
-            rb.remove(QRegExp(QSL("\\>.*")));
+            rb.remove(QRegularExpression(QSL("^.*rb\\:")));
+            rb.remove(QRegularExpression(QSL("\\>.*")));
             rb = rb.trimmed();
             if (!rb.isEmpty()) {
-                html.replace(pos,rbrx.matchedLength(),rb);
+                html.replace(match.capturedStart(),match.capturedLength(),rb);
             } else {
-                pos += rbrx.matchedLength();
+                pos += match.capturedLength();
             }
+            match = rbrx.match(html,pos);
         }
 
-        QRegExp imrx(QSL("\\[pixivimage\\:\\S+\\]"));
-        pos = 0;
+        QRegularExpression imrx(QSL("\\[pixivimage:\\S+\\]"));
         QStringList imgs;
-        while ((pos = imrx.indexIn(html,pos)) != -1) {
-            QString im = imrx.cap(0);
-            im.remove(QRegExp(QSL(".*\\:")));
+        it = imrx.globalMatch(html);
+        while (it.hasNext()) {
+            match = it.next();
+            QString im = match.captured();
+            im.remove(QRegularExpression(QSL(".*:")));
             im.remove(']');
             im = im.trimmed();
             if (!im.isEmpty())
                 imgs << im;
-            pos += imrx.matchedLength();
         }
 
         m_title = wtitle;
@@ -263,29 +257,30 @@ void CPixivNovelExtractor::subLoadFinished()
             }
         }
         m_imgMutex.unlock();
-    } else {
-        if ((!mediumMode) &&
-                // not found manga page
-                ((httpStatus>=CDefaults::httpCodeClientError && httpStatus<CDefaults::httpCodeServerError) ||
-                 // or redirected from manga page (new style)
-                 (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError)))
+    } else if ((!mediumMode) &&
+               // not found manga page
+               ((httpStatus>=CDefaults::httpCodeClientError && httpStatus<CDefaults::httpCodeServerError) ||
+                // or redirected from manga page (new style)
+                (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError)))
 
-        {
-            // try single page load
-            QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
-            QUrlQuery qr;
-            qr.addQueryItem(QSL("mode"),QSL("medium"));
-            qr.addQueryItem(QSL("illust_id"),key);
-            url.setQuery(qr);
-            QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
-                QNetworkRequest req(url);
-                req.setRawHeader("referer",m_origin.toString().toUtf8());
-                QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
-                connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-            });
-            rpl->deleteLater();
-            return;
-        }
+    {
+        // try single page load
+        QUrl url(QSL("https://www.pixiv.net/member_illust.php"));
+        QUrlQuery qr;
+        qr.addQueryItem(QSL("mode"),QSL("medium"));
+        qr.addQueryItem(QSL("illust_id"),key);
+        url.setQuery(qr);
+        QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
+            QNetworkRequest req(url);
+            req.setRawHeader("referer",m_origin.toString().toUtf8());
+            QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
+            connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+        });
+        rpl->deleteLater();
+        return;
+    } else {
+        qWarning() << "Failed to fetch image from " << rplUrl;
+        qDebug() << rpl->rawHeaderPairs();
     }
     QMetaObject::invokeMethod(this,&CPixivNovelExtractor::subWorkFinished,Qt::QueuedConnection);
     m_worksPageLoad--;
@@ -302,11 +297,11 @@ void CPixivNovelExtractor::subWorkFinished()
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
         QStringList kl = it.key().split('_');
 
-        QRegExp rx;
+        QRegularExpression rx;
         if (kl.last()==QSL("1")) {
-            rx = QRegExp(QSL("\\[pixivimage\\:%1(-1)?\\]").arg(kl.first()));
+            rx = QRegularExpression(QSL("\\[pixivimage:%1(?:-1)?\\]").arg(kl.first()));
         } else {
-            rx = QRegExp(QSL("\\[pixivimage\\:%1-%2\\]")
+            rx = QRegularExpression(QSL("\\[pixivimage:%1-%2\\]")
                          .arg(kl.first(),kl.last()));
         }
 
@@ -503,19 +498,18 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
 QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool mediumMode)
 {
     QStringList res;
-    int pos = 0;
 
-    QRegExp rx(QSL("data-src=\\\".*\\\""),Qt::CaseInsensitive);
+    QRegularExpression rx(QSL("data-src=\".*?\""),QRegularExpression::CaseInsensitiveOption);
     if (mediumMode) {
-        rx = QRegExp(QSL(
-                         "\\\"https:\\\\/\\\\/i\\.pximg\\.net\\\\/img-original\\\\/.*\\\""),
-                     Qt::CaseInsensitive);
+        rx = QRegularExpression(QSL("\"https://i\\.pximg\\.net/img-original/.*?\""),
+                                QRegularExpression::CaseInsensitiveOption);
     }
-    rx.setMinimal(true);
 
-    while ((pos = rx.indexIn(html, pos)) != -1 )
+    auto it = rx.globalMatch(html);
+    while (it.hasNext())
     {
-        QString u = rx.cap(0);
+        auto match = it.next();
+        QString u = match.captured();
         if (mediumMode) {
             u.remove('\\');
         } else {
@@ -523,7 +517,6 @@ QStringList CPixivNovelExtractor::parseIllustPage(const QString &html, bool medi
         }
         u.remove('\"');
         res << u;
-        pos += rx.matchedLength();
     }
 
     return res;
