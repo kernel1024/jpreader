@@ -259,7 +259,7 @@ void CPixivNovelExtractor::subLoadFinished()
         if (m_redirectCounter.value(key)>CDefaults::httpMaxRedirects) {
             qCritical() << "Too many redirects for " << rplUrl;
         } else {
-            QUrl url(rpl->rawHeader("Location"));
+            QUrl url(QString::fromLatin1(rpl->rawHeader("Location")));
             if (url.isRelative()) {
                 QUrl base(QSL("https://www.pixiv.net"));
                 url = base.resolved(url);
