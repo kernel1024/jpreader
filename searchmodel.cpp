@@ -2,6 +2,8 @@
 #include "searchmodel.h"
 #include "genericfuncs.h"
 
+// TODO: add checkIndex to all models
+
 CSearchModel::CSearchModel(QObject *parent, QTableView *view)
     : QAbstractTableModel(parent)
 {
@@ -21,10 +23,10 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
     float sf;
     QString score;
 
-    if (!index.isValid()) return QVariant();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return QVariant();
 
     int idx = index.row();
-    if (idx<0 || idx>=m_snippets.count()) return QVariant();
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -105,14 +107,20 @@ QVariant CSearchModel::headerData(int section, Qt::Orientation orientation, int 
 
 int CSearchModel::rowCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
 
     return m_snippets.count();
 }
 
 int CSearchModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
 
     const int columnsCount = 5;
 
@@ -128,7 +136,7 @@ CStringHash CSearchModel::getSnippet(int idx) const
 
 CStringHash CSearchModel::getSnippet(const QModelIndex &index) const
 {
-    if (!index.isValid()) return CStringHash();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid)) return CStringHash();
     return getSnippet(index.row());
 }
 
