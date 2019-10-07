@@ -588,7 +588,10 @@ CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)
 
 int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return false;
+    if (parent.isValid())
+        return false;
 
     const int maxHistoryLength = 100;
 
@@ -600,19 +603,19 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 
 QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
 {
-    int idx = index.row();
-
-    if (idx<0 || idx>=gSet->mainHistory().count()) return QVariant();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return QVariant();
 
     if (role==Qt::DisplayRole || role==Qt::EditRole)
-        return gSet->mainHistory().at(idx).url.toString();
+        return gSet->mainHistory().at(index.row()).url.toString();
 
     return QVariant();
 }
 
 Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
 {
-    Q_UNUSED(index)
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return Qt::NoItemFlags;
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }

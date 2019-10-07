@@ -1344,8 +1344,8 @@ void CLangPairDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 void CLangPairDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
                                              const QModelIndex &index) const
 {
-    Q_UNUSED(index)
-    editor->setGeometry(option.rect);
+    if (index.isValid())
+        editor->setGeometry(option.rect);
 }
 
 CLangPairModel::CLangPairModel(QObject *parent, QTableView *table) :
@@ -1356,14 +1356,23 @@ CLangPairModel::CLangPairModel(QObject *parent, QTableView *table) :
 
 int CLangPairModel::rowCount(const QModelIndex & parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
+
     return gSet->m_settings->translatorPairs.count();
 }
 
 int CLangPairModel::columnCount(const QModelIndex & parent) const
 {
-    Q_UNUSED(parent)
-    return 2;
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
+
+    const int columnsCount = 2;
+    return columnsCount;
 }
 
 QVariant CLangPairModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -1380,7 +1389,8 @@ QVariant CLangPairModel::headerData(int section, Qt::Orientation orientation, in
 
 QVariant CLangPairModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row()<0 || index.row()>=gSet->m_settings->translatorPairs.count()) return QVariant();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return QVariant();
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -1403,13 +1413,17 @@ QVariant CLangPairModel::data(const QModelIndex &index, int role) const
 
 Qt::ItemFlags CLangPairModel::flags(const QModelIndex &index) const
 {
-    Q_UNUSED(index)
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return Qt::NoItemFlags;
+
     return (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 }
 
 bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.row()<0 || index.row()>=gSet->m_settings->translatorPairs.count()) return false;
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return false;
+
     if (role == Qt::EditRole) {
         switch (index.column()) {
             case 0: gSet->m_settings->translatorPairs[index.row()].langFrom = QLocale(value.toString()); break;
@@ -1423,6 +1437,11 @@ bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, in
 
 bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
 {
+    if (!checkIndex(parent))
+        return false;
+    if (parent.isValid())
+        return false;
+
     beginInsertRows(parent, row, row+count-1);
     for (int i=0;i<count;i++)
         gSet->m_settings->translatorPairs.insert(row, CLangPair(QSL("ja"),QSL("en")));
@@ -1433,6 +1452,11 @@ bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
 
 bool CLangPairModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if (!checkIndex(parent))
+        return false;
+    if (parent.isValid())
+        return false;
+
     beginRemoveRows(parent, row, row+count-1);
     for (int i=0;i<count;i++)
         gSet->m_settings->translatorPairs.removeAt(row);

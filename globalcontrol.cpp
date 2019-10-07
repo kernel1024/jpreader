@@ -800,7 +800,8 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 
 bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 {
-    static const QStringList allowedScheme({ QSL("chrome"), QSL("about")});
+    static const QStringList allowedScheme({ QSL("chrome"), QSL("about"),
+                                             QSL("chrome-extension")});
 
     Q_D(const CGlobalControl);
 

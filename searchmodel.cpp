@@ -2,8 +2,6 @@
 #include "searchmodel.h"
 #include "genericfuncs.h"
 
-// TODO: add checkIndex to all models
-
 CSearchModel::CSearchModel(QObject *parent, QTableView *view)
     : QAbstractTableModel(parent)
 {
@@ -127,24 +125,22 @@ int CSearchModel::columnCount(const QModelIndex &parent) const
     return columnsCount;
 }
 
-CStringHash CSearchModel::getSnippet(int idx) const
+CStringHash CSearchModel::getSnippet(int row) const
 {
-    if (idx<0 || idx>=rowCount()) return CStringHash();
-
-    return m_snippets.at(idx);
+    return getSnippet(index(row,0));
 }
 
 CStringHash CSearchModel::getSnippet(const QModelIndex &index) const
 {
     if (!checkIndex(index,CheckIndexOption::IndexIsValid)) return CStringHash();
-    return getSnippet(index.row());
+    return m_snippets.at(index.row());
 }
 
-void CSearchModel::setSnippet(int idx, const CStringHash& snippet)
+void CSearchModel::setSnippet(int row, const CStringHash& snippet)
 {
-    if (idx<0 || idx>=rowCount()) return;
+    if (row<0 || row>=rowCount()) return;
 
-    m_snippets[idx]=snippet;
+    m_snippets[row]=snippet;
 
     Q_EMIT itemContentsUpdated();
 }

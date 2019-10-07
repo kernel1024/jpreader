@@ -186,19 +186,18 @@ CDownloadsModel::~CDownloadsModel()
 
 Qt::ItemFlags CDownloadsModel::flags(const QModelIndex &index) const
 {
-    Q_UNUSED(index)
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return Qt::NoItemFlags;
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid()) return QVariant();
-    int idx = index.row();
-
-    int maxl = downloads.count();
-    if (idx<0 || idx>=maxl)
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
         return QVariant();
+
+    int idx = index.row();
 
     const QSize iconSize(16,16);
 
@@ -254,14 +253,11 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         return 100*t.received/t.total;
     }
     return QVariant();
-
 }
 
 QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    Q_UNUSED(orientation)
-
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
             case 0: return QSL(" ");
             case 1: return tr("Filename");
@@ -276,47 +272,46 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
 
 int CDownloadsModel::rowCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
 
     return downloads.count();
 }
 
 int CDownloadsModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (!checkIndex(parent))
+        return 0;
+    if (parent.isValid())
+        return 0;
 
-    return 4;
+    const int columnsCount = 4;
+    return columnsCount;
 }
 
 CDownloadItem CDownloadsModel::getDownloadItem(const QModelIndex &index)
 {
-    if (!index.isValid()) return CDownloadItem();
-    int idx = index.row();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid)) return CDownloadItem();
 
-    int maxl = downloads.count();
-    if (idx<0 || idx>=maxl)
-        return CDownloadItem();
-
-    return downloads.at(idx);
+    return downloads.at(index.row());
 }
 
 void CDownloadsModel::deleteDownloadItem(const QModelIndex &index)
 {
-    if (!index.isValid()) return;
-    int idx = index.row();
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid)) return;
 
-    int maxl = downloads.count();
-    if (idx<0 || idx>=maxl) return;
-
-    beginRemoveRows(QModelIndex(),idx,idx);
-    downloads.removeAt(idx);
+    int row = index.row();
+    beginRemoveRows(QModelIndex(),row,row);
+    downloads.removeAt(row);
     endRemoveRows();
 }
 
 void CDownloadsModel::appendItem(const CDownloadItem &item)
 {
-    int idx = downloads.count();
-    beginInsertRows(QModelIndex(),idx,idx);
+    int row = downloads.count();
+    beginInsertRows(QModelIndex(),row,row);
     downloads << item;
     endInsertRows();
 }
@@ -325,28 +320,28 @@ void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
 {
     auto rpl = qobject_cast<QNetworkReply *>(sender());
 
-    int idx = -1;
+    int row = -1;
     QUrl url;
 
     if (rpl) {
-        idx = downloads.indexOf(CDownloadItem(rpl));
+        row = downloads.indexOf(CDownloadItem(rpl));
         url = rpl->url();
     }
-    if (idx<0 || idx>=downloads.count()) return;
+    if (row<0 || row>=downloads.count()) return;
 
-    downloads[idx].state = QWebEngineDownloadItem::DownloadInterrupted;
-    downloads[idx].errorString = tr("Error %1: %2").arg(code).arg(rpl->errorString());
-    downloads[idx].downloadItem = nullptr;
+    downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
+    downloads[row].errorString = tr("Error %1: %2").arg(code).arg(rpl->errorString());
+    downloads[row].downloadItem = nullptr;
 
     if (rpl) {
         rpl->deleteLater();
-        downloads[idx].reply = nullptr;
+        downloads[row].reply = nullptr;
     }
 
-    Q_EMIT dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(row,0),index(row,3));
 
-    if (downloads.at(idx).autoDelete)
-        deleteDownloadItem(index(idx,0));
+    if (downloads.at(row).autoDelete)
+        deleteDownloadItem(index(row,0));
 }
 
 void CDownloadsModel::downloadFinished()
@@ -354,50 +349,50 @@ void CDownloadsModel::downloadFinished()
     auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
     auto rpl = qobject_cast<QNetworkReply *>(sender());
 
-    int idx = -1;
+    int row = -1;
 
     if (item) {
-        idx = downloads.indexOf(CDownloadItem(item->id()));
+        row = downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        idx = downloads.indexOf(CDownloadItem(rpl));
+        row = downloads.indexOf(CDownloadItem(rpl));
     }
-    if (idx<0 || idx>=downloads.count())
+    if (row<0 || row>=downloads.count())
         return;
 
     if (item) {
-        downloads[idx].state = item->state();
+        downloads[row].state = item->state();
     } else {
-        downloads[idx].state = QWebEngineDownloadItem::DownloadCompleted;
+        downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
     }
 
-    downloads[idx].downloadItem = nullptr;
+    downloads[row].downloadItem = nullptr;
 
     if (rpl) {
-        if (!downloads.at(idx).getZipName().isEmpty()) {
-            if (!CGenericFuncs::writeBytesToZip(downloads.at(idx).getZipName(),
-                                                downloads.at(idx).getFileName(),
+        if (!downloads.at(row).getZipName().isEmpty()) {
+            if (!CGenericFuncs::writeBytesToZip(downloads.at(row).getZipName(),
+                                                downloads.at(row).getFileName(),
                                                 rpl->readAll()))
-                downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+                downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
         } else {
-            QFile f(downloads.at(idx).getFileName()); // TODO: continuous file download for big files
+            QFile f(downloads.at(row).getFileName()); // TODO: continuous file download for big files
             if (f.open(QIODevice::WriteOnly)) {
                 f.write(rpl->readAll());
                 f.close();
             } else
-                downloads[idx].state = QWebEngineDownloadItem::DownloadCancelled;
+                downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
         }
 
         rpl->deleteLater();
-        downloads[idx].reply = nullptr;
+        downloads[row].reply = nullptr;
     }
 
-    Q_EMIT dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(row,0),index(row,3));
 
     if (item)
         item->deleteLater();
 
-    if (downloads.at(idx).autoDelete)
-        deleteDownloadItem(index(idx,0));
+    if (downloads.at(row).autoDelete)
+        deleteDownloadItem(index(row,0));
 }
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
@@ -405,14 +400,14 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
     if (item==nullptr) return;
 
-    int idx = downloads.indexOf(CDownloadItem(item->id()));
-    if (idx<0 || idx>=downloads.count()) return;
+    int row = downloads.indexOf(CDownloadItem(item->id()));
+    if (row<0 || row>=downloads.count()) return;
 
-    downloads[idx].state = state;
+    downloads[row].state = state;
     if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
-        downloads[idx].errorString = item->interruptReasonString();
+        downloads[row].errorString = item->interruptReasonString();
 
-    Q_EMIT dataChanged(index(idx,0),index(idx,3));
+    Q_EMIT dataChanged(index(row,0),index(row,3));
 }
 
 void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -420,19 +415,19 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
     auto rpl = qobject_cast<QNetworkReply *>(sender());
 
-    int idx = -1;
+    int row = -1;
 
     if (item) {
-        idx = downloads.indexOf(CDownloadItem(item->id()));
+        row = downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        idx = downloads.indexOf(CDownloadItem(rpl));
+        row = downloads.indexOf(CDownloadItem(rpl));
     }
-    if (idx<0 || idx>=downloads.count()) return;
+    if (row<0 || row>=downloads.count()) return;
 
-    downloads[idx].received = bytesReceived;
-    downloads[idx].total = bytesTotal;
+    downloads[row].received = bytesReceived;
+    downloads[row].total = bytesTotal;
 
-    Q_EMIT dataChanged(index(idx,2),index(idx,3));
+    Q_EMIT dataChanged(index(row,2),index(row,3));
 }
 
 void CDownloadsModel::abortDownload()
@@ -440,16 +435,16 @@ void CDownloadsModel::abortDownload()
     auto acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
-    int idx = acm->data().toInt();
-    if (idx<0 || idx>=downloads.count()) return;
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
 
     bool ok = false;
-    if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(idx).downloadItem) {
-            downloads[idx].downloadItem->cancel();
+    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
+        if (downloads.at(row).downloadItem) {
+            downloads[row].downloadItem->cancel();
             ok = true;
-        } else if (downloads.at(idx).reply) {
-            downloads[idx].reply->abort();
+        } else if (downloads.at(row).reply) {
+            downloads[row].reply->abort();
             ok = true;
         }
     }
@@ -465,36 +460,36 @@ void CDownloadsModel::cleanDownload()
     auto acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
-    int idx = acm->data().toInt();
-    if (idx<0 || idx>=downloads.count()) return;
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
 
     bool ok = false;
-    if (downloads.at(idx).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(idx).downloadItem) {
-            downloads[idx].autoDelete = true;
-            downloads[idx].downloadItem->cancel();
+    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
+        if (downloads.at(row).downloadItem) {
+            downloads[row].autoDelete = true;
+            downloads[row].downloadItem->cancel();
             ok = true;
-        } else if (downloads.at(idx).reply) {
-            downloads[idx].autoDelete = true;
-            downloads[idx].reply->abort();
+        } else if (downloads.at(row).reply) {
+            downloads[row].autoDelete = true;
+            downloads[row].reply->abort();
             ok = true;
         }
     }
     if (!ok)
-        deleteDownloadItem(index(idx,0));
+        deleteDownloadItem(index(row,0));
 }
 
 void CDownloadsModel::cleanFinishedDownloads()
 {
-    int idx = 0;
-    while (idx<downloads.count()) {
-        if (downloads.at(idx).state!=QWebEngineDownloadItem::DownloadInProgress) {
-            beginRemoveRows(QModelIndex(),idx,idx);
-            downloads.removeAt(idx);
+    int row = 0;
+    while (row<downloads.count()) {
+        if (downloads.at(row).state!=QWebEngineDownloadItem::DownloadInProgress) {
+            beginRemoveRows(QModelIndex(),row,row);
+            downloads.removeAt(row);
             endRemoveRows();
-            idx = 0;
+            row = 0;
         } else
-            idx++;
+            row++;
     }
 }
 
@@ -503,12 +498,12 @@ void CDownloadsModel::openDirectory()
     auto acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
-    int idx = acm->data().toInt();
-    if (idx<0 || idx>=downloads.count()) return;
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
 
-    QString fname = downloads.at(idx).getZipName();
+    QString fname = downloads.at(row).getZipName();
     if (fname.isEmpty())
-        fname = downloads.at(idx).getFileName();
+        fname = downloads.at(row).getFileName();
     QFileInfo fi(fname);
 
     if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << fi.path()))
@@ -520,8 +515,8 @@ void CDownloadsModel::openHere()
     auto acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
-    int idx = acm->data().toInt();
-    if (idx<0 || idx>=downloads.count()) return;
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
 
     static const QStringList acceptedMime
             = { QSL("text/plain"), QSL("text/html"), QSL("application/pdf"),
@@ -533,9 +528,9 @@ void CDownloadsModel::openHere()
                 QSL("jpg"), QSL("jpeg"), QSL("jpe"), QSL("png"),
                 QSL("svg"), QSL("gif"), QSL("webp") };
 
-    const QString fname = downloads.at(idx).getFileName();
-    const QString mime = downloads.at(idx).mimeType;
-    const QString zipName = downloads.at(idx).getZipName();
+    const QString fname = downloads.at(row).getFileName();
+    const QString mime = downloads.at(row).mimeType;
+    const QString zipName = downloads.at(row).getZipName();
     QFileInfo fi(fname);
     if (zipName.isEmpty() &&
             (acceptedMime.contains(mime,Qt::CaseInsensitive) ||
@@ -549,11 +544,11 @@ void CDownloadsModel::openXdg()
     auto acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
-    int idx = acm->data().toInt();
-    if (idx<0 || idx>=downloads.count()) return;
-    if (!downloads.at(idx).getZipName().isEmpty()) return;
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
+    if (!downloads.at(row).getZipName().isEmpty()) return;
 
-    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << downloads.at(idx).getFileName()))
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << downloads.at(row).getFileName()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 

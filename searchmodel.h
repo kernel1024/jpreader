@@ -26,9 +26,9 @@ public:
                         int role = Qt::DisplayRole) const override;
     int rowCount( const QModelIndex & parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent) const override;
-    CStringHash getSnippet(int idx) const;
+    CStringHash getSnippet(int row) const;
     CStringHash getSnippet(const QModelIndex& index) const;
-    void setSnippet(int idx, const CStringHash &snippet);
+    void setSnippet(int row, const CStringHash &snippet);
     QStringList getDistinctValues(const QString &snippetKey);
 
 Q_SIGNALS:
