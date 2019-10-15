@@ -11,6 +11,10 @@
 #include "genericfuncs.h"
 #include "pixivindexextractor.h"
 
+namespace CDefaults {
+const int pixivBookmarksFetchCount = 24;
+}
+
 CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent)
     : QObject(parent)
 {
@@ -163,7 +167,9 @@ void CPixivIndexExtractor::createNovelBookmarksList()
         m_indexMode = BookmarksIndex;
 
         QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
-                              "tag=&offset=0&limit=65535&rest=show").arg(m_authorId));
+                              "tag=&offset=0&limit=%2&rest=show")
+               .arg(m_authorId)
+               .arg(CDefaults::pixivBookmarksFetchCount));
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
@@ -215,6 +221,12 @@ void CPixivIndexExtractor::bookmarksAjax()
     if (rpl==nullptr || m_snv==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
+        QUrlQuery uq(rpl->url());
+        bool ok;
+        int offset = uq.queryItemValue(QSL("offset")).toInt(&ok);
+        if (!ok)
+            offset = 0;
+
         QJsonParseError err {};
         QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
         if (doc.isNull()) {
@@ -254,6 +266,28 @@ void CPixivIndexExtractor::bookmarksAjax()
                                   w.value(QSL("userId")).toString(),
                                   tags,
                                   w.value(QSL("description")).toString());
+            }
+
+            int totalWorks = obj.value(QSL("body")).toObject()
+                             .value(QSL("total")).toInt();
+
+            if ((totalWorks>m_infoBlockCount) && (tworks.count()>0)) {
+                // We still have unfetched links, and last fetch was not empty
+                QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,offset]{
+                    QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
+                                          "tag=&offset=%2&limit=%3&rest=show")
+                           .arg(m_authorId)
+                           .arg(offset+CDefaults::pixivBookmarksFetchCount)
+                           .arg(CDefaults::pixivBookmarksFetchCount));
+                    QNetworkRequest req(u);
+                    QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+                    connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+                            this,&CPixivIndexExtractor::loadError);
+                    connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
+                });
+                rpl->deleteLater();
+                return;
             }
 
             finalizeHtml();
