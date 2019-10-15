@@ -155,6 +155,8 @@ public:
 private:
     QVector<QUrl> getTabsList() const;
     void writeTabsListPrivate(const QVector<QUrl> &tabList);
+    bool readBinaryBigData(QObject* control, const QString &filename);
+    void writeBinaryBigData(const QString &filename);
 
 public Q_SLOTS:
     void writeSettings();

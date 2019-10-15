@@ -589,9 +589,9 @@ CSpecUrlHistoryModel::CSpecUrlHistoryModel(QObject *parent)
 int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 {
     if (!checkIndex(parent))
-        return false;
+        return 0;
     if (parent.isValid())
-        return false;
+        return 0;
 
     const int maxHistoryLength = 100;
 

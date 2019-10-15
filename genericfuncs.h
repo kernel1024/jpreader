@@ -69,6 +69,8 @@ public:
                                             const QString & dir = QString(),
                                             QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
+    static void profiler(int line, const QTime &time);
+
 private:
     Q_DISABLE_COPY(CGenericFuncs)
 

@@ -35,6 +35,12 @@ CGenericFuncs::CGenericFuncs(QObject *parent)
 
 }
 
+void CGenericFuncs::profiler(int line, const QTime& time)
+{
+    qInfo() << QSL("Profiling line #%1, ms: %2").arg(line).arg(time.elapsed());
+}
+
+
 bool CGenericFuncs::checkAndUnpackUrl(QUrl& url)
 {
     // Extract jump url for pixiv

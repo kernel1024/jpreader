@@ -88,6 +88,9 @@ void CGlobalControl::initialize()
 {
     Q_D(CGlobalControl);
 
+    QTime initTime;
+    initTime.start();
+
     qInstallMessageHandler(CGlobalControlPrivate::stdConsoleOutput);
     qRegisterMetaType<CUrlHolder>("CUrlHolder");
     qRegisterMetaType<QDir>("QDir");
@@ -246,6 +249,8 @@ void CGlobalControl::initialize()
             urls << u;
     }
     addMainWindowEx(false,true,urls);
+
+    qInfo() << "Initialization time, ms: " << initTime.elapsed();
 }
 
 bool CGlobalControl::setupIPC()
