@@ -122,7 +122,7 @@ FORMS = main.ui \
     noscriptdialog.ui \
     hashviewer.ui
 
-QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
+QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib concurrent
 
 CONFIG += warn_on \
     link_pkgconfig \

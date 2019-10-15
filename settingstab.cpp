@@ -100,6 +100,9 @@ CSettingsTab *CSettingsTab::instance()
             inst = nullptr;
         });
 
+        connect(gSet->settings(),&CSettings::adblockRulesUpdated,
+                inst,&CSettingsTab::updateAdblockList,Qt::QueuedConnection);
+
         inst->loadFromGlobal();
     }
 

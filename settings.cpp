@@ -4,6 +4,7 @@
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QMessageBox>
+#include <QtConcurrentRun>
 #include <QDebug>
 #include <goldendictlib/goldendictmgr.hh>
 #include "settings.h"
@@ -193,9 +194,11 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& filename)
 
     QByteArray adblock;
     bigdata >> adblock;
-    QTimer::singleShot(CDefaults::delayedLoadingAdblock,g,[g,adblock]{ // delayed loading
+    QtConcurrent::run([this,g,adblock]() {
         QDataStream bufs(adblock);
         bufs >> g->d_func()->adblock;
+        qInfo() << "Adblock rules loaded";
+        Q_EMIT adblockRulesUpdated();
     });
     bigdata >> g->d_func()->noScriptWhiteList;
 

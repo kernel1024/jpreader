@@ -86,7 +86,6 @@ private:
     void setupSettingsObservers();
 
     void updateCookiesTable();
-    void updateAdblockList();
     void updateFontColorPreview();
     void updateNoScriptWhitelist();
     void updateUserScripts();
@@ -105,6 +104,7 @@ public:
 
 public Q_SLOTS:
     void loadFromGlobal();
+    void updateAdblockList();
 
     void selectBrowser();
     void selectEditor();

@@ -152,6 +152,9 @@ public:
     void readSettings(QObject *control = nullptr);
     void setTranslationEngine(CStructures::TranslationEngine engine);
 
+Q_SIGNALS:
+    void adblockRulesUpdated();
+
 private:
     QVector<QUrl> getTabsList() const;
     void writeTabsListPrivate(const QVector<QUrl> &tabList);
