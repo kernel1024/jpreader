@@ -21,6 +21,7 @@ class CLangPairModel;
 class BookmarksManager;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
+class CTranslatorCache;
 
 #define gSet (CGlobalControl::instance())
 
@@ -121,6 +122,7 @@ public:
     QNetworkAccessManager* auxNetworkAccessManager() const;
     const QHash<QString,QIcon> &favicons() const;
     CGoldenDictMgr* dictionaryManager() const;
+    CTranslatorCache* translatorCache() const;
 
 private:
     Q_DISABLE_COPY(CGlobalControl)

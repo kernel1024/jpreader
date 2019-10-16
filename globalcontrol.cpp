@@ -29,6 +29,7 @@ extern "C" {
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
 #include "downloadmanager.h"
+#include "translatorcache.h"
 #include "pdftotext.h"
 #include "userscript.h"
 #include "structures.h"
@@ -177,6 +178,10 @@ void CGlobalControl::initialize()
     connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
             this, &CGlobalControl::cookieRemoved);
     d->webProfile->cookieStore()->loadAllCookies();
+
+    d->translatorCache = new CTranslatorCache(this);
+    QString tcache = fs + QSL("translator_cache") + QDir::separator();
+    d->translatorCache->setCachePath(tcache);
 
     m_settings->readSettings(this);
     if (gSet->settings()->createCoredumps) {
@@ -552,6 +557,12 @@ CGoldenDictMgr *CGlobalControl::dictionaryManager() const
 {
     Q_D(const CGlobalControl);
     return d->dictManager;
+}
+
+CTranslatorCache *CGlobalControl::translatorCache() const
+{
+    Q_D(const CGlobalControl);
+    return d->translatorCache;
 }
 
 const CUrlHolderVector &CGlobalControl::recycleBin() const
@@ -1094,6 +1105,7 @@ void CGlobalControl::clearCaches()
 {
     Q_D(CGlobalControl);
     d->webProfile->clearHttpCache();
+    d->translatorCache->clearCache();
 }
 
 void CGlobalControl::forceCharset()

@@ -31,6 +31,7 @@ const int overrideTransFontSize = 12;
 const int fontSizeMinimal = 12;
 const int fontSizeDefault = 12;
 const int fontSizeFixed = 12;
+const int translatorCacheSize = 128;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
@@ -55,6 +56,7 @@ const bool proxyUseTranslator = false;
 const bool ignoreSSLErrors = false;
 const bool pdfExtractImages = true;
 const bool pixivFetchImages = false;
+const bool translatorCacheEnabled = false;
 const auto fontFixed = "Courier New";
 const auto fontSerif = "Times New Roman";
 const auto fontSansSerif = "Verdana";
@@ -121,6 +123,7 @@ public:
     int fontSizeMinimal { CDefaults::fontSizeMinimal };
     int fontSizeDefault { CDefaults::fontSizeDefault };
     int fontSizeFixed { CDefaults::fontSizeFixed };
+    int translatorCacheSize { CDefaults::translatorCacheSize };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };
@@ -146,6 +149,7 @@ public:
     bool ignoreSSLErrors { CDefaults::ignoreSSLErrors };
     bool pdfExtractImages { CDefaults::pdfExtractImages };
     bool pixivFetchImages { CDefaults::pixivFetchImages };
+    bool translatorCacheEnabled { CDefaults::translatorCacheEnabled };
 
     explicit CSettings(QObject *parent = nullptr);
 

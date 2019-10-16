@@ -21,6 +21,7 @@ class CDownloadManager;
 class BookmarksManager;
 class CLogDisplay;
 class CBrowserController;
+class CTranslatorCache;
 
 class CGlobalControlPrivate : public QObject
 {
@@ -33,6 +34,7 @@ public:
     BookmarksManager *bookmarksManager { nullptr };
     ArticleNetworkAccessManager * dictNetMan { nullptr };
     CGoldenDictMgr * dictManager { nullptr };
+    CTranslatorCache *translatorCache { nullptr };
 
     QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;
     QScopedPointer<CDownloadManager, QScopedPointerDeleteLater> downloadManager;

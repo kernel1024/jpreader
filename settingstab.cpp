@@ -234,6 +234,9 @@ void CSettingsTab::loadFromGlobal()
 
     ui->checkPixivFetchImages->setChecked(gSet->m_settings->pixivFetchImages);
 
+    ui->checkTranslatorCacheEnabled->setChecked(gSet->m_settings->translatorCacheEnabled);
+    ui->spinTranslatorCacheSize->setValue(gSet->m_settings->translatorCacheSize);
+
     // flip proxy use check, for updating controls enabling logic
     ui->checkUseProxy->setChecked(true);
     ui->checkUseProxy->setChecked(false);
@@ -548,6 +551,15 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->checkPixivFetchImages,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->pixivFetchImages = val;
+    });
+
+    connect(ui->checkTranslatorCacheEnabled,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->translatorCacheEnabled = val;
+    });
+    connect(ui->spinTranslatorCacheSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->translatorCacheSize = val;
     });
 
     connect(ui->checkDontUseNativeFileDialogs,&QCheckBox::toggled,this,[this](bool val){

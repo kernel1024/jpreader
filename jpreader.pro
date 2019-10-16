@@ -32,6 +32,7 @@ HEADERS = mainwindow.h \
     multiinputdialog.h \
     adblockrule.h \
     downloadmanager.h \
+    translatorcache.h \
     yandextranslator.h \
     pdftotext.h \
     sourceviewer.h \
@@ -84,6 +85,7 @@ SOURCES = main.cpp \
     multiinputdialog.cpp \
     adblockrule.cpp \
     downloadmanager.cpp \
+    translatorcache.cpp \
     yandextranslator.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \

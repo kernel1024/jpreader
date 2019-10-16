@@ -5,6 +5,7 @@
 #include "translator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
+#include "translatorcache.h"
 #include <sstream>
 
 using namespace htmlcxx;
@@ -577,6 +578,21 @@ void CTranslator::translate()
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
         Q_EMIT translationFinished(false,translatedHtml,lastError);
+        Q_EMIT finished();
+        return;
+    }
+
+    if (gSet->settings()->translatorCacheEnabled) {
+        translatedHtml = gSet->translatorCache()->cachedTranslatorResult(
+                             m_sourceHtml,
+                             lp,
+                             m_translationEngine,
+                             m_translateSubSentences);
+        if (!translatedHtml.isEmpty()) {
+            Q_EMIT translationFinished(true,translatedHtml,QString());
+            Q_EMIT finished();
+            return;
+        }
     }
 
     if (m_translationEngine==CStructures::teAtlas) {
@@ -614,6 +630,11 @@ void CTranslator::translate()
             Q_EMIT finished();
             return;
         }
+    }
+
+    if (gSet->settings()->translatorCacheEnabled) {
+        gSet->translatorCache()->saveTranslatorResult(m_sourceHtml,translatedHtml,lp,
+                                                      m_translationEngine,m_translateSubSentences);
     }
 
     Q_EMIT translationFinished(true,translatedHtml,QString());

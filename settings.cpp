@@ -146,6 +146,9 @@ void CSettings::writeSettings()
 
     settings.setValue(QSL("pixivFetchImages"),pixivFetchImages);
 
+    settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
+    settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
+
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
 }
@@ -383,6 +386,11 @@ void CSettings::readSettings(QObject *control)
 
     pixivFetchImages = settings.value(QSL("pixivFetchImages"),
                                       CDefaults::pixivFetchImages).toBool();
+
+    translatorCacheEnabled = settings.value(QSL("translatorCacheEnabled"),
+                                            CDefaults::translatorCacheEnabled).toBool();
+    translatorCacheSize = settings.value(QSL("translatorCacheSize"),
+                                         CDefaults::translatorCacheSize).toInt();
 
     overrideUserAgent=settings.value(QSL("overrideUserAgent"),
                                      CDefaults::overrideUserAgent).toBool();
