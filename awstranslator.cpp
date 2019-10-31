@@ -25,6 +25,11 @@ bool CAWSTranslator::initTran()
     return true;
 }
 
+CStructures::TranslationEngine CAWSTranslator::engine()
+{
+    return CStructures::teAmazonAWS;
+}
+
 QByteArray CAWSTranslator::getSignatureKey(const QString &key, const QString &dateStamp,
                                            const QString &regionName, const QString &serviceName) const
 {

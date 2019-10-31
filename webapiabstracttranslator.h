@@ -28,8 +28,8 @@ public:
     CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang);
     ~CWebAPIAbstractTranslator() override;
 
-    QString tranString(const QString& src) override;
-    void doneTran(bool lazyClose = false) override;
+    QString tranStringPrivate(const QString& src) override;
+    void doneTranPrivate(bool lazyClose) override;
     bool isReady() override;
 
 };

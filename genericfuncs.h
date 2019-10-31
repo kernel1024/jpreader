@@ -37,6 +37,7 @@ public:
     static QString wordWrap(const QString &str, int wrapLength);
     static QString formatFileSize(qint64 size);
     static QString formatFileSize(const QString& size);
+    static QString formatSize(double size, int precision);
     static QString elideString(const QString& text, int maxlen, Qt::TextElideMode mode = Qt::ElideRight);
     static QString highlightSnippet(const QString& snippet, const QStringList& terms);
     static const QVector<QStringList> &encodingsByScript();

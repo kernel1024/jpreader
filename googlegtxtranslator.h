@@ -15,6 +15,8 @@ public:
     CGoogleGTXTranslator(QObject *parent, const CLangPair &lang);
 
     bool initTran() override;
+    CStructures::TranslationEngine engine() override;
+
 };
 
 #endif // GOOGLEGTXTRANSLATOR_H

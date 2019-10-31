@@ -26,6 +26,11 @@ bool CYandexTranslator::initTran()
     return true;
 }
 
+CStructures::TranslationEngine CYandexTranslator::engine()
+{
+    return CStructures::teYandexAPI;
+}
+
 QString CYandexTranslator::tranStringInternal(const QString &src)
 {
     QUrl rqurl = QUrl(QSL("https://translate.yandex.net/api/v1.5/tr.json/translate"));

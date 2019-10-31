@@ -45,6 +45,14 @@ enum SearchModelRole {
 };
 Q_ENUM_NS(SearchModelRole)
 
+enum DateRange {
+    drWeek = 1,
+    drMonth = 2,
+    drYear = 3,
+    drAll = 4
+};
+Q_ENUM_NS(DateRange)
+
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 
 }
@@ -102,6 +110,7 @@ using CSslCertificateHash = QHash<QSslCertificate,CIntList>;
 using CLangPairVector = QVector<CLangPair>;
 using CStringSet = QSet<QString>;
 using CSubsentencesMode = QHash<CStructures::TranslationEngine,bool>;
+using CTranslatorStatistics = QHash<CStructures::TranslationEngine,QMap<QDate,quint64> >;
 
 #define QSL QStringLiteral
 

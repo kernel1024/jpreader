@@ -114,7 +114,7 @@ bool CAtlasTranslator::initTran()
     return true;
 }
 
-QString CAtlasTranslator::tranString(const QString &src)
+QString CAtlasTranslator::tranStringPrivate(const QString &src)
 {
     if (!sock.isOpen()) {
         setErrorMsg(QSL("ERROR: ATLAS socket not opened"));
@@ -167,7 +167,7 @@ QString CAtlasTranslator::tranString(const QString &src)
     return res;
 }
 
-void CAtlasTranslator::doneTran(bool lazyClose)
+void CAtlasTranslator::doneTranPrivate(bool lazyClose)
 {
     inited = false;
 
@@ -199,6 +199,11 @@ void CAtlasTranslator::doneTran(bool lazyClose)
 bool CAtlasTranslator::isReady()
 {
     return (inited && sock.isOpen());
+}
+
+CStructures::TranslationEngine CAtlasTranslator::engine()
+{
+    return CStructures::teAtlas;
 }
 
 void CAtlasTranslator::sslError(const QList<QSslError> & errors)

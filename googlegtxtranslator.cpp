@@ -20,6 +20,11 @@ bool CGoogleGTXTranslator::initTran()
     return true;
 }
 
+CStructures::TranslationEngine CGoogleGTXTranslator::engine()
+{
+    return CStructures::teGoogleGTX;
+}
+
 QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 {
     QUrl rqurl = QUrl(QString::fromUtf8(QByteArray::fromBase64(

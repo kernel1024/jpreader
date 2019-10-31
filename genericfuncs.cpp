@@ -254,6 +254,31 @@ QString CGenericFuncs::formatFileSize(const QString& size)
     return size;
 }
 
+QString CGenericFuncs::formatSize(double size, int precision)
+{
+    const QString suffixes = QSL(" kMGTPEZY");
+    const double base = 1000.0;
+    const QChar separator(0x20);
+    int power = 0;
+    if (size > 0)
+        power = int(std::log10(qAbs(size)) / 3);
+
+    QString res = (power > 0)
+        ? QString::number(size / std::pow(base, power), 'f', precision)
+        : QString::number(size);
+
+    if (power > 0) {
+        if (power<suffixes.length()) {
+            res.append(separator);
+            res.append(suffixes.at(power));
+        } else {
+            res = QSL("<error>");
+        }
+    }
+
+    return res;
+}
+
 QString CGenericFuncs::formatFileSize(qint64 size)
 {
     const int precision = 2;

@@ -39,7 +39,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
     m_abortMutex.unlock();
 
     if (m_tran==nullptr && !m_tranInited) {
-        m_tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
+        m_tran = CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
     }
 
     if (m_tran==nullptr || !m_tran->initTran()) {

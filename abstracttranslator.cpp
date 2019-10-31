@@ -31,31 +31,55 @@ CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang)
     m_lang = lang;
 }
 
+void CAbstractTranslator::doneTran(bool lazyClose)
+{
+    doneTranPrivate(lazyClose);
+    QTimer::singleShot(0,gSet,[this](){
+        gSet->addTranslatorStatistics(engine(), -1); // Force statistics update signal
+    });
+}
+
 QString CAbstractTranslator::getErrorMsg() const
 {
     return m_tranError;
 }
 
-CAbstractTranslator *translatorFactory(QObject* parent, const CLangPair& tranDirection)
+QString CAbstractTranslator::tranString(const QString &src)
 {
-    if (!tranDirection.isValid()) return nullptr;
+    if (src.isEmpty())
+        return src;
 
-    if (gSet->settings()->translatorEngine==CStructures::teAtlas)
-        return new CAtlasTranslator(parent, gSet->settings()->atlHost, gSet->settings()->atlPort, tranDirection);
+    int len = src.length();
+    QTimer::singleShot(0,gSet,[this,len](){
+        gSet->addTranslatorStatistics(engine(), len);
+    });
+    return tranStringPrivate(src);
+}
 
-    if (gSet->settings()->translatorEngine==CStructures::teBingAPI)
-        return new CBingTranslator(parent, tranDirection, gSet->settings()->bingKey);
+CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, const CLangPair& tranDirection)
+{
+    CAbstractTranslator* res = nullptr;
 
-    if (gSet->settings()->translatorEngine==CStructures::teYandexAPI)
-        return new CYandexTranslator(parent, tranDirection, gSet->settings()->yandexKey);
+    if (!tranDirection.isValid()) return res;
 
-    if (gSet->settings()->translatorEngine==CStructures::teGoogleGTX)
-        return new CGoogleGTXTranslator(parent, tranDirection);
+    CStructures::TranslationEngine engine = gSet->settings()->translatorEngine;
 
-    if (gSet->settings()->translatorEngine==CStructures::teAmazonAWS) {
-        return new CAWSTranslator(parent, tranDirection, gSet->settings()->awsRegion,
+    if (engine==CStructures::teAtlas)
+        res = new CAtlasTranslator(parent, gSet->settings()->atlHost, gSet->settings()->atlPort, tranDirection);
+
+    if (engine==CStructures::teBingAPI)
+        res = new CBingTranslator(parent, tranDirection, gSet->settings()->bingKey);
+
+    if (engine==CStructures::teYandexAPI)
+        res = new CYandexTranslator(parent, tranDirection, gSet->settings()->yandexKey);
+
+    if (engine==CStructures::teGoogleGTX)
+        res = new CGoogleGTXTranslator(parent, tranDirection);
+
+    if (engine==CStructures::teAmazonAWS) {
+        res = new CAWSTranslator(parent, tranDirection, gSet->settings()->awsRegion,
                                   gSet->settings()->awsAccessKey, gSet->settings()->awsSecretKey);
     }
 
-    return nullptr;
+    return res;
 }

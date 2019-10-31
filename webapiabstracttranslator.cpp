@@ -19,7 +19,7 @@ CWebAPIAbstractTranslator::~CWebAPIAbstractTranslator()
     deleteNAM();
 }
 
-QString CWebAPIAbstractTranslator::tranString(const QString& src)
+QString CWebAPIAbstractTranslator::tranStringPrivate(const QString& src)
 {
     if (!isReady()) {
         setErrorMsg(tr("ERROR: Translator not ready"));
@@ -102,7 +102,7 @@ void CWebAPIAbstractTranslator::deleteNAM()
     m_nam=nullptr;
 }
 
-void CWebAPIAbstractTranslator::doneTran(bool lazyClose)
+void CWebAPIAbstractTranslator::doneTranPrivate(bool lazyClose)
 {
     Q_UNUSED(lazyClose)
 

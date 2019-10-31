@@ -13,6 +13,7 @@ public:
                    const QString& secretKey);
 
     bool initTran() override;
+    CStructures::TranslationEngine engine() override;
 
 private:
     QString m_region;

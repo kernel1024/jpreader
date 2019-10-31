@@ -26,6 +26,7 @@
 #include "snctxhandler.h"
 #include "downloadmanager.h"
 #include "settingstab.h"
+#include "translatorstatisticstab.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -81,7 +82,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
     connect(actionAboutQt, &QAction::triggered, gSet->app(), &QApplication::aboutQt);
-    connect(actionSettings, &QAction::triggered, gSet, &CGlobalControl::settingsDialog);
+    connect(actionSettings, &QAction::triggered, gSet, &CGlobalControl::settingsTab);
     connect(actionExit, &QAction::triggered, this, &CMainWindow::close);
     connect(actionExitAll, &QAction::triggered, gSet, &CGlobalControl::cleanupAndExit);
     connect(actionOpen, &QAction::triggered, this, &CMainWindow::openAuxFileWithDialog);
@@ -103,6 +104,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionDictionary, &QAction::triggered, gSet, &CGlobalControl::showDictionaryWindow);
     connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
     connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
+    connect(actionTranslatorStatistics, &QAction::triggered, gSet, &CGlobalControl::translationStatisticsTab);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
@@ -251,6 +253,13 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
         return;
     }
+
+    auto ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->widget(idx));
+    if (ts) {
+        auto t = new QLabel(tr("Translator statistics tab - %1").arg(ts->getTimeRangeString()));
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
+        return;
+    }
 }
 
 void CMainWindow::detachTab()
@@ -328,10 +337,14 @@ void CMainWindow::printToPDF()
 void CMainWindow::save()
 {
     if (tabMain->currentWidget()==nullptr) return;
-    auto sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
-    if (sv==nullptr) return;
 
-    sv->save();
+    auto sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    if (sv)
+        sv->save();
+
+    auto ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->currentWidget());
+    if (ts)
+        ts->save();
 }
 
 void CMainWindow::splitterMoved(int pos, int index)
@@ -452,7 +465,7 @@ void CMainWindow::updateHelperList()
                 it->setData(Qt::UserRole,0);
                 it->setData(Qt::UserRole+1,i);
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
-                if (sv!=nullptr) {
+                if (sv) {
                     it->setText(sv->tabTitle());
                     QString url = CGenericFuncs::elideString(sv->getUrl().toString(),CDefaults::maxTitleElideLength);
                     it->setStatusTip(url);
@@ -470,7 +483,7 @@ void CMainWindow::updateHelperList()
                 }
 
                 auto bv = qobject_cast<CSearchTab*>(tabMain->widget(i));
-                if (bv!=nullptr) {
+                if (bv) {
                     QString qr = bv->getLastQuery();
                     if (qr.isEmpty()) qr = tr("(empty)");
                     it->setText(tr("Search: %1").arg(qr));
@@ -478,8 +491,13 @@ void CMainWindow::updateHelperList()
                 }
 
                 auto st = qobject_cast<CSettingsTab*>(tabMain->widget(i));
-                if (st!=nullptr) {
+                if (st) {
                     it->setText(tr("Settings tab"));
+                }
+
+                auto ts = qobject_cast<CTranslatorStatisticsTab*>(tabMain->widget(i));
+                if (ts) {
+                    it->setText(tr("Translator statistics tab"));
                 }
                 helperList->addItem(it);
             }
@@ -588,8 +606,12 @@ void CMainWindow::updateTitle()
             t = tr("[%1] search - %2").arg(bv->getLastQuery(),t);
 
         auto st = qobject_cast<CSettingsTab*>(tabMain->currentWidget());
-        if (st!=nullptr)
+        if (st)
             t = tr("Settings - %1").arg(t);
+
+        auto ts = qobject_cast<CTranslatorStatisticsTab*>(tabMain->currentWidget());
+        if (ts)
+            t = tr("Translator statistics - %1").arg(t);
     }
     setWindowTitle(t);
 }
@@ -823,7 +845,7 @@ void CMainWindow::updateTabs()
     tabsMenu->clear();
     for(int i=0;i<tabMain->count();i++) {
         auto sv = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
-        if (sv!=nullptr) {
+        if (sv) {
             tabsMenu->addAction(sv->tabTitle(),this,
                                 &CMainWindow::activateTab)->setData(i);
         }

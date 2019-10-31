@@ -19,6 +19,7 @@ public:
     CBingTranslator(QObject *parent, const CLangPair& lang, const QString& bingKey);
 
     bool initTran() override;
+    CStructures::TranslationEngine engine() override;
 
 };
 

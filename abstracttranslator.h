@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include "globalcontrol.h"
+#include "structures.h"
 
 namespace CDefaults {
 const int translatorConnectionTimeout = 60000;
@@ -28,13 +29,16 @@ public:
     ~CAbstractTranslator() override = default;
 
     virtual bool initTran()=0;
-    virtual QString tranString(const QString& src)=0;
-    virtual void doneTran(bool lazyClose = false)=0;
+    virtual QString tranStringPrivate(const QString& src)=0;
+    virtual void doneTranPrivate(bool lazyClose)=0;
     virtual bool isReady()=0;
+    virtual CStructures::TranslationEngine engine()=0;
+    void doneTran(bool lazyClose = false);
     QString getErrorMsg() const;
+    QString tranString(const QString& src);
+
+    static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection);
 
 };
-
-CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection);
 
 #endif // CABSTRACTTRANSLATOR_H

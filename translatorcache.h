@@ -12,9 +12,9 @@ class CTranslatorCache : public QObject
 public:
     explicit CTranslatorCache(QObject *parent = nullptr);
     void setCachePath(const QString& path);
-    const QString cachedTranslatorResult(const QString& source, const CLangPair& languagePair,
-                                         CStructures::TranslationEngine engine,
-                                         bool translateSubSentences);
+    QString cachedTranslatorResult(const QString& source, const CLangPair& languagePair,
+                                   CStructures::TranslationEngine engine,
+                                   bool translateSubSentences) const;
     void saveTranslatorResult(const QString& source, const QString& result,
                               const CLangPair& languagePair,
                               CStructures::TranslationEngine engine,
@@ -24,8 +24,8 @@ private:
     QDir m_cachePath;
 
     void cleanOldEntries();
-    const QString getMD5(const QString& content) const;
-    const QString getHashSource(const QString& source, const CLangPair& languagePair,
+    QString getMD5(const QString& content) const;
+    QString getHashSource(const QString& source, const CLangPair& languagePair,
                                 CStructures::TranslationEngine engine,
                                 bool translateSubSentences) const;
 

@@ -175,6 +175,7 @@
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
     <addaction name="actionChromiumURLs"/>
+    <addaction name="actionTranslatorStatistics"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -444,6 +445,15 @@
   <action name="actionChromiumURLs">
    <property name="text">
     <string>Chromium URLs</string>
+   </property>
+  </action>
+  <action name="actionTranslatorStatistics">
+   <property name="icon">
+    <iconset theme="office-chart-bar">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Translator statistics</string>
    </property>
   </action>
  </widget>

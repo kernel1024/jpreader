@@ -19,10 +19,9 @@
 #include "bookmarks.h"
 
 const QVector<QColor> CSettings::snippetColors = {
-    QColor(Qt::red), QColor(Qt::green), QColor(Qt::blue), QColor(Qt::cyan),
-    QColor(Qt::magenta), QColor(Qt::darkRed), QColor(Qt::darkGreen),
-    QColor(Qt::darkBlue), QColor(Qt::darkCyan), QColor(Qt::darkMagenta),
-    QColor(Qt::darkYellow), QColor(Qt::gray) };
+    QColor(Qt::darkBlue), QColor(Qt::darkGreen), QColor(Qt::darkMagenta),
+    QColor(Qt::darkCyan), QColor(Qt::darkRed),   QColor(Qt::darkGray),
+    QColor(Qt::darkYellow) };
 
 const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
                                                          | QUrl::RemovePort
@@ -30,9 +29,11 @@ const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
                                                          | QUrl::StripTrailingSlash;
 
 namespace CDefaults {
-const quint32 bigdataMagic = 0x4a500001;
-const quint32 bigdataMagicMask = 0xffff0000;
-const int delayedLoadingAdblock = 1500;
+const quint32 bigdataMagic       = 0x4a500002;
+const quint32 bigdataMagicMask   = 0xffff0000;
+const quint32 bigdataVersionMask = 0x0000ffff;
+
+const quint32 bigdataVersion_TranslatorStatistics = 2;
 }
 
 CSettings::CSettings(QObject *parent)
@@ -171,6 +172,8 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& filename)
         fBigdata.close();
         return false;
     }
+    quint32 version = magic & CDefaults::bigdataVersionMask;
+
     bigdata.setVersion(QDataStream::Qt_5_10);
 
     bigdata >> g->d_func()->searchHistory;
@@ -204,6 +207,9 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& filename)
         Q_EMIT adblockRulesUpdated();
     });
     bigdata >> g->d_func()->noScriptWhiteList;
+
+    if (version>=CDefaults::bigdataVersion_TranslatorStatistics)
+        bigdata >> translatorStatistics;
 
     fBigdata.close();
     return true;
@@ -241,6 +247,8 @@ void CSettings::writeBinaryBigData(const QString &filename)
 
     bigdata << gSet->d_func()->noScriptWhiteList;
 
+    bigdata << translatorStatistics;
+
     fBigdata.close();
 }
 
@@ -254,6 +262,9 @@ void CSettings::readSettings(QObject *control)
 
     QFileInfo fi(settings.fileName());
     if (!readBinaryBigData(g,fi.dir().filePath(QSL("jpreader-bigdata.bin")))) {
+
+        // *** Legacy config support, DO NOT add new structures!
+
         QSettings bigdata(QSL("kernel1024"), QSL("jpreader-bigdata"));
         bigdata.beginGroup(QSL("main"));
 
@@ -412,7 +423,7 @@ void CSettings::readSettings(QObject *control)
     g->m_ui->rebuildLanguageActions(g);
 }
 
-void CSettings::settingsDlg()
+void CSettings::settingsTab()
 {
     auto dlg = CSettingsTab::instance();
     if (dlg!=nullptr) {

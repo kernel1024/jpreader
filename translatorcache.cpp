@@ -18,10 +18,10 @@ void CTranslatorCache::setCachePath(const QString &path)
         m_cachePath.mkpath(QSL("."));
 }
 
-const QString CTranslatorCache::cachedTranslatorResult(const QString &source,
-                                                       const CLangPair &languagePair,
-                                                       CStructures::TranslationEngine engine,
-                                                       bool translateSubSentences)
+QString CTranslatorCache::cachedTranslatorResult(const QString &source,
+                                                 const CLangPair &languagePair,
+                                                 CStructures::TranslationEngine engine,
+                                                 bool translateSubSentences) const
 {
     if (!m_cachePath.exists()) return QString();
 
@@ -54,17 +54,17 @@ void CTranslatorCache::saveTranslatorResult(const QString &source, const QString
     cleanOldEntries();
 }
 
-const QString CTranslatorCache::getMD5(const QString &content) const
+QString CTranslatorCache::getMD5(const QString &content) const
 {
     QCryptographicHash md5(QCryptographicHash::Md5);
     md5.addData(content.toUtf8());
     return QString::fromLatin1(md5.result().toHex());
 }
 
-const QString CTranslatorCache::getHashSource(const QString &source,
-                                              const CLangPair &languagePair,
-                                              CStructures::TranslationEngine engine,
-                                              bool translateSubSentences) const
+QString CTranslatorCache::getHashSource(const QString &source,
+                                        const CLangPair &languagePair,
+                                        CStructures::TranslationEngine engine,
+                                        bool translateSubSentences) const
 {
     QString content = source;
     content.append(QSL("#%1#%2#%3").arg(languagePair.getHash(),CGenericFuncs::bool2str2(translateSubSentences))

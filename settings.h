@@ -110,6 +110,7 @@ public:
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash atlCerts;
     CSubsentencesMode subsentencesMode;
+    CTranslatorStatistics translatorStatistics;
 
     int maxHistory { CDefaults::maxHistory };
     int maxRecent { CDefaults::maxRecent };
@@ -167,7 +168,7 @@ private:
 
 public Q_SLOTS:
     void writeSettings();
-    void settingsDlg();
+    void settingsTab();
 
     void clearTabsList();
     void writeTabsList();

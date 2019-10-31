@@ -416,7 +416,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
         s = CGenericFuncs::highlightSnippet(auxText,queryTerms);
 
     QStringList queryTermsTran = queryTerms;
-    CAbstractTranslator* tran = translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
+    CAbstractTranslator* tran = CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
     if (gSet->ui()->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (tran==nullptr || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");

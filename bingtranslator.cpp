@@ -54,6 +54,11 @@ bool CBingTranslator::initTran()
     return true;
 }
 
+CStructures::TranslationEngine CBingTranslator::engine()
+{
+    return CStructures::teBingAPI;
+}
+
 QString CBingTranslator::tranStringInternal(const QString &src)
 {
     QUrl rqurl = QUrl(QSL("https://api.cognitive.microsofttranslator.com/translate"));

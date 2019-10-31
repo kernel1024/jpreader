@@ -30,6 +30,7 @@ extern "C" {
 #include "auxdictionary.h"
 #include "downloadmanager.h"
 #include "translatorcache.h"
+#include "translatorstatisticstab.h"
 #include "pdftotext.h"
 #include "userscript.h"
 #include "structures.h"
@@ -107,6 +108,7 @@ void CGlobalControl::initialize()
     qRegisterMetaTypeStreamOperators<CLangPairVector>("CLangPairVector");
     qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
     qRegisterMetaTypeStreamOperators<CSubsentencesMode>("CSubsentencesMode");
+    qRegisterMetaTypeStreamOperators<CTranslatorStatistics>("CTranslatorStatistics");
 
     if (!setupIPC())
         ::exit(0);
@@ -402,6 +404,15 @@ void CGlobalControl::setSubsentencesMode(CStructures::TranslationEngine engine, 
     m_settings->subsentencesMode[engine] = translateSubSentences;
 }
 
+void CGlobalControl::addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength)
+{
+    if (textLength < 0) {
+        Q_EMIT translationStatisticsChanged();
+    } else {
+        m_settings->translatorStatistics[engine][QDate::currentDate()] += static_cast<quint64>(textLength);
+    }
+}
+
 QWebEngineProfile *CGlobalControl::webProfile() const
 {
     Q_D(const CGlobalControl);
@@ -474,9 +485,18 @@ CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, c
     return mainWindow;
 }
 
-void CGlobalControl::settingsDialog()
+void CGlobalControl::settingsTab()
 {
-    m_settings->settingsDlg();
+    m_settings->settingsTab();
+}
+
+void CGlobalControl::translationStatisticsTab()
+{
+    auto dlg = CTranslatorStatisticsTab::instance();
+    if (dlg!=nullptr) {
+        dlg->activateWindow();
+        dlg->setTabFocused();
+    }
 }
 
 QRect CGlobalControl::getLastMainWindowGeometry() const

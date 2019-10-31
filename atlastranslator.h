@@ -30,9 +30,10 @@ public:
     ~CAtlasTranslator() override;
 
     bool initTran() override;
-    QString tranString(const QString& src) override;
-    void doneTran(bool lazyClose = false) override;
+    QString tranStringPrivate(const QString& src) override;
+    void doneTranPrivate(bool lazyClose) override;
     bool isReady() override;
+    CStructures::TranslationEngine engine() override;
 
 Q_SIGNALS:
     void sslCertErrors(const QSslCertificate& cert, const QStringList& errors, const CIntList& errCodes);

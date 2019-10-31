@@ -33,6 +33,7 @@ HEADERS = mainwindow.h \
     adblockrule.h \
     downloadmanager.h \
     translatorcache.h \
+    translatorstatisticstab.h \
     yandextranslator.h \
     pdftotext.h \
     sourceviewer.h \
@@ -86,6 +87,7 @@ SOURCES = main.cpp \
     adblockrule.cpp \
     downloadmanager.cpp \
     translatorcache.cpp \
+    translatorstatisticstab.cpp \
     yandextranslator.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \
@@ -117,6 +119,7 @@ FORMS = main.ui \
     multiinputdialog.ui \
     downloadmanager.ui \
     sourceviewer.ui \
+    translatorstatisticstab.ui \
     userscriptdlg.ui \
     selectablelistdlg.ui \
     bookmarks.ui \
@@ -219,6 +222,7 @@ DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 
 include( htmlcxx/htmlcxx.pri )
 include( miniqxt/miniqxt.pri )
+include( qcustomplot/qcustomplot.pri )
 
 OTHER_FILES += \
     data/startpage.html \
