@@ -103,10 +103,11 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QRegularExpression rx(QSL("<textarea[^>]*id=\"novel_text\"[^>]*>"),
                               QRegularExpression::CaseInsensitiveOption);
+        QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
         int idx = html.indexOf(rx,0,&match);
         if (idx<0) {
             // something wrong here - try pixiv novel JSON parser
-            idx = html.indexOf(QSL("{token:"));
+            idx = html.indexOf(rxToken);
             if (idx<=0) {
                 // something very wrong here
                 html = tr("Unable to extract novel. Unknown page structure.");
@@ -115,6 +116,9 @@ void CPixivNovelExtractor::novelLoadFinished()
                 idx = html.indexOf(QSL("</script>"));
                 if (idx>=0)
                     html.truncate(idx);
+                idx = html.indexOf(QSL("}\">"));
+                if (idx>=0)
+                    html.truncate(idx+1);
                 idx = html.lastIndexOf(QSL("})"));
                 if (idx>0)
                     html.truncate(idx+1);
@@ -389,17 +393,18 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     }
 }
 
-QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& source, const QString& start)
+QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& source, const QRegularExpression& start)
 {
     QJsonDocument doc;
 
-    const QByteArray baStart = start.toUtf8();
-    int idx = source.indexOf(baStart);
+    QString src = QString::fromUtf8(source);
+    QRegularExpressionMatch match;
+    int idx = src.indexOf(start,0,&match);
     if (idx<0) {
         doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
         return doc;
     }
-    QByteArray cnt = source.mid(idx+baStart.size()-1);
+    QByteArray cnt = src.mid(idx+match.capturedLength()-1).toUtf8();
 
     QJsonParseError err {};
     doc = QJsonDocument::fromJson(cnt,&err);
@@ -433,7 +438,7 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
     QJsonDocument doc;
 
     QString key = origin.fileName();
-    QString jstart = QSL("illust: { %1: {").arg(key);
+    QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
         if (doc.isObject()) {
@@ -493,7 +498,8 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
     QByteArray cnt = html.toUtf8();
     QString res;
 
-    QJsonDocument doc = parseJsonSubDocument(cnt,QSL("%1: {").arg(m_novelId));
+    QRegularExpression rxNovel(QSL("\\s*\\\"%1\\\"\\s*:\\s*{").arg(m_novelId));
+    QJsonDocument doc = parseJsonSubDocument(cnt,rxNovel);
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
@@ -518,7 +524,8 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
 
     }
 
-    doc = parseJsonSubDocument(cnt,QSL("%1: {").arg(authorNum));
+    QRegularExpression rxAuthor(QSL("\\s*\\\"%1\\\"\\s*:\\s*{").arg(authorNum));
+    doc = parseJsonSubDocument(cnt,rxAuthor);
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 

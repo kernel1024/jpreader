@@ -32,7 +32,7 @@ private:
     void handleImages(const QStringList& imgs);
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
-    static QJsonDocument parseJsonSubDocument(const QByteArray &source, const QString &start);
+    static QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
