@@ -32,7 +32,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
 
     if (gSet->downloadManager()==nullptr) return;
 
-    QDialog *dlg = new QDialog(snv);
+    auto dlg = new QDialog(snv);
     Ui::SelectableListDlg ui;
     ui.setupUi(dlg);
     if (multiImgDialogSize.isValid())
@@ -393,7 +393,7 @@ void CSnNet::load(const QString &html, const QUrl &baseUrl)
 
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
 {
-    CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    auto dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
     if (dlg->exec() == QDialog::Accepted) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());
@@ -408,7 +408,7 @@ void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator 
                                          const QString &proxyHost)
 {
     Q_UNUSED(proxyHost)
-    CAuthDlg *dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    auto dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
     if (dlg->exec() == QDialog::Accepted) {
         authenticator->setUser(dlg->getUser());
         authenticator->setPassword(dlg->getPassword());

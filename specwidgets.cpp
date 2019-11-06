@@ -220,7 +220,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     if (m_tabWidget==nullptr) return;
     int i = m_tabWidget->addTab(this,m_tabTitle);
     if (gSet->settings()->showTabCloseButtons) {
-        QPushButton* b = new QPushButton(QIcon::fromTheme(QSL("dialog-close")),QString());
+        auto b = new QPushButton(QIcon::fromTheme(QSL("dialog-close")),QString());
         b->setFlat(true);
         int sz = m_tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
@@ -375,7 +375,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     if (parentViewer==nullptr) return nullptr;
 
-    CSnippetViewer* sv = new CSnippetViewer(parentViewer->parentWnd(),QUrl(),QStringList(),
+    auto sv = new CSnippetViewer(parentViewer->parentWnd(),QUrl(),QStringList(),
                                             (type!=QWebEnginePage::WebBrowserBackgroundTab));
     return sv->txtBrowser;
 }

@@ -15,7 +15,7 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
 
     int i = 0;
     for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
-        QLabel *label = new QLabel(this);
+        auto label = new QLabel(this);
         label->setObjectName(QSL("label_%1").arg(i));
         label->setText(it.key());
         labels << label;
@@ -35,7 +35,7 @@ CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
     ui->verticalLayout->insertLayout(0,formLayout);
 
     if (!helperText.isEmpty()) {
-        QLabel* hlp = new QLabel(this);
+        auto hlp = new QLabel(this);
         hlp->setObjectName(QSL("label_helper"));
         hlp->setText(helperText);
         ui->verticalLayout->insertWidget(0,hlp);

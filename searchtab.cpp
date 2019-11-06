@@ -271,7 +271,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         cm.addSeparator();
     }
     cm.addAction(QIcon::fromTheme(QSL("document-properties")),tr("Show indexer data..."),[this,sh](){
-        QDialog *dlg = new QDialog(this);
+        auto dlg = new QDialog(this);
         Ui::HashViewerDialog ui;
         ui.setupUi(dlg);
         dlg->setWindowTitle(tr("Indexer data"));

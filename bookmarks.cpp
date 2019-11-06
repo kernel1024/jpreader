@@ -407,7 +407,6 @@ QVariant BookmarksModel::data(const QModelIndex &index, int role) const
             if (bookmarkNode->type == BookmarkNode::Separator) {
                 switch (index.column()) {
                     case 0: return QString(separatorLength, separatorDot);
-                    case 1: return QString();
                     default: return QString();
                 }
             }

@@ -47,8 +47,10 @@ xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
         case Qt::Key_Meta: code = XK_Meta_L; break;
         case Qt::Key_Alt: code = XK_Alt_L; break;
         case Qt::Key_Escape: code = XK_Escape; break;
-        case Qt::Key_Tab: code = XK_Tab; break;
-        case Qt::Key_Backtab: code = XK_Tab; break;
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
+            code = XK_Tab;
+            break;
         case Qt::Key_Backspace: code = XK_BackSpace; break;
         case Qt::Key_Return: code = XK_Return; break;
         case Qt::Key_Insert: code = XK_Insert; break;

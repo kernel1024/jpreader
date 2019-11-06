@@ -724,7 +724,7 @@ void CSettingsTab::updateMainHistory()
 {
     ui->listHistory->clear();
     for (const CUrlHolder &t : qAsConst(gSet->d_func()->mainHistory)) {
-        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ]")
+        auto li = new QListWidgetItem(QSL("%1 [ %2 ]")
                                                   .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
@@ -1050,7 +1050,7 @@ void CSettingsTab::updateSearchEngines()
     ui->listSearch->clear();
     const auto &engines = gSet->d_func()->ctxSearchEngines;
     for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
-        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
+        auto li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
                                                   arg(it.key(),
                                                       it.value(),
                                                       it.key()==gSet->m_settings->defaultSearchEngine ?
@@ -1071,11 +1071,11 @@ void CSettingsTab::addSearchEngine()
                                   "  %s - search text\n"
                                   "  %ps - percent-encoded search text");
 
-    CMultiInputDialog *dlg = new CMultiInputDialog(this,tr("Add new search engine"),data,hlp);
+    auto dlg = new CMultiInputDialog(this,tr("Add new search engine"),data,hlp);
     if (dlg->exec()==QDialog::Accepted) {
         data = dlg->getInputData();
 
-        QListWidgetItem* li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
+        auto li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
                                                   arg(data[QSL("Menu title")],
                                                   data[QSL("Url template")],
                 data[QSL("Menu title")]==gSet->m_settings->defaultSearchEngine ?
@@ -1114,14 +1114,14 @@ void CSettingsTab::setDefaultSearch()
 void CSettingsTab::addUserScript()
 {
     static QSize addScriptDlgSize;
-    QDialog *dlg = new QDialog(this);
+    auto dlg = new QDialog(this);
     Ui::UserScriptEditorDlg dui;
     dui.setupUi(dlg);
     if (!addScriptDlgSize.isEmpty())
         dlg->resize(addScriptDlgSize);
 
     if (dlg->exec()==QDialog::Accepted) {
-        QListWidgetItem *itm = new QListWidgetItem(dui.editTitle->text());
+        auto itm = new QListWidgetItem(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
         ui->listUserScripts->addItem(itm);
     }
@@ -1137,7 +1137,7 @@ void CSettingsTab::editUserScript()
     QListWidgetItem *itm = ui->listUserScripts->selectedItems().first();
 
     static QSize editScriptDlgSize;
-    QDialog *dlg = new QDialog(this);
+    auto dlg = new QDialog(this);
     Ui::UserScriptEditorDlg dui;
     dui.setupUi(dlg);
     if (!editScriptDlgSize.isEmpty())
@@ -1183,7 +1183,7 @@ void CSettingsTab::importUserScript()
 
     CUserScript us(QSL("loader"),src);
 
-    QListWidgetItem *itm = new QListWidgetItem(us.getTitle());
+    auto itm = new QListWidgetItem(us.getTitle());
     itm->setData(Qt::UserRole,src);
     ui->listUserScripts->addItem(itm);
     saveUserScripts();

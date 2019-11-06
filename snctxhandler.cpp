@@ -177,7 +177,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             QString s = sText;
             s = s.replace('\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
-            CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
+            auto sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
             sn->m_requestAutotranslate = true;
         });
 
@@ -258,7 +258,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Open in new background tab and translate"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
-                CSnippetViewer* sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
+                auto sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
                 sn->m_requestAutotranslate = true;
             });
         }
@@ -289,7 +289,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         QString url(QSL("about://blank"));
         if (!snv->m_fileChanged) url=snv->urlEdit->text();
 
-        CSnippetViewer* sv = new CSnippetViewer(snv->parentWnd(), url);
+        auto sv = new CSnippetViewer(snv->parentWnd(), url);
 
         if (snv->m_fileChanged || url.isEmpty()) {
             snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {

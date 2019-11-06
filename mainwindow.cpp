@@ -160,7 +160,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 
     QApplication::instance()->installEventFilter(this);
 
-    QPushButton* addTabButton = new QPushButton(QIcon::fromTheme(QSL("list-add")),QString());
+    auto addTabButton = new QPushButton(QIcon::fromTheme(QSL("list-add")),QString());
     addTabButton->setFlat(true);
     tabMain->setCornerWidget(addTabButton);
     connect(addTabButton,&QPushButton::clicked,actionNew,&QAction::trigger);
@@ -461,7 +461,7 @@ void CMainWindow::updateHelperList()
     switch (tabHelper->currentIndex()) {
         case 0: // Tabs
             for (int i=0;i<tabMain->count();i++) {
-                QListWidgetItem* it = new QListWidgetItem(tr("Tab %1").arg(i));
+                auto it = new QListWidgetItem(tr("Tab %1").arg(i));
                 it->setData(Qt::UserRole,0);
                 it->setData(Qt::UserRole+1,i);
                 auto sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
@@ -667,7 +667,7 @@ void CMainWindow::openAuxFileWithDialog()
 
 void CMainWindow::openEmptyBrowser()
 {
-    CSnippetViewer* sv = new CSnippetViewer(this);
+    auto sv = new CSnippetViewer(this);
     sv->urlEdit->setFocus(Qt::OtherFocusReason);
 }
 
@@ -706,7 +706,7 @@ void CMainWindow::createFromClipboard()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard"),tx);
-    CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
+    auto sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
@@ -718,7 +718,7 @@ void CMainWindow::createFromClipboardPlain()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard plain"),tx);
-    CSnippetViewer* sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
+    auto sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
@@ -736,7 +736,7 @@ void CMainWindow::openFromClipboard()
         QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
         return;
     }
-    CSnippetViewer* sv = new CSnippetViewer(this, uri);
+    auto sv = new CSnippetViewer(this, uri);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
