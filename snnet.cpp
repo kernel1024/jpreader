@@ -215,7 +215,7 @@ void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor:
 
     connect(ex,&CPixivIndexExtractor::listReady,this,&CSnNet::pixivListReady,Qt::QueuedConnection);
     connect(ex,&CPixivIndexExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
+    connect(th,&QThread::finished,ex,&CPixivIndexExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
 
     ex->moveToThread(th);
@@ -242,17 +242,21 @@ void CSnNet::downloadPixivManga()
     QUrl origin = ac->data().toUrl();
     if (!origin.isValid()) return;
 
-    snv->txtBrowser->page()->toHtml([this,origin](const QString& html){
-        QStringList sl = CPixivNovelExtractor::parseJsonIllustPage(html,origin);
-        QString id = origin.fileName();
-        if (sl.isEmpty() || id.isEmpty()) {
-            QMessageBox::warning(snv,tr("JPReader"),
-                                 tr("No pixiv manga image urls found"));
-        } else {
+    auto ex = new CPixivNovelExtractor();
+    auto th = new QThread();
+    ex->setMangaOrigin(snv,origin);
 
-            snv->netHandler->multiImgDownload(sl,origin,id);
-        }
-    });
+    connect(ex,&CPixivNovelExtractor::mangaReady,this,&CSnNet::pixivMangaReady,Qt::QueuedConnection);
+    connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
+    ex->moveToThread(th);
+    th->start();
+
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+    QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::startManga,Qt::QueuedConnection);
 }
 
 void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
@@ -271,6 +275,16 @@ void CSnNet::pixivListReady(const QString &html)
         new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
     } else {
         loadWithTempFile(html,true);
+    }
+}
+
+void CSnNet::pixivMangaReady(const QStringList &urls, const QString &id, const QUrl &origin)
+{
+    if (urls.isEmpty() || id.isEmpty()) {
+        QMessageBox::warning(snv,tr("JPReader"),
+                             tr("No pixiv manga image urls found"));
+    } else {
+        snv->netHandler->multiImgDownload(urls,origin,id);
     }
 }
 

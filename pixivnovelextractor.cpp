@@ -32,6 +32,12 @@ void CPixivNovelExtractor::setParams(CSnippetViewer *viewer, const QUrl &source,
     m_source = source;
 }
 
+void CPixivNovelExtractor::setMangaOrigin(CSnippetViewer *viewer, const QUrl &origin)
+{
+    m_snv = viewer;
+    m_mangaOrigin = origin;
+}
+
 void CPixivNovelExtractor::start()
 {
     if (!m_source.isValid()) {
@@ -47,6 +53,23 @@ void CPixivNovelExtractor::start()
         connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
                 this,&CPixivNovelExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
+    });
+}
+
+void CPixivNovelExtractor::startManga()
+{
+    if (!m_mangaOrigin.isValid()) {
+        Q_EMIT finished();
+        return;
+    }
+
+    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+        QNetworkRequest req(m_mangaOrigin);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
+                this,&CPixivNovelExtractor::loadError);
+        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
     });
 }
 
@@ -235,7 +258,17 @@ void CPixivNovelExtractor::subLoadFinished()
         QString html = QString::fromUtf8(rpl->readAll());
         m_redirectCounter.remove(key);
 
-        QStringList imageUrls = parseJsonIllustPage(html,rplUrl);
+        QString id;
+        QStringList imageUrls = parseJsonIllustPage(html,rplUrl,&id);
+
+        // Aux manga load from context menu
+        if (m_mangaOrigin.isValid()) {
+            gSet->app()->restoreOverrideCursor();
+            Q_EMIT mangaReady(imageUrls,id,m_mangaOrigin);
+            Q_EMIT finished();
+            rpl->deleteLater();
+            return;
+        }
 
         m_imgMutex.lock();
         for (auto it = idxs.constBegin(), end = idxs.constEnd(); it != end; ++it) {
@@ -432,12 +465,15 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
     return doc;
 }
 
-QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin)
+QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* id)
 {
     QStringList res;
     QJsonDocument doc;
 
     QString key = origin.fileName();
+    if (id != nullptr)
+        *id = key;
+
     QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);

@@ -43,6 +43,7 @@ public Q_SLOTS:
     void downloadPixivManga();
     void pixivNovelReady(const QString& html, bool focus, bool translate);
     void pixivListReady(const QString& html);
+    void pixivMangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

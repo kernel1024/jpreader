@@ -4,7 +4,8 @@ Checks:          '-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readabi
 -cppcoreguidelines-pro-type-reinterpret-cast,
 -cppcoreguidelines-pro-type-const-cast,
 -cppcoreguidelines-owning-memory,
--modernize-return-braced-init-list'
+-modernize-return-braced-init-list,
+-modernize-use-trailing-return-type'
 
 CheckOptions:    
   - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic

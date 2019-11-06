@@ -25,6 +25,7 @@ private:
     QHash<QString,QString> m_imgUrls;
     QHash<QString,int> m_redirectCounter;
     QUrl m_origin;
+    QUrl m_mangaOrigin;
     QUrl m_source;
     QString m_novelId;
     QString m_html;
@@ -32,20 +33,23 @@ private:
     void handleImages(const QStringList& imgs);
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
-    static QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
+    QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
+    QStringList parseJsonIllustPage(const QString &html, const QUrl& origin, QString *id = nullptr);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
     void setParams(CSnippetViewer* viewer, const QUrl& source, const QString& title,
                    bool translate, bool focus);
-    static QStringList parseJsonIllustPage(const QString &html, const QUrl& origin);
+    void setMangaOrigin(CSnippetViewer *viewer, const QUrl& origin);
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
+    void mangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
     void finished();
 
 public Q_SLOTS:
     void start();
+    void startManga();
     void novelLoadFinished();
     void loadError(QNetworkReply::NetworkError error);
 
