@@ -34,8 +34,9 @@ CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang)
 void CAbstractTranslator::doneTran(bool lazyClose)
 {
     doneTranPrivate(lazyClose);
-    QTimer::singleShot(0,gSet,[this](){
-        gSet->addTranslatorStatistics(engine(), -1); // Force statistics update signal
+    const CStructures::TranslationEngine eng = engine();
+    QTimer::singleShot(0,gSet,[eng](){
+        gSet->addTranslatorStatistics(eng, -1); // Force statistics update signal
     });
 }
 
@@ -49,9 +50,10 @@ QString CAbstractTranslator::tranString(const QString &src)
     if (src.isEmpty())
         return src;
 
-    int len = src.length();
-    QTimer::singleShot(0,gSet,[this,len](){
-        gSet->addTranslatorStatistics(engine(), len);
+    const int len = src.length();
+    const CStructures::TranslationEngine eng = engine();
+    QTimer::singleShot(0,gSet,[eng,len](){
+        gSet->addTranslatorStatistics(eng, len);
     });
     return tranStringPrivate(src);
 }

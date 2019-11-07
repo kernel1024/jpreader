@@ -925,8 +925,7 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
     const int fullscreenToolsShowMargin = 20;
 
-    QString cln = QString::fromLatin1(obj->metaObject()->className());
-    if (fullScreen && cln.contains(QSL("WebEngine"),Qt::CaseInsensitive)) {
+    if (fullScreen) {
         if (ev->type()==QEvent::MouseMove) {
             auto mev = dynamic_cast<QMouseEvent *>(ev);
             if (mev) {
