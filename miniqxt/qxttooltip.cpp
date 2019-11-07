@@ -106,7 +106,7 @@ void QxtToolTipPrivate::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRec
         QWidget::show();
     } else {
         tooltip->setParent(nullptr);
-        delete tooltip;
+        tooltip->deleteLater();
     }
 }
 
@@ -154,8 +154,8 @@ void QxtToolTipPrivate::removeAllWidgets()
     while (vbox->count()>0) {
         QLayoutItem* item = vbox->takeAt(0);
         QWidget* widget = item->widget();
-        delete widget;
         delete item;
+        widget->deleteLater();
     }
 }
 

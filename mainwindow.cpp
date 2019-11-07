@@ -760,22 +760,19 @@ void CMainWindow::addBookmark()
     auto sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
     if (sv==nullptr) return;
 
-    auto dlg = new AddBookmarkDialog(sv->getUrl().toString(),sv->tabTitle(),this);
-    if (dlg->exec() == QDialog::Accepted)
+    AddBookmarkDialog dlg(sv->getUrl().toString(),sv->tabTitle(),this);
+    if (dlg.exec() == QDialog::Accepted)
         Q_EMIT gSet->updateAllBookmarks();
-
-    dlg->setParent(nullptr);
-    delete dlg;
 }
 
 void CMainWindow::manageBookmarks()
 {
-    auto dialog = new BookmarksDialog(this);
-    connect(dialog, &BookmarksDialog::openUrl,this,[this](const QUrl& url){
+    BookmarksDialog dialog(this);
+    connect(&dialog, &BookmarksDialog::openUrl,this,[this](const QUrl& url){
         new CSnippetViewer(this, url);
     });
 
-    dialog->exec();
+    dialog.exec();
     Q_EMIT gSet->updateAllBookmarks();
 }
 

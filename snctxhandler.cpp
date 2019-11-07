@@ -340,10 +340,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             const QUrl origin = snv->getUrl();
             if (origin.isLocalFile() || origin.isRelative()) return;
             QString u = snv->getUrl().toString(CSettings::adblockUrlFmt);
-            auto dlg = new CNoScriptDialog(snv,u);
-            dlg->exec();
-            dlg->setParent(nullptr);
-            delete dlg;
+            CNoScriptDialog dlg(snv,u);
+            dlg.exec();
         });
     }
     if (!scripts.isEmpty() || gSet->settings()->useNoScript)
@@ -386,10 +384,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(ac, &QAction::triggered, this, [origin](){
             QString realm = CGenericFuncs::elideString(gSet->cleanUrlForRealm(origin).toString(),
                                                        CDefaults::maxRealmLabelEliding,Qt::ElideLeft);
-            auto dlg = new CAuthDlg(QApplication::activeWindow(),origin,realm,true);
-            dlg->exec();
-            dlg->setParent(nullptr);
-            delete dlg;
+            CAuthDlg dlg(QApplication::activeWindow(),origin,realm,true);
+            dlg.exec();
         });
     }
     m_menu.addSeparator();
@@ -599,11 +595,9 @@ void CSnCtxHandler::saveToFile()
 
 void CSnCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
-    auto dlg = new AddBookmarkDialog(lf->requestedUrl().toString(),lf->title(),snv);
-    if (dlg->exec() == QDialog::Accepted)
+    AddBookmarkDialog dlg(lf->requestedUrl().toString(),lf->title(),snv);
+    if (dlg.exec() == QDialog::Accepted)
         Q_EMIT gSet->updateAllBookmarks();
-    dlg->setParent(nullptr);
-    delete dlg;
 }
 
 void CSnCtxHandler::showInEditor()

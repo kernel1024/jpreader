@@ -32,11 +32,11 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
 
     if (gSet->downloadManager()==nullptr) return;
 
-    auto dlg = new QDialog(snv);
+    QDialog dlg(snv);
     Ui::SelectableListDlg ui;
-    ui.setupUi(dlg);
+    ui.setupUi(&dlg);
     if (multiImgDialogSize.isValid())
-        dlg->resize(multiImgDialogSize);
+        dlg.resize(multiImgDialogSize);
 
     connect(ui.filter,&QLineEdit::textEdited,[ui](const QString& text){
         if (text.isEmpty()) {
@@ -61,11 +61,11 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
     ui.label->setText(tr("Detected image URLs from page"));
     ui.syntax->setCurrentIndex(0);
     ui.list->addItems(urls);
-    dlg->setWindowTitle(tr("Multiple images download"));
+    dlg.setWindowTitle(tr("Multiple images download"));
     if (!preselectedName.isEmpty())
         ui.list->selectAll();
 
-    if (dlg->exec()==QDialog::Accepted) {
+    if (dlg.exec()==QDialog::Accepted) {
         QString dir;
         if (ui.checkZipFile->isChecked()) {
             QString fname = preselectedName;
@@ -89,9 +89,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
             gSet->downloadManager()->handleAuxDownload(itm->text(),dir,referer,index,ui.list->selectedItems().count());
         }
     }
-    multiImgDialogSize=dlg->size();
-    dlg->setParent(nullptr);
-    dlg->deleteLater();
+    multiImgDialogSize=dlg.size();
 }
 
 bool CSnNet::isValidLoadedUrl(const QUrl& url)
@@ -393,28 +391,24 @@ void CSnNet::load(const QString &html, const QUrl &baseUrl)
 
 void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
 {
-    auto dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
-    if (dlg->exec() == QDialog::Accepted) {
-        authenticator->setUser(dlg->getUser());
-        authenticator->setPassword(dlg->getPassword());
+    CAuthDlg dlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    if (dlg.exec() == QDialog::Accepted) {
+        authenticator->setUser(dlg.getUser());
+        authenticator->setPassword(dlg.getPassword());
     } else {
         *authenticator = QAuthenticator();
     }
-    dlg->setParent(nullptr);
-    delete dlg;
 }
 
 void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator,
                                          const QString &proxyHost)
 {
     Q_UNUSED(proxyHost)
-    auto dlg = new CAuthDlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
-    if (dlg->exec() == QDialog::Accepted) {
-        authenticator->setUser(dlg->getUser());
-        authenticator->setPassword(dlg->getPassword());
+    CAuthDlg dlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    if (dlg.exec() == QDialog::Accepted) {
+        authenticator->setUser(dlg.getUser());
+        authenticator->setPassword(dlg.getPassword());
     } else {
         *authenticator = QAuthenticator();
     }
-    dlg->setParent(nullptr);
-    delete dlg;
 }

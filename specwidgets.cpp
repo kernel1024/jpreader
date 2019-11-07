@@ -264,49 +264,7 @@ void CSpecTabContainer::detachTab()
 {
     if (m_tabWidget->count()<=1) return;
 
-    /*  Classic method - create new tab and copy contents
- *
-    CSpecTabContainer* ntab = nullptr;
-
-    CSnippetViewer* snv = qobject_cast<CSnippetViewer *>(this);
-    if (snv) {
-        QString url("about://blank");
-        if (!snv->fileChanged) url=snv->urlEdit->text();
-
-        CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
-        CSnippetViewer* sv = new CSnippetViewer(mwnd, url);
-        ntab = sv;
-
-        if (snv->fileChanged || url.isEmpty()) {
-            snv->txtBrowser->page()->toHtml([sv,snv,this](const QString& html) {
-                if (!html.isEmpty())
-                    sv->txtBrowser->setHtml(html,snv->txtBrowser->page()->url());
-            });
-        }
-    }
-
-    CSearchTab* stb = qobject_cast<CSearchTab *>(this);
-    if (stb) {
-        QString query = stb->getLastQuery();
-        if (!query.isEmpty()) {
-            CMainWindow* mwnd = gSet->ui.addMainWindow(false,false);
-            CSearchTab* st = new CSearchTab(mwnd);
-            ntab = st;
-            st->searchTerm(query,false);
-        }
-    }
-
-    if (ntab) {
-        closeTab();
-        ntab->activateWindow();
-        ntab->parentWnd->raise();
-    } */
-
-    /*
- *  Reparenting
- *  Can caught failure with Qt5 openGL backend...
- *  QSGTextureAtlas: texture atlas allocation failed, code=501 */
-
+    // Reparenting
     CMainWindow* mwnd = gSet->addMainWindowEx(false,false);
     m_tabWidget->removeTab(m_tabWidget->indexOf(this));
     m_parentWnd = mwnd;

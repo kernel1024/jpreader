@@ -271,10 +271,10 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         cm.addSeparator();
     }
     cm.addAction(QIcon::fromTheme(QSL("document-properties")),tr("Show indexer data..."),[this,sh](){
-        auto dlg = new QDialog(this);
+        QDialog dlg(this);
         Ui::HashViewerDialog ui;
-        ui.setupUi(dlg);
-        dlg->setWindowTitle(tr("Indexer data"));
+        ui.setupUi(&dlg);
+        dlg.setWindowTitle(tr("Indexer data"));
         ui.label->setText(tr("<b>Title:</b> %1")
                            .arg(CGenericFuncs::elideString(sh[QSL("title")],CDefaults::maxTitleElideLength)));
         ui.table->clear();
@@ -289,9 +289,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
         }
         ui.table->resizeColumnsToContents();
 
-        dlg->exec();
-        dlg->setParent(nullptr);
-        dlg->deleteLater();
+        dlg.exec();
     });
 
     cm.exec(ui->listResults->mapToGlobal(pos));

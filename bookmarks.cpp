@@ -736,7 +736,6 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     connect(ui->addSeparatorButton, &QPushButton::clicked,
             this, &BookmarksDialog::newSeparator);
     expandNodes(m_bookmarksManager->bookmarks());
-    setAttribute(Qt::WA_DeleteOnClose);
 }
 
 BookmarksDialog::~BookmarksDialog()
