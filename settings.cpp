@@ -140,6 +140,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("jsLogConsole"),jsLogConsole);
     settings.setValue(QSL("dontUseNativeFileDialog"),dontUseNativeFileDialog);
     settings.setValue(QSL("defaultSearchEngine"),defaultSearchEngine);
+    settings.setValue(QSL("activeLangPair"),gSet->m_ui->getActiveLangPair());
 
     settings.setValue(QSL("pdfExtractImages"),pdfExtractImages);
     settings.setValue(QSL("pdfImageMaxSize"),pdfImageMaxSize);
@@ -415,12 +416,14 @@ void CSettings::readSettings(QObject *control)
     if (overrideUserAgent)
         g->d_func()->webProfile->setHttpUserAgent(userAgent);
 
+    const QString savedLangPair = settings.value(QSL("activeLangPair"),QString()).toString();
+
 
     settings.endGroup();
 
     Q_EMIT g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
-    g->m_ui->rebuildLanguageActions(g);
+    g->m_ui->rebuildLanguageActions(g,savedLangPair);
 }
 
 void CSettings::settingsTab()

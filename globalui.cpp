@@ -187,7 +187,7 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
     });
 }
 
-void CGlobalUI::rebuildLanguageActions(QObject * control)
+void CGlobalUI::rebuildLanguageActions(QObject * control, const QString& activeLangPair)
 {
     QObject* cg = control;
     if (cg==nullptr) cg = gSet;
@@ -197,9 +197,12 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     if (g==nullptr) return;
 
     QString selectedHash;
-    bool first = (languageSelector->checkedAction()==nullptr);
-    if (!first)
+    bool firstRun = (languageSelector->checkedAction()==nullptr);
+    if (firstRun) {
+        selectedHash = activeLangPair;
+    } else {
         selectedHash = languageSelector->checkedAction()->data().toString();
+    }
 
     languageSelector->deleteLater();
     languageSelector = new QActionGroup(this);
@@ -213,9 +216,11 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
         QString hash = pair.getHash();
         ac->setData(hash);
 
-        if (first || hash==selectedHash) {
+        if ((firstRun && selectedHash.isEmpty()) ||
+                (firstRun && !selectedHash.isEmpty() && hash==selectedHash) ||
+                (!firstRun && hash==selectedHash)) {
             ac->setChecked(true);
-            first = false;
+            firstRun = false;
         }
     }
 

@@ -54,7 +54,7 @@ public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
     void showGlobalTooltip(const QString& text);
-    void rebuildLanguageActions(QObject *control = nullptr);
+    void rebuildLanguageActions(QObject *control = nullptr, const QString &activeLangPair = QString());
     void actionToggled();
 
 };
