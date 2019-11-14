@@ -19,6 +19,7 @@ CTranslatorStatisticsTab::CTranslatorStatisticsTab(QWidget *parent) :
 
     connect(ui->radioRangeWeek, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
     connect(ui->radioRangeMonth, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
+    connect(ui->radioRangeThisMonth, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
     connect(ui->radioRangeYear, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
     connect(ui->radioRangeAll, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
 
@@ -60,7 +61,9 @@ QString CTranslatorStatisticsTab::getTimeRangeString() const
     if (ui->radioRangeWeek->isChecked()) {
         res = tr("one week");
     } else if (ui->radioRangeMonth->isChecked()) {
-        res = tr("one month");
+        res = tr("last month");
+    } else if (ui->radioRangeThisMonth->isChecked()) {
+        res = tr("this month");
     } else if (ui->radioRangeYear->isChecked()) {
         res = tr("one year");
     }
@@ -82,7 +85,9 @@ double CTranslatorStatisticsTab::setGraphData(CStructures::TranslationEngine eng
     for (auto it = itstart; it != itend; ++it) {
 
         // Group by day
-        if (range == CStructures::DateRange::drWeek || range == CStructures::DateRange::drMonth) {
+        if (range == CStructures::DateRange::drWeek ||
+                range == CStructures::DateRange::drMonth ||
+                range == CStructures::DateRange::drThisMonth) {
             filteredData[it.key()] = it.value();
 
         // Group by month
@@ -97,7 +102,9 @@ double CTranslatorStatisticsTab::setGraphData(CStructures::TranslationEngine eng
     }
 
     // Add zero values if translator was not used on specified date
-    if (range == CStructures::DateRange::drWeek || range == CStructures::DateRange::drMonth) {
+    if (range == CStructures::DateRange::drWeek ||
+            range == CStructures::DateRange::drMonth ||
+            range == CStructures::DateRange::drThisMonth) {
         for (qint64 i=0;i<=start.daysTo(end);i++) {
             QDate d = start.addDays(i);
             if (!filteredData.contains(d))
@@ -223,6 +230,14 @@ void CTranslatorStatisticsTab::updateGraph()
         start = end.addMonths(-1);
         rangeExtra = m_dayWidth;
         range = CStructures::DateRange::drMonth;
+        for (qint64 i=0;i<=start.daysTo(end);i++) {
+            QDate d = start.addDays(i);
+            xTicker->addTick(dateToTick(d),d.toString(QSL("d\nMMM")));
+        }
+    } else if (ui->radioRangeThisMonth->isChecked()) {
+        start = QDate(end.year(),end.month(),1);
+        rangeExtra = m_dayWidth;
+        range = CStructures::DateRange::drThisMonth;
         for (qint64 i=0;i<=start.daysTo(end);i++) {
             QDate d = start.addDays(i);
             xTicker->addTick(dateToTick(d),d.toString(QSL("d\nMMM")));

@@ -49,7 +49,8 @@ enum DateRange {
     drWeek = 1,
     drMonth = 2,
     drYear = 3,
-    drAll = 4
+    drAll = 4,
+    drThisMonth = 5
 };
 Q_ENUM_NS(DateRange)
 

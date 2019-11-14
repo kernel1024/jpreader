@@ -69,7 +69,14 @@
         <item>
          <widget class="QRadioButton" name="radioRangeMonth">
           <property name="text">
-           <string>Month</string>
+           <string>Last month</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioRangeThisMonth">
+          <property name="text">
+           <string>This month</string>
           </property>
          </widget>
         </item>
@@ -115,6 +122,13 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>radioRangeWeek</tabstop>
+  <tabstop>radioRangeMonth</tabstop>
+  <tabstop>radioRangeThisMonth</tabstop>
+  <tabstop>radioRangeYear</tabstop>
+  <tabstop>radioRangeAll</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
