@@ -43,6 +43,7 @@ CUserScript::CUserScript(const CUserScript &other)
     m_injectionTime = other.m_injectionTime;
     m_shouldRunOnSubFrames = other.m_shouldRunOnSubFrames;
     m_runFromContextMenu = other.m_runFromContextMenu;
+    m_runByTranslator = other.m_runByTranslator;
 }
 
 CUserScript::CUserScript(const QString &name, const QString &source)
@@ -165,6 +166,10 @@ void CUserScript::setSource(const QString &src)
                 m_runFromContextMenu = true;
                 m_injectionTime = DocumentReadyTime;
 
+            } else if (injectionTime == QSL("translator")) {
+                m_runByTranslator = true;
+                m_injectionTime = DocumentReadyTime;
+
             } else {
                 m_injectionTime = DocumentReadyTime;
             }
@@ -264,4 +269,9 @@ bool CUserScript::shouldRunOnSubFrames() const
 bool CUserScript::shouldRunFromContextMenu() const
 {
     return m_runFromContextMenu;
+}
+
+bool CUserScript::shouldRunByTranslator() const
+{
+    return m_runByTranslator;
 }

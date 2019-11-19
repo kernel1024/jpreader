@@ -78,7 +78,8 @@ public:
     QUrl cleanUrlForRealm(const QUrl &origin) const;
 
     // Userscripts
-    QVector<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu);
+    QVector<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu,
+                                              bool isTranslator);
     void initUserScripts(const CStringHash& scripts);
     CStringHash getUserScripts();
 

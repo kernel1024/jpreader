@@ -9,5 +9,6 @@
     <qresource prefix="/data">
         <file alias="startpage">data/startpage.html</file>
         <file alias="article-style.css">data/article-style.css</file>
+        <file alias="userscript.js">data/userscript.js</file>
     </qresource>
 </RCC>

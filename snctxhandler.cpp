@@ -323,7 +323,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     m_menu.addSeparator();
 
-    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,true);
+    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,true,false);
     if (!scripts.isEmpty()) {
         ccm = m_menu.addMenu(QIcon::fromTheme(QSL("run-build")),
                           tr("Start user script"));

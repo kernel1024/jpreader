@@ -45,8 +45,27 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
     });
 }
 
+void CSnTrans::applyScripts()
+{
+    QUrl origin = snv->txtBrowser->page()->url();
+    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,false,true);
+    for (const auto &script : scripts) {
+        QEventLoop ev;
+        connect(this,&CSnTrans::scriptFinished,&ev,&QEventLoop::quit);
+        QTimer::singleShot(0,this,[this,script](){
+            snv->txtBrowser->page()->runJavaScript(script.getSource(),
+                                                   QWebEngineScript::MainWorld,[this](const QVariant &v){
+                Q_UNUSED(v)
+                Q_EMIT scriptFinished();
+            });
+        });
+        ev.exec();
+    }
+}
+
 void CSnTrans::reparseDocument()
 {
+    applyScripts();
     snv->txtBrowser->page()->toHtml([this](const QString& result) { reparseDocumentPriv(result); });
 }
 
@@ -61,7 +80,7 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     QScopedPointer<CTranslator> ct(new CTranslator(nullptr,data));
     QString res;
     if (!ct->documentReparse(data,res)) {
-        QMessageBox::critical(snv,tr("JPReader"),tr("Translation to XML failed."));
+        QMessageBox::critical(snv,tr("JPReader"),tr("Parsing failed."));
         return;
     }
 
@@ -80,6 +99,7 @@ void CSnTrans::translate(bool forceTranslateSubSentences)
     m_savedBaseUrl = snv->txtBrowser->page()->url();
     if (m_savedBaseUrl.hasFragment())
         m_savedBaseUrl.setFragment(QString());
+    applyScripts();
     snv->txtBrowser->page()->toHtml([this,forceTranslateSubSentences](const QString& html) {
         translatePriv(html,forceTranslateSubSentences);
     });
@@ -93,7 +113,7 @@ void CSnTrans::getImgUrlsAndParse()
         QString res;
         if (!ct->documentReparse(result,res)) {
             QMessageBox::critical(snv,tr("JPReader"),
-                                  tr("Translation to XML failed. Unable to get image urls."));
+                                  tr("Parsing failed. Unable to get image urls."));
             return;
         }
 

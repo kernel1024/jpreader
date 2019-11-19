@@ -19,7 +19,9 @@ private:
     QUrl m_savedBaseUrl;
     void findWordTranslation(const QString& text);
     void openSeparateTranslationTab(const QString& html, const QUrl &baseUrl);
-
+    void applyScripts();
+signals:
+    void scriptFinished();
 public:
     explicit CSnTrans(CSnippetViewer * parent);
     void translate(bool forceTranslateSubSentences);

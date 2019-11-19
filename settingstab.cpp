@@ -1114,12 +1114,20 @@ void CSettingsTab::setDefaultSearch()
 void CSettingsTab::addUserScript()
 {
     static QSize addScriptDlgSize;
+
+    QFile f(QSL(":/data/userscript.js"));
+    QString js;
+    if (f.open(QIODevice::ReadOnly))
+        js = QString::fromUtf8(f.readAll());
+
     QDialog dlg(this);
     Ui::UserScriptEditorDlg dui;
     dui.setupUi(&dlg);
     if (!addScriptDlgSize.isEmpty())
         dlg.resize(addScriptDlgSize);
 
+    dui.editTitle->setText(tr("Script title"));
+    dui.editSource->setPlainText(js);
     if (dlg.exec()==QDialog::Accepted) {
         auto itm = new QListWidgetItem(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());

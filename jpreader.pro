@@ -226,7 +226,8 @@ include( qcustomplot/qcustomplot.pri )
 
 OTHER_FILES += \
     data/startpage.html \
-    data/article-style.css
+    data/article-style.css \
+    data/userscript.js
 
 DBUS_ADAPTORS = org.kernel1024.jpreader.auxtranslator.xml \
     org.kernel1024.jpreader.browsercontroller.xml
@@ -234,6 +235,5 @@ DBUS_ADAPTORS = org.kernel1024.jpreader.auxtranslator.xml \
 DISTFILES += \
     .clang-tidy \
     README.md \
-    data/pixiv-built-in.js \
     org.kernel1024.jpreader.auxtranslator.xml \
     org.kernel1024.jpreader.browsercontroller.xml

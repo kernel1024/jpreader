@@ -56,6 +56,7 @@ public:
     bool isEnabledForUrl(const QUrl &url) const;
     bool shouldRunOnSubFrames() const;
     bool shouldRunFromContextMenu() const;
+    bool shouldRunByTranslator() const;
 
 protected:
     bool checkUrl(const QUrl &url, const QStringList &rules) const;
@@ -74,6 +75,7 @@ private:
     InjectionTime m_injectionTime { DocumentReadyTime };
     bool m_shouldRunOnSubFrames { true };
     bool m_runFromContextMenu { false };
+    bool m_runByTranslator { false };
 
 };
 
