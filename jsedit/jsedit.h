@@ -97,6 +97,7 @@ public Q_SLOTS:
 protected:
     void resizeEvent(QResizeEvent *e);
     void wheelEvent(QWheelEvent *e);
+    bool eventFilter(QObject* obj, QEvent* event);
 
 private Q_SLOTS:
     void updateCursor();

@@ -28,7 +28,10 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+// TODO: Optimize this. Original source is very outdated and not maintained.
+
 #include "jsedit.h"
+#include "structures.h"
 
 #include <QtGui>
 
@@ -684,6 +687,8 @@ JSEdit::JSEdit(QWidget *parent)
     textFont.setFamily("Monospace");
     setFont(textFont);
 #endif
+
+    installEventFilter(this);
 }
 
 JSEdit::~JSEdit()
@@ -900,6 +905,28 @@ void JSEdit::wheelEvent(QWheelEvent *e)
         return;
     }
     QPlainTextEdit::wheelEvent(e);
+}
+
+bool JSEdit::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *key = static_cast<QKeyEvent*>(event);
+        if(key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return)
+        {
+            QRegularExpression rx(QSL("^(\\s+)"));
+            QRegularExpressionMatch match = rx.match(textCursor().block().text());
+            if (match.hasMatch()) {
+                QString indent = match.captured(1);
+
+                textCursor().insertBlock();
+                textCursor().insertText(indent);
+                return true;
+            }
+            // TODO: add indent after opening brace
+        }
+    }
+
+    return QObject::eventFilter(obj, event);
 }
 
 
