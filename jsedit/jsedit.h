@@ -47,7 +47,7 @@ class JSEdit: public QPlainTextEdit
 
 public:
 
-    typedef enum {
+    enum ColorComponent {
         Background,
         Normal,
         Comment,
@@ -64,10 +64,11 @@ public:
         BracketMatch,
         BracketError,
         FoldIndicator
-    } ColorComponent;
+    };
+    Q_ENUM(ColorComponent)
 
-    JSEdit(QWidget *parent = nullptr);
-    ~JSEdit();
+    explicit JSEdit(QWidget *parent = nullptr);
+    ~JSEdit() override;
 
     void setColor(ColorComponent component, const QColor &color);
 
@@ -95,17 +96,17 @@ public Q_SLOTS:
     void toggleFold(int line);
 
 protected:
-    void resizeEvent(QResizeEvent *e);
-    void wheelEvent(QWheelEvent *e);
-    bool eventFilter(QObject* obj, QEvent* event);
+    void resizeEvent(QResizeEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private Q_SLOTS:
     void updateCursor();
     void updateSidebar(const QRect &rect, int d);
 
 private:
-    QScopedPointer<JSEditPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(JSEdit)
+    QScopedPointer<JSEditPrivate> dptr;
+    Q_DECLARE_PRIVATE_D(dptr,JSEdit)
     Q_DISABLE_COPY(JSEdit)
 };
 

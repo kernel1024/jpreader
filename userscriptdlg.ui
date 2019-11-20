@@ -32,7 +32,11 @@
     </widget>
    </item>
    <item>
-    <widget class="JSEdit" name="editSource"/>
+    <widget class="JSEdit" name="editSource">
+     <property name="lineWrapMode">
+      <enum>QPlainTextEdit::NoWrap</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
