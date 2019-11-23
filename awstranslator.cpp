@@ -5,6 +5,8 @@
 #include <QNetworkReply>
 #include <QMessageAuthenticationCode>
 #include <QCryptographicHash>
+#include <QRandomGenerator>
+#include <QThread>
 #include <algorithm>
 #include "awstranslator.h"
 
@@ -130,27 +132,43 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
     const QString amz_target(QSL("AWSShineFrontendService_20170701.TranslateText"));
     const QString contentType(QSL("application/x-amz-json-1.1"));
 
-    CStringHash signedHeaders;
-    signedHeaders[QSL("Content-Type")] = contentType;
+    const CStringHash signedHeaders = { { QSL("Content-Type"), contentType } };
 
-    QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
+    int retries = 0;
+    int status = CDefaults::httpCodeClientUnknownError;
+    QByteArray ra;
+    while (retries < CDefaults::awsMaxRetries) {
+        QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
 
-    QNetworkReply *rpl = nam()->post(rq,payload);
+        QNetworkReply *rpl = nam()->post(rq,payload);
 
-    if (!waitForReply(rpl)) {
-        setErrorMsg(QSL("ERROR: AWS translator network error"));
-        return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
+        if (!waitForReply(rpl)) {
+            setErrorMsg(QSL("ERROR: AWS translator network error"));
+            return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
+        }
+
+        ra = rpl->readAll();
+
+        QVariant vstatus = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+        bool ok;
+        status = vstatus.toInt(&ok);
+        if (!ok)
+            status = CDefaults::httpCodeClientUnknownError;
+
+        rpl->close();
+
+        if (status == CDefaults::httpCodeTooManyRequests) {
+            qWarning() << QSL("AWS translator 0x%1 throttling, delay and retry #%2.")
+                          .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()),QT_POINTER_SIZE*2,16,QChar('0'))
+                          .arg(retries);
+            QApplication::processEvents();
+            QThread::sleep(QRandomGenerator::global()->bounded(CDefaults::awsMinRetryDelay,
+                                                               CDefaults::awsMaxRetryDelay));
+            retries++;
+        } else {
+            break;
+        }
     }
-
-    QByteArray ra = rpl->readAll();
-
-    QVariant vstatus = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    bool ok;
-    int status = vstatus.toInt(&ok);
-    if (!ok)
-        status = CDefaults::httpCodeClientUnknownError;
-
-    rpl->close();
 
     doc = QJsonDocument::fromJson(ra);
     if (doc.isNull()) {
