@@ -19,13 +19,14 @@
 #include "logdisplay.h"
 #include "globalprivate.h"
 
-extern "C" {
-#include <unistd.h>
-#include <magic.h>
 #include <unicode/utypes.h>
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
+
+extern "C" {
+#include <unistd.h>
+#include <magic.h>
 #include <zip.h>
 }
 
