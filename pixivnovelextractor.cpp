@@ -338,11 +338,11 @@ void CPixivNovelExtractor::subWorkFinished()
                          .arg(kl.first(),kl.last()));
         }
 
-        QString rpl = QSL("<img src=\"%1\"").arg(it.value());
+        QString rpl = QSL("<br /><img src=\"%1\"").arg(it.value());
         if (it.value().startsWith(QSL("data:"))) {
-            rpl.append(QSL("/ >"));
+            rpl.append(QSL("/ ><br />"));
         } else {
-            rpl.append(QSL(" width=\"%1px;\"/ >")
+            rpl.append(QSL(" width=\"%1px;\"/ ><br />")
                        .arg(gSet->settings()->pdfImageMaxSize));
         }
         m_html.replace(rx, rpl);
