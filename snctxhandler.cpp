@@ -423,12 +423,18 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
                    snv->transHandler,&CSnTrans::getImgUrlsAndParse);
 
-    if (origin.toString().contains(QRegularExpression(QSL("pixiv.net/.*?artworks/\\d+"),
-                                                      QRegularExpression::CaseInsensitiveOption))) {
+    QRegularExpression pixivMangaRx(QSL("pixiv.net/.*?artworks/\\d+"),
+                                    QRegularExpression::CaseInsensitiveOption);
+    if (origin.toString().contains(pixivMangaRx) ||
+            pixivUrl.toString().contains(pixivMangaRx)) {
 
         ac = ccm->addAction(tr("Download all images from Pixiv illustration"),
                             snv->netHandler,&CSnNet::downloadPixivManga);
-        ac->setData(origin);
+        if (origin.toString().contains(pixivMangaRx)) {
+            ac->setData(origin);
+        } else {
+            ac->setData(pixivUrl);
+        }
         pixivActions.append(ac);
     }
     ccm->addSeparator();
