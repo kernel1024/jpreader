@@ -205,8 +205,14 @@ void CSnMsgHandler::linkHovered(const QString &link)
 
 void CSnMsgHandler::showInspector()
 {
-    QList<int> heights({ 3*snv->splitter->height()/4,
-                         snv->splitter->height()/4});
+    QList<int> heights;
+    if (snv->splitter->sizes().last()>0) {
+        heights << snv->splitter->height();
+        heights << 0;
+    } else {
+        heights << 3*snv->splitter->height()/4;
+        heights << snv->splitter->height()/4;
+        snv->inspector->page()->setInspectedPage(snv->txtBrowser->page());
+    }
     snv->splitter->setSizes(heights);
-    snv->inspector->page()->setInspectedPage(snv->txtBrowser->page());
 }

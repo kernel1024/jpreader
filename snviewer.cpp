@@ -130,6 +130,8 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
     connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::searchFocus);
+    sc = new QShortcut(QKeySequence(Qt::Key_F12),this);
+    connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::showInspector);
 
     waitPanel->hide();
     errorPanel->hide();

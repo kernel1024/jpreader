@@ -396,6 +396,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                    this,&CSnCtxHandler::showSource,QKeySequence(Qt::CTRL + Qt::Key_E));
 
     ac = ccm->addAction(tr("Inspect page"));
+    ac->setShortcut(QKeySequence(Qt::Key_F12));
     connect(ac, &QAction::triggered, snv->msgHandler, &CSnMsgHandler::showInspector);
 
     ccm->addSeparator();
