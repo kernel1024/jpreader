@@ -72,7 +72,7 @@ void CSettings::writeSettings()
     settings.remove(QString());
 
     QFileInfo fi(settings.fileName());
-    writeBinaryBigData(fi.dir().filePath(QSL("jpreader-bigdata.bin")));
+    writeBinaryBigData(fi.dir().filePath(QSL("jpreader-bigdata")));
 
     settings.setValue(QSL("maxLimit"),maxSearchLimit);
     settings.setValue(QSL("maxHistory"),maxHistory);
@@ -155,8 +155,52 @@ void CSettings::writeSettings()
     gSet->d_func()->settingsSaveMutex.unlock();
 }
 
-bool CSettings::readBinaryBigData(QObject *control, const QString& filename)
+bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
 {
+    auto g = qobject_cast<CGlobalControl *>(control);
+    if (!g) return false;
+
+    QDir bigdataDir(dirname);
+    if (!bigdataDir.exists()) {
+        return false;
+    }
+
+    atlHostHistory = readData(bigdataDir,QSL("atlHostHistory"),QStringList()).toStringList();
+    g->d_func()->mainHistory = readData(bigdataDir,QSL("mainHistory")).value<CUrlHolderVector>();
+    userAgentHistory = readData(bigdataDir,QSL("userAgentHistory")).toStringList();
+    dictPaths = readData(bigdataDir,QSL("dictPaths")).toStringList();
+    g->d_func()->ctxSearchEngines = readData(bigdataDir,QSL("ctxSearchEngines")).value<CStringHash>();
+    atlCerts = readData(bigdataDir,QSL("atlCerts")).value<CSslCertificateHash>();
+    g->d_func()->recentFiles = readData(bigdataDir,QSL("recentFiles")).toStringList();
+    translatorPairs = readData(bigdataDir,QSL("translatorPairs")).value<QVector<CLangPair> >();
+    subsentencesMode = readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>();
+    g->d_func()->noScriptWhiteList = readData(bigdataDir,QSL("noScriptWhiteList")).value<CStringSet>();
+    translatorStatistics = readData(bigdataDir,QSL("translatorStatistics")).value<CTranslatorStatistics>();
+
+    g->d_func()->searchHistory = readData(bigdataDir,QSL("searchHistory")).toStringList();
+    Q_EMIT g->updateAllQueryLists();
+
+    CStringHash scripts = readData(bigdataDir,QSL("userScripts")).value<CStringHash>();
+    g->initUserScripts(scripts);
+
+    QByteArray bookmarks = readByteArray(bigdataDir,QSL("bookmarks"));
+    g->d_func()->bookmarksManager->load(bookmarks);
+
+    QByteArray adblock = readByteArray(bigdataDir,QSL("adblock"));
+    QtConcurrent::run([this,g,adblock]() {
+        QDataStream bufs(adblock);
+        bufs >> g->d_func()->adblock;
+        qInfo() << "Adblock rules loaded";
+        Q_EMIT adblockRulesUpdated();
+    });
+
+    return true;
+}
+
+bool CSettings::readBinaryBigDataOld(QObject *control, const QString& filename)
+{
+    // NOTE: Not so old legacy support. Do not add anything.
+
     auto g = qobject_cast<CGlobalControl *>(control);
     if (!g) return false;
 
@@ -216,41 +260,93 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& filename)
     return true;
 }
 
-void CSettings::writeBinaryBigData(const QString &filename)
+void CSettings::writeBinaryBigData(const QString &dirname)
 {
-    QFile fBigdata(filename);
-    if (!fBigdata.open(QIODevice::WriteOnly)) {
-        qCritical() << "Unable to create config file for bigdata section: " << filename;
-        return;
+    QDir bigdataDir(dirname);
+    if (!bigdataDir.exists()) {
+        if (!bigdataDir.mkpath(QSL("."))) {
+            qCritical() << "Unable to create config file directory for bigdata section: " << dirname;
+            return;
+        }
     }
 
-    QDataStream bigdata(&fBigdata);
-    bigdata << CDefaults::bigdataMagic;
-    bigdata.setVersion(QDataStream::Qt_5_10);
+    Q_ASSERT(writeData(dirname,QSL("searchHistory"),    QVariant::fromValue(gSet->d_func()->searchHistory)));
+    Q_ASSERT(writeData(dirname,QSL("atlHostHistory"),   QVariant::fromValue(atlHostHistory)));
+    Q_ASSERT(writeData(dirname,QSL("mainHistory"),      QVariant::fromValue(gSet->d_func()->mainHistory)));
+    Q_ASSERT(writeData(dirname,QSL("userAgentHistory"), QVariant::fromValue(userAgentHistory)));
+    Q_ASSERT(writeData(dirname,QSL("dictPaths"),        QVariant::fromValue(dictPaths)));
+    Q_ASSERT(writeData(dirname,QSL("ctxSearchEngines"), QVariant::fromValue(gSet->d_func()->ctxSearchEngines)));
+    Q_ASSERT(writeData(dirname,QSL("atlCerts"),         QVariant::fromValue(atlCerts)));
+    Q_ASSERT(writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)));
+    Q_ASSERT(writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())));
+    Q_ASSERT(writeData(dirname,QSL("translatorPairs"),  QVariant::fromValue(translatorPairs)));
+    Q_ASSERT(writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(subsentencesMode)));
+    Q_ASSERT(writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)));
+    Q_ASSERT(writeData(dirname,QSL("translatorStatistics"),QVariant::fromValue(translatorStatistics)));
 
-    bigdata << gSet->d_func()->searchHistory;
-    bigdata << atlHostHistory;
-    bigdata << gSet->d_func()->mainHistory;
-    bigdata << userAgentHistory;
-    bigdata << dictPaths;
-    bigdata << gSet->d_func()->ctxSearchEngines;
-    bigdata << atlCerts;
-    bigdata << gSet->d_func()->recentFiles;
-    bigdata << gSet->getUserScripts();
-    bigdata << gSet->d_func()->bookmarksManager->save();
-    bigdata << translatorPairs;
-    bigdata << subsentencesMode;
+    Q_ASSERT(writeByteArray(dirname,QSL("bookmarks"),   gSet->d_func()->bookmarksManager->save()));
 
+    // save adblock data as binary dump for bulk loading with deferred parsing
     QByteArray buf;
     QDataStream bufs(&buf,QIODevice::WriteOnly);
     bufs << gSet->d_func()->adblock;
-    bigdata << buf;
+    Q_ASSERT(writeByteArray(dirname,QSL("adblock"),buf));
+}
 
-    bigdata << gSet->d_func()->noScriptWhiteList;
-
-    bigdata << translatorStatistics;
-
+QByteArray CSettings::readByteArray(const QDir& directory, const QString &name)
+{
+    QByteArray res;
+    QFile fBigdata(directory.filePath(name));
+    if (!fBigdata.open(QIODevice::ReadOnly)) {
+        return res;
+    }
+    res = fBigdata.readAll();
     fBigdata.close();
+    return res;
+}
+
+QVariant CSettings::readData(const QDir& directory, const QString &name, const QVariant &defaultValue)
+{
+    QByteArray ba = readByteArray(directory,name);
+    if (ba.isEmpty())
+        return defaultValue;
+
+    QVariant buf;
+    QDataStream bigdata(ba);
+    bigdata.setVersion(QDataStream::Qt_5_10);
+    bigdata >> buf;
+
+    if (!defaultValue.isNull() && defaultValue.isValid()) {
+        if (defaultValue.userType() == buf.userType())
+            return buf;
+    }
+
+    if (buf.isValid())
+        return buf;
+
+    qCritical() << "Failed to read valid value for " << name;
+    return defaultValue;
+}
+
+bool CSettings::writeByteArray(const QDir& directory, const QString &name, const QByteArray &data)
+{
+    QFile fBigdata(directory.filePath(name));
+    if (!fBigdata.open(QIODevice::WriteOnly)) {
+        qCritical() << "Unable to create config file for bigdata section: " << fBigdata.fileName();
+        return false;
+    }
+    fBigdata.write(data);
+    fBigdata.close();
+    return true;
+}
+
+bool CSettings::writeData(const QDir& directory, const QString &name, const QVariant &data)
+{
+    QByteArray ba;
+    QDataStream bigdata(&ba,QIODevice::WriteOnly);
+    bigdata.setVersion(QDataStream::Qt_5_10);
+    bigdata << data;
+    return writeByteArray(directory,name,ba);
 }
 
 void CSettings::readSettings(QObject *control)
@@ -262,31 +358,34 @@ void CSettings::readSettings(QObject *control)
     settings.beginGroup(QSL("MainWindow"));
 
     QFileInfo fi(settings.fileName());
-    if (!readBinaryBigData(g,fi.dir().filePath(QSL("jpreader-bigdata.bin")))) {
 
-        // *** Legacy config support, DO NOT add new structures!
+    if (!readBinaryBigData(g,fi.dir().filePath(QSL("jpreader-bigdata")))) {
+        if (!readBinaryBigDataOld(g,fi.dir().filePath(QSL("jpreader-bigdata.bin")))) {
 
-        QSettings bigdata(QSL("kernel1024"), QSL("jpreader-bigdata"));
-        bigdata.beginGroup(QSL("main"));
+            // NOTE: Legacy config support, DO NOT add new structures!
 
-        g->d_func()->searchHistory = bigdata.value(QSL("searchHistory"),QStringList()).toStringList();
-        Q_EMIT g->updateAllQueryLists();
+            QSettings bigdata(QSL("kernel1024"), QSL("jpreader-bigdata"));
+            bigdata.beginGroup(QSL("main"));
 
-        atlHostHistory = bigdata.value(QSL("atlHostHistory"),QStringList()).toStringList();
-        g->d_func()->mainHistory = bigdata.value(QSL("history")).value<CUrlHolderVector>();
-        userAgentHistory = bigdata.value(QSL("userAgentHistory"),QStringList()).toStringList();
-        dictPaths = bigdata.value(QSL("dictPaths"),QStringList()).toStringList();
-        g->d_func()->ctxSearchEngines = bigdata.value(QSL("ctxSearchEngines")).value<CStringHash>();
-        atlCerts = bigdata.value(QSL("atlasCertificates")).value<CSslCertificateHash>();
-        g->d_func()->recentFiles = bigdata.value(QSL("recentFiles"),QStringList()).toStringList();
-        g->initUserScripts(bigdata.value(QSL("userScripts")).value<CStringHash>());
-        g->d_func()->bookmarksManager->load(bigdata.value(QSL("bookmarks2"),QByteArray()).toByteArray());
-        translatorPairs = bigdata.value(QSL("translatorPairs")).value<CLangPairVector>();
-        subsentencesMode = bigdata.value(QSL("subsentencesMode")).value<CSubsentencesMode>();
-        g->d_func()->adblock = bigdata.value(QSL("adblock")).value<CAdBlockVector>();
-        g->d_func()->noScriptWhiteList = bigdata.value(QSL("noScriptWhitelist")).value<CStringSet>();
+            g->d_func()->searchHistory = bigdata.value(QSL("searchHistory"),QStringList()).toStringList();
+            Q_EMIT g->updateAllQueryLists();
 
-        bigdata.endGroup();
+            atlHostHistory = bigdata.value(QSL("atlHostHistory"),QStringList()).toStringList();
+            g->d_func()->mainHistory = bigdata.value(QSL("history")).value<CUrlHolderVector>();
+            userAgentHistory = bigdata.value(QSL("userAgentHistory"),QStringList()).toStringList();
+            dictPaths = bigdata.value(QSL("dictPaths"),QStringList()).toStringList();
+            g->d_func()->ctxSearchEngines = bigdata.value(QSL("ctxSearchEngines")).value<CStringHash>();
+            atlCerts = bigdata.value(QSL("atlasCertificates")).value<CSslCertificateHash>();
+            g->d_func()->recentFiles = bigdata.value(QSL("recentFiles"),QStringList()).toStringList();
+            g->initUserScripts(bigdata.value(QSL("userScripts")).value<CStringHash>());
+            g->d_func()->bookmarksManager->load(bigdata.value(QSL("bookmarks2"),QByteArray()).toByteArray());
+            translatorPairs = bigdata.value(QSL("translatorPairs")).value<CLangPairVector>();
+            subsentencesMode = bigdata.value(QSL("subsentencesMode")).value<CSubsentencesMode>();
+            g->d_func()->adblock = bigdata.value(QSL("adblock")).value<CAdBlockVector>();
+            g->d_func()->noScriptWhiteList = bigdata.value(QSL("noScriptWhitelist")).value<CStringSet>();
+
+            bigdata.endGroup();
+        }
     }
 
     int idx=0;

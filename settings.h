@@ -10,6 +10,7 @@
 #include <QMutex>
 #include <QTimer>
 #include <QUrl>
+#include <QDir>
 
 #include "structures.h"
 
@@ -163,9 +164,14 @@ Q_SIGNALS:
 private:
     QVector<QUrl> getTabsList() const;
     void writeTabsListPrivate(const QVector<QUrl> &tabList);
-    bool readBinaryBigData(QObject* control, const QString &filename);
-    void writeBinaryBigData(const QString &filename);
-
+    bool readBinaryBigData(QObject* control, const QString &dirname);
+    bool readBinaryBigDataOld(QObject *control, const QString &filename);
+    void writeBinaryBigData(const QString &dirname);
+    QByteArray readByteArray(const QDir &directory, const QString &name);
+    bool writeByteArray(const QDir &directory, const QString &name, const QByteArray &data);
+    bool writeData(const QDir &directory, const QString& name, const QVariant& data);
+    QVariant readData(const QDir &directory, const QString &name,
+                      const QVariant &defaultValue = QVariant());
 public Q_SLOTS:
     void writeSettings();
     void settingsTab();
