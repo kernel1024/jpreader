@@ -187,7 +187,7 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
     });
 }
 
-void CGlobalUI::rebuildLanguageActions(QObject * control, const QString& activeLangPair)
+void CGlobalUI::rebuildLanguageActions(QObject * control)
 {
     QObject* cg = control;
     if (cg==nullptr) cg = gSet;
@@ -199,7 +199,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control, const QString& activeL
     QString selectedHash;
     bool firstRun = (languageSelector->checkedAction()==nullptr);
     if (firstRun) {
-        selectedHash = activeLangPair;
+        selectedHash = g->m_settings->selectedLangPairs.value(g->m_settings->translatorEngine,QString());
     } else {
         selectedHash = languageSelector->checkedAction()->data().toString();
     }
@@ -207,6 +207,9 @@ void CGlobalUI::rebuildLanguageActions(QObject * control, const QString& activeL
     languageSelector->deleteLater();
     languageSelector = new QActionGroup(this);
 
+    connect(languageSelector,&QActionGroup::triggered,[](QAction* action){
+        gSet->m_settings->selectedLangPairs[gSet->m_settings->translatorEngine] = action->data().toString();
+    });
 
     for (const CLangPair& pair : qAsConst(g->settings()->translatorPairs)) {
         QAction *ac = languageSelector->addAction(QSL("%1 - %2").arg(
@@ -274,4 +277,14 @@ QString CGlobalUI::getActiveLangPair() const
             res = ac->data().toString();
     }
     return res;
+}
+
+void CGlobalUI::setActiveLangPair(const QString &hash)
+{
+    for (auto& ac : languageSelector->actions()) {
+        if (ac->data().toString() == hash) {
+            ac->setChecked(true);
+            break;
+        }
+    }
 }

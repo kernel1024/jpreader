@@ -109,6 +109,7 @@ void CGlobalControl::initialize()
     qRegisterMetaTypeStreamOperators<CStringSet>("CStringSet");
     qRegisterMetaTypeStreamOperators<CSubsentencesMode>("CSubsentencesMode");
     qRegisterMetaTypeStreamOperators<CTranslatorStatistics>("CTranslatorStatistics");
+    qRegisterMetaTypeStreamOperators<CSelectedLangPairs>("CSelectedLangPairs");
 
     if (!setupIPC())
         ::exit(0);

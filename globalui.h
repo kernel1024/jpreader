@@ -49,12 +49,13 @@ public:
 
     CStructures::TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
+    void setActiveLangPair(const QString& hash);
 
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
     void showGlobalTooltip(const QString& text);
-    void rebuildLanguageActions(QObject *control = nullptr, const QString &activeLangPair = QString());
+    void rebuildLanguageActions(QObject *control = nullptr);
     void actionToggled();
 
 };

@@ -140,7 +140,6 @@ void CSettings::writeSettings()
     settings.setValue(QSL("jsLogConsole"),jsLogConsole);
     settings.setValue(QSL("dontUseNativeFileDialog"),dontUseNativeFileDialog);
     settings.setValue(QSL("defaultSearchEngine"),defaultSearchEngine);
-    settings.setValue(QSL("activeLangPair"),gSet->m_ui->getActiveLangPair());
 
     settings.setValue(QSL("pdfExtractImages"),pdfExtractImages);
     settings.setValue(QSL("pdfImageMaxSize"),pdfImageMaxSize);
@@ -176,6 +175,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     subsentencesMode = readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>();
     g->d_func()->noScriptWhiteList = readData(bigdataDir,QSL("noScriptWhiteList")).value<CStringSet>();
     translatorStatistics = readData(bigdataDir,QSL("translatorStatistics")).value<CTranslatorStatistics>();
+    selectedLangPairs = readData(bigdataDir,QSL("selectedLangPairs")).value<CSelectedLangPairs>();
 
     g->d_func()->searchHistory = readData(bigdataDir,QSL("searchHistory")).toStringList();
     Q_EMIT g->updateAllQueryLists();
@@ -283,6 +283,7 @@ void CSettings::writeBinaryBigData(const QString &dirname)
     Q_ASSERT(writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(subsentencesMode)));
     Q_ASSERT(writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)));
     Q_ASSERT(writeData(dirname,QSL("translatorStatistics"),QVariant::fromValue(translatorStatistics)));
+    Q_ASSERT(writeData(dirname,QSL("selectedLangPairs"),QVariant::fromValue(selectedLangPairs)));
 
     Q_ASSERT(writeByteArray(dirname,QSL("bookmarks"),   gSet->d_func()->bookmarksManager->save()));
 
@@ -515,14 +516,11 @@ void CSettings::readSettings(QObject *control)
     if (overrideUserAgent)
         g->d_func()->webProfile->setHttpUserAgent(userAgent);
 
-    const QString savedLangPair = settings.value(QSL("activeLangPair"),QString()).toString();
-
-
     settings.endGroup();
 
     Q_EMIT g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
-    g->m_ui->rebuildLanguageActions(g,savedLangPair);
+    g->m_ui->rebuildLanguageActions(g);
 }
 
 void CSettings::settingsTab()
@@ -536,7 +534,11 @@ void CSettings::settingsTab()
 
 void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 {
+    selectedLangPairs[translatorEngine] = gSet->m_ui->getActiveLangPair();
     translatorEngine = engine;
+    if (selectedLangPairs.contains(engine))
+        gSet->m_ui->setActiveLangPair(selectedLangPairs.value(engine));
+
     Q_EMIT gSet->translationEngineChanged();
 }
 

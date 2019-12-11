@@ -112,6 +112,7 @@ public:
     CSslCertificateHash atlCerts;
     CSubsentencesMode subsentencesMode;
     CTranslatorStatistics translatorStatistics;
+    CSelectedLangPairs selectedLangPairs;
 
     int maxHistory { CDefaults::maxHistory };
     int maxRecent { CDefaults::maxRecent };
