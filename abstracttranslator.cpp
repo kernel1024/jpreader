@@ -4,6 +4,7 @@
 #include "yandextranslator.h"
 #include "googlegtxtranslator.h"
 #include "awstranslator.h"
+#include "yandexcloudtranslator.h"
 
 void CAbstractTranslator::setErrorMsg(const QString &msg)
 {
@@ -81,6 +82,10 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, con
     if (engine==CStructures::teAmazonAWS) {
         res = new CAWSTranslator(parent, tranDirection, gSet->settings()->awsRegion,
                                   gSet->settings()->awsAccessKey, gSet->settings()->awsSecretKey);
+    }
+    if (engine==CStructures::teYandexCloud) {
+        res = new CYandexCloudTranslator(parent, tranDirection, gSet->settings()->yandexCloudApiKey,
+                                         gSet->settings()->yandexCloudFolderID);
     }
 
     return res;

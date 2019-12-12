@@ -142,7 +142,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teBingAPI, QSL("Bing API") },
         { teYandexAPI, QSL("Yandex API") },
         { teGoogleGTX, QSL("Google GTX") },
-        { teAmazonAWS, QSL("Amazon Translate") }
+        { teAmazonAWS, QSL("Amazon Translate") },
+        { teYandexCloud, QSL("Yandex Cloud") }
     };
 
     return engines;

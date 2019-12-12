@@ -34,6 +34,7 @@ HEADERS = mainwindow.h \
     downloadmanager.h \
     translatorcache.h \
     translatorstatisticstab.h \
+    yandexcloudtranslator.h \
     yandextranslator.h \
     pdftotext.h \
     sourceviewer.h \
@@ -88,6 +89,7 @@ SOURCES = main.cpp \
     downloadmanager.cpp \
     translatorcache.cpp \
     translatorstatisticstab.cpp \
+    yandexcloudtranslator.cpp \
     yandextranslator.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \

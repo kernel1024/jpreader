@@ -138,6 +138,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teYandexAPI: ui->radioYandexAPI->setChecked(true); break;
         case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
         case CStructures::teAmazonAWS: ui->radioAmazonAWS->setChecked(true); break;
+        case CStructures::teYandexCloud: ui->radioYandexCloud->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -158,6 +159,8 @@ void CSettingsTab::loadFromGlobal()
     ui->editAWSRegion->setText(gSet->m_settings->awsRegion);
     ui->editAWSAccessKey->setText(gSet->m_settings->awsAccessKey);
     ui->editAWSSecretKey->setText(gSet->m_settings->awsSecretKey);
+    ui->editYandexCloudApiKey->setText(gSet->m_settings->yandexCloudApiKey);
+    ui->editYandexCloudFolderID->setText(gSet->m_settings->yandexCloudFolderID);
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
 
@@ -350,6 +353,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->setTranslationEngine(CStructures::teAmazonAWS);
     });
+    connect(ui->radioYandexCloud,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->setTranslationEngine(CStructures::teYandexCloud);
+    });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
@@ -401,6 +409,14 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->editAWSSecretKey,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->awsSecretKey=val;
+    });
+    connect(ui->editYandexCloudApiKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->yandexCloudApiKey=val;
+    });
+    connect(ui->editYandexCloudFolderID,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->yandexCloudFolderID=val;
     });
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;

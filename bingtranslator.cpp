@@ -116,16 +116,11 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     QString res;
     const QJsonArray rootlist = doc.array();
     for (const QJsonValue &rv : qAsConst(rootlist)) {
-        if (!rv.isObject() ||
-                !rv.toObject().contains(QSL("translations")) ||
-                !rv.toObject().value(QSL("translations")).isArray()) continue;
         const QJsonArray translist = rv.toObject().value(QSL("translations")).toArray();
         for (const QJsonValue &tv : qAsConst(translist)) {
-            if (tv.isObject() &&
-                    tv.toObject().contains(QSL("text"))) {
+            if (tv.toObject().contains(QSL("text"))) {
                 res+=tv.toObject().value(QSL("text")).toString();
             }
-
         }
     }
     return res;

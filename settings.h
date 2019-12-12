@@ -96,6 +96,8 @@ public:
     QString awsRegion;
     QString awsAccessKey;
     QString awsSecretKey;
+    QString yandexCloudApiKey;
+    QString yandexCloudFolderID;
 
     QString proxyHost;
     QString proxyLogin;

@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-916</y>
+        <y>0</y>
         <width>822</width>
-        <height>4229</height>
+        <height>4335</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -572,6 +572,13 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QRadioButton" name="radioYandexCloud">
+                  <property name="text">
+                   <string>Yandex Cloud API</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QRadioButton" name="radioGoogleGTX">
                   <property name="text">
                    <string>Google GT&amp;X</string>
@@ -835,6 +842,41 @@
                      <widget class="QLineEdit" name="editYandexKey"/>
                     </item>
                    </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_18">
+                 <property name="title">
+                  <string>Yandex Cloud API</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_8">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_38">
+                    <property name="text">
+                     <string>Folder ID</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editYandexCloudFolderID</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="editYandexCloudFolderID"/>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_39">
+                    <property name="text">
+                     <string>API key</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editYandexCloudApiKey</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="editYandexCloudApiKey"/>
                   </item>
                  </layout>
                 </widget>
@@ -2045,6 +2087,7 @@
   <tabstop>radioAtlas</tabstop>
   <tabstop>radioBingAPI</tabstop>
   <tabstop>radioYandexAPI</tabstop>
+  <tabstop>radioYandexCloud</tabstop>
   <tabstop>radioGoogleGTX</tabstop>
   <tabstop>radioAmazonAWS</tabstop>
   <tabstop>atlHost</tabstop>
@@ -2058,6 +2101,8 @@
   <tabstop>gctxHotkey</tabstop>
   <tabstop>editBingKey</tabstop>
   <tabstop>editYandexKey</tabstop>
+  <tabstop>editYandexCloudFolderID</tabstop>
+  <tabstop>editYandexCloudApiKey</tabstop>
   <tabstop>editAWSRegion</tabstop>
   <tabstop>editAWSAccessKey</tabstop>
   <tabstop>editAWSSecretKey</tabstop>
