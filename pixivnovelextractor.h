@@ -23,7 +23,6 @@ private:
     QMutex m_imgMutex;
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;
-    QHash<QString,int> m_redirectCounter;
     QUrl m_origin;
     QUrl m_mangaOrigin;
     QUrl m_source;

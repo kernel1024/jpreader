@@ -44,7 +44,6 @@ void CPixivNovelExtractor::start()
         Q_EMIT finished();
         return;
     }
-    m_redirectCounter.clear();
 
     QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(m_source);
@@ -65,6 +64,8 @@ void CPixivNovelExtractor::startManga()
 
     QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(m_mangaOrigin);
+        req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
+        req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
         connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
@@ -256,7 +257,6 @@ void CPixivNovelExtractor::subLoadFinished()
         // valid page without redirect or error
         const CIntList idxs = m_imgList.value(key);
         QString html = QString::fromUtf8(rpl->readAll());
-        m_redirectCounter.remove(key);
 
         QString id;
         QStringList imageUrls = parseJsonIllustPage(html,rplUrl,&id);
@@ -290,28 +290,7 @@ void CPixivNovelExtractor::subLoadFinished()
             }
         }
         m_imgMutex.unlock();
-    } else if (httpStatus>=CDefaults::httpCodeRedirect && httpStatus<CDefaults::httpCodeClientError) {
-        // redirect
-        m_redirectCounter[key]++;
-        if (m_redirectCounter.value(key)>CDefaults::httpMaxRedirects) {
-            qCritical() << "Too many redirects for " << rplUrl;
-        } else {
-            QUrl url(QString::fromLatin1(rpl->rawHeader("Location")));
-            if (url.isRelative()) {
-                QUrl base(QSL("https://www.pixiv.net"));
-                url = base.resolved(url);
-            }
-            QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
-                QNetworkRequest req(url);
-                req.setRawHeader("referer",m_origin.toString().toUtf8());
-                QNetworkReply* nrpl = gSet->auxNetworkAccessManager()->get(req);
-                connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-            });
-            rpl->deleteLater();
-            return;
-        }
     } else {
-        m_redirectCounter.remove(key);
         qWarning() << "Failed to fetch image from " << rplUrl;
         qDebug() << rpl->rawHeaderPairs();
     }
@@ -420,6 +399,8 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
         QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
             QNetworkRequest req(url);
             req.setRawHeader("referer",m_origin.toString().toUtf8());
+            req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
+            req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
             QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
         });
