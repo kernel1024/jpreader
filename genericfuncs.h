@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QWidget>
 #include <QFileDialog>
+#include <QElapsedTimer>
 
 namespace CDefaults {
 const int httpCodeFound = 200;
@@ -71,7 +72,7 @@ public:
                                             const QString & dir = QString(),
                                             QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
-    static void profiler(int line, const QTime &time);
+    static void profiler(int line, const QElapsedTimer &time);
 
 private:
     Q_DISABLE_COPY(CGenericFuncs)

@@ -187,7 +187,7 @@ void CIndexerSearch::engineFinished()
 {
     if (!working) return;
     working = false;
-    const int oneK = 1000;
+    const double oneK = 1000.0;
 
     CStringHash stats;
     stats[QSL("jp:elapsedtime")] = QString::number(

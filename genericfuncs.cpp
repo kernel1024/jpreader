@@ -36,7 +36,7 @@ CGenericFuncs::CGenericFuncs(QObject *parent)
 
 }
 
-void CGenericFuncs::profiler(int line, const QTime& time)
+void CGenericFuncs::profiler(int line, const QElapsedTimer& time)
 {
     qInfo() << QSL("Profiling line #%1, ms: %2").arg(line).arg(time.elapsed());
 }

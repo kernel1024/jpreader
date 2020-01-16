@@ -77,16 +77,13 @@ void CPDFWorker::pdfToText(const QString &filename)
 void CPDFWorker::initPdfToText()
 {
 #ifdef WITH_POPPLER
-    const auto textEncoding = "UTF-8";
-    globalParams = new GlobalParams();
-    setErrorCallback(&(CPDFWorkerPrivate::popplerError),nullptr);
-    globalParams->setTextEncoding(const_cast<char *>(textEncoding));
+    CPDFWorkerPrivate::initPdfToText();
 #endif
 }
 
 void CPDFWorker::freePdfToText()
 {
 #ifdef WITH_POPPLER
-    delete globalParams;
+    CPDFWorkerPrivate::freePdfToText();
 #endif
 }

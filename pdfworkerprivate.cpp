@@ -1,5 +1,4 @@
 #include "pdfworkerprivate.h"
-#ifdef WITH_POPPLER
 #include <QByteArray>
 #include <QFileInfo>
 #include <QMessageLogger>
@@ -8,9 +7,12 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
+#ifdef WITH_POPPLER
+
 extern "C" {
 #include <zlib.h>
 }
+#include <memory>
 
 #include <poppler-config.h>
 #include <poppler-version.h>
@@ -26,13 +28,27 @@ extern "C" {
 #include <UnicodeMap.h>
 #include <PDFDocEncoding.h>
 
-#include <QDebug>
-
 #if POPPLER_VERSION_MAJOR==0
+    #if POPPLER_VERSION_MINOR<83
+        #define JPDF_PRE083_API 1
+    #endif
     #if POPPLER_VERSION_MINOR<73
         #define JPDF_PRE073_API 1
     #endif
 #endif
+
+#endif // WITH_POPPLER
+
+#include <QDebug>
+
+CPDFWorkerPrivate::CPDFWorkerPrivate(QObject *parent)
+    : QObject(parent),
+      m_pageSeparator(QSL("##JPREADER_NEWPAGE##"))
+{
+
+}
+
+#ifdef WITH_POPPLER
 
 int CPDFWorkerPrivate::loggedPopplerErrors = 0;
 
@@ -104,13 +120,6 @@ void CPDFWorkerPrivate::popplerError(void *data, ErrorCategory category, Goffset
             QMessageLogger(nullptr, ipos, nullptr, "Poppler").warning() << "Incorrect parameters:" << msg;
             break;
     }
-}
-
-CPDFWorkerPrivate::CPDFWorkerPrivate(QObject *parent)
-    : QObject(parent),
-      m_pageSeparator(QSL("##JPREADER_NEWPAGE##"))
-{
-
 }
 
 void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
@@ -496,4 +505,23 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     return result;
 }
 
+void CPDFWorkerPrivate::initPdfToText()
+{
+    const auto textEncoding = "UTF-8";
+#ifdef JPDF_PRE083_API
+    globalParams = new GlobalParams();
+#else
+    globalParams = std::make_unique<GlobalParams>();
 #endif
+    setErrorCallback(&(CPDFWorkerPrivate::popplerError),nullptr);
+    globalParams->setTextEncoding(const_cast<char *>(textEncoding));
+}
+
+void CPDFWorkerPrivate::freePdfToText()
+{
+#ifdef JPDF_PRE083_API
+    delete globalParams;
+#endif
+}
+
+#endif // WITH_POPPLER

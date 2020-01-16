@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QList>
 #include <QString>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QDir>
 #include <QFileInfo>
 #include <QScopedPointer>
@@ -36,7 +36,7 @@ private:
     QScopedPointer<CAbstractThreadedSearch> engine;
 #endif
     QString m_query;
-    QTime searchTimer;
+    QElapsedTimer searchTimer;
     CStructures::SearchEngine indexerSerivce;
     bool working { false };
     int resultCount { 0 };

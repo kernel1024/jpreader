@@ -7,6 +7,7 @@
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
 #include <QRegularExpression>
+#include <QElapsedTimer>
 #include <goldendictlib/goldendictmgr.hh>
 
 extern "C" {
@@ -90,7 +91,7 @@ void CGlobalControl::initialize()
 {
     Q_D(CGlobalControl);
 
-    QTime initTime;
+    QElapsedTimer initTime;
     initTime.start();
 
     qInstallMessageHandler(CGlobalControlPrivate::stdConsoleOutput);
