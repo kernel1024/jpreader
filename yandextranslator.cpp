@@ -48,7 +48,8 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
 
     QNetworkReply *rpl = nam()->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
-    if (!waitForReply(rpl)) {
+    int status;
+    if (!waitForReply(rpl,&status)) {
         setErrorMsg(tr("ERROR: Yandex translator network error"));
         rpl->deleteLater();
         return QSL("ERROR:TRAN_YANDEX_NETWORK_ERROR");

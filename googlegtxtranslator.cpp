@@ -43,7 +43,8 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
 
     QNetworkReply *rpl = nam()->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
 
-    if (!waitForReply(rpl)) {
+    int status;
+    if (!waitForReply(rpl,&status)) {
         setErrorMsg(QSL("ERROR: Google GTX translator network error"));
         qWarning() << rpl->errorString();
         rpl->deleteLater();

@@ -137,37 +137,40 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
     int retries = 0;
     int status = CDefaults::httpCodeClientUnknownError;
     QByteArray ra;
-    while (retries < CDefaults::awsMaxRetries) {
+    while (retries < getTranslatorRetryCount()) {
         QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
 
-        QNetworkReply *rpl = nam()->post(rq,payload);
+        QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(nam()->post(rq,payload));
 
-        if (!waitForReply(rpl)) {
-            setErrorMsg(QSL("ERROR: AWS translator network error"));
-            return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
-        }
+        bool replyOk = waitForReply(rpl.data(),&status);
 
-        ra = rpl->readAll();
-
-        QVariant vstatus = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-        bool ok;
-        status = vstatus.toInt(&ok);
-        if (!ok)
-            status = CDefaults::httpCodeClientUnknownError;
-
-        rpl->close();
-
-        if (status == CDefaults::httpCodeTooManyRequests) {
-            qWarning() << QSL("AWS translator 0x%1 throttling, delay and retry #%2.")
-                          .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()),QT_POINTER_SIZE*2,16,QChar('0'))
-                          .arg(retries);
-            QApplication::processEvents();
-            QThread::sleep(QRandomGenerator::global()->bounded(CDefaults::awsMinRetryDelay,
-                                                               CDefaults::awsMaxRetryDelay));
-            retries++;
-        } else {
+        // translation is ok or highlevel error
+        if (replyOk && (status != CDefaults::httpCodeTooManyRequests)) {
+            ra = rpl->readAll();
+            rpl->close();
             break;
         }
+
+        // connection error
+        if (!replyOk) {
+            qWarning() << "AWS translator network error, retrying...";
+        }
+
+        // throttling
+        if (status == CDefaults::httpCodeTooManyRequests) {
+            qWarning() << QSL("AWS translator throttling, delay and retry #%1.").arg(retries);
+        }
+
+        QApplication::processEvents();
+        QThread::sleep(getRandomDelay());
+        retries++;
+
+        // TODO: handle cancel request here
+    }
+
+    if (ra.isEmpty()) {
+        setErrorMsg(QSL("ERROR: AWS translator network error"));
+        return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
     }
 
     doc = QJsonDocument::fromJson(ra);

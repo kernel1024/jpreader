@@ -3,6 +3,7 @@
 #include <QBuffer>
 #include <QRegularExpression>
 #include "translator.h"
+#include "atlastranslator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
 #include "translatorcache.h"
@@ -15,8 +16,7 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceT
 {
     m_sourceHtml=sourceHtml;
     m_translationEngine=gSet->settings()->translatorEngine;
-    m_atlTcpRetryCount=gSet->settings()->atlTcpRetryCount;
-    m_atlTcpTimeout=gSet->settings()->atlTcpTimeout;
+    m_retryCount=gSet->settings()->translatorRetryCount;
     m_forceFontColor=gSet->ui()->forceFontColor();
     m_forcedFontColor=gSet->settings()->forcedFontColor;
     m_useOverrideTransFont=gSet->ui()->useOverrideTransFont();
@@ -601,7 +601,7 @@ void CTranslator::translate()
         if (!lp.isAtlasAcceptable()) {
             lastError = tr("ATLAS error: Unacceptable translation pair. Only English and Japanese is supported.");
         } else {
-            for (int i=0;i<m_atlTcpRetryCount;i++) {
+            for (int i=0;i<m_retryCount;i++) {
                 if (translateDocument(m_sourceHtml,translatedHtml)) {
                     oktrans = true;
                     break;
@@ -611,9 +611,11 @@ void CTranslator::translate()
                 } else {
                     lastError = tr("ATLAS translator failed.");
                 }
-                if (m_tran)
+                if (m_tran) {
                     m_tran->doneTran(true);
-                QThread::sleep(static_cast<unsigned long>(m_atlTcpTimeout));
+                    QThread::sleep(m_tran->getRandomDelay(CDefaults::atlasMinRetryDelay,
+                                                          CDefaults::atlasMaxRetryDelay));
+                }
             }
         }
         if (!oktrans) {

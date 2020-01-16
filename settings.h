@@ -23,8 +23,7 @@ const int maxRecent = 10;
 const int maxSearchLimit = 1000;
 const int maxRecycled = 20;
 const int atlPort = 18000;
-const int atlTcpRetryCount = 3;
-const int atlTcpTimeout = 2;
+const int translatorRetryCount = 10;
 const int maxAdblockWhiteList = 5000;
 const int pdfImageMaxSize = 250;
 const int pdfImageQuality = 75;
@@ -120,8 +119,6 @@ public:
     int maxRecent { CDefaults::maxRecent };
     int maxSearchLimit { CDefaults::maxSearchLimit };
     int maxRecycled { CDefaults::maxRecent };
-    int atlTcpRetryCount { CDefaults::atlTcpRetryCount };
-    int atlTcpTimeout { CDefaults::atlTcpTimeout };
     int maxAdblockWhiteList { CDefaults::maxAdblockWhiteList };
     int pdfImageMaxSize { CDefaults::pdfImageMaxSize };
     int pdfImageQuality { CDefaults::pdfImageQuality };
@@ -129,6 +126,7 @@ public:
     int fontSizeDefault { CDefaults::fontSizeDefault };
     int fontSizeFixed { CDefaults::fontSizeFixed };
     int translatorCacheSize { CDefaults::translatorCacheSize };
+    int translatorRetryCount { CDefaults::translatorRetryCount };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };

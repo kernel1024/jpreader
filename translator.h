@@ -56,8 +56,7 @@ private:
     QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
-    int m_atlTcpRetryCount { 0 };
-    int m_atlTcpTimeout { 0 };
+    int m_retryCount { 0 };
     int m_textNodesCnt { 0 };
     int m_textNodesProgress { 0 };
     bool m_abortFlag { false };

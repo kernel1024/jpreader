@@ -7,6 +7,11 @@
 #include <abstracttranslator.h>
 #include "globalcontrol.h"
 
+namespace CDefaults {
+const unsigned int atlasMinRetryDelay = 3;
+const unsigned int atlasMaxRetryDelay = 5;
+}
+
 class CAtlasTranslator : public CAbstractTranslator
 {
     Q_OBJECT
@@ -17,11 +22,11 @@ public:
         JpnToEngTran
     };
 private:
-    QSslSocket sock;
-    QString atlHost;
-    quint16 atlPort;
-    bool inited { false };
-    bool emptyRestore { false };
+    QSslSocket m_sock;
+    QString m_atlHost;
+    quint16 m_atlPort;
+    bool m_inited { false };
+    bool m_emptyRestore { false };
 
     Q_DISABLE_COPY(CAtlasTranslator)
 

@@ -6,6 +6,7 @@
 
 class CYandexCloudTranslator : public CWebAPIAbstractTranslator
 {
+    Q_OBJECT
 private:
     QString m_apiKey;
     QString m_folderID;

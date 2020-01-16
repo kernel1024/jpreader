@@ -115,8 +115,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("gctxHotkey"),gSet->m_ui->gctxTranHotkey.shortcut().toString());
 
     settings.setValue(QSL("searchEngine"),static_cast<int>(searchEngine));
-    settings.setValue(QSL("atlTcpRetryCount"),atlTcpRetryCount);
-    settings.setValue(QSL("atlTcpTimeout"),atlTcpTimeout);
+    settings.setValue(QSL("translatorRetryCount"),translatorRetryCount);
     settings.setValue(QSL("showTabCloseButtons"),showTabCloseButtons);
     settings.setValue(QSL("proxyHost"),proxyHost);
     settings.setValue(QSL("proxyPort"),proxyPort);
@@ -457,10 +456,8 @@ void CSettings::readSettings(QObject *control)
     searchEngine = static_cast<CStructures::SearchEngine>(settings.value(
                                                  QSL("searchEngine"),
                                                  CDefaults::searchEngine).toInt());
-    atlTcpRetryCount = settings.value(QSL("atlTcpRetryCount"),
-                                      CDefaults::atlTcpRetryCount).toInt();
-    atlTcpTimeout = settings.value(QSL("atlTcpTimeout"),
-                                   CDefaults::atlTcpTimeout).toInt();
+    translatorRetryCount = settings.value(QSL("translatorRetryCount"),
+                                          CDefaults::translatorRetryCount).toInt();
     showTabCloseButtons = settings.value(QSL("showTabCloseButtons"),
                                          CDefaults::showTabCloseButtons).toBool();
     proxyHost = settings.value(QSL("proxyHost"),QString()).toString();

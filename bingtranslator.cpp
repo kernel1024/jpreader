@@ -30,7 +30,8 @@ bool CBingTranslator::initTran()
 
     QNetworkReply *rpl = nam()->post(rq,QByteArray());
 
-    if (!waitForReply(rpl)) {
+    int status;
+    if (!waitForReply(rpl,&status)) {
         setErrorMsg(tr("Bing connection error"));
         qCritical() << "Bing connection error: " << rpl->error();
         rpl->deleteLater();
@@ -84,7 +85,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     QNetworkReply *rpl = nam()->post(rq,body);
 
-    if (!waitForReply(rpl)) {
+    int status;
+    if (!waitForReply(rpl,&status)) {
         setErrorMsg(QSL("ERROR: Bing translator network error"));
         return QSL("ERROR:TRAN_BING_NETWORK_ERROR");
     }

@@ -8,6 +8,8 @@
 
 namespace CDefaults {
 const int translatorConnectionTimeout = 60000;
+const unsigned int tranMinRetryDelay = 10;
+const unsigned int tranMaxRetryDelay = 25;
 }
 
 class CAbstractTranslator : public QObject
@@ -16,6 +18,7 @@ class CAbstractTranslator : public QObject
 private:
     QString m_tranError;
     CLangPair m_lang;
+    int m_translatorRetryCount { 10 };
 
     Q_DISABLE_COPY(CAbstractTranslator)
 
@@ -36,6 +39,8 @@ public:
     void doneTran(bool lazyClose = false);
     QString getErrorMsg() const;
     QString tranString(const QString& src);
+    unsigned long getRandomDelay(int min = CDefaults::tranMinRetryDelay, int max = CDefaults::tranMaxRetryDelay);
+    int getTranslatorRetryCount() const;
 
     static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection);
 

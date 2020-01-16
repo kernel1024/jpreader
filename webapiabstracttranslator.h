@@ -9,7 +9,7 @@ class CWebAPIAbstractTranslator : public CAbstractTranslator
 {
     Q_OBJECT
 protected:
-    bool waitForReply(QNetworkReply* reply);
+    bool waitForReply(QNetworkReply* reply, int *httpStatus);
     void initNAM();
     QNetworkAccessManager* nam() { return m_nam; }
 

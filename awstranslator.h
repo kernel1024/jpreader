@@ -5,12 +5,6 @@
 #include "structures.h"
 #include "webapiabstracttranslator.h"
 
-namespace CDefaults {
-const int awsMaxRetries = 10;
-const unsigned int awsMinRetryDelay = 10;
-const unsigned int awsMaxRetryDelay = 25;
-}
-
 class CAWSTranslator : public CWebAPIAbstractTranslator
 {
     Q_OBJECT

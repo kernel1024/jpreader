@@ -145,14 +145,13 @@ void CSettingsTab::loadFromGlobal()
     ui->atlHost->addItems(gSet->m_settings->atlHostHistory);
     ui->atlHost->setEditText(gSet->m_settings->atlHost);
     ui->atlPort->setValue(gSet->m_settings->atlPort);
-    ui->atlRetryCnt->setValue(gSet->m_settings->atlTcpRetryCount);
-    ui->atlRetryTimeout->setValue(gSet->m_settings->atlTcpTimeout);
     ui->atlToken->setText(gSet->m_settings->atlToken);
     int idx = ui->atlSSLProto->findData(gSet->m_settings->atlProto);
     if (idx<0 || idx>=ui->atlSSLProto->count())
         idx = 0;
     ui->atlSSLProto->setCurrentIndex(idx);
     updateAtlCertLabel();
+    ui->tranRetryCnt->setValue(gSet->m_settings->translatorRetryCount);
 
     ui->editBingKey->setText(gSet->m_settings->bingKey);
     ui->editYandexKey->setText(gSet->m_settings->yandexKey);
@@ -372,13 +371,9 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->atlPort=static_cast<quint16>(val);
     });
-    connect(ui->atlRetryCnt,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+    connect(ui->tranRetryCnt,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
-        gSet->m_settings->atlTcpRetryCount=val;
-    });
-    connect(ui->atlRetryTimeout,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
-        if (m_loadingInterlock) return;
-        gSet->m_settings->atlTcpTimeout=val;
+        gSet->m_settings->translatorRetryCount=val;
     });
     connect(ui->atlToken,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;

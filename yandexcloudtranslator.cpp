@@ -47,19 +47,14 @@ QString CYandexCloudTranslator::tranStringInternal(const QString &src)
 
     QNetworkReply *rpl = nam()->post(rq,body);
 
-    if (!waitForReply(rpl)) {
+    int status;
+    if (!waitForReply(rpl,&status)) {
         setErrorMsg(tr("ERROR: Yandex Cloud translator network error"));
         rpl->deleteLater();
         return QSL("ERROR:TRAN_YANDEX_CLOUD_NETWORK_ERROR");
     }
 
     QByteArray ra = rpl->readAll();
-    QVariant vstatus = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    bool ok;
-    int status = vstatus.toInt(&ok);
-    if (!ok)
-        status = CDefaults::httpCodeClientUnknownError;
-
     rpl->close();
     rpl->deleteLater();
 

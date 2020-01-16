@@ -1,3 +1,4 @@
+#include <QRandomGenerator>
 #include "abstracttranslator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
@@ -5,6 +6,11 @@
 #include "googlegtxtranslator.h"
 #include "awstranslator.h"
 #include "yandexcloudtranslator.h"
+
+int CAbstractTranslator::getTranslatorRetryCount() const
+{
+    return m_translatorRetryCount;
+}
 
 void CAbstractTranslator::setErrorMsg(const QString &msg)
 {
@@ -30,6 +36,7 @@ CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang)
 {
     m_tranError.clear();
     m_lang = lang;
+    m_translatorRetryCount = gSet->settings()->translatorRetryCount;
 }
 
 void CAbstractTranslator::doneTran(bool lazyClose)
@@ -57,6 +64,15 @@ QString CAbstractTranslator::tranString(const QString &src)
         gSet->addTranslatorStatistics(eng, len);
     });
     return tranStringPrivate(src);
+}
+
+unsigned long CAbstractTranslator::getRandomDelay(int min, int max)
+{
+    int m_min = min;
+    if (m_min<1) m_min = 1;
+    int m_max = max;
+    if (m_max<2) m_max = 2;
+    return static_cast<unsigned long>(QRandomGenerator::global()->bounded(m_min,m_max));
 }
 
 CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, const CLangPair& tranDirection)

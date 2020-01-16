@@ -59,7 +59,7 @@ QString CWebAPIAbstractTranslator::tranStringPrivate(const QString& src)
     return tranStringInternal(src);
 }
 
-bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
+bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply, int *httpStatus)
 {
     QEventLoop eventLoop;
     QTimer timer;
@@ -73,7 +73,23 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply)
 
     timer.stop();
 
-    return reply->isFinished() && reply->bytesAvailable()>0;
+    QVariant vstatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    bool statusOk;
+    *httpStatus = vstatus.toInt(&statusOk);
+    if (!statusOk)
+        *httpStatus = CDefaults::httpCodeClientUnknownError;
+
+    bool queryOk = reply->isFinished() && (reply->bytesAvailable()>0) && (reply->error()==QNetworkReply::NoError);
+
+    if (!queryOk) {
+        qCritical() << "WebAPI query failed: " << reply->url();
+        qCritical() << " --- Error: " << reply->error() << ", " << reply->errorString();
+
+        if (statusOk)
+            qCritical() << " --- HTTP status code : " << (*httpStatus);
+    }
+
+    return queryOk;
 }
 
 void CWebAPIAbstractTranslator::initNAM()
