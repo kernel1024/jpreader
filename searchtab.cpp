@@ -3,6 +3,7 @@
 #include <QUrl>
 #include <QDesktopServices>
 #include <QThread>
+#include <QScopedPointer>
 #include <cmath>
 #include "searchtab.h"
 #include "ui_searchtab.h"
@@ -414,9 +415,10 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
         s = CGenericFuncs::highlightSnippet(auxText,queryTerms);
 
     QStringList queryTermsTran = queryTerms;
-    CAbstractTranslator* tran = CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
+    QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
+                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
     if (gSet->ui()->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
-        if (tran==nullptr || !tran->initTran()) {
+        if (!tran || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
         } else {
@@ -476,7 +478,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = tran!=nullptr &&
+            bool makeTran = (tran) &&
                             gSet->ui()->actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
@@ -497,7 +499,6 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     if (tran) {
         if (tran->isReady())
             tran->doneTran();
-        tran->deleteLater();
     }
 
     // *** Weighted sorting ***

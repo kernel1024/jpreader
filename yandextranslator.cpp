@@ -1,12 +1,10 @@
 #include <QUrl>
-
-#include <QDebug>
+#include <QUrlQuery>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QVariant>
-#include <QUrlQuery>
-#include <QNetworkReply>
+#include <QDebug>
 
 #include "globalcontrol.h"
 #include "genericfuncs.h"
@@ -46,19 +44,22 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     rq.setHeader(QNetworkRequest::ContentTypeHeader,
                  "application/x-www-form-urlencoded");
 
-    QNetworkReply *rpl = nam()->post(rq,rqData.toString(QUrl::FullyEncoded).toUtf8());
-
+    bool aborted;
     int status;
-    if (!waitForReply(rpl,&status)) {
-        setErrorMsg(tr("ERROR: Yandex translator network error"));
-        rpl->deleteLater();
+    auto requestMaker = [rq]() -> QNetworkRequest {
+        return rq;
+    };
+    QByteArray ra = processRequest(requestMaker,rqData.toString(QUrl::FullyEncoded).toUtf8(),
+                                   &status,&aborted);
+
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: Yandex translator aborted by user request"));
+        return QSL("ERROR:TRAN_YANDEX_ABORTED");
+    }
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
+        setErrorMsg(QSL("ERROR: Yandex translator network error"));
         return QSL("ERROR:TRAN_YANDEX_NETWORK_ERROR");
     }
-
-    QByteArray ra = rpl->readAll();
-
-    rpl->close();
-    rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 

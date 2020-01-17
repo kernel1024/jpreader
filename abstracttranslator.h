@@ -27,6 +27,8 @@ protected:
     void clearErrorMsg();
     CLangPair language() const;
     void setLanguage(const CLangPair& lang);
+    bool isAborted();
+
 public:
     explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);
     ~CAbstractTranslator() override = default;
@@ -36,6 +38,7 @@ public:
     virtual void doneTranPrivate(bool lazyClose)=0;
     virtual bool isReady()=0;
     virtual CStructures::TranslationEngine engine()=0;
+
     void doneTran(bool lazyClose = false);
     QString getErrorMsg() const;
     QString tranString(const QString& src);

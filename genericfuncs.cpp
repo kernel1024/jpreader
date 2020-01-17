@@ -486,6 +486,14 @@ int CGenericFuncs::numDigits(int n) {
     return 1 + numDigits(n / base);
 }
 
+void CGenericFuncs::processedSleep(unsigned long secs)
+{
+    for (unsigned long i=0;i<secs;i++) {
+        QThread::sleep(1);
+        QApplication::processEvents();
+    }
+}
+
 bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileName, const QByteArray &data)
 {
     static QMutex zipLock;

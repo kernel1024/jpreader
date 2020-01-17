@@ -29,8 +29,9 @@ void CAuxTranslator::setDestLang(const QString &lang)
 void CAuxTranslator::translatePriv()
 {
     if (!m_text.isEmpty()) {
-        QScopedPointer<CAbstractTranslator> tran(CAbstractTranslator::translatorFactory(this, m_lang));
-        if (tran.isNull() || !tran->initTran()) {
+        QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
+                    CAbstractTranslator::translatorFactory(this, m_lang));
+        if (!tran || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             m_text = QSL("ERROR");
         } else {

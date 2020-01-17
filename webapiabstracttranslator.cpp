@@ -111,6 +111,54 @@ void CWebAPIAbstractTranslator::initNAM()
     }
 }
 
+QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetworkRequest()> &requestFunc,
+                                                     const QByteArray& body,
+                                                     int *httpStatus,
+                                                     bool *aborted)
+{
+    const QString clName = QString::fromLatin1(metaObject()->className());
+    int retries = 0;
+    *httpStatus = CDefaults::httpCodeClientUnknownError;
+    QByteArray replyBody;
+    while (retries < getTranslatorRetryCount() && !isAborted()) {
+        QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(nam()->post(requestFunc(),body));
+
+        bool replyOk = waitForReply(rpl.data(),httpStatus);
+
+        if (!replyOk) {
+            qWarning() << QSL("%1 translator network error").arg(clName);
+        }
+
+        if (*httpStatus == CDefaults::httpCodeTooManyRequests) {
+            qWarning() << QSL("%1 translator throttling, delay and retry #%2.")
+                          .arg(clName)
+                          .arg(retries);
+
+        } else if (*httpStatus == CDefaults::httpCodeClientUnknownError) {
+            qWarning() << QSL("%1 translator no HTTP status, delay and retry #%2.")
+                          .arg(clName)
+                          .arg(retries);
+
+        } else if (*httpStatus >= CDefaults::httpCodeClientError) {
+            qWarning() << QSL("%1 translator bad request or credentials, aborting. HTTP status: %2.")
+                          .arg(clName)
+                          .arg(*httpStatus);
+            break;
+
+        } else if (replyOk) {
+            replyBody = rpl->readAll();
+            break;
+        }
+
+        CGenericFuncs::processedSleep(getRandomDelay());
+        retries++;
+    }
+
+    *aborted = isAborted();
+
+    return replyBody;
+}
+
 void CWebAPIAbstractTranslator::deleteNAM()
 {
     if (m_nam)

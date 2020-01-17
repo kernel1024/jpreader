@@ -1,9 +1,9 @@
-#include <QNetworkReply>
 #include <QUrlQuery>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include "yandexcloudtranslator.h"
+#include "genericfuncs.h"
 
 CYandexCloudTranslator::CYandexCloudTranslator(QObject *parent, const CLangPair &lang, const QString &apiKey,
                                                const QString &folderID)
@@ -45,18 +45,21 @@ QString CYandexCloudTranslator::tranStringInternal(const QString &src)
     QJsonDocument doc(reqtext);
     QByteArray body = doc.toJson(QJsonDocument::Compact);
 
-    QNetworkReply *rpl = nam()->post(rq,body);
-
+    bool aborted;
     int status;
-    if (!waitForReply(rpl,&status)) {
+    auto requestMaker = [rq]() -> QNetworkRequest {
+        return rq;
+    };
+    QByteArray ra = processRequest(requestMaker,body,&status,&aborted);
+
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: Yandex Cloud translator aborted by user request"));
+        return QSL("ERROR:TRAN_YANDEX_CLOUD_ABORTED");
+    }
+    if (ra.isEmpty()) {
         setErrorMsg(tr("ERROR: Yandex Cloud translator network error"));
-        rpl->deleteLater();
         return QSL("ERROR:TRAN_YANDEX_CLOUD_NETWORK_ERROR");
     }
-
-    QByteArray ra = rpl->readAll();
-    rpl->close();
-    rpl->deleteLater();
 
     QJsonDocument jdoc = QJsonDocument::fromJson(ra);
 

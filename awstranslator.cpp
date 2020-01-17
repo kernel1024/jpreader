@@ -2,7 +2,6 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QNetworkReply>
 #include <QMessageAuthenticationCode>
 #include <QCryptographicHash>
 #include <QRandomGenerator>
@@ -134,40 +133,17 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
 
     const CStringHash signedHeaders = { { QSL("Content-Type"), contentType } };
 
-    int retries = 0;
-    int status = CDefaults::httpCodeClientUnknownError;
-    QByteArray ra;
-    while (retries < getTranslatorRetryCount()) {
-        QNetworkRequest rq = createAWSRequest(service,amz_target,signedHeaders,payload);
+    bool aborted;
+    int status;
+    auto requestMaker = [this,service,amz_target,signedHeaders,payload]() -> QNetworkRequest {
+        return createAWSRequest(service,amz_target,signedHeaders,payload);
+    };
+    QByteArray ra = processRequest(requestMaker,payload,&status,&aborted);
 
-        QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(nam()->post(rq,payload));
-
-        bool replyOk = waitForReply(rpl.data(),&status);
-
-        // translation is ok or highlevel error
-        if (replyOk && (status != CDefaults::httpCodeTooManyRequests)) {
-            ra = rpl->readAll();
-            rpl->close();
-            break;
-        }
-
-        // connection error
-        if (!replyOk) {
-            qWarning() << "AWS translator network error, retrying...";
-        }
-
-        // throttling
-        if (status == CDefaults::httpCodeTooManyRequests) {
-            qWarning() << QSL("AWS translator throttling, delay and retry #%1.").arg(retries);
-        }
-
-        QApplication::processEvents();
-        QThread::sleep(getRandomDelay());
-        retries++;
-
-        // TODO: handle cancel request here
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: AWS translator aborted by user request"));
+        return QSL("ERROR:TRAN_AWS_ABORTED");
     }
-
     if (ra.isEmpty()) {
         setErrorMsg(QSL("ERROR: AWS translator network error"));
         return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");

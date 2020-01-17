@@ -9,9 +9,10 @@ class CWebAPIAbstractTranslator : public CAbstractTranslator
 {
     Q_OBJECT
 protected:
-    bool waitForReply(QNetworkReply* reply, int *httpStatus);
     void initNAM();
     QNetworkAccessManager* nam() { return m_nam; }
+    QByteArray processRequest(const std::function<QNetworkRequest()> &requestFunc,
+                              const QByteArray &body, int *httpStatus, bool* aborted);
 
     virtual QString tranStringInternal(const QString& src) = 0;
     virtual void clearCredentials() = 0;
@@ -23,6 +24,7 @@ private:
     Q_DISABLE_COPY(CWebAPIAbstractTranslator)
 
     void deleteNAM();
+    bool waitForReply(QNetworkReply* reply, int *httpStatus);
 
 public:
     CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang);

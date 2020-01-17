@@ -26,23 +26,20 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceT
                              gSet->settings()->subsentencesMode.value(m_translationEngine,false));
 }
 
-CTranslator::~CTranslator()
+bool CTranslator::isAborted()
 {
-    if (m_tran)
-        m_tran->deleteLater();
+    return m_abortFlag.load();
 }
 
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 {
-    m_abortMutex.lock();
-    m_abortFlag=false;
-    m_abortMutex.unlock();
+    m_abortFlag.store(false);
 
-    if (m_tran==nullptr && !m_tranInited) {
-        m_tran = CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
+    if (!m_tran && !m_tranInited) {
+        m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
     }
 
-    if (m_tran==nullptr || !m_tran->initTran()) {
+    if (!m_tran || !m_tran->initTran()) {
         dstHtml=tr("Unable to initialize translation engine.");
         qCritical() << tr("Unable to initialize translation engine.");
         return false;
@@ -105,9 +102,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 
 bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
 {
-    m_abortMutex.lock();
-    m_abortFlag=false;
-    m_abortMutex.unlock();
+    m_abortFlag.store(false);
 
     destHtml.clear();
     if (sourceHtml.isEmpty()) return false;
@@ -167,12 +162,9 @@ QStringList CTranslator::getImgUrls() const
 void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 {
     if (m_translatorFailed) return;
-    m_abortMutex.lock();
-    if (m_abortFlag) {
-        m_abortMutex.unlock();
+
+    if (isAborted())
         return;
-    }
-    m_abortMutex.unlock();
 
     QApplication::processEvents();
 
@@ -379,7 +371,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
 bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xmlPass)
 {
-    if (m_tran==nullptr) return false;
+    if (!m_tran) return false;
 
     bool failure = false;
 
@@ -406,13 +398,10 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     const int progressUpdateFrac = 5;
 
     for(int i=0;i<sl.count();i++) {
-        m_abortMutex.lock();
-        if (m_abortFlag) {
-            m_abortMutex.unlock();
+        if (isAborted()) {
             sout = tr("ATLAS: Translation thread aborted.");
             break;
         }
-        m_abortMutex.unlock();
 
         if (xmlPass!=PXTranslate) {
             m_textNodesCnt++;
@@ -649,9 +638,7 @@ void CTranslator::abortTranslator()
     const int abortTimerDelay = 500;
 
     QTimer::singleShot(abortTimerDelay,this,[this](){
-        m_abortMutex.lock();
-        m_abortFlag=true;
-        m_abortMutex.unlock();
+        m_abortFlag.store(true);
     });
 }
 

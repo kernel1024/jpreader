@@ -3,10 +3,11 @@
 
 #include <QObject>
 #include <QString>
-#include <QMutex>
 #include <QColor>
 #include <QFont>
 #include <QUuid>
+#include <QScopedPointer>
+#include <QAtomicInteger>
 #include <netdb.h>
 #include "html/ParserDom.h"
 #include "mainwindow.h"
@@ -49,17 +50,16 @@ private:
         PXPostprocess
     };
 
+    QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> m_tran;
     QString m_sourceHtml;
-    QMutex m_abortMutex;
-    CAbstractTranslator* m_tran { nullptr };
     QColor m_forcedFontColor;
     QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
+    QAtomicInteger<bool> m_abortFlag;
     int m_retryCount { 0 };
     int m_textNodesCnt { 0 };
     int m_textNodesProgress { 0 };
-    bool m_abortFlag { false };
     bool m_translatorFailed { false };
     bool m_tranInited { false };
     bool m_useOverrideTransFont { false };
@@ -81,7 +81,8 @@ private:
 
 public:
     explicit CTranslator(QObject* parent, const QString &sourceHtml, bool forceTranslateSubSentences = false);
-    ~CTranslator() override;
+    ~CTranslator() override = default;
+    bool isAborted();
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,

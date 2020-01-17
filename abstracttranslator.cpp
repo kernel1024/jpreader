@@ -1,5 +1,6 @@
 #include <QRandomGenerator>
 #include "abstracttranslator.h"
+#include "translator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
 #include "yandextranslator.h"
@@ -10,6 +11,16 @@
 int CAbstractTranslator::getTranslatorRetryCount() const
 {
     return m_translatorRetryCount;
+}
+
+bool CAbstractTranslator::isAborted()
+{
+    CTranslator* sequencedTranslator = qobject_cast<CTranslator *>(parent());
+
+    if (sequencedTranslator==nullptr) // singleshot translator - no abortion
+        return false;
+
+    return sequencedTranslator->isAborted();
 }
 
 void CAbstractTranslator::setErrorMsg(const QString &msg)

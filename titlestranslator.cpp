@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QStringList>
 #include <QApplication>
+#include <QScopedPointer>
 #include "titlestranslator.h"
 #include "globalcontrol.h"
 #include "abstracttranslator.h"
@@ -21,14 +22,13 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     QStringList res;
     stopReq=false;
 
-    CAbstractTranslator* tran=CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair()));
-    if (tran==nullptr || !tran->initTran()) {
+    QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
+                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
+    if (!tran || !tran->initTran()) {
         qCritical() << tr("Unable to initialize translation engine.");
         res.clear();
         res << QSL("ERROR");
         Q_EMIT gotTranslation(res);
-        if (tran)
-            tran->deleteLater();
         return;
     }
     int p = -1;
@@ -47,7 +47,6 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
         }
     }
     tran->doneTran();
-    tran->deleteLater();
     Q_EMIT updateProgress(-1);
     Q_EMIT gotTranslation(res);
 }

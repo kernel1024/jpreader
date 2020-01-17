@@ -1,11 +1,9 @@
 #include <QUrl>
-
-#include <QDebug>
+#include <QUrlQuery>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QUrlQuery>
-#include <QNetworkReply>
+#include <QDebug>
 
 #include "bingtranslator.h"
 #include "globalcontrol.h"
@@ -28,27 +26,21 @@ bool CBingTranslator::initTran()
     rqurl.setQuery(uq);
     QNetworkRequest rq(rqurl);
 
-    QNetworkReply *rpl = nam()->post(rq,QByteArray());
-
+    bool aborted;
     int status;
-    if (!waitForReply(rpl,&status)) {
-        setErrorMsg(tr("Bing connection error"));
-        qCritical() << "Bing connection error: " << rpl->error();
-        rpl->deleteLater();
+    auto requestMaker = [rq]() -> QNetworkRequest {
+        return rq;
+    };
+    QByteArray ra = processRequest(requestMaker,QByteArray(),&status,&aborted);
+
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: Bing translator aborted by user request"));
         return false;
     }
-
-    QByteArray ra = rpl->readAll();
-
-    if (rpl->error()!=QNetworkReply::NoError) {
-        setErrorMsg(tr("Bing auth error"));
-        qCritical() << "Bing auth error: " << rpl->error();
-        qCritical() << "Response: " << ra;
-        rpl->deleteLater();
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
+        setErrorMsg(QSL("ERROR: Bing translator auth error"));
         return false;
     }
-
-    rpl->deleteLater();
 
     authHeader = QSL("Bearer %1").arg(QString::fromUtf8(ra));
     clearErrorMsg();
@@ -83,18 +75,21 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     rq.setRawHeader("Content-Type","application/json");
     rq.setRawHeader("Content-Length",authHeader.toUtf8());
 
-    QNetworkReply *rpl = nam()->post(rq,body);
-
+    bool aborted;
     int status;
-    if (!waitForReply(rpl,&status)) {
+    auto requestMaker = [rq]() -> QNetworkRequest {
+        return rq;
+    };
+    QByteArray ra = processRequest(requestMaker,body,&status,&aborted);
+
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: Bing translator aborted by user request"));
+        return QSL("ERROR:TRAN_BING_ABORTED");
+    }
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
         setErrorMsg(QSL("ERROR: Bing translator network error"));
         return QSL("ERROR:TRAN_BING_NETWORK_ERROR");
     }
-
-    QByteArray ra = rpl->readAll();
-
-    rpl->close();
-    rpl->deleteLater();
 
     doc = QJsonDocument::fromJson(ra);
     if (doc.isNull()) {
