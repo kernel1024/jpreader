@@ -52,6 +52,7 @@ private:
 
     QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> m_tran;
     QString m_sourceHtml;
+    QString m_engineName;
     QColor m_forcedFontColor;
     QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;

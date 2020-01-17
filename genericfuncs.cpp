@@ -157,6 +157,7 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
         cn.append(QSL("</h3>"));
     }
     cn.append(cnt);
+    cn.append(QSL("<br/><br/><span style='font-size:smaller;' id='jpreader_translator_desc'></span>"));
     cn.append(QSL("</body></html>"));
     return cn;
 }

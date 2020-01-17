@@ -16,6 +16,7 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceT
 {
     m_sourceHtml=sourceHtml;
     m_translationEngine=gSet->settings()->translatorEngine;
+    m_engineName=CStructures::translationEngines().value(m_translationEngine);
     m_retryCount=gSet->settings()->translatorRetryCount;
     m_forceFontColor=gSet->ui()->forceFontColor();
     m_forcedFontColor=gSet->settings()->forcedFontColor;
@@ -359,6 +360,14 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                 }
             }
             idx++;
+        }
+
+        if (node.tagName.toLower()==QSL("span") &&
+                node.attributes.contains(QSL("id")) &&
+                node.attributes.value(QSL("id"))==QSL("jpreader_translator_desc")) {
+            node.children.clear();
+            node.children.append(CHTMLNode(tr("Translated with %1.").arg(m_engineName)));
+            node.normalize();
         }
     }
 
