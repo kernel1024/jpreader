@@ -1101,7 +1101,7 @@ void CSettingsTab::addSearchEngine()
 
 void CSettingsTab::delSearchEngine()
 {
-    QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
+    const QList<QListWidgetItem *> dl = ui->listSearch->selectedItems();
     for (QListWidgetItem* i : dl) {
         ui->listSearch->removeItemWidget(i);
         delete i;
@@ -1172,7 +1172,7 @@ void CSettingsTab::editUserScript()
 
 void CSettingsTab::deleteUserScript()
 {
-    QList<QListWidgetItem *> dl = ui->listUserScripts->selectedItems();
+    const QList<QListWidgetItem *> dl = ui->listUserScripts->selectedItems();
     for (QListWidgetItem* i : dl) {
         ui->listUserScripts->removeItemWidget(i);
         delete i;
@@ -1255,7 +1255,7 @@ void CSettingsTab::addNoScriptHost()
 
 void CSettingsTab::delNoScriptHost()
 {
-    QList<QListWidgetItem *> dl = ui->listNoScriptWhitelist->selectedItems();
+    const QList<QListWidgetItem *> dl = ui->listNoScriptWhitelist->selectedItems();
     for (QListWidgetItem* i : dl) {
         ui->listNoScriptWhitelist->removeItemWidget(i);
         delete i;
@@ -1313,7 +1313,7 @@ void CSettingsTab::updateFontColorPreview()
 
 void CSettingsTab::delQrs()
 {
-    QList<QListWidgetItem *> dl = ui->listQueries->selectedItems();
+    const QList<QListWidgetItem *> dl = ui->listQueries->selectedItems();
     for (QListWidgetItem* i : dl)
         gSet->d_func()->searchHistory.removeAll(i->text());
 

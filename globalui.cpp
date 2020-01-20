@@ -207,7 +207,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     languageSelector->deleteLater();
     languageSelector = new QActionGroup(this);
 
-    connect(languageSelector,&QActionGroup::triggered,[](QAction* action){
+    connect(languageSelector,&QActionGroup::triggered,gSet,[](QAction* action){
         gSet->m_settings->selectedLangPairs[gSet->m_settings->translatorEngine] = action->data().toString();
     });
 

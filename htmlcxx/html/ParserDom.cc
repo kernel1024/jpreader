@@ -5,8 +5,6 @@
 
 #include <QDebug>
 
-#define TAG_NAME_MAX 10
-
 using namespace std;
 using namespace htmlcxx; 
 using namespace HTML; 
@@ -36,19 +34,19 @@ void ParserDom::endParsing()
 	top->length(mCurrentOffset);
 }
 
-void ParserDom::foundComment(Node node)
+void ParserDom::foundComment(const Node &node)
 {
 	//Add child content node, but do not update current state
 	mHtmlTree.append_child(mCurrentState, node);
 }
 
-void ParserDom::foundText(Node node)
+void ParserDom::foundText(const Node &node)
 {
 	//Add child content node, but do not update current state
 	mHtmlTree.append_child(mCurrentState, node);
 }
 
-void ParserDom::foundTag(Node node, bool isEnd)
+void ParserDom::foundTag(const Node &node, bool isEnd)
 {
 	if (!isEnd) 
 	{
@@ -105,9 +103,10 @@ void ParserDom::foundTag(Node node, bool isEnd)
             // qDebug() << "Unmatched tag " << node.text().c_str();
 
 			// Treat as comment
-			node.isTag(false);
-			node.isComment(true);
-			mHtmlTree.append_child(mCurrentState, node);
+            Node n = node;
+            n.isTag(false);
+            n.isComment(true);
+            mHtmlTree.append_child(mCurrentState, n);
 		}
 	}
 }

@@ -15,7 +15,7 @@ int CAbstractTranslator::getTranslatorRetryCount() const
 
 bool CAbstractTranslator::isAborted()
 {
-    CTranslator* sequencedTranslator = qobject_cast<CTranslator *>(parent());
+    auto sequencedTranslator = qobject_cast<CTranslator *>(parent());
 
     if (sequencedTranslator==nullptr) // singleshot translator - no abortion
         return false;

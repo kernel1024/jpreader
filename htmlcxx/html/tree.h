@@ -177,6 +177,7 @@ class tree {
       class fixed_depth_iterator : public iterator_base {
          public:
             fixed_depth_iterator();
+            ~fixed_depth_iterator() = default;
             fixed_depth_iterator(tree_node *);
             fixed_depth_iterator(const iterator_base&);
             fixed_depth_iterator(const sibling_iterator&);
@@ -184,6 +185,7 @@ class tree {
 
             bool    operator==(const fixed_depth_iterator&) const;
             bool    operator!=(const fixed_depth_iterator&) const;
+            fixed_depth_iterator&  operator=(const fixed_depth_iterator&) = delete;
             fixed_depth_iterator&  operator++();
             fixed_depth_iterator&  operator--();
             fixed_depth_iterator   operator++(int);
@@ -200,12 +202,14 @@ class tree {
       class sibling_iterator : public iterator_base {
          public:
             sibling_iterator();
+            ~sibling_iterator() = default;
             sibling_iterator(tree_node *);
             sibling_iterator(const sibling_iterator&);
             sibling_iterator(const iterator_base&);
 
             bool    operator==(const sibling_iterator&) const;
             bool    operator!=(const sibling_iterator&) const;
+            sibling_iterator&  operator=(const sibling_iterator&) = delete;
             sibling_iterator&  operator++();
             sibling_iterator&  operator--();
             sibling_iterator   operator++(int);

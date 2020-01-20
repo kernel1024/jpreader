@@ -12,20 +12,22 @@ namespace htmlcxx
 		{
             public:
 				ParserDom() {}
-				~ParserDom() {}
+                ParserDom(const ParserDom& other) = delete;
+                ~ParserDom() override = default;
+                ParserDom &operator=(const ParserDom& other) = delete;
 
                 const tree<Node> &parseTree(const QString &html);
 				const tree<Node> &getTree()
 				{ return mHtmlTree; }
 
 			protected:
-				virtual void beginParsing();
+                void beginParsing() override;
 
-				virtual void foundTag(Node node, bool isEnd);
-				virtual void foundText(Node node);
-				virtual void foundComment(Node node);
+                void foundTag(const Node &node, bool isEnd) override;
+                void foundText(const Node &node) override;
+                void foundComment(const Node &node) override;
 
-				virtual void endParsing();
+                void endParsing() override;
 				
 				tree<Node> mHtmlTree;
 				tree<Node>::iterator mCurrentState;

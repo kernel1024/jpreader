@@ -28,41 +28,14 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "jsedit.h"
-#include "structures.h"
-#include "genericfuncs.h"
-
 #include <QPainter>
 #include <QRegularExpression>
-#include <QSyntaxHighlighter>
 #include <QDebug>
 
-class JSBlockData: public QTextBlockUserData
-{
-public:
-    QList<int> bracketPositions;
-};
-
-class JSHighlighter : public QSyntaxHighlighter
-{
-public:
-    explicit JSHighlighter(QTextDocument *parent = nullptr);
-    void setColor(JSEdit::ColorComponent component, const QColor &color);
-    void mark(const QString &str, Qt::CaseSensitivity caseSensitivity);
-
-    QStringList keywords() const;
-    void setKeywords(const QStringList &keywords);
-
-protected:
-    void highlightBlock(const QString &text) override;
-
-private:
-    QString m_markString;
-    QSet<QString> m_keywords;
-    QSet<QString> m_knownIds;
-    QHash<JSEdit::ColorComponent, QColor> m_colors;
-    Qt::CaseSensitivity m_markCaseSensitivity {Qt::CaseInsensitive};
-};
+#include "jsedit.h"
+#include "jsedit_p.h"
+#include "structures.h"
+#include "genericfuncs.h"
 
 JSHighlighter::JSHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
@@ -81,179 +54,181 @@ JSHighlighter::JSHighlighter(QTextDocument *parent)
     m_colors[JSEdit::Marker]     = QColor(Qt::yellow);
 
     // https://developer.mozilla.org/en/JavaScript/Reference/Reserved_Words
-    m_keywords << "break";
-    m_keywords << "case";
-    m_keywords << "catch";
-    m_keywords << "continue";
-    m_keywords << "default";
-    m_keywords << "delete";
-    m_keywords << "do";
-    m_keywords << "else";
-    m_keywords << "finally";
-    m_keywords << "for";
-    m_keywords << "function";
-    m_keywords << "if";
-    m_keywords << "in";
-    m_keywords << "instanceof";
-    m_keywords << "new";
-    m_keywords << "return";
-    m_keywords << "switch";
-    m_keywords << "this";
-    m_keywords << "throw";
-    m_keywords << "try";
-    m_keywords << "typeof";
-    m_keywords << "var";
-    m_keywords << "void";
-    m_keywords << "while";
-    m_keywords << "with";
+    m_keywords = { QSL("break"),
+                   QSL("case"),
+                   QSL("catch"),
+                   QSL("continue"),
+                   QSL("default"),
+                   QSL("delete"),
+                   QSL("do"),
+                   QSL("else"),
+                   QSL("finally"),
+                   QSL("for"),
+                   QSL("function"),
+                   QSL("if"),
+                   QSL("in"),
+                   QSL("instanceof"),
+                   QSL("new"),
+                   QSL("return"),
+                   QSL("switch"),
+                   QSL("this"),
+                   QSL("throw"),
+                   QSL("try"),
+                   QSL("typeof"),
+                   QSL("var"),
+                   QSL("void"),
+                   QSL("while"),
+                   QSL("with"),
 
-    m_keywords << "true";
-    m_keywords << "false";
-    m_keywords << "null";
+                   QSL("true"),
+                   QSL("false"),
+                   QSL("null")
+                 };
 
     // built-in and other popular objects + properties
-    m_knownIds << "Object";
-    m_knownIds << "prototype";
-    m_knownIds << "create";
-    m_knownIds << "defineProperty";
-    m_knownIds << "defineProperties";
-    m_knownIds << "getOwnPropertyDescriptor";
-    m_knownIds << "keys";
-    m_knownIds << "getOwnPropertyNames";
-    m_knownIds << "constructor";
-    m_knownIds << "__parent__";
-    m_knownIds << "__proto__";
-    m_knownIds << "__defineGetter__";
-    m_knownIds << "__defineSetter__";
-    m_knownIds << "eval";
-    m_knownIds << "hasOwnProperty";
-    m_knownIds << "isPrototypeOf";
-    m_knownIds << "__lookupGetter__";
-    m_knownIds << "__lookupSetter__";
-    m_knownIds << "__noSuchMethod__";
-    m_knownIds << "propertyIsEnumerable";
-    m_knownIds << "toSource";
-    m_knownIds << "toLocaleString";
-    m_knownIds << "toString";
-    m_knownIds << "unwatch";
-    m_knownIds << "valueOf";
-    m_knownIds << "watch";
+    m_knownIds = { QSL("Object"),
+                   QSL("prototype"),
+                   QSL("create"),
+                   QSL("defineProperty"),
+                   QSL("defineProperties"),
+                   QSL("getOwnPropertyDescriptor"),
+                   QSL("keys"),
+                   QSL("getOwnPropertyNames"),
+                   QSL("constructor"),
+                   QSL("__parent__"),
+                   QSL("__proto__"),
+                   QSL("__defineGetter__"),
+                   QSL("__defineSetter__"),
+                   QSL("eval"),
+                   QSL("hasOwnProperty"),
+                   QSL("isPrototypeOf"),
+                   QSL("__lookupGetter__"),
+                   QSL("__lookupSetter__"),
+                   QSL("__noSuchMethod__"),
+                   QSL("propertyIsEnumerable"),
+                   QSL("toSource"),
+                   QSL("toLocaleString"),
+                   QSL("toString"),
+                   QSL("unwatch"),
+                   QSL("valueOf"),
+                   QSL("watch"),
 
-    m_knownIds << "Function";
-    m_knownIds << "arguments";
-    m_knownIds << "arity";
-    m_knownIds << "caller";
-    m_knownIds << "constructor";
-    m_knownIds << "length";
-    m_knownIds << "name";
-    m_knownIds << "apply";
-    m_knownIds << "bind";
-    m_knownIds << "call";
+                   QSL("Function"),
+                   QSL("arguments"),
+                   QSL("arity"),
+                   QSL("caller"),
+                   QSL("constructor"),
+                   QSL("length"),
+                   QSL("name"),
+                   QSL("apply"),
+                   QSL("bind"),
+                   QSL("call"),
 
-    m_knownIds << "String";
-    m_knownIds << "fromCharCode";
-    m_knownIds << "length";
-    m_knownIds << "charAt";
-    m_knownIds << "charCodeAt";
-    m_knownIds << "concat";
-    m_knownIds << "indexOf";
-    m_knownIds << "lastIndexOf";
-    m_knownIds << "localCompare";
-    m_knownIds << "match";
-    m_knownIds << "quote";
-    m_knownIds << "replace";
-    m_knownIds << "search";
-    m_knownIds << "slice";
-    m_knownIds << "split";
-    m_knownIds << "substr";
-    m_knownIds << "substring";
-    m_knownIds << "toLocaleLowerCase";
-    m_knownIds << "toLocaleUpperCase";
-    m_knownIds << "toLowerCase";
-    m_knownIds << "toUpperCase";
-    m_knownIds << "trim";
-    m_knownIds << "trimLeft";
-    m_knownIds << "trimRight";
+                   QSL("String"),
+                   QSL("fromCharCode"),
+                   QSL("length"),
+                   QSL("charAt"),
+                   QSL("charCodeAt"),
+                   QSL("concat"),
+                   QSL("indexOf"),
+                   QSL("lastIndexOf"),
+                   QSL("localCompare"),
+                   QSL("match"),
+                   QSL("quote"),
+                   QSL("replace"),
+                   QSL("search"),
+                   QSL("slice"),
+                   QSL("split"),
+                   QSL("substr"),
+                   QSL("substring"),
+                   QSL("toLocaleLowerCase"),
+                   QSL("toLocaleUpperCase"),
+                   QSL("toLowerCase"),
+                   QSL("toUpperCase"),
+                   QSL("trim"),
+                   QSL("trimLeft"),
+                   QSL("trimRight"),
 
-    m_knownIds << "Array";
-    m_knownIds << "isArray";
-    m_knownIds << "index";
-    m_knownIds << "input";
-    m_knownIds << "pop";
-    m_knownIds << "push";
-    m_knownIds << "reverse";
-    m_knownIds << "shift";
-    m_knownIds << "sort";
-    m_knownIds << "splice";
-    m_knownIds << "unshift";
-    m_knownIds << "concat";
-    m_knownIds << "join";
-    m_knownIds << "filter";
-    m_knownIds << "forEach";
-    m_knownIds << "every";
-    m_knownIds << "map";
-    m_knownIds << "some";
-    m_knownIds << "reduce";
-    m_knownIds << "reduceRight";
+                   QSL("Array"),
+                   QSL("isArray"),
+                   QSL("index"),
+                   QSL("input"),
+                   QSL("pop"),
+                   QSL("push"),
+                   QSL("reverse"),
+                   QSL("shift"),
+                   QSL("sort"),
+                   QSL("splice"),
+                   QSL("unshift"),
+                   QSL("concat"),
+                   QSL("join"),
+                   QSL("filter"),
+                   QSL("forEach"),
+                   QSL("every"),
+                   QSL("map"),
+                   QSL("some"),
+                   QSL("reduce"),
+                   QSL("reduceRight"),
 
-    m_knownIds << "RegExp";
-    m_knownIds << "global";
-    m_knownIds << "ignoreCase";
-    m_knownIds << "lastIndex";
-    m_knownIds << "multiline";
-    m_knownIds << "source";
-    m_knownIds << "exec";
-    m_knownIds << "test";
+                   QSL("RegExp"),
+                   QSL("global"),
+                   QSL("ignoreCase"),
+                   QSL("lastIndex"),
+                   QSL("multiline"),
+                   QSL("source"),
+                   QSL("exec"),
+                   QSL("test"),
 
-    m_knownIds << "JSON";
-    m_knownIds << "parse";
-    m_knownIds << "stringify";
+                   QSL("JSON"),
+                   QSL("parse"),
+                   QSL("stringify"),
 
-    m_knownIds << "decodeURI";
-    m_knownIds << "decodeURIComponent";
-    m_knownIds << "encodeURI";
-    m_knownIds << "encodeURIComponent";
-    m_knownIds << "eval";
-    m_knownIds << "isFinite";
-    m_knownIds << "isNaN";
-    m_knownIds << "parseFloat";
-    m_knownIds << "parseInt";
-    m_knownIds << "Infinity";
-    m_knownIds << "NaN";
-    m_knownIds << "undefined";
+                   QSL("decodeURI"),
+                   QSL("decodeURIComponent"),
+                   QSL("encodeURI"),
+                   QSL("encodeURIComponent"),
+                   QSL("eval"),
+                   QSL("isFinite"),
+                   QSL("isNaN"),
+                   QSL("parseFloat"),
+                   QSL("parseInt"),
+                   QSL("Infinity"),
+                   QSL("NaN"),
+                   QSL("undefined"),
 
-    m_knownIds << "Math";
-    m_knownIds << "E";
-    m_knownIds << "LN2";
-    m_knownIds << "LN10";
-    m_knownIds << "LOG2E";
-    m_knownIds << "LOG10E";
-    m_knownIds << "PI";
-    m_knownIds << "SQRT1_2";
-    m_knownIds << "SQRT2";
-    m_knownIds << "abs";
-    m_knownIds << "acos";
-    m_knownIds << "asin";
-    m_knownIds << "atan";
-    m_knownIds << "atan2";
-    m_knownIds << "ceil";
-    m_knownIds << "cos";
-    m_knownIds << "exp";
-    m_knownIds << "floor";
-    m_knownIds << "log";
-    m_knownIds << "max";
-    m_knownIds << "min";
-    m_knownIds << "pow";
-    m_knownIds << "random";
-    m_knownIds << "round";
-    m_knownIds << "sin";
-    m_knownIds << "sqrt";
-    m_knownIds << "tan";
+                   QSL("Math"),
+                   QSL("E"),
+                   QSL("LN2"),
+                   QSL("LN10"),
+                   QSL("LOG2E"),
+                   QSL("LOG10E"),
+                   QSL("PI"),
+                   QSL("SQRT1_2"),
+                   QSL("SQRT2"),
+                   QSL("abs"),
+                   QSL("acos"),
+                   QSL("asin"),
+                   QSL("atan"),
+                   QSL("atan2"),
+                   QSL("ceil"),
+                   QSL("cos"),
+                   QSL("exp"),
+                   QSL("floor"),
+                   QSL("log"),
+                   QSL("max"),
+                   QSL("min"),
+                   QSL("pow"),
+                   QSL("random"),
+                   QSL("round"),
+                   QSL("sin"),
+                   QSL("sqrt"),
+                   QSL("tan"),
 
-    m_knownIds << "document";
-    m_knownIds << "window";
-    m_knownIds << "navigator";
-    m_knownIds << "userAgent";
+                   QSL("document"),
+                   QSL("window"),
+                   QSL("navigator"),
+                   QSL("userAgent")
+                 };
 }
 
 void JSHighlighter::setColor(JSEdit::ColorComponent component, const QColor &color)
@@ -318,7 +293,7 @@ void JSHighlighter::highlightBlock(const QString &text)
                 ++i;
                 state = Regex;
             } else {
-                if (!QString("(){}[]").contains(ch))
+                if (!QSL("(){}[]").contains(ch))
                     setFormat(start, 1, m_colors[JSEdit::Operator]);
                 if (ch =='{' || ch == '}') {
                     bracketPositions += i;
@@ -462,33 +437,6 @@ void JSHighlighter::setKeywords(const QStringList &keywords)
 #endif
     rehighlight();
 }
-
-struct BlockInfo {
-    int position;
-    int number;
-    bool foldable;
-    bool folded;
-};
-
-Q_DECLARE_TYPEINFO(BlockInfo, Q_PRIMITIVE_TYPE);
-
-class SidebarWidget : public QWidget
-{
-public:
-    explicit SidebarWidget(JSEdit *editor);
-    QVector<BlockInfo> lineNumbers;
-    QColor backgroundColor;
-    QColor lineNumberColor;
-    QColor indicatorColor;
-    QColor foldIndicatorColor;
-    QFont font;
-    QPixmap rightArrowIcon;
-    QPixmap downArrowIcon;
-    int foldIndicatorWidth;
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-};
 
 SidebarWidget::SidebarWidget(JSEdit *editor)
     : QWidget(editor)
@@ -643,13 +591,6 @@ static int findOpeningMatch(const QTextDocument *doc, int cursorPosition)
     return -1;
 }
 
-class JSDocLayout: public QPlainTextDocumentLayout
-{
-public:
-    explicit JSDocLayout(QTextDocument *doc);
-    void forceUpdate();
-};
-
 JSDocLayout::JSDocLayout(QTextDocument *doc)
     : QPlainTextDocumentLayout(doc)
 {
@@ -659,24 +600,6 @@ void JSDocLayout::forceUpdate()
 {
     Q_EMIT documentSizeChanged(documentSize());
 }
-
-class JSEditPrivate
-{
-public:
-    QList<int> matchPositions;
-    QList<int> errorPositions;
-    QColor cursorColor;
-    QColor bracketMatchColor;
-    QColor bracketErrorColor;
-    JSEdit *editor {nullptr};
-    JSDocLayout *layout {nullptr};
-    JSHighlighter *highlighter {nullptr};
-    SidebarWidget *sidebar {nullptr};
-    bool showLineNumbers {false};
-    bool textWrap {false};
-    bool bracketsMatching {false};
-    bool codeFolding {false};
-};
 
 JSEdit::JSEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -714,11 +637,11 @@ JSEdit::JSEdit(QWidget *parent)
 #if defined(Q_OS_MAC)
     QFont textFont = font();
     textFont.setPointSize(12);
-    textFont.setFamily("Monaco");
+    textFont.setFamily(QSL("Monaco"));
     setFont(textFont);
 #elif defined(Q_OS_UNIX)
     QFont textFont = font();
-    textFont.setFamily("Monospace");
+    textFont.setFamily(QSL("Monospace"));
     setFont(textFont);
 #endif
 
@@ -787,6 +710,7 @@ void JSEdit::setLineNumbersVisible(bool visible)
 {
     dptr->showLineNumbers = visible;
     updateSidebar();
+    Q_EMIT lineNumbersVisibilityChanged();
 }
 
 bool JSEdit::isTextWrapEnabled() const
@@ -798,6 +722,7 @@ void JSEdit::setTextWrapEnabled(bool enable)
 {
     dptr->textWrap = enable;
     setLineWrapMode(enable ? WidgetWidth : NoWrap);
+    Q_EMIT textWrapChanged();
 }
 
 bool JSEdit::isBracketsMatchingEnabled() const
@@ -809,6 +734,7 @@ void JSEdit::setBracketsMatchingEnabled(bool enable)
 {
     dptr->bracketsMatching = enable;
     updateCursor();
+    Q_EMIT bracketsMatchingChanged();
 }
 
 bool JSEdit::isCodeFoldingEnabled() const
@@ -820,6 +746,7 @@ void JSEdit::setCodeFoldingEnabled(bool enable)
 {
     dptr->codeFolding = enable;
     updateSidebar();
+    Q_EMIT codeFoldingChanged();
 }
 
 static int findClosingConstruct(const QTextBlock &block)
@@ -1049,6 +976,7 @@ void JSEdit::updateCursor()
         highlight.cursor.clearSelection();
 
         QList<QTextEdit::ExtraSelection> extraSelections;
+        extraSelections.reserve(d->matchPositions.count() + d->errorPositions.count() + 1);
         extraSelections.append(highlight);
 
         for (int i = 0; i < d->matchPositions.count(); ++i) {
@@ -1140,3 +1068,5 @@ void JSEdit::mark(const QString &str, Qt::CaseSensitivity sens)
 {
     dptr->highlighter->mark(str, sens);
 }
+
+JSBlockData::~JSBlockData() = default;

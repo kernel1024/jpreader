@@ -67,6 +67,7 @@ CGlobalControl::~CGlobalControl()
 
 CGlobalControl *CGlobalControl::instance()
 {
+    // TODO: Try to remake this with smartpointers
     static CGlobalControl* inst = nullptr;
     static QMutex lock;
 

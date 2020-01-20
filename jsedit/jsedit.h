@@ -40,10 +40,22 @@ class JSEditPrivate;
 class JSEdit: public QPlainTextEdit
 {
     Q_OBJECT
-    Q_PROPERTY(bool bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE setBracketsMatchingEnabled)
-    Q_PROPERTY(bool codeFoldingEnabled READ isCodeFoldingEnabled WRITE setCodeFoldingEnabled)
-    Q_PROPERTY(bool lineNumbersVisible READ isLineNumbersVisible WRITE setLineNumbersVisible)
-    Q_PROPERTY(bool textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
+    Q_PROPERTY(bool bracketsMatchingEnabled
+               READ isBracketsMatchingEnabled
+               WRITE setBracketsMatchingEnabled
+               NOTIFY bracketsMatchingChanged)
+    Q_PROPERTY(bool codeFoldingEnabled
+               READ isCodeFoldingEnabled
+               WRITE setCodeFoldingEnabled
+               NOTIFY codeFoldingChanged)
+    Q_PROPERTY(bool lineNumbersVisible
+               READ isLineNumbersVisible
+               WRITE setLineNumbersVisible
+               NOTIFY lineNumbersVisibilityChanged)
+    Q_PROPERTY(bool textWrapEnabled
+               READ isTextWrapEnabled
+               WRITE setTextWrapEnabled
+               NOTIFY textWrapChanged)
 
 public:
 
@@ -82,6 +94,12 @@ public:
 
     bool isFoldable(int line) const;
     bool isFolded(int line) const;
+
+Q_SIGNALS:
+    void bracketsMatchingChanged();
+    void codeFoldingChanged();
+    void lineNumbersVisibilityChanged();
+    void textWrapChanged();
 
 public Q_SLOTS:
     void updateSidebar();

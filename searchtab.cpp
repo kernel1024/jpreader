@@ -478,7 +478,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             if (fsto>=fileContents.length()) fsto=fileContents.length()-1;
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
-            bool makeTran = (tran) &&
+            bool makeTran = (!tran.isNull()) &&
                             gSet->ui()->actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;

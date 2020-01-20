@@ -231,7 +231,7 @@ QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
 
 QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
 {
-    QStringList stl = str.split(' ');
+    const QStringList stl = str.split(' ');
     QString ret;
     int cnt = 0;
     for (const auto &st : stl) {
@@ -242,7 +242,6 @@ QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
             cnt = 0;
         }
     }
-    stl.clear();
     return ret;
 }
 
@@ -390,7 +389,7 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     res.clear();
     if (filter.isEmpty()) return res;
 
-    QStringList filters = filter.split(QSL(";;"),QString::SkipEmptyParts);
+    const QStringList filters = filter.split(QSL(";;"),QString::SkipEmptyParts);
     if (filters.isEmpty()) return res;
 
     for (const auto &filter : filters) {

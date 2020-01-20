@@ -28,11 +28,11 @@ namespace htmlcxx {
                 inline void tagName(const QString& tagname) { this->mTagName = tagname; }
                 inline const QString& tagName() const { return this->mTagName; }
 
-				bool isTag() const { return this->mIsHtmlTag; }
-				void isTag(bool is_html_tag){ this->mIsHtmlTag = is_html_tag; }
+                inline bool isTag() const { return this->mIsHtmlTag; }
+                inline void isTag(bool is_html_tag) { this->mIsHtmlTag = is_html_tag; }
 
-				bool isComment() const { return this->mComment; }
-				void isComment(bool comment){ this->mComment = comment; }
+                inline bool isComment() const { return this->mComment; }
+                inline void isComment(bool comment) { this->mComment = comment; }
 
                 operator QString() const;
                 operator std::string() const;

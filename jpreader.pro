@@ -1,6 +1,7 @@
 HEADERS = mainwindow.h \
     awstranslator.h \
     globalprivate.h \
+    jsedit/jsedit_p.h \
     pdfworkerprivate.h \
     pixivindexextractor.h \
     settingstab.h \

@@ -1,10 +1,9 @@
 #include <cctype>
 #include <QString>
+#include "ParserSax.h"
+#include "../structures.h"
 
-//#define DEBUG
-//#include "debug.h"
-
-static
+const static
 struct literal_tag {
 	int len;
     QString str;
@@ -12,12 +11,12 @@ struct literal_tag {
 }   
 literal_mode_elem[] =
 {   
-	{6, "script", 1},
-	{5, "style", 1},
-	{3, "xmp", 1},
-	{9, "plaintext", 1},
-	{8, "textarea", 0},
-	{0, 0, 0}
+    {6, QSL("script"), 1},
+    {5, QSL("style"), 1},
+    {3, QSL("xmp"), 1},
+    {9, QSL("plaintext"), 1},
+    {8, QSL("textarea"), 0},
+    {0, QString(), 0}
 };
 
 template <typename _Iterator>
@@ -33,7 +32,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 	typedef _Iterator iterator;
 //	std::cerr << "Parsing forward_iterator" << std::endl;
 	mCdata = false;
-	mpLiteral = 0;
+    mpLiteral = nullptr;
 	mCurrentOffset = 0;
 	this->beginParsing();
 
@@ -64,7 +63,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 				if (*c == '/')
 				{
 					++c;
-                    QChar *l = mpLiteral;
+                    const QChar *l = mpLiteral;
                     while (!(l->isNull()) && (c->toLower() == *l))
 					{
 						++c;
@@ -74,7 +73,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
                     // Mozilla stops when it sees a /plaintext. Check
 					// other browsers and decide what to do
                     QString mpl(mpLiteral);
-                    if (l->isNull() && mpl.compare("plaintext"))
+                    if (l->isNull() && mpl.compare(QSL("plaintext")))
 					{
 						// matched all and is not tag plaintext
                         while (c->isSpace()) ++c;
@@ -84,7 +83,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 							++c;
 							if (begin != end_text)
 								this->parseContent(begin, end_text);
-							mpLiteral = 0;
+                            mpLiteral = nullptr;
 							c = end_text;
 							begin = c;
 							break;
@@ -290,7 +289,7 @@ void htmlcxx::HTML::ParserSax::parseHtmlTag(_Iterator b, _Iterator c)
 			{
                 if (name.compare(literal_mode_elem[i].str,Qt::CaseInsensitive)==0)
 				{
-                    mpLiteral = literal_mode_elem[i].str.begin();
+                    mpLiteral = literal_mode_elem[i].str.constBegin();
 					break;
 				}
 			}

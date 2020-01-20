@@ -84,7 +84,7 @@ void CTranslatorCache::cleanOldEntries()
         sumSize += list.takeLast().size();
     }
 
-    for (const auto &item : list) {
+    for (const auto &item : qAsConst(list)) {
         QFile f(item.absoluteFilePath());
         f.remove();
     }
@@ -93,7 +93,7 @@ void CTranslatorCache::cleanOldEntries()
 void CTranslatorCache::clearCache()
 {
     if (!m_cachePath.exists()) return;
-    QFileInfoList list = m_cachePath.entryInfoList(QDir::Files | QDir::Writable | QDir::Readable);
+    const QFileInfoList list = m_cachePath.entryInfoList(QDir::Files | QDir::Writable | QDir::Readable);
     for (const auto &item : list) {
         QFile f(item.absoluteFilePath());
         f.remove();

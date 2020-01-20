@@ -12,8 +12,10 @@ namespace htmlcxx
 		class ParserSax
 		{
 			public:
-                ParserSax() : mCurrentOffset(0), mpLiteral(0), mCdata(false) {}
-				virtual ~ParserSax() {}
+                ParserSax() : mCurrentOffset(0), mpLiteral(nullptr), mCdata(false) {}
+                ParserSax(const ParserSax &other) = delete;
+                virtual ~ParserSax() = default;
+                ParserSax &operator=(const ParserSax& other) = delete;
 
 				/** Parse the html code */
                 void parse(const QString &html);
@@ -26,9 +28,9 @@ namespace htmlcxx
 				// the parsing
 				virtual void beginParsing() {}
 
-                virtual void foundTag(Node node, bool isEnd) { Q_UNUSED(node); Q_UNUSED(isEnd); }
-                virtual void foundText(Node node) { Q_UNUSED(node); }
-                virtual void foundComment(Node node) { Q_UNUSED(node); }
+                virtual void foundTag(const Node &node, bool isEnd) { Q_UNUSED(node) Q_UNUSED(isEnd) }
+                virtual void foundText(const Node &node) { Q_UNUSED(node) }
+                virtual void foundComment(const Node &node) { Q_UNUSED(node) }
 
 				virtual void endParsing() {}
 
@@ -53,7 +55,7 @@ namespace htmlcxx
 				_Iterator skipHtmlComment(_Iterator ptr, _Iterator end);
 
 				unsigned long mCurrentOffset;
-                QChar *mpLiteral;
+                const QChar *mpLiteral;
 				bool mCdata;
 		};
 

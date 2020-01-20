@@ -41,7 +41,8 @@ void Node::parseAttributes()
 
     while (ptr < lText.end() && *ptr != '>')
     {
-        QString key, val;
+        QString key;
+        QString val;
 
         // skip unrecognized
         while (ptr < lText.end() && !ptr->isLetterOrNumber() && !ptr->isSpace()) ++ptr;
@@ -51,7 +52,7 @@ void Node::parseAttributes()
 
         end = ptr;
         while (end < lText.end() && (end->isLetterOrNumber() || *end == '-')) ++end;
-        key = QString(ptr, end - ptr).toLower();
+        key = QString(ptr, static_cast<int>(end - ptr)).toLower();
         ptr = end;
 
         // skip blankspace
@@ -69,13 +70,12 @@ void Node::parseAttributes()
                 QString tmp(pptr);
                 QString::Iterator end = pptr;
                 int qidx = tmp.indexOf(quote);
-                if (qidx>=0)
+                if (qidx>=0) {
                     end += qidx;
-                else {
+                } else {
                     //b = mText.find_first_of(" >", a+1);
-                    int end1, end2;
-                    end1 = tmp.indexOf(' ');
-                    end2 = tmp.indexOf('>');
+                    int end1 = tmp.indexOf(' ');
+                    int end2 = tmp.indexOf('>');
                     if (end1>=0 && end1 < end2) end += end1;
                     else if (end2>=0) end += end2;
                     else return;
@@ -85,12 +85,12 @@ void Node::parseAttributes()
                 while (begin < lText.end() && begin->isSpace() && begin < end) ++begin;
                 QString::Iterator trimmed_end = end - 1;
                 while (trimmed_end->isSpace() && trimmed_end >= begin) --trimmed_end;
-                val = QString(begin, trimmed_end - begin + 1);
+                val = QString(begin, static_cast<int>(trimmed_end - begin + 1));
                 ptr = end + 1;
             } else {
                 end = ptr;
                 while (end < lText.end() && !end->isSpace() && *end != '>') end++;
-                val = QString(ptr, end - ptr);
+                val = QString(ptr, static_cast<int>(end - ptr));
                 ptr = end;
             }
 
@@ -105,10 +105,10 @@ void Node::parseAttributes()
     }
 }
 
-bool Node::operator==(const Node &n) const 
+bool Node::operator==(const Node &rhs) const
 {
-	if (!isTag() || !n.isTag()) return false;
-    return (tagName().compare(n.tagName(),Qt::CaseInsensitive) == 0);
+    if (!isTag() || !rhs.isTag()) return false;
+    return (tagName().compare(rhs.tagName(),Qt::CaseInsensitive) == 0);
 }
 
 Node::operator QString() const {

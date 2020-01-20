@@ -250,19 +250,15 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
                 s.insert(idx,'\n');
                 idx++;
                 clen = 0;
-            } else if (closingQuotation.contains(c) && (!denyNewline)) {
-                //&& (nc.isLetter() || openingQuotation.contains(nc))) {
+            } else if ((closingQuotation.contains(c) && (!denyNewline)) ||
+                       (endMarkers.contains(c) && (clen>maxParagraphLength))) {
                 // insert newline after closing quotation
+                // -- or after long sentences
                 s.insert(idx+1,'\n');
                 idx+=2;
                 clen = 0;
             } else if (closingQuotation.contains(c) && denyNewline) {
                 denyNewline = false;
-            } else if (endMarkers.contains(c) && (clen>maxParagraphLength)) {
-                // insert newline after long sentences
-                s.insert(idx+1,'\n');
-                idx+=2;
-                clen = 0;
             } else {
                 clen++;
             }
