@@ -267,7 +267,7 @@ void CTranslatorStatisticsTab::updateGraph()
         auto graph = new QCPGraph(ui->plot->xAxis, ui->plot->yAxis);
 
         // Graph
-        QColor color = CSettings::snippetColors.at(idx % CSettings::snippetColors.count());
+        QColor color = CSettings::graphColors.at(idx % CSettings::graphColors.count());
         graph->setPen(QPen(color,2));
         color.setAlpha(graphBrushAlpha);
         graph->setBrush(color);

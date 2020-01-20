@@ -69,6 +69,7 @@ class CSettings : public QObject
 {
     Q_OBJECT
 public:
+    static const QVector<QColor> graphColors;
     static const QVector<QColor> snippetColors;
     static const QUrl::FormattingOptions adblockUrlFmt;
 

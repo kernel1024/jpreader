@@ -18,10 +18,16 @@
 #include "userscript.h"
 #include "bookmarks.h"
 
-const QVector<QColor> CSettings::snippetColors = {
+const QVector<QColor> CSettings::graphColors = {
     QColor(Qt::darkBlue), QColor(Qt::darkGreen), QColor(Qt::darkMagenta),
     QColor(Qt::darkCyan), QColor(Qt::darkRed),   QColor(Qt::darkGray),
     QColor(Qt::darkYellow) };
+
+const QVector<QColor> CSettings::snippetColors = {
+    QColor(Qt::red), QColor(Qt::green), QColor(Qt::blue), QColor(Qt::cyan),
+    QColor(Qt::magenta), QColor(Qt::darkRed), QColor(Qt::darkGreen),
+    QColor(Qt::darkBlue), QColor(Qt::darkCyan), QColor(Qt::darkMagenta),
+    QColor(Qt::darkYellow), QColor(Qt::gray) };
 
 const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
                                                          | QUrl::RemovePort
