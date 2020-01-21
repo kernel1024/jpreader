@@ -494,6 +494,15 @@ void CGenericFuncs::processedSleep(unsigned long secs)
     }
 }
 
+void CGenericFuncs::processedMSleep(unsigned long msecs)
+{
+    const int granularity = 50;
+    for (unsigned long i=0;i<(msecs/granularity);i++) {
+        QThread::msleep(granularity);
+        QApplication::processEvents();
+    }
+}
+
 bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileName, const QByteArray &data)
 {
     static QMutex zipLock;

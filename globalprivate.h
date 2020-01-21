@@ -11,6 +11,7 @@
 #include "userscript.h"
 #include "auxdictionary.h"
 #include "auxtranslator.h"
+#include "translator.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -41,6 +42,7 @@ public:
     QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
     QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
+    QList<QPointer<CTranslator> > translatorPool;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;

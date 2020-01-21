@@ -54,6 +54,7 @@ public:
     static QString bool2str2(bool value);
     static int numDigits(int n);
     static void processedSleep(unsigned long secs);
+    static void processedMSleep(unsigned long msecs);
 
     static bool writeBytesToZip(const QString& zipFile, const QString& fileName, const QByteArray& data);
 

@@ -143,7 +143,8 @@ void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranslateSubSe
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);
 
-    connect(ct,&CTranslator::finished,th,&QThread::quit);
+    gSet->addTranslatorToPool(ct);
+    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupTranslator,Qt::QueuedConnection);
     connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
 
@@ -174,10 +175,12 @@ void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranslateSubSe
     QMetaObject::invokeMethod(ct,&CTranslator::translate,Qt::QueuedConnection);
 }
 
-void CSnTrans::translationFinished(bool success, const QString& resultHtml, const QString& error)
+void CSnTrans::translationFinished(bool success, bool aborted, const QString& resultHtml, const QString& error)
 {
     snv->waitPanel->hide();
     snv->transButton->setEnabled(true);
+    if (aborted) return;
+
     if (success) {
         snv->m_translatedHtml=resultHtml;
         postTranslate();

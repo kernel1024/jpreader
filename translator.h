@@ -91,7 +91,7 @@ public:
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
 Q_SIGNALS:
-    void translationFinished(bool success, const QString &resultHtml, const QString &error);
+    void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void setProgress(int value);
     void finished();
 

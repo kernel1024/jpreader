@@ -22,6 +22,7 @@ class BookmarksManager;
 class ArticleNetworkAccessManager;
 class CGoldenDictMgr;
 class CTranslatorCache;
+class CTranslator;
 
 #define gSet (CGlobalControl::instance())
 
@@ -87,6 +88,7 @@ public:
     QStringList getLanguageCodes() const;
     QString getLanguageName(const QString &bcp47Name) const;
     void showLightTranslator(const QString& text = QString());
+    void addTranslatorToPool(CTranslator* tran);
 
     // Misc
     QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
@@ -138,6 +140,7 @@ private:
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
     void cleanTmpFiles();
+    void stopAndCloseTranslators();
     void initLanguagesList();
     void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -171,6 +174,7 @@ public Q_SLOTS:
     void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
     void clearCaches();
     void forceCharset();
+    void cleanupTranslator();
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

@@ -575,7 +575,7 @@ void CTranslator::translate()
     CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
-        Q_EMIT translationFinished(false,translatedHtml,lastError);
+        Q_EMIT translationFinished(false,isAborted(),translatedHtml,lastError);
         Q_EMIT finished();
         return;
     }
@@ -587,7 +587,7 @@ void CTranslator::translate()
                              m_translationEngine,
                              m_translateSubSentences);
         if (!translatedHtml.isEmpty()) {
-            Q_EMIT translationFinished(true,translatedHtml,QString());
+            Q_EMIT translationFinished(true,isAborted(),translatedHtml,QString());
             Q_EMIT finished();
             return;
         }
@@ -617,7 +617,7 @@ void CTranslator::translate()
             }
         }
         if (!oktrans) {
-            Q_EMIT translationFinished(false,translatedHtml,lastError);
+            Q_EMIT translationFinished(false,isAborted(),translatedHtml,lastError);
             Q_EMIT finished();
             return;
         }
@@ -626,7 +626,7 @@ void CTranslator::translate()
             QString lastError = tr("Translator initialization error");
             if (m_tran)
                 lastError = m_tran->getErrorMsg();
-            Q_EMIT translationFinished(false,translatedHtml,lastError);
+            Q_EMIT translationFinished(false,isAborted(),translatedHtml,lastError);
             Q_EMIT finished();
             return;
         }
@@ -637,7 +637,7 @@ void CTranslator::translate()
                                                       m_translationEngine,m_translateSubSentences);
     }
 
-    Q_EMIT translationFinished(true,translatedHtml,QString());
+    Q_EMIT translationFinished(true,isAborted(),translatedHtml,QString());
     Q_EMIT finished();
 }
 

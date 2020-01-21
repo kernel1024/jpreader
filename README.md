@@ -1,6 +1,6 @@
 # jpreader
 
-JPReader is a assistance tool for reading and translating japanese text from Internet or local text repository.
+JPReader is a assistance tool for reading and translating text from Internet or local text repository.
 
 Integrated with KDE Frameworks 5 Baloo API support and Recoll support (through CLI client output parser) for local text repository, external ATLAS engine interface with online translation engines support for text translation.
 

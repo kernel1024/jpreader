@@ -8,6 +8,8 @@
 #include <QWebEngineCookieStore>
 #include <QRegularExpression>
 #include <QElapsedTimer>
+#include <QPointer>
+#include <QAtomicInteger>
 #include <goldendictlib/goldendictmgr.hh>
 
 extern "C" {
@@ -43,6 +45,8 @@ const int tabListSavePeriod = 30000;
 const int dictionariesLoadingDelay = 1500;
 const int ipcTimeout = 1000;
 const int tabCloseInterlockDelay = 500;
+const int translatorMaxShutdownTimeMS = 5000;
+const int translatorWaitGranularityMS = 250;
 }
 
 CGlobalControl::CGlobalControl(QCoreApplication *parent) :
@@ -67,15 +71,20 @@ CGlobalControl::~CGlobalControl()
 
 CGlobalControl *CGlobalControl::instance()
 {
-    // TODO: Try to remake this with smartpointers
-    static CGlobalControl* inst = nullptr;
-    static QMutex lock;
+    static QPointer<CGlobalControl> inst;
+    static QAtomicInteger<bool> initializedOnce(false);
 
-    QMutexLocker locker(&lock);
-    if (inst==nullptr)
-        inst = new CGlobalControl(QApplication::instance());
+    if (inst.isNull()) {
+        if (initializedOnce.testAndSetAcquire(false,true)) {
+            inst = new CGlobalControl(QApplication::instance());
+            return inst.data();
+        }
 
-    return inst;
+        qCritical() << "Accessing to gSet after destruction!!!";
+        return nullptr;
+    }
+
+    return inst.data();
 }
 
 QApplication *CGlobalControl::app(QObject *parentApp)
@@ -776,6 +785,31 @@ void CGlobalControl::windowDestroyed(CMainWindow *obj)
     }
 }
 
+void CGlobalControl::stopAndCloseTranslators()
+{
+    Q_D(CGlobalControl);
+    QElapsedTimer tmr;
+
+    Q_EMIT stopTranslators();
+
+    tmr.start();
+    while (!d->translatorPool.isEmpty() &&
+           tmr.elapsed() < CDefaults::translatorMaxShutdownTimeMS) {
+        CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
+    }
+
+    if (!d->translatorPool.isEmpty()) {
+        // Forced stop
+        for (const auto &ptr : qAsConst(d->translatorPool)) {
+            if (ptr) {
+                ptr->thread()->terminate();
+                ptr->thread()->wait();
+            }
+        }
+        d->translatorPool.clear(); // Just stop problematic translators, do not try to free memory correctly
+    }
+}
+
 void CGlobalControl::cleanupAndExit()
 {
     Q_D(CGlobalControl);
@@ -786,8 +820,6 @@ void CGlobalControl::cleanupAndExit()
     m_settings->writeSettings();
     cleanTmpFiles();
 
-    Q_EMIT stopTranslators();
-
     if (d->mainWindows.count()>0) {
         for (CMainWindow* w : qAsConst(d->mainWindows)) {
             if (w)
@@ -795,6 +827,9 @@ void CGlobalControl::cleanupAndExit()
         }
     }
     m_ui->gctxTranHotkey.unsetShortcut();
+
+    stopAndCloseTranslators();
+
     CPDFWorker::freePdfToText();
 
     // free global objects
@@ -1160,6 +1195,31 @@ void CGlobalControl::forceCharset()
         webProfile()->settings()->setDefaultTextEncoding(cs);
     }
 
+}
+
+void CGlobalControl::addTranslatorToPool(CTranslator *tran)
+{
+    Q_D(CGlobalControl);
+    QPointer<CTranslator> ptr(tran);
+    d->translatorPool.append(ptr);
+}
+
+void CGlobalControl::cleanupTranslator()
+{
+    Q_D(CGlobalControl);
+
+    auto translator = qobject_cast<CTranslator *>(sender());
+    if (translator==nullptr) {
+        qCritical() << "Unknown translator cleanup request, ignoring. " << sender()->metaObject()->className();
+        return;
+    }
+
+    QTimer::singleShot(0,translator,[translator](){
+        translator->thread()->quit();
+    });
+
+    d->translatorPool.removeAll(translator);
+    d->translatorPool.removeAll(nullptr);
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine) const
