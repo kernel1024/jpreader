@@ -76,8 +76,8 @@ void CPixivNovelExtractor::startManga()
 
 void CPixivNovelExtractor::novelLoadFinished()
 {
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==nullptr || m_snv==nullptr) return;
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull() || m_snv==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QString html = QString::fromUtf8(rpl->readAll());
@@ -208,13 +208,11 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         subWorkFinished(); // call just in case for empty lists
     }
-    rpl->deleteLater();
 }
 
 void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
 {
     Q_UNUSED(error)
-    gSet->app()->restoreOverrideCursor();
 
     QString msg(QSL("Unable to load from pixiv."));
 
@@ -240,8 +238,8 @@ void CPixivNovelExtractor::subLoadFinished()
 {
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==nullptr) return;
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
 
     QUrl rplUrl = rpl->url();
     QString key = rplUrl.fileName();
@@ -263,10 +261,8 @@ void CPixivNovelExtractor::subLoadFinished()
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
-            gSet->app()->restoreOverrideCursor();
             Q_EMIT mangaReady(imageUrls,id,m_mangaOrigin);
             Q_EMIT finished();
-            rpl->deleteLater();
             return;
         }
 
@@ -296,14 +292,11 @@ void CPixivNovelExtractor::subLoadFinished()
     }
     QMetaObject::invokeMethod(this,&CPixivNovelExtractor::subWorkFinished,Qt::QueuedConnection);
     m_worksPageLoad--;
-    rpl->deleteLater();
 }
 
 void CPixivNovelExtractor::subWorkFinished()
 {
     if (m_worksPageLoad>0 || m_worksImgFetch>0) return;
-
-    gSet->app()->restoreOverrideCursor();
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
@@ -333,8 +326,8 @@ void CPixivNovelExtractor::subWorkFinished()
 
 void CPixivNovelExtractor::subImageFinished()
 {
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==nullptr) return;
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QByteArray ba = rpl->readAll();
@@ -373,7 +366,6 @@ void CPixivNovelExtractor::subImageFinished()
     }
     QMetaObject::invokeMethod(this,&CPixivNovelExtractor::subWorkFinished,Qt::QueuedConnection);
     m_worksImgFetch--;
-    rpl->deleteLater();
 }
 
 void CPixivNovelExtractor::handleImages(const QStringList &imgs)

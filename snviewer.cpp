@@ -69,7 +69,6 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     connect(backButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::searchBack);
     connect(fwdButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::searchFwd);
     connect(stopButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::stop);
-    connect(reloadButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::reload);
     connect(urlEdit, &QLineEdit::returnPressed, this, &CSnippetViewer::navByUrlDefault);
     connect(navButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::navByClick);
     connect(fwdNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::forward);
@@ -77,6 +76,9 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     connect(comboZoom, &QComboBox::currentTextChanged, msgHandler, &CSnMsgHandler::setZoom);
     connect(searchEdit->lineEdit(), &QLineEdit::returnPressed, fwdButton, &QPushButton::click);
     connect(passwordButton, &QPushButton::clicked, msgHandler, &CSnMsgHandler::pastePassword);
+    connect(reloadButton, &QPushButton::clicked, txtBrowser, [this](){
+        txtBrowser->pageAction(QWebEnginePage::ReloadAndBypassCache)->activate(QAction::Trigger);
+    });
 
     connect(txtBrowser, &QWebEngineView::loadProgress, transHandler, &CSnTrans::progressLoad);
     connect(txtBrowser, &QWebEngineView::loadFinished, netHandler, &CSnNet::loadFinished);

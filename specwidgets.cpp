@@ -701,8 +701,8 @@ void CFaviconLoader::queryStart(bool forceCached)
 
 void CFaviconLoader::queryFinished()
 {
-    auto rpl = qobject_cast<QNetworkReply*>(sender());
-    if (rpl==nullptr) {
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply*>(sender()));
+    if (rpl.isNull()) {
         Q_EMIT finished();
         return;
     }
@@ -722,6 +722,5 @@ void CFaviconLoader::queryFinished()
         }
     }
 
-    rpl->deleteLater();
     Q_EMIT finished();
 }

@@ -29,8 +29,6 @@ void CPixivIndexExtractor::setParams(CSnippetViewer *viewer, const QString &pixi
 
 void CPixivIndexExtractor::showError(const QString &message)
 {
-    gSet->app()->restoreOverrideCursor();
-
     qCritical() << "CPixivIndexExtractor error:" << message;
 
     QWidget *w = nullptr;
@@ -49,8 +47,8 @@ void CPixivIndexExtractor::fetchNovelsInfo()
 {
     if (m_snv==nullptr) return;
 
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl != nullptr) {
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl) {
         if (rpl->error() == QNetworkReply::NoError) {
             QJsonParseError err {};
             QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
@@ -58,7 +56,6 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                 showError(tr("JSON parser error %1 at %2.")
                           .arg(err.error)
                           .arg(err.offset));
-                rpl->deleteLater();
                 return;
             }
 
@@ -67,7 +64,6 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                 if (obj.value(QSL("error")).toBool(false)) {
                     showError(tr("Novel list extractor error: %1")
                               .arg(obj.value(QSL("message")).toString()));
-                    rpl->deleteLater();
                     return;
                 }
 
@@ -94,7 +90,6 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                 }
             }
         }
-        rpl->deleteLater();
     }
 
     if (m_ids.isEmpty()) {
@@ -181,8 +176,8 @@ void CPixivIndexExtractor::createNovelBookmarksList()
 
 void CPixivIndexExtractor::profileAjax()
 {
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==nullptr || m_snv==nullptr) return;
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull() || m_snv==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QJsonParseError err {};
@@ -191,7 +186,6 @@ void CPixivIndexExtractor::profileAjax()
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
                       .arg(err.offset));
-            rpl->deleteLater();
             return;
         }
 
@@ -200,7 +194,6 @@ void CPixivIndexExtractor::profileAjax()
             if (obj.value(QSL("error")).toBool(false)) {
                 showError(tr("Novel list extractor error: %1")
                           .arg(obj.value(QSL("message")).toString()));
-                rpl->deleteLater();
                 return;
             }
 
@@ -212,13 +205,12 @@ void CPixivIndexExtractor::profileAjax()
             });
         }
     }
-    rpl->deleteLater();
 }
 
 void CPixivIndexExtractor::bookmarksAjax()
 {
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl==nullptr || m_snv==nullptr) return;
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull() || m_snv==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrlQuery uq(rpl->url());
@@ -233,7 +225,6 @@ void CPixivIndexExtractor::bookmarksAjax()
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
                       .arg(err.offset));
-            rpl->deleteLater();
             return;
         }
 
@@ -242,7 +233,6 @@ void CPixivIndexExtractor::bookmarksAjax()
             if (obj.value(QSL("error")).toBool(false)) {
                 showError(tr("Novel list extractor error: %1")
                           .arg(obj.value(QSL("message")).toString()));
-                rpl->deleteLater();
                 return;
             }
 
@@ -286,7 +276,6 @@ void CPixivIndexExtractor::bookmarksAjax()
                             this,&CPixivIndexExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
                 });
-                rpl->deleteLater();
                 return;
             }
 
@@ -294,7 +283,6 @@ void CPixivIndexExtractor::bookmarksAjax()
         }
     }
     Q_EMIT finished();
-    rpl->deleteLater();
 }
 
 void CPixivIndexExtractor::addNovelInfoBlock(const QString& workId, const QString& workImgUrl,
@@ -336,8 +324,6 @@ void CPixivIndexExtractor::addNovelInfoBlock(const QString& workId, const QStrin
 
 void CPixivIndexExtractor::finalizeHtml()
 {
-    gSet->app()->restoreOverrideCursor();
-
     QString header;
     switch (m_indexMode) {
         case WorkIndex: header = tr("works"); break;

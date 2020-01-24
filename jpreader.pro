@@ -1,6 +1,7 @@
 HEADERS = mainwindow.h \
     awstranslator.h \
     globalprivate.h \
+    htmlimagesextractor.h \
     jsedit/jsedit_p.h \
     pdfworkerprivate.h \
     pixivindexextractor.h \
@@ -56,6 +57,7 @@ HEADERS = mainwindow.h \
 SOURCES = main.cpp \
     awstranslator.cpp \
     globalprivate.cpp \
+    htmlimagesextractor.cpp \
     mainwindow.cpp \
     pdfworkerprivate.cpp \
     pixivindexextractor.cpp \

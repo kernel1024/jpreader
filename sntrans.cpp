@@ -296,10 +296,8 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
 void CSnTrans::dictDataReady()
 {
     QString res = QString();
-    auto rep = qobject_cast<QNetworkReply *>(sender());
-    if (rep) {
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rep(qobject_cast<QNetworkReply *>(sender()));
+    if (rep)
         res = QString::fromUtf8(rep->readAll());
-        rep->deleteLater();
-    }
     showWordTranslation(res);
 }

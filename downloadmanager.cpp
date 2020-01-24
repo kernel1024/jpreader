@@ -75,8 +75,6 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
             model, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
             model, &CDownloadsModel::downloadProgress);
-    connect(rpl, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-            model, &CDownloadsModel::downloadFailed);
 
     model->appendItem(CDownloadItem(rpl, fname));
 }
@@ -316,45 +314,17 @@ void CDownloadsModel::appendItem(const CDownloadItem &item)
     endInsertRows();
 }
 
-void CDownloadsModel::downloadFailed(QNetworkReply::NetworkError code)
-{
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
-
-    int row = -1;
-    QUrl url;
-
-    if (rpl) {
-        row = downloads.indexOf(CDownloadItem(rpl));
-        url = rpl->url();
-    }
-    if (row<0 || row>=downloads.count()) return;
-
-    downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
-    downloads[row].errorString = tr("Error %1: %2").arg(code).arg(rpl->errorString());
-    downloads[row].downloadItem = nullptr;
-
-    if (rpl) {
-        rpl->deleteLater();
-        downloads[row].reply = nullptr;
-    }
-
-    Q_EMIT dataChanged(index(row,0),index(row,3));
-
-    if (downloads.at(row).autoDelete)
-        deleteDownloadItem(index(row,0));
-}
-
 void CDownloadsModel::downloadFinished()
 {
-    auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
+    QScopedPointer<QWebEngineDownloadItem,QScopedPointerDeleteLater> item(qobject_cast<QWebEngineDownloadItem *>(sender()));
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
 
     int row = -1;
 
     if (item) {
         row = downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        row = downloads.indexOf(CDownloadItem(rpl));
+        row = downloads.indexOf(CDownloadItem(rpl.data()));
     }
     if (row<0 || row>=downloads.count())
         return;
@@ -368,28 +338,28 @@ void CDownloadsModel::downloadFinished()
     downloads[row].downloadItem = nullptr;
 
     if (rpl) {
-        if (!downloads.at(row).getZipName().isEmpty()) {
-            if (!CGenericFuncs::writeBytesToZip(downloads.at(row).getZipName(),
-                                                downloads.at(row).getFileName(),
-                                                rpl->readAll()))
-                downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+        if (rpl->error()==QNetworkReply::NoError) {
+            if (!downloads.at(row).getZipName().isEmpty()) {
+                if (!CGenericFuncs::writeBytesToZip(downloads.at(row).getZipName(),
+                                                    downloads.at(row).getFileName(),
+                                                    rpl->readAll()))
+                    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+            } else {
+                QFile f(downloads.at(row).getFileName()); // TODO: continuous file download for big files
+                if (f.open(QIODevice::WriteOnly)) {
+                    f.write(rpl->readAll());
+                    f.close();
+                } else
+                    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+            }
         } else {
-            QFile f(downloads.at(row).getFileName()); // TODO: continuous file download for big files
-            if (f.open(QIODevice::WriteOnly)) {
-                f.write(rpl->readAll());
-                f.close();
-            } else
-                downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+            downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
+            downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
         }
-
-        rpl->deleteLater();
         downloads[row].reply = nullptr;
     }
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
-
-    if (item)
-        item->deleteLater();
 
     if (downloads.at(row).autoDelete)
         deleteDownloadItem(index(row,0));
@@ -552,76 +522,19 @@ void CDownloadsModel::openXdg()
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
-CDownloadItem::CDownloadItem()
-{
-    id = 0;
-    pathName.clear();
-    mimeType.clear();
-    errorString.clear();
-    state = QWebEngineDownloadItem::DownloadRequested;
-    received = 0;
-    total = 0;
-    downloadItem = nullptr;
-    autoDelete = false;
-    reply = nullptr;
-}
-
-CDownloadItem::CDownloadItem(const CDownloadItem &other)
-{
-    id = other.id;
-    pathName = other.pathName;
-    mimeType = other.mimeType;
-    errorString = other.errorString;
-    state = other.state;
-    received = other.received;
-    total = other.total;
-    downloadItem = other.downloadItem;
-    autoDelete = other.autoDelete;
-    reply = other.reply;
-}
-
 CDownloadItem::CDownloadItem(quint32 itemId)
 {
     id = itemId;
-    pathName.clear();
-    mimeType.clear();
-    errorString.clear();
-    state = QWebEngineDownloadItem::DownloadRequested;
-    received = 0;
-    total = 0;
-    downloadItem = nullptr;
-    autoDelete = false;
-    reply = nullptr;
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 {
-    id = 0;
-    pathName.clear();
-    mimeType.clear();
-    errorString.clear();
-    state = QWebEngineDownloadItem::DownloadRequested;
-    received = 0;
-    total = 0;
-    downloadItem = nullptr;
-    autoDelete = false;
     reply = rpl;
 }
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
 {
-    if (item==nullptr) {
-        id = 0;
-        pathName.clear();
-        mimeType.clear();
-        errorString.clear();
-        state = QWebEngineDownloadItem::DownloadRequested;
-        received = 0;
-        total = 0;
-        downloadItem = nullptr;
-        autoDelete = false;
-        reply = nullptr;
-    } else {
+    if (item!=nullptr) {
         id = item->id();
         pathName = item->path();
         mimeType = item->mimeType();
@@ -630,22 +543,14 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         received = item->receivedBytes();
         total = item->totalBytes();
         downloadItem = item;
-        autoDelete = false;
-        reply = nullptr;
     }
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
 {
-    id = 0;
     pathName = fname;
     mimeType = QSL("application/download");
-    errorString.clear();
     state = QWebEngineDownloadItem::DownloadInProgress;
-    received = 0;
-    total = 0;
-    downloadItem = nullptr;
-    autoDelete = false;
     reply = rpl;
 }
 

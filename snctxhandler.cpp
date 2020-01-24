@@ -24,11 +24,13 @@
 #include "snmsghandler.h"
 #include "sntrans.h"
 #include "noscriptdialog.h"
+#include "htmlimagesextractor.h"
 
 namespace CDefaults {
 const int menuActiveTimerInterval = 1000;
 const int maxRealmLabelEliding = 60;
 const int maxTranslateFragmentCharWidth = 80;
+const int clipboardHtmlAquireDelay = 1000;
 }
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
@@ -51,7 +53,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QUrl linkUrl;
     QUrl imageUrl;
     QUrl pixivUrl;
-    QUrl origin = snv->txtBrowser->page()->url();
+    const QUrl origin = snv->txtBrowser->page()->url();
 
     if (data.isValid()) {
         sText = data.selectedText();
@@ -60,7 +62,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             imageUrl = data.mediaUrl();
     }
 
-    QClipboard *cb = QApplication::clipboard();
+    const QClipboard *cb = QApplication::clipboard();
     QAction *ac;
     QMenu *ccm;
     QVector<QAction *> pixivActions;
@@ -170,6 +172,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
         });
+
+        ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit")),
+                         tr("Extract HTML via clipboard to separate tab"));
+        connect(ac, &QAction::triggered, this, &CSnCtxHandler::extractHTMLFragment);
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new-background")),
                          tr("Translate plain text in separate tab"));
@@ -537,6 +543,38 @@ void CSnCtxHandler::translateFragment()
     th->start();
 
     QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
+}
+
+void CSnCtxHandler::extractHTMLFragment()
+{
+    if (!snv->txtBrowser->hasSelection()) return;
+
+    snv->txtBrowser->page()->action(QWebEnginePage::Copy)->activate(QAction::Trigger);
+    const QUrl url = snv->txtBrowser->url();
+    QTimer::singleShot(CDefaults::clipboardHtmlAquireDelay,this,[this,url](){
+        QClipboard *cb = QApplication::clipboard();
+        const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
+        if (md->hasHtml()) {
+            auto ex = new CHtmlImagesExtractor();
+            auto th = new QThread();
+            ex->setParams(md->html(),url,false,true);
+
+            connect(ex,&CHtmlImagesExtractor::htmlReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
+            connect(ex,&CHtmlImagesExtractor::finished,th,&QThread::quit);
+            connect(th,&QThread::finished,ex,&CHtmlImagesExtractor::deleteLater);
+            connect(th,&QThread::finished,th,&QThread::deleteLater);
+
+            ex->moveToThread(th);
+            th->start();
+
+            gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+            QMetaObject::invokeMethod(ex,&CHtmlImagesExtractor::start,Qt::QueuedConnection);
+        } else {
+            QMessageBox::information(snv,tr("JPReader"),tr("Unknown clipboard format. HTML expected."));
+        }
+        cb->clear(QClipboard::Clipboard);
+    });
 }
 
 void CSnCtxHandler::saveToFile()

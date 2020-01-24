@@ -16,19 +16,23 @@
 #include "snwaitctl.h"
 #include "structures.h"
 
-class CHTMLNode {
+using CHTMLAttributesHash = QHash<QString,QString>;
+
+class CHTMLNode
+{
 public:
     QString text, tagName, closingText;
     QVector<CHTMLNode> children;
-    QHash<QString,QString> attributes;
+    CHTMLAttributesHash attributes;
     QStringList attributesOrder;
-    bool isTag, isComment;
-    CHTMLNode();
-    ~CHTMLNode();
+    bool isTag { false };
+    bool isComment { false };
+    CHTMLNode() = default;
+    ~CHTMLNode() = default;
     CHTMLNode(const CHTMLNode& other);
     explicit CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
     explicit CHTMLNode(const QString& innerText);
-    CHTMLNode &operator=(const CHTMLNode& other);
+    CHTMLNode &operator=(const CHTMLNode& other) = default;
     bool operator==(const CHTMLNode &s) const;
     bool operator!=(const CHTMLNode &s) const;
     void normalize();

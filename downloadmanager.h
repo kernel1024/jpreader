@@ -6,6 +6,7 @@
 #include <QWebEngineDownloadItem>
 #include <QAbstractItemDelegate>
 #include <QNetworkReply>
+#include <QPointer>
 
 namespace Ui {
 class CDownloadManager;
@@ -17,17 +18,20 @@ class CDownloadBarDelegate;
 class CDownloadItem
 {
 public:
-    quint32 id;
-    QString pathName, mimeType, errorString;
-    QWebEngineDownloadItem::DownloadState state;
-    qint64 received, total;
-    QWebEngineDownloadItem* downloadItem;
-    QNetworkReply* reply;
+    quint32 id { 0 };
+    QString pathName;
+    QString mimeType;
+    QString errorString;
+    QWebEngineDownloadItem::DownloadState state { QWebEngineDownloadItem::DownloadRequested };
+    qint64 received { 0L };
+    qint64 total { 0L };
+    QPointer<QWebEngineDownloadItem> downloadItem;
+    QPointer<QNetworkReply> reply;
 
-    bool autoDelete;
+    bool autoDelete { false };
 
-    CDownloadItem();
-    CDownloadItem(const CDownloadItem& other);
+    CDownloadItem() = default;
+    CDownloadItem(const CDownloadItem& other) = default;
     explicit CDownloadItem(quint32 itemId);
     explicit CDownloadItem(QNetworkReply* rpl);
     explicit CDownloadItem(QWebEngineDownloadItem* item);
@@ -97,7 +101,6 @@ public Q_SLOTS:
     void appendItem(const CDownloadItem& item);
 
     void downloadFinished();
-    void downloadFailed(QNetworkReply::NetworkError code);
     void downloadStateChanged(QWebEngineDownloadItem::DownloadState state);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 

@@ -701,25 +701,6 @@ void CTranslator::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
     }
 }
 
-CHTMLNode::CHTMLNode()
-{
-    children.clear();
-    attributes.clear();
-    attributesOrder.clear();
-    text.clear();
-    tagName.clear();
-    closingText.clear();
-    isTag = false;
-    isComment = false;
-}
-
-CHTMLNode::~CHTMLNode()
-{
-    children.clear();
-    attributes.clear();
-    attributesOrder.clear();
-}
-
 CHTMLNode::CHTMLNode(const CHTMLNode &other)
 {
     text = other.text;
@@ -727,14 +708,8 @@ CHTMLNode::CHTMLNode(const CHTMLNode &other)
     closingText = other.closingText;
     isTag = other.isTag;
     isComment = other.isComment;
-
-    attributes.clear();
     attributes = other.attributes;
-
-    attributesOrder.clear();
     attributesOrder = other.attributesOrder;
-
-    children.clear();
     children = other.children;
 }
 
@@ -749,14 +724,8 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
     closingText = it->closingText();
     isTag = it->isTag();
     isComment = it->isComment();
-
-    attributes.clear();
     attributes = it->attributes();
-
-    attributesOrder.clear();
     attributesOrder = it->attributesOrder();
-
-    children.clear();
     children.reserve(static_cast<int>(it.number_of_children()));
     for (unsigned i=0; i<it.number_of_children(); i++ )
         children << CHTMLNode(node.child(it,i));
@@ -767,33 +736,6 @@ CHTMLNode::CHTMLNode(const QString &innerText)
     // creates text node
     text = innerText;
     tagName = innerText;
-    closingText.clear();
-    isTag = false;
-    isComment = false;
-
-    attributes.clear();
-    attributesOrder.clear();
-    children.clear();
-}
-
-CHTMLNode &CHTMLNode::operator=(const CHTMLNode &other)
-{
-    text = other.text;
-    tagName = other.tagName;
-    closingText = other.closingText;
-    isTag = other.isTag;
-    isComment = other.isComment;
-
-    attributes.clear();
-    attributes = other.attributes;
-
-    attributesOrder.clear();
-    attributesOrder = other.attributesOrder;
-
-    children.clear();
-    children = other.children;
-
-    return *this;
 }
 
 bool CHTMLNode::operator==(const CHTMLNode &s) const

@@ -192,7 +192,7 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     auto th = new QThread();
     ex->setParams(snv,url,title,translate,focus);
 
-    connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::pixivNovelReady,Qt::QueuedConnection);
+    connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
     connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
@@ -257,8 +257,10 @@ void CSnNet::downloadPixivManga()
     QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::startManga,Qt::QueuedConnection);
 }
 
-void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
+void CSnNet::novelReady(const QString &html, bool focus, bool translate)
 {
+    gSet->app()->restoreOverrideCursor();
+
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
         sv->m_requestAutotranslate = translate;
@@ -269,6 +271,8 @@ void CSnNet::pixivNovelReady(const QString &html, bool focus, bool translate)
 
 void CSnNet::pixivListReady(const QString &html)
 {
+    gSet->app()->restoreOverrideCursor();
+
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
     } else {
@@ -278,6 +282,8 @@ void CSnNet::pixivListReady(const QString &html)
 
 void CSnNet::pixivMangaReady(const QStringList &urls, const QString &id, const QUrl &origin)
 {
+    gSet->app()->restoreOverrideCursor();
+
     if (urls.isEmpty() || id.isEmpty()) {
         QMessageBox::warning(snv,tr("JPReader"),
                              tr("No pixiv manga image urls found"));
