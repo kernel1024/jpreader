@@ -109,9 +109,12 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     if (!pixivUrl.host().contains(QSL("pixiv.net")))
         pixivUrl.clear();
     pixivUrl.setFragment(QString());
-    QUrlQuery puq(pixivUrl);
-    QString pixivId = puq.queryItemValue(QSL("id"));
-    pixivId.remove(QRegularExpression(QSL("[^0-9]")));
+
+    QString pixivId;
+    QRegularExpression rxPixivId(QSL("pixiv.net/.*/users/(?<userID>\\d+)"));
+    auto mchPixivId = rxPixivId.match(pixivUrl.toString());
+    if (mchPixivId.hasMatch())
+        pixivId = mchPixivId.captured(QSL("userID"));
 
     if (pixivUrl.isValid() && pixivUrl.toString().contains(
              QSL("pixiv.net/novel/show.php"), Qt::CaseInsensitive)) {
@@ -136,10 +139,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         m_menu.addSeparator();
     }
 
-    if ((pixivUrl.isValid() && !pixivId.isEmpty() && (
-             pixivUrl.toString().contains(QSL("pixiv.net/member.php"), Qt::CaseInsensitive) ||
-             pixivUrl.toString().contains(QSL("pixiv.net/novel/member.php"), Qt::CaseInsensitive) ||
-             pixivUrl.toString().contains(QSL("pixiv.net/novel/bookmark.php"), Qt::CaseInsensitive)))) {
+    if (pixivUrl.isValid() && !pixivId.isEmpty()) {
 
         ac = m_menu.addAction(tr("Extract novel list for author in new tab"));
         connect(ac, &QAction::triggered, this, [this,pixivId](){
