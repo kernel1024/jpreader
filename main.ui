@@ -167,8 +167,14 @@
       <string>Translation languages</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuSubsentencesMode">
+     <property name="title">
+      <string>Subsentences mode</string>
+     </property>
+    </widget>
     <addaction name="menuTranslationMode"/>
     <addaction name="menuTranslationLanguages"/>
+    <addaction name="menuSubsentencesMode"/>
     <addaction name="separator"/>
     <addaction name="actionTextTranslator"/>
     <addaction name="actionDownloadManager"/>

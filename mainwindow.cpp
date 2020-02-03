@@ -864,6 +864,8 @@ void CMainWindow::reloadLanguagesList()
 {
     menuTranslationLanguages->clear();
     menuTranslationLanguages->addActions(gSet->getTranslationLanguagesActions());
+    menuSubsentencesMode->clear();
+    menuSubsentencesMode->addActions(gSet->getSubsentencesModeActions());
 }
 
 void CMainWindow::reloadCharsetList()

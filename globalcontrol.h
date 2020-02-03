@@ -99,7 +99,6 @@ public:
     void writeSettings();
     void addFavicon(const QString& key, const QIcon &icon);
     void setTranslationEngine(CStructures::TranslationEngine engine);
-    void setSubsentencesMode(CStructures::TranslationEngine engine, bool translateSubSentences);
     void addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength);
 
     // Chromium
@@ -116,6 +115,7 @@ public:
     void translationStatisticsTab();
     QRect getLastMainWindowGeometry() const;
     QList<QAction*> getTranslationLanguagesActions() const;
+    QList<QAction*> getSubsentencesModeActions() const;
     bool isBlockTabCloseActive() const;
 
     // Owned widgets

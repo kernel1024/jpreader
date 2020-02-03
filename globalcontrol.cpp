@@ -411,11 +411,6 @@ void CGlobalControl::setTranslationEngine(CStructures::TranslationEngine engine)
     m_settings->setTranslationEngine(engine);
 }
 
-void CGlobalControl::setSubsentencesMode(CStructures::TranslationEngine engine, bool translateSubSentences)
-{
-    m_settings->subsentencesMode[engine] = translateSubSentences;
-}
-
 void CGlobalControl::addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength)
 {
     if (textLength < 0) {
@@ -525,6 +520,11 @@ QRect CGlobalControl::getLastMainWindowGeometry() const
 QList<QAction *> CGlobalControl::getTranslationLanguagesActions() const
 {
     return m_ui->languageSelector->actions();
+}
+
+QList<QAction *> CGlobalControl::getSubsentencesModeActions() const
+{
+    return m_ui->subsentencesMode->actions();
 }
 
 bool CGlobalControl::isBlockTabCloseActive() const

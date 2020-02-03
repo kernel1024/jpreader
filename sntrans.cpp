@@ -15,7 +15,6 @@ using namespace htmlcxx;
 
 namespace CDefaults {
 const int selectionTimerDelay = 1000;
-const int longClickTimerDelay = 1000;
 }
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
@@ -25,24 +24,10 @@ CSnTrans::CSnTrans(CSnippetViewer *parent)
 
     m_selectionTimer.setInterval(CDefaults::selectionTimerDelay);
     m_selectionTimer.setSingleShot(true);
-    m_longClickTimer.setInterval(CDefaults::longClickTimerDelay);
-    m_longClickTimer.setSingleShot(true);
 
     connect(snv->txtBrowser->page(), &QWebEnginePage::selectionChanged,this, &CSnTrans::selectionChanged);
     connect(&m_selectionTimer, &QTimer::timeout, this, &CSnTrans::selectionShow);
-    connect(&m_longClickTimer, &QTimer::timeout, this, &CSnTrans::transButtonHighlight);
-    connect(snv->transButton, &QPushButton::pressed, this, [this](){
-        m_longClickTimer.start();
-    });
-    connect(snv->transButton, &QPushButton::released, this, [this](){
-        bool ta = m_longClickTimer.isActive();
-        if (ta) {
-            m_longClickTimer.stop();
-        } else {
-            snv->transButton->setStyleSheet(QString());
-        }
-        translate(!ta);
-    });
+    connect(snv->transButton, &QPushButton::clicked, this, &CSnTrans::translateDocument);
 }
 
 void CSnTrans::applyScripts()
@@ -89,19 +74,14 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     snv->parentWnd()->updateTabs();
 }
 
-void CSnTrans::transButtonHighlight()
-{
-    snv->transButton->setStyleSheet(QSL("QPushButton { background: #d7ffd7; }"));
-}
-
-void CSnTrans::translate(bool forceTranslateSubSentences)
+void CSnTrans::translateDocument()
 {
     m_savedBaseUrl = snv->txtBrowser->page()->url();
     if (m_savedBaseUrl.hasFragment())
         m_savedBaseUrl.setFragment(QString());
     applyScripts();
-    snv->txtBrowser->page()->toHtml([this,forceTranslateSubSentences](const QString& html) {
-        translatePriv(html,forceTranslateSubSentences);
+    snv->txtBrowser->page()->toHtml([this](const QString& html) {
+        translatePriv(html);
     });
 }
 
@@ -133,12 +113,12 @@ void CSnTrans::getImgUrlsAndParse()
     });
 }
 
-void CSnTrans::translatePriv(const QString &sourceHtml, bool forceTranslateSubSentences)
+void CSnTrans::translatePriv(const QString &sourceHtml)
 {
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
 
-    auto ct = new CTranslator(nullptr,sourceHtml,forceTranslateSubSentences);
+    auto ct = new CTranslator(nullptr,sourceHtml);
     auto th = new QThread();
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);

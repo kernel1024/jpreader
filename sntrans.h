@@ -14,7 +14,6 @@ class CSnTrans : public QObject
 private:
     CSnippetViewer *snv;
     QTimer m_selectionTimer;
-    QTimer m_longClickTimer;
     QString m_storedSelection;
     QUrl m_savedBaseUrl;
     void findWordTranslation(const QString& text);
@@ -26,10 +25,9 @@ Q_SIGNALS:
 
 public:
     explicit CSnTrans(CSnippetViewer * parent);
-    void translate(bool forceTranslateSubSentences);
 
 public Q_SLOTS:
-    void translatePriv(const QString& sourceHtml, bool forceTranslateSubSentences);
+    void translatePriv(const QString& sourceHtml);
     void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void postTranslate();
     void progressLoad(int progress);
@@ -39,8 +37,8 @@ public Q_SLOTS:
     void showSuggestedTranslation(const QString & link);
     void dictDataReady();
     void reparseDocument();
+    void translateDocument();
     void reparseDocumentPriv(const QString& data);
-    void transButtonHighlight();
     void getImgUrlsAndParse();
 };
 

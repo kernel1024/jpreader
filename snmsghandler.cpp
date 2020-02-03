@@ -150,24 +150,10 @@ void CSnMsgHandler::urlEditSetFocus()
     }
 }
 
-void CSnMsgHandler::addTranslatorOptionsMenu(QMenu *menu)
-{
-    menu->addActions(gSet->getTranslationLanguagesActions());
-    menu->addSeparator();
-    CStructures::TranslationEngine engine = gSet->settings()->translatorEngine;
-    QAction *ac = menu->addAction(tr("Translate subsentences - %1")
-                                  .arg(CStructures::translationEngines().value(engine,tr("unknown"))));
-    ac->setCheckable(true);
-    ac->setChecked(gSet->settings()->subsentencesMode.value(engine,false));
-    connect(ac, &QAction::triggered, gSet, [](bool checked){
-        gSet->setSubsentencesMode(gSet->settings()->translatorEngine, checked);
-    });
-}
-
 void CSnMsgHandler::languageContextMenu(const QPoint &pos)
 {
     QMenu cm;
-    addTranslatorOptionsMenu(&cm);
+    cm.addActions(gSet->getTranslationLanguagesActions());
     cm.exec(snv->comboTranEngine->mapToGlobal(pos));
 }
 

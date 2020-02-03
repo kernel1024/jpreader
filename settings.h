@@ -112,7 +112,6 @@ public:
 
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash atlCerts;
-    CSubsentencesMode subsentencesMode;
     CTranslatorStatistics translatorStatistics;
     CSelectedLangPairs selectedLangPairs;
 
@@ -167,7 +166,6 @@ private:
     QVector<QUrl> getTabsList() const;
     void writeTabsListPrivate(const QVector<QUrl> &tabList);
     bool readBinaryBigData(QObject* control, const QString &dirname);
-    bool readBinaryBigDataOld(QObject *control, const QString &filename);
     void writeBinaryBigData(const QString &dirname);
     QByteArray readByteArray(const QDir &directory, const QString &name);
     bool writeByteArray(const QDir &directory, const QString &name, const QByteArray &data);

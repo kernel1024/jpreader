@@ -34,14 +34,6 @@ const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
                                                          | QUrl::RemoveFragment
                                                          | QUrl::StripTrailingSlash;
 
-namespace CDefaults {
-const quint32 bigdataMagic       = 0x4a500002;
-const quint32 bigdataMagicMask   = 0xffff0000;
-const quint32 bigdataVersionMask = 0x0000ffff;
-
-const quint32 bigdataVersion_TranslatorStatistics = 2;
-}
-
 CSettings::CSettings(QObject *parent)
     : QObject(parent)
 {
@@ -179,7 +171,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     atlCerts = readData(bigdataDir,QSL("atlCerts")).value<CSslCertificateHash>();
     g->d_func()->recentFiles = readData(bigdataDir,QSL("recentFiles")).toStringList();
     translatorPairs = readData(bigdataDir,QSL("translatorPairs")).value<QVector<CLangPair> >();
-    subsentencesMode = readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>();
+    g->m_ui->setSubsentencesModeHash(readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>());
     g->d_func()->noScriptWhiteList = readData(bigdataDir,QSL("noScriptWhiteList")).value<CStringSet>();
     translatorStatistics = readData(bigdataDir,QSL("translatorStatistics")).value<CTranslatorStatistics>();
     selectedLangPairs = readData(bigdataDir,QSL("selectedLangPairs")).value<CSelectedLangPairs>();
@@ -204,69 +196,6 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     return true;
 }
 
-bool CSettings::readBinaryBigDataOld(QObject *control, const QString& filename)
-{
-    // NOTE: Not so old legacy support. Do not add anything.
-
-    auto g = qobject_cast<CGlobalControl *>(control);
-    if (!g) return false;
-
-    QFile fBigdata(filename);
-    if (!fBigdata.open(QIODevice::ReadOnly))
-        return false;
-
-    QDataStream bigdata(&fBigdata);
-    quint32 magic;
-    bigdata >> magic;
-    if ((magic & CDefaults::bigdataMagicMask) !=
-            (CDefaults::bigdataMagic & CDefaults::bigdataMagicMask)) {
-        qWarning() << "Broken file format with config bigdata section: " << filename;
-        fBigdata.close();
-        return false;
-    }
-    quint32 version = magic & CDefaults::bigdataVersionMask;
-
-    bigdata.setVersion(QDataStream::Qt_5_10);
-
-    bigdata >> g->d_func()->searchHistory;
-    Q_EMIT g->updateAllQueryLists();
-
-    bigdata >> atlHostHistory;
-    bigdata >> g->d_func()->mainHistory;
-    bigdata >> userAgentHistory;
-    bigdata >> dictPaths;
-    bigdata >> g->d_func()->ctxSearchEngines;
-    bigdata >> atlCerts;
-    bigdata >> g->d_func()->recentFiles;
-
-    CStringHash scripts;
-    bigdata >> scripts;
-    g->initUserScripts(scripts);
-
-    QByteArray bookmarks;
-    bigdata >> bookmarks;
-    g->d_func()->bookmarksManager->load(bookmarks);
-
-    bigdata >> translatorPairs;
-    bigdata >> subsentencesMode;
-
-    QByteArray adblock;
-    bigdata >> adblock;
-    QtConcurrent::run([this,g,adblock]() {
-        QDataStream bufs(adblock);
-        bufs >> g->d_func()->adblock;
-        qInfo() << "Adblock rules loaded";
-        Q_EMIT adblockRulesUpdated();
-    });
-    bigdata >> g->d_func()->noScriptWhiteList;
-
-    if (version>=CDefaults::bigdataVersion_TranslatorStatistics)
-        bigdata >> translatorStatistics;
-
-    fBigdata.close();
-    return true;
-}
-
 void CSettings::writeBinaryBigData(const QString &dirname)
 {
     QDir bigdataDir(dirname);
@@ -287,7 +216,7 @@ void CSettings::writeBinaryBigData(const QString &dirname)
     Q_ASSERT(writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)));
     Q_ASSERT(writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())));
     Q_ASSERT(writeData(dirname,QSL("translatorPairs"),  QVariant::fromValue(translatorPairs)));
-    Q_ASSERT(writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(subsentencesMode)));
+    Q_ASSERT(writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(gSet->m_ui->getSubsentencesModeHash())));
     Q_ASSERT(writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)));
     Q_ASSERT(writeData(dirname,QSL("translatorStatistics"),QVariant::fromValue(translatorStatistics)));
     Q_ASSERT(writeData(dirname,QSL("selectedLangPairs"),QVariant::fromValue(selectedLangPairs)));
@@ -368,32 +297,7 @@ void CSettings::readSettings(QObject *control)
     QFileInfo fi(settings.fileName());
 
     if (!readBinaryBigData(g,fi.dir().filePath(QSL("jpreader-bigdata")))) {
-        if (!readBinaryBigDataOld(g,fi.dir().filePath(QSL("jpreader-bigdata.bin")))) {
-
-            // NOTE: Legacy config support, DO NOT add new structures!
-
-            QSettings bigdata(QSL("kernel1024"), QSL("jpreader-bigdata"));
-            bigdata.beginGroup(QSL("main"));
-
-            g->d_func()->searchHistory = bigdata.value(QSL("searchHistory"),QStringList()).toStringList();
-            Q_EMIT g->updateAllQueryLists();
-
-            atlHostHistory = bigdata.value(QSL("atlHostHistory"),QStringList()).toStringList();
-            g->d_func()->mainHistory = bigdata.value(QSL("history")).value<CUrlHolderVector>();
-            userAgentHistory = bigdata.value(QSL("userAgentHistory"),QStringList()).toStringList();
-            dictPaths = bigdata.value(QSL("dictPaths"),QStringList()).toStringList();
-            g->d_func()->ctxSearchEngines = bigdata.value(QSL("ctxSearchEngines")).value<CStringHash>();
-            atlCerts = bigdata.value(QSL("atlasCertificates")).value<CSslCertificateHash>();
-            g->d_func()->recentFiles = bigdata.value(QSL("recentFiles"),QStringList()).toStringList();
-            g->initUserScripts(bigdata.value(QSL("userScripts")).value<CStringHash>());
-            g->d_func()->bookmarksManager->load(bigdata.value(QSL("bookmarks2"),QByteArray()).toByteArray());
-            translatorPairs = bigdata.value(QSL("translatorPairs")).value<CLangPairVector>();
-            subsentencesMode = bigdata.value(QSL("subsentencesMode")).value<CSubsentencesMode>();
-            g->d_func()->adblock = bigdata.value(QSL("adblock")).value<CAdBlockVector>();
-            g->d_func()->noScriptWhiteList = bigdata.value(QSL("noScriptWhitelist")).value<CStringSet>();
-
-            bigdata.endGroup();
-        }
+        qCritical() << "Unable to read configuration bigdata.";
     }
 
     int idx=0;

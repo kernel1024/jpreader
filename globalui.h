@@ -8,11 +8,14 @@
 #include "qxtglobalshortcut.h"
 #include "mainwindow.h"
 #include "structures.h"
+#include "settings.h"
 
 class CMainWindow;
 
 class CGlobalUI : public QObject
 {
+    friend class CSettings;
+
     Q_OBJECT
 public:
     QxtGlobalShortcut gctxTranHotkey;
@@ -34,6 +37,7 @@ public:
     QAction *actionTMTooltip;
     QActionGroup *translationMode;
     QActionGroup *languageSelector;
+    QActionGroup *subsentencesMode;
 
     QTimer gctxTimer;
     QString gctxSelection;
@@ -47,6 +51,7 @@ public:
     void startGlobalContextTranslate();
     void addActionNotification(QAction* action);
 
+    bool getSubsentencesMode(CStructures::TranslationEngine engine) const;
     CStructures::TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
     void setActiveLangPair(const QString& hash);
@@ -57,6 +62,11 @@ public Q_SLOTS:
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
     void actionToggled();
+
+private:
+    CSubsentencesMode getSubsentencesModeHash() const;
+    void setSubsentencesModeHash(const CSubsentencesMode& hash);
+
 
 };
 

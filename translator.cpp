@@ -11,7 +11,7 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceTranslateSubSentences)
+CTranslator::CTranslator(QObject* parent, const QString& sourceHtml)
     : QObject(parent)
 {
     m_sourceHtml=sourceHtml;
@@ -23,8 +23,7 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml, bool forceT
     m_useOverrideTransFont=gSet->ui()->useOverrideTransFont();
     m_overrideTransFont=gSet->settings()->overrideTransFont;
     m_translationMode=gSet->ui()->getTranslationMode();
-    m_translateSubSentences=(forceTranslateSubSentences ||
-                             gSet->settings()->subsentencesMode.value(m_translationEngine,false));
+    m_translateSubSentences=gSet->ui()->getSubsentencesMode(m_translationEngine);
 }
 
 bool CTranslator::isAborted()

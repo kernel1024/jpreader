@@ -24,7 +24,6 @@ public:
     explicit CSnMsgHandler(CSnippetViewer * parent);
     void updateZoomFactor();
     void activateFocusDelay();
-    void addTranslatorOptionsMenu(QMenu *menu);
 
 public Q_SLOTS:
     void linkHovered(const QString &link);

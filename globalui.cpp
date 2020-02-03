@@ -43,8 +43,9 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionSnippetAutotranslate->setChecked(false);
 
     languageSelector = new QActionGroup(this);
-
     translationMode = new QActionGroup(this);
+    subsentencesMode = new QActionGroup(this);
+    subsentencesMode->setExclusionPolicy(QActionGroup::ExclusionPolicy::None);
 
     actionTMAdditive = new QAction(tr("Additive"),this);
     actionTMAdditive->setCheckable(true);
@@ -232,7 +233,62 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
         ac->setEnabled(false);
     }
 
+    CSubsentencesMode smode = getSubsentencesModeHash();
+    subsentencesMode->deleteLater();
+    subsentencesMode = new QActionGroup(this);
+    subsentencesMode->setExclusionPolicy(QActionGroup::ExclusionPolicy::None);
+    for (auto it = CStructures::translationEngines().constBegin(),
+         end = CStructures::translationEngines().constEnd(); it != end; ++it) {
+        QAction *ac = subsentencesMode->addAction(it.value());
+        ac->setCheckable(true);
+        ac->setChecked(smode.value(it.key(),false));
+        ac->setData(QVariant::fromValue(it.key()));
+    }
+
     Q_EMIT g->updateAllLanguagesLists();
+}
+
+bool CGlobalUI::getSubsentencesMode(CStructures::TranslationEngine engine) const
+{
+    const auto list = subsentencesMode->actions();
+    for (const auto ac : list) {
+        if (ac->data().value<CStructures::TranslationEngine>() == engine)
+            return ac->isChecked();
+    }
+
+    return false;
+}
+
+CSubsentencesMode CGlobalUI::getSubsentencesModeHash() const
+{
+    CSubsentencesMode res;
+    const auto list = subsentencesMode->actions();
+    for (const auto ac : list) {
+        auto engine = ac->data().value<CStructures::TranslationEngine>();
+        bool checked = ac->isChecked();
+        res[engine] = checked;
+    }
+
+    return res;
+}
+
+void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash)
+{
+    const auto list = subsentencesMode->actions();
+    if (list.isEmpty()) {
+        for (auto it = hash.constBegin(), end = hash.constEnd(); it != end; ++it) {
+            QAction* ac = subsentencesMode->addAction(CStructures::translationEngines().value(it.key()));
+            ac->setCheckable(true);
+            ac->setChecked(it.value());
+            ac->setData(QVariant::fromValue(it.key()));
+        }
+    } else {
+        for (const auto ac : list) {
+            const auto engine = ac->data().value<CStructures::TranslationEngine>();
+            if (hash.contains(engine))
+                ac->setChecked(hash.value(engine));
+        }
+    }
 }
 
 void CGlobalUI::actionToggled()
