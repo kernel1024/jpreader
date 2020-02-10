@@ -32,8 +32,6 @@ private:
     QString m_text;
     CIntList m_outLengths;
     bool m_prevblock { false };
-    static int loggedPopplerErrors;
-
 
     void metaDate(QString &out, Dict *infoDict, const char *key, const QString &fmt);
     void metaString(QString &out, Dict *infoDict, const char *key, const QString &fmt);
@@ -41,7 +39,6 @@ private:
     int zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize);
 
     static void outputToString(void *stream, const char *text, int len);
-    static void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg);
 
 #endif
 private:

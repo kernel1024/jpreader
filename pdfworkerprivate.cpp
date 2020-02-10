@@ -25,10 +25,12 @@ extern "C" {
 #include <Error.h>
 #include <PDFDocFactory.h>
 #include <TextOutputDev.h>
-#include <UnicodeMap.h>
 #include <PDFDocEncoding.h>
 
 #if POPPLER_VERSION_MAJOR==0
+    #if POPPLER_VERSION_MINOR<85
+        #define JPDF_PRE085_API 1
+    #endif
     #if POPPLER_VERSION_MINOR<83
         #define JPDF_PRE083_API 1
     #endif
@@ -49,8 +51,6 @@ CPDFWorkerPrivate::CPDFWorkerPrivate(QObject *parent)
 }
 
 #ifdef WITH_POPPLER
-
-int CPDFWorkerPrivate::loggedPopplerErrors = 0;
 
 void CPDFWorkerPrivate::metaString(QString& out, Dict *infoDict, const char* key,
                 const QString& fmt)
@@ -83,10 +83,18 @@ void CPDFWorkerPrivate::metaDate(QString& out, Dict *infoDict, const char* key, 
     }
 }
 
-void CPDFWorkerPrivate::popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
+#ifdef JPDF_PRE085_API
+
+void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
 {
     Q_UNUSED(data)
+#else
 
+void popplerError(ErrorCategory category, Goffset pos, const char *msg)
+{
+#endif
+
+    static int loggedPopplerErrors = 0;
     const int maxPopplerErrors = 100;
 
     if (loggedPopplerErrors>maxPopplerErrors) return;
@@ -318,26 +326,16 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     QFileInfo fi(filename);
     GooString fileName(filename.toUtf8());
     TextOutputDev *textOut;
-    UnicodeMap *uMap;
     Object info;
     int lastPage = 0;
 
     result.clear();
     m_outLengths.clear();
 
-    // get mapping to output encoding
-    if (!(uMap = globalParams->getTextEncoding())) {
-        qCritical() << "pdfToText: Couldn't get text encoding";
-        result = QSL("pdfToText: Couldn't get text encoding");
-        *error = true;
-        return result;
-    }
-
     doc = PDFDocFactory().createPDFDoc(fileName);
 
     if (!doc->isOk()) {
         delete doc;
-        uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create PDF Doc object";
         result = QSL("pdfToText: Cannot create PDF Doc object");
         *error = true;
@@ -385,7 +383,6 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     } else {
         delete textOut;
         delete doc;
-        uMap->decRefCnt();
         qCritical() << "pdfToText: Cannot create TextOutput object";
         result = QSL("pdfToText: Cannot create TextOutput object");
         *error = true;
@@ -495,7 +492,6 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     result.append(QSL("</html>\n"));
 
     delete doc;
-    uMap->decRefCnt();
 
     *error = false;
     return result;
@@ -509,7 +505,11 @@ void CPDFWorkerPrivate::initPdfToText()
 #else
     globalParams = std::make_unique<GlobalParams>();
 #endif
-    setErrorCallback(&(CPDFWorkerPrivate::popplerError),nullptr);
+#ifdef JPDF_PRE085_API
+    setErrorCallback(&(popplerError),nullptr);
+#else
+    setErrorCallback(&(popplerError));
+#endif
     globalParams->setTextEncoding(const_cast<char *>(textEncoding));
 }
 
