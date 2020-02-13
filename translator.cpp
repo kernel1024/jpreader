@@ -631,7 +631,8 @@ void CTranslator::translate()
         }
     }
 
-    if (gSet->settings()->translatorCacheEnabled) {
+    if (gSet->settings()->translatorCacheEnabled &&
+            !isAborted()) {
         gSet->translatorCache()->saveTranslatorResult(m_sourceHtml,translatedHtml,lp,
                                                       m_translationEngine,m_translateSubSentences);
     }

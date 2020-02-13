@@ -147,6 +147,7 @@ private:
 Q_SIGNALS:
     void startAuxTranslation();
     void stopTranslators();
+    void terminateTranslators();
 
     void translationEngineChanged();
     void translationStatisticsChanged();

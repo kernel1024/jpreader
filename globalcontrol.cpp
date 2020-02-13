@@ -797,15 +797,16 @@ void CGlobalControl::stopAndCloseTranslators()
            tmr.elapsed() < CDefaults::translatorMaxShutdownTimeMS) {
         CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
     }
+    CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
 
     if (!d->translatorPool.isEmpty()) {
-        // Forced stop
-        for (const auto &ptr : qAsConst(d->translatorPool)) {
-            if (ptr) {
-                ptr->thread()->terminate();
-                ptr->thread()->wait();
-            }
+        Q_EMIT terminateTranslators();
+        tmr.start();
+        while (!d->translatorPool.isEmpty() &&
+               tmr.elapsed() < CDefaults::translatorMaxShutdownTimeMS) {
+            CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
         }
+        CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
         d->translatorPool.clear(); // Just stop problematic translators, do not try to free memory correctly
     }
 }
@@ -1209,17 +1210,8 @@ void CGlobalControl::cleanupTranslator()
     Q_D(CGlobalControl);
 
     auto translator = qobject_cast<CTranslator *>(sender());
-    if (translator==nullptr) {
-        qCritical() << "Unknown translator cleanup request, ignoring. " << sender()->metaObject()->className();
-        return;
-    }
-
-    QTimer::singleShot(0,translator,[translator](){
-        translator->thread()->quit();
-    });
-
-    d->translatorPool.removeAll(translator);
-    d->translatorPool.removeAll(nullptr);
+    if (translator)
+        d->translatorPool.removeAll(translator);
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine) const

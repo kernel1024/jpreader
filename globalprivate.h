@@ -42,7 +42,7 @@ public:
     QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
     QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
-    QList<QPointer<CTranslator> > translatorPool;
+    QList<CTranslator *> translatorPool;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;

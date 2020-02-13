@@ -120,13 +120,6 @@ void CSnTrans::translatePriv(const QString &sourceHtml)
 
     auto ct = new CTranslator(nullptr,sourceHtml);
     auto th = new QThread();
-    connect(ct,&CTranslator::translationFinished,
-            this,&CSnTrans::translationFinished,Qt::QueuedConnection);
-
-    gSet->addTranslatorToPool(ct);
-    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupTranslator,Qt::QueuedConnection);
-    connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
 
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
@@ -142,14 +135,26 @@ void CSnTrans::translatePriv(const QString &sourceHtml)
     snv->waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
+    ct->moveToThread(th);
+
+    connect(ct,&CTranslator::translationFinished,
+            this,&CSnTrans::translationFinished,Qt::QueuedConnection);
+
+    gSet->addTranslatorToPool(ct);
+    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupTranslator,Qt::QueuedConnection);
+    connect(ct,&CTranslator::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
     connect(gSet,&CGlobalControl::stopTranslators,
             ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
+    connect(gSet,&CGlobalControl::terminateTranslators,
+            th,&QThread::terminate);
     connect(snv->abortBtn,&QPushButton::clicked,
             ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
     connect(ct,&CTranslator::setProgress,
             snv->waitHandler,&CSnWaitCtl::setProgressValue,Qt::QueuedConnection);
 
-    ct->moveToThread(th);
     th->start();
 
     QMetaObject::invokeMethod(ct,&CTranslator::translate,Qt::QueuedConnection);
