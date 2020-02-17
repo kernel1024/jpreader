@@ -53,6 +53,17 @@ bool CGenericFuncs::checkAndUnpackUrl(QUrl& url)
         }
     }
 
+    // Clean UTM markers
+    if (url.hasQuery()) {
+        QUrlQuery qr(url);
+        if (qr.hasQueryItem(QSL("utm_source"))) {
+            if (url.hasFragment())
+                url.setFragment(QString());
+            url.setQuery(QString());
+        }
+        return true;
+    }
+
     // Url not modified
     return false;
 }
