@@ -20,10 +20,20 @@
 #include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
+namespace CDefaults {
+const int browserPageFinishedTimeoutMS = 30000;
+}
+
 CSnNet::CSnNet(CSnippetViewer *parent)
     : QObject(parent)
 {
     snv = parent;
+
+    m_finishedTimer.setInterval(CDefaults::browserPageFinishedTimeoutMS);
+    m_finishedTimer.setSingleShot(true);
+    connect(&m_finishedTimer,&QTimer::timeout,this,[this](){
+        loadFinished(true);
+    });
 }
 
 void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, const QString& preselectedName)
@@ -132,6 +142,12 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoT
     return false;
 }
 
+void CSnNet::progressLoad(int progress)
+{
+    snv->barLoading->setValue(progress);
+    m_finishedTimer.start();
+}
+
 void CSnNet::loadStarted()
 {
     snv->barLoading->setValue(0);
@@ -143,6 +159,8 @@ void CSnNet::loadStarted()
 
 void CSnNet::loadFinished(bool ok)
 {
+    if (!snv->m_loading) return;
+
     snv->msgHandler->updateZoomFactor();
     snv->msgHandler->hideBarLoading();
     snv->m_loading = false;

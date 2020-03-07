@@ -173,10 +173,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
         });
 
-        ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit")),
-                         tr("Extract HTML via clipboard to separate tab"));
-        connect(ac, &QAction::triggered, this, &CSnCtxHandler::extractHTMLFragment);
-
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new-background")),
                          tr("Translate plain text in separate tab"));
         connect(ac, &QAction::triggered, this, [sText,this](){
@@ -186,6 +182,12 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             auto sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
             sn->m_requestAutotranslate = true;
         });
+
+        m_menu.addSeparator();
+
+        ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit")),
+                         tr("Extract HTML via clipboard to separate tab"));
+        connect(ac, &QAction::triggered, this, &CSnCtxHandler::extractHTMLFragment);
 
         QStringList searchNames = gSet->getSearchEngines();
         if (!searchNames.isEmpty()) {

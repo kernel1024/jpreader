@@ -204,11 +204,6 @@ void CSnTrans::postTranslate()
     snv->updateTabColor(false,true);
 }
 
-void CSnTrans::progressLoad(int progress)
-{
-    snv->barLoading->setValue(progress);
-}
-
 void CSnTrans::selectionChanged()
 {
     m_storedSelection = snv->txtBrowser->page()->selectedText();

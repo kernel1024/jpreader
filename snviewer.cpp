@@ -80,7 +80,7 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
         txtBrowser->pageAction(QWebEnginePage::ReloadAndBypassCache)->activate(QAction::Trigger);
     });
 
-    connect(txtBrowser, &QWebEngineView::loadProgress, transHandler, &CSnTrans::progressLoad);
+    connect(txtBrowser, &QWebEngineView::loadProgress, netHandler, &CSnNet::progressLoad);
     connect(txtBrowser, &QWebEngineView::loadFinished, netHandler, &CSnNet::loadFinished);
     connect(txtBrowser, &QWebEngineView::loadStarted, netHandler, &CSnNet::loadStarted);
     connect(txtBrowser, &QWebEngineView::titleChanged, this, &CSnippetViewer::titleChanged);

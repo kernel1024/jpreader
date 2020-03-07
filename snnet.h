@@ -16,6 +16,7 @@ class CSnNet : public QObject
 private:
     CSnippetViewer *snv;
     QUrl m_loadedUrl;
+    QTimer m_finishedTimer;
 
 public:
     explicit CSnNet(CSnippetViewer * parent);
@@ -39,6 +40,7 @@ public Q_SLOTS:
                                      const QString & proxyHost);
     void loadStarted();
     void loadFinished(bool ok);
+    void progressLoad(int progress);
     void userNavigationRequest(const QUrl& url, int type, bool isMainFrame);
     void downloadPixivManga();
     void novelReady(const QString& html, bool focus, bool translate);

@@ -30,7 +30,6 @@ public Q_SLOTS:
     void translatePriv(const QString& sourceHtml);
     void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void postTranslate();
-    void progressLoad(int progress);
     void selectionChanged();
     void selectionShow();
     void showWordTranslation(const QString & html);
