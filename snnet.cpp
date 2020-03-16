@@ -354,8 +354,8 @@ void CSnNet::load(const QUrl &url)
             QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
             return;
         }
-        QString MIME = CGenericFuncs::detectMIME(fname);
-        if (MIME.startsWith(QSL("text/plain"),Qt::CaseInsensitive) &&
+        QString mime = CGenericFuncs::detectMIME(fname);
+        if (mime.startsWith(QSL("text/plain"),Qt::CaseInsensitive) &&
                 fi.size()<CDefaults::maxDataUrlFileSize) { // for small local txt files (load big files via file url directly)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
@@ -369,7 +369,7 @@ void CSnNet::load(const QUrl &url)
                 snv->m_auxContentLoaded=false;
                 data.close();
             }
-        } else if (MIME.startsWith(QSL("application/pdf"),Qt::CaseInsensitive)) {
+        } else if (mime.startsWith(QSL("application/pdf"),Qt::CaseInsensitive)) {
             // for local pdf files
             snv->m_fileChanged = false;
             snv->m_translationBkgdFinished=false;
@@ -385,6 +385,13 @@ void CSnNet::load(const QUrl &url)
             pdf->moveToThread(pdft);
             pdft->start();
             Q_EMIT startPdfConversion(url.toString());
+        } else if (mime.startsWith(QSL("text/html"),Qt::CaseInsensitive) && fi.suffix().isEmpty()) {
+            // for local html files without extension
+            QUrl u = url;
+            u.setScheme(CMagicFileSchemeHandler::getScheme());
+            snv->m_fileChanged = false;
+            snv->txtBrowser->load(u);
+            snv->m_auxContentLoaded=false;
         } else { // for local html files
             snv->m_fileChanged = false;
             snv->txtBrowser->load(url);

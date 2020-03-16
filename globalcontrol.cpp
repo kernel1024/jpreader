@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
+#include <QWebEngineUrlScheme>
 #include <QRegularExpression>
 #include <QElapsedTimer>
 #include <QPointer>
@@ -193,6 +194,8 @@ void CGlobalControl::initialize()
             this, &CGlobalControl::cookieRemoved);
     d->webProfile->cookieStore()->loadAllCookies();
 
+    d->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),new CMagicFileSchemeHandler(this));
+
     d->translatorCache = new CTranslatorCache(this);
     QString tcache = fs + QSL("translator_cache") + QDir::separator();
     d->translatorCache->setCachePath(tcache);
@@ -270,6 +273,14 @@ void CGlobalControl::initialize()
     addMainWindowEx(false,true,urls);
 
     qInfo() << "Initialization time, ms: " << initTime.elapsed();
+}
+
+void CGlobalControl::preinit()
+{
+    QWebEngineUrlScheme scheme(CMagicFileSchemeHandler::getScheme().toUtf8());
+    scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
+    scheme.setFlags(QWebEngineUrlScheme::LocalScheme | QWebEngineUrlScheme::LocalAccessAllowed);
+    QWebEngineUrlScheme::registerScheme(scheme);
 }
 
 bool CGlobalControl::setupIPC()
@@ -876,12 +887,14 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
 bool CGlobalControl::isScriptBlocked(const QUrl &url, const QUrl& origin)
 {
     static const QStringList allowedScheme({ QSL("chrome"), QSL("about"),
-                                             QSL("chrome-extension")});
+                                             QSL("chrome-extension"),
+                                             CMagicFileSchemeHandler::getScheme() });
 
     Q_D(const CGlobalControl);
 
     if (!settings()->useNoScript) return false;
-    if (url.isRelative() || url.isLocalFile()) return false;
+    if (url.isRelative() || url.isLocalFile()
+            || (url.scheme().toLower() == CMagicFileSchemeHandler::getScheme().toLower())) return false;
     if (allowedScheme.contains(url.scheme(),Qt::CaseInsensitive)) return false;
 
     const QString host = url.host();

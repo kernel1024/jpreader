@@ -24,6 +24,7 @@
 #include "userscript.h"
 #include "genericfuncs.h"
 #include "structures.h"
+#include "specwidgets.h"
 #include <QRegularExpression>
 #include <QTextStream>
 #include <QDebug>
@@ -129,7 +130,8 @@ void CUserScript::setSource(const QString &src)
                         scheme == QSL("http") ||
                         scheme == QSL("https") ||
                         scheme == QSL("file") ||
-                        scheme == QSL("ftp"))
+                        scheme == QSL("ftp") ||
+                        scheme == CMagicFileSchemeHandler::getScheme().toLower())
                 {
                     const QString pathAndDomain(line.mid(line.indexOf(QSL("://")) + 3));
                     const QString domain(pathAndDomain.left(pathAndDomain.indexOf('/')));
@@ -223,7 +225,8 @@ bool CUserScript::isEnabledForUrl(const QUrl &url) const
     if (url.scheme() != QSL("http") &&
             url.scheme() != QSL("https") &&
             url.scheme() != QSL("file") &&
-            url.scheme() != QSL("ftp"))
+            url.scheme() != QSL("ftp") &&
+            url.scheme() != CMagicFileSchemeHandler::getScheme().toLower())
     {
         return false;
     }

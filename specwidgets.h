@@ -236,5 +236,14 @@ Q_SIGNALS:
     void finished();
 };
 
+class CMagicFileSchemeHandler : public QWebEngineUrlSchemeHandler
+{
+    Q_OBJECT
+public:
+    static QString getScheme();
+    explicit CMagicFileSchemeHandler(QObject *parent = nullptr);
+    ~CMagicFileSchemeHandler() override;
+    void requestStarted(QWebEngineUrlRequestJob *request) override;
+};
 
 #endif // SPECTABWIDGET_H

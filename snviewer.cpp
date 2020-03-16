@@ -232,7 +232,7 @@ void CSnippetViewer::navByUrl(const QString& url)
 {
     QUrl u = QUrl::fromUserInput(url);
     static const QStringList validSpecSchemes
-            = { QSL("gdlookup"), QSL("about"), QSL("chrome") };
+            = { QSL("gdlookup"), QSL("about"), QSL("chrome"), CMagicFileSchemeHandler::getScheme() };
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
             && (!u.isValid() || !url.contains('.'))) {
@@ -283,13 +283,15 @@ void CSnippetViewer::titleChanged(const QString & title)
 void CSnippetViewer::urlChanged(const QUrl & url)
 {
     if (url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive) ||
-            url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive)) {
+            url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive) ||
+            url.scheme().startsWith(CMagicFileSchemeHandler::getScheme(),Qt::CaseInsensitive)) {
         urlEdit->setText(url.toString());
 
     } else {
         QUrl aUrl = getUrl();
         if (url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive) ||
-                url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive)) {
+                url.scheme().startsWith(QSL("file"),Qt::CaseInsensitive) ||
+                url.scheme().startsWith(CMagicFileSchemeHandler::getScheme(),Qt::CaseInsensitive)) {
             urlEdit->setText(aUrl.toString());
 
         } else if (netHandler->isValidLoadedUrl()) {

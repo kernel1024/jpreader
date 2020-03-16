@@ -724,3 +724,53 @@ void CFaviconLoader::queryFinished()
 
     Q_EMIT finished();
 }
+
+QString CMagicFileSchemeHandler::getScheme()
+{
+    return QSL("mfile");
+}
+
+CMagicFileSchemeHandler::CMagicFileSchemeHandler(QObject *parent)
+    : QWebEngineUrlSchemeHandler(parent)
+{
+}
+
+CMagicFileSchemeHandler::~CMagicFileSchemeHandler() = default;
+
+void CMagicFileSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
+{
+    QUrl url = request->requestUrl();
+    if (url.scheme()==CMagicFileSchemeHandler::getScheme()) {
+        url.setScheme(QSL("file"));
+    } else {
+        request->fail(QWebEngineUrlRequestJob::UrlInvalid);
+        return;
+    }
+    if (!url.isLocalFile()) {
+        request->fail(QWebEngineUrlRequestJob::UrlNotFound);
+        return;
+    }
+
+    QString fname = url.toLocalFile();
+    auto f = new QFile(fname);
+    if (!f->open(QIODevice::ReadOnly)) {
+        request->fail(QWebEngineUrlRequestJob::RequestFailed);
+        return;
+    }
+
+    // some magic here!
+    QString mime;
+    QFileInfo fi(fname);
+    if (fi.suffix().toLower() == QSL("css")) {
+        mime = QSL("text/css");
+    } else if (fi.suffix().toLower() == QSL("js")) {
+        mime = QSL("application/javascript");
+    } else if (fi.suffix().toLower().startsWith(QSL("htm"))) {
+        mime = QSL("text/html");
+    } else {
+        mime = CGenericFuncs::detectMIME(fname);
+    }
+
+    connect(request, &QObject::destroyed, f, &QObject::deleteLater);
+    request->reply(mime.toUtf8(),f);
+}
