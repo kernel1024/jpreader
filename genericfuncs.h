@@ -76,6 +76,8 @@ public:
 
     static void profiler(int line, const QElapsedTimer &time);
 
+    static QString unsplitMobileText(const QString &text);
+
 private:
     Q_DISABLE_COPY(CGenericFuncs)
 

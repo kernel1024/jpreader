@@ -147,11 +147,24 @@ QString CGenericFuncs::detectDecodeToUnicode(const QByteArray& content)
     return cd->toUnicode(content);
 }
 
+QString CGenericFuncs::unsplitMobileText(const QString& text)
+{
+    int idx = 0;
+    QString buf = text;
+    while ((idx = buf.indexOf("\n",idx+1)) > 0) {
+        if (buf.at(idx-1).isLetter() &&
+                buf.at(idx+1).isLetter()) {
+            buf.remove(idx,1);
+        }
+    }
+
+    return buf;
+}
 
 QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &content,
                                       bool integratedTitle, const QUrl& origin)
 {
-    QString s = content;
+    QString s = unsplitMobileText(content);
     QString cnt = s.replace(QRegularExpression(QSL("\n{3,}")),QSL("\n\n"))
                   .replace(QSL("\n"),QSL("<br />\n"));
     QString cn(QSL("<html><head><META HTTP-EQUIV=\"Content-type\" "
