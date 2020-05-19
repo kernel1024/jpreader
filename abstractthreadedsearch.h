@@ -14,7 +14,7 @@ private:
     bool m_working { false };
 
 protected:
-    bool isWorking();
+    bool isWorking() const;
     void setWorking(bool working);
 
 public:

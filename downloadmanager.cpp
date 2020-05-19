@@ -123,7 +123,7 @@ void CDownloadManager::contextMenu(const QPoint &pos)
     if (item.isEmpty()) return;
 
     QMenu cm;
-    QAction *acm;
+    QAction *acm = nullptr;
 
     if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
         acm = cm.addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
@@ -367,7 +367,7 @@ void CDownloadsModel::downloadFinished()
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
 {
-    auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
+    auto *item = qobject_cast<QWebEngineDownloadItem *>(sender());
     if (item==nullptr) return;
 
     int row = downloads.indexOf(CDownloadItem(item->id()));
@@ -382,8 +382,8 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
 
 void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    auto item = qobject_cast<QWebEngineDownloadItem *>(sender());
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
+    auto *item = qobject_cast<QWebEngineDownloadItem *>(sender());
+    auto *rpl = qobject_cast<QNetworkReply *>(sender());
 
     int row = -1;
 
@@ -402,7 +402,7 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void CDownloadsModel::abortDownload()
 {
-    auto acm = qobject_cast<QAction *>(sender());
+    auto *acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
@@ -427,7 +427,7 @@ void CDownloadsModel::abortDownload()
 
 void CDownloadsModel::cleanDownload()
 {
-    auto acm = qobject_cast<QAction *>(sender());
+    auto *acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
@@ -465,7 +465,7 @@ void CDownloadsModel::cleanFinishedDownloads()
 
 void CDownloadsModel::openDirectory()
 {
-    auto acm = qobject_cast<QAction *>(sender());
+    auto *acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
@@ -482,7 +482,7 @@ void CDownloadsModel::openDirectory()
 
 void CDownloadsModel::openHere()
 {
-    auto acm = qobject_cast<QAction *>(sender());
+    auto *acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
@@ -511,7 +511,7 @@ void CDownloadsModel::openHere()
 
 void CDownloadsModel::openXdg()
 {
-    auto acm = qobject_cast<QAction *>(sender());
+    auto *acm = qobject_cast<QAction *>(sender());
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
@@ -567,7 +567,7 @@ bool CDownloadItem::operator!=(const CDownloadItem &s) const
     return !operator==(s);
 }
 
-bool CDownloadItem::isEmpty()
+bool CDownloadItem::isEmpty() const
 {
     return (id==0 && reply==nullptr && downloadItem==nullptr && pathName.isEmpty());
 }

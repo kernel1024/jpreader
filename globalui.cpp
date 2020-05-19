@@ -132,8 +132,8 @@ void CGlobalUI::startGlobalContextTranslate()
     CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) return;
 
-    auto th = new QThread();
-    auto at = new CAuxTranslator();
+    auto *th = new QThread();
+    auto *at = new CAuxTranslator();
     at->setText(gctxSelection);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
@@ -149,7 +149,7 @@ void CGlobalUI::startGlobalContextTranslate()
     gctxSelection.clear();
 }
 
-void CGlobalUI::addActionNotification(QAction *action)
+void CGlobalUI::addActionNotification(QAction *action) const
 {
     connect(action,&QAction::toggled,this,&CGlobalUI::actionToggled);
 }
@@ -158,7 +158,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
 
-    auto t = new QLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
+    auto *t = new QLabel(CGenericFuncs::wordWrap(text,maxTooltipCharacterWidth));
     t->setStyleSheet(QSL("QLabel { background: #fefdeb; color: black; }"));
     QPoint p = QCursor::pos();
     QxtToolTip::show(p,t,nullptr,QRect(),false,true);
@@ -194,7 +194,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
     if (cg==nullptr) cg = gSet;
     if (cg==nullptr) return;
 
-    auto g = qobject_cast<CGlobalControl *>(cg);
+    auto *g = qobject_cast<CGlobalControl *>(cg);
     if (g==nullptr) return;
 
     QString selectedHash;
@@ -251,7 +251,7 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 bool CGlobalUI::getSubsentencesMode(CStructures::TranslationEngine engine) const
 {
     const auto list = subsentencesMode->actions();
-    for (const auto ac : list) {
+    for (auto * const ac : list) {
         if (ac->data().value<CStructures::TranslationEngine>() == engine)
             return ac->isChecked();
     }
@@ -263,7 +263,7 @@ CSubsentencesMode CGlobalUI::getSubsentencesModeHash() const
 {
     CSubsentencesMode res;
     const auto list = subsentencesMode->actions();
-    for (const auto ac : list) {
+    for (auto * const ac : list) {
         auto engine = ac->data().value<CStructures::TranslationEngine>();
         bool checked = ac->isChecked();
         res[engine] = checked;
@@ -272,7 +272,7 @@ CSubsentencesMode CGlobalUI::getSubsentencesModeHash() const
     return res;
 }
 
-void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash)
+void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash) const
 {
     const auto list = subsentencesMode->actions();
     if (list.isEmpty()) {
@@ -283,7 +283,7 @@ void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash)
             ac->setData(QVariant::fromValue(it.key()));
         }
     } else {
-        for (const auto ac : list) {
+        for (auto * const ac : list) {
             const auto engine = ac->data().value<CStructures::TranslationEngine>();
             if (hash.contains(engine))
                 ac->setChecked(hash.value(engine));
@@ -293,7 +293,7 @@ void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash)
 
 void CGlobalUI::actionToggled()
 {
-    auto ac = qobject_cast<QAction *>(sender());
+    auto *ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
     QString msg = ac->text();
@@ -311,7 +311,7 @@ void CGlobalUI::actionToggled()
 
 CStructures::TranslationMode CGlobalUI::getTranslationMode() const
 {
-    bool okconv;
+    bool okconv = false;
     CStructures::TranslationMode res = CStructures::tmAdditive;
     if (translationMode->checkedAction()) {
         res = static_cast<CStructures::TranslationMode>(translationMode->checkedAction()->data().toInt(&okconv));
@@ -335,7 +335,7 @@ QString CGlobalUI::getActiveLangPair() const
     return res;
 }
 
-void CGlobalUI::setActiveLangPair(const QString &hash)
+void CGlobalUI::setActiveLangPair(const QString &hash) const
 {
     for (auto& ac : languageSelector->actions()) {
         if (ac->data().toString() == hash) {

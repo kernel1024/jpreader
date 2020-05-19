@@ -14,7 +14,7 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
             engine.reset(nullptr);
             return;
         }
-        auto th = new QThread();
+        auto *th = new QThread();
         if (indexerSerivce == CStructures::seRecoll) {
             engine.reset(new CRecollSearch());
         } else {
@@ -74,7 +74,7 @@ bool CIndexerSearch::isValidConfig()
     return true;
 }
 
-bool CIndexerSearch::isWorking()
+bool CIndexerSearch::isWorking() const
 {
     return working;
 }

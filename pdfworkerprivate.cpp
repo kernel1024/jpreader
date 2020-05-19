@@ -148,7 +148,7 @@ void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
                            "\uFF0C\u3001\u3002\uFF1A\uFF1B\uFF01\uFF1F\u3016\u3017\u2026");
 
     if (stream==nullptr) return;
-    auto worker = reinterpret_cast<CPDFWorkerPrivate *>(stream);
+    auto *worker = reinterpret_cast<CPDFWorkerPrivate *>(stream);
     QString tx = QString::fromUtf8(text,len);
 
     for (int i=0;i<tx.length();i++) {
@@ -283,7 +283,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
 int CPDFWorkerPrivate::zlibInflate(const char* src, int srcSize, uchar *dst, int dstSize)
 {
     z_stream strm;
-    int ret;
+    int ret = 0;
 
     strm.zalloc = nullptr;
     strm.zfree = nullptr;
@@ -322,10 +322,10 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 
     QString result;
 
-    PDFDoc *doc;
+    PDFDoc *doc = nullptr;
     QFileInfo fi(filename);
     GooString fileName(filename.toUtf8());
-    TextOutputDev *textOut;
+    TextOutputDev *textOut = nullptr;
     Object info;
     int lastPage = 0;
 
@@ -499,7 +499,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 
 void CPDFWorkerPrivate::initPdfToText()
 {
-    const auto textEncoding = "UTF-8";
+    const char* textEncoding = "UTF-8";
 #ifdef JPDF_PRE083_API
     globalParams = new GlobalParams();
 #else

@@ -221,7 +221,7 @@ void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
 
     QString msg(QSL("Unable to load from pixiv."));
 
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
+    auto *rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
         msg.append(QSL(" %1").arg(rpl->errorString()));
 
@@ -252,7 +252,7 @@ void CPixivNovelExtractor::subLoadFinished()
     int httpStatus = -1;
     QVariant vstat = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     if (vstat.isValid()) {
-        bool ok;
+        bool ok = false;
         httpStatus = vstat.toInt(&ok);
     }
 
@@ -381,7 +381,7 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     for(const QString &img : imgs) {
         if (img.indexOf('-')>0) {
             QStringList sl = img.split('-');
-            bool ok;
+            bool ok = false;
             int page = sl.last().toInt(&ok);
             if (ok && page>0)
                 m_imgList[sl.first()].append(page);

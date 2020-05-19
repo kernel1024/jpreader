@@ -28,7 +28,7 @@ class CIndexerSearch : public QObject
 public:
     explicit CIndexerSearch(QObject *parent = nullptr);
     bool isValidConfig();
-    bool isWorking();
+    bool isWorking() const;
     CStructures::SearchEngine getCurrentIndexerService();
     
 private:

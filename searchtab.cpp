@@ -106,14 +106,14 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
                                 "Please, check program settings and reopen new search tab."));
     }
 
-    auto th = new QThread();
+    auto *th = new QThread();
     engine->moveToThread(th);
     connect(engine.data(),&CIndexerSearch::destroyed,th,&QThread::quit);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
     th->start();
 
 
-    auto th2 = new QThread();
+    auto *th2 = new QThread();
     titleTran->moveToThread(th2);
     connect(titleTran.data(),&CIndexerSearch::destroyed,th2,&QThread::quit);
     connect(th2,&QThread::finished,th2,&QThread::deleteLater);
@@ -225,7 +225,7 @@ void CSearchTab::updateProgress(int pos)
 void CSearchTab::headerMenu(const QPoint &pos)
 {
     if (model->rowCount()==0) return;
-    auto hh = qobject_cast<QHeaderView *>(sender());
+    auto *hh = qobject_cast<QHeaderView *>(sender());
     if (hh==nullptr) return;
 
     int column = hh->logicalIndexAt(pos);
@@ -298,7 +298,7 @@ void CSearchTab::snippetMenu(const QPoint &pos)
 
 void CSearchTab::applyFilter()
 {
-    auto ac = qobject_cast<QAction *>(sender());
+    auto *ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
 
     sort->setFilter(ac->data().toString());

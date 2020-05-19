@@ -16,11 +16,6 @@ CSearchModel::~CSearchModel()
 
 QVariant CSearchModel::data(const QModelIndex &index, int role) const
 {
-    bool ok;
-    int sc;
-    float sf;
-    QString score;
-
     if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
         return QVariant();
 
@@ -45,26 +40,28 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::UserRole + CStructures::cpSortRole) {
         switch (index.column()) {
             case 0: return m_snippets[idx][QSL("title")];
-            case 1:
-                score = m_snippets[idx][QSL("relevancyrating")];
+            case 1: {
+                QString score = m_snippets[idx][QSL("relevancyrating")];
                 if (score.endsWith('%'))
                     score.remove('%');
 
-                sf = score.toFloat(&ok);
+                bool ok = false;
+                float sf = score.toFloat(&ok);
                 if (ok)
                     return sf;
 
                 return score;
-
+            }
             case 2: return m_snippets[idx][QSL("jp:filepath")];
-            case 3:
-                score = m_snippets[idx][QSL("fbytes")];
-                sc = score.toInt(&ok);
+            case 3: {
+                QString score = m_snippets[idx][QSL("fbytes")];
+                bool ok = false;
+                int sc = score.toInt(&ok);
                 if (ok)
                     return sc;
 
                 return score;
-
+            }
             case 4: return m_snippets[idx][QSL("filename")];
             default: return QVariant();
         }

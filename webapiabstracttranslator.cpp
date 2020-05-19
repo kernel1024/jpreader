@@ -74,7 +74,7 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply, int *httpStat
     timer.stop();
 
     QVariant vstatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    bool statusOk;
+    bool statusOk = false;
     *httpStatus = vstatus.toInt(&statusOk);
     if (!statusOk)
         *httpStatus = CDefaults::httpCodeClientUnknownError;
@@ -96,12 +96,12 @@ void CWebAPIAbstractTranslator::initNAM()
 {
     if (m_nam==nullptr) {
         m_nam=new QNetworkAccessManager(this);
-        auto cj = new CNetworkCookieJar(m_nam);
+        auto *cj = new CNetworkCookieJar(m_nam);
         m_nam->setCookieJar(cj);
     }
 
-    auto cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
-    auto mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
+    auto *cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
+    auto *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
     cj->initAllCookies(mj->getAllCookies());
 
     if (gSet->settings()->proxyUseTranslator) {

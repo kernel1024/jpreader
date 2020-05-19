@@ -67,13 +67,12 @@ void CLogDisplay::logCtxMenu(const QPoint &pos)
 
 void CLogDisplay::addToAdblock()
 {
-    auto nt = qobject_cast<QAction *>(sender());
+    auto *nt = qobject_cast<QAction *>(sender());
     if (nt==nullptr) return;
     QUrl url = nt->data().toUrl();
     if (url.isEmpty() || !url.isValid()) return;
     QString u = url.toString();
-    bool ok;
-
+    bool ok = false;
     u = QInputDialog::getText(this,tr("Add AdBlock rule"),
                               tr("Filter template"),QLineEdit::Normal,u,&ok);
     if (ok)

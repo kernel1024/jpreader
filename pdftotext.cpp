@@ -62,7 +62,7 @@ void CPDFWorker::pdfToText(const QString &filename)
 #else
     Q_D(CPDFWorker);
 
-    bool err;
+    bool err = false;
     QString result = d->pdfToText(&err,filename);
 
     if (err) {

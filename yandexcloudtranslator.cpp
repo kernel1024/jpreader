@@ -45,8 +45,8 @@ QString CYandexCloudTranslator::tranStringInternal(const QString &src)
     QJsonDocument doc(reqtext);
     QByteArray body = doc.toJson(QJsonDocument::Compact);
 
-    bool aborted;
-    int status;
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
     auto requestMaker = [rq]() -> QNetworkRequest {
         return rq;
     };

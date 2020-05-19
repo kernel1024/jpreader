@@ -40,7 +40,7 @@ public:
     CDownloadItem &operator=(const CDownloadItem& other) = default;
     bool operator==(const CDownloadItem &s) const;
     bool operator!=(const CDownloadItem &s) const;
-    bool isEmpty();
+    bool isEmpty() const;
     QString getFileName() const;
     QString getZipName() const;
 };

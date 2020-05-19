@@ -44,7 +44,7 @@ void CHtmlImagesExtractor::subImageFinished(QNetworkReply* rpl, CHTMLAttributesH
 
         if (img.loadFromData(ba)) {
             ba.clear();
-            const auto header = "data:image/jpeg;base64,";
+            const char* header = "data:image/jpeg;base64,";
             QByteArray out(header);
             QBuffer buf(&ba);
             buf.open(QIODevice::WriteOnly);

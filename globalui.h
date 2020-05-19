@@ -49,12 +49,12 @@ public:
     bool autoTranslate() const;
     bool forceFontColor() const;
     void startGlobalContextTranslate();
-    void addActionNotification(QAction* action);
+    void addActionNotification(QAction* action) const;
 
     bool getSubsentencesMode(CStructures::TranslationEngine engine) const;
     CStructures::TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
-    void setActiveLangPair(const QString& hash);
+    void setActiveLangPair(const QString& hash) const;
 
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
@@ -65,7 +65,7 @@ public Q_SLOTS:
 
 private:
     CSubsentencesMode getSubsentencesModeHash() const;
-    void setSubsentencesModeHash(const CSubsentencesMode& hash);
+    void setSubsentencesModeHash(const CSubsentencesMode& hash) const;
 
 
 };

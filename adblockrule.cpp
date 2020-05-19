@@ -156,7 +156,7 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
                     const QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
                     for (const QString& domainOption : qAsConst(domainOptions)) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');
-                        bool hostMatched;
+                        bool hostMatched = false;
                         if (negate) {
                             hostMatched = domainOption.mid(1) == host;
                         } else {

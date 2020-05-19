@@ -157,7 +157,7 @@ QDataStream &operator<<(QDataStream &out, const CStructures::TranslationEngine &
 
 QDataStream &operator>>(QDataStream &in, CStructures::TranslationEngine &obj)
 {
-    int buf;
+    int buf = 0;
     in >> buf;
     obj = static_cast<CStructures::TranslationEngine>(buf);
     return in;

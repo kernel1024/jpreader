@@ -465,7 +465,7 @@ void SidebarWidget::mousePressEvent(QMouseEvent *event)
             }
         }
         if (lineNo >= 0) {
-            auto editor = qobject_cast<JSEdit*>(parent());
+            auto *editor = qobject_cast<JSEdit*>(parent());
             if (editor)
                 editor->toggleFold(lineNo);
         }
@@ -538,7 +538,7 @@ void SidebarWidget::paintEvent(QPaintEvent *event)
 static int findClosingMatch(const QTextDocument *doc, int cursorPosition)
 {
     QTextBlock block = doc->findBlock(cursorPosition);
-    auto blockData = reinterpret_cast<JSBlockData*>(block.userData());
+    auto *blockData = reinterpret_cast<JSBlockData*>(block.userData());
     if (!blockData->bracketPositions.isEmpty()) {
         int depth = 1;
         while (block.isValid()) {
@@ -566,7 +566,7 @@ static int findClosingMatch(const QTextDocument *doc, int cursorPosition)
 static int findOpeningMatch(const QTextDocument *doc, int cursorPosition)
 {
     QTextBlock block = doc->findBlock(cursorPosition);
-    auto blockData = reinterpret_cast<JSBlockData*>(block.userData());
+    auto *blockData = reinterpret_cast<JSBlockData*>(block.userData());
     if (!blockData->bracketPositions.isEmpty()) {
         int depth = 1;
         while (block.isValid()) {
@@ -753,7 +753,7 @@ static int findClosingConstruct(const QTextBlock &block)
 {
     if (!block.isValid())
         return -1;
-    auto blockData = reinterpret_cast<JSBlockData*>(block.userData());
+    auto *blockData = reinterpret_cast<JSBlockData*>(block.userData());
     if (!blockData)
         return -1;
     if (blockData->bracketPositions.isEmpty())
@@ -812,7 +812,7 @@ void JSEdit::fold(int line)
     updateSidebar();
     update();
 
-    auto layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
+    auto *layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
     layout->forceUpdate();
 }
 
@@ -833,7 +833,7 @@ void JSEdit::unfold(int line)
     updateSidebar();
     update();
 
-    auto layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
+    auto *layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
     layout->forceUpdate();
 }
 
@@ -878,7 +878,7 @@ void JSEdit::wheelEvent(QWheelEvent *e)
 bool JSEdit::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress) {
-        auto key = dynamic_cast<QKeyEvent*>(event);
+        auto * const key = dynamic_cast<QKeyEvent*>(event);
         const QRegularExpression rxIndent(QSL("^(\\s+)"));
 
         if (key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return)

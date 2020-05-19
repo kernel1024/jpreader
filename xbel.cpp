@@ -124,7 +124,7 @@ BookmarkNode *XbelReader::read(const QString &fileName)
 
 BookmarkNode *XbelReader::read(QIODevice *device)
 {
-    auto root = new BookmarkNode(BookmarkNode::Root);
+    auto *root = new BookmarkNode(BookmarkNode::Root);
     setDevice(device);
     if (readNextStartElement()) {
         QString version = attributes().value(QSL("version")).toString();
@@ -140,8 +140,6 @@ BookmarkNode *XbelReader::read(QIODevice *device)
 
 void XbelReader::readXBEL(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QSL("xbel"));
-
     while (readNextStartElement()) {
         if (name() == QSL("folder")) {
             readFolder(parent);
@@ -160,9 +158,7 @@ void XbelReader::readXBEL(BookmarkNode *parent)
 
 void XbelReader::readFolder(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QSL("folder"));
-
-    auto folder = new BookmarkNode(BookmarkNode::Folder, parent);
+    auto *folder = new BookmarkNode(BookmarkNode::Folder, parent);
     folder->expanded = (attributes().value(QSL("folded")) == QSL("no"));
 
     while (readNextStartElement()) {
@@ -189,13 +185,11 @@ void XbelReader::readFolder(BookmarkNode *parent)
 
 void XbelReader::readTitle(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QSL("title"));
     parent->title = readElementText();
 }
 
 void XbelReader::readDescription(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QSL("desc"));
     parent->desc = readElementText();
 }
 
@@ -208,8 +202,7 @@ void XbelReader::readSeparator(BookmarkNode *parent)
 
 void XbelReader::readBookmarkNode(BookmarkNode *parent)
 {
-    Q_ASSERT(isStartElement() && name() == QSL("bookmark"));
-    auto bookmark = new BookmarkNode(BookmarkNode::Bookmark, parent);
+    auto *bookmark = new BookmarkNode(BookmarkNode::Bookmark, parent);
     bookmark->url = attributes().value(QSL("href")).toString();
     while (readNextStartElement()) {
         if (name() == QSL("title")) {

@@ -128,7 +128,7 @@ void CPixivIndexExtractor::loadError(QNetworkReply::NetworkError error)
 
     QString msg(QSL("Unable to load from pixiv."));
 
-    auto rpl = qobject_cast<QNetworkReply *>(sender());
+    auto *rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
         msg.append(QSL(" %1").arg(rpl->errorString()));
 
@@ -214,7 +214,7 @@ void CPixivIndexExtractor::bookmarksAjax()
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrlQuery uq(rpl->url());
-        bool ok;
+        bool ok = false;
         int offset = uq.queryItemValue(QSL("offset")).toInt(&ok);
         if (!ok)
             offset = 0;

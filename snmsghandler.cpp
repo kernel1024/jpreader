@@ -79,9 +79,9 @@ void CSnMsgHandler::pastePassword()
     gSet->readPassword(snv->txtBrowser->page()->url(),user,pass);
     QString inp = QSL("%1%2%3").arg(user,tabKey,pass);
 
-    auto ac = qobject_cast<QAction *>(sender());
+    auto *ac = qobject_cast<QAction *>(sender());
     if (ac) {
-        bool ok;
+        bool ok = false;
         int idx = ac->data().toInt(&ok);
         if (ok) {
             if (idx==2) inp = user;
@@ -94,7 +94,7 @@ void CSnMsgHandler::pastePassword()
 
 void CSnMsgHandler::setZoom(const QString& z)
 {
-    bool okconv;
+    bool okconv = false;
     QString s = z;
     s.remove(QRegularExpression(QSL("[^0-9]")));
     int i = s.toInt(&okconv);
@@ -114,7 +114,7 @@ void CSnMsgHandler::tranEngine(int index)
     if (!m_lockTranEngine.tryLock()) return;
 
     QVariant v = snv->comboTranEngine->itemData(index);
-    bool ok;
+    bool ok = false;
     int engine = v.toInt(&ok);
     if (ok) {
         auto e = static_cast<CStructures::TranslationEngine>(engine);

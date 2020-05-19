@@ -63,8 +63,8 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     }
 
     const QClipboard *cb = QApplication::clipboard();
-    QAction *ac;
-    QMenu *ccm;
+    QAction *ac = nullptr;
+    QMenu *ccm = nullptr;
     QVector<QAction *> pixivActions;
 
     QMenu m_menu;
@@ -90,7 +90,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new")),
                          tr("Open in new background tab and translate"));
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
-            auto sn = new CSnippetViewer(snv->parentWnd(),linkUrl,QStringList(),false);
+            auto *sn = new CSnippetViewer(snv->parentWnd(),linkUrl,QStringList(),false);
             sn->m_requestAutotranslate = true;
         });
 
@@ -179,7 +179,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             QString s = sText;
             s = s.replace('\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
-            auto sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
+            auto *sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
             sn->m_requestAutotranslate = true;
         });
 
@@ -206,7 +206,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                 fiurl.setFragment(QString());
                 fiurl.setQuery(QString());
                 fiurl.setPath(QSL("/favicon.ico"));
-                auto fl = new CFaviconLoader(snv,fiurl);
+                auto *fl = new CFaviconLoader(snv,fiurl);
                 connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
                 connect(fl,&CFaviconLoader::gotIcon,ac,[ac](const QIcon& icon){
                     ac->setIcon(icon);
@@ -220,7 +220,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         ac = m_menu.addAction(QIcon(QSL(":/img/nepomuk")),
                          tr("Local indexed search"));
         connect(ac, &QAction::triggered, this, [sText,this](){
-            auto bt = new CSearchTab(snv->parentWnd());
+            auto *bt = new CSearchTab(snv->parentWnd());
             bt->searchTerm(sText);
         });
 
@@ -266,7 +266,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Open in new background tab and translate"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
-                auto sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
+                auto *sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
                 sn->m_requestAutotranslate = true;
             });
         }
@@ -297,7 +297,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         QString url(QSL("about://blank"));
         if (!snv->m_fileChanged) url=snv->urlEdit->text();
 
-        auto sv = new CSnippetViewer(snv->parentWnd(), url);
+        auto *sv = new CSnippetViewer(snv->parentWnd(), url);
 
         if (snv->m_fileChanged || url.isEmpty()) {
             snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
@@ -360,7 +360,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                          tr("Add AdBlock rule for link url..."));
         connect(ac, &QAction::triggered, this, [linkUrl,this](){
             QString u = linkUrl.toString();
-            bool ok;
+            bool ok = false;
             u = QInputDialog::getText(snv, tr("Add AdBlock rule"), tr("Filter template"),
                                       QLineEdit::Normal, u, &ok);
             if (ok)
@@ -472,10 +472,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         QUrl pixivIconUrl(QSL("http://www.pixiv.net/favicon.ico"));
         if (pixivUrl.isValid())
             pixivIconUrl.setScheme(pixivUrl.scheme());
-        auto fl = new CFaviconLoader(snv,pixivIconUrl);
+        auto *fl = new CFaviconLoader(snv,pixivIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, &m_menu, [pixivActions](const QIcon& icon){
-            for (auto &ac : qAsConst(pixivActions)) {
+            for (auto * const ac : qAsConst(pixivActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -516,15 +516,15 @@ bool CSnCtxHandler::isMenuActive()
 
 void CSnCtxHandler::translateFragment()
 {
-    auto nt = qobject_cast<QAction *>(sender());
+    auto *nt = qobject_cast<QAction *>(sender());
     if (nt==nullptr) return;
     QString s = nt->data().toString();
     if (s.isEmpty()) return;
     CLangPair lp(gSet->ui()->getActiveLangPair());
     if (!lp.isValid()) return;
 
-    auto th = new QThread();
-    auto at = new CAuxTranslator();
+    auto *th = new QThread();
+    auto *at = new CAuxTranslator();
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
@@ -533,7 +533,7 @@ void CSnCtxHandler::translateFragment()
 
     connect(at,&CAuxTranslator::gotTranslation,this,[this](const QString& text){
         if (!text.isEmpty() && !isMenuActive()) {
-            auto lbl = new QLabel(CGenericFuncs::wordWrap(
+            auto *lbl = new QLabel(CGenericFuncs::wordWrap(
                                       text,CDefaults::maxTranslateFragmentCharWidth));
             lbl->setStyleSheet(QSL("QLabel { background: #fefdeb; color: black; }"));
             connect(this, &CSnCtxHandler::hideTooltips,lbl, &QLabel::close);
@@ -557,8 +557,8 @@ void CSnCtxHandler::extractHTMLFragment()
         QClipboard *cb = QApplication::clipboard();
         const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
         if (md->hasHtml()) {
-            auto ex = new CHtmlImagesExtractor();
-            auto th = new QThread();
+            auto *ex = new CHtmlImagesExtractor();
+            auto *th = new QThread();
             ex->setParams(md->html(),url,false,true);
 
             connect(ex,&CHtmlImagesExtractor::htmlReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
@@ -591,7 +591,7 @@ void CSnCtxHandler::saveToFile()
                                          tr("Text file (*.txt)") } );
 
     QString selectedText;
-    auto nt = qobject_cast<QAction *>(sender());
+    auto *nt = qobject_cast<QAction *>(sender());
     if (nt)
         selectedText = nt->data().toString();
 
@@ -664,13 +664,13 @@ void CSnCtxHandler::showInEditor()
 
 void CSnCtxHandler::showSource()
 {
-    auto srcv = new CSourceViewer(snv);
+    auto *srcv = new CSourceViewer(snv);
     srcv->showNormal();
 }
 
 void CSnCtxHandler::runJavaScript()
 {
-    auto nt = qobject_cast<QAction *>(sender());
+    auto *nt = qobject_cast<QAction *>(sender());
     if (nt==nullptr) return;
     if (!nt->data().canConvert<QString>()) return;
 

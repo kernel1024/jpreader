@@ -112,8 +112,7 @@ QString CGenericFuncs::detectEncodingName(const QByteArray& content)
     UErrorCode status = U_ZERO_ERROR;
     UCharsetDetector* csd = ucsdet_open(&status);
     ucsdet_setText(csd, content.constData(), content.length(), &status);
-    const UCharsetMatch *ucm;
-    ucm = ucsdet_detect(csd, &status);
+    const UCharsetMatch *ucm = ucsdet_detect(csd, &status);
     if (status==U_ZERO_ERROR && ucm) {
         const char* cname = ucsdet_getName(ucm,&status);
         if (status==U_ZERO_ERROR) icu_enc = QByteArray(cname);
@@ -151,7 +150,7 @@ QString CGenericFuncs::unsplitMobileText(const QString& text)
 {
     int idx = 0;
     QString buf = text;
-    while ((idx = buf.indexOf("\n",idx+1)) > 0) {
+    while ((idx = buf.indexOf(QSL("\n"),idx+1)) > 0) {
         if (buf.at(idx-1).isLetter() &&
                 buf.at(idx+1).isLetter()) {
             buf.remove(idx,1);
@@ -271,7 +270,7 @@ QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
 
 QString CGenericFuncs::formatFileSize(const QString& size)
 {
-    bool ok;
+    bool ok = false;
     qint64 sz = size.toLong(&ok);
     if (ok)
         return formatFileSize(sz);
@@ -336,7 +335,7 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
         QString ITerm = term.trimmed();
         QString snpColor = CSettings::snippetColors[i % CSettings::snippetColors.count()].name();
         int start = 0;
-        int pos;
+        int pos = -1;
         while ((pos = res.indexOf(ITerm,start,Qt::CaseInsensitive))>=0) {
             QString tag = QSL("<font color='%1'>").arg(snpColor);
             int pos2 = pos + tag.length() + ITerm.length();
@@ -532,7 +531,7 @@ bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileN
     static QMutex zipLock;
     QMutexLocker locker(&zipLock);
 
-    int errorp;
+    int errorp = 0;
     zip_t* zip = zip_open(zipFile.toUtf8().constData(),ZIP_CREATE,&errorp);
     if (zip == nullptr) {
         zip_error_t ziperror;
@@ -541,7 +540,7 @@ bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileN
         return false;
     }
 
-    zip_source_t* src;
+    zip_source_t* src = nullptr;
     if ((src = zip_source_buffer(zip, data.constData(), static_cast<uint64_t>(data.size()), 0)) == nullptr ||
             zip_file_add(zip, fileName.toUtf8().constData(), src, ZIP_FL_ENC_UTF_8) < 0) {
         zip_source_free(src);
@@ -621,7 +620,7 @@ int CGenericFuncs::compareStringLists(const QStringList &left, const QStringList
 QString CGenericFuncs::extractFileTitle(const QString& fileContents)
 {
     const int maxFileSize = 255;
-    int pos;
+    int pos = -1;
     int start = -1;
     int stop = -1;
     if ((pos = fileContents.indexOf(QRegularExpression(QSL("<title {0,}>"),

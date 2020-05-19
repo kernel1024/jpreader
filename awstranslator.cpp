@@ -133,8 +133,8 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
 
     const CStringHash signedHeaders = { { QSL("Content-Type"), contentType } };
 
-    bool aborted;
-    int status;
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
     auto requestMaker = [this,service,amz_target,signedHeaders,payload]() -> QNetworkRequest {
         return createAWSRequest(service,amz_target,signedHeaders,payload);
     };

@@ -26,8 +26,8 @@ bool CBingTranslator::initTran()
     rqurl.setQuery(uq);
     QNetworkRequest rq(rqurl);
 
-    bool aborted;
-    int status;
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
     auto requestMaker = [rq]() -> QNetworkRequest {
         return rq;
     };
@@ -75,8 +75,8 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     rq.setRawHeader("Content-Type","application/json");
     rq.setRawHeader("Content-Length",authHeader.toUtf8());
 
-    bool aborted;
-    int status;
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
     auto requestMaker = [rq]() -> QNetworkRequest {
         return rq;
     };

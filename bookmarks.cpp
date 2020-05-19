@@ -240,8 +240,8 @@ void BookmarksManager::populateBookmarksMenu(QMenu *menuWidget, CMainWindow* wnd
 {
     if (!m_loaded) return;
 
-    QMenu* submenu;
-    QAction* a;
+    QMenu* submenu = nullptr;
+    QAction* a = nullptr;
     QString url;
     const BookmarkNode* nd = node;
     if (!nd)
@@ -517,7 +517,7 @@ QStringList BookmarksModel::mimeTypes() const
 
 QMimeData *BookmarksModel::mimeData(const QModelIndexList &indexes) const
 {
-    auto mimeData = new QMimeData();
+    auto *mimeData = new QMimeData();
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
     for (const QModelIndex& index : indexes) {
@@ -605,7 +605,7 @@ bool BookmarksModel::setData(const QModelIndex &index, const QVariant &value, in
 
 BookmarkNode *BookmarksModel::node(const QModelIndex &index) const
 {
-    auto itemNode = static_cast<BookmarkNode*>(index.internalPointer());
+    auto *itemNode = static_cast<BookmarkNode*>(index.internalPointer());
     if (!itemNode)
         return m_bookmarksManager->bookmarks();
     return itemNode;
@@ -640,8 +640,8 @@ AddBookmarkDialog::AddBookmarkDialog(const QString &url, const QString &title, Q
         m_bookmarksManager = gSet->bookmarksManager();
     ui->setupUi(this);
     m_url = url;
-    auto view = new QTreeView(this);
-    auto model = m_bookmarksManager->bookmarksModel();
+    auto *view = new QTreeView(this);
+    auto *model = m_bookmarksManager->bookmarksModel();
     m_proxyModel = new AddBookmarkProxyModel(this);
     m_proxyModel->setSourceModel(model);
     view->setModel(m_proxyModel);
@@ -668,7 +668,7 @@ void AddBookmarkDialog::accept()
     if (!index.isValid())
         index = m_bookmarksManager->bookmarksModel()->index(0, 0);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(index);
-    auto bookmark = new BookmarkNode(BookmarkNode::Bookmark);
+    auto *bookmark = new BookmarkNode(BookmarkNode::Bookmark);
     bookmark->url = m_url;
     bookmark->title = ui->name->text();
     m_bookmarksManager->addBookmark(parent, bookmark);
@@ -778,7 +778,7 @@ void BookmarksDialog::removeNode(const QModelIndex &node)
 void BookmarksDialog::expandNodes(BookmarkNode *node)
 {
     const QVector<BookmarkNode *> nl = node->children;
-    for (const auto child : nl) {
+    for (auto * const child : nl) {
         if (child->expanded) {
             QModelIndex idx = m_bookmarksModel->index(child);
             idx = m_proxyModel->mapFromSource(idx);
@@ -819,22 +819,19 @@ void BookmarksDialog::newFolder()
     QModelIndex currentIndex = ui->tree->currentIndex();
     QModelIndex idx = currentIndex;
 
-    int row;
+    int row = 0;
     if (idx.isValid()) {
         if (!idx.model()->hasChildren(idx)) {
             idx = idx.parent();
             row = currentIndex.row() + 1;
-        } else {
-            row = 0;
         }
     } else {
         idx = ui->tree->rootIndex();
-        row = 0;
     }
 
     idx = m_proxyModel->mapToSource(idx);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(idx);
-    auto node = new BookmarkNode(BookmarkNode::Folder);
+    auto *node = new BookmarkNode(BookmarkNode::Folder);
     node->title = tr("New Folder");
     m_bookmarksManager->addBookmark(parent, node, row);
 }
@@ -844,21 +841,18 @@ void BookmarksDialog::newSeparator()
     QModelIndex currentIndex = ui->tree->currentIndex();
     QModelIndex idx = currentIndex;
 
-    int row;
+    int row = 0;
     if (idx.isValid()) {
         if (!idx.model()->hasChildren(idx)) {
             idx = idx.parent();
             row = currentIndex.row() + 1;
-        } else {
-            row = 0;
         }
     } else {
         idx = ui->tree->rootIndex();
-        row = 0;
     }
 
     idx = m_proxyModel->mapToSource(idx);
     BookmarkNode *parent = m_bookmarksManager->bookmarksModel()->node(idx);
-    auto node = new BookmarkNode(BookmarkNode::Separator);
+    auto *node = new BookmarkNode(BookmarkNode::Separator);
     m_bookmarksManager->addBookmark(parent, node, row);
 }

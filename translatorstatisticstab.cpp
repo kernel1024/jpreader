@@ -133,7 +133,7 @@ double CTranslatorStatisticsTab::setGraphData(CStructures::TranslationEngine eng
     }
 
     // Rescale value axis
-    bool foundRange;
+    bool foundRange = false;
     const double valueRangeFactor = 1.2;
     QCPRange dataRange = graph->getValueRange(foundRange);
     QCPRange axisRange = graph->valueAxis()->range();
@@ -171,7 +171,7 @@ void CTranslatorStatisticsTab::updateGraph()
     grid->clear();
 
     // Add graph title
-    auto title = new QCPTextElement(ui->plot);
+    auto *title = new QCPTextElement(ui->plot);
     QFont titleFont = font();
     titleFont.setPointSizeF(titleFont.pointSizeF()*titleFontSizeFactor);
     titleFont.setBold(true);
@@ -182,15 +182,15 @@ void CTranslatorStatisticsTab::updateGraph()
     grid->setRowStretchFactor(0,rowCompactVerticalStretchFactor);
 
     // Add plot area
-    auto axisRect = new QCPAxisRect(ui->plot,true);
+    auto *axisRect = new QCPAxisRect(ui->plot,true);
     grid->addElement(1,0,axisRect);
 
     // Add legend
-    auto legendLayout = new QCPLayoutGrid;
+    auto *legendLayout = new QCPLayoutGrid;
     grid->addElement(2,0,legendLayout);
     grid->setRowStretchFactor(2,rowCompactVerticalStretchFactor);
     legendLayout->setMargins(legendMargins);
-    auto legend = new QCPLegend;
+    auto *legend = new QCPLegend;
     legendLayout->addElement(legend);
     legend->setLayer(QSL("legend"));
     legend->setBorderPen(QPen(QColor(Qt::black),1));
@@ -264,7 +264,7 @@ void CTranslatorStatisticsTab::updateGraph()
     for (auto it = CStructures::translationEngines().constBegin(),
          iend = CStructures::translationEngines().constEnd(); it != iend; ++it) {
 
-        auto graph = new QCPGraph(ui->plot->xAxis, ui->plot->yAxis);
+        auto *graph = new QCPGraph(ui->plot->xAxis, ui->plot->yAxis);
 
         // Graph
         QColor color = CSettings::graphColors.at(idx % CSettings::graphColors.count());
@@ -273,7 +273,7 @@ void CTranslatorStatisticsTab::updateGraph()
         graph->setBrush(color);
 
         // Graph selection
-        auto decorator = new QCPSelectionDecorator;
+        auto *decorator = new QCPSelectionDecorator;
         decorator->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssPlus));
         decorator->setUsedScatterProperties(QCPScatterStyle::spShape);
         decorator->setBrush(QBrush(color,Qt::Dense4Pattern));

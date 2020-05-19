@@ -21,7 +21,7 @@ QString CRecollSearch::strFromBase64(const QString &src)
 
 void CRecollSearch::recollReadyRead()
 {
-    auto recoll = qobject_cast<QProcess *>(sender());
+    auto *recoll = qobject_cast<QProcess *>(sender());
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
@@ -56,7 +56,7 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
     if (isWorking()) return;
     setWorking(true);
 
-    auto recoll = new QProcess(this);
+    auto *recoll = new QProcess(this);
     recoll->setEnvironment(QProcess::systemEnvironment());
     recoll->setProcessChannelMode(QProcess::MergedChannels);
 

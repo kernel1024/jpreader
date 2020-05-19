@@ -40,8 +40,8 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     rq.setHeader(QNetworkRequest::ContentTypeHeader,
                  "application/x-www-form-urlencoded");
 
-    bool aborted;
-    int status;
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
     auto requestMaker = [rq]() -> QNetworkRequest {
         return rq;
     };

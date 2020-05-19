@@ -27,7 +27,7 @@ void CNoScriptDialog::updateHostsList()
 
     const CStringSet scripts = gSet->getNoScriptPageHosts(m_origin);
     for (const QString& host : qAsConst(scripts)) {
-        auto itm = new QListWidgetItem(host);
+        auto *itm = new QListWidgetItem(host);
         itm->setFlags(itm->flags() | Qt::ItemIsUserCheckable);
         if (gSet->containsNoScriptWhitelist(host)) {
             itm->setCheckState(Qt::Checked);

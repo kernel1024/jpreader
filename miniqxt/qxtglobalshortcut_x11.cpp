@@ -38,7 +38,7 @@
 
 xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
 {
-    unsigned int code;
+    unsigned int code = 0;
     switch( key )
     {
         // modifiers are handled separately
@@ -80,7 +80,7 @@ xcb_keysym_t qtKeyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
         case Qt::Key_MultipleCandidate: code = XK_MultipleCandidate; break;
         case Qt::Key_PreviousCandidate: code = XK_PreviousCandidate; break;
         case Qt::Key_Mode_switch: code = XK_Mode_switch; break;
-        default: code = 0; break;
+        default: break;
     }
 
     if( key >= Qt::Key_F1 && key <= Qt::Key_F35 )
@@ -139,7 +139,7 @@ bool QxtGlobalShortcut::nativeEventFilter(const QByteArray & eventType,
 
     xcb_key_press_event_t *kev = nullptr;
     if (eventType == "xcb_generic_event_t") {
-        auto ev = static_cast<xcb_generic_event_t *>(message);
+        auto *ev = static_cast<xcb_generic_event_t *>(message);
         if ((ev->response_type & responseMask) == XCB_KEY_PRESS)
             kev = static_cast<xcb_key_press_event_t *>(message);
     }

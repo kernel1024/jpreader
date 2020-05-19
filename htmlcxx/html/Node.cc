@@ -20,8 +20,8 @@ void Node::parseAttributes()
 
     if (!lText.contains(QLatin1Char('<'))) return;
 
-    QString::Iterator end;
     QString::Iterator ptr = lText.data();
+    QString::Iterator end = ptr;
 
     // Skip up to tag start
     ptr += lText.indexOf(QLatin1Char('<'));

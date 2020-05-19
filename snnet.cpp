@@ -126,7 +126,7 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoT
         f.close();
         gSet->appendCreatedFiles(fname);
         if (createNewTab) {
-            auto sv = new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
+            auto *sv = new CSnippetViewer(snv->parentWnd(),QUrl::fromLocalFile(fname));
             sv->m_requestAutotranslate = autoTranslate;
         } else {
             snv->m_fileChanged = false;
@@ -206,8 +206,8 @@ void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
 
 void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate, bool focus)
 {
-    auto ex = new CPixivNovelExtractor();
-    auto th = new QThread();
+    auto *ex = new CPixivNovelExtractor();
+    auto *th = new QThread();
     ex->setParams(snv,url,title,translate,focus);
 
     connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
@@ -225,8 +225,8 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
 
 void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode)
 {
-    auto ex = new CPixivIndexExtractor();
-    auto th = new QThread();
+    auto *ex = new CPixivIndexExtractor();
+    auto *th = new QThread();
     ex->setParams(snv,pixivId);
 
     connect(ex,&CPixivIndexExtractor::listReady,this,&CSnNet::pixivListReady,Qt::QueuedConnection);
@@ -253,13 +253,13 @@ void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor:
 
 void CSnNet::downloadPixivManga()
 {
-    auto ac = qobject_cast<QAction*>(sender());
+    auto *ac = qobject_cast<QAction*>(sender());
     if (!ac) return;
     QUrl origin = ac->data().toUrl();
     if (!origin.isValid()) return;
 
-    auto ex = new CPixivNovelExtractor();
-    auto th = new QThread();
+    auto *ex = new CPixivNovelExtractor();
+    auto *th = new QThread();
     ex->setMangaOrigin(snv,origin);
 
     connect(ex,&CPixivNovelExtractor::mangaReady,this,&CSnNet::pixivMangaReady,Qt::QueuedConnection);
@@ -280,7 +280,7 @@ void CSnNet::novelReady(const QString &html, bool focus, bool translate)
     gSet->app()->restoreOverrideCursor();
 
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
-        auto sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
+        auto *sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
         sv->m_requestAutotranslate = translate;
     } else {
         loadWithTempFile(html,true,translate);
@@ -374,11 +374,11 @@ void CSnNet::load(const QUrl &url)
             snv->m_fileChanged = false;
             snv->m_translationBkgdFinished=false;
             snv->m_loadingBkgdFinished=false;
-            auto pdf = new CPDFWorker();
+            auto *pdf = new CPDFWorker();
             connect(this,&CSnNet::startPdfConversion,pdf,&CPDFWorker::pdfToText,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::error,this,&CSnNet::pdfError,Qt::QueuedConnection);
-            auto pdft = new QThread();
+            auto *pdft = new QThread();
             connect(pdf,&CPDFWorker::finished,pdft,&QThread::quit);
             connect(pdft,&QThread::finished,pdf,&CPDFWorker::deleteLater);
             connect(pdft,&QThread::finished,pdft,&QThread::deleteLater);

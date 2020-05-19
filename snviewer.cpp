@@ -60,7 +60,7 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     msgHandler = new CSnMsgHandler(this);
     waitHandler = new CSnWaitCtl(this);
 
-    auto completer = new QCompleter(this);
+    auto *completer = new QCompleter(this);
     completer->setModel(new CSpecUrlHistoryModel(completer));
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setFilterMode(Qt::MatchContains);
@@ -127,7 +127,7 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
             msgHandler, &CSnMsgHandler::languageContextMenu);
     connect(gSet, &CGlobalControl::translationEngineChanged, msgHandler, &CSnMsgHandler::updateTranEngine);
 
-    QShortcut* sc;
+    QShortcut* sc = nullptr;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
     connect(sc, &QShortcut::activated, msgHandler, &CSnMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
@@ -334,8 +334,8 @@ void CSnippetViewer::setToolbarVisibility(bool visible)
 
 void CSnippetViewer::outsideDragStart()
 {
-    auto drag = new QDrag(this);
-    auto mime = new QMimeData();
+    auto *drag = new QDrag(this);
+    auto *mime = new QMimeData();
 
     QString s = QSL("%1\n%2").arg(getUrl().toString(),tabTitle());
     mime->setData(QSL("_NETSCAPE_URL"),s.toUtf8());

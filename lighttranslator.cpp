@@ -48,8 +48,8 @@ void CLightTranslator::translate()
     }
     isTranslating = true;
 
-    auto th = new QThread();
-    auto at = new CAuxTranslator();
+    auto *th = new QThread();
+    auto *at = new CAuxTranslator();
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());

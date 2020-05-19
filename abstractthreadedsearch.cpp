@@ -1,6 +1,6 @@
 #include "abstractthreadedsearch.h"
 
-bool CAbstractThreadedSearch::isWorking()
+bool CAbstractThreadedSearch::isWorking() const
 {
     return m_working;
 }
