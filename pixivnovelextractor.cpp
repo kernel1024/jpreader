@@ -192,12 +192,17 @@ void CPixivNovelExtractor::novelLoadFinished()
         handleImages(imgs);
 
         if (!tags.isEmpty()) {
-            html.prepend(QSL("Tags: %1\n\n")
-                         .arg(tags.join(QSL(" / "))));
+            QString tagList;
+            for (const auto& tag : qAsConst(tags)) {
+                if (!tagList.isEmpty())
+                    tagList.append(QSL(" / "));
+                tagList.append(QSL("<a href=\"https://www.pixiv.net/tags/%1/novels\">%1</a>").arg(tag));
+            }
+            if (!tagList.isEmpty())
+                html.prepend(QSL("Tags: %1\n\n").arg(tagList));
         }
         if (!hauthor.isEmpty()) {
-            html.prepend(QSL("Author: <a href=\"https://www.pixiv.net/member.php?"
-                                        "id=%1\">%2</a>\n\n")
+            html.prepend(QSL("Author: <a href=\"https://www.pixiv.net/users/%1\">%2</a>\n\n")
                          .arg(hauthornum,hauthor));
         }
         if (!htitle.isEmpty())
