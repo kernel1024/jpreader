@@ -104,6 +104,7 @@ public:
 
     // Chromium
     QWebEngineProfile* webProfile() const;
+    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> cookieIndexes = {});
 
     // UI
     QIcon appIcon() const;

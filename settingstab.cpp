@@ -821,10 +821,6 @@ void CSettingsTab::delCookies()
 
 void CSettingsTab::exportCookies()
 {
-    auto cj = qobject_cast<CNetworkCookieJar *>(gSet->d_func()->auxNetManager->cookieJar());
-    if (cj==nullptr) return;
-    auto cookiesList = cj->getAllCookies();
-
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (r.isEmpty()) {
         QMessageBox::information(this,tr("JPReader"),tr("Please select cookies for export."));
@@ -837,32 +833,8 @@ void CSettingsTab::exportCookies()
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    QFile f(fname);
-    if (!f.open(QIODevice::WriteOnly)) {
+    if (!gSet->exportCookies(fname,QUrl(),r))
         QMessageBox::critical(this,tr("JPReader"),tr("Unable to create file."));
-        return;
-    }
-    QTextStream fs(&f);
-
-    for (int i=0;i<r.count();i++) {
-        int idx = r.at(i);
-        fs << cookiesList.at(idx).domain()
-           << '\t'
-           << CGenericFuncs::bool2str2(cookiesList.at(idx).domain().startsWith('.'))
-           << '\t'
-           << cookiesList.at(idx).path()
-           << '\t'
-           << CGenericFuncs::bool2str2(cookiesList.at(idx).isSecure())
-           << '\t'
-           << cookiesList.at(idx).expirationDate().toSecsSinceEpoch()
-           << '\t'
-           << cookiesList.at(idx).name()
-           << '\t'
-           << cookiesList.at(idx).value()
-           << endl;
-    }
-    fs.flush();
-    f.close();
 }
 
 

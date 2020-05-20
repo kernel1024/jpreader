@@ -463,6 +463,10 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     }
     ccm->addAction(QIcon::fromTheme(QSL("document-save")),tr("Save to file..."),
                    this,&CSnCtxHandler::saveToFile);
+    ccm->addSeparator();
+    ac = ccm->addAction(QIcon::fromTheme(QSL("preferences-web-browser-cookies")),tr("Export page cookies..."),
+                   this,&CSnCtxHandler::exportCookies);
+    ac->setData(origin);
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("document-edit-verify")),
                          tr("Translator options"));
@@ -666,6 +670,23 @@ void CSnCtxHandler::showSource()
 {
     auto *srcv = new CSourceViewer(snv);
     srcv->showNormal();
+}
+
+void CSnCtxHandler::exportCookies()
+{
+    auto *ac = qobject_cast<QAction*>(sender());
+    if (!ac) return;
+    QUrl origin = ac->data().toUrl();
+    if (!origin.isValid()) return;
+
+    QString fname = CGenericFuncs::getSaveFileNameD(snv,tr("Save page cookies to file"),gSet->settings()->savedAuxSaveDir,
+                                                    QStringList( { tr("Text file, Netscape format (*.txt)") } ) );
+
+    if (fname.isEmpty() || fname.isNull()) return;
+    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+
+    if (!gSet->exportCookies(fname,origin))
+        QMessageBox::critical(snv,tr("JPReader"),tr("Unable to create file."));
 }
 
 void CSnCtxHandler::runJavaScript()

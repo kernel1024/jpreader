@@ -30,6 +30,7 @@ public Q_SLOTS:
     void bookmarkPage();
     void showInEditor();
     void showSource();
+    void exportCookies();
     void runJavaScript();
     void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
 Q_SIGNALS:

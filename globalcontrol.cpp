@@ -437,6 +437,51 @@ QWebEngineProfile *CGlobalControl::webProfile() const
     return d->webProfile;
 }
 
+bool CGlobalControl::exportCookies(const QString &filename, const QUrl &baseUrl, const QList<int> cookieIndexes)
+{
+    Q_D(const CGlobalControl);
+
+    if (filename.isEmpty() ||
+            (baseUrl.isEmpty() && cookieIndexes.isEmpty()) ||
+            (!baseUrl.isEmpty() && !cookieIndexes.isEmpty())) return false;
+
+    auto cj = qobject_cast<CNetworkCookieJar *>(d->auxNetManager->cookieJar());
+    if (cj==nullptr) return false;
+    QList<QNetworkCookie> cookiesList;
+    if (baseUrl.isEmpty()) {
+        const auto all = cj->getAllCookies();
+        for (const auto idx : cookieIndexes)
+            cookiesList.append(all.at(idx));
+    } else {
+        cookiesList = cj->cookiesForUrl(baseUrl);
+    }
+
+    QFile f(filename);
+    if (!f.open(QIODevice::WriteOnly)) return false;
+    QTextStream fs(&f);
+
+    for (const auto &cookie : qAsConst(cookiesList)) {
+        fs << cookie.domain()
+           << '\t'
+           << CGenericFuncs::bool2str2(cookie.domain().startsWith('.'))
+           << '\t'
+           << cookie.path()
+           << '\t'
+           << CGenericFuncs::bool2str2(cookie.isSecure())
+           << '\t'
+           << cookie.expirationDate().toSecsSinceEpoch()
+           << '\t'
+           << cookie.name()
+           << '\t'
+           << cookie.value()
+           << endl;
+    }
+    fs.flush();
+    f.close();
+
+    return true;
+}
+
 QIcon CGlobalControl::appIcon() const
 {
     Q_D(const CGlobalControl);
