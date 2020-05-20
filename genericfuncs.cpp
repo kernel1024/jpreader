@@ -151,6 +151,7 @@ QString CGenericFuncs::unsplitMobileText(const QString& text)
     int idx = 0;
     QString buf = text;
     while ((idx = buf.indexOf(QSL("\n"),idx+1)) > 0) {
+        if ((idx+1) >= buf.length()) break;
         if (buf.at(idx-1).isLetter() &&
                 buf.at(idx+1).isLetter()) {
             buf.remove(idx,1);
