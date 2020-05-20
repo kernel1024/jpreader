@@ -17,6 +17,7 @@
 #include "genericfuncs.h"
 #include "pixivnovelextractor.h"
 #include "pixivindexextractor.h"
+#include "fanboxextractor.h"
 #include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
@@ -36,7 +37,8 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     });
 }
 
-void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, const QString& preselectedName)
+void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, const QString& preselectedName,
+                              bool isFanbox)
 {
     static QSize multiImgDialogSize = QSize();
 
@@ -75,31 +77,34 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
     if (!preselectedName.isEmpty())
         ui.list->selectAll();
 
-    if (dlg.exec()==QDialog::Accepted) {
-        QString dir;
-        if (ui.checkZipFile->isChecked()) {
-            QString fname = preselectedName;
-            if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
-                fname += QSL(".zip");
-            dir = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
-                                                  QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
-        } else {
-            dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
-                                                       CGenericFuncs::getTmpDir());
-        }
-        int index = 0;
-        const QList<QListWidgetItem *> itml = ui.list->selectedItems();
-        for (const QListWidgetItem* itm : itml){
-            if (!ui.checkAddNumbers->isChecked()) {
-                index = -1;
-            } else {
-                index++;
-            }
-
-            gSet->downloadManager()->handleAuxDownload(itm->text(),dir,referer,index,ui.list->selectedItems().count());
-        }
-    }
+    if (dlg.exec()==QDialog::Rejected) return;
     multiImgDialogSize=dlg.size();
+
+    QString dir;
+    if (ui.checkZipFile->isChecked()) {
+        QString fname = preselectedName;
+        if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
+            fname += QSL(".zip");
+        dir = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+                                              QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
+    } else {
+        dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
+                                                   CGenericFuncs::getTmpDir());
+    }
+    if (dir.isEmpty()) return;
+
+    int index = 0;
+    const QList<QListWidgetItem *> itml = ui.list->selectedItems();
+    for (const QListWidgetItem* itm : itml){
+        if (!ui.checkAddNumbers->isChecked()) {
+            index = -1;
+        } else {
+            index++;
+        }
+
+        gSet->downloadManager()->handleAuxDownload(itm->text(),dir,referer,index,
+                                                   ui.list->selectedItems().count(),isFanbox);
+    }
 }
 
 bool CSnNet::isValidLoadedUrl(const QUrl& url)
@@ -251,6 +256,25 @@ void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor:
     }
 }
 
+void CSnNet::processFanboxNovel(int postId, bool translate, bool focus)
+{
+    auto *ex = new CFanboxExtractor();
+    auto *th = new QThread();
+    ex->setParams(snv,postId,translate,focus);
+
+    connect(ex,&CFanboxExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
+    connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
+    ex->moveToThread(th);
+    th->start();
+
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+    QMetaObject::invokeMethod(ex,&CFanboxExtractor::start,Qt::QueuedConnection);
+}
+
 void CSnNet::downloadPixivManga()
 {
     auto *ac = qobject_cast<QAction*>(sender());
@@ -262,7 +286,7 @@ void CSnNet::downloadPixivManga()
     auto *th = new QThread();
     ex->setMangaOrigin(snv,origin);
 
-    connect(ex,&CPixivNovelExtractor::mangaReady,this,&CSnNet::pixivMangaReady,Qt::QueuedConnection);
+    connect(ex,&CPixivNovelExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
     connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
@@ -273,6 +297,31 @@ void CSnNet::downloadPixivManga()
     gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
     QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::startManga,Qt::QueuedConnection);
+}
+
+void CSnNet::downloadFanboxManga()
+{
+    auto *ac = qobject_cast<QAction*>(sender());
+    if (!ac) return;
+    bool ok = false;
+    int fanboxPostId = ac->data().toInt(&ok);
+    if (!ok || fanboxPostId<=0) return;
+
+    auto *ex = new CFanboxExtractor();
+    auto *th = new QThread();
+    ex->setParams(snv,fanboxPostId,false,false);
+
+    connect(ex,&CFanboxExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
+    connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+
+    ex->moveToThread(th);
+    th->start();
+
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+    QMetaObject::invokeMethod(ex,&CFanboxExtractor::start,Qt::QueuedConnection);
 }
 
 void CSnNet::novelReady(const QString &html, bool focus, bool translate)
@@ -298,15 +347,17 @@ void CSnNet::pixivListReady(const QString &html)
     }
 }
 
-void CSnNet::pixivMangaReady(const QStringList &urls, const QString &id, const QUrl &origin)
+void CSnNet::mangaReady(const QStringList &urls, const QString &id, const QUrl &origin)
 {
     gSet->app()->restoreOverrideCursor();
 
+    bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
+
     if (urls.isEmpty() || id.isEmpty()) {
         QMessageBox::warning(snv,tr("JPReader"),
-                             tr("No pixiv manga image urls found"));
+                             tr("No manga image urls found"));
     } else {
-        snv->netHandler->multiImgDownload(urls,origin,id);
+        multiImgDownload(urls,origin,id,isFanbox);
     }
 }
 

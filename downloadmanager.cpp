@@ -42,7 +42,7 @@ CDownloadManager::~CDownloadManager()
 }
 
 void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer,
-                                         int index, int maxIndex)
+                                         int index, int maxIndex, bool isFanbox)
 {
     const int indexBase = 10;
 
@@ -69,6 +69,8 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
 
     QNetworkRequest req(url);
     req.setRawHeader("referer",referer.toString().toUtf8());
+    if (isFanbox)
+        req.setRawHeader("origin","https://www.fanbox.cc");
     QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
     connect(rpl, &QNetworkReply::finished,
@@ -230,6 +232,7 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
             }
             case 2:
                 if (t.total==0) return QSL("0%");
+                if (t.total<0) return QString();
                 return QSL("%1%").arg(100*t.received/t.total);
             case 3:
                 if (!t.errorString.isEmpty())
@@ -246,8 +249,7 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
             return tr("%1\nZip: %2)").arg(t.getFileName(),zfname);
         return t.getFileName();
     } else if (role == Qt::UserRole+1) {
-        if (t.total==0)
-            return 0;
+        if (t.total<=0) return t.total;
         return 100*t.received/t.total;
     }
     return QVariant();
@@ -606,12 +608,17 @@ void CDownloadBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         QRect r = option.rect;
         r.setHeight(r.height()-topMargin); r.moveTop(r.top()+bottomMargin);
         progressBarOption.rect = r;
-        progressBarOption.minimum = 0;
-        progressBarOption.maximum = 100;
-        progressBarOption.progress = progress;
-        progressBarOption.text = QString::number(progress) + "%";
-        progressBarOption.textVisible = true;
-
+        if (progress>=0) {
+            progressBarOption.minimum = 0;
+            progressBarOption.maximum = 100;
+            progressBarOption.progress = progress;
+            progressBarOption.text = QString::number(progress) + "%";
+            progressBarOption.textVisible = true;
+        } else {
+            progressBarOption.minimum = 0;
+            progressBarOption.maximum = 0;
+            progressBarOption.textVisible = false;
+        }
         QApplication::style()->drawControl(QStyle::CE_ProgressBar,
                                            &progressBarOption, painter);
     }

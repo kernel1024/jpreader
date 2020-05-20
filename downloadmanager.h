@@ -56,7 +56,9 @@ class CDownloadManager : public QDialog
 public:
     explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager() override;
-    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index, int maxIndex);
+    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index,
+                           int maxIndex, bool isFanbox);
+
 public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);

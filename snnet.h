@@ -21,13 +21,14 @@ private:
 public:
     explicit CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QStringList& urls, const QUrl &referer,
-                          const QString &preselectedName = QString());
+                          const QString &preselectedName = QString(), bool isFanbox = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);
     QUrl getLoadedUrl() const { return m_loadedUrl; }
     void processPixivNovel(const QUrl& url, const QString &title, bool translate, bool focus);
     void processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);
+    void processFanboxNovel(int postId, bool translate, bool focus);
 
 Q_SIGNALS:
     void startPdfConversion(const QString& filename);
@@ -43,9 +44,10 @@ public Q_SLOTS:
     void progressLoad(int progress);
     void userNavigationRequest(const QUrl& url, int type, bool isMainFrame);
     void downloadPixivManga();
+    void downloadFanboxManga();
     void novelReady(const QString& html, bool focus, bool translate);
     void pixivListReady(const QString& html);
-    void pixivMangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
+    void mangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

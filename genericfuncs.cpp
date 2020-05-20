@@ -160,6 +160,13 @@ QString CGenericFuncs::unsplitMobileText(const QString& text)
     return buf;
 }
 
+QString CGenericFuncs::makeSafeFilename(const QString &text)
+{
+    QString res = text;
+    res.replace(QRegularExpression(QSL("[\\\\/:\\*\\?<>\\|\"]")),QSL(" "));
+    return res.simplified();
+}
+
 QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &content,
                                       bool integratedTitle, const QUrl& origin)
 {

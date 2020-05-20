@@ -1,5 +1,6 @@
 HEADERS = mainwindow.h \
     awstranslator.h \
+    fanboxextractor.h \
     globalprivate.h \
     htmlimagesextractor.h \
     jsedit/jsedit_p.h \
@@ -56,6 +57,7 @@ HEADERS = mainwindow.h \
 
 SOURCES = main.cpp \
     awstranslator.cpp \
+    fanboxextractor.cpp \
     globalprivate.cpp \
     htmlimagesextractor.cpp \
     mainwindow.cpp \

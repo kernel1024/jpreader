@@ -55,8 +55,9 @@ public:
     static int numDigits(int n);
     static void processedSleep(unsigned long secs);
     static void processedMSleep(unsigned long msecs);
-
     static bool writeBytesToZip(const QString& zipFile, const QString& fileName, const QByteArray& data);
+    static QString unsplitMobileText(const QString &text);
+    static QString makeSafeFilename(const QString &text);
 
     static QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                       const QString & dir = QString(), const QStringList & filters = QStringList(),
@@ -75,8 +76,6 @@ public:
                                             QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
     static void profiler(int line, const QElapsedTimer &time);
-
-    static QString unsplitMobileText(const QString &text);
 
 private:
     Q_DISABLE_COPY(CGenericFuncs)

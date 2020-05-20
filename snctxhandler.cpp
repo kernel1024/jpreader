@@ -53,6 +53,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QUrl linkUrl;
     QUrl imageUrl;
     QUrl pixivUrl;
+    QUrl fanboxUrl;
     const QUrl origin = snv->txtBrowser->page()->url();
 
     if (data.isValid()) {
@@ -66,6 +67,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QAction *ac = nullptr;
     QMenu *ccm = nullptr;
     QVector<QAction *> pixivActions;
+    QVector<QAction *> fanboxActions;
 
     QMenu m_menu;
 
@@ -106,9 +108,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         pixivUrl = linkUrl;
         title.clear();
     }
+    fanboxUrl = pixivUrl;
     if (!pixivUrl.host().contains(QSL("pixiv.net")))
         pixivUrl.clear();
+    if (!fanboxUrl.host().contains(QSL("fanbox.cc")))
+        fanboxUrl.clear();
     pixivUrl.setFragment(QString());
+    fanboxUrl.setFragment(QString());
 
     QString pixivId;
     QRegularExpression rxPixivId(QSL("pixiv.net/.*/users/(?<userID>\\d+)"));
@@ -152,6 +158,38 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             snv->netHandler->processPixivNovelList(pixivId,CPixivIndexExtractor::BookmarksIndex);
         });
         pixivActions.append(ac);
+
+        m_menu.addSeparator();
+    }
+
+    int fanboxPostId = -1;
+    QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
+    auto mchFanboxPostId = rxFanboxPostId.match(fanboxUrl.toString());
+    if (mchFanboxPostId.hasMatch()) {
+        bool ok = false;
+        fanboxPostId = mchFanboxPostId.captured(QSL("postID")).toInt(&ok);
+        if (!ok)
+            fanboxPostId = -1;
+    }
+
+    if (fanboxPostId>0) {
+        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new background tab"));
+        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
+            snv->netHandler->processFanboxNovel(fanboxPostId,false,false);
+        });
+        fanboxActions.append(ac);
+
+        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new tab"));
+        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
+            snv->netHandler->processFanboxNovel(fanboxPostId,false,true);
+        });
+        fanboxActions.append(ac);
+
+        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new background tab and translate"));
+        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
+            snv->netHandler->processFanboxNovel(fanboxPostId,true,false);
+        });
+        fanboxActions.append(ac);
 
         m_menu.addSeparator();
     }
@@ -446,6 +484,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         }
         pixivActions.append(ac);
     }
+    if (fanboxPostId>0) {
+        ac = ccm->addAction(tr("Download all images from fanbox.cc post"),
+                            snv->netHandler,&CSnNet::downloadFanboxManga);
+        ac->setData(fanboxPostId);
+        fanboxActions.append(ac);
+
+    }
     ccm->addSeparator();
 
     ccm->addAction(QIcon::fromTheme(QSL("document-edit-decrypt")),tr("Parse document"),
@@ -480,6 +525,19 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, &m_menu, [pixivActions](const QIcon& icon){
             for (auto * const ac : qAsConst(pixivActions)) {
+                ac->setIcon(icon);
+            }
+        });
+        fl->queryStart(false);
+    }
+    if (!fanboxActions.isEmpty()) {
+        QUrl fanboxIconUrl(QSL("https://www.fanbox.cc/favicon.ico"));
+        if (fanboxUrl.isValid())
+            fanboxIconUrl.setScheme(fanboxUrl.scheme());
+        auto *fl = new CFaviconLoader(snv,fanboxIconUrl);
+        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
+        connect(fl,&CFaviconLoader::gotIcon, &m_menu, [fanboxActions](const QIcon& icon){
+            for (auto * const ac : qAsConst(fanboxActions)) {
                 ac->setIcon(icon);
             }
         });

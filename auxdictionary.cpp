@@ -52,8 +52,7 @@ CAuxDictionary::~CAuxDictionary()
 
 void CAuxDictionary::adjustSplitters()
 {
-    QList<int> sz;
-    sz << width()/2 << width()/2;
+    QList<int> sz({ width()/2, width()/2 });
     ui->verticalSplitter->setSizes(sz);
 }
 
@@ -264,7 +263,7 @@ CAuxDictKeyFilter::CAuxDictKeyFilter(QObject *parent)
 bool CAuxDictKeyFilter::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type()==QEvent::KeyPress) {
-        auto ev = dynamic_cast<QKeyEvent *>(event);
+        auto *ev = dynamic_cast<QKeyEvent *>(event);
         if (ev)
             Q_EMIT keyPressed(ev->key());
     }
