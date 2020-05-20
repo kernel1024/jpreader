@@ -74,11 +74,18 @@ void CFanboxExtractor::pageLoadFinished()
             QString author = body.value(QSL("user")).toObject().value(QSL("name")).toString();
             QString authorId = body.value(QSL("creatorId")).toString();
             QString text = mbody.value(QSL("text")).toString();
+            const QJsonArray jblocks = mbody.value(QSL("blocks")).toArray();
+            for (const auto &jblock : jblocks) {
+                QString bvalue = jblock.toObject().value(QSL("type")).toString();
+                QString btext = jblock.toObject().value(QSL("text")).toString();
+                if (!bvalue.isEmpty())
+                    text.append(QSL("<%1>%2</%1>").arg(bvalue,btext));
+            }
 
             QStringList tags;
-            QJsonArray jtags = body.value(QSL("tags")).toArray();
+            const QJsonArray jtags = body.value(QSL("tags")).toArray();
             tags.reserve(jtags.count());
-            for (const auto &jtag : qAsConst(jtags)) {
+            for (const auto &jtag : jtags) {
                 QString tag = jtag.toString();
                 if (!tag.isEmpty())
                     tags.append(tag);
