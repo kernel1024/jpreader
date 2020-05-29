@@ -74,7 +74,6 @@ public:
     static const QUrl::FormattingOptions adblockUrlFmt;
 
     QStringList dictPaths;
-    QString dictIndexDir;
     QString defaultSearchEngine;
     QString fontStandard;
     QString fontFixed;

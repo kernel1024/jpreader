@@ -91,7 +91,7 @@ void CHtmlImagesExtractor::finalizeHtml()
 
 void CHtmlImagesExtractor::handleImages()
 {
-    m_worksImgFetch.store(m_imgUrls.count());
+    m_worksImgFetch.storeRelease(m_imgUrls.count());
     if (!m_imgUrls.isEmpty()) {
         for(const auto &it : qAsConst(m_imgUrls)) {
             QUrl url((*it).value(QSL("src")).trimmed());

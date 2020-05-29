@@ -91,19 +91,19 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 
     if (item->savePageFormat()==QWebEngineDownloadItem::UnknownSaveFormat) {
         // Async save request from user, not full html page
-        QFileInfo fi(item->path());
-
         QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save file"),gSet->settings()->savedAuxSaveDir,
-                                                        QStringList(),nullptr,fi.fileName());
+                                                        QStringList(),nullptr,item->suggestedFileName());
 
         if (fname.isNull() || fname.isEmpty()) {
             item->cancel();
             item->deleteLater();
             return;
         }
-        gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-        item->setPath(fname);
+        QFileInfo fi(fname);
+        gSet->setSavedAuxSaveDir(fi.absolutePath());
+        item->setDownloadDirectory(fi.absolutePath());
+        item->setDownloadFileName(fi.fileName());
     }
 
     connect(item, &QWebEngineDownloadItem::finished,
@@ -538,7 +538,9 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
 {
     if (item!=nullptr) {
         id = item->id();
-        pathName = item->path();
+        pathName = QSL("%1%2%3").arg(item->downloadDirectory(),
+                                     QDir::separator(),
+                                     item->downloadFileName());
         mimeType = item->mimeType();
         errorString.clear();
         state = item->state();

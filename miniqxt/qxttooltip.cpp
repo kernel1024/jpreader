@@ -70,7 +70,8 @@ QxtToolTipPrivate::QxtToolTipPrivate(QWidget *parent) : QWidget(parent, FLAGS)
     vbox = new QVBoxLayout(this);
     setPalette(QToolTip::palette());
     setWindowOpacity(style()->styleHint(QStyle::SH_ToolTipLabel_Opacity, nullptr, this) / maxOpacity);
-    layout()->setMargin(style()->pixelMetric(QStyle::PM_ToolTipLabelFrameWidth, nullptr, this));
+    int margin = style()->pixelMetric(QStyle::PM_ToolTipLabelFrameWidth, nullptr, this);
+    layout()->setContentsMargins(margin, margin, margin, margin);
     QApplication::instance()->installEventFilter(this);
 }
 
@@ -255,16 +256,6 @@ void QxtToolTip::show(QPoint pos, QWidget* tooltip, QWidget* parent, QRect rect,
 void QxtToolTip::hide()
 {
     QxtToolTipPrivate::instance()->hide();
-}
-
-int QxtToolTip::margin()
-{
-    return QxtToolTipPrivate::instance()->layout()->margin();
-}
-
-void QxtToolTip::setMargin(int margin)
-{
-    QxtToolTipPrivate::instance()->layout()->setMargin(margin);
 }
 
 qreal QxtToolTip::opacity()

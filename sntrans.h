@@ -34,7 +34,6 @@ public Q_SLOTS:
     void selectionShow();
     void showWordTranslation(const QString & html);
     void showSuggestedTranslation(const QString & link);
-    void dictDataReady();
     void reparseDocument();
     void translateDocument();
     void reparseDocumentPriv(const QString& data);

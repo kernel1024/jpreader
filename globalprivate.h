@@ -12,12 +12,11 @@
 #include "auxdictionary.h"
 #include "auxtranslator.h"
 #include "translator.h"
+#include "zdict/zdictcontroller.h"
 
 class CMainWindow;
 class CLightTranslator;
 class CAuxTranslator;
-class ArticleNetworkAccessManager;
-class CGoldenDictMgr;
 class CDownloadManager;
 class BookmarksManager;
 class CLogDisplay;
@@ -33,8 +32,7 @@ public:
     QWebEngineProfile *webProfile { nullptr };
     QNetworkAccessManager *auxNetManager { nullptr };
     BookmarksManager *bookmarksManager { nullptr };
-    ArticleNetworkAccessManager * dictNetMan { nullptr };
-    CGoldenDictMgr * dictManager { nullptr };
+    ZDict::ZDictController * dictManager { nullptr };
     CTranslatorCache *translatorCache { nullptr };
 
     QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;

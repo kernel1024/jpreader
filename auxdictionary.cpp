@@ -3,7 +3,6 @@
 #include <QUrlQuery>
 #include <QKeyEvent>
 #include <QCompleter>
-#include <goldendictlib/goldendictmgr.hh>
 
 #include "auxdictionary.h"
 #include "genericfuncs.h"
@@ -20,8 +19,6 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
 
     ui->btnClear->setIcon(QIcon::fromTheme(QSL("edit-clear")));
 
-    wordFinder = new WordFinder(this);
-
     wordHistoryModel = new QStringListModel(this);
     ui->editWord->setCompleter(new QCompleter(wordHistoryModel));
 
@@ -33,16 +30,12 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     connect(ui->listWords, &QListWidget::itemDoubleClicked,
             this, &CAuxDictionary::wordListLookupItem);
 
-    connect(wordFinder, &WordFinder::updated, this, &CAuxDictionary::prefixMatchUpdated);
-    connect(wordFinder, &WordFinder::finished, this, &CAuxDictionary::prefixMatchFinished);
-
     connect(viewArticles, &QTextBrowser::textChanged, this, &CAuxDictionary::articleLoadFinished);
+    connect(viewArticles, &QTextBrowser::anchorClicked, this, &CAuxDictionary::articleLinkClicked);
 
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
     connect(keyFilter, &CAuxDictKeyFilter::keyPressed, this, &CAuxDictionary::editKeyPressed);
-
-    wordFinder->clear();
 }
 
 CAuxDictionary::~CAuxDictionary()
@@ -66,15 +59,10 @@ void CAuxDictionary::findWord(const QString &text)
 
 void CAuxDictionary::showTranslationFor(const QString &text)
 {
-    QUrl req;
-    req.setScheme( QSL( "gdlookup" ));
-    req.setHost( QSL( "localhost" ));
-    QUrlQuery requ;
-    requ.addQueryItem( QSL( "word" ), text );
-    req.setQuery(requ);
-    dictLoadUrl(req);
-
-    viewArticles->setCursor( Qt::WaitCursor );
+    viewArticles->clear();
+    QString article = gSet->dictionaryManager()->loadArticle(text);
+    if (!article.isEmpty())
+        viewArticles->setHtml(article);
 }
 
 void CAuxDictionary::editKeyPressed(int key)
@@ -84,84 +72,40 @@ void CAuxDictionary::editKeyPressed(int key)
     forceFocusToEdit = true;
 }
 
-void CAuxDictionary::dictLoadUrl(const QUrl &url)
+void CAuxDictionary::updateMatchResults(const QStringList &words)
 {
-    if (viewArticles->source() == url) {
-        viewArticles->reload();
-    } else {
-        viewArticles->setSource(url);
-    }
-}
 
-void CAuxDictionary::updateMatchResults(bool finished)
-{
-    WordFinder::SearchResults const & results = wordFinder->getResults();
+    ui->listWords->setUpdatesEnabled(false);
 
-    ui->listWords->setUpdatesEnabled( false );
+    for (int i=0; i<words.count(); i++) {
+        QListWidgetItem * item = ui->listWords->item(i);
 
-    for( unsigned long x = 0; x < results.size(); ++x )
-    {
-        QListWidgetItem * i = ui->listWords->item( static_cast<int>(x) );
-
-        if ( !i )
-        {
-            i = new QListWidgetItem( results[ x ].first, ui->listWords );
-
-            if ( results[ x ].second )
-            {
-                QFont f = i->font();
-                f.setItalic( true );
-                i->setFont( f );
-            }
-            ui->listWords->addItem( i );
+        if (item == nullptr) {
+            item = new QListWidgetItem(words.at(i), ui->listWords);
+            ui->listWords->addItem(item);
+        } else {
+            if (item->text() != words.at(i))
+                item->setText(words.at(i));
         }
-        else
-        {
-            if ( i->text() != results[ x ].first )
-                i->setText( results[ x ].first );
-
-            QFont f = i->font();
-            if ( f.italic() != results[ x ].second )
-            {
-                f.setItalic( results[ x ].second );
-                i->setFont( f );
-            }
-        }
-        if (i->text().at(0).direction() == QChar::DirR)
-            i->setTextAlignment(Qt::AlignRight);
-        if (i->text().at(0).direction() == QChar::DirL)
-            i->setTextAlignment(Qt::AlignLeft);
     }
 
-    while ( ui->listWords->count() > static_cast<int>(results.size()) )
-    {
-        // Chop off any extra items that were there
-        QListWidgetItem * i = ui->listWords->takeItem( ui->listWords->count() - 1 );
-
+    while (ui->listWords->count() > words.count()) {
+        QListWidgetItem *i = ui->listWords->takeItem(ui->listWords->count() - 1);
         if (!i)
             break;
+
+        delete i;
     }
 
-    if ( ui->listWords->count() > 0 )
-    {
-        ui->listWords->scrollToItem( ui->listWords->item( 0 ), QAbstractItemView::PositionAtTop );
-        ui->listWords->setCurrentItem( nullptr, QItemSelectionModel::Clear );
+    if (ui->listWords->count() > 0) {
+        ui->listWords->scrollToItem(ui->listWords->item(0), QAbstractItemView::PositionAtTop);
+        ui->listWords->setCurrentItem(nullptr, QItemSelectionModel::Clear);
     }
 
-    ui->listWords->setUpdatesEnabled( true );
+    ui->listWords->setUpdatesEnabled(true);
 
-    if ( finished )
-    {
-        ui->listWords->unsetCursor();
-
-        if (ui->listWords->count()>0)
-            ui->listWords->setCurrentRow(0);
-
-        if ( !wordFinder->getErrorString().isEmpty() ) {
-            QMessageBox::critical(this,tr("JPReader"),
-                                  tr( "WARNING: %1" ).arg( wordFinder->getErrorString() ) );
-        }
-    }
+    if (ui->listWords->count()>0)
+        ui->listWords->setCurrentRow(0);
 }
 
 void CAuxDictionary::closeEvent(QCloseEvent *event)
@@ -172,36 +116,18 @@ void CAuxDictionary::closeEvent(QCloseEvent *event)
 
 void CAuxDictionary::translateInputChanged(const QString &text)
 {
-    showEmptyDictPage();
+    viewArticles->clear();
 
-    if ( ui->listWords->selectionModel()->hasSelection() )
-        ui->listWords->setCurrentItem( nullptr, QItemSelectionModel::Clear );
+    if (ui->listWords->selectionModel()->hasSelection())
+        ui->listWords->setCurrentItem(nullptr, QItemSelectionModel::Clear);
 
     QString req = text.trimmed();
-
-    if ( req.isEmpty() )
-    {
-        // An empty request always results in an empty result
-        wordFinder->cancel();
+    if (req.isEmpty()) {
         ui->listWords->clear();
-        ui->listWords->unsetCursor();
-
         return;
     }
 
-    ui->listWords->setCursor( Qt::WaitCursor );
-
-    wordFinder->prefixMatch( req, gSet->dictionaryManager()->dictionaries );
-}
-
-void CAuxDictionary::prefixMatchUpdated()
-{
-    updateMatchResults(false);
-}
-
-void CAuxDictionary::prefixMatchFinished()
-{
-    updateMatchResults(true);
+    updateMatchResults(gSet->dictionaryManager()->wordLookup(text));
 }
 
 void CAuxDictionary::translateInputFinished()
@@ -214,17 +140,16 @@ void CAuxDictionary::translateInputFinished()
         wordHistoryModel->setStringList(h);
     }
 
-    if ( !word.isEmpty() )
-        showTranslationFor( word );
+    if (!word.isEmpty())
+        showTranslationFor(word);
 }
 
 void CAuxDictionary::wordListSelectionChanged()
 {
-    QList< QListWidgetItem * > selected = ui->listWords->selectedItems();
+    QList<QListWidgetItem *> selected = ui->listWords->selectedItems();
 
-    if ( !selected.empty() ) {
+    if (!selected.empty()) {
         QString newValue = selected.front()->text();
-
         showTranslationFor(newValue);
     }
 }
@@ -232,19 +157,27 @@ void CAuxDictionary::wordListSelectionChanged()
 void CAuxDictionary::wordListLookupItem(QListWidgetItem *item)
 {
     ui->editWord->setText(item->text());
+    translateInputFinished();
+}
+
+void CAuxDictionary::articleLinkClicked(const QUrl &url)
+{
+    QUrlQuery requ(url);
+    QString word = requ.queryItemValue(QSL("word"));
+    if (word.startsWith('%')) {
+        QByteArray bword = word.toLatin1();
+        if (!bword.isNull() && !bword.isEmpty())
+            word = QUrl::fromPercentEncoding(bword);
+    }
+
+    if (!word.isEmpty())
+        showTranslationFor(word);
 }
 
 void CAuxDictionary::articleLoadFinished()
 {
-    viewArticles->unsetCursor();
-
     if (forceFocusToEdit)
         ui->editWord->setFocus();
-}
-
-void CAuxDictionary::showEmptyDictPage()
-{
-    viewArticles->clear();
 }
 
 void CAuxDictionary::restoreWindow()

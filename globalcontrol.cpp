@@ -11,7 +11,6 @@
 #include <QElapsedTimer>
 #include <QPointer>
 #include <QAtomicInteger>
-#include <goldendictlib/goldendictmgr.hh>
 
 extern "C" {
 #include <sys/resource.h>
@@ -209,31 +208,7 @@ void CGlobalControl::initialize()
         setrlimit(RLIMIT_CORE, &rlp);
     }
 
-    m_settings->dictIndexDir = fs + QSL("dictIndex") + QDir::separator();
-    QDir dictIndex(settings()->dictIndexDir);
-    if (!dictIndex.exists()) {
-        if (!dictIndex.mkpath(settings()->dictIndexDir)) {
-            qCritical() << "Unable to create directory for dictionary indexes: " << settings()->dictIndexDir;
-            m_settings->dictIndexDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-        }
-    }
-
-    d->dictManager = new CGoldenDictMgr(this);
-
-    connect(d->dictManager,&CGoldenDictMgr::showStatusBarMessage,this,[d](const QString& msg){
-        if (d->activeWindow) {
-            if (msg.isEmpty()) {
-                d->activeWindow->statusBar()->clearMessage();
-            } else {
-                d->activeWindow->statusBar()->showMessage(msg);
-            }
-        }
-    });
-    connect(d->dictManager,&CGoldenDictMgr::showCriticalMessage,this,[d](const QString& msg){
-        QMessageBox::critical(d->activeWindow,tr("JPReader"),msg);
-    });
-
-    d->dictNetMan = new ArticleNetworkAccessManager(this,d->dictManager);
+    d->dictManager = new ZDict::ZDictController(this);
 
     d->auxNetManager = new QNetworkAccessManager(this);
     d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
@@ -258,7 +233,7 @@ void CGlobalControl::initialize()
     },Qt::QueuedConnection);
 
     QTimer::singleShot(CDefaults::dictionariesLoadingDelay,d->dictManager,[this,d](){
-        d->dictManager->loadDictionaries(settings()->dictPaths, settings()->dictIndexDir);
+        d->dictManager->loadDictionaries(settings()->dictPaths);
     });
 
     QApplication::setStyle(new CSpecMenuStyle);
@@ -623,12 +598,6 @@ CLogDisplay *CGlobalControl::logWindow() const
     return d->logWindow.data();
 }
 
-ArticleNetworkAccessManager *CGlobalControl::dictionaryNetworkAccessManager() const
-{
-    Q_D(const CGlobalControl);
-    return d->dictNetMan;
-}
-
 QNetworkAccessManager *CGlobalControl::auxNetworkAccessManager() const
 {
     Q_D(const CGlobalControl);
@@ -641,7 +610,7 @@ const QHash<QString, QIcon> &CGlobalControl::favicons() const
     return d->favicons;
 }
 
-CGoldenDictMgr *CGlobalControl::dictionaryManager() const
+ZDict::ZDictController *CGlobalControl::dictionaryManager() const
 {
     Q_D(const CGlobalControl);
     return d->dictManager;

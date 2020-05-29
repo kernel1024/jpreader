@@ -134,21 +134,21 @@ FORMS = main.ui \
     noscriptdialog.ui \
     hashviewer.ui
 
-QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib concurrent
+QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
 
 CONFIG += warn_on \
     link_pkgconfig \
     exceptions \
     rtti \
     stl \
-    c++14
+    c++17
 
 # warn on *any* usage of deprecated APIs
 DEFINES += QT_DEPRECATED_WARNINGS
-# ... and just fail to compile if APIs deprecated in Qt <= 5.11 are used
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050B00
+# ... and just fail to compile if APIs deprecated in Qt <= 5.14 are used
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050E00
 
-LIBS += -lz -lgoldendict
+LIBS += -lz
 
 exists( /usr/include/magic.h ) {
     LIBS += -lmagic
@@ -230,6 +230,7 @@ DEFINES += BUILD_DATE=\\\"$$BDATE\\\"
 include( htmlcxx/htmlcxx.pri )
 include( miniqxt/miniqxt.pri )
 include( qcustomplot/qcustomplot.pri )
+include( zdict/zdict.pri )
 
 OTHER_FILES += \
     data/startpage.html \

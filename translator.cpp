@@ -28,12 +28,12 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml)
 
 bool CTranslator::isAborted()
 {
-    return m_abortFlag.load();
+    return m_abortFlag.loadAcquire();
 }
 
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 {
-    m_abortFlag.store(false);
+    m_abortFlag.storeRelease(false);
 
     if (!m_tran && !m_tranInited) {
         m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
@@ -102,7 +102,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 
 bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
 {
-    m_abortFlag.store(false);
+    m_abortFlag.storeRelease(false);
 
     destHtml.clear();
     if (sourceHtml.isEmpty()) return false;
@@ -647,7 +647,7 @@ void CTranslator::abortTranslator()
     const int abortTimerDelay = 500;
 
     QTimer::singleShot(abortTimerDelay,this,[this](){
-        m_abortFlag.store(true);
+        m_abortFlag.storeRelease(true);
     });
 }
 

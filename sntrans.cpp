@@ -1,7 +1,7 @@
 #include <QMessageBox>
 #include <QScopedPointer>
 #include <QUrlQuery>
-#include <goldendictlib/goldendictmgr.hh>
+#include <QThread>
 
 #include "sntrans.h"
 #include "snnet.h"
@@ -15,6 +15,7 @@ using namespace htmlcxx;
 
 namespace CDefaults {
 const int selectionTimerDelay = 1000;
+const int maxSuggestedWords = 6;
 }
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
@@ -213,14 +214,32 @@ void CSnTrans::selectionChanged()
 
 void CSnTrans::findWordTranslation(const QString &text)
 {
-    QUrl req;
-    req.setScheme( QSL("gdlookup") );
-    req.setHost( QSL("localhost") );
-    QUrlQuery requ;
-    requ.addQueryItem( QSL("word"), text );
-    req.setQuery(requ);
-    QNetworkReply* rep = gSet->dictionaryNetworkAccessManager()->get(QNetworkRequest(req));
-    connect(rep,&QNetworkReply::finished,this,&CSnTrans::dictDataReady);
+    if (text.isEmpty()) return;
+
+    QString searchWord = text;
+    QStringList words = gSet->dictionaryManager()->wordLookup(searchWord);
+    while (words.isEmpty() && !searchWord.isEmpty()) {
+        searchWord.truncate(searchWord.length()-1);
+        words = gSet->dictionaryManager()->wordLookup(searchWord,QRegularExpression(),true);
+    }
+
+    if (!words.isEmpty()) {
+        QString article;
+        if (searchWord == text) {
+            article = gSet->dictionaryManager()->loadArticle(words.first()); // word found
+        } else { // word is too long, similar words found
+            article = QSL("<div><b>Not found</b><br/>");
+            for (int i=0; i<qMin(words.count(),CDefaults::maxSuggestedWords); i++) {
+                if (i>0)
+                    article += QSL(", ");
+                article += QSL("<a href=\"zdict?word=%1\">%2</a>")
+                           .arg(QUrl::toPercentEncoding(words.at(i)),words.at(i).toHtmlEscaped());
+            }
+            article += QSL("</div>");
+        }
+        if (!article.isEmpty())
+            showWordTranslation(article);
+    }
 }
 
 void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
@@ -271,13 +290,4 @@ void CSnTrans::showSuggestedTranslation(const QString &link)
             word = QUrl::fromPercentEncoding(bword);
     }
     findWordTranslation(word);
-}
-
-void CSnTrans::dictDataReady()
-{
-    QString res = QString();
-    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rep(qobject_cast<QNetworkReply *>(sender()));
-    if (rep)
-        res = QString::fromUtf8(rep->readAll());
-    showWordTranslation(res);
 }

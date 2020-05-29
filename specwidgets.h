@@ -190,27 +190,6 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
-class CGDTextBrowser : public QTextBrowser
-{
-    Q_OBJECT
-public:
-    explicit CGDTextBrowser(QWidget* parent = nullptr);
-
-protected:
-    QVariant loadResource(int type, const QUrl &url) override;
-
-};
-
-class CIOEventLoop : public QEventLoop {
-    Q_OBJECT
-public:
-    explicit CIOEventLoop(QObject* parent = nullptr);
-
-public Q_SLOTS:
-    void finished();
-    void timeout();
-};
-
 class CNetworkCookieJar : public QNetworkCookieJar
 {
     Q_OBJECT

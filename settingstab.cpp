@@ -5,7 +5,6 @@
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
 #include <QWebEngineSettings>
-#include <goldendictlib/goldendictmgr.hh>
 
 #include "settingstab.h"
 #include "ui_settingstab.h"
@@ -696,8 +695,7 @@ void CSettingsTab::saveDictPaths()
     if (CGenericFuncs::compareStringLists(gSet->m_settings->dictPaths,res)!=0) {
         gSet->m_settings->dictPaths = res;
         gSet->d_func()->dictManager->loadDictionaries(
-                    gSet->m_settings->dictPaths,
-                    gSet->m_settings->dictIndexDir);
+                    gSet->m_settings->dictPaths);
     }
 }
 

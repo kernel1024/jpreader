@@ -2,14 +2,14 @@
 #include <QRegularExpression>
 #include <QUrl>
 #include <QUrlQuery>
+#include <QNetworkReply>
+#include <QNetworkCookie>
 #include <QMessageLogger>
 #include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QWebEngineCertificateError>
 #include <vector>
-#include <goldendictlib/goldendictmgr.hh>
-#include <goldendictlib/dictionary.hh>
 #include "specwidgets.h"
 #include "snviewer.h"
 #include "mainwindow.h"
@@ -576,72 +576,6 @@ Qt::ItemFlags CSpecUrlHistoryModel::flags(const QModelIndex &index) const
         return Qt::NoItemFlags;
 
     return (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-}
-
-CGDTextBrowser::CGDTextBrowser(QWidget *parent)
-    : QTextBrowser(parent)
-{
-
-}
-
-QVariant CGDTextBrowser::loadResource(int type, const QUrl &url)
-{
-    const int gdDictionaryResponseTimeout = 10000;
-
-    if (gSet!=nullptr && url.scheme().toLower()==QSL("gdlookup")) {
-        QByteArray rplb;
-
-        CIOEventLoop ev;
-        QString mime;
-
-        QUrlQuery qr(url);
-        if ( qr.queryItemValue( QSL("blank") ) == QSL("1") ) {
-            rplb = CGenericFuncs::makeSimpleHtml(QString(),QString()).toUtf8();
-            return rplb;
-        }
-
-        sptr<Dictionary::DataRequest> dr = gSet->dictionaryNetworkAccessManager()->getResource(url,mime);
-
-        connect(dr.get(), &Dictionary::DataRequest::finished,&ev,&CIOEventLoop::finished);
-        QTimer::singleShot(gdDictionaryResponseTimeout,&ev,&CIOEventLoop::timeout);
-
-        int ret = ev.exec();
-
-        if (ret==1) { // Timeout
-            rplb = CGenericFuncs::makeSimpleHtml(tr("Error"),
-                                                 tr("Dictionary request timeout for query '%1'.")
-                                                 .arg(url.toString())).toUtf8();
-
-        } else if (dr->isFinished() && dr->dataSize()>0 && ret==0) { // Dictionary success
-            std::vector<char> vc = dr->getFullData();
-            rplb = QByteArray(reinterpret_cast<const char*>(vc.data()),
-                              static_cast<int>(vc.size()));
-
-        } else { // Dictionary error
-            rplb = CGenericFuncs::makeSimpleHtml(tr("Error"),
-                                                 tr("Dictionary request failed for query '%1'.<br/>Error: %2.")
-                                                 .arg(url.toString(),dr->getErrorString())).toUtf8();
-        }
-        return rplb;
-    }
-
-    return QTextBrowser::loadResource(type,url);
-}
-
-CIOEventLoop::CIOEventLoop(QObject *parent)
-    : QEventLoop(parent)
-{
-
-}
-
-void CIOEventLoop::finished()
-{
-    exit(0);
-}
-
-void CIOEventLoop::timeout()
-{
-    exit(1);
 }
 
 CNetworkCookieJar::CNetworkCookieJar(QObject *parent)

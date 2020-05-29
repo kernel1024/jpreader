@@ -4,9 +4,8 @@
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QMessageBox>
-#include <QtConcurrentRun>
+#include <QThread>
 #include <QDebug>
-#include <goldendictlib/goldendictmgr.hh>
 #include "settings.h"
 #include "mainwindow.h"
 #include "globalcontrol.h"
@@ -186,12 +185,14 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     g->d_func()->bookmarksManager->load(bookmarks);
 
     QByteArray adblock = readByteArray(bigdataDir,QSL("adblock"));
-    QtConcurrent::run([this,g,adblock]() {
+    QThread* th = QThread::create([this,g,adblock]() {
         QDataStream bufs(adblock);
         bufs >> g->d_func()->adblock;
         qInfo() << "Adblock rules loaded";
         Q_EMIT adblockRulesUpdated();
     });
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+    th->start();
 
     return true;
 }

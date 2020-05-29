@@ -13,14 +13,13 @@
 #include "globalui.h"
 #include "genericfuncs.h"
 #include "userscript.h"
+#include "zdict/zdictcontroller.h"
 
 class CLogDisplay;
 class CDownloadManager;
 class CGlobalControlPrivate;
 class CLangPairModel;
 class BookmarksManager;
-class ArticleNetworkAccessManager;
-class CGoldenDictMgr;
 class CTranslatorCache;
 class CTranslator;
 
@@ -125,10 +124,9 @@ public:
     BookmarksManager *bookmarksManager() const;
     CDownloadManager* downloadManager() const;
     CLogDisplay* logWindow() const;
-    ArticleNetworkAccessManager *dictionaryNetworkAccessManager() const;
     QNetworkAccessManager* auxNetworkAccessManager() const;
     const QHash<QString,QIcon> &favicons() const;
-    CGoldenDictMgr* dictionaryManager() const;
+    ZDict::ZDictController* dictionaryManager() const;
     CTranslatorCache* translatorCache() const;
 
 private:

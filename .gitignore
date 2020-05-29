@@ -33,3 +33,4 @@ moc_*.h
 # Project specific
 jpreader
 jpreader_*.pro
+zdict

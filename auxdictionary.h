@@ -10,8 +10,6 @@ namespace Ui {
 class CAuxDictionary;
 }
 
-class WordFinder;
-
 class CAuxDictKeyFilter : public QObject
 {
     Q_OBJECT
@@ -36,13 +34,12 @@ public:
 
 private:
     Ui::CAuxDictionary *ui;
-    WordFinder *wordFinder;
     CAuxDictKeyFilter* keyFilter;
     QStringListModel* wordHistoryModel;
     QTextBrowser* viewArticles;
     bool forceFocusToEdit { false };
     void showTranslationFor(const QString& text);
-    void updateMatchResults(bool finished);
+    void updateMatchResults(const QStringList& words);
 
     Q_DISABLE_COPY(CAuxDictionary)
 
@@ -54,14 +51,10 @@ public Q_SLOTS:
     void translateInputFinished();
     void wordListSelectionChanged();
     void wordListLookupItem(QListWidgetItem* item);
-    void prefixMatchUpdated();
-    void prefixMatchFinished();
-    void articleLoadFinished();
-    void showEmptyDictPage();
+    void articleLinkClicked(const QUrl& url);
     void restoreWindow();
     void editKeyPressed(int key);
-    void dictLoadUrl(const QUrl& url);
-
+    void articleLoadFinished();
 };
 
 #endif // AUXDICTIONARY_H
