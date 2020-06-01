@@ -33,6 +33,13 @@ CAuxDictionary::CAuxDictionary(QWidget *parent) :
     connect(viewArticles, &QTextBrowser::textChanged, this, &CAuxDictionary::articleLoadFinished);
     connect(viewArticles, &QTextBrowser::anchorClicked, this, &CAuxDictionary::articleLinkClicked);
 
+    connect(gSet->dictionaryManager(),&ZDict::ZDictController::articleComplete,
+            this,&CAuxDictionary::articleReady,Qt::QueuedConnection);
+    connect(gSet->dictionaryManager(),&ZDict::ZDictController::wordListComplete,
+            this,&CAuxDictionary::updateMatchResults,Qt::QueuedConnection);
+    connect(this,&CAuxDictionary::stopDictionaryWork,
+            gSet->dictionaryManager(),&ZDict::ZDictController::cancelActiveWork);
+
     keyFilter = new CAuxDictKeyFilter(this);
     ui->editWord->installEventFilter(keyFilter);
     connect(keyFilter, &CAuxDictKeyFilter::keyPressed, this, &CAuxDictionary::editKeyPressed);
@@ -60,9 +67,13 @@ void CAuxDictionary::findWord(const QString &text)
 void CAuxDictionary::showTranslationFor(const QString &text)
 {
     viewArticles->clear();
-    QString article = gSet->dictionaryManager()->loadArticle(text);
-    if (!article.isEmpty())
-        viewArticles->setHtml(article);
+    gSet->dictionaryManager()->loadArticleAsync(text);
+}
+
+void CAuxDictionary::articleReady(const QString &text)
+{
+    if (!text.isEmpty())
+        viewArticles->setHtml(text);
 }
 
 void CAuxDictionary::editKeyPressed(int key)
@@ -121,13 +132,15 @@ void CAuxDictionary::translateInputChanged(const QString &text)
     if (ui->listWords->selectionModel()->hasSelection())
         ui->listWords->setCurrentItem(nullptr, QItemSelectionModel::Clear);
 
+    Q_EMIT stopDictionaryWork();
+
     QString req = text.trimmed();
     if (req.isEmpty()) {
         ui->listWords->clear();
         return;
     }
 
-    updateMatchResults(gSet->dictionaryManager()->wordLookup(text));
+    gSet->dictionaryManager()->wordLookupAsync(text);
 }
 
 void CAuxDictionary::translateInputFinished()

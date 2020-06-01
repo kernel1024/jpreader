@@ -39,7 +39,6 @@ private:
     QTextBrowser* viewArticles;
     bool forceFocusToEdit { false };
     void showTranslationFor(const QString& text);
-    void updateMatchResults(const QStringList& words);
 
     Q_DISABLE_COPY(CAuxDictionary)
 
@@ -55,6 +54,12 @@ public Q_SLOTS:
     void restoreWindow();
     void editKeyPressed(int key);
     void articleLoadFinished();
+    void articleReady(const QString& text);
+    void updateMatchResults(const QStringList& words);
+
+Q_SIGNALS:
+    void stopDictionaryWork();
+
 };
 
 #endif // AUXDICTIONARY_H
