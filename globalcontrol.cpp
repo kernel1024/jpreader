@@ -93,7 +93,7 @@ QApplication *CGlobalControl::app(QObject *parentApp)
     if (capp==nullptr)
         capp = QApplication::instance();
 
-    auto res = qobject_cast<QApplication *>(capp);
+    auto *res = qobject_cast<QApplication *>(capp);
     return res;
 }
 
@@ -412,7 +412,7 @@ QWebEngineProfile *CGlobalControl::webProfile() const
     return d->webProfile;
 }
 
-bool CGlobalControl::exportCookies(const QString &filename, const QUrl &baseUrl, const QList<int> cookieIndexes)
+bool CGlobalControl::exportCookies(const QString &filename, const QUrl &baseUrl, const QList<int>& cookieIndexes)
 {
     Q_D(const CGlobalControl);
 
@@ -420,11 +420,12 @@ bool CGlobalControl::exportCookies(const QString &filename, const QUrl &baseUrl,
             (baseUrl.isEmpty() && cookieIndexes.isEmpty()) ||
             (!baseUrl.isEmpty() && !cookieIndexes.isEmpty())) return false;
 
-    auto cj = qobject_cast<CNetworkCookieJar *>(d->auxNetManager->cookieJar());
+    auto *cj = qobject_cast<CNetworkCookieJar *>(d->auxNetManager->cookieJar());
     if (cj==nullptr) return false;
     QList<QNetworkCookie> cookiesList;
     if (baseUrl.isEmpty()) {
         const auto all = cj->getAllCookies();
+        cookiesList.reserve(cookieIndexes.count());
         for (const auto idx : cookieIndexes)
             cookiesList.append(all.at(idx));
     } else {
@@ -484,7 +485,7 @@ CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, c
 
     if (gSet==nullptr) return nullptr;
 
-    auto mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
+    auto *mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
     connect(mainWindow,&CMainWindow::aboutToClose,
             gSet,&CGlobalControl::windowDestroyed,Qt::QueuedConnection);
 
@@ -530,7 +531,7 @@ void CGlobalControl::settingsTab()
 
 void CGlobalControl::translationStatisticsTab()
 {
-    auto dlg = CTranslatorStatisticsTab::instance();
+    auto *dlg = CTranslatorStatisticsTab::instance();
     if (dlg!=nullptr) {
         dlg->activateWindow();
         dlg->setTabFocused();
@@ -789,7 +790,7 @@ void CGlobalControl::focusChanged(QWidget *old, QWidget *now)
     Q_UNUSED(old)
     Q_D(CGlobalControl);
     if (now==nullptr) return;
-    auto mw = qobject_cast<CMainWindow*>(now->window());
+    auto *mw = qobject_cast<CMainWindow*>(now->window());
     if (mw==nullptr) return;
     d->activeWindow=mw;
 }
@@ -982,7 +983,7 @@ bool CGlobalControl::containsNoScriptWhitelist(const QString &host) const
     return d->noScriptWhiteList.contains(host);
 }
 
-bool CGlobalControl::haveSavedPassword(const QUrl &origin)
+bool CGlobalControl::haveSavedPassword(const QUrl &origin) const
 {
     QString user;
     QString pass;
@@ -1006,7 +1007,7 @@ QUrl CGlobalControl::cleanUrlForRealm(const QUrl &origin) const
     return res;
 }
 
-void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password)
+void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password) const
 {
     user = QString();
     password = QString();
@@ -1032,7 +1033,7 @@ void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &pa
     params.endGroup();
 }
 
-void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password)
+void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password) const
 {
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
@@ -1045,7 +1046,7 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     params.endGroup();
 }
 
-void CGlobalControl::removePassword(const QUrl &origin)
+void CGlobalControl::removePassword(const QUrl &origin) const
 {
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
@@ -1201,7 +1202,7 @@ void CGlobalControl::forceCharset()
 {
     const int maxCharsetHistory = 10;
 
-    auto act = qobject_cast<QAction*>(sender());
+    auto *act = qobject_cast<QAction*>(sender());
     if (act==nullptr) return;
 
     QString cs = act->data().toString();
@@ -1236,7 +1237,7 @@ void CGlobalControl::cleanupTranslator()
 {
     Q_D(CGlobalControl);
 
-    auto translator = qobject_cast<CTranslator *>(sender());
+    auto *translator = qobject_cast<CTranslator *>(sender());
     if (translator)
         d->translatorPool.removeAll(translator);
 }

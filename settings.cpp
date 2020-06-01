@@ -53,7 +53,7 @@ CSettings::CSettings(QObject *parent)
     searchEngine = CStructures::seNone;
 #endif
 
-    auto g = qobject_cast<CGlobalControl *>(parent);
+    auto *g = qobject_cast<CGlobalControl *>(parent);
 
     connect(&(g->d_func()->settingsSaveTimer), &QTimer::timeout, this, &CSettings::writeSettings);
     g->d_func()->settingsSaveTimer.start();
@@ -154,7 +154,7 @@ void CSettings::writeSettings()
 
 bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
 {
-    auto g = qobject_cast<CGlobalControl *>(control);
+    auto *g = qobject_cast<CGlobalControl *>(control);
     if (!g) return false;
 
     QDir bigdataDir(dirname);
@@ -178,7 +178,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     g->d_func()->searchHistory = readData(bigdataDir,QSL("searchHistory")).toStringList();
     Q_EMIT g->updateAllQueryLists();
 
-    CStringHash scripts = readData(bigdataDir,QSL("userScripts")).value<CStringHash>();
+    auto scripts = readData(bigdataDir,QSL("userScripts")).value<CStringHash>();
     g->initUserScripts(scripts);
 
     QByteArray bookmarks = readByteArray(bigdataDir,QSL("bookmarks"));
@@ -289,7 +289,7 @@ bool CSettings::writeData(const QDir& directory, const QString &name, const QVar
 
 void CSettings::readSettings(QObject *control)
 {
-    auto g = qobject_cast<CGlobalControl *>(control);
+    auto *g = qobject_cast<CGlobalControl *>(control);
     if (!g) return;
 
     QSettings settings(QSL("kernel1024"), QSL("jpreader"));
@@ -437,7 +437,7 @@ void CSettings::readSettings(QObject *control)
 
 void CSettings::settingsTab()
 {
-    auto dlg = CSettingsTab::instance();
+    auto *dlg = CSettingsTab::instance();
     if (dlg!=nullptr) {
         dlg->activateWindow();
         dlg->setTabFocused();
@@ -488,7 +488,7 @@ QVector<QUrl> CSettings::getTabsList() const
 
     for (int i=0;i<gSet->d_func()->mainWindows.count();i++) {
         for (int j=0;j<gSet->d_func()->mainWindows.at(i)->tabMain->count();j++) {
-            auto sn = qobject_cast<CSnippetViewer *>(gSet->d_func()->mainWindows.at(i)->tabMain->widget(j));
+            auto *sn = qobject_cast<CSnippetViewer *>(gSet->d_func()->mainWindows.at(i)->tabMain->widget(j));
             if (!sn) continue;
             QUrl url = sn->getUrl();
             if (url.isValid() && !url.isEmpty())

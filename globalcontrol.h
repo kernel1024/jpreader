@@ -72,10 +72,10 @@ public:
     bool containsNoScriptWhitelist(const QString& host) const;
 
     // Password management
-    void readPassword(const QUrl &origin, QString &user, QString &password);
-    void savePassword(const QUrl &origin, const QString &user, const QString &password);
-    bool haveSavedPassword(const QUrl &origin);
-    void removePassword(const QUrl &origin);
+    void readPassword(const QUrl &origin, QString &user, QString &password) const;
+    void savePassword(const QUrl &origin, const QString &user, const QString &password) const;
+    bool haveSavedPassword(const QUrl &origin) const;
+    void removePassword(const QUrl &origin) const;
     QUrl cleanUrlForRealm(const QUrl &origin) const;
 
     // Userscripts
@@ -103,7 +103,7 @@ public:
 
     // Chromium
     QWebEngineProfile* webProfile() const;
-    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> cookieIndexes = {});
+    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> &cookieIndexes = {});
 
     // UI
     QIcon appIcon() const;

@@ -102,13 +102,13 @@ void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogCo
         fmsg.append('\n');
 
         if (runnedFromQtCreator()) {
-            fprintf(stderr, "%s", fmsg.toLocal8Bit().constData());
+            fprintf(stderr, "%s", fmsg.toLocal8Bit().constData()); // NOLINT
         } else {
             if (!syslogOpened) {
                 syslogOpened = true;
                 openlog("jpreader", LOG_PID, LOG_USER); // NOLINT
             }
-            syslog(logpri, "%s", lmsg.toLocal8Bit().constData());
+            syslog(logpri, "%s", lmsg.toLocal8Bit().constData()); // NOLINT
         }
 
         if (gSet->logWindow()!=nullptr)

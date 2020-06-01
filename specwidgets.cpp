@@ -37,7 +37,7 @@ void CSpecTabWidget::tabRightClick(int index)
 {
     Q_EMIT tabRightClicked(index);
     if (mainTabWidget) {
-        auto tb = qobject_cast<CSpecTabContainer *>(widget(index));
+        auto *tb = qobject_cast<CSpecTabContainer *>(widget(index));
         if (tb && tb->parentWnd()) {
             if (!tb->parentWnd()->isTitleRenameTimerActive())
                 tb->closeTab();
@@ -53,7 +53,7 @@ void CSpecTabWidget::mouseDoubleClickEvent(QMouseEvent *event)
 bool CSpecTabWidget::event(QEvent *event)
 {
     if (event->type()==QEvent::ToolTip) {
-        auto e = dynamic_cast<QHelpEvent *>(event);
+        auto *e = dynamic_cast<QHelpEvent *>(event);
         QPoint gpos = QPoint();
         QPoint lpos = QPoint();
         if (e) {
@@ -220,7 +220,7 @@ void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
     if (m_tabWidget==nullptr) return;
     int i = m_tabWidget->addTab(this,m_tabTitle);
     if (gSet->settings()->showTabCloseButtons) {
-        auto b = new QPushButton(QIcon::fromTheme(QSL("dialog-close")),QString());
+        auto *b = new QPushButton(QIcon::fromTheme(QSL("dialog-close")),QString());
         b->setFlat(true);
         int sz = m_tabWidget->tabBar()->fontMetrics().height();
         b->resize(QSize(sz,sz));
@@ -302,7 +302,7 @@ CSpecWebView::CSpecWebView(QWidget *parent)
 {
     QWidget * w = parent;
     while (w) {
-        auto viewer = qobject_cast<CSnippetViewer *>(w);
+        auto *viewer = qobject_cast<CSnippetViewer *>(w);
         if (viewer) {
             parentViewer = viewer;
             break;
@@ -333,7 +333,7 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     if (parentViewer==nullptr) return nullptr;
 
-    auto sv = new CSnippetViewer(parentViewer->parentWnd(),QUrl(),QStringList(),
+    auto *sv = new CSnippetViewer(parentViewer->parentWnd(),QUrl(),QStringList(),
                                             (type!=QWebEnginePage::WebBrowserBackgroundTab));
     return sv->txtBrowser;
 }
@@ -686,7 +686,7 @@ void CMagicFileSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     }
 
     QString fname = url.toLocalFile();
-    auto f = new QFile(fname);
+    auto *f = new QFile(fname);
     if (!f->open(QIODevice::ReadOnly)) {
         request->fail(QWebEngineUrlRequestJob::RequestFailed);
         return;

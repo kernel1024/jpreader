@@ -119,8 +119,8 @@ void CSnTrans::translatePriv(const QString &sourceHtml)
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
 
-    auto ct = new CTranslator(nullptr,sourceHtml);
-    auto th = new QThread();
+    auto *ct = new CTranslator(nullptr,sourceHtml);
+    auto *th = new QThread();
 
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
@@ -220,7 +220,7 @@ void CSnTrans::findWordTranslation(const QString &text)
     QStringList words = gSet->dictionaryManager()->wordLookup(searchWord);
     while (words.isEmpty() && !searchWord.isEmpty()) {
         searchWord.truncate(searchWord.length()-1);
-        words = gSet->dictionaryManager()->wordLookup(searchWord,QRegularExpression(),true);
+        words = gSet->dictionaryManager()->wordLookup(searchWord,true);
     }
 
     if (!words.isEmpty()) {
@@ -267,7 +267,7 @@ void CSnTrans::showWordTranslation(const QString &html)
     const QSize maxTranslationTooltipSize(350,350);
 
     if (snv->ctxHandler->isMenuActive()) return;
-    auto t = new QLabel(html);
+    auto *t = new QLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
     t->setMaximumSize(maxTranslationTooltipSize);

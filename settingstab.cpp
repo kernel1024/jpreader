@@ -733,7 +733,7 @@ void CSettingsTab::updateMainHistory()
 {
     ui->listHistory->clear();
     for (const CUrlHolder &t : qAsConst(gSet->d_func()->mainHistory)) {
-        auto li = new QListWidgetItem(QSL("%1 [ %2 ]")
+        auto *li = new QListWidgetItem(QSL("%1 [ %2 ]")
                                                   .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
         ui->listHistory->addItem(li);
@@ -752,7 +752,7 @@ void CSettingsTab::updateCookiesTable()
     table->setSortingEnabled(false);
     table->clear();
 
-    auto cj = qobject_cast<CNetworkCookieJar *>(gSet->d_func()->auxNetManager->cookieJar());
+    auto *cj = qobject_cast<CNetworkCookieJar *>(gSet->d_func()->auxNetManager->cookieJar());
     if (cj==nullptr) return;
     auto cookiesList = cj->getAllCookies();
 
@@ -762,7 +762,7 @@ void CSettingsTab::updateCookiesTable()
     for (int i=0;i<cookiesList.count();i++) {
 
         QString s = cookiesList.at(i).domain();
-        auto item = new QTableWidgetItem(s);
+        auto *item = new QTableWidgetItem(s);
         item->setData(Qt::UserRole+1,i);
         table->setItem(i,0,item);
 
@@ -804,7 +804,7 @@ void CSettingsTab::clearCookies()
 
 void CSettingsTab::delCookies()
 {
-    auto cj = qobject_cast<CNetworkCookieJar *>(gSet->d_func()->auxNetManager->cookieJar());
+    auto *cj = qobject_cast<CNetworkCookieJar *>(gSet->d_func()->auxNetManager->cookieJar());
     if (cj==nullptr) return;
     auto cookiesList = cj->getAllCookies();
 
@@ -863,7 +863,7 @@ void CSettingsTab::updateAdblockList()
             cats[cat] = tli;
         }
 
-        auto item = new QTreeWidgetItem(tli);
+        auto *item = new QTreeWidgetItem(tli);
         item->setText(0,adblockList.at(i).filter());
         item->setData(0,Qt::UserRole+1,i);
     }
@@ -923,7 +923,7 @@ void CSettingsTab::adblockSearchFwd()
 
 void CSettingsTab::addAd()
 {
-    bool ok;
+    bool ok = false;
     QString s = QInputDialog::getText(this,tr("Add AdBlock rule"),tr("Filter template"),
                                       QLineEdit::Normal,QString(),&ok);
     if (!ok) return;
@@ -1031,7 +1031,7 @@ void CSettingsTab::updateSearchEngines()
     ui->listSearch->clear();
     const auto &engines = gSet->d_func()->ctxSearchEngines;
     for (auto it = engines.constBegin(), end = engines.constEnd(); it != end; ++it) {
-        auto li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
+        auto *li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
                                                   arg(it.key(),
                                                       it.value(),
                                                       it.key()==gSet->m_settings->defaultSearchEngine ?
@@ -1052,11 +1052,11 @@ void CSettingsTab::addSearchEngine()
                                   "  %s - search text\n"
                                   "  %ps - percent-encoded search text");
 
-    auto dlg = new CMultiInputDialog(this,tr("Add new search engine"),data,hlp);
+    auto *dlg = new CMultiInputDialog(this,tr("Add new search engine"),data,hlp);
     if (dlg->exec()==QDialog::Accepted) {
         data = dlg->getInputData();
 
-        auto li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
+        auto *li = new QListWidgetItem(QSL("%1 [ %2 ] %3").
                                                   arg(data[QSL("Menu title")],
                                                   data[QSL("Url template")],
                 data[QSL("Menu title")]==gSet->m_settings->defaultSearchEngine ?
@@ -1110,7 +1110,7 @@ void CSettingsTab::addUserScript()
     dui.editTitle->setText(tr("Script title"));
     dui.editSource->setPlainText(js);
     if (dlg.exec()==QDialog::Accepted) {
-        auto itm = new QListWidgetItem(dui.editTitle->text());
+        auto *itm = new QListWidgetItem(dui.editTitle->text());
         itm->setData(Qt::UserRole,dui.editSource->toPlainText());
         ui->listUserScripts->addItem(itm);
     }
@@ -1168,7 +1168,7 @@ void CSettingsTab::importUserScript()
 
     CUserScript us(QSL("loader"),src);
 
-    auto itm = new QListWidgetItem(us.getTitle());
+    auto *itm = new QListWidgetItem(us.getTitle());
     itm->setData(Qt::UserRole,src);
     ui->listUserScripts->addItem(itm);
     saveUserScripts();
@@ -1180,7 +1180,7 @@ void CSettingsTab::updateUserScripts()
     ui->listUserScripts->clear();
 
     for (auto it = scripts.constBegin(), end = scripts.constEnd(); it != end; ++it) {
-        auto itm = new QListWidgetItem(it.key());
+        auto *itm = new QListWidgetItem(it.key());
         itm->setData(Qt::UserRole,it.value());
         ui->listUserScripts->addItem(itm);
     }
@@ -1213,12 +1213,12 @@ void CSettingsTab::saveNoScriptWhitelist()
 
 void CSettingsTab::addNoScriptHost()
 {
-    bool ok;
+    bool ok = false;
     QString s = QInputDialog::getText(this,tr("Add to NoScript whitelist"),tr("Hostname"),
                                       QLineEdit::Normal,QString(),&ok);
     if (!ok) return;
 
-    auto li = new QListWidgetItem(s);
+    auto *li = new QListWidgetItem(s);
     ui->listNoScriptWhitelist->addItem(li);
     saveNoScriptWhitelist();
 }
@@ -1238,7 +1238,7 @@ void CSettingsTab::updateNoScriptWhitelist()
     ui->listNoScriptWhitelist->clear();
     const auto &hosts = gSet->d_func()->noScriptWhiteList;
     for (auto it = hosts.constBegin(), end = hosts.constEnd(); it != end; ++it) {
-        auto itm = new QListWidgetItem(*it);
+        auto *itm = new QListWidgetItem(*it);
         ui->listNoScriptWhitelist->addItem(itm);
     }
 }
@@ -1314,7 +1314,7 @@ QWidget *CLangPairDelegate::createEditor(QWidget *parent, const QStyleOptionView
 {
     Q_UNUSED(option)
     Q_UNUSED(index)
-    auto editor = new QComboBox(parent);
+    auto *editor = new QComboBox(parent);
     editor->setFrame(false);
     const QStringList sl = gSet->getLanguageCodes();
     for (const QString& bcp : qAsConst(sl)) {
@@ -1327,7 +1327,7 @@ void CLangPairDelegate::setEditorData(QWidget *editor, const QModelIndex &index)
 {
     QString bcp = index.model()->data(index, Qt::EditRole).toString();
 
-    auto cb = qobject_cast<QComboBox *>(editor);
+    auto *cb = qobject_cast<QComboBox *>(editor);
 
     int idx = cb->findData(QVariant::fromValue(bcp));
     if (idx>=0)
@@ -1336,7 +1336,7 @@ void CLangPairDelegate::setEditorData(QWidget *editor, const QModelIndex &index)
 
 void CLangPairDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    auto cb = qobject_cast<QComboBox *>(editor);
+    auto *cb = qobject_cast<QComboBox *>(editor);
 
     model->setData(index, cb->currentData().toString(), Qt::EditRole);
 }
