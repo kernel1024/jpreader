@@ -16,6 +16,8 @@ using namespace htmlcxx;
 namespace CDefaults {
 const int selectionTimerDelay = 1000;
 const int maxSuggestedWords = 6;
+const int maxTooltipTranslationLength = 30;
+const int maxTooltipSearchIterations = 15;
 }
 
 CSnTrans::CSnTrans(CSnippetViewer *parent)
@@ -214,32 +216,44 @@ void CSnTrans::selectionChanged()
 
 void CSnTrans::findWordTranslation(const QString &text)
 {
-    if (text.isEmpty()) return;
+    if (text.isEmpty() || (text.length()>CDefaults::maxTooltipTranslationLength)) return;
 
-    QString searchWord = text;
-    QStringList words = gSet->dictionaryManager()->wordLookup(searchWord);
-    while (words.isEmpty() && !searchWord.isEmpty()) {
-        searchWord.truncate(searchWord.length()-1);
-        words = gSet->dictionaryManager()->wordLookup(searchWord,true);
-    }
-
-    if (!words.isEmpty()) {
-        QString article;
-        if (searchWord == text) {
-            article = gSet->dictionaryManager()->loadArticle(words.first()); // word found
-        } else { // word is too long, similar words found
-            article = QSL("<div><b>Not found</b><br/>");
-            for (int i=0; i<qMin(words.count(),CDefaults::maxSuggestedWords); i++) {
-                if (i>0)
-                    article += QSL(", ");
-                article += QSL("<a href=\"zdict?word=%1\">%2</a>")
-                           .arg(QUrl::toPercentEncoding(words.at(i)),words.at(i).toHtmlEscaped());
-            }
-            article += QSL("</div>");
+    QThread *th = QThread::create([this,text]{
+        QString searchWord = text;
+        QStringList words = gSet->dictionaryManager()->wordLookup(searchWord);
+        int cnt = 0;
+        while (words.isEmpty() && !searchWord.isEmpty() && (cnt<CDefaults::maxTooltipSearchIterations)) {
+            searchWord.truncate(searchWord.length()-1);
+            words = gSet->dictionaryManager()->wordLookup(searchWord,true);
+            cnt++;
         }
-        if (!article.isEmpty())
-            showWordTranslation(article);
-    }
+
+        QString article;
+        if (!words.isEmpty()) {
+            if (searchWord == text) {
+                article = gSet->dictionaryManager()->loadArticle(words.first()); // word found
+            } else { // word is too long, similar words found
+                article = QSL("<div><b>Not found</b><br/>");
+                for (int i=0; i<qMin(words.count(),CDefaults::maxSuggestedWords); i++) {
+                    if (i>0)
+                        article += QSL(", ");
+                    article += QSL("<a href=\"zdict?word=%1\">%2</a>")
+                               .arg(QUrl::toPercentEncoding(words.at(i)),words.at(i).toHtmlEscaped());
+                }
+                article += QSL("</div>");
+            }
+        } else {
+            article = QSL("<div><b>Not found</b></div>");
+        }
+        if (!article.isEmpty()) {
+            QMetaObject::invokeMethod(this,[this,article](){
+                showWordTranslation(article);
+            },Qt::QueuedConnection);
+        }
+    });
+
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+    th->start();
 }
 
 void CSnTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
