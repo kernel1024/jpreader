@@ -64,7 +64,7 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
         }
         const QList<QListWidgetItem *> filtered = ui.list->findItems(text,
                                                                      ((ui.syntax->currentIndex()==0) ?
-                                                                          Qt::MatchRegExp : Qt::MatchWildcard));
+                                                                          Qt::MatchRegularExpression : Qt::MatchWildcard));
         for (QListWidgetItem* item : filtered) {
             item->setHidden(false);
         }

@@ -68,6 +68,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QToolButton>
+#include <QLocale>
 
 #include <QDebug>
 
@@ -298,7 +299,7 @@ void BookmarksManager::importBookmarks()
 
     importRootNode->type = BookmarkNode::Folder;
     importRootNode->title = tr("Imported %1")
-                            .arg(QDate::currentDate().toString(Qt::SystemLocaleShortDate));
+                            .arg(QLocale::system().toString(QDate::currentDate(),QLocale::ShortFormat));
     addBookmark(menu(), importRootNode);
 }
 

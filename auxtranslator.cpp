@@ -39,7 +39,7 @@ void CAuxTranslator::translatePriv()
             QString res;
             ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
             ssrc = ssrc.replace('\r','\n');
-            const QStringList sl = ssrc.split('\n',QString::KeepEmptyParts);
+            const QStringList sl = ssrc.split('\n',Qt::KeepEmptyParts);
             for (const QString &s : qAsConst(sl)) {
                 if (s.trimmed().isEmpty()) {
                     res.append('\n');

@@ -148,7 +148,7 @@ double CTranslatorStatisticsTab::setGraphData(CStructures::TranslationEngine eng
 double CTranslatorStatisticsTab::dateToTick(const QDate &date) const
 {
     const double oneK = 1000.0;
-    return static_cast<double>(QDateTime(date).toMSecsSinceEpoch())/oneK;
+    return static_cast<double>(date.startOfDay().toMSecsSinceEpoch())/oneK;
 }
 
 void CTranslatorStatisticsTab::updateGraph()

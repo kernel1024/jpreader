@@ -93,7 +93,7 @@ bool QxtGlobalShortcut::setShortcut(const QKeySequence& shortcut)
     if (!shortcut.isEmpty())
         key = static_cast<Qt::Key>((sc ^ allMods) & sc);
 
-    mods = static_cast<Qt::KeyboardModifiers>(nullptr);
+    mods = Qt::NoModifier;
     if (!shortcut.isEmpty())
         mods = Qt::KeyboardModifiers(sc & allMods);
 
@@ -125,7 +125,7 @@ bool QxtGlobalShortcut::unsetShortcut()
         }
     }
     key = Qt::Key(0);
-    mods = Qt::KeyboardModifiers(nullptr);
+    mods = Qt::NoModifier;
     return res;
 }
 

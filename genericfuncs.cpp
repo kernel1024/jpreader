@@ -359,7 +359,7 @@ QString CGenericFuncs::highlightSnippet(const QString& snippet, const QStringLis
 QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & caption, const QString & dir,
                                          const QStringList & filters, QString * selectedFilter)
 {
-    QFileDialog::Options opts = nullptr;
+    QFileDialog::Options opts;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
@@ -389,7 +389,7 @@ QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & capti
 QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & caption, const QString & dir,
                                               const QStringList & filters, QString * selectedFilter)
 {
-    QFileDialog::Options opts = nullptr;
+    QFileDialog::Options opts;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
@@ -420,7 +420,7 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     res.clear();
     if (filter.isEmpty()) return res;
 
-    const QStringList filters = filter.split(QSL(";;"),QString::SkipEmptyParts);
+    const QStringList filters = filter.split(QSL(";;"),Qt::SkipEmptyParts);
     if (filters.isEmpty()) return res;
 
     for (const auto &filter : filters) {
@@ -439,7 +439,7 @@ QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & capti
                                          const QStringList & filters, QString * selectedFilter,
                                          const QString & preselectFileName )
 {
-    QFileDialog::Options opts = nullptr;
+    QFileDialog::Options opts;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 

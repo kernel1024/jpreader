@@ -5,6 +5,7 @@
 #include <QWebEngineProfile>
 #include <QWebEngineCookieStore>
 #include <QWebEngineSettings>
+#include <QLocale>
 
 #include "settingstab.h"
 #include "ui_settingstab.h"
@@ -776,7 +777,8 @@ void CSettingsTab::updateCookiesTable()
         item->setData(Qt::UserRole+1,i);
         table->setItem(i,2,item);
 
-        s = cookiesList.at(i).expirationDate().toString(Qt::DefaultLocaleShortDate);
+        QLocale locale;
+        s = locale.toString(cookiesList.at(i).expirationDate(),QLocale::ShortFormat);
         item = new QTableWidgetItem(s);
         item->setData(Qt::UserRole+1,i);
         table->setItem(i,3,item);

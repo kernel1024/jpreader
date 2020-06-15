@@ -393,7 +393,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
     ssrc = ssrc.replace('\r','\n');
     ssrc = ssrc.replace(QRegularExpression(QSL("\n{2,}")),QSL("\n"));
-    QStringList sl = ssrc.split('\n',QString::SkipEmptyParts);
+    QStringList sl = ssrc.split('\n',Qt::SkipEmptyParts);
 
     QString sout;
     sout.clear();
