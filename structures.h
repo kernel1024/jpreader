@@ -114,6 +114,7 @@ using CStringSet = QSet<QString>;
 using CSubsentencesMode = QHash<CStructures::TranslationEngine,bool>;
 using CTranslatorStatistics = QHash<CStructures::TranslationEngine,QMap<QDate,quint64> >;
 using CSelectedLangPairs = QHash<CStructures::TranslationEngine,QString>;
+using CUrlWithName = QPair<QString,QString>;
 
 #define QSL QStringLiteral //NOLINT
 

@@ -52,6 +52,7 @@ public:
     static void sendKeyboardInputToView(QWidget *widget, const QString& s);
     static QString bool2str(bool value);
     static QString bool2str2(bool value);
+    static QString paddedNumber(int value, int maxValue);
     static int numDigits(int n);
     static void processedSleep(unsigned long secs);
     static void processedMSleep(unsigned long msecs);

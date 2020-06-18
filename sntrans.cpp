@@ -103,14 +103,14 @@ void CSnTrans::getImgUrlsAndParse()
         QUrl baseUrl = snv->txtBrowser->page()->url();
         if (baseUrl.hasFragment())
             baseUrl.setFragment(QString());
-        QStringList urls;
+        QVector<CUrlWithName> urls;
         const QStringList sl = ct->getImgUrls();
         urls.reserve(sl.count());
         for (const QString& s : sl) {
             QUrl u = QUrl(s);
             if (u.isRelative())
                 u = baseUrl.resolved(u);
-            urls << u.toString();
+            urls.append(qMakePair(u.toString(),QString()));
         }
         snv->netHandler->multiImgDownload(urls, baseUrl);
     });

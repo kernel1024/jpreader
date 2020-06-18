@@ -29,17 +29,16 @@ void CFanboxExtractor::start()
         return;
     }
 
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(QUrl(QSL("https://api.fanbox.cc/post.info?postId=%1").arg(m_postId)));
         req.setRawHeader("referer","https://www.fanbox.cc/");
         req.setRawHeader("accept","application/json, text/plain, */*");
         req.setRawHeader("origin","https://www.fanbox.cc");
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CFanboxExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CFanboxExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CFanboxExtractor::pageLoadFinished);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CFanboxExtractor::pageLoadFinished()
@@ -91,12 +90,12 @@ void CFanboxExtractor::pageLoadFinished()
                     tags.append(tag);
             }
 
-            QStringList images;
+            QVector<CUrlWithName> images;
             QJsonArray jimgUrls = mbody.value(QSL("images")).toArray();
             for (const auto &jimg : qAsConst(jimgUrls)) {
                 QString url = jimg.toObject().value(QSL("originalUrl")).toString();
                 if (!url.isEmpty())
-                    images.append(url);
+                    images.append(qMakePair(url,QString()));
             }
 
             if (!tags.isEmpty()) {

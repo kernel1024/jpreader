@@ -16,6 +16,8 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
+// TODO: remove legacy code
+
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : QObject(parent)
 {
@@ -45,14 +47,13 @@ void CPixivNovelExtractor::start()
         return;
     }
 
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(m_source);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivNovelExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CPixivNovelExtractor::startManga()
@@ -62,16 +63,15 @@ void CPixivNovelExtractor::startManga()
         return;
     }
 
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(m_mangaOrigin);
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
         req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivNovelExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CPixivNovelExtractor::novelLoadFinished()
@@ -233,9 +233,9 @@ void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
         w = m_snv->parentWnd();
         ctx = m_snv;
     }
-    QTimer::singleShot(0,ctx,[msg,w](){
+    QMetaObject::invokeMethod(ctx,[msg,w](){
         QMessageBox::warning(w,tr("JPReader"),msg);
-    });
+    },Qt::QueuedConnection);
     Q_EMIT finished();
 }
 
@@ -262,7 +262,7 @@ void CPixivNovelExtractor::subLoadFinished()
         QString html = QString::fromUtf8(rpl->readAll());
 
         QString id;
-        QStringList imageUrls = parseJsonIllustPage(html,rplUrl,&id);
+        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&id);
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
@@ -275,19 +275,19 @@ void CPixivNovelExtractor::subLoadFinished()
         for (auto it = idxs.constBegin(), end = idxs.constEnd(); it != end; ++it) {
             int page = (*it);
             if (page<1 || page>imageUrls.count()) continue;
-            QUrl url = QUrl(imageUrls.at(page-1));
+            QUrl url = QUrl(imageUrls.at(page-1).first);
             m_imgUrls[QSL("%1_%2").arg(key).arg(page)] = url.toString();
 
             QFileInfo fi(url.toString());
             if (gSet->settings()->pixivFetchImages &&
                     supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
                 m_worksImgFetch++;
-                QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url,rplUrl]{
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,rplUrl]{
                     QNetworkRequest req(url);
                     req.setRawHeader("referer",rplUrl.toString().toUtf8());
                     QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
                     connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
-                });
+                },Qt::QueuedConnection);
             }
         }
         m_imgMutex.unlock();
@@ -393,14 +393,14 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     m_worksImgFetch = 0;
     for(auto it  = m_imgList.constBegin(), end = m_imgList.constEnd(); it != end; ++it) {
         QUrl url(QSL("https://www.pixiv.net/artworks/%1").arg(it.key()));
-        QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
+        QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
             QNetworkRequest req(url);
             req.setRawHeader("referer",m_origin.toString().toUtf8());
             req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
             req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
             QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-        });
+        },Qt::QueuedConnection);
     }
 }
 
@@ -443,9 +443,9 @@ QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& sourc
     return doc;
 }
 
-QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* id)
+QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* id)
 {
-    QStringList res;
+    QVector<CUrlWithName> res;
     QJsonDocument doc;
 
     QString key = origin.fileName();
@@ -498,8 +498,9 @@ QStringList CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const
         if (path.isEmpty() || illustId.isEmpty() || suffix.isEmpty())
             continue;
 
-        res << QSL("%1/%2_p%3.%4")
-               .arg(path,illustId,QString::number(i),suffix);
+        res.append(qMakePair(QSL("%1/%2_p%3.%4")
+                             .arg(path,illustId,QString::number(i),suffix),
+                             QString()));
     }
 
     return res;

@@ -37,9 +37,9 @@ void CPixivIndexExtractor::showError(const QString &message)
         w = m_snv->parentWnd();
         ctx = m_snv;
     }
-    QTimer::singleShot(0,ctx,[message,w](){
+    QMetaObject::invokeMethod(ctx,[message,w](){
         QMessageBox::warning(w,tr("JPReader"),tr("CPixivIndexExtractor error:\n%1").arg(message));
-    });
+    },Qt::QueuedConnection);
     Q_EMIT finished();
 }
 
@@ -112,14 +112,13 @@ void CPixivIndexExtractor::fetchNovelsInfo()
              .arg(m_authorId));
     url.setQuery(uq);
 
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
         QNetworkRequest req(url);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivIndexExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::fetchNovelsInfo);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CPixivIndexExtractor::loadError(QNetworkReply::NetworkError error)
@@ -137,7 +136,7 @@ void CPixivIndexExtractor::loadError(QNetworkReply::NetworkError error)
 
 void CPixivIndexExtractor::createNovelList()
 {
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
         m_html.clear();
         m_infoBlockCount = 0;
@@ -147,15 +146,14 @@ void CPixivIndexExtractor::createNovelList()
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivIndexExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CPixivIndexExtractor::createNovelBookmarksList()
 {
-    QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this]{
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
         m_html.clear();
         m_infoBlockCount = 0;
@@ -168,10 +166,9 @@ void CPixivIndexExtractor::createNovelBookmarksList()
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-        connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                this,&CPixivIndexExtractor::loadError);
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
-    });
+    },Qt::QueuedConnection);
 }
 
 void CPixivIndexExtractor::profileAjax()
@@ -200,9 +197,9 @@ void CPixivIndexExtractor::profileAjax()
             m_ids = obj.value(QSL("body")).toObject()
                     .value(QSL("novels")).toObject().keys();
 
-            QTimer::singleShot(0,this,[this]{
+            QMetaObject::invokeMethod(this,[this]{
                 fetchNovelsInfo();
-            });
+            },Qt::QueuedConnection);
         }
     }
 }
@@ -263,7 +260,7 @@ void CPixivIndexExtractor::bookmarksAjax()
 
             if ((totalWorks>m_infoBlockCount) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
-                QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,offset]{
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,offset]{
                     QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
                                           "tag=&offset=%2&limit=%3&rest=show")
                            .arg(m_authorId)
@@ -272,10 +269,9 @@ void CPixivIndexExtractor::bookmarksAjax()
                     QNetworkRequest req(u);
                     QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
-                    connect(rpl,qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-                            this,&CPixivIndexExtractor::loadError);
+                    connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
-                });
+                },Qt::QueuedConnection);
                 return;
             }
 

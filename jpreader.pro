@@ -4,6 +4,7 @@ HEADERS = mainwindow.h \
     globalprivate.h \
     htmlimagesextractor.h \
     jsedit/jsedit_p.h \
+    patreonextractor.h \
     pdfworkerprivate.h \
     pixivindexextractor.h \
     settingstab.h \
@@ -61,6 +62,7 @@ SOURCES = main.cpp \
     globalprivate.cpp \
     htmlimagesextractor.cpp \
     mainwindow.cpp \
+    patreonextractor.cpp \
     pdfworkerprivate.cpp \
     pixivindexextractor.cpp \
     settingstab.cpp \
@@ -146,7 +148,7 @@ CONFIG += warn_on \
 # warn on *any* usage of deprecated APIs
 DEFINES += QT_DEPRECATED_WARNINGS
 # ... and just fail to compile if APIs deprecated in Qt <= 5.15 are used
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050E00
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
 LIBS += -lz
 

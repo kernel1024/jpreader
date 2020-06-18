@@ -18,6 +18,7 @@
 #include "pixivnovelextractor.h"
 #include "pixivindexextractor.h"
 #include "fanboxextractor.h"
+#include "patreonextractor.h"
 #include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
@@ -37,8 +38,8 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     });
 }
 
-void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, const QString& preselectedName,
-                              bool isFanbox)
+void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& preselectedName,
+                              bool isFanbox, bool relaxedRedirects)
 {
     static QSize multiImgDialogSize = QSize();
 
@@ -72,7 +73,18 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
 
     ui.label->setText(tr("Detected image URLs from page"));
     ui.syntax->setCurrentIndex(0);
-    ui.list->addItems(urls);
+
+    for (const auto& url : urls) {
+        QString s = url.first;
+        if (!url.second.isEmpty())
+            s.append(QSL(" [%1]").arg(url.second));
+
+        auto* item = new QListWidgetItem(s);
+        item->setData(Qt::UserRole,url.first);
+        item->setData(Qt::UserRole+1,url.second);
+
+        ui.list->addItem(item);
+    }
     dlg.setWindowTitle(tr("Multiple images download"));
     if (!preselectedName.isEmpty())
         ui.list->selectAll();
@@ -102,8 +114,11 @@ void CSnNet::multiImgDownload(const QStringList &urls, const QUrl& referer, cons
             index++;
         }
 
-        gSet->downloadManager()->handleAuxDownload(itm->text(),dir,referer,index,
-                                                   ui.list->selectedItems().count(),isFanbox);
+        gSet->downloadManager()->handleAuxDownload(itm->data(Qt::UserRole).toString(),
+                                                   itm->data(Qt::UserRole+1).toString(),
+                                                   dir,referer,index,
+                                                   ui.list->selectedItems().count(),
+                                                   isFanbox,relaxedRedirects);
     }
 }
 
@@ -219,6 +234,9 @@ void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool trans
     connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
 
     ex->moveToThread(th);
     th->start();
@@ -238,6 +256,9 @@ void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor:
     connect(ex,&CPixivIndexExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CPixivIndexExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
 
     ex->moveToThread(th);
     th->start();
@@ -266,6 +287,9 @@ void CSnNet::processFanboxNovel(int postId, bool translate, bool focus)
     connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
 
     ex->moveToThread(th);
     th->start();
@@ -290,6 +314,9 @@ void CSnNet::downloadPixivManga()
     connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
 
     ex->moveToThread(th);
     th->start();
@@ -315,6 +342,9 @@ void CSnNet::downloadFanboxManga()
     connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
 
     ex->moveToThread(th);
     th->start();
@@ -324,10 +354,30 @@ void CSnNet::downloadFanboxManga()
     QMetaObject::invokeMethod(ex,&CFanboxExtractor::start,Qt::QueuedConnection);
 }
 
+void CSnNet::downloadPatreonManga(const QString &html, const QUrl& origin, bool downloadAttachments)
+{
+    auto *ex = new CPatreonExtractor();
+    auto *th = new QThread();
+    ex->setParams(snv,html,origin,downloadAttachments);
+
+    connect(ex,&CPatreonExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
+    connect(ex,&CPatreonExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CPatreonExtractor::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(th,&QThread::finished,gSet,[](){
+        gSet->app()->restoreOverrideCursor();
+    },Qt::QueuedConnection);
+
+    ex->moveToThread(th);
+    th->start();
+
+    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+    QMetaObject::invokeMethod(ex,&CPatreonExtractor::start,Qt::QueuedConnection);
+}
+
 void CSnNet::novelReady(const QString &html, bool focus, bool translate)
 {
-    gSet->app()->restoreOverrideCursor();
-
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         auto *sv = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),focus,html);
         sv->m_requestAutotranslate = translate;
@@ -338,8 +388,6 @@ void CSnNet::novelReady(const QString &html, bool focus, bool translate)
 
 void CSnNet::pixivListReady(const QString &html)
 {
-    gSet->app()->restoreOverrideCursor();
-
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
     } else {
@@ -347,17 +395,16 @@ void CSnNet::pixivListReady(const QString &html)
     }
 }
 
-void CSnNet::mangaReady(const QStringList &urls, const QString &id, const QUrl &origin)
+void CSnNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &id, const QUrl &origin)
 {
-    gSet->app()->restoreOverrideCursor();
-
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
+    bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
 
     if (urls.isEmpty() || id.isEmpty()) {
         QMessageBox::warning(snv,tr("JPReader"),
                              tr("No manga image urls found"));
     } else {
-        multiImgDownload(urls,origin,id,isFanbox);
+        multiImgDownload(urls,origin,id,isFanbox,isPatreon);
     }
 }
 

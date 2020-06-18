@@ -54,6 +54,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QUrl imageUrl;
     QUrl pixivUrl;
     QUrl fanboxUrl;
+    QUrl patreonUrl;
     const QUrl origin = snv->txtBrowser->page()->url();
 
     if (data.isValid()) {
@@ -68,6 +69,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QMenu *ccm = nullptr;
     QVector<QAction *> pixivActions;
     QVector<QAction *> fanboxActions;
+    QVector<QAction *> patreonActions;
 
     QMenu m_menu;
 
@@ -109,12 +111,16 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         title.clear();
     }
     fanboxUrl = pixivUrl;
+    patreonUrl = pixivUrl;
     if (!pixivUrl.host().contains(QSL("pixiv.net")))
         pixivUrl.clear();
     if (!fanboxUrl.host().contains(QSL("fanbox.cc")))
         fanboxUrl.clear();
+    if (!patreonUrl.host().contains(QSL("patreon.com")))
+        patreonUrl.clear();
     pixivUrl.setFragment(QString());
     fanboxUrl.setFragment(QString());
+    patreonUrl.setFragment(QString());
 
     QString pixivId;
     QRegularExpression rxPixivId(QSL("pixiv.net/.*/users/(?<userID>\\d+)"));
@@ -491,6 +497,23 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         fanboxActions.append(ac);
 
     }
+    if (patreonUrl.isValid()) {
+        ac = ccm->addAction(tr("Download all images from Patreon post"));
+        connect(ac,&QAction::triggered,this,[this,patreonUrl]{
+            snv->txtBrowser->page()->toHtml([this,patreonUrl](const QString& html){
+                snv->netHandler->downloadPatreonManga(html,patreonUrl,false);
+            });
+        });
+        patreonActions.append(ac);
+
+        ac = ccm->addAction(tr("Download all attachments from Patreon post"));
+        connect(ac,&QAction::triggered,this,[this,patreonUrl]{
+            snv->txtBrowser->page()->toHtml([this,patreonUrl](const QString& html){
+                snv->netHandler->downloadPatreonManga(html,patreonUrl,true);
+            });
+        });
+        patreonActions.append(ac);
+    }
     ccm->addSeparator();
 
     ccm->addAction(QIcon::fromTheme(QSL("document-edit-decrypt")),tr("Parse document"),
@@ -538,6 +561,19 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, &m_menu, [fanboxActions](const QIcon& icon){
             for (auto * const ac : qAsConst(fanboxActions)) {
+                ac->setIcon(icon);
+            }
+        });
+        fl->queryStart(false);
+    }
+    if (!patreonActions.isEmpty()) {
+        QUrl patreonIconUrl(QSL("https://c5.patreon.com/external/favicon/favicon.ico"));
+        if (patreonUrl.isValid())
+            patreonIconUrl.setScheme(patreonUrl.scheme());
+        auto *fl = new CFaviconLoader(snv,patreonIconUrl);
+        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
+        connect(fl,&CFaviconLoader::gotIcon, &m_menu, [patreonActions](const QIcon& icon){
+            for (auto * const ac : qAsConst(patreonActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -627,6 +663,9 @@ void CSnCtxHandler::extractHTMLFragment()
             connect(ex,&CHtmlImagesExtractor::finished,th,&QThread::quit);
             connect(th,&QThread::finished,ex,&CHtmlImagesExtractor::deleteLater);
             connect(th,&QThread::finished,th,&QThread::deleteLater);
+            connect(th,&QThread::finished,gSet,[](){
+                gSet->app()->restoreOverrideCursor();
+            },Qt::QueuedConnection);
 
             ex->moveToThread(th);
             th->start();

@@ -11,6 +11,8 @@
 
 using namespace htmlcxx;
 
+// TODO: remove legacy pixiv code (pre-json)
+
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml)
     : QObject(parent)
 {

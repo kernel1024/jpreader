@@ -450,7 +450,7 @@ bool CGlobalControl::exportCookies(const QString &filename, const QUrl &baseUrl,
            << cookie.name()
            << '\t'
            << cookie.value()
-           << endl;
+           << Qt::endl;
     }
     fs.flush();
     f.close();

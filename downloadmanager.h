@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QWebEngineDownloadItem>
 #include <QAbstractItemDelegate>
+#include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QPointer>
 
@@ -56,8 +57,9 @@ class CDownloadManager : public QDialog
 public:
     explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager() override;
-    void handleAuxDownload(const QString &src, const QString &path, const QUrl& referer, int index,
-                           int maxIndex, bool isFanbox);
+    void handleAuxDownload(const QString &src, const QString &suggestedFilename,
+                           const QString &path, const QUrl& referer, int index,
+                           int maxIndex, bool isFanbox, bool relaxedRedirects);
 
 public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);

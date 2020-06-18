@@ -7,6 +7,7 @@
 #include <QWebEngineScript>
 #include <QNetworkReply>
 #include "pixivindexextractor.h"
+#include "patreonextractor.h"
 
 class CSnippetViewer;
 
@@ -20,8 +21,9 @@ private:
 
 public:
     explicit CSnNet(CSnippetViewer * parent);
-    void multiImgDownload(const QStringList& urls, const QUrl &referer,
-                          const QString &preselectedName = QString(), bool isFanbox = false);
+    void multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
+                          const QString &preselectedName = QString(), bool isFanbox = false,
+                          bool relaxedRedirects = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);
@@ -45,9 +47,10 @@ public Q_SLOTS:
     void userNavigationRequest(const QUrl& url, int type, bool isMainFrame);
     void downloadPixivManga();
     void downloadFanboxManga();
+    void downloadPatreonManga(const QString& html, const QUrl &origin, bool downloadAttachments);
     void novelReady(const QString& html, bool focus, bool translate);
     void pixivListReady(const QString& html);
-    void mangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
+    void mangaReady(const QVector<CUrlWithName> &urls, const QString &id, const QUrl &origin);
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

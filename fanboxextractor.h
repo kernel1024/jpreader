@@ -24,7 +24,7 @@ public:
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
-    void mangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
+    void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin);
     void finished();
 
 public Q_SLOTS:

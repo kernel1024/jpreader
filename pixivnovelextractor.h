@@ -33,7 +33,7 @@ private:
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
     QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
-    QStringList parseJsonIllustPage(const QString &html, const QUrl& origin, QString *id = nullptr);
+    QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin, QString *id = nullptr);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent = nullptr);
@@ -43,7 +43,7 @@ public:
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
-    void mangaReady(const QStringList& urls, const QString &id, const QUrl &origin);
+    void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin);
     void finished();
 
 public Q_SLOTS:

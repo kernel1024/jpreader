@@ -861,7 +861,7 @@ void JSEdit::wheelEvent(QWheelEvent *e)
     const int deltasInStep = 20;
 
     if (e->modifiers() == Qt::ControlModifier) {
-        int steps = e->delta() / deltasInStep;
+        int steps = e->angleDelta().y() / deltasInStep;
         steps = qBound(stepsMin, steps, stepsMax);
         QFont textFont = font();
         int pointSize = textFont.pointSize() + steps;

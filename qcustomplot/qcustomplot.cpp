@@ -6561,7 +6561,7 @@ QCPAxisTickerText::QCPAxisTickerText() :
   
   \see addTicks, addTick, clear
 */
-void QCPAxisTickerText::setTicks(const QMap<double, QString> &ticks)
+void QCPAxisTickerText::setTicks(const QMultiMap<double, QString> &ticks)
 {
   mTicks = ticks;
 }
@@ -6627,7 +6627,7 @@ void QCPAxisTickerText::addTick(double position, const QString &label)
   
   \see addTick, setTicks, clear
 */
-void QCPAxisTickerText::addTicks(const QMap<double, QString> &ticks)
+void QCPAxisTickerText::addTicks(const QMultiMap<double, QString> &ticks)
 {
   mTicks.unite(ticks);
 }
@@ -8937,9 +8937,9 @@ void QCPAxis::wheelEvent(QWheelEvent *event)
     return;
   }
   
-  const double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+  const double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
   const double factor = qPow(mAxisRect->rangeZoomFactor(orientation()), wheelSteps);
-  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
+  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->position().x() : event->position().y()));
   mParentPlot->replot();
 }
 
@@ -14976,7 +14976,7 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
   // forward event to layerable under cursor:
-  QList<QCPLayerable*> candidates = layerableListAt(event->pos(), false);
+  QList<QCPLayerable*> candidates = layerableListAt(event->position(), false);
   for (int i=0; i<candidates.size(); ++i)
   {
     event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
@@ -15310,7 +15310,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   
   if (mInteractions.testFlag(QCP::iSelectPlottables))
   {
-    QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
+    QMultiMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
     QRectF rectF(rect.normalized());
     if (QCPAxisRect *affectedAxisRect = axisRectAt(rectF.topLeft()))
     {
@@ -15321,7 +15321,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         {
           QCPDataSelection dataSel = plottableInterface->selectTestRect(rectF, true);
           if (!dataSel.isEmpty())
-            potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
+            potentialSelections.insert(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
         }
       }
       
@@ -17940,14 +17940,14 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
     if (mRangeZoom != 0)
     {
       double factor;
-      double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+      double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
       if (mRangeZoom.testFlag(Qt::Horizontal))
       {
         factor = qPow(mRangeZoomFactorHorz, wheelSteps);
         for (int i=0; i<mRangeZoomHorzAxis.size(); ++i)
         {
           if (!mRangeZoomHorzAxis.at(i).isNull())
-            mRangeZoomHorzAxis.at(i)->scaleRange(factor, mRangeZoomHorzAxis.at(i)->pixelToCoord(event->pos().x()));
+            mRangeZoomHorzAxis.at(i)->scaleRange(factor, mRangeZoomHorzAxis.at(i)->pixelToCoord(event->position().x()));
         }
       }
       if (mRangeZoom.testFlag(Qt::Vertical))
@@ -17956,7 +17956,7 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
         for (int i=0; i<mRangeZoomVertAxis.size(); ++i)
         {
           if (!mRangeZoomVertAxis.at(i).isNull())
-            mRangeZoomVertAxis.at(i)->scaleRange(factor, mRangeZoomVertAxis.at(i)->pixelToCoord(event->pos().y()));
+            mRangeZoomVertAxis.at(i)->scaleRange(factor, mRangeZoomVertAxis.at(i)->pixelToCoord(event->position().y()));
         }
       }
       mParentPlot->replot();

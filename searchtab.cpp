@@ -4,7 +4,7 @@
 #include <QDesktopServices>
 #include <QThread>
 #include <QScopedPointer>
-#include <cmath>
+#include <QRandomGenerator>
 #include "searchtab.h"
 #include "ui_searchtab.h"
 #include "globalcontrol.h"
@@ -529,7 +529,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     int maxcnt = sumCount;
     if (maxSnippets<sumCount) maxcnt = maxSnippets;
     for (int i=0;i<maxcnt && isumWeight>0;i++) {
-        int rnd = qrand() % isumWeight;
+        int rnd = QRandomGenerator::global()->bounded(INT_MAX) % isumWeight;
         int itm = 0;
         for (int j=0;j<queryTerms.count();j++) {
             if (rnd<iweights[j]) {

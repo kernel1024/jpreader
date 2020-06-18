@@ -501,7 +501,15 @@ QString CGenericFuncs::bool2str2(bool value)
     return QSL("FALSE");
 }
 
-int CGenericFuncs::numDigits(int n) {
+QString CGenericFuncs::paddedNumber(int value, int maxValue)
+{
+    const int base = 10;
+    QString res = QSL("%1").arg(value,CGenericFuncs::numDigits(maxValue),base,QLatin1Char('0'));
+    return res;
+}
+
+int CGenericFuncs::numDigits(int n)
+{
     const int base = 10;
     const int minusBase = ((-1)*base)+1;
 

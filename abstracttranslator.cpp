@@ -54,6 +54,7 @@ void CAbstractTranslator::doneTran(bool lazyClose)
 {
     doneTranPrivate(lazyClose);
     const CStructures::TranslationEngine eng = engine();
+    // TODO: replace zero-singleShot with invokeMethod
     QTimer::singleShot(0,gSet,[eng](){
         gSet->addTranslatorStatistics(eng, -1); // Force statistics update signal
     });

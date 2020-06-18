@@ -41,20 +41,21 @@ CDownloadManager::~CDownloadManager()
     delete ui;
 }
 
-void CDownloadManager::handleAuxDownload(const QString& src, const QString& path, const QUrl& referer,
-                                         int index, int maxIndex, bool isFanbox)
+void CDownloadManager::handleAuxDownload(const QString& src, const QString& suggestedFilename,
+                                         const QString& path, const QUrl& referer,
+                                         int index, int maxIndex, bool isFanbox, bool relaxedRedirects)
 {
-    const int indexBase = 10;
-
     QUrl url = QUrl(src);
     if (!url.isValid() || url.isRelative()) return;
 
     QString fname;
-    if (index>=0) {
-        fname.append(QSL("%1_")
-                     .arg(index,CGenericFuncs::numDigits(maxIndex),indexBase,QLatin1Char('0')));
+    if (index>=0)
+        fname.append(QSL("%1_").arg(CGenericFuncs::paddedNumber(index,maxIndex)));
+    if (suggestedFilename.isEmpty()) {
+        fname.append(url.fileName());
+    } else {
+        fname.append(suggestedFilename);
     }
-    fname.append(url.fileName());
     if (path.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
         fname = QSL("%1%2%3").arg(path).arg(CDefaults::zipSeparator).arg(fname);
     } else {
@@ -71,12 +72,30 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& path
     req.setRawHeader("referer",referer.toString().toUtf8());
     if (isFanbox)
         req.setRawHeader("origin","https://www.fanbox.cc");
+    if (relaxedRedirects) {
+        req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::UserVerifiedRedirectPolicy);
+    } else {
+        req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
+    }
+    req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
     QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
     connect(rpl, &QNetworkReply::finished,
             model, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
             model, &CDownloadsModel::downloadProgress);
+    if (relaxedRedirects) {
+        connect(rpl,&QNetworkReply::redirected,rpl,[rpl,url](const QUrl& rurl) {
+
+            // redirect rules
+            if (url.host().endsWith(QSL("patreon.com"),Qt::CaseInsensitive) &&
+                    (rurl.host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
+                     rurl.host().endsWith(QSL(".patreonusercontent.com")))) {
+
+                Q_EMIT rpl->redirectAllowed();
+            }
+        });
+    }
 
     model->appendItem(CDownloadItem(rpl, fname));
 }

@@ -64,11 +64,11 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
 
     ui->atlSSLProto->addItem(QSL("Secure"),static_cast<int>(QSsl::SecureProtocols));
+    ui->atlSSLProto->addItem(QSL("TLS 1.3+"),static_cast<int>(QSsl::TlsV1_3OrLater));
+    ui->atlSSLProto->addItem(QSL("TLS 1.3"),static_cast<int>(QSsl::TlsV1_3));
     ui->atlSSLProto->addItem(QSL("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
     ui->atlSSLProto->addItem(QSL("TLS 1.1"),static_cast<int>(QSsl::TlsV1_1));
     ui->atlSSLProto->addItem(QSL("TLS 1.0"),static_cast<int>(QSsl::TlsV1_0));
-    ui->atlSSLProto->addItem(QSL("SSL V3"),static_cast<int>(QSsl::SslV3));
-    ui->atlSSLProto->addItem(QSL("SSL V2"),static_cast<int>(QSsl::SslV2));
     ui->atlSSLProto->addItem(QSL("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
@@ -1019,7 +1019,7 @@ void CSettingsTab::exportAd()
     QTextStream fs(&f);
 
     for (const auto& rule : qAsConst(r))
-        fs << rule.filter() << endl;
+        fs << rule.filter() << Qt::endl;
 
     fs.flush();
     f.close();
