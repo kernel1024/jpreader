@@ -163,8 +163,8 @@ void CFanboxExtractor::showError(const QString &message)
         w = m_snv->parentWnd();
         ctx = m_snv;
     }
-    QTimer::singleShot(0,ctx,[message,w](){
+    QMetaObject::invokeMethod(ctx,[message,w](){
         QMessageBox::warning(w,tr("JPReader"),tr("CFanboxExtractor error:\n%1").arg(message));
-    });
+    },Qt::QueuedConnection);
     Q_EMIT finished();
 }

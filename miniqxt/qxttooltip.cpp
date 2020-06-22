@@ -218,7 +218,7 @@ void QxtToolTipPrivate::hideLater()
     currentRect = QRect();
     removeAllWidgets();
     if (isVisible())
-        QTimer::singleShot(0, this, &QxtToolTipPrivate::hide);
+        QMetaObject::invokeMethod(this, &QxtToolTipPrivate::hide, Qt::QueuedConnection);
 }
 
 QPoint QxtToolTipPrivate::calculatePos(QScreen *scr, QPoint eventPos) const

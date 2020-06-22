@@ -40,13 +40,13 @@ void CSnTrans::applyScripts()
     for (const auto &script : scripts) {
         QEventLoop ev;
         connect(this,&CSnTrans::scriptFinished,&ev,&QEventLoop::quit);
-        QTimer::singleShot(0,this,[this,script](){
+        QMetaObject::invokeMethod(this,[this,script](){
             snv->txtBrowser->page()->runJavaScript(script.getSource(),
                                                    QWebEngineScript::MainWorld,[this](const QVariant &v){
                 Q_UNUSED(v)
                 Q_EMIT scriptFinished();
             });
-        });
+        },Qt::QueuedConnection);
         ev.exec();
     }
 }

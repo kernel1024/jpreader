@@ -54,10 +54,9 @@ void CAbstractTranslator::doneTran(bool lazyClose)
 {
     doneTranPrivate(lazyClose);
     const CStructures::TranslationEngine eng = engine();
-    // TODO: replace zero-singleShot with invokeMethod
-    QTimer::singleShot(0,gSet,[eng](){
+    QMetaObject::invokeMethod(gSet,[eng](){
         gSet->addTranslatorStatistics(eng, -1); // Force statistics update signal
-    });
+    },Qt::QueuedConnection);
 }
 
 QString CAbstractTranslator::getErrorMsg() const
@@ -72,9 +71,9 @@ QString CAbstractTranslator::tranString(const QString &src)
 
     const int len = src.length();
     const CStructures::TranslationEngine eng = engine();
-    QTimer::singleShot(0,gSet,[eng,len](){
+    QMetaObject::invokeMethod(gSet,[eng,len](){
         gSet->addTranslatorStatistics(eng, len);
-    });
+    },Qt::QueuedConnection);
     return tranStringPrivate(src);
 }
 

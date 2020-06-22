@@ -95,7 +95,7 @@ void CHtmlImagesExtractor::handleImages()
     if (!m_imgUrls.isEmpty()) {
         for(const auto &it : qAsConst(m_imgUrls)) {
             QUrl url((*it).value(QSL("src")).trimmed());
-            QTimer::singleShot(0,gSet->auxNetworkAccessManager(),[this,url,it]{
+            QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,it]{
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
                 req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
@@ -105,7 +105,7 @@ void CHtmlImagesExtractor::handleImages()
                     subImageFinished(rpl,it);
                     rpl->deleteLater();
                 });
-            });
+            },Qt::QueuedConnection);
         }
     }
 }
