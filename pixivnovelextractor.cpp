@@ -16,8 +16,6 @@
 #include "genericfuncs.h"
 #include "globalcontrol.h"
 
-// TODO: remove legacy code
-
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : QObject(parent)
 {
@@ -85,81 +83,39 @@ void CPixivNovelExtractor::novelLoadFinished()
         QUrl origin = rpl->url();
         QUrlQuery qr(origin);
 
-        QString hauthor;
-        QString hauthornum;
-
         m_novelId = qr.queryItemValue(QSL("id"));
 
         QString wtitle = m_title;
         if (wtitle.isEmpty())
             wtitle = CGenericFuncs::extractFileTitle(html);
 
+        QString hauthor;
+        QString hauthornum;
         QString htitle;
-        QRegularExpressionMatch match;
-        QRegularExpression hrx(QSL("<h1[^>]*class=\"title\"[^>]*>(?<title>[\\w\\s]+)</h1>"),
-                               QRegularExpression::CaseInsensitiveOption |
-                               QRegularExpression::UseUnicodePropertiesOption);
-        match = hrx.match(html);
-        if (match.hasMatch()) {
-            htitle = match.captured(QSL("title"));
-        }
-
-        QRegularExpression arx(QSL("<h2[^>]*class=\"name\"[^>]*>[^<>]*<a[^>]*href=\"/member\\."
-                                   "php\\?id=(?<id>\\d+)\"[^>]*>(?<name>[\\w\\s]+)</a>"),
-                               QRegularExpression::CaseInsensitiveOption |
-                               QRegularExpression::UseUnicodePropertiesOption);
-        match = arx.match(html);
-        if (match.hasMatch()) {
-            hauthornum = match.captured(QSL("id"));
-            hauthor = match.captured(QSL("name"));
-        }
-
         QStringList tags;
-        QRegularExpression trx(QSL("<li[^>]*class=\"tag\"[^>]*>[^<>]*<a[^>]*class=\"text "
-                                   "tag-value\"[^>]*>(?<tag>[\\w\\s]+).*?</li>"),
-                               QRegularExpression::CaseInsensitiveOption |
-                               QRegularExpression::UseUnicodePropertiesOption);
-        auto it = trx.globalMatch(html);
-        while (it.hasNext()) {
-            match = it.next();
-            tags << match.captured(QSL("tag"));
-        }
 
-        QRegularExpression rx(QSL("<textarea[^>]*id=\"novel_text\"[^>]*>"),
-                              QRegularExpression::CaseInsensitiveOption);
         QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
-        int idx = html.indexOf(rx,0,&match);
-        if (idx<0) {
-            // something wrong here - try pixiv novel JSON parser
-            idx = html.indexOf(rxToken);
-            if (idx<=0) {
-                // something very wrong here
-                html = tr("Unable to extract novel. Unknown page structure.");
-            } else {
-                html.remove(0,idx);
-                idx = html.indexOf(QSL("</script>"));
-                if (idx>=0)
-                    html.truncate(idx);
-                idx = html.indexOf(QSL("}\">"));
-                if (idx>=0)
-                    html.truncate(idx+1);
-                idx = html.lastIndexOf(QSL("})"));
-                if (idx>0)
-                    html.truncate(idx+1);
-
-                html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle);
-
-            }
-        } else {
-            html.remove(0,idx+match.capturedLength());
-            idx = html.indexOf(QSL("</textarea>"),0,Qt::CaseInsensitive);
+        int idx = html.indexOf(rxToken);
+        if (idx>0) {
+            html.remove(0,idx);
+            idx = html.indexOf(QSL("</script>"));
             if (idx>=0)
                 html.truncate(idx);
+            idx = html.indexOf(QSL("}\">"));
+            if (idx>=0)
+                html.truncate(idx+1);
+            idx = html.lastIndexOf(QSL("})"));
+            if (idx>0)
+                html.truncate(idx+1);
+
+            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle);
+        } else {
+            html = tr("Unable to extract novel. Unknown page structure.");
         }
 
         QRegularExpression rbrx(QSL("\\[\\[rb\\:.*?\\]\\]"));
         int pos = 0;
-        match = rbrx.match(html,pos);
+        QRegularExpressionMatch match = rbrx.match(html,pos);
         while (match.hasMatch()) {
             QString rb = match.captured();
             rb.replace(QSL("&gt;"), QSL(">"));
@@ -176,7 +132,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         QRegularExpression imrx(QSL("\\[pixivimage:\\S+\\]"));
         QStringList imgs;
-        it = imrx.globalMatch(html);
+        auto it = imrx.globalMatch(html);
         while (it.hasNext()) {
             match = it.next();
             QString im = match.captured();

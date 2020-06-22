@@ -11,8 +11,6 @@
 
 using namespace htmlcxx;
 
-// TODO: remove legacy pixiv code (pre-json)
-
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml)
     : QObject(parent)
 {
@@ -171,8 +169,6 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
     QApplication::processEvents();
 
     static const QStringList skipTags { QSL("style"), QSL("title") };
-    static const QStringList unhide_classes { QSL("novel-text-wrapper"),
-                QSL("novel-pages"), QSL("novel-page") };
     static const QStringList denyTags { QSL("script"), QSL("noscript"),
                 QSL("object"), QSL("iframe") };
     static const QStringList denyDivs { QSL("sh_fc2blogheadbar"),
@@ -256,43 +252,10 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
                             +QSL("; height:auto;");
                 }
             }
-
-            // pixiv - unfolding novel pages to one big page
-            if (node.attributes.contains(QSL("class"))
-                    && unhide_classes.contains(node.attributes.value(
-                                                   QSL("class")).toLower().trimmed())) {
-                if (!node.attributes.contains(QSL("style"))) {
-                    node.attributes[QSL("style")]=QString();
-                }
-                if (node.attributes.value(QSL("style")).isEmpty()) {
-                    node.attributes[QSL("style")]=QSL("display:block;");
-                } else {
-                    node.attributes[QSL("style")]=
-                            node.attributes.value(QSL("style"))
-                            +QSL("; display:block;");
-                }
-            }
         }
 
         idx=0;
         while(idx<node.children.count()) {
-            // Style fix for 2015/05 pixiv novel viewer update - advanced workarounds
-            // Remove 'vtoken' inline span
-            if (node.children.at(idx).tagName.toLower()==QSL("span") &&
-                    node.children.at(idx).attributes.contains(QSL("class")) &&
-                    node.children.at(idx).attributes.value(QSL("class"))
-                    .toLower().trimmed().startsWith(QSL("vtoken"))) {
-
-                const QVector<CHTMLNode> subnodes = node.children.at(idx).children;
-                for(int si=0;si<subnodes.count();si++)
-                    node.children.insert(idx+si+1,subnodes.at(si));
-
-                node.children.removeAt(idx);
-                node.normalize();
-                idx=0;
-                continue;
-            }
-
             // remove ruby annotation (superscript), unfold main text block
             if (node.children.at(idx).tagName.toLower()==QSL("ruby")) {
                 subnodes.clear();
@@ -439,11 +402,11 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                         for (int j=0;j<srct.length();j++) {
                             QChar sc = srct.at(j);
 
-                            if (sc.isLetter())
+                            if (sc.isLetterOrNumber())
                                 tacc += sc;
-                            if (!sc.isLetter() || (j==(srct.length()-1))) {
+                            if (!sc.isLetterOrNumber() || (j==(srct.length()-1))) {
                                 if (!tacc.isEmpty()) {
-                                    if (sc.isLetter()) {
+                                    if (sc.isLetterOrNumber()) {
                                         t += m_tran->tranString(tacc);
                                     } else {
                                         if (sc==questionMark || sc==fullwidthQuestionMark) {
@@ -667,17 +630,7 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reforma
         }
         html.append(QSL(">"));
     } else {
-        QString txt = src.text;
-        // fix incorrect nested comments - pixiv
-        if (src.isComment) {
-            if ((txt.count(QSL("<!--"))>1) || (txt.count(QSL("-->"))>1))
-                txt.clear();
-            if ((txt.count(QSL("<"))>1 || txt.count(QSL(">"))>1)
-                    && (txt.count(QSL("<"))!=txt.count(QSL(">")))) {
-                txt.clear();
-            }
-        }
-        html.append(txt);
+        html.append(src.text);
     }
 
     for (const CHTMLNode &node : qAsConst(src.children))
