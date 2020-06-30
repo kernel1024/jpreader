@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QJsonObject>
 #include "snviewer.h"
 #include "structures.h"
 
@@ -21,18 +22,19 @@ private:
 
     CSnippetViewer *m_snv { nullptr };
     QString m_authorId;
-    QString m_html;
+    QVector<QJsonObject> m_list;
     QStringList m_ids;
-    CStringHash m_authors;
     IndexMode m_indexMode { UndefinedIndex };
-    int m_infoBlockCount { 0 };
 
     void showError(const QString& message);
     void fetchNovelsInfo();
-    void addNovelInfoBlock(const QString& workId, const QString& workImgUrl,
-                           const QString& title, int length,
-                           const QString& author, const QString& authorId,
-                           const QStringList& tags, const QString& description);
+    QString makeNovelInfoBlock(CStringHash* authors,
+                               const QString& workId, const QString& workImgUrl,
+                               const QString& title, int length,
+                               const QString& author, const QString& authorId,
+                               const QStringList& tags, const QString& description,
+                               const QDateTime &creationDate, const QString &seriesTitle,
+                               const QString &seriesId);
     void finalizeHtml();
 
 Q_SIGNALS:
