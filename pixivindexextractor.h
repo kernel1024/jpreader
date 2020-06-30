@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QNetworkReply>
 #include <QJsonObject>
+#include <QMutex>
 #include "snviewer.h"
 #include "structures.h"
 
@@ -25,6 +26,8 @@ private:
     QVector<QJsonObject> m_list;
     QStringList m_ids;
     IndexMode m_indexMode { UndefinedIndex };
+    QAtomicInteger<int> m_worksImgFetch;
+    QMutex m_imgMutex;
 
     void showError(const QString& message);
     void fetchNovelsInfo();
@@ -35,7 +38,8 @@ private:
                                const QStringList& tags, const QString& description,
                                const QDateTime &creationDate, const QString &seriesTitle,
                                const QString &seriesId);
-    void finalizeHtml();
+    void finalizeHtml(const QUrl& origin);
+    void preloadNovelCovers(const QUrl& origin);
 
 Q_SIGNALS:
     void listReady(const QString& html);
@@ -44,6 +48,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void profileAjax();
     void bookmarksAjax();
+    void subImageFinished();
     void loadError(QNetworkReply::NetworkError error);
 
 public Q_SLOTS:

@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QUrlQuery>
+#include <QBuffer>
 #include <algorithm>
 
 #include "globalcontrol.h"
@@ -79,8 +80,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     }
 
     if (m_ids.isEmpty()) {
-        finalizeHtml();
-        Q_EMIT finished();
+        finalizeHtml(rpl->url());
         return;
     }
 
@@ -244,7 +244,8 @@ void CPixivIndexExtractor::bookmarksAjax()
                 return;
             }
 
-            finalizeHtml();
+            finalizeHtml(rpl->url());
+            return;
         }
     }
     Q_EMIT finished();
@@ -305,8 +306,11 @@ QString CPixivIndexExtractor::makeNovelInfoBlock(CStringHash *authors,
     return res;
 }
 
-void CPixivIndexExtractor::finalizeHtml()
+void CPixivIndexExtractor::finalizeHtml(const QUrl& origin)
 {
+    preloadNovelCovers(origin);
+    if (m_worksImgFetch>0) return;
+
     QString html;
     CStringHash authors;
 
@@ -362,4 +366,88 @@ void CPixivIndexExtractor::finalizeHtml()
     html = CGenericFuncs::makeSimpleHtml(title,html);
 
     Q_EMIT listReady(html);
+
+    Q_EMIT finished();
+}
+
+void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
+{
+    const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
+    m_worksImgFetch = 0;
+
+    QStringList processedUrls;
+    m_imgMutex.lock();
+    for (const auto& w : qAsConst(m_list)) {
+        QString coverImgUrl = w.value(QSL("url")).toString();
+        if (coverImgUrl.contains(QSL("common/images")) ||
+                coverImgUrl.contains(QSL("data:image"))) {
+            continue;
+        }
+        QUrl url(w.value(QSL("url")).toString());
+        if (!url.isValid() || url.isEmpty()) continue;
+
+        QFileInfo fi(coverImgUrl);
+        if (gSet->settings()->pixivFetchImages &&
+                supportedExt.contains(fi.suffix(),Qt::CaseInsensitive) &&
+                !processedUrls.contains(coverImgUrl)) {
+            m_worksImgFetch++;
+            processedUrls.append(coverImgUrl);
+            QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,origin]{
+                QNetworkRequest req(url);
+                req.setRawHeader("referer",origin.toString().toUtf8());
+                QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
+                connect(rplImg,&QNetworkReply::finished,this,&CPixivIndexExtractor::subImageFinished);
+            },Qt::QueuedConnection);
+        }
+    }
+    m_imgMutex.unlock();
+}
+
+void CPixivIndexExtractor::subImageFinished()
+{
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QByteArray ba = rpl->readAll();
+        QImage img;
+        if (img.loadFromData(ba)) {
+            if (img.width()>img.height()) {
+                if (img.width()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
+                                            Qt::SmoothTransformation);
+                }
+            } else {
+                if (img.height()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
+                                             Qt::SmoothTransformation);
+                }
+            }
+            ba.clear();
+            QBuffer buf(&ba);
+            buf.open(QIODevice::WriteOnly);
+            if (img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality)) {
+                QByteArray out("data:image/jpeg;base64,");
+                out.append(QString::fromLatin1(ba.toBase64()));
+                ba = out;
+            } else {
+                ba.clear();
+            }
+        } else {
+            ba.clear();
+        }
+
+        m_imgMutex.lock();
+        for (auto &w : m_list) {
+            if ((w.value(QSL("url")).toString() == rpl->url().toString()) && !ba.isEmpty())
+                w.insert(QSL("url"),QJsonValue(QString::fromUtf8(ba)));
+        }
+        m_imgMutex.unlock();
+    }
+
+    QUrl origin = rpl->url();
+    QMetaObject::invokeMethod(this,[this,origin](){
+        finalizeHtml(origin);
+    },Qt::QueuedConnection);
+    m_worksImgFetch--;
 }

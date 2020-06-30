@@ -292,36 +292,38 @@ void CPixivNovelExtractor::subImageFinished()
 
     if (rpl->error() == QNetworkReply::NoError) {
         QByteArray ba = rpl->readAll();
+        QImage img;
+        if (img.loadFromData(ba)) {
+            if (img.width()>img.height()) {
+                if (img.width()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
+                                            Qt::SmoothTransformation);
+                }
+            } else {
+                if (img.height()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
+                                             Qt::SmoothTransformation);
+                }
+            }
+            ba.clear();
+            QBuffer buf(&ba);
+            buf.open(QIODevice::WriteOnly);
+            if (img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality)) {
+                QByteArray out("data:image/jpeg;base64,");
+                out.append(QString::fromLatin1(ba.toBase64()));
+                ba = out;
+            } else {
+                ba.clear();
+            }
+        } else {
+            ba.clear();
+        }
 
         m_imgMutex.lock();
         for (auto it = m_imgUrls.keyValueBegin(), end = m_imgUrls.keyValueEnd();
              it != end; ++it) {
-            if ((*it).second==rpl->url().toString()) {
-                QImage img;
-                
-                if (img.loadFromData(ba)) {
-                    if (img.width()>img.height()) {
-                        if (img.width()>gSet->settings()->pdfImageMaxSize) {
-                            img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
-                                                    Qt::SmoothTransformation);
-                        }
-                    } else {
-                        if (img.height()>gSet->settings()->pdfImageMaxSize) {
-                            img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
-                                                     Qt::SmoothTransformation);
-                        }
-                    }
-                    ba.clear();
-                    QBuffer buf(&ba);
-                    buf.open(QIODevice::WriteOnly);
-                    img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality);
-                    
-                    QByteArray out("data:image/jpeg;base64,");
-                    out.append(QString::fromLatin1(ba.toBase64()));
-                    
-                    (*it).second = QString::fromUtf8(out);
-                }
-            }
+            if (((*it).second==rpl->url().toString()) && !ba.isEmpty())
+                (*it).second = QString::fromUtf8(ba);
         }
         m_imgMutex.unlock();
     }
