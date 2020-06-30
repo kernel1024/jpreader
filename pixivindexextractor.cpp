@@ -354,11 +354,11 @@ void CPixivIndexExtractor::finalizeHtml()
     if (author.isEmpty())
         author = tr("author");
 
+    const QString title = tr("Pixiv %1 list for %2").arg(header,author);
     header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/users/%2\">"
                             "%3</a>.</h3>").arg(header,m_authorId,author);
     html.prepend(header);
 
-    const QString title = tr("Pixiv %1 list for %2").arg(header,author);
     html = CGenericFuncs::makeSimpleHtml(title,html);
 
     Q_EMIT listReady(html);
