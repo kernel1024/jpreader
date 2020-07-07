@@ -207,28 +207,44 @@ void CSettings::writeBinaryBigData(const QString &dirname)
         }
     }
 
-    Q_ASSERT(writeData(dirname,QSL("searchHistory"),    QVariant::fromValue(gSet->d_func()->searchHistory)));
-    Q_ASSERT(writeData(dirname,QSL("atlHostHistory"),   QVariant::fromValue(atlHostHistory)));
-    Q_ASSERT(writeData(dirname,QSL("mainHistory"),      QVariant::fromValue(gSet->d_func()->mainHistory)));
-    Q_ASSERT(writeData(dirname,QSL("userAgentHistory"), QVariant::fromValue(userAgentHistory)));
-    Q_ASSERT(writeData(dirname,QSL("dictPaths"),        QVariant::fromValue(dictPaths)));
-    Q_ASSERT(writeData(dirname,QSL("ctxSearchEngines"), QVariant::fromValue(gSet->d_func()->ctxSearchEngines)));
-    Q_ASSERT(writeData(dirname,QSL("atlCerts"),         QVariant::fromValue(atlCerts)));
-    Q_ASSERT(writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)));
-    Q_ASSERT(writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())));
-    Q_ASSERT(writeData(dirname,QSL("translatorPairs"),  QVariant::fromValue(translatorPairs)));
-    Q_ASSERT(writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(gSet->m_ui->getSubsentencesModeHash())));
-    Q_ASSERT(writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)));
-    Q_ASSERT(writeData(dirname,QSL("translatorStatistics"),QVariant::fromValue(translatorStatistics)));
-    Q_ASSERT(writeData(dirname,QSL("selectedLangPairs"),QVariant::fromValue(selectedLangPairs)));
+    if (!writeData(dirname,QSL("searchHistory"),    QVariant::fromValue(gSet->d_func()->searchHistory)))
+        qCritical() << "Unable to save searchHistory.";
+    if (!writeData(dirname,QSL("atlHostHistory"),   QVariant::fromValue(atlHostHistory)))
+        qCritical() << "Unable to save atlHostHistory.";
+    if (!writeData(dirname,QSL("mainHistory"),      QVariant::fromValue(gSet->d_func()->mainHistory)))
+        qCritical() << "Unable to save mainHistory.";
+    if (!writeData(dirname,QSL("userAgentHistory"), QVariant::fromValue(userAgentHistory)))
+        qCritical() << "Unable to save userAgentHistory.";
+    if (!writeData(dirname,QSL("dictPaths"),        QVariant::fromValue(dictPaths)))
+        qCritical() << "Unable to save dictPaths.";
+    if (!writeData(dirname,QSL("ctxSearchEngines"), QVariant::fromValue(gSet->d_func()->ctxSearchEngines)))
+        qCritical() << "Unable to save ctxSearchEngines.";
+    if (!writeData(dirname,QSL("atlCerts"),         QVariant::fromValue(atlCerts)))
+        qCritical() << "Unable to save atlCerts.";
+    if (!writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)))
+        qCritical() << "Unable to save recentFiles.";
+    if (!writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())))
+        qCritical() << "Unable to save userScripts.";
+    if (!writeData(dirname,QSL("translatorPairs"),  QVariant::fromValue(translatorPairs)))
+        qCritical() << "Unable to save translatorPairs.";
+    if (!writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(gSet->m_ui->getSubsentencesModeHash())))
+        qCritical() << "Unable to save subsentencesMode.";
+    if (!writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)))
+        qCritical() << "Unable to save noScriptWhiteList.";
+    if (!writeData(dirname,QSL("translatorStatistics"),QVariant::fromValue(translatorStatistics)))
+        qCritical() << "Unable to save translatorStatistics.";
+    if (!writeData(dirname,QSL("selectedLangPairs"),QVariant::fromValue(selectedLangPairs)))
+        qCritical() << "Unable to save selectedLangPairs.";
 
-    Q_ASSERT(writeByteArray(dirname,QSL("bookmarks"),   gSet->d_func()->bookmarksManager->save()));
+    if (!writeByteArray(dirname,QSL("bookmarks"),   gSet->d_func()->bookmarksManager->save()))
+        qCritical() << "Unable to save bookmarks.";
 
     // save adblock data as binary dump for bulk loading with deferred parsing
     QByteArray buf;
     QDataStream bufs(&buf,QIODevice::WriteOnly);
     bufs << gSet->d_func()->adblock;
-    Q_ASSERT(writeByteArray(dirname,QSL("adblock"),buf));
+    if (!writeByteArray(dirname,QSL("adblock"),buf))
+        qCritical() << "Unable to save adblock.";
 }
 
 QByteArray CSettings::readByteArray(const QDir& directory, const QString &name)
