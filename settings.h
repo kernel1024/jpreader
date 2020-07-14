@@ -37,6 +37,8 @@ const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
 const CStructures::SearchEngine searchEngine = CStructures::seNone;
 const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
+const CStructures::PixivIndexSortOrder pixivIndexSortOrder = CStructures::psDate;
+const bool pixivIndexSortReverse = true;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
@@ -132,7 +134,9 @@ public:
     QNetworkProxy::ProxyType proxyType { CDefaults::proxyType };
     CStructures::SearchEngine searchEngine { CDefaults::searchEngine };
     CStructures::TranslationEngine translatorEngine { CDefaults::translatorEngine };
+    CStructures::PixivIndexSortOrder pixivIndexSortOrder { CDefaults::pixivIndexSortOrder };
 
+    bool pixivIndexSortReverse { CDefaults::pixivIndexSortReverse };
     bool jsLogConsole { CDefaults::jsLogConsole };
     bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };
     bool overrideStdFonts { CDefaults::overrideStdFonts };

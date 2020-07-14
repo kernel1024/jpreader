@@ -55,6 +55,16 @@ enum DateRange {
 };
 Q_ENUM_NS(DateRange)
 
+enum PixivIndexSortOrder {
+    psTitle = 0,
+    psSize = 1,
+    psDate = 2,
+    psAuthor = 3,
+    psSeries = 4,
+    psDescription = 5
+};
+Q_ENUM_NS(PixivIndexSortOrder)
+
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 
 }

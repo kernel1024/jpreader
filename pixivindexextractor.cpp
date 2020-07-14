@@ -29,6 +29,43 @@ void CPixivIndexExtractor::setParams(CSnippetViewer *viewer, const QString &pixi
     m_authorId = pixivId;
 }
 
+bool CPixivIndexExtractor::indexItemCompare(const QJsonObject &c1, const QJsonObject &c2)
+{
+    switch (gSet->settings()->pixivIndexSortOrder) {
+        case CStructures::psTitle: {
+            const auto d1 = c1.value(QSL("title")).toString();
+            const auto d2 = c2.value(QSL("title")).toString();
+            return (d1<d2);
+        }
+        case CStructures::psSize: {
+            const auto d1 = c1.value(QSL("textCount")).toInt();
+            const auto d2 = c2.value(QSL("textCount")).toInt();
+            return (d1<d2);
+        }
+        case CStructures::psDate: {
+            const auto d1 = QDateTime::fromString(c1.value(QSL("createDate")).toString(),Qt::ISODate);
+            const auto d2 = QDateTime::fromString(c2.value(QSL("createDate")).toString(),Qt::ISODate);
+            return (d1<d2);
+        }
+        case CStructures::psAuthor: {
+            const auto d1 = c1.value(QSL("userName")).toString();
+            const auto d2 = c2.value(QSL("userName")).toString();
+            return (d1<d2);
+        }
+        case CStructures::psSeries: {
+            const auto d1 = c1.value(QSL("seriesId")).toString();
+            const auto d2 = c2.value(QSL("seriesId")).toString();
+            return (d1<d2);
+        }
+        case CStructures::psDescription: {
+            const auto d1 = c1.value(QSL("description")).toString();
+            const auto d2 = c2.value(QSL("description")).toString();
+            return (d1<d2);
+        }
+    }
+    return false;
+}
+
 void CPixivIndexExtractor::showError(const QString &message)
 {
     qCritical() << "CPixivIndexExtractor error:" << message;
@@ -318,11 +355,11 @@ void CPixivIndexExtractor::finalizeHtml(const QUrl& origin)
         html = tr("Nothing found.");
 
     } else {
-        std::sort(m_list.rbegin(),m_list.rend(),[](const QJsonObject& c1, const QJsonObject& c2){
-            const auto d1 = QDateTime::fromString(c1.value(QSL("createDate")).toString(),Qt::ISODate);
-            const auto d2 = QDateTime::fromString(c2.value(QSL("createDate")).toString(),Qt::ISODate);
-            return (d1<d2);
-        });
+        if (gSet->settings()->pixivIndexSortReverse) {
+            std::sort(m_list.rbegin(),m_list.rend(),indexItemCompare);
+        } else {
+            std::sort(m_list.begin(),m_list.end(),indexItemCompare);
+        }
 
         for (const auto &w : qAsConst(m_list)) {
             QStringList tags;

@@ -148,6 +148,9 @@ void CSettings::writeSettings()
     settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
 
+    settings.setValue(QSL("pixivIndexSortOrder"),static_cast<int>(pixivIndexSortOrder));
+    settings.setValue(QSL("pixivIndexSortReverse"),pixivIndexSortReverse);
+
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
 }
@@ -416,6 +419,10 @@ void CSettings::readSettings(QObject *control)
                                             settings.value(QSL("showFavicons"),true).toBool());
     defaultSearchEngine = settings.value(QSL("defaultSearchEngine"),QString()).toString();
     g->d_func()->webProfile->setHttpCacheMaximumSize(settings.value(QSL("diskCacheSize"),0).toInt());
+
+    pixivIndexSortOrder = static_cast<CStructures::PixivIndexSortOrder>(
+                              settings.value(QSL("pixivIndexSortOrder"),CDefaults::pixivIndexSortOrder).toInt());
+    pixivIndexSortReverse = settings.value(QSL("pixivIndexSortReverse"),CDefaults::pixivIndexSortReverse).toBool();
 
     pdfExtractImages = settings.value(QSL("pdfExtractImages"),
                                       CDefaults::pdfExtractImages).toBool();

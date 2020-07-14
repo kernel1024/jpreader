@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-656</y>
+        <y>0</y>
         <width>822</width>
-        <height>4226</height>
+        <height>4297</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -386,6 +386,39 @@
                   </size>
                  </property>
                 </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_21">
+            <property name="title">
+             <string>Extractors</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_17">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_37">
+               <item>
+                <widget class="QLabel" name="label_19">
+                 <property name="text">
+                  <string>Pixiv index sort order</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>comboPixivIndexSortOrder</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboPixivIndexSortOrder"/>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkPixivIndexSortReverse">
+                 <property name="text">
+                  <string>Reverse</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -2095,6 +2128,8 @@
   <tabstop>spinCacheSize</tabstop>
   <tabstop>checkUserAgent</tabstop>
   <tabstop>editUserAgent</tabstop>
+  <tabstop>comboPixivIndexSortOrder</tabstop>
+  <tabstop>checkPixivIndexSortReverse</tabstop>
   <tabstop>radioSearchNone</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
   <tabstop>radioSearchBaloo5</tabstop>

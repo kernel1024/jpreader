@@ -72,6 +72,13 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->atlSSLProto->addItem(QSL("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
+    ui->comboPixivIndexSortOrder->addItem(tr("Title"),static_cast<int>(CStructures::psTitle));
+    ui->comboPixivIndexSortOrder->addItem(tr("Size"),static_cast<int>(CStructures::psSize));
+    ui->comboPixivIndexSortOrder->addItem(tr("Date"),static_cast<int>(CStructures::psDate));
+    ui->comboPixivIndexSortOrder->addItem(tr("Author"),static_cast<int>(CStructures::psAuthor));
+    ui->comboPixivIndexSortOrder->addItem(tr("Series"),static_cast<int>(CStructures::psSeries));
+    ui->comboPixivIndexSortOrder->addItem(tr("Description"),static_cast<int>(CStructures::psDescription));
+
     setupSettingsObservers();
 
     ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
@@ -152,6 +159,12 @@ void CSettingsTab::loadFromGlobal()
     ui->atlSSLProto->setCurrentIndex(idx);
     updateAtlCertLabel();
     ui->tranRetryCnt->setValue(gSet->m_settings->translatorRetryCount);
+
+    idx = ui->comboPixivIndexSortOrder->findData(gSet->m_settings->pixivIndexSortOrder);
+    if (idx<0 || idx>=ui->comboPixivIndexSortOrder->count())
+        idx = 0;
+    ui->comboPixivIndexSortOrder->setCurrentIndex(idx);
+    ui->checkPixivIndexSortReverse->setChecked(gSet->m_settings->pixivIndexSortReverse);
 
     ui->editBingKey->setText(gSet->m_settings->bingKey);
     ui->editYandexKey->setText(gSet->m_settings->yandexKey);
@@ -630,6 +643,17 @@ void CSettingsTab::setupSettingsObservers()
             default: gSet->m_settings->proxyType = QNetworkProxy::HttpCachingProxy; break;
         }
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+    });
+
+    connect(ui->comboPixivIndexSortOrder,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->pixivIndexSortOrder = static_cast<CStructures::PixivIndexSortOrder>(
+                                                    ui->comboPixivIndexSortOrder->currentData().toInt());
+    });
+    connect(ui->checkPixivIndexSortReverse,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->pixivIndexSortReverse = val;
     });
 }
 

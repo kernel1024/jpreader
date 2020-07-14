@@ -29,6 +29,7 @@ private:
     QAtomicInteger<int> m_worksImgFetch;
     QMutex m_imgMutex;
 
+    static bool indexItemCompare(const QJsonObject& c1, const QJsonObject& c2);
     void showError(const QString& message);
     void fetchNovelsInfo();
     QString makeNovelInfoBlock(CStringHash* authors,
