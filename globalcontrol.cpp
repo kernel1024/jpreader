@@ -32,6 +32,7 @@ extern "C" {
 #include "miniqxt/qxttooltip.h"
 #include "auxdictionary.h"
 #include "downloadmanager.h"
+#include "downloadwriter.h"
 #include "translatorcache.h"
 #include "translatorstatisticstab.h"
 #include "pdftotext.h"
@@ -126,6 +127,21 @@ void CGlobalControl::initialize()
         ::exit(0);
 
     initLanguagesList();
+
+    d->downloadWriter = new CDownloadWriter();
+    addWorkerToPool(d->downloadWriter);
+    auto* th = new QThread();
+    connect(d->downloadWriter,&CDownloadWriter::finished,th,&QThread::quit);
+    connect(d->downloadWriter,&CDownloadWriter::finished,
+            this,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
+    connect(th,&QThread::finished,d->downloadWriter,&CDownloadWriter::deleteLater);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+    connect(this,&CGlobalControl::stopWorkers,d->downloadWriter,
+            &CDownloadWriter::terminateStop,Qt::QueuedConnection);
+    connect(this,&CGlobalControl::terminateWorkers,
+            th,&QThread::terminate);
+    d->downloadWriter->moveToThread(th);
+    th->start();
 
     d->logWindow.reset(new CLogDisplay());
     d->downloadManager.reset(new CDownloadManager());
@@ -623,6 +639,12 @@ CTranslatorCache *CGlobalControl::translatorCache() const
     return d->translatorCache;
 }
 
+CDownloadWriter *CGlobalControl::downloadWriter() const
+{
+    Q_D(const CGlobalControl);
+    return d->downloadWriter;
+}
+
 const CUrlHolderVector &CGlobalControl::recycleBin() const
 {
     Q_D(const CGlobalControl);
@@ -816,7 +838,7 @@ void CGlobalControl::stopAndCloseTranslators()
     Q_D(CGlobalControl);
     QElapsedTimer tmr;
 
-    Q_EMIT stopTranslators();
+    Q_EMIT stopWorkers();
 
     tmr.start();
     while (!d->translatorPool.isEmpty() &&
@@ -826,7 +848,7 @@ void CGlobalControl::stopAndCloseTranslators()
     CGenericFuncs::processedMSleep(CDefaults::translatorWaitGranularityMS);
 
     if (!d->translatorPool.isEmpty()) {
-        Q_EMIT terminateTranslators();
+        Q_EMIT terminateWorkers();
         tmr.start();
         while (!d->translatorPool.isEmpty() &&
                tmr.elapsed() < CDefaults::translatorMaxShutdownTimeMS) {
@@ -1226,20 +1248,31 @@ void CGlobalControl::forceCharset()
 
 }
 
-void CGlobalControl::addTranslatorToPool(CTranslator *tran)
+void CGlobalControl::addWorkerToPool(CTranslator *tran)
 {
     Q_D(CGlobalControl);
     QPointer<CTranslator> ptr(tran);
     d->translatorPool.append(ptr);
 }
 
-void CGlobalControl::cleanupTranslator()
+void CGlobalControl::addWorkerToPool(CDownloadWriter *writer)
+{
+    Q_D(CGlobalControl);
+    QPointer<CDownloadWriter> ptr(writer);
+    d->translatorPool.append(ptr);
+}
+
+void CGlobalControl::cleanupWorker()
 {
     Q_D(CGlobalControl);
 
     auto *translator = qobject_cast<CTranslator *>(sender());
     if (translator)
         d->translatorPool.removeAll(translator);
+
+    auto *downloadWriter = qobject_cast<CDownloadWriter *>(sender());
+    if (downloadWriter)
+        d->translatorPool.removeAll(downloadWriter);
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine) const

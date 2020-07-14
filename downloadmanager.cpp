@@ -8,6 +8,7 @@
 #include "downloadmanager.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
+#include "downloadwriter.h"
 #include "snviewer.h"
 #include "ui_downloadmanager.h"
 
@@ -196,6 +197,14 @@ CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
 {
     m_manager = parent;
     downloads.clear();
+    connect(this,&CDownloadsModel::writeBytesToZip,
+            gSet->downloadWriter(),&CDownloadWriter::writeBytesToZip,Qt::QueuedConnection);
+    connect(this,&CDownloadsModel::writeBytesToFile,
+            gSet->downloadWriter(),&CDownloadWriter::writeBytesToFile,Qt::QueuedConnection);
+    connect(gSet->downloadWriter(),&CDownloadWriter::writeComplete,
+            this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
+    connect(gSet->downloadWriter(),&CDownloadWriter::error,
+            this,&CDownloadsModel::writerError,Qt::QueuedConnection);
 }
 
 CDownloadsModel::~CDownloadsModel()
@@ -350,28 +359,20 @@ void CDownloadsModel::downloadFinished()
     if (row<0 || row>=downloads.count())
         return;
 
-    if (item) {
+    if (item)
         downloads[row].state = item->state();
-    } else {
-        downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
-    }
 
     downloads[row].downloadItem = nullptr;
 
     if (rpl) {
         if (rpl->error()==QNetworkReply::NoError) {
+            QUuid uuid = downloads.at(row).auxId;
             if (!downloads.at(row).getZipName().isEmpty()) {
-                if (!CGenericFuncs::writeBytesToZip(downloads.at(row).getZipName(),
-                                                    downloads.at(row).getFileName(),
-                                                    rpl->readAll()))
-                    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+                Q_EMIT writeBytesToZip(downloads.at(row).getZipName(),
+                                       downloads.at(row).getFileName(),
+                                       rpl->readAll(),uuid);
             } else {
-                QFile f(downloads.at(row).getFileName()); // TODO: continuous file download for big files
-                if (f.open(QIODevice::WriteOnly)) {
-                    f.write(rpl->readAll());
-                    f.close();
-                } else
-                    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+                Q_EMIT writeBytesToFile(downloads.at(row).getFileName(),rpl->readAll(),uuid);
             }
         } else {
             downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
@@ -543,6 +544,29 @@ void CDownloadsModel::openXdg()
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
+void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
+{
+    int row = downloads.indexOf(CDownloadItem(uuid));
+    if (row<0 || row>=downloads.count())
+        return;
+
+    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+    downloads[row].errorString = message;
+
+    Q_EMIT dataChanged(index(row,0),index(row,3));
+}
+
+void CDownloadsModel::writerCompleted(const QUuid &uuid)
+{
+    int row = downloads.indexOf(CDownloadItem(uuid));
+    if (row<0 || row>=downloads.count())
+        return;
+
+    downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
+
+    Q_EMIT dataChanged(index(row,0),index(row,3));
+}
+
 CDownloadItem::CDownloadItem(quint32 itemId)
 {
     id = itemId;
@@ -551,6 +575,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
 CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 {
     reply = rpl;
+    auxId = QUuid::createUuid();
 }
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
@@ -569,12 +594,18 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
     }
 }
 
+CDownloadItem::CDownloadItem(const QUuid &uuid)
+{
+    auxId = uuid;
+}
+
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
 {
     pathName = fname;
     mimeType = QSL("application/download");
     state = QWebEngineDownloadItem::DownloadInProgress;
     reply = rpl;
+    auxId = QUuid::createUuid();
 }
 
 bool CDownloadItem::operator==(const CDownloadItem &s) const
@@ -582,7 +613,10 @@ bool CDownloadItem::operator==(const CDownloadItem &s) const
     if (id!=0 && s.id!=0)
         return (id==s.id);
 
-    return reply==s.reply;
+    if (reply!=nullptr && s.reply!=nullptr)
+        return reply==s.reply;
+
+    return auxId==s.auxId;
 }
 
 bool CDownloadItem::operator!=(const CDownloadItem &s) const
@@ -592,7 +626,7 @@ bool CDownloadItem::operator!=(const CDownloadItem &s) const
 
 bool CDownloadItem::isEmpty() const
 {
-    return (id==0 && reply==nullptr && downloadItem==nullptr && pathName.isEmpty());
+    return (id==0 && reply==nullptr && auxId.isNull() && downloadItem==nullptr && pathName.isEmpty());
 }
 
 QString CDownloadItem::getFileName() const

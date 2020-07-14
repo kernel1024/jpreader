@@ -143,15 +143,15 @@ void CSnTrans::translatePriv(const QString &sourceHtml)
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);
 
-    gSet->addTranslatorToPool(ct);
-    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupTranslator,Qt::QueuedConnection);
+    gSet->addWorkerToPool(ct);
+    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
     connect(ct,&CTranslator::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
 
-    connect(gSet,&CGlobalControl::stopTranslators,
+    connect(gSet,&CGlobalControl::stopWorkers,
             ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
-    connect(gSet,&CGlobalControl::terminateTranslators,
+    connect(gSet,&CGlobalControl::terminateWorkers,
             th,&QThread::terminate);
     connect(snv->abortBtn,&QPushButton::clicked,
             ct,&CTranslator::abortTranslator,Qt::QueuedConnection);

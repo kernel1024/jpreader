@@ -18,6 +18,7 @@ class CMainWindow;
 class CLightTranslator;
 class CAuxTranslator;
 class CDownloadManager;
+class CDownloadWriter;
 class BookmarksManager;
 class CLogDisplay;
 class CBrowserController;
@@ -34,13 +35,14 @@ public:
     BookmarksManager *bookmarksManager { nullptr };
     ZDict::ZDictController * dictManager { nullptr };
     CTranslatorCache *translatorCache { nullptr };
+    CDownloadWriter *downloadWriter { nullptr };
 
     QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;
     QScopedPointer<CDownloadManager, QScopedPointerDeleteLater> downloadManager;
     QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
     QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
-    QList<CTranslator *> translatorPool;
+    QList<QObject *> translatorPool;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;

@@ -17,6 +17,7 @@
 
 class CLogDisplay;
 class CDownloadManager;
+class CDownloadWriter;
 class CGlobalControlPrivate;
 class CLangPairModel;
 class BookmarksManager;
@@ -88,7 +89,7 @@ public:
     QStringList getLanguageCodes() const;
     QString getLanguageName(const QString &bcp47Name) const;
     void showLightTranslator(const QString& text = QString());
-    void addTranslatorToPool(CTranslator* tran);
+    void addWorkerToPool(CTranslator* tran);
 
     // Misc
     QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
@@ -128,6 +129,7 @@ public:
     const QHash<QString,QIcon> &favicons() const;
     ZDict::ZDictController* dictionaryManager() const;
     CTranslatorCache* translatorCache() const;
+    CDownloadWriter* downloadWriter() const;
 
 private:
     Q_DISABLE_COPY(CGlobalControl)
@@ -143,11 +145,12 @@ private:
     void stopAndCloseTranslators();
     void initLanguagesList();
     void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    void addWorkerToPool(CDownloadWriter* writer);
 
 Q_SIGNALS:
     void startAuxTranslation();
-    void stopTranslators();
-    void terminateTranslators();
+    void stopWorkers();
+    void terminateWorkers();
 
     void translationEngineChanged();
     void translationStatisticsChanged();
@@ -175,7 +178,7 @@ public Q_SLOTS:
     void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
     void clearCaches();
     void forceCharset();
-    void cleanupTranslator();
+    void cleanupWorker();
 
     // Cookies sync
     void cookieAdded(const QNetworkCookie &cookie);

@@ -1,5 +1,6 @@
 HEADERS = mainwindow.h \
     awstranslator.h \
+    downloadwriter.h \
     fanboxextractor.h \
     globalprivate.h \
     htmlimagesextractor.h \
@@ -58,6 +59,7 @@ HEADERS = mainwindow.h \
 
 SOURCES = main.cpp \
     awstranslator.cpp \
+    downloadwriter.cpp \
     fanboxextractor.cpp \
     globalprivate.cpp \
     htmlimagesextractor.cpp \

@@ -27,7 +27,6 @@
 extern "C" {
 #include <unistd.h>
 #include <magic.h>
-#include <zip.h>
 }
 
 CGenericFuncs::CGenericFuncs(QObject *parent)
@@ -540,33 +539,6 @@ void CGenericFuncs::processedMSleep(unsigned long msecs)
         QThread::msleep(granularity);
         QApplication::processEvents();
     }
-}
-
-bool CGenericFuncs::writeBytesToZip(const QString &zipFile, const QString &fileName, const QByteArray &data)
-{
-    static QMutex zipLock;
-    QMutexLocker locker(&zipLock);
-
-    int errorp = 0;
-    zip_t* zip = zip_open(zipFile.toUtf8().constData(),ZIP_CREATE,&errorp);
-    if (zip == nullptr) {
-        zip_error_t ziperror;
-        zip_error_init_with_code(&ziperror, errorp);
-        qCritical() << "Unable to open zip file " << zipFile << fileName << zip_error_strerror(&ziperror);
-        return false;
-    }
-
-    zip_source_t* src = nullptr;
-    if ((src = zip_source_buffer(zip, data.constData(), static_cast<uint64_t>(data.size()), 0)) == nullptr ||
-            zip_file_add(zip, fileName.toUtf8().constData(), src, ZIP_FL_ENC_UTF_8) < 0) {
-        zip_source_free(src);
-        zip_close(zip);
-        qCritical() << "error adding file " << zipFile << fileName << zip_strerror(zip);
-        return false;
-    }
-
-    zip_close(zip);
-    return true;
 }
 
 const QVector<QStringList> &CGenericFuncs::encodingsByScript()

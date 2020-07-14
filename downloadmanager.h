@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QPointer>
+#include <QUuid>
 
 namespace Ui {
 class CDownloadManager;
@@ -28,6 +29,7 @@ public:
     qint64 total { 0L };
     QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
+    QUuid auxId;
 
     bool autoDelete { false };
 
@@ -36,6 +38,7 @@ public:
     explicit CDownloadItem(quint32 itemId);
     explicit CDownloadItem(QNetworkReply* rpl);
     explicit CDownloadItem(QWebEngineDownloadItem* item);
+    explicit CDownloadItem(const QUuid& uuid);
     CDownloadItem(QNetworkReply* rpl, const QString& fname);
     ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other) = default;
@@ -114,6 +117,16 @@ public Q_SLOTS:
     void openDirectory();
     void openHere();
     void openXdg();
+
+private Q_SLOTS:
+    void writerError(const QString& message, const QUuid& uuid);
+    void writerCompleted(const QUuid& uuid);
+
+Q_SIGNALS:
+    void writeBytesToZip(const QString &zipFile, const QString &fileName,
+                         const QByteArray &data, const QUuid& uuid);
+    void writeBytesToFile(const QString &fileName, const QByteArray &data,
+                          const QUuid& uuid);
 
 };
 
