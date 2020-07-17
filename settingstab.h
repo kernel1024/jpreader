@@ -97,7 +97,6 @@ private:
     void saveUserScripts();
     void saveDictPaths();
     void saveNoScriptWhitelist();
-    void clearAdblockWhitelist();
 
 public:
     static CSettingsTab* instance();

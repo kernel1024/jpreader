@@ -184,13 +184,15 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     auto scripts = readData(bigdataDir,QSL("userScripts")).value<CStringHash>();
     g->initUserScripts(scripts);
 
-    QByteArray bookmarks = readByteArray(bigdataDir,QSL("bookmarks"));
+    const QByteArray bookmarks = readByteArray(bigdataDir,QSL("bookmarks"));
     g->d_func()->bookmarksManager->load(bookmarks);
 
-    QByteArray adblock = readByteArray(bigdataDir,QSL("adblock"));
+    const QByteArray adblock = readByteArray(bigdataDir,QSL("adblock"));
     QThread* th = QThread::create([this,g,adblock]() {
         QDataStream bufs(adblock);
+        g->d_func()->adblockModifyMutex.lock();
         bufs >> g->d_func()->adblock;
+        g->d_func()->adblockModifyMutex.unlock();
         qInfo() << "Adblock rules loaded";
         Q_EMIT adblockRulesUpdated();
     });

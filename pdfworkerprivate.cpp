@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QMessageLogger>
 #include <QBuffer>
+#include <numeric>
 
 #include "genericfuncs.h"
 #include "globalcontrol.h"
@@ -186,9 +187,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
     const double minimalHorizontalLen = 2.0;
     const ushort maxControlChar = 0x1f;
 
-    int sumlen = 0;
-    for (const auto len : qAsConst(m_outLengths))
-        sumlen += len;
+    int sumlen = std::reduce(m_outLengths.constBegin(),m_outLengths.constEnd());
 
     double avglen = (static_cast<double>(sumlen))/m_outLengths.count();
     bool isVerticalText = (avglen<minimalHorizontalLen);

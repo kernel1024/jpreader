@@ -11,6 +11,8 @@
 #include <QElapsedTimer>
 #include <QPointer>
 #include <QAtomicInteger>
+#include <algorithm>
+#include <execution>
 
 extern "C" {
 #include <sys/resource.h>
@@ -380,10 +382,11 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
 void CGlobalControl::cleanTmpFiles()
 {
     Q_D(CGlobalControl);
-    for (const auto & fname : qAsConst(d->createdFiles)) {
+    std::for_each(std::execution::par,d->createdFiles.constBegin(),d->createdFiles.constEnd(),
+                  [](const QString& fname){
         QFile f(fname);
         f.remove();
-    }
+    });
     d->createdFiles.clear();
 }
 
@@ -905,15 +908,17 @@ bool CGlobalControl::isUrlBlocked(const QUrl& url, QString &filter)
     if (!url.scheme().startsWith(QSL("http"),Qt::CaseInsensitive)) return false;
 
     filter.clear();
-    QString u = url.toString(CSettings::adblockUrlFmt);
+    const QString u = url.toString(CSettings::adblockUrlFmt);
 
     if (d->adblockWhiteList.contains(u)) return false;
 
-    for (const CAdBlockRule& rule : qAsConst(d->adblock)) {
-        if (rule.networkMatch(u)) {
-            filter = rule.filter();
-            return true;
-        }
+    const auto *it = std::find_if(std::execution::par,d->adblock.constBegin(),d->adblock.constEnd(),
+                                  [u](const CAdBlockRule& rule){
+        return rule.networkMatch(u);
+    });
+    if (it != d->adblock.constEnd()) {
+        filter = it->filter();
+        return true;
     }
 
     Q_EMIT addAdBlockWhiteListUrl(u);
@@ -947,22 +952,60 @@ void CGlobalControl::adblockAppend(const QString& url)
     adblockAppend(CAdBlockRule(url,QString()));
 }
 
-void CGlobalControl::adblockAppend(const CAdBlockRule& url)
+void CGlobalControl::adblockAppend(const CAdBlockRule& url, bool fast)
 {
-    QVector<CAdBlockRule> list;
-    list << url;
-    adblockAppend(list);
+    Q_D(CGlobalControl);
+
+    d->adblockModifyMutex.lock();
+    d->adblock.append(url);
+    d->adblockModifyMutex.unlock();
+
+    if (!fast) {
+        d->clearAdblockWhiteList();
+        Q_EMIT adblockRulesUpdated();
+    }
 }
 
 void CGlobalControl::adblockAppend(const QVector<CAdBlockRule> &urls)
 {
     Q_D(CGlobalControl);
 
+    d->adblockModifyMutex.lock();
     d->adblock.append(urls);
+    d->adblockModifyMutex.unlock();
 
-    d->adblockWhiteListMutex.lock();
-    d->adblockWhiteList.clear();
-    d->adblockWhiteListMutex.unlock();
+    d->clearAdblockWhiteList();
+
+    Q_EMIT adblockRulesUpdated();
+}
+
+void CGlobalControl::adblockDelete(const QVector<CAdBlockRule> &rules)
+{
+    Q_D(CGlobalControl);
+
+    d->adblockModifyMutex.lock();
+    d->adblock.erase(std::remove_if(std::execution::par,d->adblock.begin(),d->adblock.end(),
+                                    [rules](const CAdBlockRule& rule){
+        return rules.contains(rule);
+    }),d->adblock.end());
+    d->adblockModifyMutex.unlock();
+
+    d->clearAdblockWhiteList();
+
+    Q_EMIT adblockRulesUpdated();
+}
+
+void CGlobalControl::adblockClear()
+{
+    Q_D(CGlobalControl);
+
+    d->adblockModifyMutex.lock();
+    d->adblock.clear();
+    d->adblockModifyMutex.unlock();
+
+    d->clearAdblockWhiteList();
+
+    Q_EMIT adblockRulesUpdated();
 }
 
 void CGlobalControl::clearNoScriptPageHosts(const QString &origin)

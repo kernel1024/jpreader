@@ -13,29 +13,10 @@
 #include "genericfuncs.h"
 #include "structures.h"
 
-CAdBlockRule::CAdBlockRule()
-{
-    m_listID = QString();
-    setFilter(QString());
-}
-
-CAdBlockRule::CAdBlockRule(const CAdBlockRule &other)
-{
-    m_listID = other.m_listID;
-    setFilter(other.filter());
-}
-
 CAdBlockRule::CAdBlockRule(const QString &filter, const QString &listID)
 {
     m_listID = listID;
     setFilter(filter);
-}
-
-CAdBlockRule &CAdBlockRule::operator=(const CAdBlockRule &other)
-{
-    m_listID = other.m_listID;
-    setFilter(other.filter());
-    return *this;
 }
 
 bool CAdBlockRule::operator==(const CAdBlockRule &s) const
@@ -50,14 +31,15 @@ bool CAdBlockRule::operator!=(const CAdBlockRule &s) const
 
 QDataStream &operator<<(QDataStream &out, const CAdBlockRule &obj)
 {
-    out << obj.m_filter << obj.m_listID;
+    out << obj.m_filter << obj.m_listID << obj.m_regExp << obj.m_plainRule << obj.m_options
+        << obj.m_cssRule << obj.m_exception << obj.m_enabled;
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, CAdBlockRule &obj)
 {
-    in >> obj.m_filter >> obj.m_listID;
-    obj.setFilter(obj.m_filter);
+    in >> obj.m_filter >> obj.m_listID >> obj.m_regExp >> obj.m_plainRule >> obj.m_options
+       >> obj.m_cssRule >> obj.m_exception >> obj.m_enabled;
     return in;
 }
 
@@ -154,7 +136,7 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
             for (const QString &option : qAsConst(m_options)) {
                 if (option.startsWith(QLatin1String("domain="))) {
                     const QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
-                    for (const QString& domainOption : qAsConst(domainOptions)) {
+                    for (const QString& domainOption : domainOptions) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');
                         bool hostMatched = false;
                         if (negate) {

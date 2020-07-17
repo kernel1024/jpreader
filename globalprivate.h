@@ -67,6 +67,7 @@ public:
     bool atlCertErrorInteractive { false };
 
     CAdBlockVector adblock;
+    QMutex adblockModifyMutex;
     QStringList adblockWhiteList;
     QMutex adblockWhiteListMutex;
 
@@ -89,6 +90,8 @@ public:
 
     static void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static bool runnedFromQtCreator();
+
+    void clearAdblockWhiteList();
 
 private:
     Q_DISABLE_COPY(CGlobalControlPrivate)

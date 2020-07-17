@@ -1,5 +1,7 @@
 #include <QCryptographicHash>
 #include <QDir>
+#include <algorithm>
+#include <execution>
 #include "translatorcache.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
@@ -84,18 +86,20 @@ void CTranslatorCache::cleanOldEntries()
         sumSize += list.takeLast().size();
     }
 
-    for (const auto &item : qAsConst(list)) {
+    std::for_each(std::execution::par,list.constBegin(),list.constEnd(),
+                   [](const QFileInfo& item){
         QFile f(item.absoluteFilePath());
         f.remove();
-    }
+    });
 }
 
 void CTranslatorCache::clearCache()
 {
     if (!m_cachePath.exists()) return;
     const QFileInfoList list = m_cachePath.entryInfoList(QDir::Files | QDir::Writable | QDir::Readable);
-    for (const auto &item : list) {
+    std::for_each(std::execution::par,list.constBegin(),list.constEnd(),
+                   [](const QFileInfo& item){
         QFile f(item.absoluteFilePath());
         f.remove();
-    }
+    });
 }

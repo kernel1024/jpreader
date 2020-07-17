@@ -49,6 +49,13 @@ bool CGlobalControlPrivate::runnedFromQtCreator()
     return res;
 }
 
+void CGlobalControlPrivate::clearAdblockWhiteList()
+{
+    adblockWhiteListMutex.lock();
+    adblockWhiteList.clear();
+    adblockWhiteListMutex.unlock();
+}
+
 
 void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {

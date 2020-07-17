@@ -21,11 +21,11 @@ class CAdBlockRule
     friend QDataStream &operator>>(QDataStream &in, CAdBlockRule &obj);
 
 public:
-    CAdBlockRule();
-    CAdBlockRule(const CAdBlockRule& other);
+    CAdBlockRule() = default;
+    CAdBlockRule(const CAdBlockRule& other) = default;
     CAdBlockRule(const QString &filter, const QString &listID);
     ~CAdBlockRule() = default;
-    CAdBlockRule &operator=(const CAdBlockRule& other);
+    CAdBlockRule &operator=(const CAdBlockRule& other) = default;
     bool operator==(const CAdBlockRule &s) const;
     bool operator!=(const CAdBlockRule &s) const;
 

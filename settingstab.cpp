@@ -6,6 +6,8 @@
 #include <QWebEngineCookieStore>
 #include <QWebEngineSettings>
 #include <QLocale>
+#include <algorithm>
+#include <execution>
 
 #include "settingstab.h"
 #include "ui_settingstab.h"
@@ -62,6 +64,8 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     connect(ui->buttonDelNoScript, &QPushButton::clicked, this, &CSettingsTab::delNoScriptHost);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
+
+    connect(gSet, &CGlobalControl::adblockRulesUpdated, this, &CSettingsTab::updateAdblockList, Qt::QueuedConnection);
 
     ui->atlSSLProto->addItem(QSL("Secure"),static_cast<int>(QSsl::SecureProtocols));
     ui->atlSSLProto->addItem(QSL("TLS 1.3+"),static_cast<int>(QSsl::TlsV1_3OrLater));
@@ -864,13 +868,6 @@ void CSettingsTab::exportCookies()
 
 // *********************** AdBlock ************************************
 
-void CSettingsTab::clearAdblockWhitelist()
-{
-    gSet->d_func()->adblockWhiteListMutex.lock();
-    gSet->d_func()->adblockWhiteList.clear();
-    gSet->d_func()->adblockWhiteListMutex.unlock();
-}
-
 void CSettingsTab::updateAdblockList()
 {
     const auto &adblockList = gSet->d_func()->adblock;
@@ -954,9 +951,7 @@ void CSettingsTab::addAd()
                                       QLineEdit::Normal,QString(),&ok);
     if (!ok) return;
 
-    gSet->d_func()->adblock << CAdBlockRule(s,QString());
-    updateAdblockList();
-    clearAdblockWhitelist();
+    gSet->adblockAppend(s);
 }
 
 void CSettingsTab::delAd()
@@ -967,18 +962,12 @@ void CSettingsTab::delAd()
     for (const QTreeWidgetItem* i : il)
         r << gSet->d_func()->adblock.at(i->data(0,Qt::UserRole+1).toInt());
 
-    for (const auto& rule : qAsConst(r))
-        gSet->d_func()->adblock.removeOne(rule);
-
-    updateAdblockList();
-    clearAdblockWhitelist();
+    gSet->adblockDelete(r);
 }
 
 void CSettingsTab::delAdAll()
 {
-    gSet->d_func()->adblock.clear();
-    updateAdblockList();
-    clearAdblockWhitelist();
+    gSet->adblockClear();
 }
 
 void CSettingsTab::importAd()
@@ -986,30 +975,34 @@ void CSettingsTab::importAd()
     QString fname = CGenericFuncs::getOpenFileNameD(this,tr("Import rules from text file"),QDir::homePath());
     if (fname.isEmpty()) return;
 
+    QFileInfo fi(fname);
+    const QString baseFileName = fi.fileName();
+
     QFile f(fname);
     if (!f.open(QIODevice::ReadOnly)) {
         QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
         return;
     }
     QTextStream fs(&f);
-
-    QFileInfo fi(fname);
+    QStringList ruleStrings;
+    while (!fs.atEnd())
+        ruleStrings.append(fs.readLine());
+    f.close();
 
     int psz = gSet->d_func()->adblock.count();
-    int cssRule = 0;
-    while (!fs.atEnd()) {
-        CAdBlockRule rule = CAdBlockRule(fs.readLine(),fi.fileName());
-        // skip CSS rules for speedup search, anyway we do not support CSS rules now.
+    QAtomicInteger<int> cssRule = 0;
+    std::for_each(std::execution::par,ruleStrings.constBegin(),ruleStrings.constEnd(),
+                  [baseFileName,&cssRule](const QString& line){
+        CAdBlockRule rule = CAdBlockRule(line,baseFileName);
         if (!rule.isCSSRule()) {
-            gSet->d_func()->adblock << rule;
+            gSet->adblockAppend(rule,true);
         } else {
             cssRule++;
         }
-    }
-    f.close();
+    });
 
     updateAdblockList();
-    clearAdblockWhitelist();
+    gSet->d_func()->clearAdblockWhiteList();
 
     psz = gSet->d_func()->adblock.count() - psz;
     QMessageBox::information(this,tr("JPReader"),tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));

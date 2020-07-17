@@ -61,8 +61,10 @@ public:
     bool isUrlBlocked(const QUrl &url);
     bool isUrlBlocked(const QUrl &url, QString &filter);
     void adblockAppend(const QString &url);
-    void adblockAppend(const CAdBlockRule &url);
+    void adblockAppend(const CAdBlockRule &url, bool fast = false);
     void adblockAppend(const QVector<CAdBlockRule> &urls);
+    void adblockDelete(const QVector<CAdBlockRule> &rules);
+    void adblockClear();
 
     // No-Script
     bool isScriptBlocked(const QUrl &url, const QUrl &origin);
@@ -165,6 +167,8 @@ Q_SIGNALS:
 
     void addAdBlockWhiteListUrl(const QString& url);
     void addNoScriptPageHost(const QString& origin, const QString& host);
+
+    void adblockRulesUpdated();
 
 public Q_SLOTS:
     void cleanupAndExit();
