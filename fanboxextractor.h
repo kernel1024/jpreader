@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QMutex>
 #include "snviewer.h"
 #include "structures.h"
 
@@ -14,6 +15,14 @@ private:
     bool m_translate { false };
     bool m_focus { false };
     CSnippetViewer* m_snv { nullptr };
+    QVector<CUrlWithName> m_illustMap;
+    QAtomicInteger<int> m_worksIllustFetch;
+    QMutex m_illustMutex;
+
+    QString m_title;
+    QString m_text;
+    QString m_authorId;
+    QString m_postNum;
 
     void showError(const QString &message);
 
@@ -27,10 +36,13 @@ Q_SIGNALS:
     void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin);
     void finished();
 
+private Q_SLOTS:
+    void subImageFinished();
+    void loadError(QNetworkReply::NetworkError error);
+    void pageLoadFinished();
+
 public Q_SLOTS:
     void start();
-    void pageLoadFinished();
-    void loadError(QNetworkReply::NetworkError error);
 
 };
 

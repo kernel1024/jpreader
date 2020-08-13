@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QBuffer>
 #include "fanboxextractor.h"
 #include "globalcontrol.h"
 
@@ -29,6 +30,8 @@ void CFanboxExtractor::start()
         return;
     }
 
+    m_illustMap.clear();
+
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(QUrl(QSL("https://api.fanbox.cc/post.info?postId=%1").arg(m_postId)));
         req.setRawHeader("referer","https://www.fanbox.cc/");
@@ -43,10 +46,13 @@ void CFanboxExtractor::start()
 
 void CFanboxExtractor::pageLoadFinished()
 {
+    const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
+
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || m_snv==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
+        QUrl origin = rpl->url();
         QJsonParseError err {};
         QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
         if (doc.isNull()) {
@@ -68,17 +74,21 @@ void CFanboxExtractor::pageLoadFinished()
                 return;
             }
 
-            QString postNum = body.value(QSL("id")).toString();
-            QString title = body.value(QSL("title")).toString();
+            m_postNum = body.value(QSL("id")).toString();
+            m_title = body.value(QSL("title")).toString();
             QString author = body.value(QSL("user")).toObject().value(QSL("name")).toString();
-            QString authorId = body.value(QSL("creatorId")).toString();
-            QString text = mbody.value(QSL("text")).toString();
+            m_authorId = body.value(QSL("creatorId")).toString();
+            m_text = mbody.value(QSL("text")).toString();
             const QJsonArray jblocks = mbody.value(QSL("blocks")).toArray();
             for (const auto &jblock : jblocks) {
                 QString bvalue = jblock.toObject().value(QSL("type")).toString();
                 QString btext = jblock.toObject().value(QSL("text")).toString();
-                if (!bvalue.isEmpty())
-                    text.append(QSL("<%1>%2</%1>").arg(bvalue,btext));
+                QString imageId = jblock.toObject().value(QSL("imageId")).toString();
+                if (!imageId.isEmpty()) {
+                    m_text.append(QSL("<img>%1</img>").arg(imageId));
+                } else if (!bvalue.isEmpty()) {
+                    m_text.append(QSL("<%1>%2</%1>").arg(bvalue,btext));
+                }
             }
 
             QStringList tags;
@@ -104,40 +114,132 @@ void CFanboxExtractor::pageLoadFinished()
                     if (!tagList.isEmpty())
                         tagList.append(QSL(" / "));
                     tagList.append(QSL("<a href=\"https://%1.fanbox.cc/tags/%2\">%2</a>")
-                                   .arg(authorId,tag));
+                                   .arg(m_authorId,tag));
                 }
                 if (!tagList.isEmpty())
-                    text.prepend(QSL("Tags: %1\n\n").arg(tagList));
+                    m_text.prepend(QSL("Tags: %1\n\n").arg(tagList));
             }
             if (!author.isEmpty()) {
-                text.prepend(QSL("Author: <a href=\"https://%1.fanbox.cc\">%2</a>\n\n")
-                             .arg(authorId,author));
+                m_text.prepend(QSL("Author: <a href=\"https://%1.fanbox.cc\">%2</a>\n\n")
+                             .arg(m_authorId,author));
             }
 
-            Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
-                                  title,text,true,
-                                  QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(authorId,postNum))),
-                              m_focus,m_translate);
+            QJsonObject jillusts = mbody.value(QSL("imageMap")).toObject();
+            for (const auto &jimg : qAsConst(jillusts)) {
+                QString id = jimg.toObject().value(QSL("id")).toString();
+                QString url = jimg.toObject().value(QSL("originalUrl")).toString();
+                if (!id.isEmpty() && !url.isEmpty())
+                    m_illustMap.append(qMakePair(url,id));
+            }
 
-            if (!images.isEmpty()) {
-                QString mangaId = postNum;
-                if (!title.isEmpty()) {
-                    mangaId = CGenericFuncs::makeSafeFilename(
-                                  QSL("%1 [fanbox_%2]")
-                                  .arg(CGenericFuncs::elideString(
-                                           title,
-                                           CDefaults::maxFanboxFilenameLength),
-                                       postNum));
+            if (!m_illustMap.isEmpty()) {
+                QStringList processedUrls;
+                m_illustMutex.lock();
+                for (const auto& w : qAsConst(m_illustMap)) {
+                    QString illustUrl = w.first;
+                    QUrl url(illustUrl);
+                    if (!url.isValid() || url.isEmpty()) continue;
+
+                    QFileInfo fi(illustUrl);
+                    if (gSet->settings()->pixivFetchImages &&
+                            supportedExt.contains(fi.suffix(),Qt::CaseInsensitive) &&
+                            !processedUrls.contains(illustUrl)) {
+                        m_worksIllustFetch++;
+                        processedUrls.append(illustUrl);
+                        QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,origin]{
+                            QNetworkRequest req(url);
+                            req.setRawHeader("origin","https://www.fanbox.cc");
+                            req.setRawHeader("referer",origin.toString().toUtf8());
+                            QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
+                            connect(rplImg,&QNetworkReply::finished,this,&CFanboxExtractor::subImageFinished);
+                        },Qt::QueuedConnection);
+                    }
                 }
-                if (!authorId.isEmpty())
-                    mangaId.prepend(QSL("[%1] ").arg(authorId));
-                Q_EMIT mangaReady(images,mangaId,QSL("https://www.fanbox.cc/@%1/posts/%2")
-                                  .arg(authorId,postNum));
+                m_illustMutex.unlock();
+
+            } else {
+
+                Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
+                                      m_title,m_text,true,
+                                      QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
+                                  m_focus,m_translate);
+
+                if (!images.isEmpty()) {
+                    QString mangaId = m_postNum;
+                    if (!m_title.isEmpty()) {
+                        mangaId = CGenericFuncs::makeSafeFilename(
+                                    QSL("%1 [fanbox_%2]")
+                                    .arg(CGenericFuncs::elideString(
+                                             m_title,
+                                             CDefaults::maxFanboxFilenameLength),
+                                         m_postNum));
+                    }
+                    if (!m_authorId.isEmpty())
+                        mangaId.prepend(QSL("[%1] ").arg(m_authorId));
+                    Q_EMIT mangaReady(images,mangaId,QSL("https://www.fanbox.cc/@%1/posts/%2")
+                                      .arg(m_authorId,m_postNum));
+                }
             }
         }
     }
 
-    Q_EMIT finished();
+    if (m_worksIllustFetch == 0)
+        Q_EMIT finished();
+}
+
+void CFanboxExtractor::subImageFinished()
+{
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QByteArray ba = rpl->readAll();
+        QImage img;
+        if (img.loadFromData(ba)) {
+            if (img.width()>img.height()) {
+                if (img.width()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToWidth(gSet->settings()->pdfImageMaxSize,
+                                            Qt::SmoothTransformation);
+                }
+            } else {
+                if (img.height()>gSet->settings()->pdfImageMaxSize) {
+                    img = img.scaledToHeight(gSet->settings()->pdfImageMaxSize,
+                                             Qt::SmoothTransformation);
+                }
+            }
+            ba.clear();
+            QBuffer buf(&ba);
+            buf.open(QIODevice::WriteOnly);
+            if (img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality)) {
+                QByteArray out("data:image/jpeg;base64,");
+                out.append(QString::fromLatin1(ba.toBase64()));
+                ba = out;
+            } else {
+                ba.clear();
+            }
+        } else {
+            ba.clear();
+        }
+
+        m_illustMutex.lock();
+        for (auto &w : m_illustMap) {
+            if ((w.first == rpl->url().toString()) && !ba.isEmpty()) {
+                m_text.replace(QSL("<img>%1</img>").arg(w.second),
+                               QSL("<img src=\"%1\"/>").arg(QString::fromUtf8(ba)));
+            }
+        }
+        m_illustMutex.unlock();
+    }
+    m_worksIllustFetch--;
+
+    if (m_worksIllustFetch == 0) {
+        Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
+                              m_title,m_text,true,
+                              QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
+                          m_focus,m_translate);
+
+        Q_EMIT finished();
+    }
 }
 
 void CFanboxExtractor::loadError(QNetworkReply::NetworkError error)
