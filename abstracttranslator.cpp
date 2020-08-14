@@ -7,6 +7,7 @@
 #include "googlegtxtranslator.h"
 #include "awstranslator.h"
 #include "yandexcloudtranslator.h"
+#include "googlecloudtranslator.h"
 
 int CAbstractTranslator::getTranslatorRetryCount() const
 {
@@ -113,6 +114,9 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, con
     if (engine==CStructures::teYandexCloud) {
         res = new CYandexCloudTranslator(parent, tranDirection, gSet->settings()->yandexCloudApiKey,
                                          gSet->settings()->yandexCloudFolderID);
+    }
+    if (engine==CStructures::teGoogleCloud) {
+        res = new CGoogleCloudTranslator(parent, tranDirection, gSet->settings()->gcpJsonKeyFile);
     }
 
     return res;

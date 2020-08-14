@@ -128,6 +128,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("awsSecretKey"),awsSecretKey);
     settings.setValue(QSL("yandexCloudApiKey"),yandexCloudApiKey);
     settings.setValue(QSL("yandexCloudFolderID"),yandexCloudFolderID);
+    settings.setValue(QSL("gcpJsonKeyFile"),gcpJsonKeyFile);
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
     settings.setValue(QSL("userAgent"),userAgent);
@@ -410,6 +411,7 @@ void CSettings::readSettings(QObject *control)
     awsSecretKey = settings.value(QSL("awsSecretKey"),QString()).toString();
     yandexCloudApiKey = settings.value(QSL("yandexCloudApiKey"),QString()).toString();
     yandexCloudFolderID = settings.value(QSL("yandexCloudFolderID"),QString()).toString();
+    gcpJsonKeyFile = settings.value(QSL("gcpJsonKeyFile"),QString()).toString();
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     dontUseNativeFileDialog = settings.value(QSL("dontUseNativeFileDialog"),
                                              CDefaults::dontUseNativeFileDialog).toBool();

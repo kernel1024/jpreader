@@ -99,6 +99,7 @@ public:
     QString awsSecretKey;
     QString yandexCloudApiKey;
     QString yandexCloudFolderID;
+    QString gcpJsonKeyFile;
 
     QString proxyHost;
     QString proxyLogin;

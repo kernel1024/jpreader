@@ -62,6 +62,7 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     connect(ui->buttonDelTrDir, &QPushButton::clicked, transModel, &CLangPairModel::deleteItem);
     connect(ui->buttonAddNoScript, &QPushButton::clicked, this, &CSettingsTab::addNoScriptHost);
     connect(ui->buttonDelNoScript, &QPushButton::clicked, this, &CSettingsTab::delNoScriptHost);
+    connect(ui->buttonGcpJsonFile, &QPushButton::clicked, this, &CSettingsTab::selectGcpJsonFile);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
 
@@ -150,6 +151,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teGoogleGTX: ui->radioGoogleGTX->setChecked(true); break;
         case CStructures::teAmazonAWS: ui->radioAmazonAWS->setChecked(true); break;
         case CStructures::teYandexCloud: ui->radioYandexCloud->setChecked(true); break;
+        case CStructures::teGoogleCloud: ui->radioGoogleCloud->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -177,6 +179,7 @@ void CSettingsTab::loadFromGlobal()
     ui->editAWSSecretKey->setText(gSet->m_settings->awsSecretKey);
     ui->editYandexCloudApiKey->setText(gSet->m_settings->yandexCloudApiKey);
     ui->editYandexCloudFolderID->setText(gSet->m_settings->yandexCloudFolderID);
+    ui->editGcpJsonKey->setText(gSet->m_settings->gcpJsonKeyFile);
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
 
@@ -374,6 +377,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->setTranslationEngine(CStructures::teYandexCloud);
     });
+    connect(ui->radioGoogleCloud,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->setTranslationEngine(CStructures::teGoogleCloud);
+    });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
@@ -429,6 +437,10 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->editYandexCloudFolderID,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->yandexCloudFolderID=val;
+    });
+    connect(ui->editGcpJsonKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->gcpJsonKeyFile=val;
     });
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
@@ -671,6 +683,13 @@ void CSettingsTab::selectEditor()
 {
     QString s = CGenericFuncs::getOpenFileNameD(this,tr("Select editor"),ui->editEditor->text());
     if (!s.isEmpty()) ui->editEditor->setText(s);
+}
+
+void CSettingsTab::selectGcpJsonFile()
+{
+    QString s = CGenericFuncs::getOpenFileNameD(this,tr("Select GCP service JSON key"),ui->editGcpJsonKey->text(),
+                                                QStringList( { QSL("JSON GCP service access key (*.json)") }));
+    if (!s.isEmpty()) ui->editGcpJsonKey->setText(s);
 }
 
 void CSettingsTab::fontColorDlg()

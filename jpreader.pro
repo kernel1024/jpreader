@@ -41,6 +41,7 @@ HEADERS = mainwindow.h \
     translatorstatisticstab.h \
     yandexcloudtranslator.h \
     yandextranslator.h \
+    googlecloudtranslator.h \
     pdftotext.h \
     sourceviewer.h \
     structures.h \
@@ -100,6 +101,7 @@ SOURCES = main.cpp \
     translatorstatisticstab.cpp \
     yandexcloudtranslator.cpp \
     yandextranslator.cpp \
+    googlecloudtranslator.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \
     structures.cpp \

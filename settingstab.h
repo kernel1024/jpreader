@@ -136,6 +136,7 @@ public Q_SLOTS:
     void editUserScript();
     void addNoScriptHost();
     void delNoScriptHost();
+    void selectGcpJsonFile();
 };
 
 #endif // SETTINGSTAB_H

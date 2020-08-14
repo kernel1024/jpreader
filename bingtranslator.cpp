@@ -63,7 +63,6 @@ QString CBingTranslator::tranStringInternal(const QString &src)
     rqData.addQueryItem(QSL("api-version"),QSL("3.0"));
     rqurl.setQuery(rqData);
 
-    QJsonObject obj = QJsonObject();
     QJsonObject reqtext;
     reqtext[QSL("Text")] = src;
     QJsonArray reqlist({ reqtext });

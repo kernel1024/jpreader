@@ -22,7 +22,8 @@ enum TranslationEngine {
     teYandexAPI = 3,
     teGoogleGTX = 4,
     teAmazonAWS = 5,
-    teYandexCloud = 6
+    teYandexCloud = 6,
+    teGoogleCloud = 7
 };
 Q_ENUM_NS(TranslationEngine)
 
