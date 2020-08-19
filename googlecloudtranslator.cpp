@@ -11,20 +11,19 @@ CGoogleCloudTranslator::CGoogleCloudTranslator(QObject *parent, const CLangPair 
 {
     clearCredentials();
 
-    m_clientJsonKeyFile = jsonKeyFile;
-    if (!parseJsonKey())
-        m_clientJsonKeyFile.clear();
+    if (!parseJsonKey(jsonKeyFile))
+        m_gcpPrivateKey.clear();
 }
 
-bool CGoogleCloudTranslator::parseJsonKey()
+bool CGoogleCloudTranslator::parseJsonKey(const QString &jsonKeyFile)
 {
-    QFile f(m_clientJsonKeyFile);
+    QFile f(jsonKeyFile);
     if (!f.open(QIODevice::ReadOnly)) {
-        qCritical() << tr("ERROR: Google Cloud Translation JSON cannot open key file %1").arg(m_clientJsonKeyFile);
+        qCritical() << tr("ERROR: Google Cloud Translation JSON cannot open key file %1").arg(jsonKeyFile);
         return false;
     }
 
-    QJsonParseError err;
+    QJsonParseError err {};
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll(),&err);
     f.close();
     if (doc.isNull()) {
@@ -35,27 +34,80 @@ bool CGoogleCloudTranslator::parseJsonKey()
     }
 
     m_gcpProject = doc.object().value(QSL("project_id")).toString();
+    m_gcpEmail = doc.object().value(QSL("client_email")).toString();
+    m_gcpPrivateKey = doc.object().value(QSL("private_key")).toString();
+
     return true;
 }
 
 bool CGoogleCloudTranslator::initTran()
 {
-    initNAM();
+    if (m_gcpPrivateKey.isEmpty())
+        return false;
+
     m_authHeader.clear();
 
-    const int gcloudTimeoutMS = 10000;
+    const int oneHour = 60*60;
 
-    // TODO: move away from subprocess to direct API access
-    QProcess gcloud;
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert(QSL("GOOGLE_APPLICATION_CREDENTIALS"),m_clientJsonKeyFile);
-    gcloud.setProcessEnvironment(env);
-    gcloud.start(QSL("gcloud"), { QSL("auth"), QSL("application-default"), QSL("print-access-token") } );
-    gcloud.waitForFinished(gcloudTimeoutMS);
+    const QString scope = QSL("https://www.googleapis.com/auth/cloud-platform "
+                              "https://www.googleapis.com/auth/cloud-translation");
+    const QString aud = QSL("https://oauth2.googleapis.com/token");
 
-    QByteArray ra = gcloud.readAllStandardOutput().trimmed();
-    if (!ra.isEmpty())
-        m_authHeader = QSL("Bearer %1").arg(QString::fromUtf8(ra));
+    const QDateTime time = QDateTime::currentDateTimeUtc();
+    const QString iat = QSL("%1").arg(time.toSecsSinceEpoch());
+    const QString exp = QSL("%1").arg(time.addSecs(oneHour).toSecsSinceEpoch());
+
+    const QString jwtHeader = QSL(R"({"alg":"RS256","typ":"JWT"})");
+    const QString jwtClaimSet = QSL(R"({"iss":"%1","scope":"%2","aud":"%3","exp":%4,"iat":%5})")
+                                .arg(m_gcpEmail,scope,aud,exp,iat);
+
+    QByteArray jwt = jwtHeader.toUtf8().toBase64(QByteArray::Base64UrlEncoding);
+    jwt.append('.');
+    jwt.append(jwtClaimSet.toUtf8().toBase64(QByteArray::Base64UrlEncoding));
+
+    QByteArray sign = CGenericFuncs::signSHA256withRSA(jwt,m_gcpPrivateKey.toLatin1());
+    if (sign.isEmpty())
+        return false;
+
+    jwt.append('.');
+    jwt.append(sign.toBase64(QByteArray::Base64UrlEncoding));
+
+    initNAM();
+
+    QUrlQuery uq;
+    uq.addQueryItem(QSL("grant_type"),QSL("urn:ietf:params:oauth:grant-type:jwt-bearer"));
+    uq.addQueryItem(QSL("assertion"),QString::fromLatin1(jwt));
+    QUrl rqurl = QUrl(aud);
+    rqurl.setQuery(uq);
+    QNetworkRequest rq(rqurl);
+    rq.setRawHeader("Content-Type","application/x-www-form-urlencoded");
+
+    bool aborted = false;
+    int status = CDefaults::httpCodeClientUnknownError;
+    auto requestMaker = [rq]() -> QNetworkRequest {
+        return rq;
+    };
+    QByteArray ra = processRequest(requestMaker,QByteArray(),&status,&aborted);
+
+    if (aborted) {
+        setErrorMsg(QSL("ERROR: Google Cloud Translation auth aborted by user request"));
+        return false;
+    }
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
+        setErrorMsg(QSL("ERROR: Google Cloud Translation auth error"));
+        return false;
+    }
+
+    QJsonParseError err {};
+    QJsonDocument doc = QJsonDocument::fromJson(ra,&err);
+    if (doc.isNull()) {
+        qCritical() << tr("ERROR: Google Cloud Translation auth JSON reply error #%1: %2")
+                       .arg(err.error)
+                       .arg(err.offset);
+        return false;
+    }
+
+    m_authHeader = QSL("Bearer %1").arg(doc.object().value(QSL("access_token")).toString());
 
     clearErrorMsg();
     return true;

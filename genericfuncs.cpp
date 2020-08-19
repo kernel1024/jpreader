@@ -9,6 +9,7 @@
 #include <QMutexLocker>
 #include <QRegularExpression>
 #include <QLocale>
+#include <QCryptographicHash>
 #include <QtTest>
 
 #include <iostream>
@@ -27,6 +28,9 @@
 extern "C" {
 #include <unistd.h>
 #include <magic.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/bio.h>
 }
 
 CGenericFuncs::CGenericFuncs(QObject *parent)
@@ -482,6 +486,46 @@ QString	CGenericFuncs::getExistingDirectoryD ( QWidget * parent, const QString &
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
     return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
+}
+
+QByteArray CGenericFuncs::signSHA256withRSA(const QByteArray &data, const QByteArray &privateKey)
+{
+    QByteArray res;
+
+    int rc = 1;
+
+    QByteArray digest = QCryptographicHash::hash(data,QCryptographicHash::Sha256);
+
+    BIO *b = nullptr;
+    RSA *r = nullptr;
+
+    b = BIO_new_mem_buf(privateKey.constData(), privateKey.length());
+    if (nullptr == b) {
+        return res;
+    }
+    r = PEM_read_bio_RSAPrivateKey(b, nullptr, nullptr, nullptr);
+    if (nullptr == r) {
+        BIO_free(b);
+        return res;
+    }
+
+    QScopedPointer<unsigned char,QScopedPointerPodDeleter> sig(reinterpret_cast<unsigned char*>(malloc(RSA_size(r)))); // NOLINT
+    unsigned int sig_len = 0;
+
+    if (nullptr == sig) {
+        BIO_free(b);
+        RSA_free(r);
+        return res;
+    }
+
+    rc = RSA_sign(NID_sha256, reinterpret_cast<const unsigned char *>(digest.constData()),
+                  digest.length(), sig.data(), &sig_len, r);
+    if (1 == rc) {
+        res = QByteArray(reinterpret_cast<char *>(sig.data()),static_cast<int>(sig_len));
+    }
+    BIO_free(b);
+    RSA_free(r);
+    return res;
 }
 
 QString CGenericFuncs::bool2str(bool value)

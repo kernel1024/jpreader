@@ -76,6 +76,8 @@ public:
                                             const QString & dir = QString(),
                                             QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
+    static QByteArray signSHA256withRSA(const QByteArray& data, const QByteArray& privateKey);
+
     static void profiler(int line, const QElapsedTimer &time);
 
 private:

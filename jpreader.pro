@@ -172,7 +172,7 @@ packagesExist(libzip) {
     error("libzip not found.")
 }
 
-PKGCONFIG += icu-uc icu-io icu-i18n xcb xcb-keysyms
+PKGCONFIG += icu-uc icu-io icu-i18n xcb xcb-keysyms openssl
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5

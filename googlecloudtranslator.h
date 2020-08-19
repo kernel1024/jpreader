@@ -9,12 +9,12 @@ class CGoogleCloudTranslator : public CWebAPIAbstractTranslator
     Q_OBJECT
 
 private:
-//    QByteArray m_clientJsonKey;
-    QString m_clientJsonKeyFile;
     QString m_authHeader;
     QString m_gcpProject;
+    QString m_gcpEmail;
+    QString m_gcpPrivateKey;
 
-    bool parseJsonKey();
+    bool parseJsonKey(const QString &jsonKeyFile);
 
 protected:
     QString tranStringInternal(const QString& src) override;

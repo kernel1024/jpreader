@@ -11,6 +11,7 @@ Library dependencies:
     libmagic
     intel-tbb
     zlib
+    openssl
     recoll engine (optional)
     baloo 5.6.0 (optional) 
     poppler 0.72 (optional)

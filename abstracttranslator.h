@@ -7,7 +7,7 @@
 #include "structures.h"
 
 namespace CDefaults {
-const int translatorConnectionTimeout = 60000;
+const int translatorConnectionTimeout = 10000;
 const unsigned int tranMinRetryDelay = 10;
 const unsigned int tranMaxRetryDelay = 25;
 }
