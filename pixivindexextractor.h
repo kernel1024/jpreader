@@ -38,7 +38,7 @@ private:
                                const QString& author, const QString& authorId,
                                const QStringList& tags, const QString& description,
                                const QDateTime &creationDate, const QString &seriesTitle,
-                               const QString &seriesId);
+                               const QString &seriesId, int bookmarkCount);
     void finalizeHtml(const QUrl& origin);
     void preloadNovelCovers(const QUrl& origin);
 

@@ -83,6 +83,7 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->comboPixivIndexSortOrder->addItem(tr("Author"),static_cast<int>(CStructures::psAuthor));
     ui->comboPixivIndexSortOrder->addItem(tr("Series"),static_cast<int>(CStructures::psSeries));
     ui->comboPixivIndexSortOrder->addItem(tr("Description"),static_cast<int>(CStructures::psDescription));
+    ui->comboPixivIndexSortOrder->addItem(tr("Bookmarks count"),static_cast<int>(CStructures::psBookmarkCount));
 
     setupSettingsObservers();
 

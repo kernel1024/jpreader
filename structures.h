@@ -62,7 +62,8 @@ enum PixivIndexSortOrder {
     psDate = 2,
     psAuthor = 3,
     psSeries = 4,
-    psDescription = 5
+    psDescription = 5,
+    psBookmarkCount = 6
 };
 Q_ENUM_NS(PixivIndexSortOrder)
 

@@ -42,6 +42,11 @@ bool CPixivIndexExtractor::indexItemCompare(const QJsonObject &c1, const QJsonOb
             const auto d2 = c2.value(QSL("textCount")).toInt();
             return (d1<d2);
         }
+        case CStructures::psBookmarkCount: {
+            const auto d1 = c1.value(QSL("bookmarkCount")).toInt();
+            const auto d2 = c2.value(QSL("bookmarkCount")).toInt();
+            return (d1<d2);
+        }
         case CStructures::psDate: {
             const auto d1 = QDateTime::fromString(c1.value(QSL("createDate")).toString(),Qt::ISODate);
             const auto d2 = QDateTime::fromString(c2.value(QSL("createDate")).toString(),Qt::ISODate);
@@ -294,7 +299,7 @@ QString CPixivIndexExtractor::makeNovelInfoBlock(CStringHash *authors,
                                                  const QString& author, const QString& authorId,
                                                  const QStringList& tags, const QString& description,
                                                  const QDateTime& creationDate, const QString& seriesTitle,
-                                                 const QString& seriesId)
+                                                 const QString& seriesId, int bookmarkCount)
 {
     QLocale locale;
     QString res;
@@ -315,6 +320,9 @@ QString CPixivIndexExtractor::makeNovelInfoBlock(CStringHash *authors,
                           "%2</a>.<br/>")
                       .arg(seriesId,seriesTitle));
     }
+
+    res.append(QSL("<b>Bookmarked:</b> %1.<br/>")
+                  .arg(bookmarkCount));
 
     res.append(QSL("<b>Size:</b> %1 characters.<br/>")
                   .arg(length));
@@ -380,7 +388,8 @@ void CPixivIndexExtractor::finalizeHtml(const QUrl& origin)
                                            QDateTime::fromString(w.value(QSL("createDate")).toString(),
                                                                  Qt::ISODate),
                                            w.value(QSL("seriesTitle")).toString(),
-                                           w.value(QSL("seriesId")).toString()));
+                                           w.value(QSL("seriesId")).toString(),
+                                           w.value(QSL("bookmarkCount")).toInt()));
         }
         html.append(tr("Found %1 novels.").arg(m_list.count()));
     }
