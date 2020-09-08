@@ -236,12 +236,13 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         QStringList searchNames = gSet->getSearchEngines();
         if (!searchNames.isEmpty()) {
             m_menu.addSeparator();
+            ccm = m_menu.addMenu(QIcon::fromTheme("edit-web-search"),tr("Search with"));
 
             searchNames.sort(Qt::CaseInsensitive);
             for (const QString& name : qAsConst(searchNames)) {
                 QUrl url = gSet->createSearchUrl(sText,name);
 
-                ac = m_menu.addAction(name);
+                ac = ccm->addAction(name);
                 connect(ac, &QAction::triggered, this, [url,this](){
                     new CSnippetViewer(snv->parentWnd(), url);
                 });
