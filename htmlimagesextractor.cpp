@@ -50,7 +50,7 @@ void CHtmlImagesExtractor::subImageFinished(QNetworkReply* rpl, CHTMLAttributesH
             buf.open(QIODevice::WriteOnly);
 
             img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality);
-            out.append(QString::fromLatin1(ba.toBase64()));
+            out.append(ba.toBase64());
 
             if (out.length() > CDefaults::maxDataUrlFileSize) {
                 out = QByteArray(header);
@@ -69,7 +69,7 @@ void CHtmlImagesExtractor::subImageFinished(QNetworkReply* rpl, CHTMLAttributesH
                     }
                 }
                 img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality);
-                out.append(QString::fromLatin1(ba.toBase64()));
+                out.append(ba.toBase64());
             }
             (*attrs)[QSL("src")] = QString::fromUtf8(out);
         }

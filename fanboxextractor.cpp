@@ -212,7 +212,7 @@ void CFanboxExtractor::subImageFinished()
             buf.open(QIODevice::WriteOnly);
             if (img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality)) {
                 QByteArray out("data:image/jpeg;base64,");
-                out.append(QString::fromLatin1(ba.toBase64()));
+                out.append(ba.toBase64());
                 ba = out;
             } else {
                 ba.clear();
