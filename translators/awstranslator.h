@@ -2,7 +2,7 @@
 #define AWSTRANSLATOR_H
 
 #include <QObject>
-#include "structures.h"
+#include "../structures.h"
 #include "webapiabstracttranslator.h"
 
 class CAWSTranslator : public CWebAPIAbstractTranslator

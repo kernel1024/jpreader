@@ -10,7 +10,7 @@
 #include "globalcontrol.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
-#include "abstracttranslator.h"
+#include "translators/abstracttranslator.h"
 #include "ui_hashviewer.h"
 
 CSearchTab::CSearchTab(CMainWindow *parent) :

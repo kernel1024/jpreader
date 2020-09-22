@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "yandexcloudtranslator.h"
-#include "genericfuncs.h"
+#include "../genericfuncs.h"
 
 CYandexCloudTranslator::CYandexCloudTranslator(QObject *parent, const CLangPair &lang, const QString &apiKey,
                                                const QString &folderID)

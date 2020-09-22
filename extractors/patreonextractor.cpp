@@ -6,40 +6,22 @@
 #include <algorithm>
 
 #include "patreonextractor.h"
-#include "genericfuncs.h"
-#include "mainwindow.h"
+#include "../genericfuncs.h"
+#include "../mainwindow.h"
 
-CPatreonExtractor::CPatreonExtractor(QObject *parent) : QObject(parent)
+CPatreonExtractor::CPatreonExtractor(QObject *parent, CSnippetViewer *snv)
+    : CAbstractExtractor(parent,snv)
 {
 }
 
-void CPatreonExtractor::showError(const QString &message)
+void CPatreonExtractor::setParams(const QString &pageHtml, const QUrl &origin, bool extractAttachments)
 {
-    qCritical() << "CPatreonExtractor error:" << message;
-
-    QWidget *w = nullptr;
-    QObject *ctx = QApplication::instance();
-    if (m_snv) {
-        w = m_snv->parentWnd();
-        ctx = m_snv;
-    }
-    QMetaObject::invokeMethod(ctx,[message,w](){
-        QMessageBox::warning(w,tr("JPReader"),tr("CPatreonExtractor error:\n%1").arg(message));
-    },Qt::QueuedConnection);
-    Q_EMIT finished();
-
-}
-
-void CPatreonExtractor::setParams(CSnippetViewer *viewer, const QString &pageHtml,
-                                  const QUrl &origin, bool extractAttachments)
-{
-    m_snv = viewer;
     m_html = pageHtml;
     m_origin = origin;
     m_extractAttachments = extractAttachments;
 }
 
-void CPatreonExtractor::start()
+void CPatreonExtractor::startMain()
 {
     if (m_html.isEmpty()) {
         showError(tr("HTML document is empty."));

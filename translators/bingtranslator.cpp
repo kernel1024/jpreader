@@ -6,7 +6,7 @@
 #include <QDebug>
 
 #include "bingtranslator.h"
-#include "globalcontrol.h"
+#include "../globalcontrol.h"
 
 CBingTranslator::CBingTranslator(QObject *parent, const CLangPair &lang,
                                  const QString &bingKey)

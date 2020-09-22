@@ -1,17 +1,26 @@
 HEADERS = mainwindow.h \
-    awstranslator.h \
+    translators/abstracttranslator.h \
+    translators/awstranslator.h \
+    translators/atlastranslator.h \
+    translators/yandexcloudtranslator.h \
+    translators/yandextranslator.h \
+    translators/googlecloudtranslator.h \
+    translators/bingtranslator.h \
+    translators/googlegtxtranslator.h \
+    translators/webapiabstracttranslator.h \
+    extractors/abstractextractor.h \
+    extractors/htmlimagesextractor.h \
+    extractors/fanboxextractor.h \
+    extractors/patreonextractor.h \
+    extractors/pixivindexextractor.h \
+    extractors/pixivnovelextractor.h \
     downloadwriter.h \
-    fanboxextractor.h \
     globalprivate.h \
-    htmlimagesextractor.h \
     jsedit/jsedit_p.h \
-    patreonextractor.h \
     pdfworkerprivate.h \
-    pixivindexextractor.h \
     settingstab.h \
     snviewer.h \
     specwidgets.h \
-    atlastranslator.h \
     genericfuncs.h \
     globalcontrol.h \
     snmsghandler.h \
@@ -31,17 +40,12 @@ HEADERS = mainwindow.h \
     logdisplay.h \
     baloo5search.h \
     abstractthreadedsearch.h \
-    abstracttranslator.h \
-    bingtranslator.h \
     auxdictionary.h \
     multiinputdialog.h \
     adblockrule.h \
     downloadmanager.h \
     translatorcache.h \
     translatorstatisticstab.h \
-    yandexcloudtranslator.h \
-    yandextranslator.h \
-    googlecloudtranslator.h \
     pdftotext.h \
     sourceviewer.h \
     structures.h \
@@ -49,28 +53,34 @@ HEADERS = mainwindow.h \
     globalui.h \
     userscript.h \
     browsercontroller.h \
-    googlegtxtranslator.h \
-    webapiabstracttranslator.h \
     bookmarks.h \
     edittreeview.h \
     xbel.h \
-    pixivnovelextractor.h \
     noscriptdialog.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
-    awstranslator.cpp \
+    translators/awstranslator.cpp \
+    translators/atlastranslator.cpp \
+    translators/abstracttranslator.cpp \
+    translators/bingtranslator.cpp \
+    translators/yandexcloudtranslator.cpp \
+    translators/yandextranslator.cpp \
+    translators/googlecloudtranslator.cpp \
+    translators/googlegtxtranslator.cpp \
+    translators/webapiabstracttranslator.cpp \
+    extractors/abstractextractor.cpp \
+    extractors/fanboxextractor.cpp \
+    extractors/htmlimagesextractor.cpp \
+    extractors/patreonextractor.cpp \
+    extractors/pixivindexextractor.cpp \
+    extractors/pixivnovelextractor.cpp \
     downloadwriter.cpp \
-    fanboxextractor.cpp \
     globalprivate.cpp \
-    htmlimagesextractor.cpp \
     mainwindow.cpp \
-    patreonextractor.cpp \
     pdfworkerprivate.cpp \
-    pixivindexextractor.cpp \
     settingstab.cpp \
     snviewer.cpp \
-    atlastranslator.cpp \
     specwidgets.cpp \
     genericfuncs.cpp \
     globalcontrol.cpp \
@@ -90,8 +100,6 @@ SOURCES = main.cpp \
     logdisplay.cpp \
     baloo5search.cpp \
     abstractthreadedsearch.cpp \
-    abstracttranslator.cpp \
-    bingtranslator.cpp \
     searchmodel.cpp \
     auxdictionary.cpp \
     multiinputdialog.cpp \
@@ -99,9 +107,6 @@ SOURCES = main.cpp \
     downloadmanager.cpp \
     translatorcache.cpp \
     translatorstatisticstab.cpp \
-    yandexcloudtranslator.cpp \
-    yandextranslator.cpp \
-    googlecloudtranslator.cpp \
     pdftotext.cpp \
     sourceviewer.cpp \
     structures.cpp \
@@ -109,12 +114,9 @@ SOURCES = main.cpp \
     globalui.cpp \
     userscript.cpp \
     browsercontroller.cpp \
-    googlegtxtranslator.cpp \
-    webapiabstracttranslator.cpp \
     bookmarks.cpp \
     edittreeview.cpp \
     xbel.cpp \
-    pixivnovelextractor.cpp \
     noscriptdialog.cpp \
     jsedit/jsedit.cpp
 

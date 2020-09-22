@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QString>
-#include "abstracttranslator.h"
+#include "translators/abstracttranslator.h"
 
 class CAuxTranslator : public QObject
 {

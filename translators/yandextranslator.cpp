@@ -6,8 +6,8 @@
 #include <QVariant>
 #include <QDebug>
 
-#include "globalcontrol.h"
-#include "genericfuncs.h"
+#include "../globalcontrol.h"
+#include "../genericfuncs.h"
 #include "yandextranslator.h"
 
 CYandexTranslator::CYandexTranslator(QObject *parent, const CLangPair &lang, const QString &yandexKey)

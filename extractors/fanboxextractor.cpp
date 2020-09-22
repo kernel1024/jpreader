@@ -4,26 +4,26 @@
 #include <QJsonArray>
 #include <QBuffer>
 #include "fanboxextractor.h"
-#include "globalcontrol.h"
+#include "../globalcontrol.h"
 
 namespace CDefaults {
 const int maxFanboxFilenameLength = 180;
 }
 
-CFanboxExtractor::CFanboxExtractor(QObject *parent)
-    : QObject(parent)
+CFanboxExtractor::CFanboxExtractor(QObject *parent, CSnippetViewer *snv)
+    : CAbstractExtractor(parent,snv)
 {
 }
 
-void CFanboxExtractor::setParams(CSnippetViewer *viewer, int postId, bool translate, bool focus)
+void CFanboxExtractor::setParams(int postId, bool translate, bool focus, bool isManga)
 {
-    m_snv = viewer;
     m_translate = translate;
     m_focus = focus;
     m_postId = postId;
+    m_isManga = isManga;
 }
 
-void CFanboxExtractor::start()
+void CFanboxExtractor::startMain()
 {
     if (m_postId<=0) {
         Q_EMIT finished();
@@ -31,6 +31,7 @@ void CFanboxExtractor::start()
     }
 
     m_illustMap.clear();
+    m_worksIllustFetch = 0;
 
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         QNetworkRequest req(QUrl(QSL("https://api.fanbox.cc/post.info?postId=%1").arg(m_postId)));
@@ -49,7 +50,7 @@ void CFanboxExtractor::pageLoadFinished()
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || m_snv==nullptr) return;
+    if (rpl.isNull() || snv()==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrl origin = rpl->url();
@@ -132,7 +133,7 @@ void CFanboxExtractor::pageLoadFinished()
                     m_illustMap.append(qMakePair(url,id));
             }
 
-            if (!m_illustMap.isEmpty()) {
+            if (!m_isManga && !m_illustMap.isEmpty()) {
                 QStringList processedUrls;
                 m_illustMutex.lock();
                 for (const auto& w : qAsConst(m_illustMap)) {
@@ -159,12 +160,14 @@ void CFanboxExtractor::pageLoadFinished()
 
             } else {
 
-                Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
-                                      m_title,m_text,true,
-                                      QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
-                                  m_focus,m_translate);
+                if (!m_isManga) {
+                    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
+                                          m_title,m_text,true,
+                                          QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
+                                      m_focus,m_translate);
+                }
 
-                if (!images.isEmpty()) {
+                if (m_isManga && !images.isEmpty()) {
                     QString mangaId = m_postNum;
                     if (!m_title.isEmpty()) {
                         mangaId = CGenericFuncs::makeSafeFilename(
@@ -240,33 +243,4 @@ void CFanboxExtractor::subImageFinished()
 
         Q_EMIT finished();
     }
-}
-
-void CFanboxExtractor::loadError(QNetworkReply::NetworkError error)
-{
-    Q_UNUSED(error)
-
-    QString msg(QSL("Unable to load from fanbox.cc."));
-
-    auto *rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl)
-        msg.append(QSL(" %1").arg(rpl->errorString()));
-
-    showError(msg);
-}
-
-void CFanboxExtractor::showError(const QString &message)
-{
-    qCritical() << "CPixivIndexExtractor error:" << message;
-
-    QWidget *w = nullptr;
-    QObject *ctx = QApplication::instance();
-    if (m_snv) {
-        w = m_snv->parentWnd();
-        ctx = m_snv;
-    }
-    QMetaObject::invokeMethod(ctx,[message,w](){
-        QMessageBox::warning(w,tr("JPReader"),tr("CFanboxExtractor error:\n%1").arg(message));
-    },Qt::QueuedConnection);
-    Q_EMIT finished();
 }

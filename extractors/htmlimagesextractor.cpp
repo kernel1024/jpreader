@@ -1,13 +1,12 @@
 #include <QBuffer>
 #include "htmlimagesextractor.h"
-#include "html/ParserDom.h"
+#include "../htmlcxx/html/ParserDom.h"
 
 using namespace htmlcxx;
 
-CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent)
-    : QObject(parent)
+CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CSnippetViewer *snv)
+    : CAbstractExtractor(parent,snv)
 {
-
 }
 
 void CHtmlImagesExtractor::setParams(const QString &source, const QUrl &origin,
@@ -19,7 +18,7 @@ void CHtmlImagesExtractor::setParams(const QString &source, const QUrl &origin,
     m_origin = origin;
 }
 
-void CHtmlImagesExtractor::start()
+void CHtmlImagesExtractor::startMain()
 {
     HTML::ParserDom parser;
     parser.parse(m_html);
@@ -85,7 +84,7 @@ void CHtmlImagesExtractor::finalizeHtml()
     QString res;
     CTranslator::generateHTML(m_doc,res);
 
-    Q_EMIT htmlReady(res,m_focus,m_translate);
+    Q_EMIT novelReady(res,m_focus,m_translate);
     Q_EMIT finished();
 }
 

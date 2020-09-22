@@ -13,69 +13,59 @@
 #include <QRegularExpression>
 
 #include "pixivnovelextractor.h"
-#include "genericfuncs.h"
-#include "globalcontrol.h"
+#include "../genericfuncs.h"
+#include "../globalcontrol.h"
 
-CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
-    : QObject(parent)
+CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent, CSnippetViewer *snv)
+    : CAbstractExtractor(parent,snv)
 {
-
 }
 
-void CPixivNovelExtractor::setParams(CSnippetViewer *viewer, const QUrl &source, const QString &title,
+void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
                                      bool translate, bool focus)
 {
-    m_snv = viewer;
     m_title = title;
     m_translate = translate;
     m_focus = focus;
     m_source = source;
 }
 
-void CPixivNovelExtractor::setMangaOrigin(CSnippetViewer *viewer, const QUrl &origin)
+void CPixivNovelExtractor::setMangaOrigin(const QUrl &origin)
 {
-    m_snv = viewer;
     m_mangaOrigin = origin;
 }
 
-void CPixivNovelExtractor::start()
+void CPixivNovelExtractor::startMain()
 {
-    if (!m_source.isValid()) {
+    if (m_mangaOrigin.isValid()) {
+        QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
+            QNetworkRequest req(m_mangaOrigin);
+            req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
+            req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+            connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
+            connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+        },Qt::QueuedConnection);
+
+    } else if (m_source.isValid()){
+        QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
+            QNetworkRequest req(m_source);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+            connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
+            connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
+        },Qt::QueuedConnection);
+
+    } else {
         Q_EMIT finished();
-        return;
     }
-
-    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
-        QNetworkRequest req(m_source);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
-
-        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
-        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
-    },Qt::QueuedConnection);
-}
-
-void CPixivNovelExtractor::startManga()
-{
-    if (!m_mangaOrigin.isValid()) {
-        Q_EMIT finished();
-        return;
-    }
-
-    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
-        QNetworkRequest req(m_mangaOrigin);
-        req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
-        req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
-
-        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
-        connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
-    },Qt::QueuedConnection);
 }
 
 void CPixivNovelExtractor::novelLoadFinished()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || m_snv==nullptr) return;
+    if (rpl.isNull() || snv()==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QString html = QString::fromUtf8(rpl->readAll());
@@ -169,30 +159,6 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         subWorkFinished(); // call just in case for empty lists
     }
-}
-
-void CPixivNovelExtractor::loadError(QNetworkReply::NetworkError error)
-{
-    Q_UNUSED(error)
-
-    QString msg(QSL("Unable to load from pixiv."));
-
-    auto *rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl)
-        msg.append(QSL(" %1").arg(rpl->errorString()));
-
-    qCritical() << msg;
-
-    QWidget *w = nullptr;
-    QObject *ctx = QApplication::instance();
-    if (m_snv) {
-        w = m_snv->parentWnd();
-        ctx = m_snv;
-    }
-    QMetaObject::invokeMethod(ctx,[msg,w](){
-        QMessageBox::warning(w,tr("JPReader"),msg);
-    },Qt::QueuedConnection);
-    Q_EMIT finished();
 }
 
 void CPixivNovelExtractor::subLoadFinished()

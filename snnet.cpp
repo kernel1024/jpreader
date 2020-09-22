@@ -6,6 +6,7 @@
 #include <QDirIterator>
 #include <QDialog>
 #include <QThread>
+#include <QMimeData>
 #include <QAuthenticator>
 
 #include "snnet.h"
@@ -15,15 +16,17 @@
 #include "pdftotext.h"
 #include "downloadmanager.h"
 #include "genericfuncs.h"
-#include "pixivnovelextractor.h"
-#include "pixivindexextractor.h"
-#include "fanboxextractor.h"
-#include "patreonextractor.h"
+#include "extractors/pixivnovelextractor.h"
+#include "extractors/pixivindexextractor.h"
+#include "extractors/fanboxextractor.h"
+#include "extractors/patreonextractor.h"
+#include "extractors/htmlimagesextractor.h"
 #include "globalcontrol.h"
 #include "ui_selectablelistdlg.h"
 
 namespace CDefaults {
 const int browserPageFinishedTimeoutMS = 30000;
+const int clipboardHtmlAquireDelay = 1000;
 }
 
 CSnNet::CSnNet(CSnippetViewer *parent)
@@ -224,123 +227,61 @@ void CSnNet::userNavigationRequest(const QUrl &url, int type, bool isMainFrame)
     }
 }
 
-void CSnNet::processPixivNovel(const QUrl &url, const QString& title, bool translate, bool focus)
+void CSnNet::extractHTMLFragment()
 {
-    auto *ex = new CPixivNovelExtractor();
-    auto *th = new QThread();
-    ex->setParams(snv,url,title,translate,focus);
+    if (!snv->txtBrowser->hasSelection()) return;
 
-    connect(ex,&CPixivNovelExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
-    connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
+    snv->txtBrowser->page()->action(QWebEnginePage::Copy)->activate(QAction::Trigger);
+    const QUrl url = snv->txtBrowser->url();
+    QTimer::singleShot(CDefaults::clipboardHtmlAquireDelay,this,[this,url](){
+        QClipboard *cb = QApplication::clipboard();
+        const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
+        if (md->hasHtml()) {
+            auto *ex = new CHtmlImagesExtractor(nullptr,snv);
+            auto *th = new QThread();
+            ex->setParams(md->html(),url,false,true);
 
-    ex->moveToThread(th);
-    th->start();
+            connect(ex,&CHtmlImagesExtractor::novelReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
+            connect(ex,&CHtmlImagesExtractor::finished,th,&QThread::quit);
+            connect(th,&QThread::finished,ex,&CHtmlImagesExtractor::deleteLater);
+            connect(th,&QThread::finished,th,&QThread::deleteLater);
+            connect(th,&QThread::finished,gSet,[](){
+                gSet->app()->restoreOverrideCursor();
+            },Qt::QueuedConnection);
 
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
+            ex->moveToThread(th);
+            th->start();
 
-    QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::start,Qt::QueuedConnection);
+            gSet->app()->setOverrideCursor(Qt::BusyCursor);
+
+            QMetaObject::invokeMethod(ex,&CHtmlImagesExtractor::start,Qt::QueuedConnection);
+        } else {
+            QMessageBox::information(snv,tr("JPReader"),tr("Unknown clipboard format. HTML expected."));
+        }
+        cb->clear(QClipboard::Clipboard);
+    });
 }
 
-void CSnNet::processPixivNovelList(const QString& pixivId, CPixivIndexExtractor::IndexMode mode)
-{
-    auto *ex = new CPixivIndexExtractor();
-    auto *th = new QThread();
-    ex->setParams(snv,pixivId);
-
-    connect(ex,&CPixivIndexExtractor::listReady,this,&CSnNet::pixivListReady,Qt::QueuedConnection);
-    connect(ex,&CPixivIndexExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CPixivIndexExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-    switch (mode) {
-        case CPixivIndexExtractor::WorkIndex:
-            QMetaObject::invokeMethod(ex,&CPixivIndexExtractor::createNovelList,Qt::QueuedConnection);
-            break;
-        case CPixivIndexExtractor::BookmarksIndex:
-            QMetaObject::invokeMethod(ex,&CPixivIndexExtractor::createNovelBookmarksList,Qt::QueuedConnection);
-            break;
-        default:
-            qCritical() << "Unknown pixiv index mode " << mode;
-    }
-}
-
-void CSnNet::processFanboxNovel(int postId, bool translate, bool focus)
-{
-    auto *ex = new CFanboxExtractor();
-    auto *th = new QThread();
-    ex->setParams(snv,postId,translate,focus);
-
-    connect(ex,&CFanboxExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
-    connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-    QMetaObject::invokeMethod(ex,&CFanboxExtractor::start,Qt::QueuedConnection);
-}
-
-void CSnNet::downloadPixivManga()
+void CSnNet::processExtractorAction()
 {
     auto *ac = qobject_cast<QAction*>(sender());
     if (!ac) return;
-    QUrl origin = ac->data().toUrl();
-    if (!origin.isValid()) return;
 
-    auto *ex = new CPixivNovelExtractor();
-    auto *th = new QThread();
-    ex->setMangaOrigin(snv,origin);
-
-    connect(ex,&CPixivNovelExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
-    connect(ex,&CPixivNovelExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CPixivNovelExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-    QMetaObject::invokeMethod(ex,&CPixivNovelExtractor::startManga,Qt::QueuedConnection);
+    processExtractorActionIndirect(ac->data().toHash());
 }
 
-void CSnNet::downloadFanboxManga()
+void CSnNet::processExtractorActionIndirect(const QHash<QString, QVariant> &params)
 {
-    auto *ac = qobject_cast<QAction*>(sender());
-    if (!ac) return;
-    bool ok = false;
-    int fanboxPostId = ac->data().toInt(&ok);
-    if (!ok || fanboxPostId<=0) return;
+    auto *ex = CAbstractExtractor::extractorFactory(params,snv);
+    if (ex == nullptr) return;
 
-    auto *ex = new CFanboxExtractor();
     auto *th = new QThread();
-    ex->setParams(snv,fanboxPostId,false,false);
 
-    connect(ex,&CFanboxExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
-    connect(ex,&CFanboxExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CFanboxExtractor::deleteLater);
+    connect(ex,&CAbstractExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
+    connect(ex,&CAbstractExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
+    connect(ex,&CAbstractExtractor::listReady,this,&CSnNet::listReady,Qt::QueuedConnection);
+    connect(ex,&CAbstractExtractor::finished,th,&QThread::quit);
+    connect(th,&QThread::finished,ex,&CAbstractExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
     connect(th,&QThread::finished,gSet,[](){
         gSet->app()->restoreOverrideCursor();
@@ -351,29 +292,7 @@ void CSnNet::downloadFanboxManga()
 
     gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
-    QMetaObject::invokeMethod(ex,&CFanboxExtractor::start,Qt::QueuedConnection);
-}
-
-void CSnNet::downloadPatreonManga(const QString &html, const QUrl& origin, bool downloadAttachments)
-{
-    auto *ex = new CPatreonExtractor();
-    auto *th = new QThread();
-    ex->setParams(snv,html,origin,downloadAttachments);
-
-    connect(ex,&CPatreonExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
-    connect(ex,&CPatreonExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CPatreonExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-    QMetaObject::invokeMethod(ex,&CPatreonExtractor::start,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
 }
 
 void CSnNet::novelReady(const QString &html, bool focus, bool translate)
@@ -386,7 +305,7 @@ void CSnNet::novelReady(const QString &html, bool focus, bool translate)
     }
 }
 
-void CSnNet::pixivListReady(const QString &html)
+void CSnNet::listReady(const QString &html)
 {
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);

@@ -1,7 +1,7 @@
 #ifndef GOOGLECLOUDTRANSLATOR_H
 #define GOOGLECLOUDTRANSLATOR_H
 
-#include "structures.h"
+#include "../structures.h"
 #include "webapiabstracttranslator.h"
 
 class CGoogleCloudTranslator : public CWebAPIAbstractTranslator

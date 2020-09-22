@@ -9,23 +9,22 @@
 #include <QBuffer>
 #include <algorithm>
 
-#include "globalcontrol.h"
-#include "genericfuncs.h"
+#include "../globalcontrol.h"
+#include "../genericfuncs.h"
 #include "pixivindexextractor.h"
 
 namespace CDefaults {
 const int pixivBookmarksFetchCount = 24;
 }
 
-CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent)
-    : QObject(parent)
+CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, CSnippetViewer *snv)
+    : CAbstractExtractor(parent,snv)
 {
-
 }
 
-void CPixivIndexExtractor::setParams(CSnippetViewer *viewer, const QString &pixivId)
+void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode mode)
 {
-    m_snv = viewer;
+    m_indexMode = mode;
     m_authorId = pixivId;
 }
 
@@ -71,25 +70,9 @@ bool CPixivIndexExtractor::indexItemCompare(const QJsonObject &c1, const QJsonOb
     return false;
 }
 
-void CPixivIndexExtractor::showError(const QString &message)
-{
-    qCritical() << "CPixivIndexExtractor error:" << message;
-
-    QWidget *w = nullptr;
-    QObject *ctx = QApplication::instance();
-    if (m_snv) {
-        w = m_snv->parentWnd();
-        ctx = m_snv;
-    }
-    QMetaObject::invokeMethod(ctx,[message,w](){
-        QMessageBox::warning(w,tr("JPReader"),tr("CPixivIndexExtractor error:\n%1").arg(message));
-    },Qt::QueuedConnection);
-    Q_EMIT finished();
-}
-
 void CPixivIndexExtractor::fetchNovelsInfo()
 {
-    if (m_snv==nullptr) return;
+    if (snv()==nullptr) return;
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl) {
@@ -149,27 +132,22 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     },Qt::QueuedConnection);
 }
 
-void CPixivIndexExtractor::loadError(QNetworkReply::NetworkError error)
-{
-    Q_UNUSED(error)
-
-    QString msg(QSL("Unable to load from pixiv."));
-
-    auto *rpl = qobject_cast<QNetworkReply *>(sender());
-    if (rpl)
-        msg.append(QSL(" %1").arg(rpl->errorString()));
-
-    showError(msg);
-}
-
-void CPixivIndexExtractor::createNovelList()
+void CPixivIndexExtractor::startMain()
 {
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
         m_list.clear();
-        m_indexMode = WorkIndex;
+        QUrl u;
 
-        QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_authorId));
+        if (m_indexMode == WorkIndex) {
+            u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_authorId));
+        } else {
+            u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
+                         "tag=&offset=0&limit=%2&rest=show")
+                     .arg(m_authorId)
+                     .arg(CDefaults::pixivBookmarksFetchCount));
+        }
+
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
@@ -178,29 +156,10 @@ void CPixivIndexExtractor::createNovelList()
     },Qt::QueuedConnection);
 }
 
-void CPixivIndexExtractor::createNovelBookmarksList()
-{
-    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
-        m_ids.clear();
-        m_list.clear();
-        m_indexMode = BookmarksIndex;
-
-        QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
-                              "tag=&offset=0&limit=%2&rest=show")
-               .arg(m_authorId)
-               .arg(CDefaults::pixivBookmarksFetchCount));
-        QNetworkRequest req(u);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
-
-        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
-        connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
-    },Qt::QueuedConnection);
-}
-
 void CPixivIndexExtractor::profileAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || m_snv==nullptr) return;
+    if (rpl.isNull() || snv()==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QJsonParseError err {};
@@ -233,7 +192,7 @@ void CPixivIndexExtractor::profileAjax()
 void CPixivIndexExtractor::bookmarksAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || m_snv==nullptr) return;
+    if (rpl.isNull() || snv()==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrlQuery uq(rpl->url());

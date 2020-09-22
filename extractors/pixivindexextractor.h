@@ -5,32 +5,29 @@
 #include <QNetworkReply>
 #include <QJsonObject>
 #include <QMutex>
-#include "snviewer.h"
-#include "structures.h"
+#include "abstractextractor.h"
+#include "../structures.h"
 
-class CPixivIndexExtractor : public QObject
+class CPixivIndexExtractor : public CAbstractExtractor
 {
     Q_OBJECT
 
 public:
-    enum IndexMode { UndefinedIndex, WorkIndex, BookmarksIndex };
+    enum IndexMode { WorkIndex, BookmarksIndex };
     Q_ENUM(IndexMode)
 
-    explicit CPixivIndexExtractor(QObject *parent = nullptr);
-    void setParams(CSnippetViewer *viewer, const QString& pixivId);
+    CPixivIndexExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    void setParams(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);
 
 private:
-
-    CSnippetViewer *m_snv { nullptr };
     QString m_authorId;
     QVector<QJsonObject> m_list;
     QStringList m_ids;
-    IndexMode m_indexMode { UndefinedIndex };
+    IndexMode m_indexMode { WorkIndex };
     QAtomicInteger<int> m_worksImgFetch;
     QMutex m_imgMutex;
 
     static bool indexItemCompare(const QJsonObject& c1, const QJsonObject& c2);
-    void showError(const QString& message);
     void fetchNovelsInfo();
     QString makeNovelInfoBlock(CStringHash* authors,
                                const QString& workId, const QString& workImgUrl,
@@ -42,19 +39,13 @@ private:
     void finalizeHtml(const QUrl& origin);
     void preloadNovelCovers(const QUrl& origin);
 
-Q_SIGNALS:
-    void listReady(const QString& html);
-    void finished();
+protected:
+    void startMain() override;
 
 private Q_SLOTS:
     void profileAjax();
     void bookmarksAjax();
     void subImageFinished();
-    void loadError(QNetworkReply::NetworkError error);
-
-public Q_SLOTS:
-    void createNovelList();
-    void createNovelBookmarksList();
 };
 
 #endif // PIXIVINDEXEXTRACTOR_H

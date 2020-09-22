@@ -4,7 +4,7 @@
 #include <QScopedPointer>
 #include "titlestranslator.h"
 #include "globalcontrol.h"
-#include "abstracttranslator.h"
+#include "translators/abstracttranslator.h"
 
 CTitlesTranslator::CTitlesTranslator(QObject *parent) :
     QObject(parent)

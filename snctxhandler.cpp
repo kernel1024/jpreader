@@ -24,13 +24,12 @@
 #include "snmsghandler.h"
 #include "sntrans.h"
 #include "noscriptdialog.h"
-#include "htmlimagesextractor.h"
+#include "extractors/htmlimagesextractor.h"
 
 namespace CDefaults {
 const int menuActiveTimerInterval = 1000;
 const int maxRealmLabelEliding = 60;
 const int maxTranslateFragmentCharWidth = 80;
-const int clipboardHtmlAquireDelay = 1000;
 }
 
 CSnCtxHandler::CSnCtxHandler(CSnippetViewer *parent)
@@ -52,9 +51,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     QString sText;
     QUrl linkUrl;
     QUrl imageUrl;
-    QUrl pixivUrl;
-    QUrl fanboxUrl;
-    QUrl patreonUrl;
     const QUrl origin = snv->txtBrowser->page()->url();
 
     if (data.isValid()) {
@@ -67,9 +63,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     const QClipboard *cb = QApplication::clipboard();
     QAction *ac = nullptr;
     QMenu *ccm = nullptr;
-    QVector<QAction *> pixivActions;
-    QVector<QAction *> fanboxActions;
-    QVector<QAction *> patreonActions;
 
     QMenu m_menu;
 
@@ -103,102 +96,30 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     }
 
     QString title = snv->txtBrowser->page()->title();
-    pixivUrl.clear();
+    QUrl pageUrl;
     if (!snv->m_fileChanged)
-        pixivUrl = QUrl::fromUserInput(snv->urlEdit->text());
+        pageUrl = QUrl::fromUserInput(snv->urlEdit->text());
     if (linkUrl.isValid()) {
-        pixivUrl = linkUrl;
+        pageUrl = linkUrl;
         title.clear();
     }
-    fanboxUrl = pixivUrl;
-    patreonUrl = pixivUrl;
-    if (!pixivUrl.host().contains(QSL("pixiv.net")))
-        pixivUrl.clear();
-    if (!fanboxUrl.host().contains(QSL("fanbox.cc")))
-        fanboxUrl.clear();
-    if (!patreonUrl.host().contains(QSL("patreon.com")))
-        patreonUrl.clear();
-    pixivUrl.setFragment(QString());
-    fanboxUrl.setFragment(QString());
-    patreonUrl.setFragment(QString());
 
-    QString pixivId;
-    QRegularExpression rxPixivId(QSL("pixiv.net/.*/users/(?<userID>\\d+)"));
-    auto mchPixivId = rxPixivId.match(pixivUrl.toString());
-    if (mchPixivId.hasMatch())
-        pixivId = mchPixivId.captured(QSL("userID"));
-
-    if (pixivUrl.isValid() && pixivUrl.toString().contains(
-             QSL("pixiv.net/novel/show.php"), Qt::CaseInsensitive)) {
-        ac = m_menu.addAction(tr("Extract pixiv novel in new background tab"));
-        connect(ac, &QAction::triggered, this, [this,pixivUrl,title](){
-            snv->netHandler->processPixivNovel(pixivUrl,title,false,false);
-        });
-        pixivActions.append(ac);
-
-        ac = m_menu.addAction(tr("Extract pixiv novel in new tab"));
-        connect(ac, &QAction::triggered, this, [this,pixivUrl,title](){
-            snv->netHandler->processPixivNovel(pixivUrl,title,false,true);
-        });
-        pixivActions.append(ac);
-
-        ac = m_menu.addAction(tr("Extract pixiv novel in new background tab and translate"));
-        connect(ac, &QAction::triggered, this, [this,pixivUrl,title](){
-            snv->netHandler->processPixivNovel(pixivUrl,title,true,false);
-        });
-        pixivActions.append(ac);
-
-        m_menu.addSeparator();
+    auto extractorsList = CAbstractExtractor::addMenuActions(pageUrl,origin,title,&m_menu,snv);
+    for (auto *eac : extractorsList) {
+        const auto params = eac->data().toHash();
+        if (params.contains(QSL("html"))) {
+            connect(eac,&QAction::triggered,this,[this,params](){
+                snv->txtBrowser->page()->toHtml([this,params](const QString& html){
+                    QHash<QString,QVariant> pl = params;
+                    pl[QSL("html")] = html;
+                    snv->netHandler->processExtractorActionIndirect(pl);
+                });
+            });
+        } else {
+            connect(eac,&QAction::triggered,snv->netHandler,&CSnNet::processExtractorAction);
+        }
     }
-
-    if (pixivUrl.isValid() && !pixivId.isEmpty()) {
-
-        ac = m_menu.addAction(tr("Extract novel list for author in new tab"));
-        connect(ac, &QAction::triggered, this, [this,pixivId](){
-            snv->netHandler->processPixivNovelList(pixivId,CPixivIndexExtractor::WorkIndex);
-        });
-        pixivActions.append(ac);
-
-        ac = m_menu.addAction(tr("Extract novel bookmarks list for author in new tab"));
-        connect(ac, &QAction::triggered, this, [this,pixivId](){
-            snv->netHandler->processPixivNovelList(pixivId,CPixivIndexExtractor::BookmarksIndex);
-        });
-        pixivActions.append(ac);
-
-        m_menu.addSeparator();
-    }
-
-    int fanboxPostId = -1;
-    QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
-    auto mchFanboxPostId = rxFanboxPostId.match(fanboxUrl.toString());
-    if (mchFanboxPostId.hasMatch()) {
-        bool ok = false;
-        fanboxPostId = mchFanboxPostId.captured(QSL("postID")).toInt(&ok);
-        if (!ok)
-            fanboxPostId = -1;
-    }
-
-    if (fanboxPostId>0) {
-        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new background tab"));
-        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
-            snv->netHandler->processFanboxNovel(fanboxPostId,false,false);
-        });
-        fanboxActions.append(ac);
-
-        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new tab"));
-        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
-            snv->netHandler->processFanboxNovel(fanboxPostId,false,true);
-        });
-        fanboxActions.append(ac);
-
-        ac = m_menu.addAction(tr("Extract fanbox.cc novel in new background tab and translate"));
-        connect(ac, &QAction::triggered, this, [this,fanboxPostId](){
-            snv->netHandler->processFanboxNovel(fanboxPostId,true,false);
-        });
-        fanboxActions.append(ac);
-
-        m_menu.addSeparator();
-    }
+    m_menu.addActions(extractorsList);
 
     if (!sText.isEmpty()) {
         m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::Copy));
@@ -231,7 +152,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit")),
                          tr("Extract HTML via clipboard to separate tab"));
-        connect(ac, &QAction::triggered, this, &CSnCtxHandler::extractHTMLFragment);
+        connect(ac, &QAction::triggered, snv->netHandler, &CSnNet::extractHTMLFragment);
 
         QStringList searchNames = gSet->getSearchEngines();
         if (!searchNames.isEmpty()) {
@@ -477,44 +398,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
                    snv->transHandler,&CSnTrans::getImgUrlsAndParse);
 
-    QRegularExpression pixivMangaRx(QSL("pixiv.net/.*?artworks/\\d+"),
-                                    QRegularExpression::CaseInsensitiveOption);
-    if (origin.toString().contains(pixivMangaRx) ||
-            pixivUrl.toString().contains(pixivMangaRx)) {
-
-        ac = ccm->addAction(tr("Download all images from Pixiv illustration"),
-                            snv->netHandler,&CSnNet::downloadPixivManga);
-        if (origin.toString().contains(pixivMangaRx)) {
-            ac->setData(origin);
-        } else {
-            ac->setData(pixivUrl);
-        }
-        pixivActions.append(ac);
-    }
-    if (fanboxPostId>0) {
-        ac = ccm->addAction(tr("Download all images from fanbox.cc post"),
-                            snv->netHandler,&CSnNet::downloadFanboxManga);
-        ac->setData(fanboxPostId);
-        fanboxActions.append(ac);
-
-    }
-    if (patreonUrl.isValid()) {
-        ac = ccm->addAction(tr("Download all images from Patreon post"));
-        connect(ac,&QAction::triggered,this,[this,patreonUrl]{
-            snv->txtBrowser->page()->toHtml([this,patreonUrl](const QString& html){
-                snv->netHandler->downloadPatreonManga(html,patreonUrl,false);
-            });
-        });
-        patreonActions.append(ac);
-
-        ac = ccm->addAction(tr("Download all attachments from Patreon post"));
-        connect(ac,&QAction::triggered,this,[this,patreonUrl]{
-            snv->txtBrowser->page()->toHtml([this,patreonUrl](const QString& html){
-                snv->netHandler->downloadPatreonManga(html,patreonUrl,true);
-            });
-        });
-        patreonActions.append(ac);
-    }
     ccm->addSeparator();
 
     ccm->addAction(QIcon::fromTheme(QSL("document-edit-decrypt")),tr("Parse document"),
@@ -540,46 +423,6 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("document-edit-verify")),
                          tr("Translator options"));
     ccm->addActions(gSet->getTranslationLanguagesActions());
-
-    if (!pixivActions.isEmpty()) {
-        QUrl pixivIconUrl(QSL("http://www.pixiv.net/favicon.ico"));
-        if (pixivUrl.isValid())
-            pixivIconUrl.setScheme(pixivUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,pixivIconUrl);
-        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
-        connect(fl,&CFaviconLoader::gotIcon, &m_menu, [pixivActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(pixivActions)) {
-                ac->setIcon(icon);
-            }
-        });
-        fl->queryStart(false);
-    }
-    if (!fanboxActions.isEmpty()) {
-        QUrl fanboxIconUrl(QSL("https://www.fanbox.cc/favicon.ico"));
-        if (fanboxUrl.isValid())
-            fanboxIconUrl.setScheme(fanboxUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,fanboxIconUrl);
-        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
-        connect(fl,&CFaviconLoader::gotIcon, &m_menu, [fanboxActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(fanboxActions)) {
-                ac->setIcon(icon);
-            }
-        });
-        fl->queryStart(false);
-    }
-    if (!patreonActions.isEmpty()) {
-        QUrl patreonIconUrl(QSL("https://c5.patreon.com/external/favicon/favicon.ico"));
-        if (patreonUrl.isValid())
-            patreonIconUrl.setScheme(patreonUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,patreonIconUrl);
-        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
-        connect(fl,&CFaviconLoader::gotIcon, &m_menu, [patreonActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(patreonActions)) {
-                ac->setIcon(icon);
-            }
-        });
-        fl->queryStart(false);
-    }
 
     m_menuActive.start();
 
@@ -644,41 +487,6 @@ void CSnCtxHandler::translateFragment()
     th->start();
 
     QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);
-}
-
-void CSnCtxHandler::extractHTMLFragment()
-{
-    if (!snv->txtBrowser->hasSelection()) return;
-
-    snv->txtBrowser->page()->action(QWebEnginePage::Copy)->activate(QAction::Trigger);
-    const QUrl url = snv->txtBrowser->url();
-    QTimer::singleShot(CDefaults::clipboardHtmlAquireDelay,this,[this,url](){
-        QClipboard *cb = QApplication::clipboard();
-        const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
-        if (md->hasHtml()) {
-            auto *ex = new CHtmlImagesExtractor();
-            auto *th = new QThread();
-            ex->setParams(md->html(),url,false,true);
-
-            connect(ex,&CHtmlImagesExtractor::htmlReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
-            connect(ex,&CHtmlImagesExtractor::finished,th,&QThread::quit);
-            connect(th,&QThread::finished,ex,&CHtmlImagesExtractor::deleteLater);
-            connect(th,&QThread::finished,th,&QThread::deleteLater);
-            connect(th,&QThread::finished,gSet,[](){
-                gSet->app()->restoreOverrideCursor();
-            },Qt::QueuedConnection);
-
-            ex->moveToThread(th);
-            th->start();
-
-            gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-            QMetaObject::invokeMethod(ex,&CHtmlImagesExtractor::start,Qt::QueuedConnection);
-        } else {
-            QMessageBox::information(snv,tr("JPReader"),tr("Unknown clipboard format. HTML expected."));
-        }
-        cb->clear(QClipboard::Clipboard);
-    });
 }
 
 void CSnCtxHandler::saveToFile()

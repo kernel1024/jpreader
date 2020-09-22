@@ -3,7 +3,7 @@
 #include <QBuffer>
 #include <QRegularExpression>
 #include "translator.h"
-#include "atlastranslator.h"
+#include "translators/atlastranslator.h"
 #include "snviewer.h"
 #include "genericfuncs.h"
 #include "translatorcache.h"

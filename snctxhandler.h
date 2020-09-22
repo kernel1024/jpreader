@@ -25,7 +25,6 @@ public:
     bool isMenuActive();
 public Q_SLOTS:
     void translateFragment();
-    void extractHTMLFragment();
     void saveToFile();
     void bookmarkPage();
     void showInEditor();

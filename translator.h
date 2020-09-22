@@ -11,7 +11,7 @@
 #include <netdb.h>
 #include "html/ParserDom.h"
 #include "mainwindow.h"
-#include "abstracttranslator.h"
+#include "translators/abstracttranslator.h"
 #include "globalcontrol.h"
 #include "snwaitctl.h"
 #include "structures.h"

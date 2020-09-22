@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QString>
-#include "globalcontrol.h"
-#include "structures.h"
+#include "../globalcontrol.h"
+#include "../structures.h"
 
 namespace CDefaults {
 const int translatorConnectionTimeout = 10000;

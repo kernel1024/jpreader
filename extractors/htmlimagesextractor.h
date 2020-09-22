@@ -4,10 +4,10 @@
 #include <QObject>
 #include <QMutex>
 #include <QNetworkReply>
-#include "translator.h"
+#include "../translator.h"
+#include "abstractextractor.h"
 
-
-class CHtmlImagesExtractor : public QObject
+class CHtmlImagesExtractor : public CAbstractExtractor
 {
     Q_OBJECT
 private:
@@ -23,18 +23,14 @@ private:
     void finalizeHtml();
     void examineNode(CHTMLNode & node);
 
+protected:
+    void startMain() override;
+
 public:
-    explicit CHtmlImagesExtractor(QObject *parent = nullptr);
+    CHtmlImagesExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
     ~CHtmlImagesExtractor() = default;
     void setParams(const QString &source, const QUrl &origin,
                    bool translate, bool focus);
-
-Q_SIGNALS:
-    void htmlReady(const QString& html, bool focus, bool translate);
-    void finished();
-
-public Q_SLOTS:
-    void start();
 
 private Q_SLOTS:
     void subImageFinished(QNetworkReply *rpl, CHTMLAttributesHash *attrs);

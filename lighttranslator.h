@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QString>
-#include "abstracttranslator.h"
+#include "translators/abstracttranslator.h"
 
 namespace Ui {
 class CLigthTranslator;

@@ -1,6 +1,6 @@
 #include <QRandomGenerator>
 #include "abstracttranslator.h"
-#include "translator.h"
+#include "../translator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
 #include "yandextranslator.h"
