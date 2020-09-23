@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QPainter>
+#include <QClipboard>
 #include <QDebug>
 #include "downloadmanager.h"
 #include "genericfuncs.h"
@@ -153,6 +154,12 @@ void CDownloadManager::contextMenu(const QPoint &pos)
 
     QMenu cm;
     QAction *acm = nullptr;
+
+    if (item.url.isValid()) {
+        acm = cm.addAction(tr("Copy URL to clipboard"),model,&CDownloadsModel::copyUrlToClipboard);
+        acm->setData(idx.row());
+        cm.addSeparator();
+    }
 
     if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
         acm = cm.addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
@@ -532,6 +539,18 @@ void CDownloadsModel::cleanDownload()
     updateProgressLabel();
 }
 
+void CDownloadsModel::copyUrlToClipboard()
+{
+    auto *acm = qobject_cast<QAction *>(sender());
+    if (acm==nullptr) return;
+
+    int row = acm->data().toInt();
+    if (row<0 || row>=downloads.count()) return;
+
+    QClipboard *cb = QApplication::clipboard();
+    cb->setText(downloads.at(row).url.toString(),QClipboard::Clipboard);
+}
+
 void CDownloadsModel::cleanFinishedDownloads()
 {
     int row = 0;
@@ -654,6 +673,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
 CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 {
     reply = rpl;
+    url = rpl->url();
     auxId = QUuid::createUuid();
 }
 
@@ -670,6 +690,7 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
         received = item->receivedBytes();
         total = item->totalBytes();
         downloadItem = item;
+        url = item->url();
     }
 }
 
@@ -684,6 +705,7 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
     mimeType = QSL("application/download");
     state = QWebEngineDownloadItem::DownloadInProgress;
     reply = rpl;
+    url = rpl->url();
     auxId = QUuid::createUuid();
 }
 

@@ -30,6 +30,7 @@ public:
     QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
     QUuid auxId;
+    QUrl url;
 
     bool autoDelete { false };
 
@@ -116,6 +117,7 @@ public Q_SLOTS:
 
     void abortDownload();
     void cleanDownload();
+    void copyUrlToClipboard();
     void cleanFinishedDownloads();
     void cleanCompletedDownloads();
     void openDirectory();
