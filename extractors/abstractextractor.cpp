@@ -6,6 +6,7 @@
 #include "patreonextractor.h"
 #include "pixivindexextractor.h"
 #include "pixivnovelextractor.h"
+#include "deviantartextractor.h"
 
 CAbstractExtractor::CAbstractExtractor(QObject *parent, CSnippetViewer* snv)
     : QObject(parent)
@@ -230,6 +231,46 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         patreonActions.append(ac);
     }
 
+    QRegularExpression deviantartGalleryRx(QSL("deviantart.com/(?<userID>[^/]+)/gallery"
+                                               "(?:/(?<folderID>\\d+)/(?<folderName>[^/\\s]+))?"),
+                                           QRegularExpression::CaseInsensitiveOption);
+    QList<QAction *> deviantartActions;
+    QUrl deviantartUrl = pageUrl;
+    if (!deviantartUrl.toString().contains(deviantartGalleryRx))
+        deviantartUrl.clear();
+    deviantartUrl.setFragment(QString());
+
+    QString deviantUserID;
+    QString deviantFolderID;
+    QString deviantFolderName;
+    auto mchDeviantArt = deviantartGalleryRx.match(deviantartUrl.toString());
+    if (mchDeviantArt.hasMatch()) {
+        deviantUserID = mchDeviantArt.captured(QSL("userID"));
+        deviantFolderID = mchDeviantArt.captured(QSL("folderID"));
+        deviantFolderName = mchDeviantArt.captured(QSL("folderName"));
+    }
+
+    if (deviantartUrl.isValid() && !deviantUserID.isEmpty()) {
+        if (!res.isEmpty()) {
+            ac = new QAction();
+            ac->setSeparator(true);
+            res.append(ac);
+        }
+
+        data.clear();
+        data[QSL("type")] = QSL("deviantartGallery");
+        data[QSL("userID")] = deviantUserID;
+        data[QSL("folderID")] = deviantFolderID;
+        data[QSL("folderName")] = deviantFolderName;
+
+        if (deviantFolderName.isEmpty())
+            deviantFolderName = QSL("All");
+        ac = new QAction(tr("Download all images from Deviantart \"%1\" gallery")
+                         .arg(deviantFolderName),menu);
+        ac->setData(data);
+        res.append(ac);
+        deviantartActions.append(ac);
+    }
 
     // ------------- Favicon loading
 
@@ -267,6 +308,19 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [patreonActions](const QIcon& icon){
             for (auto * const ac : qAsConst(patreonActions)) {
+                ac->setIcon(icon);
+            }
+        });
+        fl->queryStart(false);
+    }
+    if (!deviantartActions.isEmpty()) {
+        QUrl deviantartIconUrl(QSL("https://st.deviantart.net/eclipse/icons/da_favicon_v2.ico"));
+        if (deviantartUrl.isValid())
+            deviantartIconUrl.setScheme(deviantartUrl.scheme());
+        auto *fl = new CFaviconLoader(snv,deviantartIconUrl);
+        connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
+        connect(fl,&CFaviconLoader::gotIcon, menu, [deviantartActions](const QIcon& icon){
+            for (auto * const ac : qAsConst(deviantartActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -339,6 +393,13 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
                     hash.value(QSL("url")).toUrl(),
                     true);
 
+    } else if (type == QSL("deviantartGallery")) {
+        res = new CDeviantartExtractor(nullptr,snv);
+        (qobject_cast<CDeviantartExtractor *>(res))->setParams(
+                    hash.value(QSL("userID")).toString(),
+                    hash.value(QSL("folderID")).toString(),
+                    hash.value(QSL("folderName")).toString());
+
     }
 
     return res;
@@ -378,4 +439,43 @@ void CAbstractExtractor::loadError(QNetworkReply::NetworkError error)
         msg.append(QSL(" %1").arg(rpl->errorString()));
 
     showError(msg);
+}
+
+QJsonDocument CAbstractExtractor::parseJsonSubDocument(const QByteArray& source, const QRegularExpression& start)
+{
+    QJsonDocument doc;
+
+    QString src = QString::fromUtf8(source);
+    QRegularExpressionMatch match;
+    int idx = src.indexOf(start,0,&match);
+    if (idx<0) {
+        doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
+        return doc;
+    }
+    QByteArray cnt = src.mid(idx+match.capturedLength()-1).toUtf8();
+
+    QJsonParseError err {};
+    doc = QJsonDocument::fromJson(cnt,&err);
+    if (doc.isNull()) {
+        if (err.error == QJsonParseError::GarbageAtEnd) {
+            cnt.truncate(err.offset);
+        } else {
+            const QString s = QSL(R"({"error":"JSON parser error %1 at %2."})")
+                              .arg(err.error)
+                              .arg(err.offset);
+            doc = QJsonDocument::fromJson(s.toUtf8());
+            return doc;
+        }
+    }
+    // try again
+    doc = QJsonDocument::fromJson(cnt,&err);
+    if (doc.isNull()) {
+        const QString s = QSL(R"({"error":"JSON reparser error %1 at %2."})")
+                          .arg(err.error)
+                          .arg(err.offset);
+        doc = QJsonDocument::fromJson(s.toUtf8());
+        return doc;
+    }
+
+    return doc;
 }

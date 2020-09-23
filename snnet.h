@@ -22,7 +22,7 @@ private:
 public:
     explicit CSnNet(CSnippetViewer * parent);
     void multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
-                          const QString &preselectedName = QString(), bool isFanbox = false,
+                          const QString &containerName = QString(), bool isFanbox = false,
                           bool relaxedRedirects = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
@@ -45,10 +45,10 @@ public Q_SLOTS:
 
     void extractHTMLFragment();
     void processExtractorAction();
-    void processExtractorActionIndirect(const QHash<QString,QVariant> &params);
+    void processExtractorActionIndirect(const QVariantHash &params);
     void novelReady(const QString& html, bool focus, bool translate);
     void listReady(const QString& html);
-    void mangaReady(const QVector<CUrlWithName> &urls, const QString &id, const QUrl &origin);
+    void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin);
 
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);

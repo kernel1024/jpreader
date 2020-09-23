@@ -183,12 +183,12 @@ void CPixivNovelExtractor::subLoadFinished()
         const CIntList idxs = m_imgList.value(key);
         QString html = QString::fromUtf8(rpl->readAll());
 
-        QString id;
-        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&id);
+        QString illustID;
+        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID);
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
-            Q_EMIT mangaReady(imageUrls,id,m_mangaOrigin);
+            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin);
             Q_EMIT finished();
             return;
         }
@@ -328,53 +328,14 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     }
 }
 
-QJsonDocument CPixivNovelExtractor::parseJsonSubDocument(const QByteArray& source, const QRegularExpression& start)
-{
-    QJsonDocument doc;
-
-    QString src = QString::fromUtf8(source);
-    QRegularExpressionMatch match;
-    int idx = src.indexOf(start,0,&match);
-    if (idx<0) {
-        doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
-        return doc;
-    }
-    QByteArray cnt = src.mid(idx+match.capturedLength()-1).toUtf8();
-
-    QJsonParseError err {};
-    doc = QJsonDocument::fromJson(cnt,&err);
-    if (doc.isNull()) {
-        if (err.error == QJsonParseError::GarbageAtEnd) {
-            cnt.truncate(err.offset);
-        } else {
-            const QString s = QSL(R"({"error":"JSON parser error %1 at %2."})")
-                              .arg(err.error)
-                              .arg(err.offset);
-            doc = QJsonDocument::fromJson(s.toUtf8());
-            return doc;
-        }
-    }
-    // try again
-    doc = QJsonDocument::fromJson(cnt,&err);
-    if (doc.isNull()) {
-        const QString s = QSL(R"({"error":"JSON reparser error %1 at %2."})")
-                          .arg(err.error)
-                          .arg(err.offset);
-        doc = QJsonDocument::fromJson(s.toUtf8());
-        return doc;
-    }
-
-    return doc;
-}
-
-QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* id)
+QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* illustID)
 {
     QVector<CUrlWithName> res;
     QJsonDocument doc;
 
     QString key = origin.fileName();
-    if (id != nullptr)
-        *id = key;
+    if (illustID != nullptr)
+        *illustID = key;
 
     QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
     if (html.indexOf(jstart)>=0) {

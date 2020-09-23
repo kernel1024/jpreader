@@ -16,7 +16,7 @@ public:
     enum IndexMode { WorkIndex, BookmarksIndex };
     Q_ENUM(IndexMode)
 
-    CPixivIndexExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    CPixivIndexExtractor(QObject *parent, CSnippetViewer *snv);
     void setParams(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);
 
 private:

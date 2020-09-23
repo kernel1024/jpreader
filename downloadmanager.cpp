@@ -43,10 +43,10 @@ CDownloadManager::~CDownloadManager()
 }
 
 void CDownloadManager::handleAuxDownload(const QString& src, const QString& suggestedFilename,
-                                         const QString& path, const QUrl& referer,
+                                         const QString& containerPath, const QUrl& referer,
                                          int index, int maxIndex, bool isFanbox, bool relaxedRedirects)
 {
-    QUrl url = QUrl(src);
+    QUrl url(src);
     if (!url.isValid() || url.isRelative()) return;
 
     QString fname;
@@ -57,17 +57,17 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     } else {
         fname.append(suggestedFilename);
     }
-    if (path.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
-        fname = QSL("%1%2%3").arg(path).arg(CDefaults::zipSeparator).arg(fname);
+    if (containerPath.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
+        fname = QSL("%1%2%3").arg(containerPath).arg(CDefaults::zipSeparator).arg(fname);
     } else {
-        fname = QDir(path).filePath(fname);
+        fname = QDir(containerPath).filePath(fname);
     }
 
     if (!isVisible())
         show();
 
     if (fname.isNull() || fname.isEmpty()) return;
-    gSet->setSavedAuxSaveDir(path);
+    gSet->setSavedAuxSaveDir(containerPath);
 
     QNetworkRequest req(url);
     req.setRawHeader("referer",referer.toString().toUtf8());

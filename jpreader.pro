@@ -1,4 +1,5 @@
 HEADERS = mainwindow.h \
+    extractors/deviantartextractor.h \
     translators/abstracttranslator.h \
     translators/awstranslator.h \
     translators/atlastranslator.h \
@@ -60,6 +61,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
+    extractors/deviantartextractor.cpp \
     translators/awstranslator.cpp \
     translators/atlastranslator.cpp \
     translators/abstracttranslator.cpp \
@@ -125,6 +127,7 @@ RESOURCES = \
 
 FORMS = main.ui \
     authdlg.ui \
+    downloadlistdlg.ui \
     settingstab.ui \
     snviewer.ui \
     searchtab.ui \
@@ -136,7 +139,6 @@ FORMS = main.ui \
     sourceviewer.ui \
     translatorstatisticstab.ui \
     userscriptdlg.ui \
-    selectablelistdlg.ui \
     bookmarks.ui \
     addbookmarkdialog.ui \
     noscriptdialog.ui \

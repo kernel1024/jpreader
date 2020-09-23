@@ -22,7 +22,7 @@
 #include "extractors/patreonextractor.h"
 #include "extractors/htmlimagesextractor.h"
 #include "globalcontrol.h"
-#include "ui_selectablelistdlg.h"
+#include "ui_downloadlistdlg.h"
 
 namespace CDefaults {
 const int browserPageFinishedTimeoutMS = 30000;
@@ -41,7 +41,7 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     });
 }
 
-void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& preselectedName,
+void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& containerName,
                               bool isFanbox, bool relaxedRedirects)
 {
     static QSize multiImgDialogSize = QSize();
@@ -49,79 +49,95 @@ void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& ref
     if (gSet->downloadManager()==nullptr) return;
 
     QDialog dlg(snv);
-    Ui::SelectableListDlg ui;
+    Ui::DownloadListDlg ui;
     ui.setupUi(&dlg);
     if (multiImgDialogSize.isValid())
         dlg.resize(multiImgDialogSize);
 
     connect(ui.filter,&QLineEdit::textEdited,[ui](const QString& text){
         if (text.isEmpty()) {
-            for (int i=0;i<ui.list->count();i++) {
-                if (ui.list->item(i)->isHidden())
-                    ui.list->item(i)->setHidden(false);
+            for (int i=0;i<ui.table->rowCount();i++) {
+                if (ui.table->isRowHidden(i))
+                    ui.table->showRow(i);
             }
             return;
         }
 
-        for (int i=0;i<ui.list->count();i++) {
-            ui.list->item(i)->setHidden(true);
+        for (int i=0;i<ui.table->rowCount();i++) {
+            ui.table->hideRow(i);
         }
-        const QList<QListWidgetItem *> filtered = ui.list->findItems(text,
-                                                                     ((ui.syntax->currentIndex()==0) ?
-                                                                          Qt::MatchRegularExpression : Qt::MatchWildcard));
-        for (QListWidgetItem* item : filtered) {
-            item->setHidden(false);
+        const QList<QTableWidgetItem *> filtered = ui.table->findItems(text,
+                                                                       ((ui.syntax->currentIndex()==0) ?
+                                                                            Qt::MatchRegularExpression : Qt::MatchWildcard));
+        for (auto *item : filtered) {
+            ui.table->showRow(item->row());
         }
     });
 
-    ui.label->setText(tr("Detected image URLs from page"));
+    ui.label->setText(tr("%1 image URLs detected.").arg(urls.count()));
     ui.syntax->setCurrentIndex(0);
 
+    ui.table->setColumnCount(2);
+    ui.table->setHorizontalHeaderLabels({ tr("File name"), tr("URL") });
+    int row = 0;
+    int rejected = 0;
     for (const auto& url : urls) {
-        QString s = url.first;
-        if (!url.second.isEmpty())
-            s.append(QSL(" [%1]").arg(url.second));
+        QUrl u(url.first);
+        if (!u.isValid() || u.isRelative()) {
+            rejected++;
+            continue;
+        }
 
-        auto* item = new QListWidgetItem(s);
-        item->setData(Qt::UserRole,url.first);
-        item->setData(Qt::UserRole+1,url.second);
+        QString s = url.second;
+        if (s.isEmpty())
+            s = u.fileName();
 
-        ui.list->addItem(item);
+        ui.table->setRowCount(row+1);
+        ui.table->setItem(row,0,new QTableWidgetItem(s));
+        ui.table->setItem(row,1,new QTableWidgetItem(url.first));
+
+        row++;
     }
+    ui.table->resizeColumnsToContents();
+
+    if (rejected>0)
+        ui.label->setText(QSL("%1. %2 incorrect URLs.").arg(ui.label->text()).arg(rejected));
+
     dlg.setWindowTitle(tr("Multiple images download"));
-    if (!preselectedName.isEmpty())
-        ui.list->selectAll();
+    if (!containerName.isEmpty())
+        ui.table->selectAll();
 
     if (dlg.exec()==QDialog::Rejected) return;
     multiImgDialogSize=dlg.size();
 
-    QString dir;
+    QString container;
     if (ui.checkZipFile->isChecked()) {
-        QString fname = preselectedName;
+        QString fname = containerName;
         if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
             fname += QSL(".zip");
-        dir = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+        container = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
                                               QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
     } else {
-        dir = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
+        container = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
                                                    CGenericFuncs::getTmpDir());
+        // TODO: suggest directory name
     }
-    if (dir.isEmpty()) return;
+    if (container.isEmpty()) return;
 
     int index = 0;
-    const QList<QListWidgetItem *> itml = ui.list->selectedItems();
-    for (const QListWidgetItem* itm : itml){
+    const QModelIndexList itml = ui.table->selectionModel()->selectedRows(0);
+    for (const auto &itm : itml){
         if (!ui.checkAddNumbers->isChecked()) {
             index = -1;
         } else {
             index++;
         }
 
-        gSet->downloadManager()->handleAuxDownload(itm->data(Qt::UserRole).toString(),
-                                                   itm->data(Qt::UserRole+1).toString(),
-                                                   dir,referer,index,
-                                                   ui.list->selectedItems().count(),
-                                                   isFanbox,relaxedRedirects);
+        QString filename = ui.table->item(itm.row(),0)->text();
+        QString url = ui.table->item(itm.row(),1)->text();
+
+        gSet->downloadManager()->handleAuxDownload(url,filename,container,referer,index,
+                                                   itml.count(),isFanbox,relaxedRedirects);
     }
 }
 
@@ -270,7 +286,7 @@ void CSnNet::processExtractorAction()
     processExtractorActionIndirect(ac->data().toHash());
 }
 
-void CSnNet::processExtractorActionIndirect(const QHash<QString, QVariant> &params)
+void CSnNet::processExtractorActionIndirect(const QVariantHash &params)
 {
     auto *ex = CAbstractExtractor::extractorFactory(params,snv);
     if (ex == nullptr) return;
@@ -314,16 +330,16 @@ void CSnNet::listReady(const QString &html)
     }
 }
 
-void CSnNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &id, const QUrl &origin)
+void CSnNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin)
 {
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
     bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
 
-    if (urls.isEmpty() || id.isEmpty()) {
+    if (urls.isEmpty() || containerName.isEmpty()) {
         QMessageBox::warning(snv,tr("JPReader"),
-                             tr("No manga image urls found"));
+                             tr("Image urls not found or container name not detected."));
     } else {
-        multiImgDownload(urls,origin,id,isFanbox,isPatreon);
+        multiImgDownload(urls,origin,containerName,isFanbox,isPatreon);
     }
 }
 

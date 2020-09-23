@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QNetworkReply>
 #include <QVariant>
+#include <QJsonDocument>
+#include <QByteArray>
+#include <QRegularExpression>
 #include "../snviewer.h"
 #include "../structures.h"
 
@@ -14,7 +17,7 @@ private:
     CSnippetViewer* m_snv { nullptr };
 
 public:
-    CAbstractExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    CAbstractExtractor(QObject *parent, CSnippetViewer *snv);
 
     CSnippetViewer *snv() const;
 
@@ -25,6 +28,7 @@ public:
 protected:
     virtual void startMain() = 0;
     void showError(const QString &message);
+    QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
 
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);

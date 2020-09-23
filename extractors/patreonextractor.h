@@ -17,7 +17,7 @@ private:
     QUrl m_origin;
 
 public:
-    CPatreonExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    CPatreonExtractor(QObject *parent, CSnippetViewer *snv);
     void setParams(const QString& pageHtml, const QUrl& origin, bool extractAttachments);
 
 protected:

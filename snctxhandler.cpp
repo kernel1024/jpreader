@@ -110,7 +110,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         if (params.contains(QSL("html"))) {
             connect(eac,&QAction::triggered,this,[this,params](){
                 snv->txtBrowser->page()->toHtml([this,params](const QString& html){
-                    QHash<QString,QVariant> pl = params;
+                    QVariantHash pl = params;
                     pl[QSL("html")] = html;
                     snv->netHandler->processExtractorActionIndirect(pl);
                 });

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SelectableListDlg</class>
- <widget class="QDialog" name="SelectableListDlg">
+ <class>DownloadListDlg</class>
+ <widget class="QDialog" name="DownloadListDlg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -76,9 +76,12 @@
     </layout>
    </item>
    <item>
-    <widget class="QListWidget" name="list">
-     <property name="selectionMode">
-      <enum>QAbstractItemView::ExtendedSelection</enum>
+    <widget class="QTableWidget" name="table">
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -113,18 +116,19 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>list</tabstop>
   <tabstop>filter</tabstop>
   <tabstop>btnClearFilter</tabstop>
   <tabstop>syntax</tabstop>
+  <tabstop>table</tabstop>
   <tabstop>checkAddNumbers</tabstop>
+  <tabstop>checkZipFile</tabstop>
  </tabstops>
  <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>SelectableListDlg</receiver>
+   <receiver>DownloadListDlg</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -140,7 +144,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>SelectableListDlg</receiver>
+   <receiver>DownloadListDlg</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

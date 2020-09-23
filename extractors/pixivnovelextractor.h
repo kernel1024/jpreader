@@ -7,7 +7,6 @@
 #include <QAtomicInteger>
 #include <QMutex>
 #include <QUrl>
-#include <QJsonDocument>
 #include "abstractextractor.h"
 #include "../structures.h"
 
@@ -31,11 +30,10 @@ private:
     void handleImages(const QStringList& imgs);
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title);
-    QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
-    QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin, QString *id = nullptr);
+    QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin, QString *illustID = nullptr);
 
 public:
-    CPixivNovelExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    CPixivNovelExtractor(QObject *parent, CSnippetViewer *snv);
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool focus);
     void setMangaOrigin(const QUrl& origin);

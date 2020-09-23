@@ -1009,6 +1009,7 @@ void CMainWindow::helpAbout()
     QString recoll = tr("no");
     QString baloo5 = tr("no");
     QString poppler = tr("no");
+    QString srchilite = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
@@ -1023,20 +1024,26 @@ void CMainWindow::helpAbout()
 #ifdef WITH_POPPLER
     poppler = tr("yes");
 #endif
-    QString msg = tr("JPReader for searching, translating and reading text files in Japanese\n\n"
+#ifdef WITH_SRCHILITE
+    srchilite = tr("yes");
+#endif
+
+    QString msg = tr("JPReader.\nFor assisted text searching, translating and reading\n\n"
                      "Build: %1 %2\n"
                      "Platform: %3\n"
                      "Build date: %4\n\n"
                      "Recoll backend compiled: %5\n"
                      "Baloo backend compiled: %6\n"
-                     "Poppler support: %7.")
+                     "Poppler support: %7\n"
+                     "Source-highlight: %8.")
                   .arg(QSL(BUILD_REV),
                        debugstr,
                        QSL(BUILD_PLATFORM),
                        QSL(BUILD_DATE),
                        recoll,
                        baloo5,
-                       poppler);
+                       poppler,
+                       srchilite);
 
     QMessageBox::about(this, tr("JPReader"),msg);
 }
