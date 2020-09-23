@@ -63,6 +63,7 @@ public:
     void handleAuxDownload(const QString &src, const QString &suggestedFilename,
                            const QString &containerPath, const QUrl& referer, int index,
                            int maxIndex, bool isFanbox, bool relaxedRedirects);
+    void setProgressLabel(const QString& text);
 
 public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);
@@ -90,6 +91,8 @@ private:
 
     Q_DISABLE_COPY(CDownloadsModel)
 
+    void updateProgressLabel();
+
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
     ~CDownloadsModel() override;
@@ -114,6 +117,7 @@ public Q_SLOTS:
     void abortDownload();
     void cleanDownload();
     void cleanFinishedDownloads();
+    void cleanCompletedDownloads();
     void openDirectory();
     void openHere();
     void openXdg();

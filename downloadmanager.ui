@@ -39,6 +39,13 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
+      <widget class="QLabel" name="labelProgress">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -50,6 +57,16 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonClearDownloaded">
+       <property name="toolTip">
+        <string>Leave failed downloads</string>
+       </property>
+       <property name="text">
+        <string>Clear downloaded</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="buttonClearFinished">
@@ -71,6 +88,7 @@
  </widget>
  <tabstops>
   <tabstop>tableDownloads</tabstop>
+  <tabstop>buttonClearDownloaded</tabstop>
   <tabstop>buttonClearFinished</tabstop>
   <tabstop>buttonHide</tabstop>
  </tabstops>

@@ -35,6 +35,9 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 
     connect(ui->buttonClearFinished, &QPushButton::clicked,
             model, &CDownloadsModel::cleanFinishedDownloads);
+
+    connect(ui->buttonClearDownloaded, &QPushButton::clicked,
+            model, &CDownloadsModel::cleanCompletedDownloads);
 }
 
 CDownloadManager::~CDownloadManager()
@@ -101,6 +104,10 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     model->appendItem(CDownloadItem(rpl, fname));
 }
 
+void CDownloadManager::setProgressLabel(const QString &text)
+{
+    ui->labelProgress->setText(text);
+}
 
 void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 {
@@ -192,6 +199,48 @@ void CDownloadManager::showEvent(QShowEvent *event)
     ui->tableDownloads->horizontalHeader()->setStretchLastSection(true);
 }
 
+void CDownloadsModel::updateProgressLabel()
+{
+    if (downloads.isEmpty()) {
+        m_manager->setProgressLabel(QString());
+        return;
+    }
+
+    qint64 receivedBytes = 0L;
+    int total = downloads.count();
+    int completed = 0;
+    int failures = 0;
+    int cancelled = 0;
+    int active = 0;
+    for(const auto &item : qAsConst(downloads)) {
+        receivedBytes += item.received;
+        switch (item.state) {
+            case QWebEngineDownloadItem::DownloadCancelled:
+                cancelled++;
+                break;
+            case QWebEngineDownloadItem::DownloadCompleted:
+                completed++;
+                break;
+            case QWebEngineDownloadItem::DownloadInProgress:
+            case QWebEngineDownloadItem::DownloadRequested:
+                active++;
+                break;
+            case QWebEngineDownloadItem::DownloadInterrupted:
+                failures++;
+                break;
+        }
+    }
+
+    m_manager->setProgressLabel(tr("Downloaded: %1 of %2. Active: %3. Failures: %4. Cancelled %5.\n"
+                                   "Total downloaded: %6.")
+                                .arg(completed)
+                                .arg(total)
+                                .arg(active)
+                                .arg(failures)
+                                .arg(cancelled)
+                                .arg(CGenericFuncs::formatFileSize(receivedBytes)));
+}
+
 CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
     : QAbstractTableModel(parent)
 {
@@ -205,6 +254,7 @@ CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
             this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
     connect(gSet->downloadWriter(),&CDownloadWriter::error,
             this,&CDownloadsModel::writerError,Qt::QueuedConnection);
+    updateProgressLabel();
 }
 
 CDownloadsModel::~CDownloadsModel()
@@ -334,6 +384,7 @@ void CDownloadsModel::deleteDownloadItem(const QModelIndex &index)
     beginRemoveRows(QModelIndex(),row,row);
     downloads.removeAt(row);
     endRemoveRows();
+    updateProgressLabel();
 }
 
 void CDownloadsModel::appendItem(const CDownloadItem &item)
@@ -342,6 +393,7 @@ void CDownloadsModel::appendItem(const CDownloadItem &item)
     beginInsertRows(QModelIndex(),row,row);
     downloads << item;
     endInsertRows();
+    updateProgressLabel();
 }
 
 void CDownloadsModel::downloadFinished()
@@ -383,6 +435,8 @@ void CDownloadsModel::downloadFinished()
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 
+    updateProgressLabel();
+
     if (downloads.at(row).autoDelete)
         deleteDownloadItem(index(row,0));
 }
@@ -398,6 +452,8 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     downloads[row].state = state;
     if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
         downloads[row].errorString = item->interruptReasonString();
+
+    updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 }
@@ -418,6 +474,8 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
     downloads[row].received = bytesReceived;
     downloads[row].total = bytesTotal;
+
+    updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,2),index(row,3));
 }
@@ -445,6 +503,8 @@ void CDownloadsModel::abortDownload()
         QMessageBox::warning(m_manager,tr("JPReader"),
                              tr("Unable to stop this download. Incorrect state."));
     }
+
+    updateProgressLabel();
 }
 
 void CDownloadsModel::cleanDownload()
@@ -469,6 +529,7 @@ void CDownloadsModel::cleanDownload()
     }
     if (!ok)
         deleteDownloadItem(index(row,0));
+    updateProgressLabel();
 }
 
 void CDownloadsModel::cleanFinishedDownloads()
@@ -483,6 +544,22 @@ void CDownloadsModel::cleanFinishedDownloads()
         } else
             row++;
     }
+    updateProgressLabel();
+}
+
+void CDownloadsModel::cleanCompletedDownloads()
+{
+    int row = 0;
+    while (row<downloads.count()) {
+        if (downloads.at(row).state==QWebEngineDownloadItem::DownloadCompleted) {
+            beginRemoveRows(QModelIndex(),row,row);
+            downloads.removeAt(row);
+            endRemoveRows();
+            row = 0;
+        } else
+            row++;
+    }
+    updateProgressLabel();
 }
 
 void CDownloadsModel::openDirectory()
@@ -552,6 +629,7 @@ void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
 
     downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
     downloads[row].errorString = message;
+    updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 }
@@ -563,6 +641,7 @@ void CDownloadsModel::writerCompleted(const QUuid &uuid)
         return;
 
     downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
+    updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 }
