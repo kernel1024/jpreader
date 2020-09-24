@@ -113,9 +113,23 @@ void CDeviantartExtractor::finalizeGallery()
         QString token = jimg.value(QSL("media")).toObject().value(QSL("token")).toArray().first().toString();
         if (token.isEmpty()) continue;
 
+        QString prettyName = jimg.value(QSL("media")).toObject().value(QSL("prettyName")).toString();
+
+        const QJsonArray jtypes = jimg.value(QSL("media")).toObject().value(QSL("types")).toArray();
+        for (const auto &jtype : jtypes) {
+            if (jtype.toObject().value(QSL("t")).toString() == QSL("fullview")) {
+                QString fvurl = jtype.toObject().value(QSL("c")).toString();
+                if (!fvurl.isEmpty()) {
+                    fvurl.replace(QSL("<prettyName>"),prettyName);
+                    url.append(QSL("/%1").arg(fvurl));
+                    break;
+                }
+            }
+        }
+
         url.append(QSL("?token=%1").arg(token));
 
-        QString base = jimg.value(QSL("media")).toObject().value(QSL("prettyName")).toString();
+        QString base = prettyName;
         if (base.isEmpty()) {
             QFileInfo bfi(jimg.value(QSL("url")).toString());
             base = bfi.baseName();
