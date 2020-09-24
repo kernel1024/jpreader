@@ -121,6 +121,7 @@ public:
     QList<QAction*> getTranslationLanguagesActions() const;
     QList<QAction*> getSubsentencesModeActions() const;
     bool isBlockTabCloseActive() const;
+    void setFileDialogNewFolderName(const QString& name);
 
     // Owned widgets
     CMainWindow *activeWindow() const;

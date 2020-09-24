@@ -128,6 +128,9 @@ void CGlobalControl::initialize()
     if (!setupIPC())
         ::exit(0);
 
+    d->uiTranslator.reset(new CUITranslator());
+    QCoreApplication::installTranslator(d->uiTranslator.data());
+
     initLanguagesList();
 
     d->downloadWriter = new CDownloadWriter();
@@ -582,6 +585,12 @@ bool CGlobalControl::isBlockTabCloseActive() const
 {
     Q_D(const CGlobalControl);
     return d->blockTabCloseActive;
+}
+
+void CGlobalControl::setFileDialogNewFolderName(const QString &name)
+{
+    Q_D(const CGlobalControl);
+    d->uiTranslator->setFileDialogNewFolderName(name);
 }
 
 const CSettings* CGlobalControl::settings() const

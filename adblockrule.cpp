@@ -58,15 +58,15 @@ void CAdBlockRule::setFilter(const QString &filter)
     m_plainRule.clear();
     bool regExpRule = false;
 
-    if (filter.startsWith(QLatin1String("!"))
+    if (filter.startsWith(QSL("!"))
             || filter.trimmed().isEmpty())
         m_enabled = false;
 
-    if (filter.contains(QLatin1String("##")) || filter.contains(QLatin1String("#@#")))
+    if (filter.contains(QSL("##")) || filter.contains(QSL("#@#")))
         m_cssRule = true;
 
     QString parsedLine = filter;
-    if (parsedLine.startsWith(QLatin1String("@@"))) {
+    if (parsedLine.startsWith(QSL("@@"))) {
         m_exception = true;
         parsedLine = parsedLine.mid(2);
     }
@@ -77,7 +77,7 @@ void CAdBlockRule::setFilter(const QString &filter)
             regExpRule = true;
         }
     }
-    int options = parsedLine.indexOf(QLatin1String("$"), 0);
+    int options = parsedLine.indexOf(QSL("$"), 0);
     if (options >= 0) {
         m_options = parsedLine.mid(options + 1).split(QLatin1Char(','));
         parsedLine = parsedLine.left(options);
@@ -134,7 +134,7 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
             QUrl url = QUrl::fromEncoded(encodedUrl.toUtf8());
             QString host = url.host();
             for (const QString &option : qAsConst(m_options)) {
-                if (option.startsWith(QLatin1String("domain="))) {
+                if (option.startsWith(QSL("domain="))) {
                     const QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
                     for (const QString& domainOption : domainOptions) {
                         bool negate = domainOption.at(0) == QLatin1Char('~');

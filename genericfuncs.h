@@ -72,9 +72,10 @@ public:
                                      const QString & dir = QString(), const QStringList &filters = QStringList(),
                                      QString * selectedFilter = nullptr, const QString & preselectFileName = QString());
 
-    static QString	getExistingDirectoryD ( QWidget * parent = nullptr, const QString & caption = QString(),
-                                            const QString & dir = QString(),
-                                            QFileDialog::Options options = QFileDialog::ShowDirsOnly);
+    static QString	getExistingDirectoryD (QWidget * parent = nullptr, const QString & caption = QString(),
+                                           const QString & dir = QString(),
+                                           QFileDialog::Options options = QFileDialog::ShowDirsOnly,
+                                           const QString &suggestedName = QString());
 
     static QByteArray signSHA256withRSA(const QByteArray& data, const QByteArray& privateKey);
 

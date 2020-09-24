@@ -52,6 +52,7 @@ HEADERS = mainwindow.h \
     structures.h \
     settings.h \
     globalui.h \
+    uitranslator.h \
     userscript.h \
     browsercontroller.h \
     bookmarks.h \
@@ -114,6 +115,7 @@ SOURCES = main.cpp \
     structures.cpp \
     settings.cpp \
     globalui.cpp \
+    uitranslator.cpp \
     userscript.cpp \
     browsercontroller.cpp \
     bookmarks.cpp \

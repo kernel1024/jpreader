@@ -479,13 +479,18 @@ QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & capti
     return res;
 }
 
-QString	CGenericFuncs::getExistingDirectoryD ( QWidget * parent, const QString & caption, const QString & dir, QFileDialog::Options options )
+QString	CGenericFuncs::getExistingDirectoryD (QWidget * parent, const QString & caption,
+                                              const QString & dir, QFileDialog::Options options,
+                                              const QString & suggestedName)
 {
     QFileDialog::Options opts = options;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    return QFileDialog::getExistingDirectory(parent,caption,dir,opts);
+    gSet->setFileDialogNewFolderName(suggestedName);
+    QString res = QFileDialog::getExistingDirectory(parent,caption,dir,opts);
+    gSet->setFileDialogNewFolderName(QString());
+    return res;
 }
 
 QByteArray CGenericFuncs::signSHA256withRSA(const QByteArray &data, const QByteArray &privateKey)

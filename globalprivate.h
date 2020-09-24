@@ -12,6 +12,7 @@
 #include "auxdictionary.h"
 #include "auxtranslator.h"
 #include "translator.h"
+#include "uitranslator.h"
 #include "zdict/zdictcontroller.h"
 
 class CMainWindow;
@@ -42,6 +43,7 @@ public:
     QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
     QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
+    QScopedPointer<CUITranslator, QScopedPointerDeleteLater> uiTranslator;
     QList<QObject *> translatorPool;
 
     QStringList recentFiles;

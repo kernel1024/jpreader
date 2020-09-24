@@ -116,11 +116,11 @@ void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& ref
         if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
             fname += QSL(".zip");
         container = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
-                                              QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
+                                                    QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
     } else {
         container = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
-                                                   CGenericFuncs::getTmpDir());
-        // TODO: suggest directory name
+                                                         CGenericFuncs::getTmpDir(),
+                                                         QFileDialog::ShowDirsOnly,containerName);
     }
     if (container.isEmpty()) return;
 
