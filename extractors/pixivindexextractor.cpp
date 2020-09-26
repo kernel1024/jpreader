@@ -105,7 +105,11 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     }
 
     if (m_ids.isEmpty()) {
-        finalizeHtml(rpl->url());
+        if (rpl) {
+            finalizeHtml(rpl->url());
+        } else {
+            showError(tr("Novel list is empty."));
+        }
         return;
     }
 
@@ -152,7 +156,11 @@ void CPixivIndexExtractor::startMain()
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
-        connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
+        if (m_indexMode == WorkIndex) {
+            connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
+        } else {
+            connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
+        }
     },Qt::QueuedConnection);
 }
 
