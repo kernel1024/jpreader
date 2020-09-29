@@ -62,6 +62,9 @@
       </spacer>
      </item>
      <item>
+      <widget class="QLabel" name="labelWriter"/>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonClearDownloaded">
        <property name="toolTip">
         <string>Leave failed downloads</string>
@@ -75,6 +78,13 @@
       <widget class="QPushButton" name="buttonClearFinished">
        <property name="text">
         <string>Clear finished</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonAbortAll">
+       <property name="text">
+        <string>Abort all</string>
        </property>
       </widget>
      </item>
@@ -93,6 +103,7 @@
   <tabstop>tableDownloads</tabstop>
   <tabstop>buttonClearDownloaded</tabstop>
   <tabstop>buttonClearFinished</tabstop>
+  <tabstop>buttonAbortAll</tabstop>
   <tabstop>buttonHide</tabstop>
  </tabstops>
  <resources/>

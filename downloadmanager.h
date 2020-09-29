@@ -9,6 +9,7 @@
 #include <QNetworkReply>
 #include <QPointer>
 #include <QUuid>
+#include <QTimer>
 
 namespace Ui {
 class CDownloadManager;
@@ -72,10 +73,14 @@ public Q_SLOTS:
 
 private:
     CDownloadsModel *model;
+    QTimer writerStatusTimer;
     Ui::CDownloadManager *ui;
     bool firstResize { true };
 
     Q_DISABLE_COPY(CDownloadManager)
+
+private Q_SLOTS:
+    void updateWriterStatus();
 
 protected:
     void closeEvent(QCloseEvent * event) override;
@@ -93,6 +98,7 @@ private:
     Q_DISABLE_COPY(CDownloadsModel)
 
     void updateProgressLabel();
+    bool abortDownloadPriv(int row);
 
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
@@ -116,6 +122,7 @@ public Q_SLOTS:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
     void abortDownload();
+    void abortAll();
     void cleanDownload();
     void copyUrlToClipboard();
     void cleanFinishedDownloads();

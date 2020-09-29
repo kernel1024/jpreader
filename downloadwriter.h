@@ -17,6 +17,7 @@ private:
 
 public:
     explicit CDownloadWriter(QObject *parent = nullptr);
+    int getWorkCount();
 
 public Q_SLOTS:
     void writeBytesToZip(const QString &zipFile, const QString &fileName,

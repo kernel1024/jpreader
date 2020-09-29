@@ -18,6 +18,11 @@ CDownloadWriter::CDownloadWriter(QObject *parent) : QObject(parent)
 {
 }
 
+int CDownloadWriter::getWorkCount()
+{
+    return m_workCount.loadAcquire();
+}
+
 void CDownloadWriter::writeBytesToZip(const QString &zipFile, const QString &fileName,
                                       const QByteArray &data, const QUuid &uuid)
 {

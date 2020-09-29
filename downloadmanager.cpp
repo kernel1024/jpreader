@@ -15,6 +15,8 @@
 
 namespace CDefaults {
 const char zipSeparator = 0x00;
+const int writerStatusTimerIntervalMS = 250;
+const int writerStatusLabelSize = 24;
 }
 
 CDownloadManager::CDownloadManager(QWidget *parent) :
@@ -31,6 +33,12 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
     ui->tableDownloads->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,model));
 
+    ui->labelWriter->setPixmap(QIcon::fromTheme(QSL("document-save")).pixmap(CDefaults::writerStatusLabelSize));
+    QSizePolicy sp = ui->labelWriter->sizePolicy();
+    sp.setRetainSizeWhenHidden(true);
+    ui->labelWriter->setSizePolicy(sp);
+    ui->labelWriter->hide();
+
     connect(ui->tableDownloads, &QTableView::customContextMenuRequested,
             this, &CDownloadManager::contextMenu);
 
@@ -39,6 +47,14 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 
     connect(ui->buttonClearDownloaded, &QPushButton::clicked,
             model, &CDownloadsModel::cleanCompletedDownloads);
+
+    connect(ui->buttonAbortAll, &QPushButton::clicked,
+            model, &CDownloadsModel::abortAll);
+
+    connect(&writerStatusTimer, &QTimer::timeout,
+            this, &CDownloadManager::updateWriterStatus);
+    writerStatusTimer.setInterval(CDefaults::writerStatusTimerIntervalMS);
+    writerStatusTimer.start();
 }
 
 CDownloadManager::~CDownloadManager()
@@ -182,6 +198,13 @@ void CDownloadManager::contextMenu(const QPoint &pos)
     }
 
     cm.exec(ui->tableDownloads->mapToGlobal(pos));
+}
+
+void CDownloadManager::updateWriterStatus()
+{
+    auto *writer = gSet->downloadWriter();
+    if (writer)
+        ui->labelWriter->setVisible(writer->getWorkCount()>0);
 }
 
 void CDownloadManager::closeEvent(QCloseEvent *event)
@@ -495,23 +518,35 @@ void CDownloadsModel::abortDownload()
     int row = acm->data().toInt();
     if (row<0 || row>=downloads.count()) return;
 
-    bool ok = false;
-    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(row).downloadItem) {
-            downloads[row].downloadItem->cancel();
-            ok = true;
-        } else if (downloads.at(row).reply) {
-            downloads[row].reply->abort();
-            ok = true;
-        }
-    }
-
-    if (!ok) {
+    if (!abortDownloadPriv(row)) {
         QMessageBox::warning(m_manager,tr("JPReader"),
                              tr("Unable to stop this download. Incorrect state."));
     }
+}
 
-    updateProgressLabel();
+void CDownloadsModel::abortAll()
+{
+    for (int i=0;i<downloads.count();i++)
+        abortDownloadPriv(i);
+}
+
+bool CDownloadsModel::abortDownloadPriv(int row)
+{
+    bool res = false;
+    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
+        if (downloads.at(row).downloadItem) {
+            downloads[row].downloadItem->cancel();
+            res = true;
+        } else if (downloads.at(row).reply) {
+            downloads[row].reply->abort();
+            res = true;
+        }
+    }
+
+    if (res)
+        updateProgressLabel();
+
+    return res;
 }
 
 void CDownloadsModel::cleanDownload()
