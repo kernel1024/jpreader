@@ -8,8 +8,9 @@
 
 namespace CDefaults {
 const int translatorConnectionTimeout = 10000;
-const unsigned int tranMinRetryDelay = 10;
-const unsigned int tranMaxRetryDelay = 25;
+const int tranMinRetryDelay = 10000;
+const int tranMaxRetryDelay = 25000;
+const int tranAliDelayFrac = 10;
 }
 
 class CAbstractTranslator : public QObject

@@ -13,7 +13,6 @@ private:
 
 protected:
     QString tranStringInternal(const QString& src) override;
-    void clearCredentials() override;
     bool isValidCredentials() override;
 
 public:

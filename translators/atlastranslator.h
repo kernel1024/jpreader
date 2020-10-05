@@ -8,8 +8,8 @@
 #include "../globalcontrol.h"
 
 namespace CDefaults {
-const unsigned int atlasMinRetryDelay = 3;
-const unsigned int atlasMaxRetryDelay = 5;
+const unsigned int atlasMinRetryDelay = 3000;
+const unsigned int atlasMaxRetryDelay = 5000;
 }
 
 class CAtlasTranslator : public CAbstractTranslator

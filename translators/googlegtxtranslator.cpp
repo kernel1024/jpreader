@@ -90,10 +90,6 @@ QString CGoogleGTXTranslator::tranStringInternal(const QString &src)
     return res;
 }
 
-void CGoogleGTXTranslator::clearCredentials()
-{
-}
-
 bool CGoogleGTXTranslator::isValidCredentials()
 {
     return true;

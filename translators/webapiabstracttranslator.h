@@ -15,7 +15,7 @@ protected:
                               const QByteArray &body, int *httpStatus, bool* aborted);
 
     virtual QString tranStringInternal(const QString& src) = 0;
-    virtual void clearCredentials() = 0;
+    virtual void clearCredentials();
     virtual bool isValidCredentials() = 0;
 
 private:

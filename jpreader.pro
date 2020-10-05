@@ -1,6 +1,7 @@
 HEADERS = mainwindow.h \
     extractors/deviantartextractor.h \
     translators/abstracttranslator.h \
+    translators/alicloudtranslator.h \
     translators/awstranslator.h \
     translators/atlastranslator.h \
     translators/yandexcloudtranslator.h \
@@ -63,6 +64,7 @@ HEADERS = mainwindow.h \
 
 SOURCES = main.cpp \
     extractors/deviantartextractor.cpp \
+    translators/alicloudtranslator.cpp \
     translators/awstranslator.cpp \
     translators/atlastranslator.cpp \
     translators/abstracttranslator.cpp \

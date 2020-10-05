@@ -79,7 +79,10 @@ public:
 
     static QByteArray signSHA256withRSA(const QByteArray& data, const QByteArray& privateKey);
 
+    static QByteArray hmacSha1(const QByteArray &key, const QByteArray &baseString);
+
     static void profiler(int line, const QElapsedTimer &time);
+
 
 private:
     Q_DISABLE_COPY(CGenericFuncs)

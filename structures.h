@@ -23,7 +23,8 @@ enum TranslationEngine {
     teGoogleGTX = 4,
     teAmazonAWS = 5,
     teYandexCloud = 6,
-    teGoogleCloud = 7
+    teGoogleCloud = 7,
+    teAliCloud = 8
 };
 Q_ENUM_NS(TranslationEngine)
 
@@ -66,6 +67,16 @@ enum PixivIndexSortOrder {
     psBookmarkCount = 6
 };
 Q_ENUM_NS(PixivIndexSortOrder)
+
+enum AliCloudTranslatorMode {
+    aliTranslatorGeneral = 0,
+    aliTranslatorECTitle = 1,
+    aliTranslatorECDescription = 2,
+    aliTranslatorECCommunication = 3,
+    aliTranslatorECMedical = 4,
+    aliTranslatorECSocial = 5
+};
+Q_ENUM_NS(AliCloudTranslatorMode)
 
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 

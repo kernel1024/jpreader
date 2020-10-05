@@ -3,6 +3,8 @@
 #include <QTimer>
 #include <QNetworkCookie>
 #include <QRegularExpression>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include "webapiabstracttranslator.h"
 
 namespace CDefaults {
@@ -118,12 +120,14 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
 {
     const QString clName = QString::fromLatin1(metaObject()->className());
     int retries = 0;
+    int delayFrac = 1;
     *httpStatus = CDefaults::httpCodeClientUnknownError;
     QByteArray replyBody;
     while (retries < getTranslatorRetryCount() && !isAborted()) {
         QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(nam()->post(requestFunc(),body));
 
         bool replyOk = waitForReply(rpl.data(),httpStatus);
+        replyBody = rpl->readAll();
 
         if (!replyOk) {
             qWarning() << QSL("%1 translator network error").arg(clName);
@@ -139,6 +143,29 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
                           .arg(clName)
                           .arg(retries);
 
+        } else if (*httpStatus == CDefaults::httpCodeClientError && rpl->url().toString().contains(QSL("aliyun"))) {
+            // signature error from AliCloud, try again
+            QJsonDocument doc;
+            bool noRetry = true;
+            if (!replyBody.isEmpty()) {
+                doc = QJsonDocument::fromJson(replyBody);
+                if (!doc.isEmpty()) {
+                    if (doc.object().value(QSL("Code")).toString() == QSL("SignatureDoesNotMatch")) {
+                        qWarning() << QSL("%1 translator Alibaba Cloud signature auth error, delay and retry #%2.")
+                                      .arg(clName)
+                                      .arg(retries);
+                        noRetry = false;
+                        delayFrac = CDefaults::tranAliDelayFrac;
+                    }
+                }
+            }
+            if (noRetry) {
+                qWarning() << QSL("%1 translator bad request or credentials, aborting. HTTP status: %2.")
+                              .arg(clName)
+                              .arg(*httpStatus);
+                break;
+            }
+
         } else if (*httpStatus >= CDefaults::httpCodeClientError) {
             qWarning() << QSL("%1 translator bad request or credentials, aborting. HTTP status: %2.")
                           .arg(clName)
@@ -146,17 +173,21 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
             break;
 
         } else if (replyOk) {
-            replyBody = rpl->readAll();
             break;
         }
 
-        CGenericFuncs::processedSleep(getRandomDelay());
+        CGenericFuncs::processedMSleep(getRandomDelay(CDefaults::tranMinRetryDelay/delayFrac,
+                                                      CDefaults::tranMaxRetryDelay/delayFrac));
         retries++;
     }
 
     *aborted = isAborted();
 
     return replyBody;
+}
+
+void CWebAPIAbstractTranslator::clearCredentials()
+{
 }
 
 void CWebAPIAbstractTranslator::deleteNAM()

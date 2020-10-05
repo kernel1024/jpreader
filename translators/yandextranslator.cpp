@@ -88,10 +88,6 @@ QString CYandexTranslator::tranStringInternal(const QString &src)
     return res;
 }
 
-void CYandexTranslator::clearCredentials()
-{
-}
-
 bool CYandexTranslator::isValidCredentials()
 {
     return !clientKey.isEmpty();

@@ -493,6 +493,37 @@ QString	CGenericFuncs::getExistingDirectoryD (QWidget * parent, const QString & 
     return res;
 }
 
+QByteArray CGenericFuncs::hmacSha1(const QByteArray &key, const QByteArray &baseString)
+{
+    const int blockSize = 64; // HMAC-SHA-1 block size, defined in SHA-1 standard
+    QByteArray mkey = key;
+    if (mkey.length() > blockSize) { // if key is longer than block size (64), reduce key length with SHA-1 compression
+        mkey = QCryptographicHash::hash(mkey, QCryptographicHash::Sha1);
+    }
+
+    // ascii characters 0x36 ("6") and 0x5c ("quot;) are selected because they have large
+    // Hamming distance (http://en.wikipedia.org/wiki/Hamming_distance)
+    const char innerPaddingChar = 0x36;
+    const char outerPaddingChar = 0x5c;
+    QByteArray innerPadding(blockSize, innerPaddingChar); // initialize inner padding with char "6"
+    QByteArray outerPadding(blockSize, outerPaddingChar); // initialize outer padding with char "quot;
+
+    for (int i = 0; i < mkey.length(); i++) {
+         // XOR operation between every byte in key and innerpadding, of key length
+        innerPadding[i] = static_cast<char>(static_cast<quint8>(innerPadding.at(i)) ^ static_cast<quint8>(mkey.at(i)));
+         // XOR operation between every byte in key and outerpadding, of key length
+        outerPadding[i] = static_cast<char>(static_cast<quint8>(outerPadding[i]) ^ static_cast<quint8>(mkey.at(i)));
+    }
+
+    // result = hash ( outerPadding CONCAT hash ( innerPadding CONCAT baseString ) ).toBase64
+    QByteArray total = outerPadding;
+    QByteArray part = innerPadding;
+    part.append(baseString);
+    total.append(QCryptographicHash::hash(part, QCryptographicHash::Sha1));
+    QByteArray hashed = QCryptographicHash::hash(total, QCryptographicHash::Sha1);
+    return hashed;
+}
+
 QByteArray CGenericFuncs::signSHA256withRSA(const QByteArray &data, const QByteArray &privateKey)
 {
     QByteArray res;

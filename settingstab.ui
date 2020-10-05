@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>825</width>
-        <height>4285</height>
+        <width>822</width>
+        <height>4536</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -634,6 +634,13 @@
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioAliCloud">
+                    <property name="text">
+                     <string>Alibaba Cloud</string>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -1063,6 +1070,54 @@
                      </layout>
                     </item>
                    </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_23">
+                 <property name="title">
+                  <string>Alibaba Cloud</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_9">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_42">
+                    <property name="text">
+                     <string>Access key ID</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editAliAccessKeyID</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="editAliAccessKeyID"/>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_41">
+                    <property name="text">
+                     <string>Access key secret</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>editAliAccessKeySecret</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="editAliAccessKeySecret"/>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_43">
+                    <property name="text">
+                     <string>Mode</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>comboAliMode</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QComboBox" name="comboAliMode"/>
                   </item>
                  </layout>
                 </widget>
@@ -2189,6 +2244,7 @@
   <tabstop>radioGoogleGTX</tabstop>
   <tabstop>radioAmazonAWS</tabstop>
   <tabstop>radioGoogleCloud</tabstop>
+  <tabstop>radioAliCloud</tabstop>
   <tabstop>tranRetryCnt</tabstop>
   <tabstop>checkTranslatorCacheEnabled</tabstop>
   <tabstop>spinTranslatorCacheSize</tabstop>
@@ -2208,6 +2264,9 @@
   <tabstop>editAWSSecretKey</tabstop>
   <tabstop>editGcpJsonKey</tabstop>
   <tabstop>buttonGcpJsonFile</tabstop>
+  <tabstop>editAliAccessKeyID</tabstop>
+  <tabstop>editAliAccessKeySecret</tabstop>
+  <tabstop>comboAliMode</tabstop>
   <tabstop>listDictPaths</tabstop>
   <tabstop>buttonAddDictPath</tabstop>
   <tabstop>buttonDelDictPath</tabstop>

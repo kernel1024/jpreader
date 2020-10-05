@@ -38,6 +38,7 @@ const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
 const CStructures::SearchEngine searchEngine = CStructures::seNone;
 const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const CStructures::PixivIndexSortOrder pixivIndexSortOrder = CStructures::psDate;
+const CStructures::AliCloudTranslatorMode aliCloudTranslatorMode = CStructures::aliTranslatorGeneral;
 const bool pixivIndexSortReverse = true;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
@@ -100,6 +101,8 @@ public:
     QString yandexCloudApiKey;
     QString yandexCloudFolderID;
     QString gcpJsonKeyFile;
+    QString aliAccessKeyID;
+    QString aliAccessKeySecret;
 
     QString proxyHost;
     QString proxyLogin;
@@ -136,6 +139,7 @@ public:
     CStructures::SearchEngine searchEngine { CDefaults::searchEngine };
     CStructures::TranslationEngine translatorEngine { CDefaults::translatorEngine };
     CStructures::PixivIndexSortOrder pixivIndexSortOrder { CDefaults::pixivIndexSortOrder };
+    CStructures::AliCloudTranslatorMode aliCloudTranslatorMode { CDefaults::aliCloudTranslatorMode };
 
     bool pixivIndexSortReverse { CDefaults::pixivIndexSortReverse };
     bool jsLogConsole { CDefaults::jsLogConsole };

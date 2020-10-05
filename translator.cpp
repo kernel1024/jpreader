@@ -575,8 +575,8 @@ void CTranslator::translate()
                 }
                 if (m_tran) {
                     m_tran->doneTran(true);
-                    QThread::sleep(m_tran->getRandomDelay(CDefaults::atlasMinRetryDelay,
-                                                          CDefaults::atlasMaxRetryDelay));
+                    QThread::msleep(m_tran->getRandomDelay(CDefaults::atlasMinRetryDelay,
+                                                           CDefaults::atlasMaxRetryDelay));
                 }
             }
         }

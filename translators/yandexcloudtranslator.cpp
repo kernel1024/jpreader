@@ -56,7 +56,7 @@ QString CYandexCloudTranslator::tranStringInternal(const QString &src)
         setErrorMsg(QSL("ERROR: Yandex Cloud translator aborted by user request"));
         return QSL("ERROR:TRAN_YANDEX_CLOUD_ABORTED");
     }
-    if (ra.isEmpty()) {
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
         setErrorMsg(tr("ERROR: Yandex Cloud translator network error"));
         return QSL("ERROR:TRAN_YANDEX_CLOUD_NETWORK_ERROR");
     }
@@ -97,11 +97,6 @@ QString CYandexCloudTranslator::tranStringInternal(const QString &src)
             res.append(text.toString());
     }
     return res;
-}
-
-void CYandexCloudTranslator::clearCredentials()
-{
-
 }
 
 bool CYandexCloudTranslator::isValidCredentials()

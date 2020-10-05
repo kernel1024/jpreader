@@ -8,6 +8,7 @@
 #include "awstranslator.h"
 #include "yandexcloudtranslator.h"
 #include "googlecloudtranslator.h"
+#include "alicloudtranslator.h"
 
 int CAbstractTranslator::getTranslatorRetryCount() const
 {
@@ -117,6 +118,10 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, con
     }
     if (engine==CStructures::teGoogleCloud) {
         res = new CGoogleCloudTranslator(parent, tranDirection, gSet->settings()->gcpJsonKeyFile);
+    }
+    if (engine==CStructures::teAliCloud) {
+        res = new CAliCloudTranslator(parent, tranDirection, gSet->settings()->aliCloudTranslatorMode,
+                                      gSet->settings()->aliAccessKeyID, gSet->settings()->aliAccessKeySecret);
     }
 
     return res;

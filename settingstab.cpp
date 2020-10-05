@@ -85,6 +85,13 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->comboPixivIndexSortOrder->addItem(tr("Description"),static_cast<int>(CStructures::psDescription));
     ui->comboPixivIndexSortOrder->addItem(tr("Bookmarks count"),static_cast<int>(CStructures::psBookmarkCount));
 
+    ui->comboAliMode->addItem(tr("General"),static_cast<int>(CStructures::aliTranslatorGeneral));
+    ui->comboAliMode->addItem(tr("Title (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECTitle));
+    ui->comboAliMode->addItem(tr("Description (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECDescription));
+    ui->comboAliMode->addItem(tr("Communication (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECCommunication));
+    ui->comboAliMode->addItem(tr("Medical (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECMedical));
+    ui->comboAliMode->addItem(tr("Social (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECSocial));
+
     setupSettingsObservers();
 
     ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
@@ -153,6 +160,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teAmazonAWS: ui->radioAmazonAWS->setChecked(true); break;
         case CStructures::teYandexCloud: ui->radioYandexCloud->setChecked(true); break;
         case CStructures::teGoogleCloud: ui->radioGoogleCloud->setChecked(true); break;
+        case CStructures::teAliCloud: ui->radioAliCloud->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -181,6 +189,14 @@ void CSettingsTab::loadFromGlobal()
     ui->editYandexCloudApiKey->setText(gSet->m_settings->yandexCloudApiKey);
     ui->editYandexCloudFolderID->setText(gSet->m_settings->yandexCloudFolderID);
     ui->editGcpJsonKey->setText(gSet->m_settings->gcpJsonKeyFile);
+    ui->editAliAccessKeyID->setText(gSet->m_settings->aliAccessKeyID);
+    ui->editAliAccessKeySecret->setText(gSet->m_settings->aliAccessKeySecret);
+
+    idx = ui->comboAliMode->findData(static_cast<int>(gSet->m_settings->aliCloudTranslatorMode));
+    if (idx<0 || idx>=ui->comboAliMode->count())
+        idx = 0;
+    ui->comboAliMode->setCurrentIndex(idx);
+
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
 
@@ -383,6 +399,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->setTranslationEngine(CStructures::teGoogleCloud);
     });
+    connect(ui->radioAliCloud,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->setTranslationEngine(CStructures::teAliCloud);
+    });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
@@ -443,6 +464,21 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->gcpJsonKeyFile=val;
     });
+    connect(ui->editAliAccessKeyID,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->aliAccessKeyID=val;
+    });
+    connect(ui->editAliAccessKeySecret,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->aliAccessKeySecret=val;
+    });
+    connect(ui->comboAliMode,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->aliCloudTranslatorMode = static_cast<CStructures::AliCloudTranslatorMode>
+                                                   (ui->comboAliMode->currentData().toInt());
+    });
+
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->emptyRestore=val;

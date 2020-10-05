@@ -129,6 +129,9 @@ void CSettings::writeSettings()
     settings.setValue(QSL("yandexCloudApiKey"),yandexCloudApiKey);
     settings.setValue(QSL("yandexCloudFolderID"),yandexCloudFolderID);
     settings.setValue(QSL("gcpJsonKeyFile"),gcpJsonKeyFile);
+    settings.setValue(QSL("aliAccessKeyID"),aliAccessKeyID);
+    settings.setValue(QSL("aliAccessKeySecret"),aliAccessKeySecret);
+    settings.setValue(QSL("aliCloudTranslatorMode"),static_cast<int>(aliCloudTranslatorMode));
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
     settings.setValue(QSL("userAgent"),userAgent);
@@ -412,6 +415,11 @@ void CSettings::readSettings(QObject *control)
     yandexCloudApiKey = settings.value(QSL("yandexCloudApiKey"),QString()).toString();
     yandexCloudFolderID = settings.value(QSL("yandexCloudFolderID"),QString()).toString();
     gcpJsonKeyFile = settings.value(QSL("gcpJsonKeyFile"),QString()).toString();
+    aliAccessKeyID = settings.value(QSL("aliAccessKeyID"),QString()).toString();
+    aliAccessKeySecret = settings.value(QSL("aliAccessKeySecret"),QString()).toString();
+    aliCloudTranslatorMode = static_cast<CStructures::AliCloudTranslatorMode>(
+                                 settings.value(QSL("aliCloudTranslatorMode"),0).toInt());
+
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     dontUseNativeFileDialog = settings.value(QSL("dontUseNativeFileDialog"),
                                              CDefaults::dontUseNativeFileDialog).toBool();

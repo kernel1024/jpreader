@@ -144,7 +144,7 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
         setErrorMsg(QSL("ERROR: AWS translator aborted by user request"));
         return QSL("ERROR:TRAN_AWS_ABORTED");
     }
-    if (ra.isEmpty()) {
+    if (ra.isEmpty() || status>=CDefaults::httpCodeClientError) {
         setErrorMsg(QSL("ERROR: AWS translator network error"));
         return QSL("ERROR:TRAN_AWS_NETWORK_ERROR");
     }
@@ -176,10 +176,6 @@ QString CAWSTranslator::tranStringInternal(const QString &src)
 
     setErrorMsg(QSL("ERROR: AWS translator TranslatedText missing from JSON response, HTTP status: %1").arg(status));
     return QSL("ERROR:TRAN_AWS_RESPONSE_ERROR");
-}
-
-void CAWSTranslator::clearCredentials()
-{
 }
 
 bool CAWSTranslator::isValidCredentials()
