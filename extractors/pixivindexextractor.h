@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QUrlQuery>
 #include <QJsonObject>
 #include <QMutex>
 #include "abstractextractor.h"
@@ -13,14 +14,16 @@ class CPixivIndexExtractor : public CAbstractExtractor
     Q_OBJECT
 
 public:
-    enum IndexMode { WorkIndex, BookmarksIndex };
+    enum IndexMode { WorkIndex, BookmarksIndex, TagSearchIndex };
     Q_ENUM(IndexMode)
 
     CPixivIndexExtractor(QObject *parent, CSnippetViewer *snv);
-    void setParams(const QString& pixivId, CPixivIndexExtractor::IndexMode mode);
+    void setParams(const QString& pixivId, const QString& sourceQuery,
+                   CPixivIndexExtractor::IndexMode mode);
 
 private:
-    QString m_authorId;
+    QString m_indexId;
+    QUrlQuery m_sourceQuery;
     QVector<QJsonObject> m_list;
     QStringList m_ids;
     IndexMode m_indexMode { WorkIndex };
@@ -45,6 +48,7 @@ protected:
 private Q_SLOTS:
     void profileAjax();
     void bookmarksAjax();
+    void searchAjax();
     void subImageFinished();
 };
 

@@ -13,7 +13,6 @@
 #include "../genericfuncs.h"
 #include "pixivindexextractor.h"
 
-// TODO: extract works list by tag / search result
 // TODO: configurable dialog for extracted index (as option, with html version)
 
 namespace CDefaults {
@@ -25,10 +24,14 @@ CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, CSnippetViewer *snv)
 {
 }
 
-void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode mode)
+void CPixivIndexExtractor::setParams(const QString &pixivId, const QString &sourceQuery,
+                                     CPixivIndexExtractor::IndexMode mode)
 {
     m_indexMode = mode;
-    m_authorId = pixivId;
+    m_indexId = pixivId;
+
+    m_sourceQuery.setQuery(sourceQuery);
+    m_sourceQuery.removeAllQueryItems(QSL("p"));
 }
 
 bool CPixivIndexExtractor::indexItemCompare(const QJsonObject &c1, const QJsonObject &c2)
@@ -127,7 +130,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
         len += key.length()+v.length()+2;
     }
     QUrl url(QSL("https://www.pixiv.net/ajax/user/%1/profile/novels")
-             .arg(m_authorId));
+             .arg(m_indexId));
     url.setQuery(uq);
 
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
@@ -146,23 +149,37 @@ void CPixivIndexExtractor::startMain()
         m_list.clear();
         QUrl u;
 
-        if (m_indexMode == WorkIndex) {
-            u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_authorId));
-        } else {
-            u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
-                         "tag=&offset=0&limit=%2&rest=show")
-                     .arg(m_authorId)
-                     .arg(CDefaults::pixivBookmarksFetchCount));
+        switch (m_indexMode) {
+            case WorkIndex:
+                u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_indexId));
+                break;
+            case BookmarksIndex:
+                u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
+                             "tag=&offset=0&limit=%2&rest=show")
+                         .arg(m_indexId)
+                         .arg(CDefaults::pixivBookmarksFetchCount));
+                break;
+            case TagSearchIndex:
+                u = QUrl(QSL("https://www.pixiv.net/ajax/search/novels/%1")
+                         .arg(m_indexId));
+                u.setQuery(m_sourceQuery);
+                break;
         }
 
         QNetworkRequest req(u);
         QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
-        if (m_indexMode == WorkIndex) {
-            connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
-        } else {
-            connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
+        switch (m_indexMode) {
+            case WorkIndex:
+                connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
+                break;
+            case BookmarksIndex:
+                connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
+                break;
+            case TagSearchIndex:
+                connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::searchAjax);
+                break;
         }
     },Qt::QueuedConnection);
 }
@@ -244,7 +261,7 @@ void CPixivIndexExtractor::bookmarksAjax()
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,offset]{
                     QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
                                           "tag=&offset=%2&limit=%3&rest=show")
-                           .arg(m_authorId)
+                           .arg(m_indexId)
                            .arg(offset+CDefaults::pixivBookmarksFetchCount)
                            .arg(CDefaults::pixivBookmarksFetchCount));
                     QNetworkRequest req(u);
@@ -252,6 +269,71 @@ void CPixivIndexExtractor::bookmarksAjax()
 
                     connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
+                },Qt::QueuedConnection);
+                return;
+            }
+
+            finalizeHtml(rpl->url());
+            return;
+        }
+    }
+    Q_EMIT finished();
+}
+
+void CPixivIndexExtractor::searchAjax()
+{
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull() || snv()==nullptr) return;
+
+    if (rpl->error() == QNetworkReply::NoError) {
+        QUrlQuery uq(rpl->url());
+        bool ok = false;
+        int page = uq.queryItemValue(QSL("p")).toInt(&ok);
+        if (!ok)
+            page = 0;
+
+        QJsonParseError err {};
+        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        if (doc.isNull()) {
+            showError(tr("JSON parser error %1 at %2.")
+                      .arg(err.error)
+                      .arg(err.offset));
+            return;
+        }
+
+        if (doc.isObject()) {
+            QJsonObject obj = doc.object();
+            if (obj.value(QSL("error")).toBool(false)) {
+                showError(tr("Novel list extractor error: %1")
+                          .arg(obj.value(QSL("message")).toString()));
+                return;
+            }
+
+            const QJsonArray tworks = obj.value(QSL("body")).toObject()
+                                      .value(QSL("novel")).toObject()
+                                      .value(QSL("data")).toArray();
+
+            m_list.reserve(tworks.count());
+            for (const auto& work : qAsConst(tworks))
+                m_list.append(work.toObject());
+
+            int totalWorks = obj.value(QSL("body")).toObject()
+                             .value(QSL("novel")).toObject()
+                             .value(QSL("total")).toInt();
+
+            if ((totalWorks>m_list.count()) && (tworks.count()>0)) {
+                // We still have unfetched links, and last fetch was not empty
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,page]{
+                    QUrl u(QSL("https://www.pixiv.net/ajax/search/novels/%1")
+                           .arg(m_indexId));
+                    QUrlQuery uq = m_sourceQuery;
+                    uq.addQueryItem(QSL("p"),QSL("%1").arg(page+1));
+                    u.setQuery(uq);
+                    QNetworkRequest req(u);
+                    QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+
+                    connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
+                    connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::searchAjax);
                 },Qt::QueuedConnection);
                 return;
             }
@@ -368,15 +450,22 @@ void CPixivIndexExtractor::finalizeHtml(const QUrl& origin)
     switch (m_indexMode) {
         case WorkIndex: header = tr("works"); break;
         case BookmarksIndex: header = tr("bookmarks"); break;
-        default: break;
+        case TagSearchIndex: header = tr("tag search"); break;
     }
-    QString author = authors.value(m_authorId);
+    QString author = authors.value(m_indexId);
     if (author.isEmpty())
         author = tr("author");
+    if (m_indexMode == TagSearchIndex)
+        author = m_indexId;
 
     const QString title = tr("Pixiv %1 list for %2").arg(header,author);
-    header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/users/%2\">"
-                            "%3</a>.</h3>").arg(header,m_authorId,author);
+    if (m_indexMode == TagSearchIndex) {
+        header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/en/tags/%2/novels?%4\">"
+                     "%3</a>.</h3>").arg(header,m_indexId,author,m_sourceQuery.query());
+    } else {
+        header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/users/%2\">"
+                     "%3</a>.</h3>").arg(header,m_indexId,author);
+    }
     html.prepend(header);
 
     html = CGenericFuncs::makeSimpleHtml(title,html);

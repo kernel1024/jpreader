@@ -40,6 +40,12 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     if (mchPixivId.hasMatch())
         pixivId = mchPixivId.captured(QSL("userID"));
 
+    QString pixivTag;
+    QRegularExpression rxPixivTag(QSL("pixiv.net/.*/tags/(?<tag>\\S+)/novels"));
+    auto mchPixivTag = rxPixivTag.match(pixivUrl.toString());
+    if (mchPixivTag.hasMatch())
+        pixivTag = mchPixivTag.captured(QSL("tag"));
+
     if (pixivUrl.isValid() && pixivUrl.toString().contains(
              QSL("pixiv.net/novel/show.php"), Qt::CaseInsensitive)) {
         ac = new QAction(tr("Extract pixiv novel in new background tab"),menu);
@@ -99,6 +105,25 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("type")] = QSL("pixivList");
         data[QSL("id")] = pixivId;
         data[QSL("mode")] = QSL("bookmarks");
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
+    }
+
+    if (pixivUrl.isValid() && !pixivTag.isEmpty()) {
+
+        if (!res.isEmpty()) {
+            ac = new QAction(menu);
+            ac->setSeparator(true);
+            res.append(ac);
+        }
+
+        ac = new QAction(tr("Extract novel tag search list in new tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivList");
+        data[QSL("id")] = pixivTag;
+        data[QSL("mode")] = QSL("novelSearch");
+        data[QSL("query")] = pageUrl.query();
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -352,11 +377,21 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
                     hash.value(QSL("focus")).toBool());
 
     } else if (type == QSL("pixivList")) {
+        CPixivIndexExtractor::IndexMode mode = CPixivIndexExtractor::WorkIndex;
+        if (hash.value(QSL("mode")).toString() == QSL("work")) {
+            mode = CPixivIndexExtractor::WorkIndex;
+        } else if (hash.value(QSL("mode")).toString() == QSL("bookmarks")) {
+            mode = CPixivIndexExtractor::BookmarksIndex;
+        } else if (hash.value(QSL("mode")).toString() == QSL("novelSearch")) {
+            mode = CPixivIndexExtractor::TagSearchIndex;
+        } else {
+            return res;
+        }
         res = new CPixivIndexExtractor(nullptr,snv);
         (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toString(),
-                    (hash.value(QSL("mode")).toString() == QSL("work")) ?
-                        CPixivIndexExtractor::WorkIndex : CPixivIndexExtractor::BookmarksIndex);
+                    hash.value(QSL("query")).toString(),
+                    mode);
 
     } else if (type == QSL("fanbox")) {
         res = new CFanboxExtractor(nullptr,snv);
