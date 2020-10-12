@@ -36,7 +36,6 @@ extern "C" {
 CGenericFuncs::CGenericFuncs(QObject *parent)
     : QObject(parent)
 {
-
 }
 
 void CGenericFuncs::profiler(int line, const QElapsedTimer& time)

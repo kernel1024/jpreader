@@ -102,9 +102,11 @@ void CWebAPIAbstractTranslator::initNAM()
         m_nam->setCookieJar(cj);
     }
 
-    auto *cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
-    auto *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
-    cj->initAllCookies(mj->getAllCookies());
+    if (gSet->ui()) {
+        auto *cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
+        auto *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
+        cj->initAllCookies(mj->getAllCookies());
+    }
 
     if (gSet->settings()->proxyUseTranslator) {
         m_nam->setProxy(QNetworkProxy::DefaultProxy);

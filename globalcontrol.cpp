@@ -55,10 +55,11 @@ const int translatorWaitGranularityMS = 250;
 CGlobalControl::CGlobalControl(QCoreApplication *parent) :
     QObject(parent),
     dptr(new CGlobalControlPrivate(this)),
-    m_settings(new CSettings(this)),
-    m_ui(new CGlobalUI(this))
+    m_settings(new CSettings(this))
 {
-
+    if (qobject_cast<QGuiApplication *>(QCoreApplication::instance())) {
+        m_ui.reset(new CGlobalUI(this));
+    }
 }
 
 CGlobalControl::~CGlobalControl()
@@ -79,7 +80,7 @@ CGlobalControl *CGlobalControl::instance()
 
     if (inst.isNull()) {
         if (initializedOnce.testAndSetAcquire(false,true)) {
-            inst = new CGlobalControl(QApplication::instance());
+            inst = new CGlobalControl(QCoreApplication::instance());
             return inst.data();
         }
 
@@ -94,7 +95,7 @@ QApplication *CGlobalControl::app(QObject *parentApp)
 {
     QObject* capp = parentApp;
     if (capp==nullptr)
-        capp = QApplication::instance();
+        capp = QCoreApplication::instance();
 
     auto *res = qobject_cast<QApplication *>(capp);
     return res;
@@ -104,8 +105,15 @@ void CGlobalControl::initialize()
 {
     Q_D(CGlobalControl);
 
+    const bool cliMode = m_ui.isNull();
+
     QElapsedTimer initTime;
     initTime.start();
+
+    QCoreApplication::setOrganizationName(QSL("kernel1024"));
+    QCoreApplication::setApplicationName(QSL("jpreader"));
+    if (!cliMode)
+        QGuiApplication::setApplicationDisplayName(QSL("JPReader"));
 
     qInstallMessageHandler(CGlobalControlPrivate::stdConsoleOutput);
     qRegisterMetaType<CUrlHolder>("CUrlHolder");
@@ -125,100 +133,99 @@ void CGlobalControl::initialize()
     qRegisterMetaTypeStreamOperators<CTranslatorStatistics>("CTranslatorStatistics");
     qRegisterMetaTypeStreamOperators<CSelectedLangPairs>("CSelectedLangPairs");
 
-    if (!setupIPC())
-        ::exit(0);
-
-    d->uiTranslator.reset(new CUITranslator());
-    QCoreApplication::installTranslator(d->uiTranslator.data());
-
     initLanguagesList();
-
-    d->downloadWriter = new CDownloadWriter();
-    addWorkerToPool(d->downloadWriter);
-    auto* th = new QThread();
-    connect(d->downloadWriter,&CDownloadWriter::finished,th,&QThread::quit);
-    connect(d->downloadWriter,&CDownloadWriter::finished,
-            this,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
-    connect(th,&QThread::finished,d->downloadWriter,&CDownloadWriter::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(this,&CGlobalControl::stopWorkers,d->downloadWriter,
-            &CDownloadWriter::terminateStop,Qt::QueuedConnection);
-    connect(this,&CGlobalControl::terminateWorkers,
-            th,&QThread::terminate);
-    d->downloadWriter->moveToThread(th);
-    th->start();
-
-    d->logWindow.reset(new CLogDisplay());
-    d->downloadManager.reset(new CDownloadManager());
-    d->bookmarksManager = new BookmarksManager(this);
-
-    d->activeWindow = nullptr;
 
     CPDFWorker::initPdfToText();
 
-    d->auxTranslatorDBus = new CAuxTranslator(this);
-    d->browserControllerDBus = new CBrowserController(this);
-    new AuxtranslatorAdaptor(d->auxTranslatorDBus);
-    new BrowsercontrollerAdaptor(d->browserControllerDBus);
-    QDBusConnection dbus = QDBusConnection::sessionBus();
-    if (!dbus.registerObject(QSL("/auxTranslator"),d->auxTranslatorDBus))
-        qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerObject(QSL("/browserController"),d->browserControllerDBus))
-        qCritical() << dbus.lastError().name() << dbus.lastError().message();
-    if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
-        qCritical() << dbus.lastError().name() << dbus.lastError().message();
+    if (cliMode) {
+        d->cliWorker.reset(new CCLIWorker());
+        connect(d->cliWorker.data(),&CCLIWorker::finished,this,&CGlobalControl::cleanupAndExit);
 
-    connect(app(parent()), &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
+    } else {
+        if (!setupIPC())
+            ::exit(0);
 
-    connect(m_ui->actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
+        d->uiTranslator.reset(new CUITranslator());
+        QCoreApplication::installTranslator(d->uiTranslator.data());
 
-    connect(m_ui->actionJSUsage,&QAction::toggled,this,[d](bool checked){
-        d->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
-    });
-    connect(m_ui->actionLogNetRequests,&QAction::toggled,this,[this](bool checked){
-        m_settings->debugNetReqLogging = checked;
-    });
+        d->downloadWriter = new CDownloadWriter();
+        addWorkerToPool(d->downloadWriter);
+        auto* th = new QThread();
+        connect(d->downloadWriter,&CDownloadWriter::finished,th,&QThread::quit);
+        connect(d->downloadWriter,&CDownloadWriter::finished,
+                this,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
+        connect(th,&QThread::finished,d->downloadWriter,&CDownloadWriter::deleteLater);
+        connect(th,&QThread::finished,th,&QThread::deleteLater);
+        connect(this,&CGlobalControl::stopWorkers,d->downloadWriter,
+                &CDownloadWriter::terminateStop,Qt::QueuedConnection);
+        connect(this,&CGlobalControl::terminateWorkers,
+                th,&QThread::terminate);
+        d->downloadWriter->moveToThread(th);
+        th->start();
 
-    d->webProfile = new QWebEngineProfile(QSL("jpreader"),this);
+        d->logWindow.reset(new CLogDisplay());
+        d->downloadManager.reset(new CDownloadManager());
+        d->bookmarksManager = new BookmarksManager(this);
 
-    QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+        d->auxTranslatorDBus = new CAuxTranslator(this);
+        d->browserControllerDBus = new CBrowserController(this);
+        new AuxtranslatorAdaptor(d->auxTranslatorDBus);
+        new BrowsercontrollerAdaptor(d->browserControllerDBus);
+        QDBusConnection dbus = QDBusConnection::sessionBus();
+        if (!dbus.registerObject(QSL("/auxTranslator"),d->auxTranslatorDBus))
+            qCritical() << dbus.lastError().name() << dbus.lastError().message();
+        if (!dbus.registerObject(QSL("/browserController"),d->browserControllerDBus))
+            qCritical() << dbus.lastError().name() << dbus.lastError().message();
+        if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
+            qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
-    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QSL(".cache")
-                           + QDir::separator() + QSL("jpreader");
-    if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
+        connect(app(parent()), &QApplication::focusChanged, this, &CGlobalControl::focusChanged);
 
-    QString fcache = fs + QSL("cache") + QDir::separator();
-    d->webProfile->setCachePath(fcache);
-    QString fdata = fs + QSL("local_storage") + QDir::separator();
-    d->webProfile->setPersistentStoragePath(fdata);
+        connect(m_ui->actionUseProxy, &QAction::toggled, this, &CGlobalControl::updateProxy);
 
-    d->webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
-    d->webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+        connect(m_ui->actionJSUsage,&QAction::toggled,this,[d](bool checked){
+            d->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
+        });
+        connect(m_ui->actionLogNetRequests,&QAction::toggled,this,[this](bool checked){
+            m_settings->debugNetReqLogging = checked;
+        });
 
-    d->webProfile->setSpellCheckEnabled(false);
+        d->webProfile = new QWebEngineProfile(QSL("jpreader"),this);
 
-    d->webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
-    d->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
+        QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 
-    connect(d->webProfile, &QWebEngineProfile::downloadRequested,
-            d->downloadManager.data(), &CDownloadManager::handleDownload);
+        if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QSL(".cache")
+                               + QDir::separator() + QSL("jpreader");
+        if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
 
-#if QT_VERSION >= 0x050d00
-    d->webProfile->setUrlRequestInterceptor(new CSpecUrlInterceptor(this));
-#else
-    d->webProfile->setRequestInterceptor(new CSpecUrlInterceptor(this));
-#endif
-    connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
-            this, &CGlobalControl::cookieAdded);
-    connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
-            this, &CGlobalControl::cookieRemoved);
-    d->webProfile->cookieStore()->loadAllCookies();
+        QString fcache = fs + QSL("cache") + QDir::separator();
+        d->webProfile->setCachePath(fcache);
+        QString fdata = fs + QSL("local_storage") + QDir::separator();
+        d->webProfile->setPersistentStoragePath(fdata);
 
-    d->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),new CMagicFileSchemeHandler(this));
+        d->webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+        d->webProfile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
-    d->translatorCache = new CTranslatorCache(this);
-    QString tcache = fs + QSL("translator_cache") + QDir::separator();
-    d->translatorCache->setCachePath(tcache);
+        d->webProfile->setSpellCheckEnabled(false);
+
+        d->webProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,true);
+        d->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,true);
+
+        connect(d->webProfile, &QWebEngineProfile::downloadRequested,
+                d->downloadManager.data(), &CDownloadManager::handleDownload);
+        d->webProfile->setUrlRequestInterceptor(new CSpecUrlInterceptor(this));
+        connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
+                this, &CGlobalControl::cookieAdded);
+        connect(d->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
+                this, &CGlobalControl::cookieRemoved);
+        d->webProfile->cookieStore()->loadAllCookies();
+
+        d->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),new CMagicFileSchemeHandler(this));
+
+        d->translatorCache = new CTranslatorCache(this);
+        QString tcache = fs + QSL("translator_cache") + QDir::separator();
+        d->translatorCache->setCachePath(tcache);
+    }
 
     m_settings->readSettings(this);
     if (gSet->settings()->createCoredumps) {
@@ -229,54 +236,77 @@ void CGlobalControl::initialize()
         setrlimit(RLIMIT_CORE, &rlp);
     }
 
-    d->dictManager = new ZDict::ZDictController(this);
+    if (!cliMode) {
+        d->dictManager = new ZDict::ZDictController(this);
 
-    d->auxNetManager = new QNetworkAccessManager(this);
-    d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
+        d->auxNetManager = new QNetworkAccessManager(this);
+        d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
 
-    d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
-    connect(&(d->tabsListTimer), &QTimer::timeout, settings(), &CSettings::writeTabsList);
-    d->tabsListTimer.start();
+        d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
+        connect(&(d->tabsListTimer), &QTimer::timeout, settings(), &CSettings::writeTabsList);
+        d->tabsListTimer.start();
 
-    connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this,d](const QString& u){
-        // append unblocked url to cache
-        d->adblockWhiteListMutex.lock();
-        d->adblockWhiteList.append(u);
-        while(d->adblockWhiteList.count()>settings()->maxAdblockWhiteList)
-            d->adblockWhiteList.removeFirst();
-        d->adblockWhiteListMutex.unlock();
-    },Qt::QueuedConnection);
+        connect(this,&CGlobalControl::addAdBlockWhiteListUrl,this,[this,d](const QString& u){
+            // append unblocked url to cache
+            d->adblockWhiteListMutex.lock();
+            d->adblockWhiteList.append(u);
+            while(d->adblockWhiteList.count()>settings()->maxAdblockWhiteList)
+                d->adblockWhiteList.removeFirst();
+            d->adblockWhiteListMutex.unlock();
+        },Qt::QueuedConnection);
 
-    connect(this,&CGlobalControl::addNoScriptPageHost,this,[d](const QString& key, const QString& host){
-        d->noScriptMutex.lock();
-        d->pageScriptHosts[key].insert(host.toLower());
-        d->noScriptMutex.unlock();
-    },Qt::QueuedConnection);
+        connect(this,&CGlobalControl::addNoScriptPageHost,this,[d](const QString& key, const QString& host){
+            d->noScriptMutex.lock();
+            d->pageScriptHosts[key].insert(host.toLower());
+            d->noScriptMutex.unlock();
+        },Qt::QueuedConnection);
 
-    QTimer::singleShot(CDefaults::dictionariesLoadingDelay,d->dictManager,[this,d](){
-        d->dictManager->loadDictionaries(settings()->dictPaths);
-    });
+        QTimer::singleShot(CDefaults::dictionariesLoadingDelay,d->dictManager,[this,d](){
+            d->dictManager->loadDictionaries(settings()->dictPaths);
+        });
 
-    QApplication::setStyle(new CSpecMenuStyle);
-    QApplication::setQuitOnLastWindowClosed(false);
+        QApplication::setStyle(new CSpecMenuStyle);
+        QApplication::setQuitOnLastWindowClosed(false);
 
-    QVector<QUrl> urls;
-    for (int i=1;i<QApplication::arguments().count();i++) {
-        QUrl u(QApplication::arguments().at(i));
-        if (!u.isEmpty() && u.isValid())
-            urls << u;
+        QVector<QUrl> openUrls;
+        for (int i=1;i<QCoreApplication::arguments().count();i++) {
+            QUrl u(QCoreApplication::arguments().at(i));
+            if (!u.isEmpty() && u.isValid())
+                openUrls << u;
+        }
+
+        addMainWindowEx(false,true,openUrls);
+
+        qInfo() << "Initialization time, ms: " << initTime.elapsed();
+
+    } else {
+        if (!d->cliWorker->parseArguments())
+            ::exit(1);
+
+        QMetaObject::invokeMethod(d->cliWorker.data(),&CCLIWorker::start,Qt::QueuedConnection);
     }
-    addMainWindowEx(false,true,urls);
-
-    qInfo() << "Initialization time, ms: " << initTime.elapsed();
 }
 
-void CGlobalControl::preinit()
+void CGlobalControl::preinit(int &argc, char *argv[], bool *cliMode)
 {
     QWebEngineUrlScheme scheme(CMagicFileSchemeHandler::getScheme().toUtf8());
     scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
     scheme.setFlags(QWebEngineUrlScheme::LocalScheme | QWebEngineUrlScheme::LocalAccessAllowed);
     QWebEngineUrlScheme::registerScheme(scheme);
+
+    *cliMode = (argc > 1);
+    for (int i = 1; i < argc; ++i) {
+        const QString param = QString::fromUtf8(argv[i]);
+        if (param.startsWith(QSL("-"))) {
+            *cliMode = true;
+        } else {
+            QUrl u(param);
+            if (!u.scheme().isEmpty() || u.isLocalFile()) {
+                *cliMode = false;
+                break;
+            }
+        }
+    }
 }
 
 bool CGlobalControl::setupIPC()
@@ -505,7 +535,7 @@ CMainWindow* CGlobalControl::addMainWindowEx(bool withSearch, bool withViewer, c
 {
     Q_D(CGlobalControl);
 
-    if (gSet==nullptr) return nullptr;
+    if (gSet==nullptr || m_ui.isNull()) return nullptr;
 
     auto *mainWindow = new CMainWindow(withSearch,withViewer,viewerUrls);
     connect(mainWindow,&CMainWindow::aboutToClose,
@@ -573,11 +603,17 @@ QRect CGlobalControl::getLastMainWindowGeometry() const
 
 QList<QAction *> CGlobalControl::getTranslationLanguagesActions() const
 {
+    QList<QAction* > res;
+    if (m_ui.isNull()) return res;
+
     return m_ui->languageSelector->actions();
 }
 
 QList<QAction *> CGlobalControl::getSubsentencesModeActions() const
 {
+    QList<QAction* > res;
+    if (m_ui.isNull()) return res;
+
     return m_ui->subsentencesMode->actions();
 }
 
@@ -877,29 +913,34 @@ void CGlobalControl::cleanupAndExit()
     if (d->cleaningState) return;
     d->cleaningState = true;
 
-    m_settings->clearTabsList();
-    m_settings->writeSettings();
-    cleanTmpFiles();
+    if (!m_ui.isNull()) {
+        m_settings->clearTabsList();
+        m_settings->writeSettings();
 
-    if (d->mainWindows.count()>0) {
-        for (CMainWindow* w : qAsConst(d->mainWindows)) {
-            if (w)
-                w->close();
+        if (d->mainWindows.count()>0) {
+            for (CMainWindow* w : qAsConst(d->mainWindows)) {
+                if (w)
+                    w->close();
+            }
         }
+
+        m_ui->gctxTranHotkey.unsetShortcut();
     }
-    m_ui->gctxTranHotkey.unsetShortcut();
+    cleanTmpFiles();
 
     stopAndCloseTranslators();
 
     CPDFWorker::freePdfToText();
 
-    // free global objects
-    d->logWindow.reset(nullptr);
-    d->downloadManager.reset(nullptr);
-    d->auxDictionary.reset(nullptr);
-    d->lightTranslator.reset(nullptr);
-    d->ipcServer->close();
-    d->ipcServer.reset(nullptr);
+    if (!m_ui.isNull()) {
+        // free global objects
+        d->logWindow.reset(nullptr);
+        d->downloadManager.reset(nullptr);
+        d->auxDictionary.reset(nullptr);
+        d->lightTranslator.reset(nullptr);
+        d->ipcServer->close();
+        d->ipcServer.reset(nullptr);
+    }
 
     QMetaObject::invokeMethod(QApplication::instance(),&QApplication::quit,Qt::QueuedConnection);
 }
@@ -1261,7 +1302,7 @@ void CGlobalControl::updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpda
 
     QNetworkProxy::setApplicationProxy(proxy);
 
-    if (forceMenuUpdate)
+    if (forceMenuUpdate && !m_ui.isNull())
         m_ui->actionUseProxy->setChecked(settings()->proxyUse);
 }
 

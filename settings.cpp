@@ -42,8 +42,6 @@ CSettings::CSettings(QObject *parent)
 
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=savedAuxDir;
-    overrideTransFont=QApplication::font();
-    fontStandard=QApplication::font().family();
 
 #if WITH_RECOLL
     searchEngine = CStructures::seRecoll;
@@ -55,13 +53,19 @@ CSettings::CSettings(QObject *parent)
 
     auto *g = qobject_cast<CGlobalControl *>(parent);
 
-    connect(&(g->d_func()->settingsSaveTimer), &QTimer::timeout, this, &CSettings::writeSettings);
-    g->d_func()->settingsSaveTimer.start();
+    if (qobject_cast<QGuiApplication *>(QCoreApplication::instance())) {
+        overrideTransFont=QApplication::font();
+        fontStandard=QApplication::font().family();
+
+        connect(&(g->d_func()->settingsSaveTimer), &QTimer::timeout, this, &CSettings::writeSettings);
+        g->d_func()->settingsSaveTimer.start();
+    }
 }
 
 void CSettings::writeSettings()
 {
     if (!gSet) return;
+    if (gSet->ui() == nullptr) return;
     if (!gSet->d_func()->settingsSaveMutex.tryLock()) return;
 
     QSettings settings(QSL("kernel1024"), QSL("jpreader"));
@@ -169,12 +173,15 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
         return false;
     }
 
+    atlCerts = readData(bigdataDir,QSL("atlCerts")).value<CSslCertificateHash>();
+
+    if (g->m_ui.isNull()) return true;
+
     atlHostHistory = readData(bigdataDir,QSL("atlHostHistory"),QStringList()).toStringList();
     g->d_func()->mainHistory = readData(bigdataDir,QSL("mainHistory")).value<CUrlHolderVector>();
     userAgentHistory = readData(bigdataDir,QSL("userAgentHistory")).toStringList();
     dictPaths = readData(bigdataDir,QSL("dictPaths")).toStringList();
     g->d_func()->ctxSearchEngines = readData(bigdataDir,QSL("ctxSearchEngines")).value<CStringHash>();
-    atlCerts = readData(bigdataDir,QSL("atlCerts")).value<CSslCertificateHash>();
     g->d_func()->recentFiles = readData(bigdataDir,QSL("recentFiles")).toStringList();
     translatorPairs = readData(bigdataDir,QSL("translatorPairs")).value<QVector<CLangPair> >();
     g->m_ui->setSubsentencesModeHash(readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>());
@@ -354,24 +361,15 @@ void CSettings::readSettings(QObject *control)
     savedAuxSaveDir = settings.value(QSL("auxSaveDir"),QDir::homePath()).toString();
     emptyRestore = settings.value(QSL("emptyRestore"),CDefaults::emptyRestore).toBool();
     maxRecycled = settings.value(QSL("recycledCount"),CDefaults::maxRecycled).toInt();
-    bool jsstate = settings.value(QSL("javascript"),true).toBool();
-    g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
-    g->m_ui->actionJSUsage->setChecked(jsstate);
-    g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
-                                         settings.value(QSL("autoloadimages"),true).toBool());
-    g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
-                                         settings.value(QSL("enablePlugins"),false).toBool());
 
     useAdblock=settings.value(QSL("useAdblock"),CDefaults::useAdblock).toBool();
     useNoScript=settings.value(QSL("useNoScript"),CDefaults::useNoScript).toBool();
-    g->m_ui->actionOverrideTransFont->setChecked(settings.value(QSL("useOverrideTransFont"),
-                                                        false).toBool());
     overrideTransFont.setFamily(settings.value(QSL("overrideTransFont"),"Verdana").toString());
     overrideTransFont.setPointSize(settings.value(QSL("overrideTransFontSize"),
                                              CDefaults::overrideTransFontSize).toInt());
     overrideStdFonts=settings.value(QSL("overrideStdFonts"),
                                     CDefaults::overrideStdFonts).toBool();
-    fontStandard=settings.value(QSL("standardFont"),QApplication::font().family()).toString();
+    fontStandard=settings.value(QSL("standardFont"),CDefaults::fontSansSerif).toString();
     fontFixed=settings.value(QSL("fixedFont"),CDefaults::fontFixed).toString();
     fontSerif=settings.value(QSL("serifFont"),CDefaults::fontSerif).toString();
     fontSansSerif=settings.value(QSL("sansSerifFont"),CDefaults::fontSansSerif).toString();
@@ -379,16 +377,8 @@ void CSettings::readSettings(QObject *control)
     fontSizeMinimal=settings.value(QSL("fontSizeMinimal"),CDefaults::fontSizeMinimal).toInt();
     fontSizeDefault=settings.value(QSL("fontSizeDefault"),CDefaults::fontSizeDefault).toInt();
     fontSizeFixed=settings.value(QSL("fontSizeFixed"),CDefaults::fontSizeFixed).toInt();
-    g->m_ui->actionOverrideTransFontColor->setChecked(settings.value(
-                                                  QSL("forceTransFontColor"),false).toBool());
     forcedFontColor=QColor(settings.value(
                                QSL("forcedTransFontColor"),"#000000").toString());
-    QString hk = settings.value(QSL("gctxHotkey"),QString()).toString();
-    if (!hk.isEmpty()) {
-        g->m_ui->gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
-        if (!g->m_ui->gctxTranHotkey.shortcut().isEmpty())
-            g->m_ui->gctxTranHotkey.setEnabled();
-    }
     searchEngine = static_cast<CStructures::SearchEngine>(settings.value(
                                                  QSL("searchEngine"),
                                                  CDefaults::searchEngine).toInt());
@@ -427,10 +417,7 @@ void CSettings::readSettings(QObject *control)
                                      CDefaults::createCoredumps).toBool();
     ignoreSSLErrors = settings.value(QSL("ignoreSSLErrors"),
                                      CDefaults::ignoreSSLErrors).toBool();
-    g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
-                                            settings.value(QSL("showFavicons"),true).toBool());
     defaultSearchEngine = settings.value(QSL("defaultSearchEngine"),QString()).toString();
-    g->d_func()->webProfile->setHttpCacheMaximumSize(settings.value(QSL("diskCacheSize"),0).toInt());
 
     pixivIndexSortOrder = static_cast<CStructures::PixivIndexSortOrder>(
                               settings.value(QSL("pixivIndexSortOrder"),CDefaults::pixivIndexSortOrder).toInt());
@@ -460,14 +447,44 @@ void CSettings::readSettings(QObject *control)
         userAgentHistory << userAgent;
     }
 
-    if (overrideUserAgent)
-        g->d_func()->webProfile->setHttpUserAgent(userAgent);
+    if (!g->m_ui.isNull()) {
+
+        bool jsstate = settings.value(QSL("javascript"),true).toBool();
+        g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
+        g->m_ui->actionJSUsage->setChecked(jsstate);
+        g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
+                                             settings.value(QSL("autoloadimages"),true).toBool());
+        g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
+                                             settings.value(QSL("enablePlugins"),false).toBool());
+        g->m_ui->actionOverrideTransFont->setChecked(settings.value(QSL("useOverrideTransFont"),
+                                                            false).toBool());
+
+        g->m_ui->actionOverrideTransFontColor->setChecked(settings.value(
+                                                      QSL("forceTransFontColor"),false).toBool());
+
+        QString hk = settings.value(QSL("gctxHotkey"),QString()).toString();
+        if (!hk.isEmpty()) {
+            g->m_ui->gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
+            if (!g->m_ui->gctxTranHotkey.shortcut().isEmpty())
+                g->m_ui->gctxTranHotkey.setEnabled();
+        }
+
+        g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
+                                                settings.value(QSL("showFavicons"),true).toBool());
+        g->d_func()->webProfile->setHttpCacheMaximumSize(settings.value(QSL("diskCacheSize"),0).toInt());
+
+        if (overrideUserAgent)
+            g->d_func()->webProfile->setHttpUserAgent(userAgent);
+    }
 
     settings.endGroup();
 
-    Q_EMIT g->updateAllBookmarks();
     g->updateProxyWithMenuUpdate(proxyUse,true);
-    g->m_ui->rebuildLanguageActions(g);
+    if (!g->m_ui.isNull()) {
+        Q_EMIT g->updateAllBookmarks();
+
+        g->m_ui->rebuildLanguageActions(g);
+    }
 }
 
 void CSettings::settingsTab()

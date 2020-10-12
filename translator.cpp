@@ -361,10 +361,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     QStringList sl = ssrc.split('\n',Qt::SkipEmptyParts);
 
     QString sout;
-    sout.clear();
-
     QStringList srctls;
-    srctls.clear();
 
     const QChar questionMark('?');
     const QChar fullwidthQuestionMark(0xff1f);
@@ -384,7 +381,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             if (srct.trimmed().isEmpty()) {
                 sout += QSL("\n");
             } else {
-                QString t = QString();
+                QString t;
 
                 QString ttest = srct;
                 bool noText = true;

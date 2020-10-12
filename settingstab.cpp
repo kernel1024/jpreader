@@ -1391,8 +1391,8 @@ QWidget *CLangPairDelegate::createEditor(QWidget *parent, const QStyleOptionView
     Q_UNUSED(index)
     auto *editor = new QComboBox(parent);
     editor->setFrame(false);
-    const QStringList sl = gSet->getLanguageCodes();
-    for (const QString& bcp : qAsConst(sl)) {
+    const QStringList languages = gSet->getLanguageCodes();
+    for (const auto &bcp : languages) {
         editor->addItem(gSet->getLanguageName(bcp),QVariant::fromValue(bcp));
     }
     return editor;

@@ -17,13 +17,15 @@ const int settingsSavePeriod = 60000;
 
 CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
 {
-    m_appIcon.addFile(QSL(":/img/globe16"));
-    m_appIcon.addFile(QSL(":/img/globe32"));
-    m_appIcon.addFile(QSL(":/img/globe48"));
-    m_appIcon.addFile(QSL(":/img/globe128"));
+    if (qobject_cast<QGuiApplication *>(QCoreApplication::instance())) {
+        m_appIcon.addFile(QSL(":/img/globe16"));
+        m_appIcon.addFile(QSL(":/img/globe32"));
+        m_appIcon.addFile(QSL(":/img/globe48"));
+        m_appIcon.addFile(QSL(":/img/globe128"));
 
-    settingsSaveTimer.setInterval(CDefaults::settingsSavePeriod);
-    settingsSaveTimer.setSingleShot(false);
+        settingsSaveTimer.setInterval(CDefaults::settingsSavePeriod);
+        settingsSaveTimer.setSingleShot(false);
+    }
 }
 
 CGlobalControlPrivate::~CGlobalControlPrivate() = default;

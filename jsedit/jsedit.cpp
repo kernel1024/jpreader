@@ -421,20 +421,12 @@ void JSHighlighter::mark(const QString &str, Qt::CaseSensitivity caseSensitivity
 
 QStringList JSHighlighter::keywords() const
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     return QStringList(m_keywords.constBegin(),m_keywords.constEnd());
-#else
-    return m_keywords.toList();
-#endif
 }
 
 void JSHighlighter::setKeywords(const QStringList &keywords)
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     m_keywords = QSet<QString>(keywords.constBegin(),keywords.constEnd());
-#else
-    m_keywords = QSet<QString>::fromList(keywords);
-#endif
     rehighlight();
 }
 

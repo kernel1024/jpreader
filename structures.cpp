@@ -87,7 +87,9 @@ CLangPair::CLangPair(const QString &fromName, const QString &toName)
 
 bool CLangPair::isValid() const
 {
-    return (langFrom!=langTo);
+    return ((langFrom != langTo)
+            && (langFrom != QLocale::c())
+            && (langTo != QLocale::c()));
 }
 
 bool CLangPair::isAtlasAcceptable() const
@@ -101,7 +103,13 @@ bool CLangPair::isAtlasAcceptable() const
 QString CLangPair::getHash() const
 {
     return QSL("%1#%2").arg(langFrom.bcp47Name(),
-                                       langTo.bcp47Name());
+                            langTo.bcp47Name());
+}
+
+QString CLangPair::toString() const
+{
+    return QSL("%1 -> %2").arg(QLocale::languageToString(langFrom.language()),
+                               QLocale::languageToString(langTo.language()));
 }
 
 bool CLangPair::operator==(const CLangPair &s) const
@@ -146,6 +154,22 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teYandexCloud, QSL("Yandex Cloud") },
         { teGoogleCloud, QSL("Google Cloud") },
         { teAliCloud, QSL("Alibaba Cloud") }
+    };
+
+    return engines;
+}
+
+const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEngineCodes()
+{
+    static const QMap<CStructures::TranslationEngine,QString> engines = {
+        { teAtlas, QSL("atlas") },
+        { teBingAPI, QSL("bing") },
+        { teYandexAPI, QSL("yandex") },
+        { teGoogleGTX, QSL("google") },
+        { teAmazonAWS, QSL("aws") },
+        { teYandexCloud, QSL("yandex-cloud") },
+        { teGoogleCloud, QSL("gcp") },
+        { teAliCloud, QSL("alicloud") }
     };
 
     return engines;

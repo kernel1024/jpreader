@@ -1,4 +1,5 @@
 HEADERS = mainwindow.h \
+    cliworker.h \
     extractors/deviantartextractor.h \
     translators/abstracttranslator.h \
     translators/alicloudtranslator.h \
@@ -63,6 +64,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
+    cliworker.cpp \
     extractors/deviantartextractor.cpp \
     translators/alicloudtranslator.cpp \
     translators/awstranslator.cpp \

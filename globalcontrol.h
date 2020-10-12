@@ -42,7 +42,7 @@ public:
     static CGlobalControl* instance();
     QApplication* app(QObject *parentApp = nullptr);
     void initialize();
-    static void preinit();
+    static void preinit(int &argc, char *argv[], bool *cliMode);
 
     // History lists
     const CUrlHolderVector &recycleBin() const;

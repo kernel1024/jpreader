@@ -13,6 +13,9 @@
 #include "../genericfuncs.h"
 #include "pixivindexextractor.h"
 
+// TODO: extract works list by tag / search result
+// TODO: configurable dialog for extracted index (as option, with html version)
+
 namespace CDefaults {
 const int pixivBookmarksFetchCount = 24;
 }

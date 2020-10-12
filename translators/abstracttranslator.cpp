@@ -88,13 +88,27 @@ unsigned long CAbstractTranslator::getRandomDelay(int min, int max)
     return static_cast<unsigned long>(QRandomGenerator::global()->bounded(m_min,m_max));
 }
 
-CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, const CLangPair& tranDirection)
+CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent, const CLangPair& tranDirection,
+                                                            const QString& engineName)
 {
     CAbstractTranslator* res = nullptr;
 
     if (!tranDirection.isValid()) return res;
 
     CStructures::TranslationEngine engine = gSet->settings()->translatorEngine;
+    if (!engineName.isEmpty()) {
+        bool engineSelected = false;
+        for (auto it = CStructures::translationEngineCodes().constBegin(),
+             end = CStructures::translationEngineCodes().constEnd(); it != end; ++it) {
+            if (engineName == it.value()) {
+                engine = it.key();
+                engineSelected = true;
+                break;
+            }
+        }
+        if (!engineSelected)
+            return res;
+    }
 
     if (engine==CStructures::teAtlas)
         res = new CAtlasTranslator(parent, gSet->settings()->atlHost, gSet->settings()->atlPort, tranDirection);

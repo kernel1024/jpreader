@@ -46,7 +46,8 @@ public:
     unsigned long getRandomDelay(int min = CDefaults::tranMinRetryDelay, int max = CDefaults::tranMaxRetryDelay);
     int getTranslatorRetryCount() const;
 
-    static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection);
+    static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection,
+                                                  const QString &engineName = QString());
 
 };
 

@@ -13,6 +13,7 @@
 #include "auxtranslator.h"
 #include "translator.h"
 #include "uitranslator.h"
+#include "cliworker.h"
 #include "zdict/zdictcontroller.h"
 
 class CMainWindow;
@@ -44,6 +45,7 @@ public:
     QScopedPointer<QLocalServer, QScopedPointerDeleteLater> ipcServer;
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
     QScopedPointer<CUITranslator, QScopedPointerDeleteLater> uiTranslator;
+    QScopedPointer<CCLIWorker, QScopedPointerDeleteLater> cliWorker;
     QList<QObject *> translatorPool;
 
     QStringList recentFiles;

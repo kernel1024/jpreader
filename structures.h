@@ -79,6 +79,7 @@ enum AliCloudTranslatorMode {
 Q_ENUM_NS(AliCloudTranslatorMode)
 
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
+const QMap<CStructures::TranslationEngine, QString> &translationEngineCodes();
 
 }
 
@@ -120,6 +121,7 @@ public:
     bool isValid() const;
     bool isAtlasAcceptable() const;
     QString getHash() const;
+    QString toString() const;
     bool operator==(const CLangPair &s) const;
     bool operator!=(const CLangPair &s) const;
 private:
