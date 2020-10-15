@@ -628,7 +628,7 @@ void CFaviconLoader::queryStart(bool forceCached)
 
     } else {
         QNetworkRequest req(m_url);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
         connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }

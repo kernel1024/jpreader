@@ -36,7 +36,7 @@ void CDeviantartExtractor::startMain()
                .arg(folder));
 
         QNetworkRequest req(u);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CDeviantartExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CDeviantartExtractor::galleryAjax);
@@ -86,7 +86,7 @@ void CDeviantartExtractor::galleryAjax()
                            .arg(folder));
 
                     QNetworkRequest req(u);
-                    QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+                    QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
                     connect(rpl,&QNetworkReply::errorOccurred,this,&CDeviantartExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CDeviantartExtractor::galleryAjax);

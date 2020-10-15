@@ -104,6 +104,10 @@ public:
     void setTranslationEngine(CStructures::TranslationEngine engine);
     void addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength);
 
+    // Network
+    QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request);
+    QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data);
+
     // Chromium
     QWebEngineProfile* webProfile() const;
     bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> &cookieIndexes = {});

@@ -99,7 +99,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
     }
     req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-    QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+    QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
     connect(rpl, &QNetworkReply::finished,
             model, &CDownloadsModel::downloadFinished);

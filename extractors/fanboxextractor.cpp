@@ -38,7 +38,7 @@ void CFanboxExtractor::startMain()
         req.setRawHeader("referer","https://www.fanbox.cc/");
         req.setRawHeader("accept","application/json, text/plain, */*");
         req.setRawHeader("origin","https://www.fanbox.cc");
-        QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CFanboxExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CFanboxExtractor::pageLoadFinished);
@@ -151,7 +151,7 @@ void CFanboxExtractor::pageLoadFinished()
                             QNetworkRequest req(url);
                             req.setRawHeader("origin","https://www.fanbox.cc");
                             req.setRawHeader("referer",origin.toString().toUtf8());
-                            QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
+                            QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
                             connect(rplImg,&QNetworkReply::finished,this,&CFanboxExtractor::subImageFinished);
                         },Qt::QueuedConnection);
                     }

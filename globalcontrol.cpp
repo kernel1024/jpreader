@@ -458,6 +458,24 @@ void CGlobalControl::addTranslatorStatistics(CStructures::TranslationEngine engi
     }
 }
 
+QNetworkReply *CGlobalControl::auxNetworkAccessManagerGet(const QNetworkRequest &request)
+{
+    Q_D(const CGlobalControl);
+    QNetworkRequest req = request;
+    if (!m_settings->userAgent.isEmpty())
+        req.setRawHeader("User-Agent", m_settings->userAgent.toLatin1());
+    return d->auxNetManager->get(req);
+}
+
+QNetworkReply *CGlobalControl::auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data)
+{
+    Q_D(const CGlobalControl);
+    QNetworkRequest req = request;
+    if (!m_settings->userAgent.isEmpty())
+        req.setRawHeader("User-Agent", m_settings->userAgent.toLatin1());
+    return d->auxNetManager->post(req,data);
+}
+
 QWebEngineProfile *CGlobalControl::webProfile() const
 {
     Q_D(const CGlobalControl);

@@ -42,7 +42,7 @@ void CPixivNovelExtractor::startMain()
             QNetworkRequest req(m_mangaOrigin);
             req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
             req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
             connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
@@ -51,7 +51,7 @@ void CPixivNovelExtractor::startMain()
     } else if (m_source.isValid()){
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
             QNetworkRequest req(m_source);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
             connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
@@ -207,7 +207,7 @@ void CPixivNovelExtractor::subLoadFinished()
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,rplUrl]{
                     QNetworkRequest req(url);
                     req.setRawHeader("referer",rplUrl.toString().toUtf8());
-                    QNetworkReply *rplImg = gSet->auxNetworkAccessManager()->get(req);
+                    QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
                     connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
                 },Qt::QueuedConnection);
             }
@@ -322,7 +322,7 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
             req.setRawHeader("referer",m_origin.toString().toUtf8());
             req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
             req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManager()->get(req);
+            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
         },Qt::QueuedConnection);
     }
