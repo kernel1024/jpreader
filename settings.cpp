@@ -144,6 +144,7 @@ void CSettings::writeSettings()
                       testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
     settings.setValue(QSL("diskCacheSize"),gSet->d_func()->webProfile->httpCacheMaximumSize());
     settings.setValue(QSL("jsLogConsole"),jsLogConsole);
+    settings.setValue(QSL("downloaderCleanCompleted"),downloaderCleanCompleted);
     settings.setValue(QSL("dontUseNativeFileDialog"),dontUseNativeFileDialog);
     settings.setValue(QSL("defaultSearchEngine"),defaultSearchEngine);
 
@@ -411,6 +412,8 @@ void CSettings::readSettings(QObject *control)
                                  settings.value(QSL("aliCloudTranslatorMode"),0).toInt());
 
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
+    downloaderCleanCompleted = settings.value(QSL("downloaderCleanCompleted"),
+                                              CDefaults::downloaderCleanCompleted).toBool();
     dontUseNativeFileDialog = settings.value(QSL("dontUseNativeFileDialog"),
                                              CDefaults::dontUseNativeFileDialog).toBool();
     createCoredumps = settings.value(QSL("createCoredumps"),

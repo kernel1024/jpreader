@@ -199,6 +199,7 @@ void CSettingsTab::loadFromGlobal()
 
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
+    ui->checkDownloaderCleanCompleted->setChecked(gSet->m_settings->downloaderCleanCompleted);
 
     ui->checkUseAd->setChecked(gSet->m_settings->useAdblock);
     ui->checkUseNoScript->setChecked(gSet->m_settings->useNoScript);
@@ -486,6 +487,10 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->checkJSLogConsole,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->jsLogConsole=val;
+    });
+    connect(ui->checkDownloaderCleanCompleted,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->downloaderCleanCompleted=val;
     });
 
     connect(ui->checkTransFont,&QCheckBox::toggled,this,[this](bool val){

@@ -26,6 +26,7 @@ public:
     QString mimeType;
     QString errorString;
     QWebEngineDownloadItem::DownloadState state { QWebEngineDownloadItem::DownloadRequested };
+    qint64 oldReceived { 0L };
     qint64 received { 0L };
     qint64 total { 0L };
     QPointer<QWebEngineDownloadItem> downloadItem;
@@ -66,16 +67,19 @@ public:
                            const QString &containerPath, const QUrl& referer, int index,
                            int maxIndex, bool isFanbox, bool relaxedRedirects);
     void setProgressLabel(const QString& text);
+    qint64 receivedBytes() const;
+    void addReceivedBytes(qint64 size);
 
 public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);
 
 private:
-    CDownloadsModel *model;
-    QTimer writerStatusTimer;
     Ui::CDownloadManager *ui;
-    bool firstResize { true };
+    CDownloadsModel *m_model;
+    QTimer m_writerStatusTimer;
+    qint64 m_receivedBytes { 0L };
+    bool m_firstResize { true };
 
     Q_DISABLE_COPY(CDownloadManager)
 
@@ -85,6 +89,7 @@ private Q_SLOTS:
 protected:
     void closeEvent(QCloseEvent * event) override;
     void showEvent(QShowEvent * event) override;
+    void hideEvent(QHideEvent * event) override;
 
 };
 
@@ -93,7 +98,7 @@ class CDownloadsModel : public QAbstractTableModel
     Q_OBJECT
 private:
     CDownloadManager* m_manager;
-    QVector<CDownloadItem> downloads;
+    QVector<CDownloadItem> m_downloads;
 
     Q_DISABLE_COPY(CDownloadsModel)
 

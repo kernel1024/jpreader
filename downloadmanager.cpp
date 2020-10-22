@@ -27,11 +27,11 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 
     setWindowIcon(QIcon::fromTheme(QSL("folder-downloads")));
 
-    model = new CDownloadsModel(this);
-    ui->tableDownloads->setModel(model);
+    m_model = new CDownloadsModel(this);
+    ui->tableDownloads->setModel(m_model);
     ui->tableDownloads->verticalHeader()->hide();
     ui->tableDownloads->setContextMenuPolicy(Qt::CustomContextMenu);
-    ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,model));
+    ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,m_model));
 
     ui->labelWriter->setPixmap(QIcon::fromTheme(QSL("document-save")).pixmap(CDefaults::writerStatusLabelSize));
     QSizePolicy sp = ui->labelWriter->sizePolicy();
@@ -43,18 +43,18 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
             this, &CDownloadManager::contextMenu);
 
     connect(ui->buttonClearFinished, &QPushButton::clicked,
-            model, &CDownloadsModel::cleanFinishedDownloads);
+            m_model, &CDownloadsModel::cleanFinishedDownloads);
 
     connect(ui->buttonClearDownloaded, &QPushButton::clicked,
-            model, &CDownloadsModel::cleanCompletedDownloads);
+            m_model, &CDownloadsModel::cleanCompletedDownloads);
 
     connect(ui->buttonAbortAll, &QPushButton::clicked,
-            model, &CDownloadsModel::abortAll);
+            m_model, &CDownloadsModel::abortAll);
 
-    connect(&writerStatusTimer, &QTimer::timeout,
+    connect(&m_writerStatusTimer, &QTimer::timeout,
             this, &CDownloadManager::updateWriterStatus);
-    writerStatusTimer.setInterval(CDefaults::writerStatusTimerIntervalMS);
-    writerStatusTimer.start();
+    m_writerStatusTimer.setInterval(CDefaults::writerStatusTimerIntervalMS);
+    m_writerStatusTimer.start();
 }
 
 CDownloadManager::~CDownloadManager()
@@ -102,9 +102,9 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
     connect(rpl, &QNetworkReply::finished,
-            model, &CDownloadsModel::downloadFinished);
+            m_model, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
-            model, &CDownloadsModel::downloadProgress);
+            m_model, &CDownloadsModel::downloadProgress);
     if (relaxedRedirects) {
         connect(rpl,&QNetworkReply::redirected,rpl,[rpl,url](const QUrl& rurl) {
 
@@ -118,7 +118,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
         });
     }
 
-    model->appendItem(CDownloadItem(rpl, fname));
+    m_model->appendItem(CDownloadItem(rpl, fname));
 }
 
 void CDownloadManager::setProgressLabel(const QString &text)
@@ -151,13 +151,13 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
     }
 
     connect(item, &QWebEngineDownloadItem::finished,
-            model, &CDownloadsModel::downloadFinished);
+            m_model, &CDownloadsModel::downloadFinished);
     connect(item, &QWebEngineDownloadItem::downloadProgress,
-            model, &CDownloadsModel::downloadProgress);
+            m_model, &CDownloadsModel::downloadProgress);
     connect(item, &QWebEngineDownloadItem::stateChanged,
-            model, &CDownloadsModel::downloadStateChanged);
+            m_model, &CDownloadsModel::downloadStateChanged);
 
-    model->appendItem(CDownloadItem(item));
+    m_model->appendItem(CDownloadItem(item));
 
     item->accept();
 }
@@ -165,39 +165,49 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
 void CDownloadManager::contextMenu(const QPoint &pos)
 {
     QModelIndex idx = ui->tableDownloads->indexAt(pos);
-    CDownloadItem item = model->getDownloadItem(idx);
+    CDownloadItem item = m_model->getDownloadItem(idx);
     if (item.isEmpty()) return;
 
     QMenu cm;
     QAction *acm = nullptr;
 
     if (item.url.isValid()) {
-        acm = cm.addAction(tr("Copy URL to clipboard"),model,&CDownloadsModel::copyUrlToClipboard);
+        acm = cm.addAction(tr("Copy URL to clipboard"),m_model,&CDownloadsModel::copyUrlToClipboard);
         acm->setData(idx.row());
         cm.addSeparator();
     }
 
     if (item.state==QWebEngineDownloadItem::DownloadInProgress) {
-        acm = cm.addAction(tr("Abort"),model,&CDownloadsModel::abortDownload);
+        acm = cm.addAction(tr("Abort"),m_model,&CDownloadsModel::abortDownload);
         acm->setData(idx.row());
         cm.addSeparator();
     }
 
-    acm = cm.addAction(tr("Remove"),model,&CDownloadsModel::cleanDownload);
+    acm = cm.addAction(tr("Remove"),m_model,&CDownloadsModel::cleanDownload);
     acm->setData(idx.row());
 
     if (item.state==QWebEngineDownloadItem::DownloadCompleted ||
             item.state==QWebEngineDownloadItem::DownloadInProgress) {
         cm.addSeparator();
-        acm = cm.addAction(tr("Open here"),model,&CDownloadsModel::openHere);
+        acm = cm.addAction(tr("Open here"),m_model,&CDownloadsModel::openHere);
         acm->setData(idx.row());
-        acm = cm.addAction(tr("Open with associated application"),model,&CDownloadsModel::openXdg);
+        acm = cm.addAction(tr("Open with associated application"),m_model,&CDownloadsModel::openXdg);
         acm->setData(idx.row());
-        acm = cm.addAction(tr("Open containing directory"),model,&CDownloadsModel::openDirectory);
+        acm = cm.addAction(tr("Open containing directory"),m_model,&CDownloadsModel::openDirectory);
         acm->setData(idx.row());
     }
 
     cm.exec(ui->tableDownloads->mapToGlobal(pos));
+}
+
+qint64 CDownloadManager::receivedBytes() const
+{
+    return m_receivedBytes;
+}
+
+void CDownloadManager::addReceivedBytes(qint64 size)
+{
+    m_receivedBytes += size;
 }
 
 void CDownloadManager::updateWriterStatus()
@@ -216,9 +226,10 @@ void CDownloadManager::closeEvent(QCloseEvent *event)
 void CDownloadManager::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event)
+    m_writerStatusTimer.start();
 
-    if (!firstResize) return;
-    firstResize = false;
+    if (!m_firstResize) return;
+    m_firstResize = false;
 
     const int filenameColumnWidth = 350;
     const int completionColumnWidth = 200;
@@ -229,21 +240,25 @@ void CDownloadManager::showEvent(QShowEvent *event)
     ui->tableDownloads->horizontalHeader()->setStretchLastSection(true);
 }
 
+void CDownloadManager::hideEvent(QHideEvent *event)
+{
+    Q_UNUSED(event)
+    m_writerStatusTimer.stop();
+}
+
 void CDownloadsModel::updateProgressLabel()
 {
-    if (downloads.isEmpty()) {
+    if (m_downloads.isEmpty()) {
         m_manager->setProgressLabel(QString());
         return;
     }
 
-    qint64 receivedBytes = 0L;
-    int total = downloads.count();
+    int total = m_downloads.count();
     int completed = 0;
     int failures = 0;
     int cancelled = 0;
     int active = 0;
-    for(const auto &item : qAsConst(downloads)) {
-        receivedBytes += item.received;
+    for(const auto &item : qAsConst(m_downloads)) {
         switch (item.state) {
             case QWebEngineDownloadItem::DownloadCancelled:
                 cancelled++;
@@ -268,14 +283,14 @@ void CDownloadsModel::updateProgressLabel()
                                 .arg(active)
                                 .arg(failures)
                                 .arg(cancelled)
-                                .arg(CGenericFuncs::formatFileSize(receivedBytes)));
+                                .arg(CGenericFuncs::formatFileSize(m_manager->receivedBytes())));
 }
 
 CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
     : QAbstractTableModel(parent)
 {
     m_manager = parent;
-    downloads.clear();
+    m_downloads.clear();
     connect(this,&CDownloadsModel::writeBytesToZip,
             gSet->downloadWriter(),&CDownloadWriter::writeBytesToZip,Qt::QueuedConnection);
     connect(this,&CDownloadsModel::writeBytesToFile,
@@ -289,7 +304,7 @@ CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
 
 CDownloadsModel::~CDownloadsModel()
 {
-    downloads.clear();
+    m_downloads.clear();
 }
 
 Qt::ItemFlags CDownloadsModel::flags(const QModelIndex &index) const
@@ -309,7 +324,7 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
 
     const QSize iconSize(16,16);
 
-    CDownloadItem t = downloads.at(idx);
+    CDownloadItem t = m_downloads.at(idx);
     QString zfname = t.getZipName();
 
     if (role == Qt::DecorationRole) {
@@ -385,7 +400,7 @@ int CDownloadsModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return downloads.count();
+    return m_downloads.count();
 }
 
 int CDownloadsModel::columnCount(const QModelIndex &parent) const
@@ -403,7 +418,7 @@ CDownloadItem CDownloadsModel::getDownloadItem(const QModelIndex &index)
 {
     if (!checkIndex(index,CheckIndexOption::IndexIsValid)) return CDownloadItem();
 
-    return downloads.at(index.row());
+    return m_downloads.at(index.row());
 }
 
 void CDownloadsModel::deleteDownloadItem(const QModelIndex &index)
@@ -412,16 +427,16 @@ void CDownloadsModel::deleteDownloadItem(const QModelIndex &index)
 
     int row = index.row();
     beginRemoveRows(QModelIndex(),row,row);
-    downloads.removeAt(row);
+    m_downloads.removeAt(row);
     endRemoveRows();
     updateProgressLabel();
 }
 
 void CDownloadsModel::appendItem(const CDownloadItem &item)
 {
-    int row = downloads.count();
+    int row = m_downloads.count();
     beginInsertRows(QModelIndex(),row,row);
-    downloads << item;
+    m_downloads << item;
     endInsertRows();
     updateProgressLabel();
 }
@@ -434,40 +449,48 @@ void CDownloadsModel::downloadFinished()
     int row = -1;
 
     if (item) {
-        row = downloads.indexOf(CDownloadItem(item->id()));
+        row = m_downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        row = downloads.indexOf(CDownloadItem(rpl.data()));
+        row = m_downloads.indexOf(CDownloadItem(rpl.data()));
     }
-    if (row<0 || row>=downloads.count())
+    if (row<0 || row>=m_downloads.count())
         return;
 
-    if (item)
-        downloads[row].state = item->state();
+    if (item) {
+        auto state = item->state();
+        m_downloads[row].state = state;
 
-    downloads[row].downloadItem = nullptr;
+        if (gSet->settings()->downloaderCleanCompleted &&
+                (state == QWebEngineDownloadItem::DownloadCompleted)) {
+
+            deleteDownloadItem(index(row,0));
+        }
+    }
+
+    m_downloads[row].downloadItem = nullptr;
 
     if (rpl) {
         if (rpl->error()==QNetworkReply::NoError) {
-            QUuid uuid = downloads.at(row).auxId;
-            if (!downloads.at(row).getZipName().isEmpty()) {
-                Q_EMIT writeBytesToZip(downloads.at(row).getZipName(),
-                                       downloads.at(row).getFileName(),
+            QUuid uuid = m_downloads.at(row).auxId;
+            if (!m_downloads.at(row).getZipName().isEmpty()) {
+                Q_EMIT writeBytesToZip(m_downloads.at(row).getZipName(),
+                                       m_downloads.at(row).getFileName(),
                                        rpl->readAll(),uuid);
             } else {
-                Q_EMIT writeBytesToFile(downloads.at(row).getFileName(),rpl->readAll(),uuid);
+                Q_EMIT writeBytesToFile(m_downloads.at(row).getFileName(),rpl->readAll(),uuid);
             }
         } else {
-            downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
-            downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
+            m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
+            m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
         }
-        downloads[row].reply = nullptr;
+        m_downloads[row].reply = nullptr;
     }
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 
     updateProgressLabel();
 
-    if (downloads.at(row).autoDelete)
+    if (m_downloads.at(row).autoDelete)
         deleteDownloadItem(index(row,0));
 }
 
@@ -476,12 +499,12 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
     auto *item = qobject_cast<QWebEngineDownloadItem *>(sender());
     if (item==nullptr) return;
 
-    int row = downloads.indexOf(CDownloadItem(item->id()));
-    if (row<0 || row>=downloads.count()) return;
+    int row = m_downloads.indexOf(CDownloadItem(item->id()));
+    if (row<0 || row>=m_downloads.count()) return;
 
-    downloads[row].state = state;
+    m_downloads[row].state = state;
     if (item->interruptReason()!=QWebEngineDownloadItem::NoReason)
-        downloads[row].errorString = item->interruptReasonString();
+        m_downloads[row].errorString = item->interruptReasonString();
 
     updateProgressLabel();
 
@@ -496,14 +519,18 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     int row = -1;
 
     if (item) {
-        row = downloads.indexOf(CDownloadItem(item->id()));
+        row = m_downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        row = downloads.indexOf(CDownloadItem(rpl));
+        row = m_downloads.indexOf(CDownloadItem(rpl));
     }
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
-    downloads[row].received = bytesReceived;
-    downloads[row].total = bytesTotal;
+    m_downloads[row].oldReceived = m_downloads.at(row).received;
+    m_downloads[row].received = bytesReceived;
+    m_downloads[row].total = bytesTotal;
+
+    m_manager->addReceivedBytes(m_downloads.at(row).received
+                                - m_downloads.at(row).oldReceived);
 
     updateProgressLabel();
 
@@ -516,7 +543,7 @@ void CDownloadsModel::abortDownload()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
     if (!abortDownloadPriv(row)) {
         QMessageBox::warning(m_manager,tr("JPReader"),
@@ -526,19 +553,19 @@ void CDownloadsModel::abortDownload()
 
 void CDownloadsModel::abortAll()
 {
-    for (int i=0;i<downloads.count();i++)
+    for (int i=0;i<m_downloads.count();i++)
         abortDownloadPriv(i);
 }
 
 bool CDownloadsModel::abortDownloadPriv(int row)
 {
     bool res = false;
-    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(row).downloadItem) {
-            downloads[row].downloadItem->cancel();
+    if (m_downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
+        if (m_downloads.at(row).downloadItem) {
+            m_downloads[row].downloadItem->cancel();
             res = true;
-        } else if (downloads.at(row).reply) {
-            downloads[row].reply->abort();
+        } else if (m_downloads.at(row).reply) {
+            m_downloads[row].reply->abort();
             res = true;
         }
     }
@@ -555,17 +582,17 @@ void CDownloadsModel::cleanDownload()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
     bool ok = false;
-    if (downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
-        if (downloads.at(row).downloadItem) {
-            downloads[row].autoDelete = true;
-            downloads[row].downloadItem->cancel();
+    if (m_downloads.at(row).state==QWebEngineDownloadItem::DownloadInProgress) {
+        if (m_downloads.at(row).downloadItem) {
+            m_downloads[row].autoDelete = true;
+            m_downloads[row].downloadItem->cancel();
             ok = true;
-        } else if (downloads.at(row).reply) {
-            downloads[row].autoDelete = true;
-            downloads[row].reply->abort();
+        } else if (m_downloads.at(row).reply) {
+            m_downloads[row].autoDelete = true;
+            m_downloads[row].reply->abort();
             ok = true;
         }
     }
@@ -580,19 +607,19 @@ void CDownloadsModel::copyUrlToClipboard()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
     QClipboard *cb = QApplication::clipboard();
-    cb->setText(downloads.at(row).url.toString(),QClipboard::Clipboard);
+    cb->setText(m_downloads.at(row).url.toString(),QClipboard::Clipboard);
 }
 
 void CDownloadsModel::cleanFinishedDownloads()
 {
     int row = 0;
-    while (row<downloads.count()) {
-        if (downloads.at(row).state!=QWebEngineDownloadItem::DownloadInProgress) {
+    while (row<m_downloads.count()) {
+        if (m_downloads.at(row).state!=QWebEngineDownloadItem::DownloadInProgress) {
             beginRemoveRows(QModelIndex(),row,row);
-            downloads.removeAt(row);
+            m_downloads.removeAt(row);
             endRemoveRows();
             row = 0;
         } else
@@ -604,10 +631,10 @@ void CDownloadsModel::cleanFinishedDownloads()
 void CDownloadsModel::cleanCompletedDownloads()
 {
     int row = 0;
-    while (row<downloads.count()) {
-        if (downloads.at(row).state==QWebEngineDownloadItem::DownloadCompleted) {
+    while (row<m_downloads.count()) {
+        if (m_downloads.at(row).state==QWebEngineDownloadItem::DownloadCompleted) {
             beginRemoveRows(QModelIndex(),row,row);
-            downloads.removeAt(row);
+            m_downloads.removeAt(row);
             endRemoveRows();
             row = 0;
         } else
@@ -622,11 +649,11 @@ void CDownloadsModel::openDirectory()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
-    QString fname = downloads.at(row).getZipName();
+    QString fname = m_downloads.at(row).getZipName();
     if (fname.isEmpty())
-        fname = downloads.at(row).getFileName();
+        fname = m_downloads.at(row).getFileName();
     QFileInfo fi(fname);
 
     if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << fi.path()))
@@ -639,7 +666,7 @@ void CDownloadsModel::openHere()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
+    if (row<0 || row>=m_downloads.count()) return;
 
     static const QStringList acceptedMime
             = { QSL("text/plain"), QSL("text/html"), QSL("application/pdf"),
@@ -651,9 +678,9 @@ void CDownloadsModel::openHere()
                 QSL("jpg"), QSL("jpeg"), QSL("jpe"), QSL("png"),
                 QSL("svg"), QSL("gif"), QSL("webp") };
 
-    const QString fname = downloads.at(row).getFileName();
-    const QString mime = downloads.at(row).mimeType;
-    const QString zipName = downloads.at(row).getZipName();
+    const QString fname = m_downloads.at(row).getFileName();
+    const QString mime = m_downloads.at(row).mimeType;
+    const QString zipName = m_downloads.at(row).getZipName();
     QFileInfo fi(fname);
     if (zipName.isEmpty() &&
             (acceptedMime.contains(mime,Qt::CaseInsensitive) ||
@@ -668,21 +695,21 @@ void CDownloadsModel::openXdg()
     if (acm==nullptr) return;
 
     int row = acm->data().toInt();
-    if (row<0 || row>=downloads.count()) return;
-    if (!downloads.at(row).getZipName().isEmpty()) return;
+    if (row<0 || row>=m_downloads.count()) return;
+    if (!m_downloads.at(row).getZipName().isEmpty()) return;
 
-    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << downloads.at(row).getFileName()))
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << m_downloads.at(row).getFileName()))
         QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
 }
 
 void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
 {
-    int row = downloads.indexOf(CDownloadItem(uuid));
-    if (row<0 || row>=downloads.count())
+    int row = m_downloads.indexOf(CDownloadItem(uuid));
+    if (row<0 || row>=m_downloads.count())
         return;
 
-    downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
-    downloads[row].errorString = message;
+    m_downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
+    m_downloads[row].errorString = message;
     updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
@@ -690,14 +717,17 @@ void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
 
 void CDownloadsModel::writerCompleted(const QUuid &uuid)
 {
-    int row = downloads.indexOf(CDownloadItem(uuid));
-    if (row<0 || row>=downloads.count())
+    int row = m_downloads.indexOf(CDownloadItem(uuid));
+    if (row<0 || row>=m_downloads.count())
         return;
 
-    downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
+    m_downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
     updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
+
+    if (gSet->settings()->downloaderCleanCompleted)
+        deleteDownloadItem(index(row,0));
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)

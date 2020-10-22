@@ -60,6 +60,7 @@ const bool ignoreSSLErrors = false;
 const bool pdfExtractImages = true;
 const bool pixivFetchImages = false;
 const bool translatorCacheEnabled = false;
+const bool downloaderCleanCompleted = false;
 const auto fontFixed = "Courier New";
 const auto fontSerif = "Times New Roman";
 const auto fontSansSerif = "Verdana";
@@ -161,6 +162,7 @@ public:
     bool pdfExtractImages { CDefaults::pdfExtractImages };
     bool pixivFetchImages { CDefaults::pixivFetchImages };
     bool translatorCacheEnabled { CDefaults::translatorCacheEnabled };
+    bool downloaderCleanCompleted { CDefaults::downloaderCleanCompleted };
 
     explicit CSettings(QObject *parent = nullptr);
 
