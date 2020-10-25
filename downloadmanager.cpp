@@ -464,6 +464,11 @@ void CDownloadsModel::downloadFinished()
                 (state == QWebEngineDownloadItem::DownloadCompleted)) {
 
             deleteDownloadItem(index(row,0));
+
+            Q_EMIT dataChanged(index(row,0),index(row,3));
+            updateProgressLabel();
+
+            return;
         }
     }
 
