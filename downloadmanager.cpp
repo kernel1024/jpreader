@@ -456,23 +456,8 @@ void CDownloadsModel::downloadFinished()
     if (row<0 || row>=m_downloads.count())
         return;
 
-    if (item) {
-        auto state = item->state();
-        m_downloads[row].state = state;
-
-        if (gSet->settings()->downloaderCleanCompleted &&
-                (state == QWebEngineDownloadItem::DownloadCompleted)) {
-
-            deleteDownloadItem(index(row,0));
-
-            Q_EMIT dataChanged(index(row,0),index(row,3));
-            updateProgressLabel();
-
-            return;
-        }
-    }
-
-    m_downloads[row].downloadItem = nullptr;
+    if (item)
+        m_downloads[row].state = item->state();
 
     if (rpl) {
         if (rpl->error()==QNetworkReply::NoError) {
@@ -489,14 +474,22 @@ void CDownloadsModel::downloadFinished()
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
         }
         m_downloads[row].reply = nullptr;
+
+    } else if (item) {
+
+        m_downloads[row].downloadItem = nullptr;
     }
 
-    Q_EMIT dataChanged(index(row,0),index(row,3));
+    Q_EMIT dataChanged(index(row,0),index(row,3)); // NOLINT
 
     updateProgressLabel();
 
-    if (m_downloads.at(row).autoDelete)
+    if ((m_downloads.at(row).autoDelete) ||
+            (item && (item->state() == QWebEngineDownloadItem::DownloadCompleted)
+             && gSet->settings()->downloaderCleanCompleted)) {
+
         deleteDownloadItem(index(row,0));
+    }
 }
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
