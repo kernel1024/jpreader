@@ -77,6 +77,7 @@ public:
     QPixmap pageImage() const { return m_pageImage; }
     bool isTranslationBkgdFinished() const { return m_translationBkgdFinished; }
     bool isLoadingBkgdFinished() const { return m_loadingBkgdFinished; }
+    void setRequestAutotranslate(bool requestAutotranslate);
 
 public Q_SLOTS:
     void navByUrlDefault();

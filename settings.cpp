@@ -157,9 +157,6 @@ void CSettings::writeSettings()
     settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
 
-    settings.setValue(QSL("pixivIndexSortOrder"),static_cast<int>(pixivIndexSortOrder));
-    settings.setValue(QSL("pixivIndexSortReverse"),pixivIndexSortReverse);
-
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
 }
@@ -422,10 +419,6 @@ void CSettings::readSettings(QObject *control)
                                      CDefaults::ignoreSSLErrors).toBool();
     defaultSearchEngine = settings.value(QSL("defaultSearchEngine"),QString()).toString();
 
-    pixivIndexSortOrder = static_cast<CStructures::PixivIndexSortOrder>(
-                              settings.value(QSL("pixivIndexSortOrder"),CDefaults::pixivIndexSortOrder).toInt());
-    pixivIndexSortReverse = settings.value(QSL("pixivIndexSortReverse"),CDefaults::pixivIndexSortReverse).toBool();
-
     pdfExtractImages = settings.value(QSL("pdfExtractImages"),
                                       CDefaults::pdfExtractImages).toBool();
     pdfImageMaxSize = settings.value(QSL("pdfImageMaxSize"),
@@ -527,7 +520,7 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     settings.endGroup();
 
     if (!urls.isEmpty()) {
-        if (QMessageBox::question(w,tr("JPReader"),
+        if (QMessageBox::question(w,QGuiApplication::applicationDisplayName(),
                                   tr("Program crashed in previous run. Restore all tabs?"),
                                   QMessageBox::Yes,QMessageBox::No) == QMessageBox::Yes) {
             for (int i=0;i<cnt;i++)

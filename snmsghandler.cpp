@@ -180,7 +180,7 @@ void CSnMsgHandler::renderProcessTerminated(QWebEnginePage::RenderProcessTermina
         status = tr("Render process exited abnormally.\nExit status: %1, code: %2")
                  .arg(status).arg(exitCode);
         qCritical() << status;
-        QMessageBox::warning(snv,tr("JPReader"),status);
+        QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),status);
     }
 }
 

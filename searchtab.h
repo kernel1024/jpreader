@@ -44,7 +44,6 @@ protected:
     void doSearch();
     QString createSpecSnippet(const QString &aFilename, bool forceUntranslated, const QString &auxText);
     QStringList splitQuery(const QString &aQuery);
-    void keyPressEvent(QKeyEvent *event) override;
 
 Q_SIGNALS:
     void startSearch(const QString &searchTerm, const QDir &searchDir);

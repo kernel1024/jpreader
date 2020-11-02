@@ -33,7 +33,7 @@ private:
     QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin, QString *illustID = nullptr);
 
 public:
-    CPixivNovelExtractor(QObject *parent, CSnippetViewer *snv);
+    CPixivNovelExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool focus);
     void setMangaOrigin(const QUrl& origin);

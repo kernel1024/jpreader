@@ -8,8 +8,8 @@ namespace CDefaults {
 const int deviantGalleryFetchCount = 24;
 }
 
-CDeviantartExtractor::CDeviantartExtractor(QObject *parent, CSnippetViewer *snv)
-    : CAbstractExtractor(parent,snv)
+CDeviantartExtractor::CDeviantartExtractor(QObject *parent, QWidget *parentWidget)
+    : CAbstractExtractor(parent,parentWidget)
 {
 }
 
@@ -46,7 +46,7 @@ void CDeviantartExtractor::startMain()
 void CDeviantartExtractor::galleryAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || snv()==nullptr) return;
+    if (rpl.isNull() || parentWidget()==nullptr) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QJsonParseError err {};

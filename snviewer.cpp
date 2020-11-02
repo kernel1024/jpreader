@@ -170,6 +170,11 @@ CSnippetViewer::CSnippetViewer(QWidget *parent, const QUrl& aUri, const QStringL
     msgHandler->activateFocusDelay();
 }
 
+void CSnippetViewer::setRequestAutotranslate(bool requestAutotranslate)
+{
+    m_requestAutotranslate = requestAutotranslate;
+}
+
 void CSnippetViewer::updateTabColor(bool loadFinished, bool tranFinished)
 {
     int selfIdx = parentWnd()->tabMain->indexOf(this);

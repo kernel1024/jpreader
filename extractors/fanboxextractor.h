@@ -25,7 +25,7 @@ private:
     QString m_postNum;
 
 public:
-    CFanboxExtractor(QObject *parent, CSnippetViewer *snv);
+    CFanboxExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(int postId, bool translate, bool focus, bool isManga);
 
 protected:

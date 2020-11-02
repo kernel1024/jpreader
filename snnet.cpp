@@ -176,8 +176,8 @@ bool CSnNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoT
         return true;
     }
 
-    QMessageBox::warning(snv,tr("JPReader"),tr("Unable to create temporary file "
-                                               "for document."));
+    QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
+                         tr("Unable to create temporary file for document."));
     return false;
 }
 
@@ -272,7 +272,8 @@ void CSnNet::extractHTMLFragment()
 
             QMetaObject::invokeMethod(ex,&CHtmlImagesExtractor::start,Qt::QueuedConnection);
         } else {
-            QMessageBox::information(snv,tr("JPReader"),tr("Unknown clipboard format. HTML expected."));
+            QMessageBox::information(snv,QGuiApplication::applicationDisplayName(),
+                                     tr("Unknown clipboard format. HTML expected."));
         }
         cb->clear(QClipboard::Clipboard);
     });
@@ -295,7 +296,6 @@ void CSnNet::processExtractorActionIndirect(const QVariantHash &params)
 
     connect(ex,&CAbstractExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
     connect(ex,&CAbstractExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
-    connect(ex,&CAbstractExtractor::listReady,this,&CSnNet::listReady,Qt::QueuedConnection);
     connect(ex,&CAbstractExtractor::finished,th,&QThread::quit);
     connect(th,&QThread::finished,ex,&CAbstractExtractor::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
@@ -321,22 +321,13 @@ void CSnNet::novelReady(const QString &html, bool focus, bool translate)
     }
 }
 
-void CSnNet::listReady(const QString &html)
-{
-    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
-        new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,html);
-    } else {
-        loadWithTempFile(html,true);
-    }
-}
-
 void CSnNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin)
 {
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
     bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
 
     if (urls.isEmpty() || containerName.isEmpty()) {
-        QMessageBox::warning(snv,tr("JPReader"),
+        QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
                              tr("Image urls not found or container name not detected."));
     } else {
         multiImgDownload(urls,origin,containerName,isFanbox,isPatreon);
@@ -361,7 +352,8 @@ void CSnNet::pdfError(const QString &message)
 {
     QString cn=CGenericFuncs::makeSimpleHtml(tr("Error"),tr("Unable to open PDF file.<br>%1").arg(message));
     snv->txtBrowser->setHtmlInterlocked(cn);
-    QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open PDF file."));
+    QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
+                          tr("Unable to open PDF file."));
 }
 
 void CSnNet::load(const QUrl &url)
@@ -384,7 +376,8 @@ void CSnNet::load(const QUrl &url)
             snv->m_translationBkgdFinished=false;
             snv->m_loadingBkgdFinished=false;
             snv->txtBrowser->setHtmlInterlocked(cn,url);
-            QMessageBox::critical(snv,tr("JPReader"),tr("Unable to open file."));
+            QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to open file."));
             return;
         }
         QString mime = CGenericFuncs::detectMIME(fname);

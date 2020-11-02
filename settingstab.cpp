@@ -77,14 +77,6 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->atlSSLProto->addItem(QSL("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
-    ui->comboPixivIndexSortOrder->addItem(tr("Title"),static_cast<int>(CStructures::psTitle));
-    ui->comboPixivIndexSortOrder->addItem(tr("Size"),static_cast<int>(CStructures::psSize));
-    ui->comboPixivIndexSortOrder->addItem(tr("Date"),static_cast<int>(CStructures::psDate));
-    ui->comboPixivIndexSortOrder->addItem(tr("Author"),static_cast<int>(CStructures::psAuthor));
-    ui->comboPixivIndexSortOrder->addItem(tr("Series"),static_cast<int>(CStructures::psSeries));
-    ui->comboPixivIndexSortOrder->addItem(tr("Description"),static_cast<int>(CStructures::psDescription));
-    ui->comboPixivIndexSortOrder->addItem(tr("Bookmarks count"),static_cast<int>(CStructures::psBookmarkCount));
-
     ui->comboAliMode->addItem(tr("General"),static_cast<int>(CStructures::aliTranslatorGeneral));
     ui->comboAliMode->addItem(tr("Title (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECTitle));
     ui->comboAliMode->addItem(tr("Description (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECDescription));
@@ -174,12 +166,6 @@ void CSettingsTab::loadFromGlobal()
     ui->atlSSLProto->setCurrentIndex(idx);
     updateAtlCertLabel();
     ui->tranRetryCnt->setValue(gSet->m_settings->translatorRetryCount);
-
-    idx = ui->comboPixivIndexSortOrder->findData(gSet->m_settings->pixivIndexSortOrder);
-    if (idx<0 || idx>=ui->comboPixivIndexSortOrder->count())
-        idx = 0;
-    ui->comboPixivIndexSortOrder->setCurrentIndex(idx);
-    ui->checkPixivIndexSortReverse->setChecked(gSet->m_settings->pixivIndexSortReverse);
 
     ui->editBingKey->setText(gSet->m_settings->bingKey);
     ui->editYandexKey->setText(gSet->m_settings->yandexKey);
@@ -702,17 +688,6 @@ void CSettingsTab::setupSettingsObservers()
         }
         gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
-
-    connect(ui->comboPixivIndexSortOrder,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
-        Q_UNUSED(val)
-        if (m_loadingInterlock) return;
-        gSet->m_settings->pixivIndexSortOrder = static_cast<CStructures::PixivIndexSortOrder>(
-                                                    ui->comboPixivIndexSortOrder->currentData().toInt());
-    });
-    connect(ui->checkPixivIndexSortReverse,&QCheckBox::toggled,this,[this](bool val){
-        if (m_loadingInterlock) return;
-        gSet->m_settings->pixivIndexSortReverse = val;
-    });
 }
 
 void CSettingsTab::selectBrowser()
@@ -796,7 +771,7 @@ void CSettingsTab::showLoadedDicts()
     const QStringList loadedDicts = gSet->d_func()->dictManager->getLoadedDictionaries();
     if (!loadedDicts.isEmpty())
         msg = tr("Loaded %1 dictionaries:\n").arg(loadedDicts.count())+loadedDicts.join('\n');
-    QMessageBox::information(this,tr("JPReader"),msg);
+    QMessageBox::information(this,QGuiApplication::applicationDisplayName(),msg);
 }
 
 
@@ -912,7 +887,8 @@ void CSettingsTab::exportCookies()
 {
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (r.isEmpty()) {
-        QMessageBox::information(this,tr("JPReader"),tr("Please select cookies for export."));
+        QMessageBox::information(this,QGuiApplication::applicationDisplayName(),
+                                 tr("Please select cookies for export."));
         return;
     }
 
@@ -922,8 +898,10 @@ void CSettingsTab::exportCookies()
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    if (!gSet->exportCookies(fname,QUrl(),r))
-        QMessageBox::critical(this,tr("JPReader"),tr("Unable to create file."));
+    if (!gSet->exportCookies(fname,QUrl(),r)) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Unable to create file."));
+    }
 }
 
 
@@ -1041,7 +1019,8 @@ void CSettingsTab::importAd()
 
     QFile f(fname);
     if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Unable to open file"));
         return;
     }
     QTextStream fs(&f);
@@ -1066,13 +1045,15 @@ void CSettingsTab::importAd()
     gSet->d_func()->clearAdblockWhiteList();
 
     psz = gSet->d_func()->adblock.count() - psz;
-    QMessageBox::information(this,tr("JPReader"),tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));
+    QMessageBox::information(this,QGuiApplication::applicationDisplayName(),
+                             tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));
 }
 
 void CSettingsTab::exportAd()
 {
     if (ui->treeAdblock->selectedItems().isEmpty()) {
-        QMessageBox::information(this,tr("JPReader"),tr("Please select patterns for export."));
+        QMessageBox::information(this,QGuiApplication::applicationDisplayName(),
+                                 tr("Please select patterns for export."));
         return;
     }
 
@@ -1091,7 +1072,8 @@ void CSettingsTab::exportAd()
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Unable to create file"));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Unable to create file"));
         return;
     }
     QTextStream fs(&f);
@@ -1239,7 +1221,8 @@ void CSettingsTab::importUserScript()
 
     QFile f(fname);
     if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Unable to open file"));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Unable to open file"));
         return;
     }
     QTextStream fs(&f);

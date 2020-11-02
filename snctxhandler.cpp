@@ -88,7 +88,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                          tr("Open in new background tab and translate"));
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
             auto *sn = new CSnippetViewer(snv->parentWnd(),linkUrl,QStringList(),false);
-            sn->m_requestAutotranslate = true;
+            sn->setRequestAutotranslate(true);
         });
 
         m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
@@ -104,7 +104,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
         title.clear();
     }
 
-    auto extractorsList = CAbstractExtractor::addMenuActions(pageUrl,origin,title,&m_menu,snv);
+    auto extractorsList = CAbstractExtractor::addMenuActions(pageUrl,origin,title,&m_menu,snv,false);
     for (auto *eac : extractorsList) {
         const auto params = eac->data().toHash();
         if (params.contains(QSL("html"))) {
@@ -145,7 +145,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
             s = s.replace('\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             auto *sn = new CSnippetViewer(snv->parentWnd(),QUrl(),QStringList(),true,s);
-            sn->m_requestAutotranslate = true;
+            sn->setRequestAutotranslate(true);
         });
 
         m_menu.addSeparator();
@@ -233,7 +233,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
                              tr("Open in new background tab and translate"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
                 auto *sn = new CSnippetViewer(snv->parentWnd(),selectedUrl,QStringList(),false);
-                sn->m_requestAutotranslate = true;
+                sn->setRequestAutotranslate(true);
             });
         }
 
@@ -381,16 +381,20 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
     ac->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
     connect(ac, &QAction::triggered,this,[this](){
         if (!QProcess::startDetached(gSet->settings()->sysBrowser,
-                                     QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
-            QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start browser."));
+                                     QStringList() << QString::fromUtf8(snv->getUrl().toEncoded()))) {
+            QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to start browser."));
+        }
     });
 
     ac = ccm->addAction(QIcon::fromTheme(QSL("system-run")),
                      tr("Open with associated application"));
     connect(ac, &QAction::triggered,this,[this](){
         if (!QProcess::startDetached(QSL("xdg-open"),
-                                     QStringList() << QString::fromUtf8(snv->getUrl().toEncoded())))
-            QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start associated application."));
+                                     QStringList() << QString::fromUtf8(snv->getUrl().toEncoded()))) {
+            QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to start associated application."));
+        }
     });
 
     ccm->addSeparator();
@@ -567,8 +571,10 @@ void CSnCtxHandler::showInEditor()
         tfile.close();
         gSet->appendCreatedFiles(fname);
 
-        if (!QProcess::startDetached(gSet->settings()->sysEditor, QStringList() << fname))
-            QMessageBox::critical(snv, tr("JPReader"), tr("Unable to start editor."));
+        if (!QProcess::startDetached(gSet->settings()->sysEditor, QStringList() << fname)) {
+            QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to start editor."));
+        }
     });
 }
 
@@ -591,8 +597,10 @@ void CSnCtxHandler::exportCookies()
     if (fname.isEmpty() || fname.isNull()) return;
     gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    if (!gSet->exportCookies(fname,origin))
-        QMessageBox::critical(snv,tr("JPReader"),tr("Unable to create file."));
+    if (!gSet->exportCookies(fname,origin)) {
+        QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
+                              tr("Unable to create file."));
+    }
 }
 
 void CSnCtxHandler::runJavaScript()

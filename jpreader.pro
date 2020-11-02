@@ -1,6 +1,7 @@
 HEADERS = mainwindow.h \
     cliworker.h \
     extractors/deviantartextractor.h \
+    pixivindextab.h \
     translators/abstracttranslator.h \
     translators/alicloudtranslator.h \
     translators/awstranslator.h \
@@ -66,6 +67,7 @@ HEADERS = mainwindow.h \
 SOURCES = main.cpp \
     cliworker.cpp \
     extractors/deviantartextractor.cpp \
+    pixivindextab.cpp \
     translators/alicloudtranslator.cpp \
     translators/awstranslator.cpp \
     translators/atlastranslator.cpp \
@@ -134,6 +136,7 @@ RESOURCES = \
 FORMS = main.ui \
     authdlg.ui \
     downloadlistdlg.ui \
+    pixivindextab.ui \
     settingstab.ui \
     snviewer.ui \
     searchtab.ui \

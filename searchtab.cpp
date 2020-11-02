@@ -59,7 +59,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(ui->buttonDir, &QPushButton::clicked, this, &CSearchTab::selectDir);
     connect(ui->listResults->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &CSearchTab::applySnippet);
-    connect(ui->listResults, &QTableView::doubleClicked, this, &CSearchTab::execSnippet);
+    connect(ui->listResults, &QTableView::activated, this, &CSearchTab::execSnippet);
     connect(ui->editSearch->lineEdit(), &QLineEdit::returnPressed, ui->buttonSearch, &QPushButton::click);
 
     connect(engine.data(), &CIndexerSearch::searchFinished,
@@ -98,7 +98,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     }
 
     if (!engine->isValidConfig()) {
-        QMessageBox::warning(parentWnd(),tr("JPReader"),
+        QMessageBox::warning(parentWnd(),QGuiApplication::applicationDisplayName(),
                              tr("Configuration error. \n"
                                 "You have enabled some search engine in settings, \n"
                                 "but jpreader compiled without support for this engine.\n"
@@ -157,7 +157,8 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
     ui->snippetBrowser->setToolTip(QString());
 
     if (model->rowCount() == 0) {
-        QMessageBox::information(window(), tr("JPReader"), tr("Nothing found"));
+        QMessageBox::information(window(), QGuiApplication::applicationDisplayName(),
+                                 tr("Nothing found"));
         parentWnd()->setSearchStatus(tr("Ready"));
         return;
     }
@@ -197,7 +198,8 @@ void CSearchTab::translateTitles()
 void CSearchTab::gotTitleTranslation(const QStringList &res)
 {
     if (!res.isEmpty() && res.last().contains(QSL("ERROR"))) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Title translation failed."));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Title translation failed."));
         return;
     }
 
@@ -315,7 +317,8 @@ void CSearchTab::applySnippet(const QItemSelection &selected, const QItemSelecti
 void CSearchTab::doSearch()
 {
     if (engine->isWorking()) {
-        QMessageBox::information(window(),tr("JPReader"),tr("Indexed search engine busy. Try later."));
+        QMessageBox::information(window(),QGuiApplication::applicationDisplayName(),
+                                 tr("Indexed search engine busy. Try later."));
         return;
     }
 
@@ -343,7 +346,8 @@ void CSearchTab::doSearch()
 void CSearchTab::searchTerm(const QString &term, bool startSearch)
 {
     if (engine->isWorking()) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Indexed search engine busy, try later."));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Indexed search engine busy, try later."));
         return;
     }
     ui->editSearch->setEditText(term);
@@ -355,7 +359,8 @@ void CSearchTab::searchTerm(const QString &term, bool startSearch)
 void CSearchTab::doNewSearch()
 {
     if (engine->isWorking()) {
-        QMessageBox::information(window(),tr("JPReader"),tr("Indexed search engine busy. Try later."));
+        QMessageBox::information(window(),QGuiApplication::applicationDisplayName(),
+                                 tr("Indexed search engine busy. Try later."));
         return;
     }
 
@@ -420,7 +425,8 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     if (gSet->ui()->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (!tran || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
-            QMessageBox::warning(this,tr("JPReader"),tr("Unable to initialize translation engine."));
+            QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                                 tr("Unable to initialize translation engine."));
         } else {
             if (!auxText.isEmpty()) {
                 s = tran->tranString(auxText);
@@ -620,12 +626,4 @@ void CSearchTab::execSnippet(const QModelIndex &index)
 {
     applySnippetIdx(index);
     showSnippet();
-}
-
-void CSearchTab::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key()==Qt::Key_Return && model->rowCount()>0) {
-        execSnippet(ui->listResults->currentIndex());
-    } else
-        QWidget::keyPressEvent(event);
 }

@@ -389,7 +389,7 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
     if (d->atlCertErrorInteractive) return;
 
     QMessageBox mbox;
-    mbox.setWindowTitle(tr("JPReader"));
+    mbox.setWindowTitle(QGuiApplication::applicationDisplayName());
     mbox.setText(tr("SSL error(s) occured while connecting to ATLAS service.\n"
                     "Add this certificate to trusted list?"));
     QString imsg;

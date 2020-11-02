@@ -24,9 +24,9 @@ CheckOptions:
   - key:             hicpp-braces-around-statements.ShortStatementLines
     value:           '2'
   - key:             readability-magic-numbers.IgnoredIntegerValues
-    value:           '0;1;2;3;4;100'
+    value:           '0;1;2;3;4;5;6;100'
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues
-    value:           '0;1;2;3;4;100'
+    value:           '0;1;2;3;4;5;6;100'
   - key:             hicpp-function-size.StatementThreshold
     value:           '2000'
   - key:             readability-function-size.StatementThreshold

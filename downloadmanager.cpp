@@ -390,7 +390,6 @@ QVariant CDownloadsModel::headerData(int section, Qt::Orientation orientation, i
         }
     }
     return QVariant();
-
 }
 
 int CDownloadsModel::rowCount(const QModelIndex &parent) const
@@ -544,7 +543,7 @@ void CDownloadsModel::abortDownload()
     if (row<0 || row>=m_downloads.count()) return;
 
     if (!abortDownloadPriv(row)) {
-        QMessageBox::warning(m_manager,tr("JPReader"),
+        QMessageBox::warning(m_manager,QGuiApplication::applicationDisplayName(),
                              tr("Unable to stop this download. Incorrect state."));
     }
 }
@@ -654,8 +653,10 @@ void CDownloadsModel::openDirectory()
         fname = m_downloads.at(row).getFileName();
     QFileInfo fi(fname);
 
-    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << fi.path()))
-        QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to start browser."));
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << fi.path())) {
+        QMessageBox::critical(m_manager, QGuiApplication::applicationDisplayName(),
+                              tr("Unable to start browser."));
+    }
 }
 
 void CDownloadsModel::openHere()
@@ -696,8 +697,10 @@ void CDownloadsModel::openXdg()
     if (row<0 || row>=m_downloads.count()) return;
     if (!m_downloads.at(row).getZipName().isEmpty()) return;
 
-    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << m_downloads.at(row).getFileName()))
-        QMessageBox::critical(m_manager, tr("JPReader"), tr("Unable to open application."));
+    if (!QProcess::startDetached(QSL("xdg-open"), QStringList() << m_downloads.at(row).getFileName())) {
+        QMessageBox::critical(m_manager, QGuiApplication::applicationDisplayName(),
+                              tr("Unable to open application."));
+    }
 }
 
 void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)

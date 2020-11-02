@@ -7,23 +7,24 @@
 #include <QJsonDocument>
 #include <QByteArray>
 #include <QRegularExpression>
-#include "../snviewer.h"
+#include <QAction>
 #include "../structures.h"
 
 class CAbstractExtractor : public QObject
 {
     Q_OBJECT
 private:
-    CSnippetViewer* m_snv { nullptr };
+    QWidget* m_parentWidget { nullptr };
 
 public:
-    CAbstractExtractor(QObject *parent, CSnippetViewer *snv);
+    CAbstractExtractor(QObject *parent, QWidget *parentWidget);
 
-    CSnippetViewer *snv() const;
+    QWidget *parentWidget() const;
 
     static QList<QAction *> addMenuActions(const QUrl& pageUrl, const QUrl &origin,
-                                           const QString &title, QMenu *menu, CSnippetViewer *snv);
-    static CAbstractExtractor* extractorFactory(const QVariant &data, CSnippetViewer *snv);
+                                           const QString &title, QMenu *menu, QObject *workersParent,
+                                           bool skipHtmlParserActions);
+    static CAbstractExtractor* extractorFactory(const QVariant &data, QWidget *parentWidget);
 
 protected:
     virtual void startMain() = 0;
@@ -33,7 +34,6 @@ protected:
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate);
     void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin);
-    void listReady(const QString& html);
     void finished();
 
 public Q_SLOTS:

@@ -33,7 +33,7 @@ void CLightTranslator::restoreWindow()
 void CLightTranslator::translate()
 {
     if (isTranslating) {
-        QMessageBox::warning(this,tr("JPReader"),
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                              tr("Translation engine is busy now. Please try later."));
         return;
     }
@@ -42,7 +42,7 @@ void CLightTranslator::translate()
 
     CLangPair lp = CLangPair(ui->comboLanguage->currentData().toString());
     if (!lp.isValid()) {
-        QMessageBox::warning(this,tr("JPReader"),
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                              tr("Unable to initialize translation engine. Unacceptable language pair."));
         return;
     }
@@ -70,7 +70,7 @@ void CLightTranslator::gotTranslation(const QString &text)
     ui->barTranslating->hide();
     activateWindow();
     if (text.startsWith(QSL("ERROR"))) {
-        QMessageBox::warning(this,tr("JPReader"),
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                              tr("Error occured during translation. Try again."));
         ui->textResult->clear();
         return;

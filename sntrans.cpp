@@ -68,7 +68,8 @@ void CSnTrans::reparseDocumentPriv(const QString& data)
     QScopedPointer<CTranslator> ct(new CTranslator(nullptr,data));
     QString res;
     if (!ct->documentReparse(data,res)) {
-        QMessageBox::critical(snv,tr("JPReader"),tr("Parsing failed."));
+        QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
+                              tr("Parsing failed."));
         return;
     }
 
@@ -95,7 +96,7 @@ void CSnTrans::getImgUrlsAndParse()
         QScopedPointer<CTranslator> ct(new CTranslator(nullptr,result));
         QString res;
         if (!ct->documentReparse(result,res)) {
-            QMessageBox::critical(snv,tr("JPReader"),
+            QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
                                   tr("Parsing failed. Unable to get image urls."));
             return;
         }
@@ -175,13 +176,16 @@ void CSnTrans::translationFinished(bool success, bool aborted, const QString& re
         snv->parentWnd()->updateTabs();
     } else {
         if (resultHtml.startsWith(QSL("ERROR:"))) {
-            QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(resultHtml));
+            QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
+                                 tr("Translator error.\n\n%1").arg(resultHtml));
 
         } else if (!error.isEmpty()) {
-            QMessageBox::warning(snv,tr("JPReader"),tr("Translator error.\n\n%1").arg(error));
+            QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
+                                 tr("Translator error.\n\n%1").arg(error));
 
         } else {
-            QMessageBox::warning(snv,tr("JPReader"),tr("Translation failed. Network error occured."));
+            QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
+                                 tr("Translation failed. Network error occured."));
         }
     }
 }
@@ -190,7 +194,8 @@ void CSnTrans::postTranslate()
 {
     if (snv->m_translatedHtml.isEmpty()) return;
     if (snv->m_translatedHtml.contains(QSL("ERROR:ATLAS_SLIPPED"))) {
-        QMessageBox::warning(snv,tr("JPReader"),tr("ATLAS slipped. Please restart translation."));
+        QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
+                             tr("ATLAS slipped. Please restart translation."));
         return;
     }
 

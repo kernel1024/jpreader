@@ -27,6 +27,7 @@
 #include "downloadmanager.h"
 #include "settingstab.h"
 #include "translatorstatisticstab.h"
+#include "pixivindextab.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -263,6 +264,13 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
     auto *ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->widget(idx));
     if (ts) {
         auto *t = new QLabel(tr("Translator statistics tab - %1").arg(ts->getTimeRangeString()));
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
+        return;
+    }
+
+    auto *pt = qobject_cast<CPixivIndexTab *>(tabMain->widget(idx));
+    if (pt) {
+        auto *t = new QLabel(pt->title());
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
         return;
     }
@@ -505,6 +513,11 @@ void CMainWindow::updateHelperList()
                 if (ts) {
                     it->setText(tr("Translator statistics tab"));
                 }
+
+                auto *pt = qobject_cast<CPixivIndexTab*>(tabMain->widget(i));
+                if (pt) {
+                    it->setText(pt->title());
+                }
                 helperList->addItem(it);
             }
             break;
@@ -596,7 +609,7 @@ void CMainWindow::updateRecentList()
 
 void CMainWindow::updateTitle()
 {
-    QString t = tr("JPReader");
+    QString t = QGuiApplication::applicationDisplayName();
     if (tabMain->currentWidget()) {
         auto *sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
         if (sv!=nullptr && !sv->tabTitle().isEmpty()) {
@@ -618,6 +631,10 @@ void CMainWindow::updateTitle()
         auto *ts = qobject_cast<CTranslatorStatisticsTab*>(tabMain->currentWidget());
         if (ts)
             t = tr("Translator statistics - %1").arg(t);
+
+        auto *pt = qobject_cast<CPixivIndexTab*>(tabMain->currentWidget());
+        if (pt)
+            t = tr("%1 - %2").arg(pt->title(),t);
     }
     setWindowTitle(t);
 }
@@ -682,13 +699,14 @@ void CMainWindow::openAuxFileInDir()
     QWidget* t = tabMain->currentWidget();
     auto *sv = qobject_cast<CSnippetViewer *>(t);
     if (sv==nullptr) {
-        QMessageBox::warning(this,tr("JPReader"),
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                              tr("Active document viewer tab not found."));
         return;
     }
     QString auxDir = sv->getUrl().toLocalFile();
     if (auxDir.isEmpty()) {
-        QMessageBox::warning(this,tr("JPReader"),tr("Remote document opened. Cannot define local directory."));
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Remote document opened. Cannot define local directory."));
         return;
     }
     auxDir = QFileInfo(auxDir).absolutePath();
@@ -708,7 +726,8 @@ void CMainWindow::createFromClipboard()
 {
     QString tx = CGenericFuncs::getClipboardContent();
     if (tx.isEmpty()) {
-        QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                 tr("Clipboard is empty or contains incompatible data."));
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard"),tx);
@@ -720,7 +739,8 @@ void CMainWindow::createFromClipboardPlain()
 {
     QString tx = CGenericFuncs::getClipboardContent(true,true);
     if (tx.isEmpty()) {
-        QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                 tr("Clipboard is empty or contains incompatible data."));
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard plain"),tx);
@@ -739,7 +759,8 @@ void CMainWindow::openFromClipboard()
     url.setFragment(QString());
     QString uri = url.toString().remove(QRegularExpression(QSL("#.*$")));
     if (uri.isEmpty()) {
-        QMessageBox::information(this, tr("JPReader"),tr("Clipboard is empty or contains incompatible data."));
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                 tr("Clipboard is empty or contains incompatible data."));
         return;
     }
     auto *sv = new CSnippetViewer(this, uri);
@@ -795,7 +816,7 @@ void CMainWindow::openBookmark()
     if (a->data().canConvert<QUrl>()) {
         QUrl u = a->data().toUrl();
         if (!u.isValid()) {
-            QMessageBox::warning(this,tr("JPReader"),
+            QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                                  tr("Unable to open inconsistently loaded bookmark."));
             return;
         }
@@ -1045,5 +1066,5 @@ void CMainWindow::helpAbout()
                        poppler,
                        srchilite);
 
-    QMessageBox::about(this, tr("JPReader"),msg);
+    QMessageBox::about(this, QGuiApplication::applicationDisplayName(), msg);
 }

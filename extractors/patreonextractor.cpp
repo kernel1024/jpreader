@@ -9,8 +9,8 @@
 #include "../genericfuncs.h"
 #include "../mainwindow.h"
 
-CPatreonExtractor::CPatreonExtractor(QObject *parent, CSnippetViewer *snv)
-    : CAbstractExtractor(parent,snv)
+CPatreonExtractor::CPatreonExtractor(QObject *parent, QWidget *parentWidget)
+    : CAbstractExtractor(parent,parentWidget)
 {
 }
 

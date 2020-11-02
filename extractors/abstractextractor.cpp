@@ -8,19 +8,20 @@
 #include "pixivnovelextractor.h"
 #include "deviantartextractor.h"
 
-CAbstractExtractor::CAbstractExtractor(QObject *parent, CSnippetViewer* snv)
+CAbstractExtractor::CAbstractExtractor(QObject *parent, QWidget* parentWidget)
     : QObject(parent)
 {
-    m_snv = snv;
+    m_parentWidget = parentWidget;
 }
 
-CSnippetViewer *CAbstractExtractor::snv() const
+QWidget *CAbstractExtractor::parentWidget() const
 {
-    return m_snv;
+    return m_parentWidget;
 }
 
 QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const QUrl &origin,
-                                                    const QString &title, QMenu *menu, CSnippetViewer *snv)
+                                                    const QString &title, QMenu *menu,
+                                                    QObject *workersParent, bool skipHtmlParserActions)
 {
     QList<QAction *> res;
     QAction *ac = nullptr;
@@ -35,13 +36,13 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     pixivUrl.setFragment(QString());
 
     QString pixivId;
-    QRegularExpression rxPixivId(QSL("pixiv.net/.*/users/(?<userID>\\d+)"));
+    QRegularExpression rxPixivId(QSL("pixiv.net/(.*/)?users/(?<userID>\\d+)"));
     auto mchPixivId = rxPixivId.match(pixivUrl.toString());
     if (mchPixivId.hasMatch())
         pixivId = mchPixivId.captured(QSL("userID"));
 
     QString pixivTag;
-    QRegularExpression rxPixivTag(QSL("pixiv.net/.*/tags/(?<tag>\\S+)/novels"));
+    QRegularExpression rxPixivTag(QSL("pixiv.net/(.*/)?tags/(?<tag>\\S+)/novels"));
     auto mchPixivTag = rxPixivTag.match(pixivUrl.toString());
     if (mchPixivTag.hasMatch())
         pixivTag = mchPixivTag.captured(QSL("tag"));
@@ -230,7 +231,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     if (!patreonUrl.host().contains(QSL("patreon.com")))
         patreonUrl.clear();
     patreonUrl.setFragment(QString());
-    if (patreonUrl.isValid()) {
+    if (patreonUrl.isValid() && !skipHtmlParserActions) {
         if (!res.isEmpty()) {
             ac = new QAction();
             ac->setSeparator(true);
@@ -303,7 +304,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         QUrl pixivIconUrl(QSL("http://www.pixiv.net/favicon.ico"));
         if (pixivUrl.isValid())
             pixivIconUrl.setScheme(pixivUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,pixivIconUrl);
+        auto *fl = new CFaviconLoader(workersParent,pixivIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [pixivActions](const QIcon& icon){
             for (auto * const ac : qAsConst(pixivActions)) {
@@ -316,7 +317,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         QUrl fanboxIconUrl(QSL("https://www.fanbox.cc/favicon.ico"));
         if (fanboxUrl.isValid())
             fanboxIconUrl.setScheme(fanboxUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,fanboxIconUrl);
+        auto *fl = new CFaviconLoader(workersParent,fanboxIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [fanboxActions](const QIcon& icon){
             for (auto * const ac : qAsConst(fanboxActions)) {
@@ -329,7 +330,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         QUrl patreonIconUrl(QSL("https://c5.patreon.com/external/favicon/favicon.ico"));
         if (patreonUrl.isValid())
             patreonIconUrl.setScheme(patreonUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,patreonIconUrl);
+        auto *fl = new CFaviconLoader(workersParent,patreonIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [patreonActions](const QIcon& icon){
             for (auto * const ac : qAsConst(patreonActions)) {
@@ -342,7 +343,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         QUrl deviantartIconUrl(QSL("https://st.deviantart.net/eclipse/icons/da_favicon_v2.ico"));
         if (deviantartUrl.isValid())
             deviantartIconUrl.setScheme(deviantartUrl.scheme());
-        auto *fl = new CFaviconLoader(snv,deviantartIconUrl);
+        auto *fl = new CFaviconLoader(workersParent,deviantartIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [deviantartActions](const QIcon& icon){
             for (auto * const ac : qAsConst(deviantartActions)) {
@@ -361,7 +362,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     return res;
 }
 
-CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, CSnippetViewer* snv)
+CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, QWidget* parentWidget)
 {
     CAbstractExtractor *res = nullptr;
 
@@ -369,7 +370,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
     const QString type = hash.value(QSL("type")).toString();
 
     if (type == QSL("pixiv")) {
-        res = new CPixivNovelExtractor(nullptr,snv);
+        res = new CPixivNovelExtractor(nullptr,parentWidget);
         (qobject_cast<CPixivNovelExtractor *>(res))->setParams(
                     hash.value(QSL("url")).toUrl(),
                     hash.value(QSL("title")).toString(),
@@ -387,14 +388,14 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
         } else {
             return res;
         }
-        res = new CPixivIndexExtractor(nullptr,snv);
+        res = new CPixivIndexExtractor(nullptr,parentWidget);
         (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toString(),
                     hash.value(QSL("query")).toString(),
                     mode);
 
     } else if (type == QSL("fanbox")) {
-        res = new CFanboxExtractor(nullptr,snv);
+        res = new CFanboxExtractor(nullptr,parentWidget);
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
                     hash.value(QSL("translate")).toBool(),
@@ -402,12 +403,12 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
                     false);
 
     } else if (type == QSL("pixivManga")) {
-        res = new CPixivNovelExtractor(nullptr,snv);
+        res = new CPixivNovelExtractor(nullptr,parentWidget);
         (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
                     hash.value(QSL("url")).toUrl());
 
     } else if (type == QSL("fanboxManga")) {
-        res = new CFanboxExtractor(nullptr,snv);
+        res = new CFanboxExtractor(nullptr,parentWidget);
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
                     false,
@@ -415,21 +416,21 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, C
                     true);
 
     } else if (type == QSL("patreonManga")) {
-        res = new CPatreonExtractor(nullptr,snv);
+        res = new CPatreonExtractor(nullptr,parentWidget);
         (qobject_cast<CPatreonExtractor *>(res))->setParams(
                     hash.value(QSL("html")).toString(),
                     hash.value(QSL("url")).toUrl(),
                     false);
 
     } else if (type == QSL("patreonAttachments")) {
-        res = new CPatreonExtractor(nullptr,snv);
+        res = new CPatreonExtractor(nullptr,parentWidget);
         (qobject_cast<CPatreonExtractor *>(res))->setParams(
                     hash.value(QSL("html")).toString(),
                     hash.value(QSL("url")).toUrl(),
                     true);
 
     } else if (type == QSL("deviantartGallery")) {
-        res = new CDeviantartExtractor(nullptr,snv);
+        res = new CDeviantartExtractor(nullptr,parentWidget);
         (qobject_cast<CDeviantartExtractor *>(res))->setParams(
                     hash.value(QSL("userID")).toString(),
                     hash.value(QSL("folderID")).toString(),
@@ -447,12 +448,12 @@ void CAbstractExtractor::showError(const QString &message)
 
     QWidget *w = nullptr;
     QObject *ctx = QApplication::instance();
-    if (m_snv) {
-        w = m_snv->parentWnd();
-        ctx = m_snv;
+    if (m_parentWidget) {
+        w = m_parentWidget->window();
+        ctx = m_parentWidget;
     }
     QMetaObject::invokeMethod(ctx,[message,w,err](){
-        QMessageBox::warning(w,tr("JPReader"),err);
+        QMessageBox::warning(w,QGuiApplication::applicationDisplayName(),err);
     },Qt::QueuedConnection);
 
     Q_EMIT finished();

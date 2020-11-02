@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QWebEngineScript>
 #include <QNetworkReply>
+#include <QTimer>
 #include "extractors/pixivindexextractor.h"
 #include "extractors/patreonextractor.h"
 
@@ -47,7 +48,6 @@ public Q_SLOTS:
     void processExtractorAction();
     void processExtractorActionIndirect(const QVariantHash &params);
     void novelReady(const QString& html, bool focus, bool translate);
-    void listReady(const QString& html);
     void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin);
 
     void pdfConverted(const QString& html);

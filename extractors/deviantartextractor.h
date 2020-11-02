@@ -17,7 +17,7 @@ private:
     void finalizeGallery();
 
 public:
-    CDeviantartExtractor(QObject *parent, CSnippetViewer *snv);
+    CDeviantartExtractor(QObject *parent, QWidget *parentWidget);
 
     void setParams(const QString& userID, const QString& folderID, const QString& folderName);
 
