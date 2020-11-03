@@ -11,10 +11,13 @@
 
 using namespace htmlcxx;
 
-CTranslator::CTranslator(QObject* parent, const QString& sourceHtml)
-    : QObject(parent)
+CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
+                         const QString &title, const QUrl &origin)
+    : QObject(parent),
+      m_sourceHtml(sourceHtml),
+      m_title(title),
+      m_origin(origin)
 {
-    m_sourceHtml=sourceHtml;
     m_translationEngine=gSet->settings()->translatorEngine;
     m_engineName=CStructures::translationEngines().value(m_translationEngine);
     m_retryCount=gSet->settings()->translatorRetryCount;
@@ -596,7 +599,8 @@ void CTranslator::translate()
     if (gSet->settings()->translatorCacheEnabled &&
             !isAborted()) {
         gSet->translatorCache()->saveTranslatorResult(m_sourceHtml,translatedHtml,lp,
-                                                      m_translationEngine,m_translateSubSentences);
+                                                      m_translationEngine,m_translateSubSentences,
+                                                      m_title,m_origin);
     }
 
     Q_EMIT translationFinished(true,isAborted(),translatedHtml,QString());

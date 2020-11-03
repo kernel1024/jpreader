@@ -182,6 +182,7 @@
     <addaction name="actionDetachTab"/>
     <addaction name="actionChromiumURLs"/>
     <addaction name="actionTranslatorStatistics"/>
+    <addaction name="actionTranslatorCache"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -460,6 +461,14 @@
    </property>
    <property name="text">
     <string>Translator statistics</string>
+   </property>
+  </action>
+  <action name="actionTranslatorCache">
+   <property name="icon">
+    <iconset theme="server-database"/>
+   </property>
+   <property name="text">
+    <string>Translator cache</string>
    </property>
   </action>
  </widget>

@@ -78,6 +78,7 @@ public:
     bool isTranslationBkgdFinished() const { return m_translationBkgdFinished; }
     bool isLoadingBkgdFinished() const { return m_loadingBkgdFinished; }
     void setRequestAutotranslate(bool requestAutotranslate);
+    void setTranslationRestriction();
 
 public Q_SLOTS:
     void navByUrlDefault();

@@ -27,7 +27,7 @@ public:
     explicit CSnTrans(CSnippetViewer * parent);
 
 public Q_SLOTS:
-    void translatePriv(const QString& sourceHtml);
+    void translatePriv(const QString& sourceHtml, const QString &title, const QUrl &origin);
     void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void postTranslate();
     void selectionChanged();

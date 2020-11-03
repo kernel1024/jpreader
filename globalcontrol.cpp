@@ -1331,6 +1331,12 @@ void CGlobalControl::clearCaches()
     d->translatorCache->clearCache();
 }
 
+void CGlobalControl::clearTranslatorCache()
+{
+    Q_D(CGlobalControl);
+    d->translatorCache->clearCache();
+}
+
 void CGlobalControl::forceCharset()
 {
     const int maxCharsetHistory = 10;

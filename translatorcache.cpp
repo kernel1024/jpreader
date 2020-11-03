@@ -1,10 +1,13 @@
 #include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QDir>
 #include <algorithm>
 #include <execution>
 #include "translatorcache.h"
 #include "genericfuncs.h"
 #include "globalcontrol.h"
+#include "translatorcachedialog.h"
 
 CTranslatorCache::CTranslatorCache(QObject *parent) : QObject(parent)
 {
@@ -38,10 +41,25 @@ QString CTranslatorCache::cachedTranslatorResult(const QString &source,
     return result;
 }
 
+QString CTranslatorCache::cachedTranslatorResult(const QString &md5) const
+{
+    if (!m_cachePath.exists()) return QString();
+
+    QFile f(m_cachePath.filePath(md5));
+    if (!f.open(QIODevice::ReadOnly)) return QString();
+
+    QString result = QString::fromUtf8(f.readAll());
+    f.close();
+
+    return result;
+}
+
 void CTranslatorCache::saveTranslatorResult(const QString &source, const QString &result,
                                             const CLangPair &languagePair,
                                             CStructures::TranslationEngine engine,
-                                            bool translateSubSentences)
+                                            bool translateSubSentences,
+                                            const QString &title,
+                                            const QUrl &origin)
 {
     if (!m_cachePath.exists()) return;
 
@@ -49,11 +67,29 @@ void CTranslatorCache::saveTranslatorResult(const QString &source, const QString
 
     QFile f(m_cachePath.filePath(filename));
     if (!f.open(QIODevice::WriteOnly)) return;
-
     f.write(result.toUtf8());
     f.close();
 
+    QJsonObject root;
+    root.insert(QSL("title"),title);
+    root.insert(QSL("engine"),CStructures::translationEngines().value(engine));
+    root.insert(QSL("langpair"),languagePair.toString());
+    root.insert(QSL("length"),source.length());
+    if (!(origin.toString().startsWith(QSL("data:"),Qt::CaseInsensitive)))
+        root.insert(QSL("origin"),origin.toString());
+    QJsonDocument doc(root);
+
+    QFile info(m_cachePath.filePath(QSL("%1.info").arg(filename)));
+    if (!info.open(QIODevice::WriteOnly)) return;
+    info.write(doc.toJson());
+    info.close();
+
     cleanOldEntries();
+}
+
+QDir CTranslatorCache::getCachePath() const
+{
+    return m_cachePath;
 }
 
 QString CTranslatorCache::getMD5(const QString &content) const
@@ -102,4 +138,10 @@ void CTranslatorCache::clearCache()
         QFile f(item.absoluteFilePath());
         f.remove();
     });
+}
+
+void CTranslatorCache::showDialog()
+{
+    CTranslatorCacheDialog dlg(gSet->activeWindow());
+    dlg.exec();
 }

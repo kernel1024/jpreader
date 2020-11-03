@@ -84,8 +84,9 @@ void CSnTrans::translateDocument()
     if (m_savedBaseUrl.hasFragment())
         m_savedBaseUrl.setFragment(QString());
     applyScripts();
-    snv->txtBrowser->page()->toHtml([this](const QString& html) {
-        translatePriv(html);
+    const QString title = snv->txtBrowser->title();
+    snv->txtBrowser->page()->toHtml([this,title](const QString& html) {
+        translatePriv(html,title,m_savedBaseUrl);
     });
 }
 
@@ -117,12 +118,12 @@ void CSnTrans::getImgUrlsAndParse()
     });
 }
 
-void CSnTrans::translatePriv(const QString &sourceHtml)
+void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, const QUrl &origin)
 {
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
 
-    auto *ct = new CTranslator(nullptr,sourceHtml);
+    auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
     auto *th = new QThread();
 
     snv->waitHandler->setProgressValue(0);

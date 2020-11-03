@@ -6,6 +6,7 @@ Checks:          '-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readabi
 -cppcoreguidelines-owning-memory,
 -modernize-return-braced-init-list,
 -modernize-use-trailing-return-type,
+-modernize-pass-by-value,
 -readability-convert-member-functions-to-static'
 
 CheckOptions:    

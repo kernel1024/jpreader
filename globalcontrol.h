@@ -186,6 +186,7 @@ public Q_SLOTS:
     void updateProxy(bool useProxy);
     void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
     void clearCaches();
+    void clearTranslatorCache();
     void forceCharset();
     void cleanupWorker();
 

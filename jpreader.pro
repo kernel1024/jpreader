@@ -2,6 +2,7 @@ HEADERS = mainwindow.h \
     cliworker.h \
     extractors/deviantartextractor.h \
     pixivindextab.h \
+    translatorcachedialog.h \
     translators/abstracttranslator.h \
     translators/alicloudtranslator.h \
     translators/awstranslator.h \
@@ -68,6 +69,7 @@ SOURCES = main.cpp \
     cliworker.cpp \
     extractors/deviantartextractor.cpp \
     pixivindextab.cpp \
+    translatorcachedialog.cpp \
     translators/alicloudtranslator.cpp \
     translators/awstranslator.cpp \
     translators/atlastranslator.cpp \
@@ -146,6 +148,7 @@ FORMS = main.ui \
     multiinputdialog.ui \
     downloadmanager.ui \
     sourceviewer.ui \
+    translatorcachedialog.ui \
     translatorstatisticstab.ui \
     userscriptdlg.ui \
     bookmarks.ui \

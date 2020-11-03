@@ -27,6 +27,7 @@
 #include "downloadmanager.h"
 #include "settingstab.h"
 #include "translatorstatisticstab.h"
+#include "translatorcache.h"
 #include "pixivindextab.h"
 
 namespace CDefaults {
@@ -107,6 +108,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionFullscreen, &QAction::triggered, this, &CMainWindow::switchFullscreen);
     connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
     connect(actionTranslatorStatistics, &QAction::triggered, gSet, &CGlobalControl::translationStatisticsTab);
+    connect(actionTranslatorCache, &QAction::triggered, gSet->translatorCache(), &CTranslatorCache::showDialog);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);

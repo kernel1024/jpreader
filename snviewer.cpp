@@ -175,6 +175,11 @@ void CSnippetViewer::setRequestAutotranslate(bool requestAutotranslate)
     m_requestAutotranslate = requestAutotranslate;
 }
 
+void CSnippetViewer::setTranslationRestriction()
+{
+    m_onceTranslated = true;
+}
+
 void CSnippetViewer::updateTabColor(bool loadFinished, bool tranFinished)
 {
     int selfIdx = parentWnd()->tabMain->indexOf(this);

@@ -62,6 +62,8 @@ private:
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
     QAtomicInteger<bool> m_abortFlag;
+    QString m_title;
+    QUrl m_origin;
     int m_retryCount { 0 };
     int m_textNodesCnt { 0 };
     int m_textNodesProgress { 0 };
@@ -85,7 +87,9 @@ private:
     void dumpPage(QUuid token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, const QString &sourceHtml);
+    explicit CTranslator(QObject* parent, const QString &sourceHtml,
+                         const QString &title = QString(),
+                         const QUrl &origin = QUrl());
     ~CTranslator() override = default;
     bool isAborted();
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
