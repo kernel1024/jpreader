@@ -20,6 +20,8 @@ private:
     QString m_tranError;
     CLangPair m_lang;
     int m_translatorRetryCount { 10 };
+    qint64 m_requestTotalSize { 0L };
+    qint64 m_requestCount { 0L };
 
     Q_DISABLE_COPY(CAbstractTranslator)
 
@@ -29,6 +31,7 @@ protected:
     CLangPair language() const;
     void setLanguage(const CLangPair& lang);
     bool isAborted();
+    void addLoadedRequest(qint64 size);
 
 public:
     explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);
@@ -48,6 +51,9 @@ public:
 
     static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection,
                                                   const QString &engineName = QString());
+
+Q_SIGNALS:
+    void dataLoaded();
 
 };
 

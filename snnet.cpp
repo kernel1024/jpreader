@@ -289,24 +289,11 @@ void CSnNet::processExtractorAction()
 
 void CSnNet::processExtractorActionIndirect(const QVariantHash &params)
 {
-    auto *ex = CAbstractExtractor::extractorFactory(params,snv);
+    auto *ex = CAbstractExtractor::extractorWorkerFactory(params,snv);
     if (ex == nullptr) return;
-
-    auto *th = new QThread();
 
     connect(ex,&CAbstractExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
     connect(ex,&CAbstractExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
-    connect(ex,&CAbstractExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CAbstractExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
     QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
 }

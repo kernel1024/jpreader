@@ -137,6 +137,7 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
             }
         }
         buf = m_sock.readLine();
+        addLoadedRequest(buf.length());
         sumbuf.append(buf);
         if (buf.endsWith("\r\n")||buf.endsWith("\r")) break;
     }

@@ -122,10 +122,6 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
 {
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
-
-    auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
-    auto *th = new QThread();
-
     snv->waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
@@ -140,6 +136,8 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
     snv->waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
+    auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
+    auto *th = new QThread();
     ct->moveToThread(th);
 
     connect(ct,&CTranslator::translationFinished,

@@ -38,10 +38,13 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     if (parentWidget()==nullptr) return;
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (exitIfAborted()) return;
     if (rpl) {
         if (rpl->error() == QNetworkReply::NoError) {
             QJsonParseError err {};
-            QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+            const QByteArray data = rpl->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+            addLoadedRequest(data.size());
             if (doc.isNull()) {
                 showError(tr("JSON parser error %1 at %2.")
                           .arg(err.error)
@@ -91,6 +94,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     url.setQuery(uq);
 
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
+        if (exitIfAborted()) return;
         QNetworkRequest req(url);
         QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
@@ -104,6 +108,8 @@ void CPixivIndexExtractor::startMain()
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
         m_list.clear();
+        if (exitIfAborted()) return;
+
         QUrl u;
 
         switch (m_indexMode) {
@@ -145,10 +151,13 @@ void CPixivIndexExtractor::profileAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        const QByteArray data = rpl->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+        addLoadedRequest(data.size());
         if (doc.isNull()) {
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
@@ -178,6 +187,7 @@ void CPixivIndexExtractor::bookmarksAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrlQuery uq(rpl->url());
@@ -187,7 +197,9 @@ void CPixivIndexExtractor::bookmarksAjax()
             offset = 0;
 
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        const QByteArray data = rpl->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+        addLoadedRequest(data.size());
         if (doc.isNull()) {
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
@@ -216,6 +228,7 @@ void CPixivIndexExtractor::bookmarksAjax()
             if ((totalWorks>m_list.count()) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,offset]{
+                    if (exitIfAborted()) return;
                     QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
                                           "tag=&offset=%2&limit=%3&rest=show")
                            .arg(m_indexId)
@@ -241,6 +254,7 @@ void CPixivIndexExtractor::searchAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QUrlQuery uq(rpl->url());
@@ -250,7 +264,9 @@ void CPixivIndexExtractor::searchAjax()
             page = 0;
 
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        const QByteArray data = rpl->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+        addLoadedRequest(data.size());
         if (doc.isNull()) {
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
@@ -281,6 +297,7 @@ void CPixivIndexExtractor::searchAjax()
             if ((totalWorks>m_list.count()) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,page]{
+                    if (exitIfAborted()) return;
                     QUrl u(QSL("https://www.pixiv.net/ajax/search/novels/%1")
                            .arg(m_indexId));
                     QUrlQuery uq = m_sourceQuery;
@@ -343,6 +360,7 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
             m_worksImgFetch++;
             processedUrls.append(coverImgUrl);
             QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,origin]{
+                if (exitIfAborted()) return;
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",origin.toString().toUtf8());
                 QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
@@ -357,9 +375,11 @@ void CPixivIndexExtractor::subImageFinished()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull()) return;
+    if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
         QByteArray ba = rpl->readAll();
+        addLoadedRequest(ba.size());
         QImage img;
         if (img.loadFromData(ba)) {
             if (img.width()>img.height()) {

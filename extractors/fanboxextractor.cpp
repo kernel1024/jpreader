@@ -34,6 +34,7 @@ void CFanboxExtractor::startMain()
     m_worksIllustFetch = 0;
 
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
+        if (exitIfAborted()) return;
         QNetworkRequest req(QUrl(QSL("https://api.fanbox.cc/post.info?postId=%1").arg(m_postId)));
         req.setRawHeader("referer","https://www.fanbox.cc/");
         req.setRawHeader("accept","application/json, text/plain, */*");
@@ -51,11 +52,13 @@ void CFanboxExtractor::pageLoadFinished()
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || parentWidget()==nullptr) return;
-
+    if (exitIfAborted()) return;
     if (rpl->error() == QNetworkReply::NoError) {
         QUrl origin = rpl->url();
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        const QByteArray data = rpl->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+        addLoadedRequest(data.size());
         if (doc.isNull()) {
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
@@ -148,6 +151,7 @@ void CFanboxExtractor::pageLoadFinished()
                         m_worksIllustFetch++;
                         processedUrls.append(illustUrl);
                         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,origin]{
+                            if (exitIfAborted()) return;
                             QNetworkRequest req(url);
                             req.setRawHeader("origin","https://www.fanbox.cc");
                             req.setRawHeader("referer",origin.toString().toUtf8());
@@ -159,7 +163,6 @@ void CFanboxExtractor::pageLoadFinished()
                 m_illustMutex.unlock();
 
             } else {
-
                 if (!m_isManga) {
                     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
                                           m_title,m_text,true,
@@ -194,9 +197,10 @@ void CFanboxExtractor::subImageFinished()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull()) return;
-
+    if (exitIfAborted()) return;
     if (rpl->error() == QNetworkReply::NoError) {
         QByteArray ba = rpl->readAll();
+        addLoadedRequest(ba.size());
         QImage img;
         if (img.loadFromData(ba)) {
             if (img.width()>img.height()) {

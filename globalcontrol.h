@@ -13,6 +13,7 @@
 #include "globalui.h"
 #include "genericfuncs.h"
 #include "userscript.h"
+#include "extractors/abstractextractor.h"
 #include "zdict/zdictcontroller.h"
 
 class CLogDisplay;
@@ -91,7 +92,6 @@ public:
     QStringList getLanguageCodes() const;
     QString getLanguageName(const QString &bcp47Name) const;
     void showLightTranslator(const QString& text = QString());
-    void addWorkerToPool(CTranslator* tran);
 
     // Misc
     QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
@@ -127,6 +127,11 @@ public:
     bool isBlockTabCloseActive() const;
     void setFileDialogNewFolderName(const QString& name);
 
+    // Worker control
+    void addWorkerToPool(CTranslator* tran);
+    void addWorkerToPool(CDownloadWriter* writer);
+    void addWorkerToPool(CAbstractExtractor *extractor);
+
     // Owned widgets
     CMainWindow *activeWindow() const;
     BookmarksManager *bookmarksManager() const;
@@ -149,10 +154,9 @@ private:
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);
     void cleanTmpFiles();
-    void stopAndCloseTranslators();
+    void stopAndCloseWorkers();
     void initLanguagesList();
     void stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-    void addWorkerToPool(CDownloadWriter* writer);
 
 Q_SIGNALS:
     void startAuxTranslation();

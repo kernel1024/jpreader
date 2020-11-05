@@ -38,6 +38,7 @@ void CHtmlImagesExtractor::subImageFinished(QNetworkReply* rpl, CHTMLAttributesH
 {
     if (rpl!=nullptr && (rpl->error() == QNetworkReply::NoError)) {
         QByteArray ba = rpl->readAll();
+        addLoadedRequest(ba.size());
 
         QImage img;
 
@@ -95,6 +96,7 @@ void CHtmlImagesExtractor::handleImages()
         for(const auto &it : qAsConst(m_imgUrls)) {
             QUrl url((*it).value(QSL("src")).trimmed());
             QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,it]{
+                if (exitIfAborted()) return;
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
                 req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
@@ -111,6 +113,7 @@ void CHtmlImagesExtractor::handleImages()
 
 void CHtmlImagesExtractor::examineNode(CHTMLNode &node)
 {
+    if (exitIfAborted()) return;
     QApplication::processEvents();
 
     const QStringList &acceptedExt = CGenericFuncs::getSupportedImageExtensions();

@@ -341,7 +341,7 @@ void CPixivIndexTab::processExtractorAction()
     auto *ac = qobject_cast<QAction*>(sender());
     if (!ac) return;
 
-    auto *ex = CAbstractExtractor::extractorFactory(ac->data().toHash(),this);
+    auto *ex = CAbstractExtractor::extractorWorkerFactory(ac->data().toHash(),this);
     if (ex == nullptr) {
         QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
                               tr("Failed to initialize extractor."));
@@ -353,19 +353,6 @@ void CPixivIndexTab::processExtractorAction()
         auto *sv = new CSnippetViewer(gSet->activeWindow(),QUrl(),QStringList(),focus,html);
         sv->setRequestAutotranslate(translate);
     },Qt::QueuedConnection);
-
-    auto *th = new QThread();
-    connect(ex,&CAbstractExtractor::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ex,&CAbstractExtractor::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    connect(th,&QThread::finished,gSet,[](){
-        gSet->app()->restoreOverrideCursor();
-    },Qt::QueuedConnection);
-
-    ex->moveToThread(th);
-    th->start();
-
-    gSet->app()->setOverrideCursor(Qt::BusyCursor);
 
     QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
 }

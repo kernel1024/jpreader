@@ -24,6 +24,7 @@ void CDeviantartExtractor::startMain()
 {
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_list.clear();
+        if (exitIfAborted()) return;
 
         QString folder = QSL("&all_folder=true&mode=newest");
         if (!m_folderID.isEmpty())
@@ -47,10 +48,12 @@ void CDeviantartExtractor::galleryAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull() || parentWidget()==nullptr) return;
-
+    if (exitIfAborted()) return;
     if (rpl->error() == QNetworkReply::NoError) {
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(rpl->readAll(),&err);
+        const QByteArray data = rpl->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+        addLoadedRequest(data.size());
         if (doc.isNull()) {
             showError(tr("JSON parser error %1 at %2.")
                       .arg(err.error)
@@ -73,6 +76,7 @@ void CDeviantartExtractor::galleryAjax()
             if (hasMore && (nextOffset>0) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,nextOffset]{
+                    if (exitIfAborted()) return;
 
                     QString folder = QSL("&all_folder=true&mode=newest");
                     if (!m_folderID.isEmpty())

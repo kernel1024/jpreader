@@ -46,7 +46,7 @@ public:
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
     QScopedPointer<CUITranslator, QScopedPointerDeleteLater> uiTranslator;
     QScopedPointer<CCLIWorker, QScopedPointerDeleteLater> cliWorker;
-    QList<QObject *> translatorPool;
+    QList<QObject *> workerPool;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;

@@ -1,5 +1,7 @@
 #include <QMessageBox>
+#include <QThread>
 #include "abstractextractor.h"
+#include "globalcontrol.h"
 #include "../mainwindow.h"
 
 #include "fanboxextractor.h"
@@ -441,6 +443,35 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
     return res;
 }
 
+CAbstractExtractor *CAbstractExtractor::extractorWorkerFactory(const QVariant &data, QWidget *parentWidget)
+{
+    auto *res = extractorFactory(data,parentWidget);
+
+    if (res) {
+        auto *th = new QThread();
+        res->moveToThread(th);
+        gSet->addWorkerToPool(res);
+        connect(gSet,&CGlobalControl::stopWorkers,
+                res,&CAbstractExtractor::abort,Qt::QueuedConnection);
+        connect(gSet,&CGlobalControl::terminateWorkers,
+                th,&QThread::terminate);
+
+        connect(res,&CAbstractExtractor::finished,gSet,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
+        connect(res,&CAbstractExtractor::finished,th,&QThread::quit);
+        connect(th,&QThread::finished,res,&CAbstractExtractor::deleteLater);
+        connect(th,&QThread::finished,th,&QThread::deleteLater);
+        connect(th,&QThread::finished,gSet,[](){
+            gSet->app()->restoreOverrideCursor();
+        },Qt::QueuedConnection);
+
+        th->start();
+
+        gSet->app()->setOverrideCursor(Qt::BusyCursor); // TODO: move cursor control to workerPool
+    }
+
+    return res;
+}
+
 void CAbstractExtractor::showError(const QString &message)
 {
     const QString err = QSL("%1 error: %2").arg(QString::fromLatin1(metaObject()->className()), message);
@@ -461,7 +492,14 @@ void CAbstractExtractor::showError(const QString &message)
 
 void CAbstractExtractor::start()
 {
+    m_abortFlag.storeRelease(false);
+    m_abortedFinished.storeRelease(false);
     startMain();
+}
+
+void CAbstractExtractor::abort()
+{
+    m_abortFlag.storeRelease(true);
 }
 
 void CAbstractExtractor::loadError(QNetworkReply::NetworkError error)
@@ -514,4 +552,23 @@ QJsonDocument CAbstractExtractor::parseJsonSubDocument(const QByteArray& source,
     }
 
     return doc;
+}
+
+void CAbstractExtractor::addLoadedRequest(qint64 size)
+{
+    m_loadedTotalSize += size;
+    m_loadedRequestCount++;
+
+    Q_EMIT dataLoaded();
+}
+
+bool CAbstractExtractor::exitIfAborted()
+{
+    if (m_abortFlag.loadAcquire()) {
+        if (m_abortedFinished.testAndSetOrdered(false,true)) {
+            Q_EMIT finished();
+        }
+        return true;
+    }
+    return false;
 }
