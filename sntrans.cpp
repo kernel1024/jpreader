@@ -137,30 +137,16 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
     auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
-    auto *th = new QThread();
-    ct->moveToThread(th);
+    gSet->setupThreadedWorker(ct);
 
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);
-
-    gSet->addWorkerToPool(ct);
-    connect(ct,&CTranslator::finished,gSet,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
-    connect(ct,&CTranslator::finished,th,&QThread::quit);
-    connect(th,&QThread::finished,ct,&CTranslator::deleteLater);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-
-    connect(gSet,&CGlobalControl::stopWorkers,
-            ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
-    connect(gSet,&CGlobalControl::terminateWorkers,
-            th,&QThread::terminate);
     connect(snv->abortBtn,&QPushButton::clicked,
-            ct,&CTranslator::abortTranslator,Qt::QueuedConnection);
+            ct,&CTranslator::abort,Qt::QueuedConnection);
     connect(ct,&CTranslator::setProgress,
             snv->waitHandler,&CSnWaitCtl::setProgressValue,Qt::QueuedConnection);
 
-    th->start();
-
-    QMetaObject::invokeMethod(ct,&CTranslator::translate,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ct,&CTranslator::start,Qt::QueuedConnection);
 }
 
 void CSnTrans::translationFinished(bool success, bool aborted, const QString& resultHtml, const QString& error)

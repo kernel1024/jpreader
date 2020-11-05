@@ -289,8 +289,9 @@ void CSnNet::processExtractorAction()
 
 void CSnNet::processExtractorActionIndirect(const QVariantHash &params)
 {
-    auto *ex = CAbstractExtractor::extractorWorkerFactory(params,snv);
+    auto *ex = CAbstractExtractor::extractorFactory(params,snv);
     if (ex == nullptr) return;
+    gSet->setupThreadedWorker(ex);
 
     connect(ex,&CAbstractExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
     connect(ex,&CAbstractExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);

@@ -15,6 +15,7 @@
 #include "globalcontrol.h"
 #include "snwaitctl.h"
 #include "structures.h"
+#include "abstractthreadworker.h"
 
 using CHTMLAttributesHash = QHash<QString,QString>;
 
@@ -43,7 +44,7 @@ Q_DECLARE_METATYPE(CHTMLNode)
 
 class CSnWaitCtl;
 
-class CTranslator : public QObject
+class CTranslator : public CAbstractThreadWorker
 {
     Q_OBJECT
 private:
@@ -61,7 +62,6 @@ private:
     QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
-    QAtomicInteger<bool> m_abortFlag;
     QString m_title;
     QUrl m_origin;
     int m_retryCount { 0 };
@@ -91,21 +91,18 @@ public:
                          const QString &title = QString(),
                          const QUrl &origin = QUrl());
     ~CTranslator() override = default;
-    bool isAborted();
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
+protected:
+    void startMain() override;
+
 Q_SIGNALS:
     void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void setProgress(int value);
-    void finished();
-
-public Q_SLOTS:
-    void abortTranslator();
-    void translate();
 
 };
 

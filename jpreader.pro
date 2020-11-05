@@ -1,4 +1,5 @@
 HEADERS = mainwindow.h \
+    abstractthreadworker.h \
     cliworker.h \
     extractors/deviantartextractor.h \
     pixivindextab.h \
@@ -66,6 +67,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit.h
 
 SOURCES = main.cpp \
+    abstractthreadworker.cpp \
     cliworker.cpp \
     extractors/deviantartextractor.cpp \
     pixivindextab.cpp \

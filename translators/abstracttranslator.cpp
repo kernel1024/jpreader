@@ -25,14 +25,6 @@ bool CAbstractTranslator::isAborted()
     return sequencedTranslator->isAborted();
 }
 
-void CAbstractTranslator::addLoadedRequest(qint64 size)
-{
-    m_requestTotalSize += size;
-    m_requestCount++;
-
-    Q_EMIT dataLoaded();
-}
-
 void CAbstractTranslator::setErrorMsg(const QString &msg)
 {
     m_tranError = msg;

@@ -13,7 +13,7 @@ using namespace htmlcxx;
 
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
                          const QString &title, const QUrl &origin)
-    : QObject(parent),
+    : CAbstractThreadWorker(parent),
       m_sourceHtml(sourceHtml),
       m_title(title),
       m_origin(origin)
@@ -29,14 +29,9 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
     m_translateSubSentences=gSet->ui()->getSubsentencesMode(m_translationEngine);
 }
 
-bool CTranslator::isAborted()
-{
-    return m_abortFlag.loadAcquire();
-}
-
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 {
-    m_abortFlag.storeRelease(false);
+    resetAbortFlag();
 
     if (!m_tran && !m_tranInited) {
         m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
@@ -105,7 +100,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
 
 bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
 {
-    m_abortFlag.storeRelease(false);
+    resetAbortFlag();
 
     destHtml.clear();
     if (sourceHtml.isEmpty()) return false;
@@ -166,8 +161,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 {
     if (m_translatorFailed) return;
 
-    if (isAborted())
-        return;
+    if (isAborted()) return;
 
     QApplication::processEvents();
 
@@ -412,8 +406,10 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                                         if (sc==questionMark || sc==fullwidthQuestionMark) {
                                             tacc += sc;
                                             t += m_tran->tranString(tacc);
+                                            addLoadedRequest(tacc.toUtf8().size());
                                         } else {
                                             t += m_tran->tranString(tacc) + sc;
+                                            addLoadedRequest(tacc.toUtf8().size());
                                         }
                                     }
                                     tacc.clear();
@@ -532,7 +528,7 @@ void CTranslator::dumpPage(QUuid token, const QString &suffix, const QByteArray 
     f.close();
 }
 
-void CTranslator::translate()
+void CTranslator::startMain()
 {
     QString translatedHtml;
     QString lastError;
@@ -605,16 +601,6 @@ void CTranslator::translate()
 
     Q_EMIT translationFinished(true,isAborted(),translatedHtml,QString());
     Q_EMIT finished();
-}
-
-void CTranslator::abortTranslator()
-{
-    // Intermediate timer, because sometimes webengine throws segfault from its insides on widget resize event
-    const int abortTimerDelay = 500;
-
-    QTimer::singleShot(abortTimerDelay,this,[this](){
-        m_abortFlag.storeRelease(true);
-    });
 }
 
 void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)

@@ -14,6 +14,7 @@ namespace CDefaults {
 const int globalStatusTooltipShowDelay = 100;
 const int globalStatusTooltipShowDuration = 3000;
 const int globalTranslatorDelay = 1000;
+const int globalThreadWorkerTestInterval = 5000;
 }
 
 CGlobalUI::CGlobalUI(QObject *parent)
@@ -97,6 +98,12 @@ CGlobalUI::CGlobalUI(QObject *parent)
     gctxTranHotkey.setDisabled();
     connect(&gctxTranHotkey,&QxtGlobalShortcut::activated,
             actionGlobalTranslator,&QAction::toggle);
+
+    threadedWorkerTestTimer.setInterval(CDefaults::globalThreadWorkerTestInterval);
+    threadedWorkerTestTimer.setSingleShot(false);
+    connect(&threadedWorkerTestTimer,&QTimer::timeout,
+            this,&CGlobalUI::updateBusyCursor);
+    threadedWorkerTestTimer.start();
 }
 
 bool CGlobalUI::useOverrideTransFont() const
@@ -307,6 +314,15 @@ void CGlobalUI::actionToggled()
     }
 
     showGlobalTooltip(msg);
+}
+
+void CGlobalUI::updateBusyCursor()
+{
+    if (gSet->isThreadedWorkersActive()) {
+        gSet->app()->setOverrideCursor(Qt::BusyCursor);
+    } else {
+        gSet->app()->restoreOverrideCursor();
+    }
 }
 
 CStructures::TranslationMode CGlobalUI::getTranslationMode() const

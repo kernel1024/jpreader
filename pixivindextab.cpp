@@ -341,12 +341,13 @@ void CPixivIndexTab::processExtractorAction()
     auto *ac = qobject_cast<QAction*>(sender());
     if (!ac) return;
 
-    auto *ex = CAbstractExtractor::extractorWorkerFactory(ac->data().toHash(),this);
+    auto *ex = CAbstractExtractor::extractorFactory(ac->data().toHash(),this);
     if (ex == nullptr) {
         QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
                               tr("Failed to initialize extractor."));
         return;
     }
+    gSet->setupThreadedWorker(ex);
 
     connect(ex,&CAbstractExtractor::novelReady,gSet,[]
             (const QString &html, bool focus, bool translate){

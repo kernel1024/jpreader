@@ -15,7 +15,7 @@
 
 namespace CDefaults {
 const char zipSeparator = 0x00;
-const int writerStatusTimerIntervalMS = 250;
+const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
 }
 
@@ -212,9 +212,7 @@ void CDownloadManager::addReceivedBytes(qint64 size)
 
 void CDownloadManager::updateWriterStatus()
 {
-    auto *writer = gSet->downloadWriter();
-    if (writer)
-        ui->labelWriter->setVisible(writer->getWorkCount()>0);
+    ui->labelWriter->setVisible(CDownloadWriter::getWorkCount()>0);
 }
 
 void CDownloadManager::closeEvent(QCloseEvent *event)
@@ -248,6 +246,7 @@ void CDownloadManager::hideEvent(QHideEvent *event)
 
 void CDownloadsModel::updateProgressLabel()
 {
+    m_manager->updateWriterStatus();
     if (m_downloads.isEmpty()) {
         m_manager->setProgressLabel(QString());
         return;
@@ -291,14 +290,6 @@ CDownloadsModel::CDownloadsModel(CDownloadManager *parent)
 {
     m_manager = parent;
     m_downloads.clear();
-    connect(this,&CDownloadsModel::writeBytesToZip,
-            gSet->downloadWriter(),&CDownloadWriter::writeBytesToZip,Qt::QueuedConnection);
-    connect(this,&CDownloadsModel::writeBytesToFile,
-            gSet->downloadWriter(),&CDownloadWriter::writeBytesToFile,Qt::QueuedConnection);
-    connect(gSet->downloadWriter(),&CDownloadWriter::writeComplete,
-            this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
-    connect(gSet->downloadWriter(),&CDownloadWriter::error,
-            this,&CDownloadsModel::writerError,Qt::QueuedConnection);
     updateProgressLabel();
 }
 
@@ -461,13 +452,9 @@ void CDownloadsModel::downloadFinished()
     if (rpl) {
         if (rpl->error()==QNetworkReply::NoError) {
             QUuid uuid = m_downloads.at(row).auxId;
-            if (!m_downloads.at(row).getZipName().isEmpty()) {
-                Q_EMIT writeBytesToZip(m_downloads.at(row).getZipName(),
-                                       m_downloads.at(row).getFileName(),
-                                       rpl->readAll(),uuid);
-            } else {
-                Q_EMIT writeBytesToFile(m_downloads.at(row).getFileName(),rpl->readAll(),uuid);
-            }
+            makeWriterJob(m_downloads.at(row).getZipName(),
+                          m_downloads.at(row).getFileName(),
+                          rpl->readAll(),uuid);
         } else {
             m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
@@ -489,6 +476,20 @@ void CDownloadsModel::downloadFinished()
 
         deleteDownloadItem(index(row,0));
     }
+}
+
+void CDownloadsModel::makeWriterJob(const QString &zipFileName, const QString &fileName,
+                                    const QByteArray &data, const QUuid &uuid) const
+{
+    auto *writer = new CDownloadWriter(nullptr,zipFileName,fileName,data,uuid);
+    gSet->setupThreadedWorker(writer);
+
+    connect(writer,&CDownloadWriter::writeComplete,
+            this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
+    connect(writer,&CDownloadWriter::error,
+            this,&CDownloadsModel::writerError,Qt::QueuedConnection);
+
+    QMetaObject::invokeMethod(writer,&CAbstractExtractor::start,Qt::QueuedConnection);
 }
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
@@ -712,6 +713,7 @@ void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
     m_downloads[row].state = QWebEngineDownloadItem::DownloadCancelled;
     m_downloads[row].errorString = message;
     updateProgressLabel();
+
 
     Q_EMIT dataChanged(index(row,0),index(row,3));
 }

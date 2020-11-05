@@ -73,6 +73,7 @@ public:
 public Q_SLOTS:
     void handleDownload(QWebEngineDownloadItem* item);
     void contextMenu(const QPoint& pos);
+    void updateWriterStatus();
 
 private:
     Ui::CDownloadManager *ui;
@@ -82,9 +83,6 @@ private:
     bool m_firstResize { true };
 
     Q_DISABLE_COPY(CDownloadManager)
-
-private Q_SLOTS:
-    void updateWriterStatus();
 
 protected:
     void closeEvent(QCloseEvent * event) override;
@@ -104,6 +102,8 @@ private:
 
     void updateProgressLabel();
     bool abortDownloadPriv(int row);
+    void makeWriterJob(const QString &zipFileName, const QString &fileName,
+                       const QByteArray &data, const QUuid &uuid) const;
 
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
@@ -139,12 +139,6 @@ public Q_SLOTS:
 private Q_SLOTS:
     void writerError(const QString& message, const QUuid& uuid);
     void writerCompleted(const QUuid& uuid);
-
-Q_SIGNALS:
-    void writeBytesToZip(const QString &zipFile, const QString &fileName,
-                         const QByteArray &data, const QUuid& uuid);
-    void writeBytesToFile(const QString &fileName, const QByteArray &data,
-                          const QUuid& uuid);
 
 };
 

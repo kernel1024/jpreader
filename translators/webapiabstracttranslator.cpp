@@ -130,7 +130,6 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
 
         bool replyOk = waitForReply(rpl.data(),httpStatus);
         replyBody = rpl->readAll();
-        addLoadedRequest(replyBody.size());
 
         if (!replyOk) {
             qWarning() << QSL("%1 translator network error").arg(clName);

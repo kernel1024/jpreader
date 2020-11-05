@@ -42,6 +42,8 @@ public:
     QTimer gctxTimer;
     QString gctxSelection;
 
+    QTimer threadedWorkerTestTimer;
+
     explicit CGlobalUI(QObject *parent = nullptr);
 
     // Actions for Settings menu
@@ -62,6 +64,7 @@ public Q_SLOTS:
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
     void actionToggled();
+    void updateBusyCursor();
 
 private:
     CSubsentencesMode getSubsentencesModeHash() const;

@@ -128,9 +128,8 @@ public:
     void setFileDialogNewFolderName(const QString& name);
 
     // Worker control
-    void addWorkerToPool(CTranslator* tran);
-    void addWorkerToPool(CDownloadWriter* writer);
-    void addWorkerToPool(CAbstractExtractor *extractor);
+    void setupThreadedWorker(CAbstractThreadWorker *worker);
+    bool isThreadedWorkersActive() const;
 
     // Owned widgets
     CMainWindow *activeWindow() const;
@@ -141,7 +140,6 @@ public:
     const QHash<QString,QIcon> &favicons() const;
     ZDict::ZDictController* dictionaryManager() const;
     CTranslatorCache* translatorCache() const;
-    CDownloadWriter* downloadWriter() const;
 
 private:
     Q_DISABLE_COPY(CGlobalControl)

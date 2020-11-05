@@ -148,21 +148,6 @@ void CGlobalControl::initialize()
         d->uiTranslator.reset(new CUITranslator());
         QCoreApplication::installTranslator(d->uiTranslator.data());
 
-        d->downloadWriter = new CDownloadWriter();
-        auto* th = new QThread();
-        d->downloadWriter->moveToThread(th);
-        addWorkerToPool(d->downloadWriter);
-        connect(d->downloadWriter,&CDownloadWriter::finished,th,&QThread::quit);
-        connect(d->downloadWriter,&CDownloadWriter::finished,
-                this,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
-        connect(th,&QThread::finished,d->downloadWriter,&CDownloadWriter::deleteLater);
-        connect(th,&QThread::finished,th,&QThread::deleteLater);
-        connect(this,&CGlobalControl::stopWorkers,d->downloadWriter,
-                &CDownloadWriter::terminateStop,Qt::QueuedConnection);
-        connect(this,&CGlobalControl::terminateWorkers,
-                th,&QThread::terminate);
-        th->start();
-
         d->logWindow.reset(new CLogDisplay());
         d->downloadManager.reset(new CDownloadManager());
         d->bookmarksManager = new BookmarksManager(this);
@@ -703,12 +688,6 @@ CTranslatorCache *CGlobalControl::translatorCache() const
 {
     Q_D(const CGlobalControl);
     return d->translatorCache;
-}
-
-CDownloadWriter *CGlobalControl::downloadWriter() const
-{
-    Q_D(const CGlobalControl);
-    return d->downloadWriter;
 }
 
 const CUrlHolderVector &CGlobalControl::recycleBin() const
@@ -1362,47 +1341,49 @@ void CGlobalControl::forceCharset()
     if (webProfile()!=nullptr && webProfile()->settings()!=nullptr) {
         webProfile()->settings()->setDefaultTextEncoding(cs);
     }
-
 }
 
-void CGlobalControl::addWorkerToPool(CTranslator *tran)
+void CGlobalControl::setupThreadedWorker(CAbstractThreadWorker *worker)
 {
     Q_D(CGlobalControl);
-    QPointer<CTranslator> ptr(tran);
-    d->workerPool.append(ptr);
+
+    if (worker == nullptr) return;
+
+    d->workerPool.append(worker);
+
+    auto *thread = new QThread();
+    worker->moveToThread(thread);
+
+    connect(worker,&CAbstractThreadWorker::finished,this,&CGlobalControl::cleanupWorker,Qt::QueuedConnection);
+    connect(worker,&CAbstractThreadWorker::finished,thread,&QThread::quit);
+    connect(thread,&QThread::finished,worker,&CAbstractThreadWorker::deleteLater);
+    connect(thread,&QThread::finished,thread,&QThread::deleteLater);
+    connect(this,&CGlobalControl::stopWorkers,
+            worker,&CAbstractThreadWorker::abort,Qt::QueuedConnection);
+    connect(this,&CGlobalControl::terminateWorkers,thread,&QThread::terminate);
+
+    connect(worker,&CAbstractThreadWorker::started,
+            ui(),&CGlobalUI::updateBusyCursor,Qt::QueuedConnection);
+
+    thread->start();
 }
 
-void CGlobalControl::addWorkerToPool(CDownloadWriter *writer)
+bool CGlobalControl::isThreadedWorkersActive() const
 {
-    Q_D(CGlobalControl);
-    QPointer<CDownloadWriter> ptr(writer);
-    d->workerPool.append(ptr);
-}
+    Q_D(const CGlobalControl);
 
-void CGlobalControl::addWorkerToPool(CAbstractExtractor *extractor)
-{
-    Q_D(CGlobalControl);
-    QPointer<CAbstractExtractor> ptr(extractor);
-    d->workerPool.append(ptr);
+    return (!(d->workerPool.isEmpty()));
 }
 
 void CGlobalControl::cleanupWorker()
 {
     Q_D(CGlobalControl);
 
-    QObject* snd = sender();
+    auto *worker = qobject_cast<CAbstractThreadWorker *>(sender());
+    if (worker)
+        d->workerPool.removeAll(worker);
 
-    auto *translator = qobject_cast<CTranslator *>(snd);
-    if (translator)
-        d->workerPool.removeAll(translator);
-
-    auto *downloadWriter = qobject_cast<CDownloadWriter *>(snd);
-    if (downloadWriter)
-        d->workerPool.removeAll(downloadWriter);
-
-    auto *extractor = qobject_cast<CAbstractExtractor *>(snd);
-    if (extractor)
-        d->workerPool.removeAll(extractor);
+    m_ui->updateBusyCursor();
 }
 
 QUrl CGlobalControl::createSearchUrl(const QString& text, const QString& engine) const
