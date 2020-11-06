@@ -318,10 +318,14 @@ void CGlobalUI::actionToggled()
 
 void CGlobalUI::updateBusyCursor()
 {
+    static QAtomicInteger<bool> busyActive(false); // initially normal cursor
+
     if (gSet->isThreadedWorkersActive()) {
-        gSet->app()->setOverrideCursor(Qt::BusyCursor);
+        if (busyActive.testAndSetOrdered(false,true))
+            gSet->app()->setOverrideCursor(Qt::BusyCursor);
     } else {
-        gSet->app()->restoreOverrideCursor();
+        if (busyActive.testAndSetOrdered(true,false))
+            gSet->app()->restoreOverrideCursor();
     }
 }
 

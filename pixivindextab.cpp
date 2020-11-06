@@ -355,7 +355,7 @@ void CPixivIndexTab::processExtractorAction()
         sv->setRequestAutotranslate(translate);
     },Qt::QueuedConnection);
 
-    QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
 
 CPixivTableModel::CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list)

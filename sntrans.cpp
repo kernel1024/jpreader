@@ -146,7 +146,7 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
     connect(ct,&CTranslator::setProgress,
             snv->waitHandler,&CSnWaitCtl::setProgressValue,Qt::QueuedConnection);
 
-    QMetaObject::invokeMethod(ct,&CTranslator::start,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(ct,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
 
 void CSnTrans::translationFinished(bool success, bool aborted, const QString& resultHtml, const QString& error)

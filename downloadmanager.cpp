@@ -489,7 +489,7 @@ void CDownloadsModel::makeWriterJob(const QString &zipFileName, const QString &f
     connect(writer,&CDownloadWriter::error,
             this,&CDownloadsModel::writerError,Qt::QueuedConnection);
 
-    QMetaObject::invokeMethod(writer,&CAbstractExtractor::start,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(writer,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)

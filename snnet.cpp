@@ -254,23 +254,11 @@ void CSnNet::extractHTMLFragment()
         const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
         if (md->hasHtml()) {
             auto *ex = new CHtmlImagesExtractor(nullptr,snv);
-            auto *th = new QThread();
             ex->setParams(md->html(),url,false,true);
-
+            gSet->setupThreadedWorker(ex);
             connect(ex,&CHtmlImagesExtractor::novelReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
-            connect(ex,&CHtmlImagesExtractor::finished,th,&QThread::quit);
-            connect(th,&QThread::finished,ex,&CHtmlImagesExtractor::deleteLater);
-            connect(th,&QThread::finished,th,&QThread::deleteLater);
-            connect(th,&QThread::finished,gSet,[](){
-                gSet->app()->restoreOverrideCursor();
-            },Qt::QueuedConnection);
 
-            ex->moveToThread(th);
-            th->start();
-
-            gSet->app()->setOverrideCursor(Qt::BusyCursor);
-
-            QMetaObject::invokeMethod(ex,&CHtmlImagesExtractor::start,Qt::QueuedConnection);
+            QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
         } else {
             QMessageBox::information(snv,QGuiApplication::applicationDisplayName(),
                                      tr("Unknown clipboard format. HTML expected."));

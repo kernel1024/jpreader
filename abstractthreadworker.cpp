@@ -7,8 +7,9 @@ CAbstractThreadWorker::CAbstractThreadWorker(QObject *parent) : QObject(parent)
 void CAbstractThreadWorker::start()
 {
     resetAbortFlag();
-    startMain();
     Q_EMIT started();
+
+    startMain();
 }
 
 void CAbstractThreadWorker::abort()
