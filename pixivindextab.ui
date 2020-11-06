@@ -37,6 +37,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="buttonTranslateTitles">
+       <property name="text">
+        <string>Translate</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonReport">
        <property name="text">
         <string>HTML report</string>
@@ -69,6 +76,32 @@
        <height>75</height>
       </size>
      </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameTranslator">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QProgressBar" name="progressTranslator">
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonStopTranslator">
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

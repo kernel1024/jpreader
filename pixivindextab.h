@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include "specwidgets.h"
+#include "titlestranslator.h"
 #include "extractors/pixivindexextractor.h"
 
 namespace Ui {
@@ -27,6 +28,7 @@ public:
 private:
     Q_DISABLE_COPY(CPixivIndexTab)
 
+    QScopedPointer<CTitlesTranslator,QScopedPointerDeleteLater> m_titleTran;
     Ui::CPixivIndexTab *ui { nullptr };
     CPixivTableModel *m_model { nullptr };
     QString m_indexId;
@@ -51,6 +53,13 @@ public Q_SLOTS:
     void htmlReport();
     void linkClicked(const QString& link);
     void processExtractorAction();
+    void startTitlesAndTagsTranslation();
+    void gotTitlesAndTagsTranslation(const QStringList &res);
+    void updateTranslatorProgress(int pos);
+
+Q_SIGNALS:
+    void translateTitlesAndTags(const QStringList &titles);
+
 };
 
 class CPixivTableModel : public QAbstractTableModel
@@ -60,6 +69,7 @@ class CPixivTableModel : public QAbstractTableModel
 private:
     QVector<QJsonObject> m_list;
     QStringList m_tags;
+    QStringList m_translatedTags;
     CStringHash m_authors;
 
     void updateTags();
@@ -73,6 +83,8 @@ public:
     bool isEmpty() const;
     QJsonObject item(const QModelIndex& index) const;
     QString tag(const QModelIndex& index) const;
+    QStringList getStringsForTranslation() const;
+    void setStringsFromTranslation(const QStringList& translated);
 
 protected:
     int rowCount(const QModelIndex &parent) const override;

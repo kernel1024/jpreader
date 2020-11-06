@@ -117,6 +117,15 @@ QString CLangPair::toShortString() const
 {
     const QChar arrow(0x2192);
     return QSL("%1 %2 %3")
+            .arg(langFrom.bcp47Name(),
+                 arrow,
+                 langTo.bcp47Name());
+}
+
+QString CLangPair::toLongString() const
+{
+    const QChar arrow(0x2192);
+    return QSL("%1 %2 %3")
             .arg(gSet->getLanguageName(langFrom.bcp47Name()),
                  arrow,
                  gSet->getLanguageName(langTo.bcp47Name()));

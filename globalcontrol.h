@@ -148,8 +148,8 @@ private:
     Q_DECLARE_PRIVATE_D(dptr,CGlobalControl)
 
     QScopedPointer<CGlobalControlPrivate> dptr;
-    QScopedPointer<CSettings> m_settings;
-    QScopedPointer<CGlobalUI> m_ui;
+    QScopedPointer<CSettings,QScopedPointerDeleteLater> m_settings;
+    QScopedPointer<CGlobalUI,QScopedPointerDeleteLater> m_ui;
 
     bool setupIPC();
     void sendIPCMessage(QLocalSocket *socket, const QString& msg);

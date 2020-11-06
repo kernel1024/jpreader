@@ -127,7 +127,7 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
     snv->transButton->setEnabled(false);
     snv->waitHandler->setProgressEnabled(true);
 
-    snv->waitHandler->setLanguage(CLangPair(gSet->ui()->getActiveLangPair()).toShortString());
+    snv->waitHandler->setLanguage(CLangPair(gSet->ui()->getActiveLangPair()).toLongString());
     snv->waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 

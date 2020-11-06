@@ -63,6 +63,9 @@ void CWorkerMonitor::showEvent(QShowEvent *event)
     m_firstResize = false;
 
     const int minColumnWidth = 150;
+    const int horizontalWindowMargin = 200;
+    const int verticalWindowMargin = 100;
+
     int columnWidth = ui->table->width() / CDefaults::workerMonitorColumnCount;
     if (columnWidth < minColumnWidth)
         columnWidth = minColumnWidth;
@@ -71,6 +74,12 @@ void CWorkerMonitor::showEvent(QShowEvent *event)
         ui->table->setColumnWidth(i,columnWidth);
 
     ui->table->horizontalHeader()->setStretchLastSection(true);
+
+    QRect geom = gSet->getLastMainWindowGeometry();
+    if (!geom.isNull()) {
+        QPoint p = geom.topLeft() + QPoint(horizontalWindowMargin,verticalWindowMargin);
+        move(p);
+    }
 }
 
 void CWorkerMonitor::hideEvent(QHideEvent *event)

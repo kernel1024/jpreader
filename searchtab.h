@@ -35,8 +35,8 @@ private:
     QString lastQuery;
     QString selectedUri;
 
-    QScopedPointer<CIndexerSearch> engine;
-    QScopedPointer<CTitlesTranslator> titleTran;
+    QScopedPointer<CIndexerSearch,QScopedPointerDeleteLater> engine;
+    QScopedPointer<CTitlesTranslator,QScopedPointerDeleteLater> titleTran;
 
     Q_DISABLE_COPY(CSearchTab)
 

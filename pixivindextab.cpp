@@ -40,9 +40,27 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     connect(ui->table,&QTableView::customContextMenuRequested,this,&CPixivIndexTab::tableContextMenu);
     connect(ui->labelHead,&QLabel::linkActivated,this,&CPixivIndexTab::linkClicked);
     connect(ui->buttonReport,&QPushButton::clicked,this,&CPixivIndexTab::htmlReport);
+    connect(ui->buttonTranslateTitles,&QPushButton::clicked,this,&CPixivIndexTab::startTitlesAndTagsTranslation);
     connect(ui->editDescription,&QTextBrowser::anchorClicked,this,[this](const QUrl& url){
         linkClicked(url.toString());
     });
+
+    m_titleTran.reset(new CTitlesTranslator());
+    auto *thread = new QThread();
+    m_titleTran->moveToThread(thread);
+    connect(m_titleTran.data(),&CTitlesTranslator::destroyed,thread,&QThread::quit);
+    connect(thread,&QThread::finished,thread,&QThread::deleteLater);
+    connect(m_titleTran.data(), &CTitlesTranslator::gotTranslation,
+            this, &CPixivIndexTab::gotTitlesAndTagsTranslation,Qt::QueuedConnection);
+    connect(m_titleTran.data(), &CTitlesTranslator::updateProgress,
+            this, &CPixivIndexTab::updateTranslatorProgress,Qt::QueuedConnection);
+    connect(ui->buttonStopTranslator, &QPushButton::clicked,
+            m_titleTran.data(), &CTitlesTranslator::stop,Qt::QueuedConnection);
+    connect(this, &CPixivIndexTab::translateTitlesAndTags,
+            m_titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
+    thread->start();
+
+    ui->frameTranslator->hide();
 
     updateWidgets();
     bindToTab(parentWnd()->tabMain);
@@ -358,6 +376,35 @@ void CPixivIndexTab::processExtractorAction()
     QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
 
+void CPixivIndexTab::startTitlesAndTagsTranslation()
+{
+    const QStringList sl = m_model->getStringsForTranslation();
+    if (sl.isEmpty()) return;
+
+    Q_EMIT translateTitlesAndTags(sl);
+}
+
+void CPixivIndexTab::gotTitlesAndTagsTranslation(const QStringList &res)
+{
+    if (!res.isEmpty() && res.last().contains(QSL("ERROR"))) {
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Title translation failed."));
+        return;
+    }
+
+    m_model->setStringsFromTranslation(res);
+}
+
+void CPixivIndexTab::updateTranslatorProgress(int pos)
+{
+    if (pos>=0) {
+        ui->progressTranslator->setValue(pos);
+        if (!ui->frameTranslator->isVisible())
+            ui->frameTranslator->show();
+    } else
+        ui->frameTranslator->hide();
+}
+
 CPixivTableModel::CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list)
     : QAbstractTableModel(parent),
       m_list(list)
@@ -421,6 +468,21 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
                 return QVariant();
             }
         }
+    } else if (role == Qt::ToolTipRole) {
+        QString tooltip;
+        if (col == 1) {
+            tooltip = w.value(QSL("translatedTitle")).toString();
+        } else if (!m_translatedTags.isEmpty()) { // tag columns
+            int tagNum = col - basicWidth;
+            if (tagNum>=0 && tagNum<m_tags.count()) {
+                const QJsonArray wtags = w.value(QSL("tags")).toArray();
+                const QString tag = m_tags.at(tagNum);
+                if (wtags.contains(QJsonValue(tag)))
+                    tooltip = m_translatedTags.at(tagNum);
+            }
+        }
+        if (!tooltip.isEmpty())
+            return tooltip;
     }
 
     if (role == CDefaults::pixivSortRole) {
@@ -501,6 +563,32 @@ QString CPixivTableModel::tag(const QModelIndex &index) const
     return data(index,Qt::DisplayRole).toString();
 }
 
+QStringList CPixivTableModel::getStringsForTranslation() const
+{
+    QStringList res;
+    res.reserve(m_list.count() + m_tags.count());
+    for (const auto &w : qAsConst(m_list))
+        res.append(w.value(QSL("title")).toString());
+    res.append(m_tags);
+    return res;
+}
+
+void CPixivTableModel::setStringsFromTranslation(const QStringList &translated)
+{
+    if (translated.isEmpty()
+            || ((m_list.count() + m_tags.count()) != translated.count())) return;
+
+    for (int i=0;i<m_list.count();i++)
+        m_list[i].insert(QSL("translatedTitle"),translated.at(i));
+
+    m_translatedTags.append(translated.mid(m_list.count()));
+
+    Q_EMIT dataChanged(index(0,1),index(m_list.count(),1),{ Qt::ToolTipRole });
+    Q_EMIT dataChanged(index(0,basicHeaders().count()),
+                       index(m_list.count(),basicHeaders().count() + m_tags.count() - 1),
+                       { Qt::ToolTipRole });
+}
+
 QStringList CPixivTableModel::basicHeaders() const
 {
     static const QStringList res({ tr("ID"), tr("Title"), tr("Author"), tr("Size"), tr("Date"),
@@ -512,6 +600,7 @@ void CPixivTableModel::updateTags()
 {
     m_tags.clear();
     m_authors.clear();
+    m_translatedTags.clear();
 
     for (const auto &w : qAsConst(m_list)) {
         const QJsonArray wtags = w.value(QSL("tags")).toArray();

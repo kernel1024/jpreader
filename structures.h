@@ -123,6 +123,7 @@ public:
     QString getHash() const;
     QString toString() const;
     QString toShortString() const;
+    QString toLongString() const;
     bool operator==(const CLangPair &s) const;
     bool operator!=(const CLangPair &s) const;
 private:

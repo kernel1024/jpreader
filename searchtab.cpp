@@ -15,9 +15,7 @@
 
 CSearchTab::CSearchTab(CMainWindow *parent) :
     CSpecTabContainer(parent),
-    ui(new Ui::SearchTab),
-    engine(new CIndexerSearch()),
-    titleTran(new CTitlesTranslator())
+    ui(new Ui::SearchTab)
 {
     const int searchCompleterMaxVisibleItemsFrac = 70;
 
@@ -57,18 +55,30 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
     connect(ui->buttonSearch, &QPushButton::clicked, this, &CSearchTab::doNewSearch);
     connect(ui->buttonOpen, &QPushButton::clicked, this, &CSearchTab::showSnippet);
     connect(ui->buttonDir, &QPushButton::clicked, this, &CSearchTab::selectDir);
+    connect(ui->buttonTranslateTitles, &QPushButton::clicked, this, &CSearchTab::translateTitles);
     connect(ui->listResults->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &CSearchTab::applySnippet);
     connect(ui->listResults, &QTableView::activated, this, &CSearchTab::execSnippet);
     connect(ui->editSearch->lineEdit(), &QLineEdit::returnPressed, ui->buttonSearch, &QPushButton::click);
 
+    engine.reset(new CIndexerSearch());
+    auto *thread = new QThread();
+    engine->moveToThread(thread);
+    connect(engine.data(),&CIndexerSearch::destroyed,thread,&QThread::quit);
+    connect(thread,&QThread::finished,thread,&QThread::deleteLater);
     connect(engine.data(), &CIndexerSearch::searchFinished,
             this, &CSearchTab::searchFinished, Qt::QueuedConnection);
     connect(this, &CSearchTab::startSearch,
             engine.data(), &CIndexerSearch::doSearch, Qt::QueuedConnection);
     connect(engine.data(), &CIndexerSearch::gotResult,
             this, &CSearchTab::gotSearchResult, Qt::QueuedConnection);
+    thread->start();
 
+    titleTran.reset(new CTitlesTranslator());
+    thread = new QThread();
+    titleTran->moveToThread(thread);
+    connect(titleTran.data(),&CTitlesTranslator::destroyed,thread,&QThread::quit);
+    connect(thread,&QThread::finished,thread,&QThread::deleteLater);
     connect(titleTran.data(), &CTitlesTranslator::gotTranslation,
             this, &CSearchTab::gotTitleTranslation,Qt::QueuedConnection);
     connect(titleTran.data(), &CTitlesTranslator::updateProgress,
@@ -77,6 +87,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
             titleTran.data(), &CTitlesTranslator::stop,Qt::QueuedConnection);
     connect(this, &CSearchTab::translateTitlesSrc,
             titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
+    thread->start();
 
     ui->buttonSearch->setIcon(QIcon::fromTheme(QSL("document-preview")));
     ui->buttonOpen->setIcon(QIcon::fromTheme(QSL("document-open")));
@@ -105,19 +116,6 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
                                 "Fallback to local file search.\n"
                                 "Please, check program settings and reopen new search tab."));
     }
-
-    auto *th = new QThread();
-    engine->moveToThread(th);
-    connect(engine.data(),&CIndexerSearch::destroyed,th,&QThread::quit);
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    th->start();
-
-
-    auto *th2 = new QThread();
-    titleTran->moveToThread(th2);
-    connect(titleTran.data(),&CIndexerSearch::destroyed,th2,&QThread::quit);
-    connect(th2,&QThread::finished,th2,&QThread::deleteLater);
-    th2->start();
 }
 
 CSearchTab::~CSearchTab()

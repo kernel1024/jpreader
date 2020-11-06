@@ -33,7 +33,7 @@ public:
     
 private:
 #ifdef WITH_THREADED_SEARCH
-    QScopedPointer<CAbstractThreadedSearch> engine;
+    QScopedPointer<CAbstractThreadedSearch,QScopedPointerDeleteLater> engine;
 #endif
     QString m_query;
     QElapsedTimer searchTimer;

@@ -231,6 +231,20 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonTranslateTitles">
+       <property name="text">
+        <string>Translate titles</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -272,8 +286,10 @@
   <tabstop>translateStopBtn</tabstop>
   <tabstop>listResults</tabstop>
   <tabstop>snippetBrowser</tabstop>
+  <tabstop>buttonOpen</tabstop>
   <tabstop>editDir</tabstop>
   <tabstop>buttonDir</tabstop>
+  <tabstop>buttonTranslateTitles</tabstop>
  </tabstops>
  <resources/>
  <connections/>
