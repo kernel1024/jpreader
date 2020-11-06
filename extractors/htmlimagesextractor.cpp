@@ -18,6 +18,11 @@ void CHtmlImagesExtractor::setParams(const QString &source, const QUrl &origin,
     m_origin = origin;
 }
 
+QString CHtmlImagesExtractor::workerDescription() const
+{
+    return tr("HTML images extractor");
+}
+
 void CHtmlImagesExtractor::startMain()
 {
     HTML::ParserDom parser;

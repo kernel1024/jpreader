@@ -22,7 +22,8 @@ void CAbstractThreadWorker::addLoadedRequest(qint64 size)
     m_loadedTotalSize += size;
     m_loadedRequestCount++;
 
-    Q_EMIT dataLoaded();
+    Q_EMIT dataLoaded(m_loadedTotalSize,m_loadedRequestCount,
+                      workerDescription());
 }
 
 bool CAbstractThreadWorker::exitIfAborted()

@@ -1,6 +1,8 @@
 #include <QMutexLocker>
 #include <QFile>
+#include <QFileInfo>
 #include <QDebug>
+#include "genericfuncs.h"
 #include "downloadwriter.h"
 #include "structures.h"
 
@@ -30,6 +32,20 @@ CDownloadWriter::CDownloadWriter(QObject *parent, const QString &zipFile, const 
 int CDownloadWriter::getWorkCount()
 {
     return m_workCount.loadAcquire();
+}
+
+QString CDownloadWriter::workerDescription() const
+{
+    QFileInfo fi(m_fileName);
+    if (!m_zipFile.isEmpty()) {
+        QFileInfo zfi(m_zipFile);
+        return tr("Download writer ZIP (%1 to %2/%3)")
+                .arg(CGenericFuncs::formatFileSize(m_data.size()),
+                     zfi.fileName(),fi.fileName());
+    }
+
+    return tr("Download writer (%1 to %2)")
+            .arg(CGenericFuncs::formatFileSize(m_data.size()),fi.fileName());
 }
 
 void CDownloadWriter::writeBytesToZip()
@@ -77,6 +93,7 @@ void CDownloadWriter::startMain()
     if (exitIfAborted()) return;
     m_workCount++;
 
+    addLoadedRequest(m_data.size());
     if (m_zipFile.isEmpty()) {
         writeBytesToFile();
     } else {

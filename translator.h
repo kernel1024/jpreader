@@ -93,6 +93,7 @@ public:
     ~CTranslator() override = default;
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
+    QString workerDescription() const override;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);
     static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
@@ -103,6 +104,9 @@ protected:
 Q_SIGNALS:
     void translationFinished(bool success, bool aborted, const QString &resultHtml, const QString &error);
     void setProgress(int value);
+
+private Q_SLOTS:
+    void addTranslatorRequestBytes(qint64 size);
 
 };
 

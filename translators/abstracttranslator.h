@@ -26,7 +26,6 @@ private:
 protected:
     void setErrorMsg(const QString& msg);
     void clearErrorMsg();
-    CLangPair language() const;
     void setLanguage(const CLangPair& lang);
     bool isAborted();
 
@@ -45,9 +44,13 @@ public:
     QString tranString(const QString& src);
     unsigned long getRandomDelay(int min = CDefaults::tranMinRetryDelay, int max = CDefaults::tranMaxRetryDelay);
     int getTranslatorRetryCount() const;
+    CLangPair language() const;
 
     static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection,
                                                   const QString &engineName = QString());
+
+Q_SIGNALS:
+    void translatorBytesTransferred(qint64 size);
 
 };
 

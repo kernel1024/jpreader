@@ -603,6 +603,32 @@ int CGenericFuncs::numDigits(int n)
     return 1 + numDigits(n / base);
 }
 
+QString CGenericFuncs::secsToString(qint64 seconds)
+{
+    const QChar zeroChar('0');
+
+    qint64 secs = seconds;
+    qint64 hours = seconds / CDefaults::oneHour;
+    secs -= hours * CDefaults::oneHour;
+    qint64 mins = secs / CDefaults::oneMinute;
+    secs -= mins * CDefaults::oneMinute;
+
+    if (hours>0) {
+        return QSL("%1:%2:%3")
+                .arg(hours)
+                .arg(mins,2,CDefaults::intConversionBase,zeroChar)
+                .arg(secs,2,CDefaults::intConversionBase,zeroChar);
+    }
+
+    if (mins>0) {
+        return QSL("%1:%2")
+                .arg(mins)
+                .arg(secs,2,CDefaults::intConversionBase,zeroChar);
+    }
+
+    return QSL("%1 sec").arg(secs);
+}
+
 void CGenericFuncs::processedSleep(unsigned long secs)
 {
     for (unsigned long i=0;i<secs;i++) {

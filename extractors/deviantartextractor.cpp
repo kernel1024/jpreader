@@ -20,6 +20,11 @@ void CDeviantartExtractor::setParams(const QString &userID, const QString &folde
     m_folderName = folderName;
 }
 
+QString CDeviantartExtractor::workerDescription() const
+{
+    return tr("Deviantart extractor (%1/%2)").arg(m_userID,m_folderID);
+}
+
 void CDeviantartExtractor::startMain()
 {
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{

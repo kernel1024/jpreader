@@ -47,15 +47,13 @@ bool CGoogleCloudTranslator::initTran()
 
     m_authHeader.clear();
 
-    const int oneHour = 60*60;
-
     const QString scope = QSL("https://www.googleapis.com/auth/cloud-platform "
                               "https://www.googleapis.com/auth/cloud-translation");
     const QString aud = QSL("https://oauth2.googleapis.com/token");
 
     const QDateTime time = QDateTime::currentDateTimeUtc();
     const QString iat = QSL("%1").arg(time.toSecsSinceEpoch());
-    const QString exp = QSL("%1").arg(time.addSecs(oneHour).toSecsSinceEpoch());
+    const QString exp = QSL("%1").arg(time.addSecs(CDefaults::oneHour).toSecsSinceEpoch());
 
     const QString jwtHeader = QSL(R"({"alg":"RS256","typ":"JWT"})");
     const QString jwtClaimSet = QSL(R"({"iss":"%1","scope":"%2","aud":"%3","exp":%4,"iat":%5})")

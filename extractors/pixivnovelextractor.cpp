@@ -35,6 +35,11 @@ void CPixivNovelExtractor::setMangaOrigin(const QUrl &origin)
     m_mangaOrigin = origin;
 }
 
+QString CPixivNovelExtractor::workerDescription() const
+{
+    return tr("Pixiv novel extractor");
+}
+
 void CPixivNovelExtractor::startMain()
 {
     if (m_mangaOrigin.isValid()) {

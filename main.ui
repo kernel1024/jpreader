@@ -183,6 +183,7 @@
     <addaction name="actionChromiumURLs"/>
     <addaction name="actionTranslatorStatistics"/>
     <addaction name="actionTranslatorCache"/>
+    <addaction name="actionWorkerMonitor"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -465,10 +466,19 @@
   </action>
   <action name="actionTranslatorCache">
    <property name="icon">
-    <iconset theme="server-database"/>
+    <iconset theme="server-database">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Translator cache</string>
+   </property>
+  </action>
+  <action name="actionWorkerMonitor">
+   <property name="icon">
+    <iconset theme="system-run"/>
+   </property>
+   <property name="text">
+    <string>Worker monitor</string>
    </property>
   </action>
  </widget>

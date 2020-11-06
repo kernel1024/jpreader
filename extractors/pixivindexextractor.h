@@ -20,6 +20,7 @@ public:
     CPixivIndexExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(const QString& pixivId, const QString& sourceQuery,
                    CPixivIndexExtractor::IndexMode mode);
+    QString workerDescription() const override;
 
 private:
     QString m_indexId;

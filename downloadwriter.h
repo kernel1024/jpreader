@@ -30,6 +30,7 @@ public:
                     const QString &zipFile, const QString &fileName,
                     const QByteArray &data, const QUuid &uuid);
     static int getWorkCount();
+    QString workerDescription() const override;
 
 protected:
     void startMain() override;

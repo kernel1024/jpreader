@@ -25,6 +25,7 @@ class CLogDisplay;
 class CBrowserController;
 class CTranslatorCache;
 class CAbstractThreadWorker;
+class CWorkerMonitor;
 
 class CGlobalControlPrivate : public QObject
 {
@@ -45,6 +46,7 @@ public:
     QScopedPointer<CLightTranslator, QScopedPointerDeleteLater> lightTranslator;
     QScopedPointer<CUITranslator, QScopedPointerDeleteLater> uiTranslator;
     QScopedPointer<CCLIWorker, QScopedPointerDeleteLater> cliWorker;
+    QScopedPointer<CWorkerMonitor, QScopedPointerDeleteLater> workerMonitor;
     QList<CAbstractThreadWorker *> workerPool;
 
     QStringList recentFiles;

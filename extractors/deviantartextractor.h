@@ -20,6 +20,7 @@ public:
     CDeviantartExtractor(QObject *parent, QWidget *parentWidget);
 
     void setParams(const QString& userID, const QString& folderID, const QString& folderName);
+    QString workerDescription() const override;
 
 protected:
     void startMain() override;

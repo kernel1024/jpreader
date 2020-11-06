@@ -127,12 +127,7 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
     snv->transButton->setEnabled(false);
     snv->waitHandler->setProgressEnabled(true);
 
-    const CLangPair lp = CLangPair(gSet->ui()->getActiveLangPair());
-    const QChar arrow(0x2192);
-    snv->waitHandler->setLanguage(QSL("%1 %2 %3")
-                                  .arg(gSet->getLanguageName(lp.langFrom.bcp47Name()),
-                                       arrow,
-                                       gSet->getLanguageName(lp.langTo.bcp47Name())));
+    snv->waitHandler->setLanguage(CLangPair(gSet->ui()->getActiveLangPair()).toShortString());
     snv->waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
@@ -142,7 +137,7 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);
     connect(snv->abortBtn,&QPushButton::clicked,
-            ct,&CTranslator::abort,Qt::QueuedConnection);
+            ct,&CAbstractThreadWorker::abort,Qt::QueuedConnection);
     connect(ct,&CTranslator::setProgress,
             snv->waitHandler,&CSnWaitCtl::setProgressValue,Qt::QueuedConnection);
 

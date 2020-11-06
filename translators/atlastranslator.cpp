@@ -65,6 +65,7 @@ bool CAtlasTranslator::initTran()
 
     // INIT command and response
     buf = QSL("INIT:%1\r\n").arg(gSet->settings()->atlToken).toLatin1();
+    Q_EMIT translatorBytesTransferred(buf.size());
     m_sock.write(buf);
     m_sock.flush();
     if (!m_sock.canReadLine()) {
@@ -90,6 +91,7 @@ bool CAtlasTranslator::initTran()
     if (language().langTo.bcp47Name().startsWith(QSL("ja")))
         trandir = QSL("DIR:EJ\r\n");
     buf = trandir.toLatin1();
+    Q_EMIT translatorBytesTransferred(buf.size());
     m_sock.write(buf);
     m_sock.flush();
     if (!m_sock.canReadLine()) {
@@ -124,6 +126,7 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
     if (s.isEmpty()) return QString();
 //    qDebug() << "TO TRAN: " << s;
     QByteArray buf = QSL("TR:%1\r\n").arg(s).toLatin1();
+    Q_EMIT translatorBytesTransferred(buf.size());
     m_sock.write(buf);
     m_sock.flush();
     QByteArray sumbuf;
@@ -174,6 +177,7 @@ void CAtlasTranslator::doneTranPrivate(bool lazyClose)
     if (!lazyClose) {
         // FIN command and response
         QByteArray buf = QSL("FIN\r\n").toLatin1();
+        Q_EMIT translatorBytesTransferred(buf.size());
         m_sock.write(buf);
         m_sock.flush();
         if (!m_sock.canReadLine()) {

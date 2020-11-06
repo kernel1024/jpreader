@@ -25,6 +25,7 @@
 #include "logdisplay.h"
 #include "snctxhandler.h"
 #include "downloadmanager.h"
+#include "workermonitor.h"
 #include "settingstab.h"
 #include "translatorstatisticstab.h"
 #include "translatorcache.h"
@@ -129,6 +130,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     if (gSet->downloadManager()!=nullptr) {
         connect(actionDownloadManager, &QAction::triggered,
                 gSet->downloadManager(), &CDownloadManager::show);
+    }
+
+    if (gSet->workerMonitor()!=nullptr) {
+        connect(actionWorkerMonitor, &QAction::triggered,
+                gSet->workerMonitor(), &CWorkerMonitor::show);
     }
 
     QShortcut* sc = nullptr;

@@ -24,6 +24,7 @@ class CLangPairModel;
 class BookmarksManager;
 class CTranslatorCache;
 class CTranslator;
+class CWorkerMonitor;
 
 #define gSet (CGlobalControl::instance())
 
@@ -135,6 +136,7 @@ public:
     CMainWindow *activeWindow() const;
     BookmarksManager *bookmarksManager() const;
     CDownloadManager* downloadManager() const;
+    CWorkerMonitor* workerMonitor() const;
     CLogDisplay* logWindow() const;
     QNetworkAccessManager* auxNetworkAccessManager() const;
     const QHash<QString,QIcon> &favicons() const;

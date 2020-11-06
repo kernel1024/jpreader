@@ -21,6 +21,11 @@ void CPatreonExtractor::setParams(const QString &pageHtml, const QUrl &origin, b
     m_extractAttachments = extractAttachments;
 }
 
+QString CPatreonExtractor::workerDescription() const
+{
+    return tr("Patreon extractor");
+}
+
 void CPatreonExtractor::startMain()
 {
     if (m_html.isEmpty()) {

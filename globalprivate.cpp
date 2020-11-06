@@ -8,6 +8,7 @@ extern "C" {
 
 #include "logdisplay.h"
 #include "downloadmanager.h"
+#include "workermonitor.h"
 #include "lighttranslator.h"
 #include "globalprivate.h"
 

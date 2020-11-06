@@ -122,6 +122,7 @@ public:
     bool isAtlasAcceptable() const;
     QString getHash() const;
     QString toString() const;
+    QString toShortString() const;
     bool operator==(const CLangPair &s) const;
     bool operator!=(const CLangPair &s) const;
 private:

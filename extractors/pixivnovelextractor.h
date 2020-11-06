@@ -37,6 +37,7 @@ public:
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool focus);
     void setMangaOrigin(const QUrl& origin);
+    QString workerDescription() const override;
 
 protected:
     void startMain() override;

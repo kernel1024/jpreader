@@ -43,6 +43,8 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
         return false;
     }
     m_tranInited = true;
+    connect(m_tran.data(),&CAbstractTranslator::translatorBytesTransferred,
+            this,&CTranslator::addTranslatorRequestBytes,Qt::DirectConnection);
 
     dstHtml.clear();
     if (srcHtml.isEmpty()) return false;
@@ -155,6 +157,16 @@ bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
 QStringList CTranslator::getImgUrls() const
 {
     return m_imgUrls;
+}
+
+QString CTranslator::workerDescription() const
+{
+    if (m_tran.isNull())
+        return tr("Translator (initializing)");
+
+    return tr("Translator %1 (%2)")
+            .arg(CStructures::translationEngines().value(m_tran->engine()),
+                 m_tran->language().toShortString());
 }
 
 void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
@@ -406,10 +418,8 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                                         if (sc==questionMark || sc==fullwidthQuestionMark) {
                                             tacc += sc;
                                             t += m_tran->tranString(tacc);
-                                            addLoadedRequest(tacc.toUtf8().size());
                                         } else {
                                             t += m_tran->tranString(tacc) + sc;
-                                            addLoadedRequest(tacc.toUtf8().size());
                                         }
                                     }
                                     tacc.clear();
@@ -601,6 +611,11 @@ void CTranslator::startMain()
 
     Q_EMIT translationFinished(true,isAborted(),translatedHtml,QString());
     Q_EMIT finished();
+}
+
+void CTranslator::addTranslatorRequestBytes(qint64 size)
+{
+    addLoadedRequest(size);
 }
 
 void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)

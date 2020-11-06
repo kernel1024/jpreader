@@ -62,6 +62,7 @@ HEADERS = mainwindow.h \
     browsercontroller.h \
     bookmarks.h \
     edittreeview.h \
+    workermonitor.h \
     xbel.h \
     noscriptdialog.h \
     jsedit/jsedit.h
@@ -130,6 +131,7 @@ SOURCES = main.cpp \
     browsercontroller.cpp \
     bookmarks.cpp \
     edittreeview.cpp \
+    workermonitor.cpp \
     xbel.cpp \
     noscriptdialog.cpp \
     jsedit/jsedit.cpp
@@ -156,7 +158,8 @@ FORMS = main.ui \
     bookmarks.ui \
     addbookmarkdialog.ui \
     noscriptdialog.ui \
-    hashviewer.ui
+    hashviewer.ui \
+    workermonitor.ui
 
 QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
 

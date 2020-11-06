@@ -127,6 +127,7 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
     QByteArray replyBody;
     while (retries < getTranslatorRetryCount() && !isAborted()) {
         QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(nam()->post(requestFunc(),body));
+        Q_EMIT translatorBytesTransferred(body.size());
 
         bool replyOk = waitForReply(rpl.data(),httpStatus);
         replyBody = rpl->readAll();

@@ -27,6 +27,7 @@ private:
 public:
     CFanboxExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(int postId, bool translate, bool focus, bool isManga);
+    QString workerDescription() const override;
 
 protected:
     void startMain() override;

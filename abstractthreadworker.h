@@ -25,6 +25,7 @@ protected:
 
 public:
     explicit CAbstractThreadWorker(QObject *parent = nullptr);
+    virtual QString workerDescription() const = 0;
 
 public Q_SLOTS:
     void start();
@@ -33,7 +34,8 @@ public Q_SLOTS:
 Q_SIGNALS:
     void started();
     void finished();
-    void dataLoaded();
+    void dataLoaded(qint64 loadedTotalSize, qint64 loadedRequestCount,
+                    const QString& description);
 
 };
 

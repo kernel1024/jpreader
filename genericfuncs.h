@@ -17,6 +17,9 @@ const int httpCodeServerError = 500;
 const int httpCodeClientUnknownError = 499;
 const int httpCodeTooManyRequests = 429;
 const int oneMB = 1024*1024;
+const int oneHour = 60*60;
+const int oneMinute = 60;
+const int intConversionBase = 10;
 const int httpMaxRedirects = 10;
 }
 
@@ -54,6 +57,7 @@ public:
     static QString bool2str2(bool value);
     static QString paddedNumber(int value, int maxValue);
     static int numDigits(int n);
+    static QString secsToString(qint64 seconds);
     static void processedSleep(unsigned long secs);
     static void processedMSleep(unsigned long msecs);
     static bool writeBytesToZip(const QString& zipFile, const QString& fileName, const QByteArray& data);

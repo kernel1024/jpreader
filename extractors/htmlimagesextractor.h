@@ -31,6 +31,7 @@ public:
     ~CHtmlImagesExtractor() = default;
     void setParams(const QString &source, const QUrl &origin,
                    bool translate, bool focus);
+    QString workerDescription() const override;
 
 private Q_SLOTS:
     void subImageFinished(QNetworkReply *rpl, CHTMLAttributesHash *attrs);

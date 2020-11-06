@@ -35,6 +35,7 @@ extern "C" {
 #include "auxdictionary.h"
 #include "downloadmanager.h"
 #include "downloadwriter.h"
+#include "workermonitor.h"
 #include "translatorcache.h"
 #include "translatorstatisticstab.h"
 #include "pdftotext.h"
@@ -151,6 +152,7 @@ void CGlobalControl::initialize()
         d->logWindow.reset(new CLogDisplay());
         d->downloadManager.reset(new CDownloadManager());
         d->bookmarksManager = new BookmarksManager(this);
+        d->workerMonitor.reset(new CWorkerMonitor());
 
         d->auxTranslatorDBus = new CAuxTranslator(this);
         d->browserControllerDBus = new CBrowserController(this);
@@ -660,6 +662,12 @@ CDownloadManager *CGlobalControl::downloadManager() const
     return d->downloadManager.data();
 }
 
+CWorkerMonitor *CGlobalControl::workerMonitor() const
+{
+    Q_D(const CGlobalControl);
+    return d->workerMonitor.data();
+}
+
 CLogDisplay *CGlobalControl::logWindow() const
 {
     Q_D(const CGlobalControl);
@@ -933,6 +941,7 @@ void CGlobalControl::cleanupAndExit()
         // free global objects
         d->logWindow.reset(nullptr);
         d->downloadManager.reset(nullptr);
+        d->workerMonitor.reset(nullptr);
         d->auxDictionary.reset(nullptr);
         d->lightTranslator.reset(nullptr);
         d->ipcServer->close();
@@ -1365,6 +1374,8 @@ void CGlobalControl::setupThreadedWorker(CAbstractThreadWorker *worker)
     connect(worker,&CAbstractThreadWorker::started,
             ui(),&CGlobalUI::updateBusyCursor,Qt::QueuedConnection);
 
+    d->workerMonitor->workerStarted(worker);
+
     thread->start();
 }
 
@@ -1380,8 +1391,10 @@ void CGlobalControl::cleanupWorker()
     Q_D(CGlobalControl);
 
     auto *worker = qobject_cast<CAbstractThreadWorker *>(sender());
-    if (worker)
+    if (worker) {
+        d->workerMonitor->workerAboutToFinished(worker);
         d->workerPool.removeAll(worker);
+    }
 
     m_ui->updateBusyCursor();
 }

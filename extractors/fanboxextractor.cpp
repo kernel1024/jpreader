@@ -23,6 +23,11 @@ void CFanboxExtractor::setParams(int postId, bool translate, bool focus, bool is
     m_isManga = isManga;
 }
 
+QString CFanboxExtractor::workerDescription() const
+{
+    return tr("Fanbox extractor (post: %1)").arg(m_postId);
+}
+
 void CFanboxExtractor::startMain()
 {
     if (m_postId<=0) {

@@ -17,6 +17,7 @@ namespace CDefaults {
 const char zipSeparator = 0x00;
 const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
+const int downloadManagerColumnCount = 4;
 }
 
 CDownloadManager::CDownloadManager(QWidget *parent) :
@@ -400,8 +401,7 @@ int CDownloadsModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    const int columnsCount = 4;
-    return columnsCount;
+    return CDefaults::downloadManagerColumnCount;
 }
 
 CDownloadItem CDownloadsModel::getDownloadItem(const QModelIndex &index)
@@ -466,7 +466,7 @@ void CDownloadsModel::downloadFinished()
         m_downloads[row].downloadItem = nullptr;
     }
 
-    Q_EMIT dataChanged(index(row,0),index(row,3)); // NOLINT
+    Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1)); // NOLINT
 
     updateProgressLabel();
 
@@ -506,7 +506,7 @@ void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState
 
     updateProgressLabel();
 
-    Q_EMIT dataChanged(index(row,0),index(row,3));
+    Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 }
 
 void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -532,7 +532,7 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
     updateProgressLabel();
 
-    Q_EMIT dataChanged(index(row,2),index(row,3));
+    Q_EMIT dataChanged(index(row,2),index(row,CDefaults::downloadManagerColumnCount-1));
 }
 
 void CDownloadsModel::abortDownload()
@@ -715,7 +715,7 @@ void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
     updateProgressLabel();
 
 
-    Q_EMIT dataChanged(index(row,0),index(row,3));
+    Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 }
 
 void CDownloadsModel::writerCompleted(const QUuid &uuid)
@@ -727,7 +727,7 @@ void CDownloadsModel::writerCompleted(const QUuid &uuid)
     m_downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
     updateProgressLabel();
 
-    Q_EMIT dataChanged(index(row,0),index(row,3));
+    Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 
     if (gSet->settings()->downloaderCleanCompleted)
         deleteDownloadItem(index(row,0));

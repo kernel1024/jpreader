@@ -33,6 +33,11 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, const QString &sour
     m_sourceQuery.removeAllQueryItems(QSL("p"));
 }
 
+QString CPixivIndexExtractor::workerDescription() const
+{
+    return tr("Pixiv index extractor (ID: %1)").arg(m_indexId);
+}
+
 void CPixivIndexExtractor::fetchNovelsInfo()
 {
     if (parentWidget()==nullptr) return;

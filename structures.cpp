@@ -1,4 +1,5 @@
 #include "structures.h"
+#include "globalcontrol.h"
 
 CUrlHolder::CUrlHolder()
 {
@@ -110,6 +111,15 @@ QString CLangPair::toString() const
 {
     return QSL("%1 -> %2").arg(QLocale::languageToString(langFrom.language()),
                                QLocale::languageToString(langTo.language()));
+}
+
+QString CLangPair::toShortString() const
+{
+    const QChar arrow(0x2192);
+    return QSL("%1 %2 %3")
+            .arg(gSet->getLanguageName(langFrom.bcp47Name()),
+                 arrow,
+                 gSet->getLanguageName(langTo.bcp47Name()));
 }
 
 bool CLangPair::operator==(const CLangPair &s) const
