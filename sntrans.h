@@ -24,6 +24,10 @@ Q_SIGNALS:
     void scriptFinished();
 
 public:
+    enum UrlsExtractorMode {
+        uemImages = 1,
+        uemAllFiles = 2
+    };
     explicit CSnTrans(CSnippetViewer * parent);
 
 public Q_SLOTS:
@@ -37,7 +41,7 @@ public Q_SLOTS:
     void reparseDocument();
     void translateDocument();
     void reparseDocumentPriv(const QString& data);
-    void getImgUrlsAndParse();
+    void getUrlsFromPageAndParse();
 };
 
 #endif // SNTRANS_H

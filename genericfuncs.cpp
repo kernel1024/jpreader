@@ -170,6 +170,28 @@ QString CGenericFuncs::makeSafeFilename(const QString &text)
     return res.simplified();
 }
 
+QString CGenericFuncs::encodeHtmlEntities(const QString &text)
+{
+    QString res = text;
+    res.replace(QSL("&"),  QSL("&amp;"));
+    res.replace(QSL("'"),  QSL("&apos;" ));
+    res.replace(QSL("\""), QSL("&quot;" ));
+    res.replace(QSL("<"),  QSL("&lt;" ));
+    res.replace(QSL(">"),  QSL("&gt;" ));
+    return res;
+}
+
+QString CGenericFuncs::decodeHtmlEntities(const QString &text)
+{
+    QString res = text;
+    res.replace(QSL("&amp;"),   QSL("&"));
+    res.replace(QSL("&apos;" ), QSL("'"));
+    res.replace(QSL("&quot;" ), QSL("\""));
+    res.replace(QSL("&lt;" ),   QSL("<"));
+    res.replace(QSL("&gt;" ),   QSL(">"));
+    return res;
+}
+
 QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &content,
                                       bool integratedTitle, const QUrl& origin)
 {

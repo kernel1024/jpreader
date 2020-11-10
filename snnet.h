@@ -22,7 +22,7 @@ private:
 
 public:
     explicit CSnNet(CSnippetViewer * parent);
-    void multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
+    void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
                           const QString &containerName = QString(), bool isFanbox = false,
                           bool relaxedRedirects = false);
     bool isValidLoadedUrl(const QUrl& url);

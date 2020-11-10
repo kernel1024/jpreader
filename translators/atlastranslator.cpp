@@ -14,21 +14,12 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16
     QSslConfiguration conf = m_sock.sslConfiguration();
     conf.setProtocol(gSet->settings()->atlProto);
     m_sock.setSslConfiguration(conf);
-
-    QList<QSslError> expectedErrors;
-    for (auto it = gSet->settings()->atlCerts.constBegin(),
-         end = gSet->settings()->atlCerts.constEnd(); it != end; ++it) {
-        for (auto iit = it.value().constBegin(), iend = it.value().constEnd(); iit != iend; ++iit) {
-            expectedErrors << QSslError(static_cast<QSslError::SslError>(*iit),it.key());
-        }
-    }
-
-    m_sock.ignoreSslErrors(expectedErrors);
+    m_sock.ignoreSslErrors(gSet->ignoredSslErrorsList());
 
     connect(&m_sock,qOverload<const QList<QSslError>&>(&QSslSocket::sslErrors),
             this,&CAtlasTranslator::sslError);
     connect(&m_sock,&QSslSocket::errorOccurred,this,&CAtlasTranslator::socketError);
-    connect(this,&CAtlasTranslator::sslCertErrors,gSet,&CGlobalControl::atlSSLCertErrors);
+    connect(this,&CAtlasTranslator::sslCertErrors,gSet,&CGlobalControl::sslCertErrors);
 }
 
 CAtlasTranslator::~CAtlasTranslator()
@@ -214,8 +205,8 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     QHash<QSslCertificate,CIntList> errIntHash;
 
     for (const QSslError& err : qAsConst(errors)) {
-        if (gSet->settings()->atlCerts.contains(err.certificate()) &&
-                gSet->settings()->atlCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
+        if (gSet->settings()->sslTrustedInvalidCerts.contains(err.certificate()) &&
+                gSet->settings()->sslTrustedInvalidCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
 
         qCritical() << "ATLAS SSL error: " << err.errorString();
         errStrHash[err.certificate()].append(err.errorString());

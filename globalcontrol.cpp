@@ -1,4 +1,5 @@
 #include <QNetworkProxy>
+#include <QAuthenticator>
 #include <QMessageBox>
 #include <QLocalSocket>
 #include <QWebEngineSettings>
@@ -228,6 +229,12 @@ void CGlobalControl::initialize()
 
         d->auxNetManager = new QNetworkAccessManager(this);
         d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
+        connect(d->auxNetManager,&QNetworkAccessManager::authenticationRequired,
+                this,&CGlobalControl::authenticationRequired);
+        connect(d->auxNetManager,&QNetworkAccessManager::proxyAuthenticationRequired,
+                this,&CGlobalControl::proxyAuthenticationRequired);
+        connect(d->auxNetManager,&QNetworkAccessManager::sslErrors,
+                this,&CGlobalControl::auxSSLCertError);
 
         d->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
         connect(&(d->tabsListTimer), &QTimer::timeout, settings(), &CSettings::writeTabsList);
@@ -369,15 +376,15 @@ void CGlobalControl::cookieRemoved(const QNetworkCookie &cookie)
         d->auxNetManager->cookieJar()->deleteCookie(cookie);
 }
 
-void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QStringList &errors,
-                                      const CIntList &errCodes)
+bool CGlobalControl::sslCertErrors(const QSslCertificate &cert, const QStringList &errors,
+                                   const CIntList &errCodes)
 {
     Q_D(CGlobalControl);
-    if (d->atlCertErrorInteractive) return;
+    if (d->sslCertErrorInteractive) return false;
 
     QMessageBox mbox;
     mbox.setWindowTitle(QGuiApplication::applicationDisplayName());
-    mbox.setText(tr("SSL error(s) occured while connecting to ATLAS service.\n"
+    mbox.setText(tr("SSL error(s) occured while connecting to service.\n"
                     "Add this certificate to trusted list?"));
     QString imsg;
     for(int i=0;i<errors.count();i++)
@@ -389,14 +396,16 @@ void CGlobalControl::atlSSLCertErrors(const QSslCertificate &cert, const QString
     mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     mbox.setDefaultButton(QMessageBox::No);
 
-    d->atlCertErrorInteractive = true;
-    if (mbox.exec()==QMessageBox::Yes) {
+    d->sslCertErrorInteractive = true;
+    auto res = mbox.exec();
+    if (res == QMessageBox::Yes) {
         for (const int errCode : qAsConst(errCodes)) {
-            if (!m_settings->atlCerts[cert].contains(errCode))
-                m_settings->atlCerts[cert].append(errCode);
+            if (!m_settings->sslTrustedInvalidCerts[cert].contains(errCode))
+                m_settings->sslTrustedInvalidCerts[cert].append(errCode);
         }
     }
-    d->atlCertErrorInteractive = false;
+    d->sslCertErrorInteractive = false;
+    return (res == QMessageBox::Yes);
 }
 
 void CGlobalControl::cleanTmpFiles()
@@ -445,13 +454,28 @@ void CGlobalControl::addTranslatorStatistics(CStructures::TranslationEngine engi
     }
 }
 
+QList<QSslError> CGlobalControl::ignoredSslErrorsList() const
+{
+    QList<QSslError> expectedErrors;
+    for (auto it = m_settings->sslTrustedInvalidCerts.constBegin(),
+         end = m_settings->sslTrustedInvalidCerts.constEnd(); it != end; ++it) {
+        for (auto iit = it.value().constBegin(), iend = it.value().constEnd(); iit != iend; ++iit) {
+            expectedErrors << QSslError(static_cast<QSslError::SslError>(*iit),it.key());
+        }
+    }
+
+    return expectedErrors;
+}
+
 QNetworkReply *CGlobalControl::auxNetworkAccessManagerGet(const QNetworkRequest &request)
 {
     Q_D(const CGlobalControl);
     QNetworkRequest req = request;
     if (!m_settings->userAgent.isEmpty())
         req.setRawHeader("User-Agent", m_settings->userAgent.toLatin1());
-    return d->auxNetManager->get(req);
+    QNetworkReply *res = d->auxNetManager->get(req);
+    res->ignoreSslErrors(ignoredSslErrorsList());
+    return res;
 }
 
 QNetworkReply *CGlobalControl::auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data)
@@ -460,7 +484,58 @@ QNetworkReply *CGlobalControl::auxNetworkAccessManagerPost(const QNetworkRequest
     QNetworkRequest req = request;
     if (!m_settings->userAgent.isEmpty())
         req.setRawHeader("User-Agent", m_settings->userAgent.toLatin1());
-    return d->auxNetManager->post(req,data);
+    QNetworkReply *res = d->auxNetManager->post(req,data);
+    res->ignoreSslErrors(ignoredSslErrorsList());
+    return res;
+}
+
+void CGlobalControl::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator) const
+{
+    QString user;
+    QString pass;
+    readPassword(reply->url(),authenticator->realm(),user,pass);
+    if (!user.isEmpty()) {
+        authenticator->setUser(user);
+        authenticator->setPassword(pass);
+    } else {
+        *authenticator = QAuthenticator();
+    }
+}
+
+void CGlobalControl::proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) const
+{
+    QString user;
+    QString pass;
+    readPassword(proxy.hostName(),authenticator->realm(),user,pass);
+    if (!user.isEmpty()) {
+        authenticator->setUser(user);
+        authenticator->setPassword(pass);
+    } else {
+        *authenticator = QAuthenticator();
+    }
+}
+
+void CGlobalControl::auxSSLCertError(QNetworkReply *reply, const QList<QSslError> &errors)
+{
+    QHash<QSslCertificate,QStringList> errStrHash;
+    QHash<QSslCertificate,CIntList> errIntHash;
+
+    for (const QSslError& err : qAsConst(errors)) {
+        if (gSet->settings()->sslTrustedInvalidCerts.contains(err.certificate()) &&
+                gSet->settings()->sslTrustedInvalidCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
+
+        qCritical() << "Aux SSL error: " << err.errorString();
+
+        errStrHash[err.certificate()].append(err.errorString());
+        errIntHash[err.certificate()].append(static_cast<int>(err.error()));
+    }
+
+    for (auto it = errStrHash.constBegin(), end = errStrHash.constEnd(); it != end; ++it) {
+        if (!sslCertErrors(it.key(),it.value(),errIntHash.value(it.key())))
+            return;
+    }
+
+    reply->ignoreSslErrors();
 }
 
 QWebEngineProfile *CGlobalControl::webProfile() const
@@ -1104,11 +1179,11 @@ bool CGlobalControl::containsNoScriptWhitelist(const QString &host) const
     return d->noScriptWhiteList.contains(host);
 }
 
-bool CGlobalControl::haveSavedPassword(const QUrl &origin) const
+bool CGlobalControl::haveSavedPassword(const QUrl &origin, const QString &realm) const
 {
     QString user;
     QString pass;
-    readPassword(origin, user, pass);
+    readPassword(origin, realm, user, pass);
     return (!user.isEmpty() || !pass.isEmpty());
 }
 
@@ -1124,37 +1199,41 @@ QUrl CGlobalControl::cleanUrlForRealm(const QUrl &origin) const
         res.setFragment(QString());
     if (res.hasQuery())
         res.setQuery(QString());
+    res.setPath(QString());
 
     return res;
 }
 
-void CGlobalControl::readPassword(const QUrl &origin, QString &user, QString &password) const
+void CGlobalControl::readPassword(const QUrl &origin, const QString &realm,
+                                  QString &user, QString &password) const
 {
     user = QString();
     password = QString();
 
-    QUrl url = cleanUrlForRealm(origin);
+    const QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
 
     QSettings params(QSL("kernel1024"), QSL("jpreader"));
     params.beginGroup(QSL("passwords"));
-    QString key = QString::fromLatin1(url.toEncoded().toBase64());
+    const QString key = QString::fromLatin1(url.toEncoded().toBase64());
 
-    QString u = params.value(QSL("%1-user").arg(key),QString()).toString();
-    QByteArray ba = params.value(QSL("%1-pass").arg(key),QByteArray()).toByteArray();
-    QString p;
-    if (!ba.isEmpty()) {
-        p = QString::fromUtf8(QByteArray::fromBase64(ba));
+    const QString cfgUser = params.value(QSL("%1-user").arg(key),QString()).toString();
+    const QByteArray cfgPass64 = params.value(QSL("%1-pass").arg(key),QByteArray()).toByteArray();
+    const QString cfgRealm = params.value(QSL("%1-realm").arg(key),QString()).toString();
+    QString cfgPass;
+    if (!cfgPass64.isEmpty()) {
+        cfgPass = QString::fromUtf8(QByteArray::fromBase64(cfgPass64));
     }
 
-    if (!u.isNull() && !p.isNull()) {
-        user = u;
-        password = p;
+    if (!cfgUser.isNull() && !cfgPass.isNull() && (cfgRealm == realm)) {
+        user = cfgUser;
+        password = cfgPass;
     }
     params.endGroup();
 }
 
-void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const QString &password) const
+void CGlobalControl::savePassword(const QUrl &origin, const QString& realm,
+                                  const QString &user, const QString &password) const
 {
     QUrl url = cleanUrlForRealm(origin);
     if (!url.isValid() || url.isEmpty()) return;
@@ -1163,6 +1242,7 @@ void CGlobalControl::savePassword(const QUrl &origin, const QString &user, const
     params.beginGroup(QSL("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
     params.setValue(QSL("%1-user").arg(key),user);
+    params.setValue(QSL("%1-realm").arg(key),realm);
     params.setValue(QSL("%1-pass").arg(key),password.toUtf8().toBase64());
     params.endGroup();
 }
@@ -1176,6 +1256,7 @@ void CGlobalControl::removePassword(const QUrl &origin) const
     params.beginGroup(QSL("passwords"));
     QString key = QString::fromLatin1(url.toEncoded().toBase64());
     params.remove(QSL("%1-user").arg(key));
+    params.remove(QSL("%1-realm").arg(key));
     params.remove(QSL("%1-pass").arg(key));
     params.endGroup();
 }

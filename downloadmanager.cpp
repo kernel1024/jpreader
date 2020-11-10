@@ -74,7 +74,7 @@ void CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     if (index>=0)
         fname.append(QSL("%1_").arg(CGenericFuncs::paddedNumber(index,maxIndex)));
     if (suggestedFilename.isEmpty()) {
-        fname.append(url.fileName());
+        fname.append(CGenericFuncs::decodeHtmlEntities(url.fileName()));
     } else {
         fname.append(suggestedFilename);
     }

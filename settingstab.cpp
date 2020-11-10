@@ -1311,7 +1311,7 @@ void CSettingsTab::updateNoScriptWhitelist()
 
 void CSettingsTab::cleanAtlCerts()
 {
-    gSet->m_settings->atlCerts.clear();
+    gSet->m_settings->sslTrustedInvalidCerts.clear();
     updateAtlCertLabel();
 }
 
@@ -1319,7 +1319,7 @@ void CSettingsTab::updateAtlCertLabel()
 {
     if (gSet) {
         ui->atlCertsLabel->setText(QSL("Trusted:\n%1 certificates")
-                                   .arg(gSet->m_settings->atlCerts.count()));
+                                   .arg(gSet->m_settings->sslTrustedInvalidCerts.count()));
     }
 }
 

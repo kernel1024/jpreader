@@ -221,7 +221,7 @@ void CSnippetViewer::updateButtonsState()
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
     passwordButton->setEnabled((!m_loading) &&
                                (txtBrowser->page()!=nullptr) &&
-                               (gSet->haveSavedPassword(txtBrowser->page()->url())));
+                               (gSet->haveSavedPassword(txtBrowser->page()->url(),QString())));
 }
 
 void CSnippetViewer::navByUrlDefault()

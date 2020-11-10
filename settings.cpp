@@ -171,7 +171,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
         return false;
     }
 
-    atlCerts = readData(bigdataDir,QSL("atlCerts")).value<CSslCertificateHash>();
+    sslTrustedInvalidCerts = readData(bigdataDir,QSL("sslTrustedInvalidCerts")).value<CSslCertificateHash>();
 
     if (g->m_ui.isNull()) return true;
 
@@ -233,8 +233,8 @@ void CSettings::writeBinaryBigData(const QString &dirname)
         qCritical() << "Unable to save dictPaths.";
     if (!writeData(dirname,QSL("ctxSearchEngines"), QVariant::fromValue(gSet->d_func()->ctxSearchEngines)))
         qCritical() << "Unable to save ctxSearchEngines.";
-    if (!writeData(dirname,QSL("atlCerts"),         QVariant::fromValue(atlCerts)))
-        qCritical() << "Unable to save atlCerts.";
+    if (!writeData(dirname,QSL("sslTrustedInvalidCerts"), QVariant::fromValue(sslTrustedInvalidCerts)))
+        qCritical() << "Unable to save sslTrustedInvalidCerts.";
     if (!writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)))
         qCritical() << "Unable to save recentFiles.";
     if (!writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())))

@@ -24,7 +24,8 @@ public:
     
 private:
     Ui::AuthDlg *ui;
-    QUrl u_origin;
+    QUrl m_origin;
+    QString m_realm;
     bool m_autofillLogin { false };
 
     Q_DISABLE_COPY(CAuthDlg)

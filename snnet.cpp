@@ -41,7 +41,7 @@ CSnNet::CSnNet(CSnippetViewer *parent)
     });
 }
 
-void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& containerName,
+void CSnNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& containerName,
                               bool isFanbox, bool relaxedRedirects)
 {
     static QSize multiImgDialogSize = QSize();
@@ -74,7 +74,7 @@ void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& ref
         }
     });
 
-    ui.label->setText(tr("%1 image URLs detected.").arg(urls.count()));
+    ui.label->setText(tr("%1 downloadable URLs detected.").arg(urls.count()));
     ui.syntax->setCurrentIndex(0);
 
     ui.table->setColumnCount(2);
@@ -82,7 +82,7 @@ void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& ref
     int row = 0;
     int rejected = 0;
     for (const auto& url : urls) {
-        QUrl u(url.first);
+        const QUrl u(url.first);
         if (!u.isValid() || u.isRelative()) {
             rejected++;
             continue;
@@ -90,7 +90,7 @@ void CSnNet::multiImgDownload(const QVector<CUrlWithName> &urls, const QUrl& ref
 
         QString s = url.second;
         if (s.isEmpty())
-            s = u.fileName();
+            s = CGenericFuncs::decodeHtmlEntities(u.fileName());
 
         ui.table->setRowCount(row+1);
         ui.table->setItem(row,0,new QTableWidgetItem(s));
@@ -306,7 +306,7 @@ void CSnNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &contai
         QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
                              tr("Image urls not found or container name not detected."));
     } else {
-        multiImgDownload(urls,origin,containerName,isFanbox,isPatreon);
+        multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
     }
 }
 
@@ -436,8 +436,8 @@ void CSnNet::authenticationRequired(const QUrl &requestUrl, QAuthenticator *auth
 void CSnNet::proxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator,
                                          const QString &proxyHost)
 {
-    Q_UNUSED(proxyHost)
-    CAuthDlg dlg(QApplication::activeWindow(),requestUrl,authenticator->realm());
+    Q_UNUSED(requestUrl)
+    CAuthDlg dlg(QApplication::activeWindow(),proxyHost,authenticator->realm());
     if (dlg.exec() == QDialog::Accepted) {
         authenticator->setUser(dlg.getUser());
         authenticator->setPassword(dlg.getPassword());

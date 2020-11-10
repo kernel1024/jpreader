@@ -159,6 +159,11 @@ QStringList CTranslator::getImgUrls() const
     return m_imgUrls;
 }
 
+QStringList CTranslator::getAnchorUrls() const
+{
+    return m_allAnchorUrls;
+}
+
 QString CTranslator::workerDescription() const
 {
     if (m_tran.isNull())
@@ -315,6 +320,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         if (node.tagName.toLower()==QSL("a")) {
             if (node.attributes.contains(QSL("href"))) {
                 QString src = node.attributes.value(QSL("href")).trimmed();
+                m_allAnchorUrls << src;
                 QFileInfo fi(src);
                 if (acceptedExt.contains(fi.suffix(),Qt::CaseInsensitive))
                     m_imgUrls << src;

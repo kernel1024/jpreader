@@ -90,15 +90,19 @@ void CSnTrans::translateDocument()
     });
 }
 
-void CSnTrans::getImgUrlsAndParse()
+void CSnTrans::getUrlsFromPageAndParse()
 {
-    snv->txtBrowser->page()->toHtml([this](const QString& result) {
+    auto *nt = qobject_cast<QAction *>(sender());
+    if (nt==nullptr) return;
+    const auto mode = static_cast<UrlsExtractorMode>(nt->data().toInt());
+
+    snv->txtBrowser->page()->toHtml([this,mode](const QString& result) {
 
         QScopedPointer<CTranslator> ct(new CTranslator(nullptr,result));
         QString res;
         if (!ct->documentReparse(result,res)) {
             QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
-                                  tr("Parsing failed. Unable to get image urls."));
+                                  tr("Parsing failed. Unable to get urls."));
             return;
         }
 
@@ -106,15 +110,24 @@ void CSnTrans::getImgUrlsAndParse()
         if (baseUrl.hasFragment())
             baseUrl.setFragment(QString());
         QVector<CUrlWithName> urls;
-        const QStringList sl = ct->getImgUrls();
+        QStringList sl;
+        if (mode == uemAllFiles) {
+            sl = ct->getAnchorUrls();
+        } else if (mode == uemImages) {
+            sl = ct->getImgUrls();
+        }
         urls.reserve(sl.count());
-        for (const QString& s : sl) {
+        for (const QString& s : qAsConst(sl)) {
             QUrl u = QUrl(s);
             if (u.isRelative())
                 u = baseUrl.resolved(u);
+            if (mode == uemAllFiles) {
+                if (u.fileName().isEmpty())
+                    continue;
+            }
             urls.append(qMakePair(u.toString(),QString()));
         }
-        snv->netHandler->multiImgDownload(urls, baseUrl);
+        snv->netHandler->multiFileDownload(urls, baseUrl);
     });
 }
 

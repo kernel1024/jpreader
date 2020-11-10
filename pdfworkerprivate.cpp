@@ -60,13 +60,9 @@ void CPDFWorkerPrivate::metaString(QString& out, Dict *infoDict, const char* key
     QString res;
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
         const GooString *s1 = obj.getString();
-        QByteArray ba(s1->c_str());
-        res = CGenericFuncs::detectDecodeToUnicode(ba);
-        res.replace(QSL("&"),  QSL("&amp;"));
-        res.replace(QSL("'"),  QSL("&apos;" ));
-        res.replace(QSL("\""), QSL("&quot;" ));
-        res.replace(QSL("<"),  QSL("&lt;" ));
-        res.replace(QSL(">"),  QSL("&gt;" ));
+        const QByteArray ba(s1->c_str());
+        res = CGenericFuncs::encodeHtmlEntities(
+                  CGenericFuncs::detectDecodeToUnicode(ba));
     }
     if (!res.isEmpty())
         out.append(QString(fmt).arg(res));

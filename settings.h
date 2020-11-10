@@ -115,7 +115,7 @@ public:
     QStringList charsetHistory;
 
     QVector<CLangPair> translatorPairs;
-    CSslCertificateHash atlCerts;
+    CSslCertificateHash sslTrustedInvalidCerts;
     CTranslatorStatistics translatorStatistics;
     CSelectedLangPairs selectedLangPairs;
 

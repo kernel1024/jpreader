@@ -69,7 +69,7 @@ public:
     QHash<QString, CUserScript> userScripts;
     QMutex userScriptsMutex;
     bool cleaningState { false };
-    bool atlCertErrorInteractive { false };
+    bool sslCertErrorInteractive { false };
 
     CAdBlockVector adblock;
     QMutex adblockModifyMutex;

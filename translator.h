@@ -62,6 +62,7 @@ private:
     QFont m_overrideTransFont;
     QUrl m_metaSrcUrl;
     QStringList m_imgUrls;
+    QStringList m_allAnchorUrls;
     QString m_title;
     QUrl m_origin;
     int m_retryCount { 0 };
@@ -93,6 +94,7 @@ public:
     ~CTranslator() override = default;
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
+    QStringList getAnchorUrls() const;
     QString workerDescription() const override;
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);

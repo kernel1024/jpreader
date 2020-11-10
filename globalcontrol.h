@@ -77,9 +77,9 @@ public:
     bool containsNoScriptWhitelist(const QString& host) const;
 
     // Password management
-    void readPassword(const QUrl &origin, QString &user, QString &password) const;
-    void savePassword(const QUrl &origin, const QString &user, const QString &password) const;
-    bool haveSavedPassword(const QUrl &origin) const;
+    void readPassword(const QUrl &origin, const QString &realm, QString &user, QString &password) const;
+    void savePassword(const QUrl &origin, const QString &realm, const QString &user, const QString &password) const;
+    bool haveSavedPassword(const QUrl &origin, const QString &realm) const;
     void removePassword(const QUrl &origin) const;
     QUrl cleanUrlForRealm(const QUrl &origin) const;
 
@@ -108,6 +108,7 @@ public:
     // Network
     QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request);
     QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data);
+    QList<QSslError> ignoredSslErrorsList() const;
 
     // Chromium
     QWebEngineProfile* webProfile() const;
@@ -199,8 +200,14 @@ public Q_SLOTS:
     void cookieRemoved(const QNetworkCookie &cookie);
 
     // ATLAS SSL
-    void atlSSLCertErrors(const QSslCertificate& cert, const QStringList& errors,
-                          const CIntList& errCodes);
+    bool sslCertErrors(const QSslCertificate& cert, const QStringList& errors,
+                       const CIntList& errCodes);
+
+private Q_SLOTS:
+    void authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator) const;
+    void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) const;
+    void auxSSLCertError(QNetworkReply *reply, const QList<QSslError> &errors);
+
 };
 
 #endif // QGLOBALSETTINGS_H

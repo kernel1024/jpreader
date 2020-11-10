@@ -9,8 +9,9 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
 {
     ui->setupUi(this);
 
-    u_origin = origin;
+    m_origin = origin;
     m_autofillLogin = autofillLogin;
+    m_realm = realm;
 
     if (!realm.isEmpty()) {
         ui->labelRealm->setText(realm);
@@ -23,7 +24,7 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
     if (origin.isValid()) {
         QString user;
         QString pass;
-        gSet->readPassword(origin,user,pass);
+        gSet->readPassword(origin,realm,user,pass);
         ui->lineUser->setText(user);
         ui->linePassword->setText(pass);
     }
@@ -54,8 +55,8 @@ QString CAuthDlg::getPassword()
 
 void CAuthDlg::acceptPass()
 {
-    if (ui->checkSavePassword->isChecked() && u_origin.isValid())
-        gSet->savePassword(u_origin,getUser(),getPassword());
+    if (ui->checkSavePassword->isChecked() && m_origin.isValid())
+        gSet->savePassword(m_origin,m_realm,getUser(),getPassword());
     accept();
 }
 

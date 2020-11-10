@@ -337,7 +337,7 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("dialog-password")),
                       tr("Form autofill"));
-    if (gSet->haveSavedPassword(origin)) {
+    if (gSet->haveSavedPassword(origin,QString())) {
         ac = ccm->addAction(QIcon::fromTheme(QSL("tools-wizard")),
                             tr("Insert username and password"),
                             snv->msgHandler,&CSnMsgHandler::pastePassword);
@@ -399,8 +399,12 @@ void CSnCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuDa
 
     ccm->addSeparator();
 
-    ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
-                   snv->transHandler,&CSnTrans::getImgUrlsAndParse);
+    ac = ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
+                        snv->transHandler,&CSnTrans::getUrlsFromPageAndParse);
+    ac->setData(static_cast<int>(CSnTrans::UrlsExtractorMode::uemImages));
+    ac = ccm->addAction(QIcon::fromTheme(QSL("download")),tr("Download all links"),
+                        snv->transHandler,&CSnTrans::getUrlsFromPageAndParse);
+    ac->setData(static_cast<int>(CSnTrans::UrlsExtractorMode::uemAllFiles));
 
     ccm->addSeparator();
 
