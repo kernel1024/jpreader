@@ -75,20 +75,14 @@ bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply, int *httpStat
 
     timer.stop();
 
-    QVariant vstatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    bool statusOk = false;
-    *httpStatus = vstatus.toInt(&statusOk);
-    if (!statusOk)
-        *httpStatus = CDefaults::httpCodeClientUnknownError;
+    *httpStatus = CGenericFuncs::getHttpStatusFromReply(reply);
 
     bool queryOk = reply->isFinished() && (reply->bytesAvailable()>0) && (reply->error()==QNetworkReply::NoError);
 
     if (!queryOk) {
         qCritical() << "WebAPI query failed: " << reply->url();
         qCritical() << " --- Error: " << reply->error() << ", " << reply->errorString();
-
-        if (statusOk)
-            qCritical() << " --- HTTP status code : " << (*httpStatus);
+        qCritical() << " --- HTTP status code : " << (*httpStatus);
     }
 
     return queryOk;

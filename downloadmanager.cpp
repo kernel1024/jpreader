@@ -63,63 +63,209 @@ CDownloadManager::~CDownloadManager()
     delete ui;
 }
 
-void CDownloadManager::handleAuxDownload(const QString& src, const QString& suggestedFilename,
+bool CDownloadManager::handleAuxDownload(const QString& src, const QString& suggestedFilename,
                                          const QString& containerPath, const QUrl& referer,
-                                         int index, int maxIndex, bool isFanbox, bool relaxedRedirects)
+                                         int index, int maxIndex, bool isFanbox, bool isPatreon,
+                                         bool &forceOverwrite)
 {
-    QUrl url(src);
-    if (!url.isValid() || url.isRelative()) return;
-
-    QString fname;
-    if (index>=0)
-        fname.append(QSL("%1_").arg(CGenericFuncs::paddedNumber(index,maxIndex)));
-    if (suggestedFilename.isEmpty()) {
-        fname.append(CGenericFuncs::decodeHtmlEntities(url.fileName()));
-    } else {
-        fname.append(suggestedFilename);
-    }
-    if (containerPath.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
-        fname = QSL("%1%2%3").arg(containerPath).arg(CDefaults::zipSeparator).arg(fname);
-    } else {
-        fname = QDir(containerPath).filePath(fname);
-    }
-
     if (!isVisible())
         show();
 
-    if (fname.isNull() || fname.isEmpty()) return;
+    QUrl url(src);
+    if (!url.isValid() || url.isRelative()) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Download URL is invalid."));
+        return false;
+    }
+
+    bool isZipTarget = false;
+    QString fname;
+    if (!computeFileName(fname,isZipTarget,index,maxIndex,url,containerPath,suggestedFilename)) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Computed file name is empty."));
+        return false;
+    }
+
     gSet->setSavedAuxSaveDir(containerPath);
 
+    qint64 offset = 0L;
+    QFileInfo fi(fname);
+    if (fi.exists() && !forceOverwrite && !isZipTarget) {
+        QMessageBox mbox;
+        mbox.setWindowTitle(QGuiApplication::applicationDisplayName());
+        mbox.setText(tr("File %1 exists.").arg(fi.fileName()));
+        mbox.setDetailedText(tr("Full path: %1").arg(fname));
+        QPushButton *btnOverwrite = mbox.addButton(tr("Overwrite"),QMessageBox::YesRole);
+        QPushButton *btnOverwriteAll = mbox.addButton(tr("Overwrite all"),QMessageBox::AcceptRole);
+        QPushButton *btnResume = mbox.addButton(tr("Resume download"),QMessageBox::NoRole);
+        QPushButton *btnAbort = mbox.addButton(QMessageBox::Abort);
+        mbox.setDefaultButton(btnOverwriteAll);
+        mbox.exec();
+        if (mbox.clickedButton() == btnOverwrite) {
+            offset = 0L;
+        } else if (mbox.clickedButton() == btnOverwriteAll) {
+            forceOverwrite = true;
+        } else if (mbox.clickedButton() == btnResume) {
+            offset = fi.size();
+        } else if (mbox.clickedButton() == btnAbort) {
+            return false;
+        }
+    }
+
+    // create common request (for HEAD and GET)
     QNetworkRequest req(url);
     req.setRawHeader("referer",referer.toString().toUtf8());
     if (isFanbox)
         req.setRawHeader("origin","https://www.fanbox.cc");
-    if (relaxedRedirects) {
+    if (isPatreon) {
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::UserVerifiedRedirectPolicy);
     } else {
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
     }
     req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
+
+    // we need HEAD request for file size calculation
+    if (offset > 0L) {
+        QNetworkReply* rpl = gSet->auxNetworkAccessManagerHead(req);
+        m_headFileRequests.insert(reinterpret_cast<quintptr>(rpl),qMakePair(fname,offset));
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CDownloadManager::headRequestFailed);
+        connect(rpl,&QNetworkReply::finished,this,&CDownloadManager::headRequestFinished);
+        if (rpl->request().attribute(QNetworkRequest::RedirectPolicyAttribute).toInt()
+                == QNetworkRequest::UserVerifiedRedirectPolicy) {
+            connect(rpl,&QNetworkReply::redirected,this,&CDownloadManager::requestRedirected);
+        }
+        return true;
+    }
+
+    // download file from start
+    createDownloadForNetworkRequest(req,fname,offset);
+    return true;
+}
+
+void CDownloadManager::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
+                                                       qint64 offset)
+{
+    QNetworkRequest req = request;
+    req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true); // NOTE: experimental
     QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
     connect(rpl, &QNetworkReply::finished,
             m_model, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
             m_model, &CDownloadsModel::downloadProgress);
-    if (relaxedRedirects) {
-        connect(rpl,&QNetworkReply::redirected,rpl,[rpl,url](const QUrl& rurl) {
-
-            // redirect rules
-            if (url.host().endsWith(QSL("patreon.com"),Qt::CaseInsensitive) &&
-                    (rurl.host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
-                     rurl.host().endsWith(QSL(".patreonusercontent.com")))) {
-
-                Q_EMIT rpl->redirectAllowed();
-            }
-        });
+    if (rpl->request().attribute(QNetworkRequest::RedirectPolicyAttribute).toInt()
+            == QNetworkRequest::UserVerifiedRedirectPolicy) {
+        connect(rpl,&QNetworkReply::redirected,this,&CDownloadManager::requestRedirected);
     }
 
-    m_model->appendItem(CDownloadItem(rpl, fname));
+    CDownloadItem item(rpl, fileName, offset);
+    m_model->makeWriterJob(item);
+    m_model->appendItem(item);
+
+    connect(rpl, &QNetworkReply::readyRead, [item,rpl](){
+        int httpStatus = CGenericFuncs::getHttpStatusFromReply(rpl);
+        if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
+            const QByteArray data = rpl->readAll();
+            QMetaObject::invokeMethod(item.writer, [item,data](){
+                item.writer->appendBytesToFile(data);
+            }, Qt::QueuedConnection);
+        }
+    });
+}
+
+void CDownloadManager::headRequestFinished()
+{
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
+
+    int httpStatus = CGenericFuncs::getHttpStatusFromReply(rpl.data());
+
+    qint64 length = -1L;
+    if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
+        bool ok = false;
+        length = rpl->header(QNetworkRequest::ContentLengthHeader).toLongLong(&ok);
+    }
+
+    QNetworkRequest req = rpl->request();
+    auto fileData = m_headFileRequests.take(reinterpret_cast<quintptr>(rpl.data()));
+    if (fileData.first.isEmpty()) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Failed to request file size from server and continue download\n"
+                                 "for URL %1.")
+                              .arg(req.url().toString()));
+        return;
+    }
+
+    // Range header
+    QString range = QSL("bytes=%1-")
+                    .arg(fileData.second);
+    if (length>=0)
+        range.append(QSL("%1").arg(length));
+    req.setRawHeader("Range", range.toLatin1());
+
+    // download file from offset
+    createDownloadForNetworkRequest(req,fileData.first,fileData.second);
+}
+
+void CDownloadManager::headRequestFailed(QNetworkReply::NetworkError error)
+{
+    Q_UNUSED(error)
+
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
+
+    QNetworkRequest req = rpl->request();
+    auto fileData = m_headFileRequests.take(reinterpret_cast<quintptr>(rpl.data()));
+    if (fileData.first.isEmpty()) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Failed to request file size from server and continue download\n"
+                                 "for URL %1.\n"
+                                 "Network error: %2")
+                              .arg(req.url().toString()),rpl->errorString());
+        return;
+    }
+
+    qWarning() << tr("HEAD request failed for URL %1, %2.")
+                  .arg(req.url().toString(),rpl->errorString());
+
+    // HEAD request failed, assume simple download from start
+    createDownloadForNetworkRequest(req,fileData.first,0L);
+}
+
+void CDownloadManager::requestRedirected(const QUrl &url)
+{
+    QPointer<QNetworkReply> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (rpl.isNull()) return;
+
+    // redirect rules
+    if (url.host().endsWith(QSL("patreon.com"),Qt::CaseInsensitive) &&
+            (rpl->request().url().host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
+             rpl->request().url().host().endsWith(QSL(".patreonusercontent.com")))) {
+
+        Q_EMIT rpl->redirectAllowed();
+    }
+}
+
+bool CDownloadManager::computeFileName(QString &fileName, bool &isZipTarget,
+                                       int index, int maxIndex,
+                                       const QUrl &url, const QString &containerPath,
+                                       const QString &suggestedFilename) const
+{
+    if (index>=0)
+        fileName.append(QSL("%1_").arg(CGenericFuncs::paddedNumber(index,maxIndex)));
+    if (suggestedFilename.isEmpty()) {
+        fileName.append(CGenericFuncs::decodeHtmlEntities(url.fileName()));
+    } else {
+        fileName.append(suggestedFilename);
+    }
+    if (containerPath.endsWith(QSL(".zip"),Qt::CaseInsensitive)) {
+        fileName = QSL("%1%2%3").arg(containerPath).arg(CDefaults::zipSeparator).arg(fileName);
+        isZipTarget = true;
+    } else {
+        fileName = QDir(containerPath).filePath(fileName);
+    }
+
+    return (!(fileName.isEmpty()));
 }
 
 void CDownloadManager::setProgressLabel(const QString &text)
@@ -450,16 +596,20 @@ void CDownloadsModel::downloadFinished()
         m_downloads[row].state = item->state();
 
     if (rpl) {
-        if (rpl->error()==QNetworkReply::NoError) {
-            QUuid uuid = m_downloads.at(row).auxId;
-            makeWriterJob(m_downloads.at(row).getZipName(),
-                          m_downloads.at(row).getFileName(),
-                          rpl->readAll(),uuid);
-        } else {
+        bool success = true;
+        if (rpl->error()!=QNetworkReply::NoError) {
+            success = false;
             m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
         }
         m_downloads[row].reply = nullptr;
+
+        QPointer writer = m_downloads.at(row).writer;
+        if (writer) {
+            QMetaObject::invokeMethod(writer,[writer,success](){
+                writer->finalizeFile(success);
+            },Qt::QueuedConnection);
+        }
 
     } else if (item) {
 
@@ -478,18 +628,21 @@ void CDownloadsModel::downloadFinished()
     }
 }
 
-void CDownloadsModel::makeWriterJob(const QString &zipFileName, const QString &fileName,
-                                    const QByteArray &data, const QUuid &uuid) const
+void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
 {
-    auto *writer = new CDownloadWriter(nullptr,zipFileName,fileName,data,uuid);
-    gSet->setupThreadedWorker(writer);
+    item.writer = new CDownloadWriter(nullptr,
+                                      item.getZipName(),
+                                      item.getFileName(),
+                                      item.initialOffset,
+                                      item.auxId);
+    gSet->setupThreadedWorker(item.writer);
 
-    connect(writer,&CDownloadWriter::writeComplete,
+    connect(item.writer,&CDownloadWriter::writeComplete,
             this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
-    connect(writer,&CDownloadWriter::error,
+    connect(item.writer,&CDownloadWriter::error,
             this,&CDownloadsModel::writerError,Qt::QueuedConnection);
 
-    QMetaObject::invokeMethod(writer,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+    QMetaObject::invokeMethod(item.writer,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
 
 void CDownloadsModel::downloadStateChanged(QWebEngineDownloadItem::DownloadState state)
@@ -524,8 +677,8 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     if (row<0 || row>=m_downloads.count()) return;
 
     m_downloads[row].oldReceived = m_downloads.at(row).received;
-    m_downloads[row].received = bytesReceived;
-    m_downloads[row].total = bytesTotal;
+    m_downloads[row].received = bytesReceived + m_downloads.at(row).initialOffset;
+    m_downloads[row].total = bytesTotal + m_downloads.at(row).initialOffset;
 
     m_manager->addReceivedBytes(m_downloads.at(row).received
                                 - m_downloads.at(row).oldReceived);
@@ -767,7 +920,7 @@ CDownloadItem::CDownloadItem(const QUuid &uuid)
     auxId = uuid;
 }
 
-CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
+CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname, const qint64 offset)
 {
     pathName = fname;
     mimeType = QSL("application/download");
@@ -775,6 +928,8 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname)
     reply = rpl;
     url = rpl->url();
     auxId = QUuid::createUuid();
+    initialOffset = offset;
+    received = offset;
 }
 
 bool CDownloadItem::operator==(const CDownloadItem &s) const

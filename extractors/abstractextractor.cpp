@@ -464,10 +464,9 @@ void CAbstractExtractor::showError(const QString &message)
 void CAbstractExtractor::loadError(QNetworkReply::NetworkError error)
 {
     Q_UNUSED(error)
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
 
     QString msg(QSL("Unable to load from site."));
-
-    auto *rpl = qobject_cast<QNetworkReply *>(sender());
     if (rpl)
         msg.append(QSL(" %1").arg(rpl->errorString()));
 

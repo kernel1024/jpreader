@@ -8,6 +8,7 @@
 #include <QWidget>
 #include <QFileDialog>
 #include <QElapsedTimer>
+#include <QNetworkReply>
 
 namespace CDefaults {
 const int httpCodeFound = 200;
@@ -65,6 +66,7 @@ public:
     static QString makeSafeFilename(const QString &text);
     static QString encodeHtmlEntities(const QString &text);
     static QString decodeHtmlEntities(const QString &text);
+    static int getHttpStatusFromReply(QNetworkReply *reply);
 
     static QString getOpenFileNameD ( QWidget * parent = nullptr, const QString & caption = QString(),
                                       const QString & dir = QString(), const QStringList & filters = QStringList(),

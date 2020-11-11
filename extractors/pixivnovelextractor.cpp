@@ -182,12 +182,7 @@ void CPixivNovelExtractor::subLoadFinished()
     QUrl rplUrl = rpl->url();
     QString key = rplUrl.fileName();
 
-    int httpStatus = -1;
-    QVariant vstat = rpl->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    if (vstat.isValid()) {
-        bool ok = false;
-        httpStatus = vstat.toInt(&ok);
-    }
+    int httpStatus = CGenericFuncs::getHttpStatusFromReply(rpl.data());
 
     if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
         // valid page without redirect or error

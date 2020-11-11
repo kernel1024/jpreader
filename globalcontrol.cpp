@@ -44,6 +44,8 @@ extern "C" {
 #include "structures.h"
 #include "globalprivate.h"
 
+// TODO: some refactoring needed, separate network code, initialization/cleanup code, window management, browser logic facility
+
 namespace CDefaults {
 const auto ipcEOF = "\n###";
 const int tabListSavePeriod = 30000;
@@ -465,6 +467,17 @@ QList<QSslError> CGlobalControl::ignoredSslErrorsList() const
     }
 
     return expectedErrors;
+}
+
+QNetworkReply *CGlobalControl::auxNetworkAccessManagerHead(const QNetworkRequest &request)
+{
+    Q_D(const CGlobalControl);
+    QNetworkRequest req = request;
+    if (!m_settings->userAgent.isEmpty())
+        req.setRawHeader("User-Agent", m_settings->userAgent.toLatin1());
+    QNetworkReply *res = d->auxNetManager->head(req);
+    res->ignoreSslErrors(ignoredSslErrorsList());
+    return res;
 }
 
 QNetworkReply *CGlobalControl::auxNetworkAccessManagerGet(const QNetworkRequest &request)

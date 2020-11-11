@@ -192,6 +192,18 @@ QString CGenericFuncs::decodeHtmlEntities(const QString &text)
     return res;
 }
 
+int CGenericFuncs::getHttpStatusFromReply(QNetworkReply *reply)
+{
+    int httpStatus = CDefaults::httpCodeClientUnknownError;
+    QVariant vstat = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    if (vstat.isValid()) {
+        bool ok = false;
+        httpStatus = vstat.toInt(&ok);
+    }
+
+    return httpStatus;
+}
+
 QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &content,
                                       bool integratedTitle, const QUrl& origin)
 {

@@ -17,6 +17,7 @@ class CDownloadManager;
 
 class CDownloadsModel;
 class CDownloadBarDelegate;
+class CDownloadWriter;
 
 class CDownloadItem
 {
@@ -29,8 +30,10 @@ public:
     qint64 oldReceived { 0L };
     qint64 received { 0L };
     qint64 total { 0L };
+    qint64 initialOffset { 0L };
     QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
+    QPointer<CDownloadWriter> writer;
     QUuid auxId;
     QUrl url;
 
@@ -42,7 +45,7 @@ public:
     explicit CDownloadItem(QNetworkReply* rpl);
     explicit CDownloadItem(QWebEngineDownloadItem* item);
     explicit CDownloadItem(const QUuid& uuid);
-    CDownloadItem(QNetworkReply* rpl, const QString& fname);
+    CDownloadItem(QNetworkReply* rpl, const QString& fname, const qint64 offset);
     ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other) = default;
     bool operator==(const CDownloadItem &s) const;
@@ -63,9 +66,9 @@ class CDownloadManager : public QDialog
 public:
     explicit CDownloadManager(QWidget *parent = nullptr);
     ~CDownloadManager() override;
-    void handleAuxDownload(const QString &src, const QString &suggestedFilename,
+    bool handleAuxDownload(const QString &src, const QString &suggestedFilename,
                            const QString &containerPath, const QUrl& referer, int index,
-                           int maxIndex, bool isFanbox, bool relaxedRedirects);
+                           int maxIndex, bool isFanbox, bool isPatreon, bool &forceOverwrite);
     void setProgressLabel(const QString& text);
     qint64 receivedBytes() const;
     void addReceivedBytes(qint64 size);
@@ -75,14 +78,24 @@ public Q_SLOTS:
     void contextMenu(const QPoint& pos);
     void updateWriterStatus();
 
+private Q_SLOTS:
+    void headRequestFinished();
+    void headRequestFailed(QNetworkReply::NetworkError error);
+    void requestRedirected(const QUrl &url);
+
 private:
     Ui::CDownloadManager *ui;
+    QHash<quintptr,QPair<QString,qint64> > m_headFileRequests;
     CDownloadsModel *m_model;
     QTimer m_writerStatusTimer;
     qint64 m_receivedBytes { 0L };
     bool m_firstResize { true };
 
     Q_DISABLE_COPY(CDownloadManager)
+
+    bool computeFileName(QString &fileName, bool &isZipTarget, int index, int maxIndex, const QUrl &url,
+                         const QString &containerPath, const QString &suggestedFilename) const;
+    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset);
 
 protected:
     void closeEvent(QCloseEvent * event) override;
@@ -102,8 +115,6 @@ private:
 
     void updateProgressLabel();
     bool abortDownloadPriv(int row);
-    void makeWriterJob(const QString &zipFileName, const QString &fileName,
-                       const QByteArray &data, const QUuid &uuid) const;
 
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
@@ -118,6 +129,7 @@ public:
 
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
+    void makeWriterJob(CDownloadItem &item) const;
 
 public Q_SLOTS:
     void appendItem(const CDownloadItem& item);

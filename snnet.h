@@ -24,7 +24,7 @@ public:
     explicit CSnNet(CSnippetViewer * parent);
     void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
                           const QString &containerName = QString(), bool isFanbox = false,
-                          bool relaxedRedirects = false);
+                          bool isPatreon = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);

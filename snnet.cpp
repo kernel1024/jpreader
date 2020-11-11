@@ -42,7 +42,7 @@ CSnNet::CSnNet(CSnippetViewer *parent)
 }
 
 void CSnNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& containerName,
-                              bool isFanbox, bool relaxedRedirects)
+                              bool isFanbox, bool isPatreon)
 {
     static QSize multiImgDialogSize = QSize();
 
@@ -126,6 +126,7 @@ void CSnNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& re
 
     int index = 0;
     const QModelIndexList itml = ui.table->selectionModel()->selectedRows(0);
+    bool forceOverwrite = false;
     for (const auto &itm : itml){
         if (!ui.checkAddNumbers->isChecked()) {
             index = -1;
@@ -137,7 +138,7 @@ void CSnNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& re
         QString url = ui.table->item(itm.row(),1)->text();
 
         gSet->downloadManager()->handleAuxDownload(url,filename,container,referer,index,
-                                                   itml.count(),isFanbox,relaxedRedirects);
+                                                   itml.count(),isFanbox,isPatreon,forceOverwrite);
     }
 }
 

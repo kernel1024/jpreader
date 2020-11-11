@@ -106,6 +106,7 @@ public:
     void addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength);
 
     // Network
+    QNetworkReply *auxNetworkAccessManagerHead(const QNetworkRequest &request);
     QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request);
     QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data);
     QList<QSslError> ignoredSslErrorsList() const;
