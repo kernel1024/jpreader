@@ -18,6 +18,9 @@ const char zipSeparator = 0x00;
 const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
 const int downloadManagerColumnCount = 4;
+const auto replyAuxId = "replyAuxID";
+const auto replyHeadFileName = "replyHeadFileName";
+const auto replyHeadOffset = "replyHeadOffset";
 }
 
 CDownloadManager::CDownloadManager(QWidget *parent) :
@@ -68,7 +71,6 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
                                          int index, int maxIndex, bool isFanbox, bool isPatreon,
                                          bool &forceOverwrite)
 {
-    // TODO: do not allocate all workers at once (too many threads). Use QThreadPool or use manual control.
     if (!isVisible())
         show();
 
@@ -130,47 +132,56 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     // we need HEAD request for file size calculation
     if (offset > 0L) {
         QNetworkReply* rpl = gSet->auxNetworkAccessManagerHead(req);
-        m_headFileRequests.insert(reinterpret_cast<quintptr>(rpl),qMakePair(fname,offset));
+        rpl->setProperty(CDefaults::replyHeadFileName,fname);
+        rpl->setProperty(CDefaults::replyHeadOffset,offset);
         connect(rpl,&QNetworkReply::errorOccurred,this,&CDownloadManager::headRequestFailed);
         connect(rpl,&QNetworkReply::finished,this,&CDownloadManager::headRequestFinished);
         if (rpl->request().attribute(QNetworkRequest::RedirectPolicyAttribute).toInt()
                 == QNetworkRequest::UserVerifiedRedirectPolicy) {
-            connect(rpl,&QNetworkReply::redirected,this,&CDownloadManager::requestRedirected);
+            connect(rpl,&QNetworkReply::redirected,m_model,&CDownloadsModel::requestRedirected);
         }
         return true;
     }
 
     // download file from start
-    createDownloadForNetworkRequest(req,fname,offset);
+    m_model->createDownloadForNetworkRequest(req,fname,offset);
     return true;
 }
 
-void CDownloadManager::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
-                                                       qint64 offset)
+void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
+                                                     qint64 offset)
 {
     QNetworkRequest req = request;
-    req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true); // NOTE: experimental
+    req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true);
     QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
 
+    appendItem(CDownloadItem(rpl, fileName, offset));
+
     connect(rpl, &QNetworkReply::finished,
-            m_model, &CDownloadsModel::downloadFinished);
+            this, &CDownloadsModel::downloadFinished);
     connect(rpl, &QNetworkReply::downloadProgress,
-            m_model, &CDownloadsModel::downloadProgress);
+            this, &CDownloadsModel::downloadProgress);
+
     if (rpl->request().attribute(QNetworkRequest::RedirectPolicyAttribute).toInt()
             == QNetworkRequest::UserVerifiedRedirectPolicy) {
-        connect(rpl,&QNetworkReply::redirected,this,&CDownloadManager::requestRedirected);
+        connect(rpl,&QNetworkReply::redirected,this,&CDownloadsModel::requestRedirected);
     }
 
-    CDownloadItem item(rpl, fileName, offset);
-    m_model->makeWriterJob(item);
-    m_model->appendItem(item);
+    connect(rpl, &QNetworkReply::readyRead, [this,rpl](){
 
-    connect(rpl, &QNetworkReply::readyRead, [item,rpl](){
         int httpStatus = CGenericFuncs::getHttpStatusFromReply(rpl);
+
         if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
+            const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
+            int idx = m_downloads.indexOf(CDownloadItem(id));
+            Q_ASSERT(idx>=0);
+            if (m_downloads.at(idx).writer.isNull())
+                makeWriterJob(m_downloads[idx]);
+
             const QByteArray data = rpl->readAll();
-            QMetaObject::invokeMethod(item.writer, [item,data](){
-                item.writer->appendBytesToFile(data);
+            QPointer<CDownloadWriter> writer(m_downloads.at(idx).writer);
+            QMetaObject::invokeMethod(writer, [writer,data](){
+                writer->appendBytesToFile(data);
             }, Qt::QueuedConnection);
         }
     });
@@ -190,24 +201,18 @@ void CDownloadManager::headRequestFinished()
     }
 
     QNetworkRequest req = rpl->request();
-    auto fileData = m_headFileRequests.take(reinterpret_cast<quintptr>(rpl.data()));
-    if (fileData.first.isEmpty()) {
-        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
-                              tr("Failed to request file size from server and continue download\n"
-                                 "for URL %1.")
-                              .arg(req.url().toString()));
-        return;
-    }
+    const QString fileName = rpl->property(CDefaults::replyHeadFileName).toString();
+    const qint64 offset = rpl->property(CDefaults::replyHeadOffset).toLongLong();
 
     // Range header
     QString range = QSL("bytes=%1-")
-                    .arg(fileData.second);
+                    .arg(offset);
     if (length>=0)
         range.append(QSL("%1").arg(length));
     req.setRawHeader("Range", range.toLatin1());
 
     // download file from offset
-    createDownloadForNetworkRequest(req,fileData.first,fileData.second);
+    m_model->createDownloadForNetworkRequest(req,fileName,offset);
 }
 
 void CDownloadManager::headRequestFailed(QNetworkReply::NetworkError error)
@@ -218,24 +223,16 @@ void CDownloadManager::headRequestFailed(QNetworkReply::NetworkError error)
     if (rpl.isNull()) return;
 
     QNetworkRequest req = rpl->request();
-    auto fileData = m_headFileRequests.take(reinterpret_cast<quintptr>(rpl.data()));
-    if (fileData.first.isEmpty()) {
-        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
-                              tr("Failed to request file size from server and continue download\n"
-                                 "for URL %1.\n"
-                                 "Network error: %2")
-                              .arg(req.url().toString()),rpl->errorString());
-        return;
-    }
+    const QString fileName = rpl->property(CDefaults::replyHeadFileName).toString();
 
     qWarning() << tr("HEAD request failed for URL %1, %2.")
                   .arg(req.url().toString(),rpl->errorString());
 
     // HEAD request failed, assume simple download from start
-    createDownloadForNetworkRequest(req,fileData.first,0L);
+    m_model->createDownloadForNetworkRequest(req,fileName,0L);
 }
 
-void CDownloadManager::requestRedirected(const QUrl &url)
+void CDownloadsModel::requestRedirected(const QUrl &url)
 {
     QPointer<QNetworkReply> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull()) return;
@@ -362,7 +359,8 @@ void CDownloadManager::addReceivedBytes(qint64 size)
 
 void CDownloadManager::updateWriterStatus()
 {
-    ui->labelWriter->setVisible(CDownloadWriter::getWorkCount()>0);
+    ui->labelWriter->setVisible((CDownloadWriter::getWorkCount()>0) ||
+                                gSet->zipWriter()->isBusy());
 }
 
 void CDownloadManager::closeEvent(QCloseEvent *event)
@@ -475,8 +473,9 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
                     return QIcon::fromTheme(QSL("task-reject")).pixmap(iconSize);
                 case QWebEngineDownloadItem::DownloadCompleted:
                     return QIcon::fromTheme(QSL("task-complete")).pixmap(iconSize);
-                case QWebEngineDownloadItem::DownloadInProgress:
                 case QWebEngineDownloadItem::DownloadRequested:
+                    return QIcon::fromTheme(QSL("task-ongoing")).pixmap(iconSize);
+                case QWebEngineDownloadItem::DownloadInProgress:
                     return QIcon::fromTheme(QSL("arrow-right")).pixmap(iconSize);
                 case QWebEngineDownloadItem::DownloadInterrupted:
                     return QIcon::fromTheme(QSL("task-attention")).pixmap(iconSize);
@@ -590,10 +589,10 @@ void CDownloadsModel::downloadFinished()
     if (item) {
         row = m_downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        row = m_downloads.indexOf(CDownloadItem(rpl.data()));
+        const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
+        row = m_downloads.indexOf(CDownloadItem(id));
     }
-    if (row<0 || row>=m_downloads.count())
-        return;
+    Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
     if (item) {
         m_downloads[row].state = item->state();
@@ -625,7 +624,6 @@ void CDownloadsModel::downloadFinished()
             (item && (item->state() == QWebEngineDownloadItem::DownloadCompleted)
              && gSet->settings()->downloaderCleanCompleted)) {
 
-        qDebug() << row;
         deleteDownloadItem(index(row,0));
     }
 }
@@ -635,7 +633,8 @@ void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
     item.writer = new CDownloadWriter(nullptr,
                                       item.getZipName(),
                                       item.getFileName(),
-                                      item.initialOffset);
+                                      item.initialOffset,
+                                      item.auxId);
     gSet->setupThreadedWorker(item.writer);
 
     connect(item.writer,&CDownloadWriter::writeComplete,
@@ -673,9 +672,10 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     if (item) {
         row = m_downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        row = m_downloads.indexOf(CDownloadItem(rpl));
+        const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
+        row = m_downloads.indexOf(CDownloadItem(id));
     }
-    if (row<0 || row>=m_downloads.count()) return;
+    Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
     m_downloads[row].oldReceived = m_downloads.at(row).received;
     m_downloads[row].received = bytesReceived + m_downloads.at(row).initialOffset;
@@ -683,6 +683,11 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
     m_manager->addReceivedBytes(m_downloads.at(row).received
                                 - m_downloads.at(row).oldReceived);
+
+    if ((rpl != nullptr) && (m_downloads.at(row).state == QWebEngineDownloadItem::DownloadRequested)) {
+        m_downloads[row].state = QWebEngineDownloadItem::DownloadInProgress;
+        Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
+    }
 
     updateProgressLabel();
 
@@ -748,10 +753,8 @@ void CDownloadsModel::cleanDownload()
             ok = true;
         }
     }
-    if (!ok) {
-        qDebug() << row;
+    if (!ok)
         deleteDownloadItem(index(row,0));
-    }
     updateProgressLabel();
 }
 
@@ -771,7 +774,8 @@ void CDownloadsModel::cleanFinishedDownloads()
 {
     int row = 0;
     while (row<m_downloads.count()) {
-        if (m_downloads.at(row).state!=QWebEngineDownloadItem::DownloadInProgress) {
+        if ((m_downloads.at(row).state!=QWebEngineDownloadItem::DownloadInProgress) &&
+                (m_downloads.at(row).state!=QWebEngineDownloadItem::DownloadRequested)) {
             beginRemoveRows(QModelIndex(),row,row);
             m_downloads.removeAt(row);
             endRemoveRows();
@@ -863,7 +867,7 @@ void CDownloadsModel::openXdg()
 void CDownloadsModel::writerError(const QString &message)
 {
     QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
-    int row = m_downloads.indexOf(CDownloadItem(writer));
+    int row = m_downloads.indexOf(CDownloadItem(writer->getAuxId()));
     if (row<0 || row>=m_downloads.count())
         return;
 
@@ -877,7 +881,7 @@ void CDownloadsModel::writerError(const QString &message)
 void CDownloadsModel::writerCompleted(bool success)
 {
     QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
-    int row = m_downloads.indexOf(CDownloadItem(writer));
+    int row = m_downloads.indexOf(CDownloadItem(writer->getAuxId()));
     if (row<0 || row>=m_downloads.count())
         return;
 
@@ -890,21 +894,13 @@ void CDownloadsModel::writerCompleted(bool success)
 
     Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 
-    if (gSet->settings()->downloaderCleanCompleted && success) {
-        qDebug() << row;
+    if (gSet->settings()->downloaderCleanCompleted && success)
         deleteDownloadItem(index(row,0));
-    }
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)
 {
     id = itemId;
-}
-
-CDownloadItem::CDownloadItem(QNetworkReply *rpl)
-{
-    reply = rpl;
-    url = rpl->url();
 }
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
@@ -924,20 +920,22 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
     }
 }
 
-CDownloadItem::CDownloadItem(CDownloadWriter *w)
+CDownloadItem::CDownloadItem(const QUuid &uuid)
 {
-    writer = w;
+    auxId = uuid;
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname, const qint64 offset)
 {
     pathName = fname;
     mimeType = QSL("application/download");
-    state = QWebEngineDownloadItem::DownloadInProgress;
     reply = rpl;
     url = rpl->url();
     initialOffset = offset;
     received = offset;
+    auxId = QUuid::createUuid();
+
+    rpl->setProperty(CDefaults::replyAuxId,auxId);
 }
 
 bool CDownloadItem::operator==(const CDownloadItem &s) const
@@ -945,10 +943,7 @@ bool CDownloadItem::operator==(const CDownloadItem &s) const
     if (id!=0 && s.id!=0)
         return (id==s.id);
 
-    if (reply!=nullptr && s.reply!=nullptr)
-        return reply==s.reply;
-
-    return writer==s.writer;
+    return auxId==s.auxId;
 }
 
 bool CDownloadItem::operator!=(const CDownloadItem &s) const

@@ -9,6 +9,7 @@
 #include <QNetworkReply>
 #include <QPointer>
 #include <QTimer>
+#include <QUuid>
 
 namespace Ui {
 class CDownloadManager;
@@ -33,6 +34,7 @@ public:
     QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
     QPointer<CDownloadWriter> writer;
+    QUuid auxId;
     QUrl url;
 
     bool autoDelete { false };
@@ -40,10 +42,9 @@ public:
     CDownloadItem() = default;
     CDownloadItem(const CDownloadItem& other) = default;
     explicit CDownloadItem(quint32 itemId);
-    explicit CDownloadItem(QNetworkReply* rpl);
     explicit CDownloadItem(QWebEngineDownloadItem* item);
-    explicit CDownloadItem(CDownloadWriter* w);
     CDownloadItem(QNetworkReply* rpl, const QString& fname, const qint64 offset);
+    explicit CDownloadItem(const QUuid &uuid);
     ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other) = default;
     bool operator==(const CDownloadItem &s) const;
@@ -79,11 +80,9 @@ public Q_SLOTS:
 private Q_SLOTS:
     void headRequestFinished();
     void headRequestFailed(QNetworkReply::NetworkError error);
-    void requestRedirected(const QUrl &url);
 
 private:
     Ui::CDownloadManager *ui;
-    QHash<quintptr,QPair<QString,qint64> > m_headFileRequests;
     CDownloadsModel *m_model;
     QTimer m_writerStatusTimer;
     qint64 m_receivedBytes { 0L };
@@ -93,7 +92,6 @@ private:
 
     bool computeFileName(QString &fileName, bool &isZipTarget, int index, int maxIndex, const QUrl &url,
                          const QString &containerPath, const QString &suggestedFilename) const;
-    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset);
 
 protected:
     void closeEvent(QCloseEvent * event) override;
@@ -128,13 +126,15 @@ public:
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
     void makeWriterJob(CDownloadItem &item) const;
+    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset);
 
-public Q_SLOTS:
     void appendItem(const CDownloadItem& item);
 
+public Q_SLOTS:
     void downloadFinished();
     void downloadStateChanged(QWebEngineDownloadItem::DownloadState state);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void requestRedirected(const QUrl &url);
 
     void abortDownload();
     void abortAll();

@@ -14,6 +14,7 @@
 #include "translator.h"
 #include "uitranslator.h"
 #include "cliworker.h"
+#include "downloadwriter.h"
 #include "zdict/zdictcontroller.h"
 
 class CMainWindow;
@@ -26,6 +27,7 @@ class CBrowserController;
 class CTranslatorCache;
 class CAbstractThreadWorker;
 class CWorkerMonitor;
+class CZipWriter;
 
 class CGlobalControlPrivate : public QObject
 {
@@ -38,6 +40,7 @@ public:
     BookmarksManager *bookmarksManager { nullptr };
     ZDict::ZDictController * dictManager { nullptr };
     CTranslatorCache *translatorCache { nullptr };
+    CZipWriter *zipWriter { nullptr };
 
     QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;
     QScopedPointer<CDownloadManager, QScopedPointerDeleteLater> downloadManager;

@@ -25,6 +25,7 @@ class BookmarksManager;
 class CTranslatorCache;
 class CTranslator;
 class CWorkerMonitor;
+class CZipWriter;
 
 #define gSet (CGlobalControl::instance())
 
@@ -144,6 +145,7 @@ public:
     const QHash<QString,QIcon> &favicons() const;
     ZDict::ZDictController* dictionaryManager() const;
     CTranslatorCache* translatorCache() const;
+    CZipWriter* zipWriter() const;
 
 private:
     Q_DISABLE_COPY(CGlobalControl)

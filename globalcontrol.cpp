@@ -228,7 +228,7 @@ void CGlobalControl::initialize()
 
     if (!cliMode) {
         d->dictManager = new ZDict::ZDictController(this);
-
+        d->zipWriter = new CZipWriter(this);
         d->auxNetManager = new QNetworkAccessManager(this);
         d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
         connect(d->auxNetManager,&QNetworkAccessManager::authenticationRequired,
@@ -784,6 +784,12 @@ CTranslatorCache *CGlobalControl::translatorCache() const
 {
     Q_D(const CGlobalControl);
     return d->translatorCache;
+}
+
+CZipWriter *CGlobalControl::zipWriter() const
+{
+    Q_D(const CGlobalControl);
+    return d->zipWriter;
 }
 
 const CUrlHolderVector &CGlobalControl::recycleBin() const
