@@ -15,17 +15,17 @@ extern "C" {
 QAtomicInteger<int> CDownloadWriter::m_workCount;
 QMutex CDownloadWriter::zipLock;
 
-void CDownloadWriter::handleError(const QString &message, const QUuid& uuid)
+void CDownloadWriter::handleError(const QString &message)
 {
     qCritical() << message;
-    Q_EMIT error(message, uuid);
+    Q_EMIT error(message);
+    Q_EMIT finished();
 }
 
-CDownloadWriter::CDownloadWriter(QObject *parent, const QString &zipFile, const QString &fileName, qint64 offset, const QUuid &uuid)
+CDownloadWriter::CDownloadWriter(QObject *parent, const QString &zipFile, const QString &fileName, qint64 offset)
     : CAbstractThreadWorker(parent),
       m_zipFile(zipFile),
       m_fileName(fileName),
-      m_uuid(uuid),
       m_offset(offset)
 {
 }
@@ -80,7 +80,7 @@ void CDownloadWriter::writeBytesToZip()
         zip_error_init_with_code(&ziperror, errorp);
         const QString error = QSL("Unable to open zip file: %1 %2 %3")
                               .arg(m_zipFile,m_fileName,QString::fromUtf8(zip_error_strerror(&ziperror)));
-        handleError(error,m_uuid);
+        handleError(error);
         return;
     }
 
@@ -92,7 +92,7 @@ void CDownloadWriter::writeBytesToZip()
         zip_close(zip);
         const QString error = QSL("Error adding file to zip: %1 %2 %3")
                               .arg(m_zipFile,m_fileName,QString::fromUtf8(zip_strerror(zip)));
-        handleError(error,m_uuid);
+        handleError(error);
         return;
     }
     m_zipAccumulator.clear();
@@ -108,7 +108,7 @@ void CDownloadWriter::startMain()
     if (m_zipFile.isEmpty()) {
         m_rawFile.setFileName(m_fileName);
         if (!m_rawFile.open(QIODevice::ReadWrite)) {
-            handleError(tr("Unable to write file %1").arg(m_fileName),m_uuid);
+            handleError(tr("Unable to write file %1").arg(m_fileName));
             return;
         }
         m_rawFile.seek(m_offset);
@@ -121,7 +121,7 @@ void CDownloadWriter::appendBytesToFile(const QByteArray &data)
 {
     if (m_zipFile.isEmpty()) {
         if (!m_rawFile.isOpen()) {
-            handleError(tr("File not opened for write %1").arg(m_fileName),m_uuid);
+            handleError(tr("File not opened for write %1").arg(m_fileName));
             return;
         }
 
@@ -153,6 +153,6 @@ void CDownloadWriter::finalizeFile(bool success)
     }
 
     m_workCount--;
-    Q_EMIT writeComplete(m_uuid);
+    Q_EMIT writeComplete(success);
     Q_EMIT finished();
 }

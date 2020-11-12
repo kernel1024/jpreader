@@ -8,7 +8,6 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QPointer>
-#include <QUuid>
 #include <QTimer>
 
 namespace Ui {
@@ -34,7 +33,6 @@ public:
     QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
     QPointer<CDownloadWriter> writer;
-    QUuid auxId;
     QUrl url;
 
     bool autoDelete { false };
@@ -44,7 +42,7 @@ public:
     explicit CDownloadItem(quint32 itemId);
     explicit CDownloadItem(QNetworkReply* rpl);
     explicit CDownloadItem(QWebEngineDownloadItem* item);
-    explicit CDownloadItem(const QUuid& uuid);
+    explicit CDownloadItem(CDownloadWriter* w);
     CDownloadItem(QNetworkReply* rpl, const QString& fname, const qint64 offset);
     ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other) = default;
@@ -149,8 +147,8 @@ public Q_SLOTS:
     void openXdg();
 
 private Q_SLOTS:
-    void writerError(const QString& message, const QUuid& uuid);
-    void writerCompleted(const QUuid& uuid);
+    void writerError(const QString& message);
+    void writerCompleted(bool success);
 
 };
 

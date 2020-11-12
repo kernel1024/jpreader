@@ -68,6 +68,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
                                          int index, int maxIndex, bool isFanbox, bool isPatreon,
                                          bool &forceOverwrite)
 {
+    // TODO: do not allocate all workers at once (too many threads). Use QThreadPool or use manual control.
     if (!isVisible())
         show();
 
@@ -89,26 +90,28 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     gSet->setSavedAuxSaveDir(containerPath);
 
     qint64 offset = 0L;
-    QFileInfo fi(fname);
-    if (fi.exists() && !forceOverwrite && !isZipTarget) {
-        QMessageBox mbox;
-        mbox.setWindowTitle(QGuiApplication::applicationDisplayName());
-        mbox.setText(tr("File %1 exists.").arg(fi.fileName()));
-        mbox.setDetailedText(tr("Full path: %1").arg(fname));
-        QPushButton *btnOverwrite = mbox.addButton(tr("Overwrite"),QMessageBox::YesRole);
-        QPushButton *btnOverwriteAll = mbox.addButton(tr("Overwrite all"),QMessageBox::AcceptRole);
-        QPushButton *btnResume = mbox.addButton(tr("Resume download"),QMessageBox::NoRole);
-        QPushButton *btnAbort = mbox.addButton(QMessageBox::Abort);
-        mbox.setDefaultButton(btnOverwriteAll);
-        mbox.exec();
-        if (mbox.clickedButton() == btnOverwrite) {
-            offset = 0L;
-        } else if (mbox.clickedButton() == btnOverwriteAll) {
-            forceOverwrite = true;
-        } else if (mbox.clickedButton() == btnResume) {
-            offset = fi.size();
-        } else if (mbox.clickedButton() == btnAbort) {
-            return false;
+    if (!isZipTarget) {
+        QFileInfo fi(fname);
+        if (fi.exists() && !forceOverwrite) {
+            QMessageBox mbox;
+            mbox.setWindowTitle(QGuiApplication::applicationDisplayName());
+            mbox.setText(tr("File %1 exists.").arg(fi.fileName()));
+            mbox.setDetailedText(tr("Full path: %1").arg(fname));
+            QPushButton *btnOverwrite = mbox.addButton(tr("Overwrite"),QMessageBox::YesRole);
+            QPushButton *btnOverwriteAll = mbox.addButton(tr("Overwrite all"),QMessageBox::AcceptRole);
+            QPushButton *btnResume = mbox.addButton(tr("Resume download"),QMessageBox::NoRole);
+            QPushButton *btnAbort = mbox.addButton(QMessageBox::Abort);
+            mbox.setDefaultButton(btnOverwriteAll);
+            mbox.exec();
+            if (mbox.clickedButton() == btnOverwrite) {
+                offset = 0L;
+            } else if (mbox.clickedButton() == btnOverwriteAll) {
+                forceOverwrite = true;
+            } else if (mbox.clickedButton() == btnResume) {
+                offset = fi.size();
+            } else if (mbox.clickedButton() == btnAbort) {
+                return false;
+            }
         }
     }
 
@@ -592,28 +595,26 @@ void CDownloadsModel::downloadFinished()
     if (row<0 || row>=m_downloads.count())
         return;
 
-    if (item)
+    if (item) {
         m_downloads[row].state = item->state();
+        m_downloads[row].downloadItem = nullptr;
 
-    if (rpl) {
+    } else if (rpl) {
         bool success = true;
-        if (rpl->error()!=QNetworkReply::NoError) {
+        int status = CGenericFuncs::getHttpStatusFromReply(rpl.data());
+        if ((rpl->error()!=QNetworkReply::NoError) || (status>=CDefaults::httpCodeRedirect)) {
             success = false;
             m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
         }
         m_downloads[row].reply = nullptr;
 
-        QPointer writer = m_downloads.at(row).writer;
+        QPointer<CDownloadWriter> writer = m_downloads.at(row).writer;
         if (writer) {
             QMetaObject::invokeMethod(writer,[writer,success](){
                 writer->finalizeFile(success);
             },Qt::QueuedConnection);
         }
-
-    } else if (item) {
-
-        m_downloads[row].downloadItem = nullptr;
     }
 
     Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1)); // NOLINT
@@ -624,6 +625,7 @@ void CDownloadsModel::downloadFinished()
             (item && (item->state() == QWebEngineDownloadItem::DownloadCompleted)
              && gSet->settings()->downloaderCleanCompleted)) {
 
+        qDebug() << row;
         deleteDownloadItem(index(row,0));
     }
 }
@@ -633,8 +635,7 @@ void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
     item.writer = new CDownloadWriter(nullptr,
                                       item.getZipName(),
                                       item.getFileName(),
-                                      item.initialOffset,
-                                      item.auxId);
+                                      item.initialOffset);
     gSet->setupThreadedWorker(item.writer);
 
     connect(item.writer,&CDownloadWriter::writeComplete,
@@ -747,8 +748,10 @@ void CDownloadsModel::cleanDownload()
             ok = true;
         }
     }
-    if (!ok)
+    if (!ok) {
+        qDebug() << row;
         deleteDownloadItem(index(row,0));
+    }
     updateProgressLabel();
 }
 
@@ -857,9 +860,10 @@ void CDownloadsModel::openXdg()
     }
 }
 
-void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
+void CDownloadsModel::writerError(const QString &message)
 {
-    int row = m_downloads.indexOf(CDownloadItem(uuid));
+    QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
+    int row = m_downloads.indexOf(CDownloadItem(writer));
     if (row<0 || row>=m_downloads.count())
         return;
 
@@ -867,23 +871,29 @@ void CDownloadsModel::writerError(const QString &message, const QUuid &uuid)
     m_downloads[row].errorString = message;
     updateProgressLabel();
 
-
     Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 }
 
-void CDownloadsModel::writerCompleted(const QUuid &uuid)
+void CDownloadsModel::writerCompleted(bool success)
 {
-    int row = m_downloads.indexOf(CDownloadItem(uuid));
+    QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
+    int row = m_downloads.indexOf(CDownloadItem(writer));
     if (row<0 || row>=m_downloads.count())
         return;
 
-    m_downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
+    if (success) {
+        m_downloads[row].state = QWebEngineDownloadItem::DownloadCompleted;
+    } else {
+        m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
+    }
     updateProgressLabel();
 
     Q_EMIT dataChanged(index(row,0),index(row,CDefaults::downloadManagerColumnCount-1));
 
-    if (gSet->settings()->downloaderCleanCompleted)
+    if (gSet->settings()->downloaderCleanCompleted && success) {
+        qDebug() << row;
         deleteDownloadItem(index(row,0));
+    }
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)
@@ -895,7 +905,6 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl)
 {
     reply = rpl;
     url = rpl->url();
-    auxId = QUuid::createUuid();
 }
 
 CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
@@ -915,9 +924,9 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
     }
 }
 
-CDownloadItem::CDownloadItem(const QUuid &uuid)
+CDownloadItem::CDownloadItem(CDownloadWriter *w)
 {
-    auxId = uuid;
+    writer = w;
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname, const qint64 offset)
@@ -927,7 +936,6 @@ CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname, const qin
     state = QWebEngineDownloadItem::DownloadInProgress;
     reply = rpl;
     url = rpl->url();
-    auxId = QUuid::createUuid();
     initialOffset = offset;
     received = offset;
 }
@@ -940,7 +948,7 @@ bool CDownloadItem::operator==(const CDownloadItem &s) const
     if (reply!=nullptr && s.reply!=nullptr)
         return reply==s.reply;
 
-    return auxId==s.auxId;
+    return writer==s.writer;
 }
 
 bool CDownloadItem::operator!=(const CDownloadItem &s) const
@@ -950,7 +958,7 @@ bool CDownloadItem::operator!=(const CDownloadItem &s) const
 
 bool CDownloadItem::isEmpty() const
 {
-    return (id==0 && reply==nullptr && auxId.isNull() && downloadItem==nullptr && pathName.isEmpty());
+    return (id==0 && reply==nullptr && writer.isNull() && downloadItem==nullptr && pathName.isEmpty());
 }
 
 QString CDownloadItem::getFileName() const
