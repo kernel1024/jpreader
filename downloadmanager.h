@@ -57,13 +57,14 @@ public:
 Q_DECLARE_METATYPE(CDownloadItem)
 
 class CDownloadsModel;
+class CZipWriter;
 
 class CDownloadManager : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit CDownloadManager(QWidget *parent = nullptr);
+    CDownloadManager(QWidget *parent, CZipWriter *zipWriter);
     ~CDownloadManager() override;
     bool handleAuxDownload(const QString &src, const QString &suggestedFilename,
                            const QString &containerPath, const QUrl& referer, int index,
@@ -80,6 +81,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void headRequestFinished();
     void headRequestFailed(QNetworkReply::NetworkError error);
+    void zipWriterError(const QString& message);
 
 private:
     Ui::CDownloadManager *ui;
@@ -87,6 +89,7 @@ private:
     QTimer m_writerStatusTimer;
     qint64 m_receivedBytes { 0L };
     bool m_firstResize { true };
+    int m_zipErrorCount { 0 };
 
     Q_DISABLE_COPY(CDownloadManager)
 

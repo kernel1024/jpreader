@@ -58,6 +58,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
             m_titleTran.data(), &CTitlesTranslator::stop,Qt::QueuedConnection);
     connect(this, &CPixivIndexTab::translateTitlesAndTags,
             m_titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
+    thread->setObjectName(QSL("PixivTabTran"));
     thread->start();
 
     ui->frameTranslator->hide();
@@ -365,7 +366,10 @@ void CPixivIndexTab::processExtractorAction()
                               tr("Failed to initialize extractor."));
         return;
     }
-    gSet->setupThreadedWorker(ex);
+    if (!gSet->setupThreadedWorker(ex)) {
+        delete ex;
+        return;
+    }
 
     connect(ex,&CAbstractExtractor::novelReady,gSet,[]
             (const QString &html, bool focus, bool translate){

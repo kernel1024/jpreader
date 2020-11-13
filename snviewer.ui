@@ -187,19 +187,24 @@
          <string>Zoom</string>
         </property>
         <property name="currentIndex">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="maxVisibleItems">
          <number>20</number>
         </property>
         <item>
          <property name="text">
-          <string>10%</string>
+          <string>25%</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>25%</string>
+          <string>30%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>40%</string>
          </property>
         </item>
         <item>
@@ -259,17 +264,12 @@
         </item>
         <item>
          <property name="text">
+          <string>400%</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>500%</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>750%</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>1000%</string>
          </property>
         </item>
        </widget>

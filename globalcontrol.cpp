@@ -153,7 +153,8 @@ void CGlobalControl::initialize()
         QCoreApplication::installTranslator(d->uiTranslator.data());
 
         d->logWindow.reset(new CLogDisplay());
-        d->downloadManager.reset(new CDownloadManager());
+        d->zipWriter = new CZipWriter(this);
+        d->downloadManager.reset(new CDownloadManager(nullptr,d->zipWriter));
         d->bookmarksManager = new BookmarksManager(this);
         d->workerMonitor.reset(new CWorkerMonitor());
 
@@ -228,7 +229,6 @@ void CGlobalControl::initialize()
 
     if (!cliMode) {
         d->dictManager = new ZDict::ZDictController(this);
-        d->zipWriter = new CZipWriter(this);
         d->auxNetManager = new QNetworkAccessManager(this);
         d->auxNetManager->setCookieJar(new CNetworkCookieJar(d->auxNetManager));
         connect(d->auxNetManager,&QNetworkAccessManager::authenticationRequired,
@@ -986,14 +986,17 @@ void CGlobalControl::stopAndCloseWorkers()
     QElapsedTimer tmr;
 
     Q_EMIT stopWorkers();
+    d->zipWriter->abortAllWorkers();
 
     tmr.start();
-    while (!d->workerPool.isEmpty() &&
-           tmr.elapsed() < CDefaults::workerMaxShutdownTimeMS) {
+    while ((!d->workerPool.isEmpty() || CZipWriter::isBusy()) &&
+           (tmr.elapsed() < CDefaults::workerMaxShutdownTimeMS)) {
         CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
     }
     CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
 
+    if (CZipWriter::isBusy())
+        d->zipWriter->terminateAllWorkers();
     if (!d->workerPool.isEmpty()) {
         Q_EMIT terminateWorkers();
         tmr.start();
@@ -1452,11 +1455,12 @@ void CGlobalControl::forceCharset()
     }
 }
 
-void CGlobalControl::setupThreadedWorker(CAbstractThreadWorker *worker)
+bool CGlobalControl::setupThreadedWorker(CAbstractThreadWorker *worker)
 {
     Q_D(CGlobalControl);
+    if (d->cleaningState) return false;
 
-    if (worker == nullptr) return;
+    if (worker == nullptr) return false;
 
     d->workerPool.append(worker);
 
@@ -1476,7 +1480,10 @@ void CGlobalControl::setupThreadedWorker(CAbstractThreadWorker *worker)
 
     d->workerMonitor->workerStarted(worker);
 
+    thread->setObjectName(QSL("WRK-%1").arg(QString::fromLatin1(worker->metaObject()->className())));
     thread->start();
+
+    return true;
 }
 
 bool CGlobalControl::isThreadedWorkersActive() const

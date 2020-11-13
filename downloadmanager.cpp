@@ -18,12 +18,13 @@ const char zipSeparator = 0x00;
 const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
 const int downloadManagerColumnCount = 4;
+const int maxZipWriterErrorsInteractive = 5;
 const auto replyAuxId = "replyAuxID";
 const auto replyHeadFileName = "replyHeadFileName";
 const auto replyHeadOffset = "replyHeadOffset";
 }
 
-CDownloadManager::CDownloadManager(QWidget *parent) :
+CDownloadManager::CDownloadManager(QWidget *parent, CZipWriter *zipWriter) :
     QDialog(parent),
     ui(new Ui::CDownloadManager)
 {
@@ -57,6 +58,10 @@ CDownloadManager::CDownloadManager(QWidget *parent) :
 
     connect(&m_writerStatusTimer, &QTimer::timeout,
             this, &CDownloadManager::updateWriterStatus);
+
+    connect(zipWriter, &CZipWriter::zipError,
+            this, &CDownloadManager::zipWriterError);
+
     m_writerStatusTimer.setInterval(CDefaults::writerStatusTimerIntervalMS);
     m_writerStatusTimer.start();
 }
@@ -232,6 +237,17 @@ void CDownloadManager::headRequestFailed(QNetworkReply::NetworkError error)
     m_model->createDownloadForNetworkRequest(req,fileName,0L);
 }
 
+void CDownloadManager::zipWriterError(const QString &message)
+{
+    const QString msg(QSL("ZIP writer error: %1").arg(message));
+    qCritical() << msg;
+
+    m_zipErrorCount++;
+    if (m_zipErrorCount>CDefaults::maxZipWriterErrorsInteractive) return;
+
+    QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),msg);
+}
+
 void CDownloadsModel::requestRedirected(const QUrl &url)
 {
     QPointer<QNetworkReply> rpl(qobject_cast<QNetworkReply *>(sender()));
@@ -360,7 +376,7 @@ void CDownloadManager::addReceivedBytes(qint64 size)
 void CDownloadManager::updateWriterStatus()
 {
     ui->labelWriter->setVisible((CDownloadWriter::getWorkCount()>0) ||
-                                gSet->zipWriter()->isBusy());
+                                CZipWriter::isBusy());
 }
 
 void CDownloadManager::closeEvent(QCloseEvent *event)
@@ -591,6 +607,9 @@ void CDownloadsModel::downloadFinished()
     } else if (rpl) {
         const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
         row = m_downloads.indexOf(CDownloadItem(id));
+    } else {
+        qCritical() << "Download finished fast cleanup, unable to track download";
+        return;
     }
     Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
@@ -635,7 +654,10 @@ void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
                                       item.getFileName(),
                                       item.initialOffset,
                                       item.auxId);
-    gSet->setupThreadedWorker(item.writer);
+    if (!gSet->setupThreadedWorker(item.writer)) {
+        delete item.writer.data();
+        return;
+    }
 
     connect(item.writer,&CDownloadWriter::writeComplete,
             this,&CDownloadsModel::writerCompleted,Qt::QueuedConnection);
@@ -674,6 +696,9 @@ void CDownloadsModel::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     } else if (rpl) {
         const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
         row = m_downloads.indexOf(CDownloadItem(id));
+    } else {
+        qCritical() << "Download fast cleanup, unable to track download";
+        return;
     }
     Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
@@ -867,6 +892,12 @@ void CDownloadsModel::openXdg()
 void CDownloadsModel::writerError(const QString &message)
 {
     QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
+    if (writer.isNull()) {
+        qCritical() << "Download writer fast cleanup, unable to track download, received error: "
+                    << message;
+        return;
+    }
+
     int row = m_downloads.indexOf(CDownloadItem(writer->getAuxId()));
     if (row<0 || row>=m_downloads.count())
         return;
@@ -881,6 +912,11 @@ void CDownloadsModel::writerError(const QString &message)
 void CDownloadsModel::writerCompleted(bool success)
 {
     QPointer<CDownloadWriter> writer(qobject_cast<CDownloadWriter *>(sender()));
+    if (writer.isNull()) {
+        qCritical() << "Download writer fast cleanup, unable to track download";
+        return;
+    }
+
     int row = m_downloads.indexOf(CDownloadItem(writer->getAuxId()));
     if (row<0 || row>=m_downloads.count())
         return;

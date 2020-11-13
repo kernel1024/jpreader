@@ -72,6 +72,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
             engine.data(), &CIndexerSearch::doSearch, Qt::QueuedConnection);
     connect(engine.data(), &CIndexerSearch::gotResult,
             this, &CSearchTab::gotSearchResult, Qt::QueuedConnection);
+    thread->setObjectName(QSL("SearchTabEngine"));
     thread->start();
 
     titleTran.reset(new CTitlesTranslator());
@@ -87,6 +88,7 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
             titleTran.data(), &CTitlesTranslator::stop,Qt::QueuedConnection);
     connect(this, &CSearchTab::translateTitlesSrc,
             titleTran.data(), &CTitlesTranslator::translateTitles,Qt::QueuedConnection);
+    thread->setObjectName(QSL("SearchTitleTran"));
     thread->start();
 
     ui->buttonSearch->setIcon(QIcon::fromTheme(QSL("document-preview")));

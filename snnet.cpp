@@ -256,10 +256,12 @@ void CSnNet::extractHTMLFragment()
         if (md->hasHtml()) {
             auto *ex = new CHtmlImagesExtractor(nullptr,snv);
             ex->setParams(md->html(),url,false,true);
-            gSet->setupThreadedWorker(ex);
-            connect(ex,&CHtmlImagesExtractor::novelReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
-
-            QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+            if (!gSet->setupThreadedWorker(ex)) {
+                delete ex;
+            } else {
+                connect(ex,&CHtmlImagesExtractor::novelReady,snv->netHandler,&CSnNet::novelReady,Qt::QueuedConnection);
+                QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+            }
         } else {
             QMessageBox::information(snv,QGuiApplication::applicationDisplayName(),
                                      tr("Unknown clipboard format. HTML expected."));
@@ -280,7 +282,10 @@ void CSnNet::processExtractorActionIndirect(const QVariantHash &params)
 {
     auto *ex = CAbstractExtractor::extractorFactory(params,snv);
     if (ex == nullptr) return;
-    gSet->setupThreadedWorker(ex);
+    if (!gSet->setupThreadedWorker(ex)) {
+        delete ex;
+        return;
+    }
 
     connect(ex,&CAbstractExtractor::novelReady,this,&CSnNet::novelReady,Qt::QueuedConnection);
     connect(ex,&CAbstractExtractor::mangaReady,this,&CSnNet::mangaReady,Qt::QueuedConnection);
@@ -378,14 +383,15 @@ void CSnNet::load(const QUrl &url)
             snv->m_translationBkgdFinished=false;
             snv->m_loadingBkgdFinished=false;
             auto *pdf = new CPDFWorker();
+            auto *pdft = new QThread();
+            pdf->moveToThread(pdft);
             connect(this,&CSnNet::startPdfConversion,pdf,&CPDFWorker::pdfToText,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::gotText,this,&CSnNet::pdfConverted,Qt::QueuedConnection);
             connect(pdf,&CPDFWorker::error,this,&CSnNet::pdfError,Qt::QueuedConnection);
-            auto *pdft = new QThread();
             connect(pdf,&CPDFWorker::finished,pdft,&QThread::quit);
             connect(pdft,&QThread::finished,pdf,&CPDFWorker::deleteLater);
             connect(pdft,&QThread::finished,pdft,&QThread::deleteLater);
-            pdf->moveToThread(pdft);
+            pdft->setObjectName(QSL("PDF_parser"));
             pdft->start();
             Q_EMIT startPdfConversion(url.toString());
         } else if (mime.startsWith(QSL("text/html"),Qt::CaseInsensitive) && fi.suffix().isEmpty()) {

@@ -53,10 +53,11 @@ void CLightTranslator::translate()
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
+    at->moveToThread(th);
     connect(at,&CAuxTranslator::gotTranslation,this,&CLightTranslator::gotTranslation,Qt::QueuedConnection);
     connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
-    at->moveToThread(th);
+    th->setObjectName(QSL("LightTran"));
     th->start();
 
     ui->barTranslating->show();

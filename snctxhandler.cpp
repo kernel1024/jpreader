@@ -478,6 +478,7 @@ void CSnCtxHandler::translateFragment()
     at->setText(s);
     at->setSrcLang(lp.langFrom.bcp47Name());
     at->setDestLang(lp.langTo.bcp47Name());
+    at->moveToThread(th);
     connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
 
@@ -491,7 +492,7 @@ void CSnCtxHandler::translateFragment()
         }
     },Qt::QueuedConnection);
 
-    at->moveToThread(th);
+    th->setObjectName(QSL("SNV_FragTran"));
     th->start();
 
     QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);

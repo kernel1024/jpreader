@@ -2,6 +2,8 @@
 #define DOWNLOADWRITER_H
 
 #include <QObject>
+#include <QHash>
+#include <QVector>
 #include <QString>
 #include <QAtomicInteger>
 #include <QMutex>
@@ -49,21 +51,16 @@ Q_SIGNALS:
 
 };
 
-class CZipWriterItem
+struct CZipWriterFileItem
 {
-public:
     QString fileName;
-    QString zipFile;
     QSharedPointer<QTemporaryFile> data;
+};
 
-    CZipWriterItem() = default;
-    CZipWriterItem(const CZipWriterItem& other) = default;
-    CZipWriterItem(const QString& aFileName, const QString& aZipFile);
-    ~CZipWriterItem() = default;
-    CZipWriterItem &operator=(const CZipWriterItem& other) = default;
-    bool operator==(const CZipWriterItem &s) const;
-    bool operator!=(const CZipWriterItem &s) const;
-    bool isEmpty() const;
+struct CZipWriterWorkerItem
+{
+    QPointer<QThread> thread;
+    QVector<CZipWriterFileItem> files;
 };
 
 class CZipWriter : public QObject
@@ -71,25 +68,27 @@ class CZipWriter : public QObject
     Q_OBJECT
 private:
     QMutex m_dataMutex;
-    QMutex m_threadMutex;
-    QPointer<QThread> m_zipThread;
-    QVector<CZipWriterItem> m_data;
-    QTimer m_wakeupTimer;
+    QHash<QString, CZipWriterWorkerItem> m_data;
+    static QAtomicInteger<int> m_zipWorkerCount;
+    static QAtomicInteger<bool> m_abort;
 
     Q_DISABLE_COPY(CZipWriter)
 
     void zipProcessing();
-    void writeZipData(const CZipWriterItem& item);
+    void writeZipData(const QString &zipFile, const QVector<CZipWriterFileItem>& items);
 
 public:
     explicit CZipWriter(QObject *parent = nullptr);
     ~CZipWriter() override;
 
-    static void appendFileToZip(const QString& fileName, const QString& zipFile, const QSharedPointer<QTemporaryFile> &data);
+    void appendFileToZip(const QString& fileName, const QString& zipFile, const QSharedPointer<QTemporaryFile> &data);
     static bool isBusy();
+    void abortAllWorkers();
+    void terminateAllWorkers();
 
 Q_SIGNALS:
     void zipError(const QString& message);
+    void terminateWorkers();
 
 };
 

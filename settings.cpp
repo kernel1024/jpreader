@@ -206,6 +206,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
         Q_EMIT adblockRulesUpdated();
     });
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    th->setObjectName(QSL("AdblockLoader"));
     th->start();
 
     return true;

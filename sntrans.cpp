@@ -145,7 +145,10 @@ void CSnTrans::translatePriv(const QString &sourceHtml, const QString &title, co
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
     auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
-    gSet->setupThreadedWorker(ct);
+    if (!gSet->setupThreadedWorker(ct)) {
+        delete ct;
+        return;
+    }
 
     connect(ct,&CTranslator::translationFinished,
             this,&CSnTrans::translationFinished,Qt::QueuedConnection);
@@ -251,6 +254,7 @@ void CSnTrans::findWordTranslation(const QString &text)
     });
 
     connect(th,&QThread::finished,th,&QThread::deleteLater);
+    th->setObjectName(QSL("SNV_wordLookup"));
     th->start();
 }
 

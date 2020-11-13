@@ -20,15 +20,16 @@ CIndexerSearch::CIndexerSearch(QObject *parent) :
         } else {
             engine.reset(new CBaloo5Search());
         }
+        engine->moveToThread(th);
         connect(engine.data(),&CAbstractThreadedSearch::addHit,
                 this,&CIndexerSearch::addHit,Qt::QueuedConnection);
         connect(engine.data(),&CAbstractThreadedSearch::finished,
                 this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
         connect(this,&CIndexerSearch::startThreadedSearch,
                 engine.data(),&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
-        engine->moveToThread(th);
         connect(engine.data(),&CAbstractThreadedSearch::destroyed,th,&QThread::quit);
         connect(th,&QThread::finished,th,&QThread::deleteLater);
+        th->setObjectName(QSL("%1").arg(QString::fromLatin1(engine->metaObject()->className())));
         th->start();
 #endif
     }

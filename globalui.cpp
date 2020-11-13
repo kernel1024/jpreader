@@ -149,6 +149,7 @@ void CGlobalUI::startGlobalContextTranslate()
     connect(at,&CAuxTranslator::gotTranslation,
             this,&CGlobalUI::gctxTranslateReady,Qt::QueuedConnection);
     at->moveToThread(th);
+    th->setObjectName(QSL("GCTX"));
     th->start();
 
     QMetaObject::invokeMethod(at,&CAuxTranslator::translateAndQuit,Qt::QueuedConnection);

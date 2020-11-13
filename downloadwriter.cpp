@@ -16,9 +16,12 @@ extern "C" {
 
 namespace CDefaults {
 const int zipThreadMicrosleep = 10000;
+const auto zipTempFilePtr = "zipTempFilePtr";
 }
 
 QAtomicInteger<int> CDownloadWriter::m_workCount;
+QAtomicInteger<int> CZipWriter::m_zipWorkerCount;
+QAtomicInteger<bool> CZipWriter::m_abort;
 
 QUuid CDownloadWriter::getAuxId() const
 {
@@ -62,12 +65,8 @@ QString CDownloadWriter::workerDescription() const
     QFileInfo fi(m_fileName);
     if (!m_zipFile.isEmpty()) {
         QFileInfo zfi(m_zipFile);
-        qint64 dataSize = 0L;
-        if (m_zipData)
-            dataSize = m_zipData->size();
-        return tr("Download writer ZIP (%1 to %2/%3)")
-                .arg(CGenericFuncs::formatFileSize(dataSize),
-                     zfi.fileName(),fi.fileName());
+        return tr("Download writer ZIP (%1/%2)")
+                .arg(zfi.fileName(),fi.fileName());
     }
 
     qint64 filePos = 0L;
@@ -97,6 +96,8 @@ void CDownloadWriter::startMain()
 
 void CDownloadWriter::appendBytesToFile(const QByteArray &data)
 {
+    if (exitIfAborted()) return;
+
     if (m_zipFile.isEmpty()) {
         if (!m_rawFile.isOpen()) {
             handleError(tr("File not opened for write %1").arg(m_fileName));
@@ -105,6 +106,7 @@ void CDownloadWriter::appendBytesToFile(const QByteArray &data)
 
         m_workCount++;
         m_rawFile.write(data);
+        addLoadedRequest(data.size());
         m_workCount--;
 
     } else {
@@ -115,18 +117,18 @@ void CDownloadWriter::appendBytesToFile(const QByteArray &data)
                 handleError(tr("Unable to create temporary file for %1").arg(m_zipFile));
                 return;
             }
-            const QString fnm = m_zipData->fileName();
-            qDebug() << fnm;
-            connect(m_zipData.data(),&QTemporaryFile::destroyed,[fnm](){
-                qDebug() << "tempfile deleted!" << fnm;
-            });
         }
+        m_workCount++;
         m_zipData->write(data);
+        addLoadedRequest(data.size());
+        m_workCount--;
     }
 }
 
 void CDownloadWriter::finalizeFile(bool success)
 {
+    if (exitIfAborted()) return;
+
     m_workCount++;
 
     if (m_zipFile.isEmpty()) {
@@ -136,8 +138,7 @@ void CDownloadWriter::finalizeFile(bool success)
         }
     } else {
         if (success && !exitIfAborted()) {
-            m_zipData->close();
-            CZipWriter::appendFileToZip(m_fileName,m_zipFile,m_zipData);
+            gSet->zipWriter()->appendFileToZip(m_fileName,m_zipFile,m_zipData);
         }
     }
     m_zipData.clear();
@@ -147,46 +148,36 @@ void CDownloadWriter::finalizeFile(bool success)
     Q_EMIT finished();
 }
 
-CZipWriterItem::CZipWriterItem(const QString &aFileName, const QString &aZipFile)
-{
-    fileName = aFileName;
-    zipFile = aZipFile;
-}
-
-bool CZipWriterItem::operator==(const CZipWriterItem &s) const
-{
-    return ((fileName == s.fileName) && (zipFile == s.zipFile));
-}
-
-bool CZipWriterItem::operator!=(const CZipWriterItem &s) const
-{
-    return !operator==(s);
-}
-
-bool CZipWriterItem::isEmpty() const
-{
-    return (zipFile.isEmpty() && fileName.isEmpty());
-}
-
 void CZipWriter::appendFileToZip(const QString &fileName, const QString &zipFile,
                                  const QSharedPointer<QTemporaryFile> &data)
 {
+    if (CZipWriter::m_abort.loadAcquire()) return;
     if (gSet == nullptr) return;
     if (gSet->zipWriter() == nullptr) return;
 
-    QMutexLocker locker(&(gSet->zipWriter()->m_dataMutex));
+    QMutexLocker locker(&m_dataMutex);
 
-    CZipWriterItem item(fileName,zipFile);
+    CZipWriterFileItem item;
+    item.fileName = fileName;
     item.data = data;
-    gSet->zipWriter()->m_data.append(item);
+    m_data[zipFile].files.append(item);
 
     QMetaObject::invokeMethod(gSet->zipWriter(),&CZipWriter::zipProcessing);
 }
 
 bool CZipWriter::isBusy()
 {
-    if ((gSet == nullptr) || (gSet->zipWriter() == nullptr)) return false;
-    return (!(gSet->zipWriter()->m_zipThread.isNull()));
+    return (CZipWriter::m_zipWorkerCount.loadAcquire()>0);
+}
+
+void CZipWriter::abortAllWorkers()
+{
+    CZipWriter::m_abort.storeRelease(true);
+}
+
+void CZipWriter::terminateAllWorkers()
+{
+
 }
 
 CZipWriter::CZipWriter(QObject *parent)
@@ -198,64 +189,89 @@ CZipWriter::~CZipWriter() = default;
 
 void CZipWriter::zipProcessing()
 {
-    QMutexLocker locker(&m_threadMutex);
-    if (m_zipThread) return;
+    QMutexLocker locker(&m_dataMutex);
 
-    QThread* th = QThread::create([this](){
+    for (auto it = m_data.keyValueBegin(), end = m_data.keyValueEnd(); it != end; ++it) {
+        if (!(*it).second.files.isEmpty() && (*it).second.thread.isNull()) {
 
-        for (;;) {
-            QThread::usleep(CDefaults::zipThreadMicrosleep);
-            CZipWriterItem item;
-            {
-                QMutexLocker dataLock(&m_dataMutex);
-                if (m_data.isEmpty())
-                    break;
-                item = m_data.takeFirst();
-            }
-            writeZipData(item);
+            const QString zipFile = (*it).first;
+            QThread* th = QThread::create([this,zipFile](){
+                m_zipWorkerCount++;
+
+                for (;;) {
+                    QThread::usleep(CDefaults::zipThreadMicrosleep);
+                    if (m_abort.loadAcquire()) break;
+
+                    m_dataMutex.lock();
+                    if (!m_data.contains(zipFile) || m_data.value(zipFile).files.isEmpty()) {
+                        m_dataMutex.unlock();
+                        break;
+                    }
+                    const QVector<CZipWriterFileItem> items = m_data.value(zipFile).files;
+                    m_data[zipFile].files.clear();
+                    m_dataMutex.unlock();
+                    writeZipData(zipFile,items);
+                }
+
+                m_zipWorkerCount--;
+            });
+            connect(th,&QThread::finished,th,&QThread::deleteLater);
+            connect(this,&CZipWriter::terminateWorkers,th,&QThread::terminate);
+
+            th->setObjectName(QSL("ZIP_packer"));
+            th->start();
+            (*it).second.thread = th;
         }
-    });
-    connect(th,&QThread::finished,th,&QThread::deleteLater);
-    th->start();
-    m_zipThread = th;
+    }
 }
 
-void CZipWriter::writeZipData(const CZipWriterItem &item)
+void CZipWriter::writeZipData(const QString& zipFile, const QVector<CZipWriterFileItem> &items)
 {
-    Q_ASSERT(!item.isEmpty());
+    if (m_abort.loadAcquire()) return;
 
     int errorp = 0;
-    zip_t* zip = zip_open(item.zipFile.toUtf8().constData(),ZIP_CREATE,&errorp);
+    zip_t* zip = zip_open(zipFile.toUtf8().constData(),ZIP_CREATE,&errorp);
     if (zip == nullptr) {
         zip_error_t ziperror;
         zip_error_init_with_code(&ziperror, errorp);
-        const QString error = QSL("Unable to open zip file: %1 %2 %3")
-                              .arg(item.zipFile,item.fileName,QString::fromUtf8(zip_error_strerror(&ziperror)));
+        const QString error = QSL("Unable to open zip file: %1 %2")
+                              .arg(zipFile,QString::fromUtf8(zip_error_strerror(&ziperror)));
         Q_EMIT zipError(error);
         return;
     }
 
-    if (!item.data->open()) {
-        const QString error = QSL("Unable to open temporary file: %1 %2")
-                              .arg(item.zipFile,item.fileName);
-        Q_EMIT zipError(error);
-        return;
-    }
-    qint64 size = item.data->size();
-    uchar* ptr = item.data->map(0,size);
-    Q_ASSERT(ptr != nullptr);
-
-    zip_source_t* src = nullptr;
     QString error;
-    if ((src = zip_source_buffer(zip, ptr, static_cast<uint64_t>(size), 0)) == nullptr ||
-            zip_file_add(zip, item.fileName.toUtf8().constData(), src, ZIP_FL_ENC_UTF_8) < 0) {
-        zip_source_free(src);
-        error = QSL("Error adding file to zip: %1 %2 %3")
-                              .arg(item.zipFile,item.fileName,QString::fromUtf8(zip_strerror(zip)));
+    for (const auto& file : items) {
+        if (m_abort.loadAcquire()) break;
+        Q_ASSERT(!file.fileName.isEmpty());
+        Q_ASSERT(file.data->isOpen());
+
+        qint64 size = file.data->size();
+        uchar* ptr = file.data->map(0,size);
+        Q_ASSERT(ptr != nullptr);
+        file.data->setProperty(CDefaults::zipTempFilePtr,reinterpret_cast<qulonglong>(ptr));
+
+        zip_source_t* src = nullptr;
+        if ((src = zip_source_buffer(zip, ptr, static_cast<uint64_t>(size), 0)) == nullptr ||
+                zip_file_add(zip, file.fileName.toUtf8().constData(), src, ZIP_FL_ENC_UTF_8) < 0) {
+            zip_source_free(src);
+            error = QSL("Error adding file to zip: %1 %2 %3")
+                    .arg(zipFile,file.fileName,QString::fromUtf8(zip_strerror(zip)));
+            break;
+        }
     }
-    zip_close(zip);
-    item.data->unmap(ptr);
-    item.data->close();
+
+    if (m_abort.loadAcquire()) {
+        zip_discard(zip);
+    } else {
+        zip_close(zip);
+    }
+
+    for (const auto& file : items) {
+        uchar* ptr = reinterpret_cast<uchar *>(file.data->property(CDefaults::zipTempFilePtr).toULongLong());
+        file.data->unmap(ptr);
+        file.data->close();
+    }
 
     if (!error.isEmpty()) {
         Q_EMIT zipError(error);
