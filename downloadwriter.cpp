@@ -177,7 +177,7 @@ void CZipWriter::abortAllWorkers()
 
 void CZipWriter::terminateAllWorkers()
 {
-
+    Q_EMIT terminateWorkers();
 }
 
 CZipWriter::CZipWriter(QObject *parent)
