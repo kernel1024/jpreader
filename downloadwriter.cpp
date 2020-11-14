@@ -112,7 +112,7 @@ void CDownloadWriter::appendBytesToFile(const QByteArray &data)
     } else {
         if (m_zipData.isNull()) {
             QFileInfo fi(m_zipFile);
-            m_zipData.reset(new QTemporaryFile(fi.path()));
+            m_zipData.reset(new QTemporaryFile(QSL("%1/").arg(fi.path())));
             if (!(m_zipData->open())) {
                 handleError(tr("Unable to create temporary file for %1").arg(m_zipFile));
                 return;
