@@ -486,7 +486,7 @@
   <customwidget>
    <class>CSpecTabWidget</class>
    <extends>QTabWidget</extends>
-   <header location="global">specwidgets.h</header>
+   <header location="global">utils/specwidgets.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

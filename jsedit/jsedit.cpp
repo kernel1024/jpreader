@@ -34,8 +34,8 @@
 
 #include "jsedit.h"
 #include "jsedit_p.h"
-#include "structures.h"
-#include "genericfuncs.h"
+#include "global/structures.h"
+#include "utils/genericfuncs.h"
 
 JSHighlighter::JSHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)

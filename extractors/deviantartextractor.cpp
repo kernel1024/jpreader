@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "deviantartextractor.h"
-#include "../globalcontrol.h"
+#include "global/globalcontrol.h"
 
 namespace CDefaults {
 const int deviantGalleryFetchCount = 24;

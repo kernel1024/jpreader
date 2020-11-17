@@ -10,26 +10,27 @@
 #include <QMimeData>
 #include <QRegularExpression>
 
-#include "qxttooltip.h"
+#include "miniqxt/qxttooltip.h"
 #include "mainwindow.h"
-#include "snviewer.h"
-#include "settingstab.h"
-#include "genericfuncs.h"
-#include "globalcontrol.h"
-#include "specwidgets.h"
-#include "searchtab.h"
-#include "lighttranslator.h"
-#include "downloadmanager.h"
-#include "bookmarks.h"
-#include "settings.h"
-#include "logdisplay.h"
-#include "snctxhandler.h"
-#include "downloadmanager.h"
-#include "workermonitor.h"
-#include "settingstab.h"
-#include "translatorstatisticstab.h"
-#include "translatorcache.h"
-#include "pixivindextab.h"
+#include "global/globalcontrol.h"
+#include "global/settings.h"
+#include "global/startup.h"
+#include "browser/browser.h"
+#include "browser/ctxhandler.h"
+#include "browser-utils/downloadmanager.h"
+#include "browser-utils/bookmarks.h"
+#include "browser-utils/downloadmanager.h"
+#include "search/searchtab.h"
+#include "utils/settingstab.h"
+#include "utils/genericfuncs.h"
+#include "utils/specwidgets.h"
+#include "utils/logdisplay.h"
+#include "utils/workermonitor.h"
+#include "utils/settingstab.h"
+#include "utils/pixivindextab.h"
+#include "translator/lighttranslator.h"
+#include "translator/translatorstatisticstab.h"
+#include "translator/translatorcache.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -59,13 +60,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     tabHelper = new CSpecTabBar(this);
     tabHelper->setShape(QTabBar::RoundedWest);
 
-    //splitter->insertWidget(0,tabHelper);
     auto *hbx = qobject_cast<QHBoxLayout *>(centralWidget()->layout());
-    if (hbx) {
-        hbx->insertWidget(0,tabHelper,0,Qt::AlignTop);
-    } else {
-        qCritical() << "Main HBox layout not found. Check form design, update source.";
-    }
+    if (hbx == nullptr)
+        qFatal("Main HBox layout not found. Check form design, update source.");
+    hbx->insertWidget(0,tabHelper,0,Qt::AlignTop);
+
     tabHelper->addTab(tr("Tabs"));
     tabHelper->addTab(tr("Recycled"));
     tabHelper->addTab(tr("History"));
@@ -88,7 +87,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionAboutQt, &QAction::triggered, gSet->app(), &QApplication::aboutQt);
     connect(actionSettings, &QAction::triggered, gSet, &CGlobalControl::settingsTab);
     connect(actionExit, &QAction::triggered, this, &CMainWindow::close);
-    connect(actionExitAll, &QAction::triggered, gSet, &CGlobalControl::cleanupAndExit);
+    connect(actionExitAll, &QAction::triggered, gSet->startup(), &CGlobalStartup::cleanupAndExit);
     connect(actionOpen, &QAction::triggered, this, &CMainWindow::openAuxFileWithDialog);
     connect(actionNew, &QAction::triggered, this, &CMainWindow::openEmptyBrowser);
     connect(actionOpenInDir, &QAction::triggered, this, &CMainWindow::openAuxFileInDir);
@@ -159,7 +158,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
         bool emptyViewer = true;
         for (const auto &url : viewerUrls) {
             if (!url.isEmpty()) {
-                new CSnippetViewer(this,url);
+                new CBrowserTab(this,url);
                 emptyViewer = false;
             }
         }
@@ -205,9 +204,9 @@ void CMainWindow::updateSplitters()
 
 void CMainWindow::closeStartPage()
 {
-    CSnippetViewer* pt = nullptr;
+    CBrowserTab* pt = nullptr;
     for (int i=0;i<tabMain->count();i++) {
-        auto *sn = qobject_cast<CSnippetViewer *>(tabMain->widget(i));
+        auto *sn = qobject_cast<CBrowserTab *>(tabMain->widget(i));
         if (sn==nullptr) continue;
         if (!sn->isStartPage()) continue;
         pt = sn;
@@ -228,7 +227,7 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
     int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
 
-    auto *sv = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
+    auto *sv = qobject_cast<CBrowserTab *>(tabMain->widget(idx));
     if (sv) {
         QPixmap pix = sv->pageImage();
         bool fillRect = false;
@@ -296,7 +295,7 @@ void CMainWindow::detachTab()
 void CMainWindow::findText()
 {
     if (tabMain->currentWidget()) {
-        auto *sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+        auto *sn = qobject_cast<CBrowserTab *>(tabMain->currentWidget());
         if (sn)
             sn->searchPanel->show();
     }
@@ -350,7 +349,7 @@ void CMainWindow::setToolsVisibility(bool visible)
 void CMainWindow::printToPDF()
 {
     if (tabMain->currentWidget()==nullptr) return;
-    auto *sn = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    auto *sn = qobject_cast<CBrowserTab *>(tabMain->currentWidget());
     if (sn==nullptr) return;
 
     sn->printToPDF();
@@ -360,7 +359,7 @@ void CMainWindow::save()
 {
     if (tabMain->currentWidget()==nullptr) return;
 
-    auto *sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    auto *sv = qobject_cast<CBrowserTab *>(tabMain->currentWidget());
     if (sv)
         sv->save();
 
@@ -446,7 +445,7 @@ void CMainWindow::tabChanged(int idx)
     lastTabIdx=idx;
 
     if (tabMain->widget(idx)!=nullptr) {
-        auto *sn = qobject_cast<CSnippetViewer *>(tabMain->widget(idx));
+        auto *sn = qobject_cast<CBrowserTab *>(tabMain->widget(idx));
         bool isSnippetViewer = (sn!=nullptr);
         actionAddBM->setEnabled(isSnippetViewer);
         if (isSnippetViewer)
@@ -486,7 +485,7 @@ void CMainWindow::updateHelperList()
                 auto *it = new QListWidgetItem(tr("Tab %1").arg(i));
                 it->setData(Qt::UserRole,0);
                 it->setData(Qt::UserRole+1,i);
-                auto *sv = qobject_cast<CSnippetViewer*>(tabMain->widget(i));
+                auto *sv = qobject_cast<CBrowserTab*>(tabMain->widget(i));
                 if (sv) {
                     it->setText(sv->tabTitle());
                     QString url = CGenericFuncs::elideString(sv->getUrl().toString(),CDefaults::maxTitleElideLength);
@@ -573,7 +572,7 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *p
             if (idx<0 || idx>=gSet->recycleBin().count()) return;
             u = gSet->recycleBin().at(idx).url;
             if (!u.isValid()) return;
-            new CSnippetViewer(this, u);
+            new CBrowserTab(this, u);
             gSet->removeRecycledItem(idx);
             break;
         case 2: // History
@@ -619,7 +618,7 @@ void CMainWindow::updateTitle()
 {
     QString t = QGuiApplication::applicationDisplayName();
     if (tabMain->currentWidget()) {
-        auto *sv = qobject_cast<CSnippetViewer*>(tabMain->currentWidget());
+        auto *sv = qobject_cast<CBrowserTab*>(tabMain->currentWidget());
         if (sv!=nullptr && !sv->tabTitle().isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle());
@@ -653,7 +652,7 @@ void CMainWindow::goHistory(QUuid idx)
         if (uh.uuid==idx) {
             QUrl u = uh.url;
             if (!u.isValid()) return;
-            new CSnippetViewer(this, u);
+            new CBrowserTab(this, u);
             break;
         }
     }
@@ -670,7 +669,7 @@ void CMainWindow::createStartBrowser()
     QString html;
     if (f.open(QIODevice::ReadOnly))
         html = QString::fromUtf8(f.readAll());
-    new CSnippetViewer(this,QUrl(),QStringList(),true,html,QSL("100%"),true);
+    new CBrowserTab(this,QUrl(),QStringList(),true,html,QSL("100%"),true);
 }
 
 void CMainWindow::checkTabs()
@@ -682,7 +681,7 @@ void CMainWindow::openAuxFiles(const QStringList &filenames)
 {
     for(const QString& fname : qAsConst(filenames)) {
         if (!fname.isEmpty())
-            new CSnippetViewer(this, QUrl::fromLocalFile(fname));
+            new CBrowserTab(this, QUrl::fromLocalFile(fname));
     }
 }
 
@@ -698,14 +697,14 @@ void CMainWindow::openAuxFileWithDialog()
 
 void CMainWindow::openEmptyBrowser()
 {
-    auto *sv = new CSnippetViewer(this);
+    auto *sv = new CBrowserTab(this);
     sv->urlEdit->setFocus(Qt::OtherFocusReason);
 }
 
 void CMainWindow::openAuxFileInDir()
 {
     QWidget* t = tabMain->currentWidget();
-    auto *sv = qobject_cast<CSnippetViewer *>(t);
+    auto *sv = qobject_cast<CBrowserTab *>(t);
     if (sv==nullptr) {
         QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                              tr("Active document viewer tab not found."));
@@ -726,7 +725,7 @@ void CMainWindow::openAuxFileInDir()
 
     for(int i=0;i<fnames.count();i++) {
         if (fnames.at(i).isEmpty()) continue;
-        new CSnippetViewer(this, QUrl::fromLocalFile(fnames.at(i)));
+        new CBrowserTab(this, QUrl::fromLocalFile(fnames.at(i)));
     }
 }
 
@@ -739,7 +738,7 @@ void CMainWindow::createFromClipboard()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard"),tx);
-    auto *sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
+    auto *sv = new CBrowserTab(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
@@ -752,7 +751,7 @@ void CMainWindow::createFromClipboardPlain()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard plain"),tx);
-    auto *sv = new CSnippetViewer(this, QUrl(), QStringList(), true, tx);
+    auto *sv = new CBrowserTab(this, QUrl(), QStringList(), true, tx);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
@@ -771,7 +770,7 @@ void CMainWindow::openFromClipboard()
                                  tr("Clipboard is empty or contains incompatible data."));
         return;
     }
-    auto *sv = new CSnippetViewer(this, uri);
+    auto *sv = new CBrowserTab(this, uri);
     sv->txtBrowser->setFocus(Qt::OtherFocusReason);
 }
 
@@ -792,7 +791,7 @@ void CMainWindow::updateBookmarks()
 void CMainWindow::addBookmark()
 {
     if (tabMain->currentWidget()==nullptr) return;
-    auto *sv = qobject_cast<CSnippetViewer *>(tabMain->currentWidget());
+    auto *sv = qobject_cast<CBrowserTab *>(tabMain->currentWidget());
     if (sv==nullptr) return;
 
     AddBookmarkDialog dlg(sv->getUrl().toString(),sv->tabTitle(),this);
@@ -804,7 +803,7 @@ void CMainWindow::manageBookmarks()
 {
     BookmarksDialog dialog(this);
     connect(&dialog, &BookmarksDialog::openUrl,this,[this](const QUrl& url){
-        new CSnippetViewer(this, url);
+        new CBrowserTab(this, url);
     });
 
     dialog.exec();
@@ -829,13 +828,13 @@ void CMainWindow::openBookmark()
             return;
         }
 
-        new CSnippetViewer(this, u);
+        new CBrowserTab(this, u);
     } else if (a->data().canConvert<QStringList>()) {
         QStringList sl = a->data().toStringList();
         for (const QString &s : qAsConst(sl)) {
             QUrl u(s);
             if (u.isValid())
-                new CSnippetViewer(this, u);
+                new CBrowserTab(this, u);
         }
     }
 }
@@ -851,13 +850,13 @@ void CMainWindow::openRecycled()
     if (idx<0 || idx>=gSet->recycleBin().count()) return;
     QUrl u = gSet->recycleBin().at(idx).url;
     if (!u.isValid()) return;
-    new CSnippetViewer(this, u);
+    new CBrowserTab(this, u);
     gSet->removeRecycledItem(idx);
 }
 
 void CMainWindow::openChromiumURLs()
 {
-    new CSnippetViewer(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
+    new CBrowserTab(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
 }
 
 void CMainWindow::updateRecycled()
@@ -1028,7 +1027,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     }
 
     for (const QUrl& u : qAsConst(ul)) {
-        auto *sv = new CSnippetViewer(this, u);
+        auto *sv = new CBrowserTab(this, u);
         sv->txtBrowser->setFocus(Qt::OtherFocusReason);
     }
 }

@@ -1,0 +1,183 @@
+#ifndef QGLOBALSETTINGS_H
+#define QGLOBALSETTINGS_H
+
+#include <QObject>
+#include <QWidget>
+#include <QString>
+#include <QUrl>
+#include <QSslCertificate>
+#include "structures.h"
+#include "settings.h"
+#include "globalui.h"
+#include "browser-utils/userscript.h"
+#include "zdict/zdictcontroller.h"
+
+class CLogDisplay;
+class CDownloadManager;
+class CDownloadWriter;
+class BookmarksManager;
+class CTranslatorCache;
+class CTranslator;
+class CWorkerMonitor;
+class CZipWriter;
+
+class CGlobalControlPrivate;
+class CGlobalContentFiltering;
+class CGlobalStartup;
+
+#define gSet (CGlobalControl::instance())
+
+class CGlobalControl : public QObject
+{
+    friend class CSettings;
+    friend class CGlobalUI;
+    friend class CGlobalContentFiltering;
+    friend class CGlobalStartup;
+
+    friend class CSettingsTab;
+    friend class CGenericFuncs;
+    friend class CLogDisplay;
+    friend class CLangPairModel;
+
+    Q_OBJECT
+public:
+    explicit CGlobalControl(QCoreApplication *parent);
+    ~CGlobalControl() override;
+    static CGlobalControl* instance();
+    QApplication* app(QObject *parentApp = nullptr);
+
+    // History lists
+    const CUrlHolderVector &recycleBin() const;
+    const CUrlHolderVector &mainHistory() const;
+    const QStringList &recentFiles() const;
+    const QStringList &searchHistory() const;
+    void appendRecycled(const QString &title, const QUrl &url);
+    void removeRecycledItem(int idx);
+    void appendSearchHistory(const QStringList &req);
+    void appendMainHistory(const CUrlHolder &item);
+    bool updateMainHistoryTitle(const CUrlHolder &item, const QString &newTitle);
+    void appendRecent(const QString &filename);
+    void appendCreatedFiles(const QString &filename);
+
+    // Password management
+    void readPassword(const QUrl &origin, const QString &realm, QString &user, QString &password) const;
+    void savePassword(const QUrl &origin, const QString &realm, const QString &user, const QString &password) const;
+    bool haveSavedPassword(const QUrl &origin, const QString &realm) const;
+    void removePassword(const QUrl &origin) const;
+    QUrl cleanUrlForRealm(const QUrl &origin) const;
+
+    // Userscripts
+    QVector<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu,
+                                              bool isTranslator);
+    void initUserScripts(const CStringHash& scripts);
+    CStringHash getUserScripts();
+
+    // Translation languages selection
+    QStringList getLanguageCodes() const;
+    QString getLanguageName(const QString &bcp47Name) const;
+    void showLightTranslator(const QString& text = QString());
+
+    // Misc
+    QUrl createSearchUrl(const QString& text, const QString& engine = QString()) const;
+    QStringList getSearchEngines() const;
+    QString makeTmpFileName(const QString &suffix, bool withDir = false);
+    void writeSettings();
+    void addFavicon(const QString& key, const QIcon &icon);
+    void setTranslationEngine(CStructures::TranslationEngine engine);
+    void addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength);
+
+    // Network
+    QNetworkReply *auxNetworkAccessManagerHead(const QNetworkRequest &request);
+    QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request);
+    QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data);
+    QList<QSslError> ignoredSslErrorsList() const;
+
+    // Chromium
+    QWebEngineProfile* webProfile() const;
+    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> &cookieIndexes = {});
+
+    // UI
+    QIcon appIcon() const;
+    void setSavedAuxSaveDir(const QString& dir);
+    void setSavedAuxDir(const QString& dir);
+    CMainWindow* addMainWindow();
+    CMainWindow* addMainWindowEx(bool withSearch, bool withViewer,
+                                 const QVector<QUrl> &viewerUrls = { });
+    void settingsTab();
+    void translationStatisticsTab();
+    QRect getLastMainWindowGeometry() const;
+    QList<QAction*> getTranslationLanguagesActions() const;
+    QList<QAction*> getSubsentencesModeActions() const;
+    bool isBlockTabCloseActive() const;
+    void setFileDialogNewFolderName(const QString& name);
+
+    // Owned widgets
+    CMainWindow *activeWindow() const;
+    BookmarksManager *bookmarksManager() const;
+    CDownloadManager* downloadManager() const;
+    CWorkerMonitor* workerMonitor() const;
+    CLogDisplay* logWindow() const;
+    QNetworkAccessManager* auxNetworkAccessManager() const;
+    const QHash<QString,QIcon> &favicons() const;
+    ZDict::ZDictController* dictionaryManager() const;
+    CTranslatorCache* translatorCache() const;
+    CZipWriter* zipWriter() const;
+
+    // Global subsystems
+    const CSettings *settings() const;
+    const CGlobalUI *ui() const;
+    CGlobalContentFiltering *contentFilter() const;
+    CGlobalStartup *startup() const;
+
+private:
+    Q_DISABLE_COPY(CGlobalControl)
+    Q_DECLARE_PRIVATE_D(dptr,CGlobalControl)
+
+    QScopedPointer<CGlobalControlPrivate> dptr;
+    QScopedPointer<CSettings,QScopedPointerDeleteLater> m_settings;
+    QScopedPointer<CGlobalUI,QScopedPointerDeleteLater> m_ui;
+    QScopedPointer<CGlobalContentFiltering,QScopedPointerDeleteLater> m_contentFilter;
+    QScopedPointer<CGlobalStartup,QScopedPointerDeleteLater> m_startup;
+
+Q_SIGNALS:
+    void startAuxTranslation();
+
+    void translationEngineChanged();
+    void translationStatisticsChanged();
+
+    void updateAllBookmarks();
+    void updateAllRecycleBins();
+    void updateAllCharsetLists();
+    void updateAllQueryLists();
+    void updateAllHistoryLists();
+    void updateAllRecentLists();
+    void updateAllLanguagesLists();
+
+public Q_SLOTS:
+    void blockTabClose();
+    void showDictionaryWindow();
+    void showDictionaryWindowEx(const QString& text);
+    void windowDestroyed(CMainWindow* obj);
+    void focusChanged(QWidget* old, QWidget* now);
+    void updateProxy(bool useProxy);
+    void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);
+    void clearCaches();
+    void clearTranslatorCache();
+    void forceCharset();
+
+    // Cookies sync
+    void cookieAdded(const QNetworkCookie &cookie);
+    void cookieRemoved(const QNetworkCookie &cookie);
+
+    // ATLAS SSL
+    bool sslCertErrors(const QSslCertificate& cert, const QStringList& errors,
+                       const CIntList& errCodes);
+
+private Q_SLOTS:
+    void authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator) const;
+    void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) const;
+    void auxSSLCertError(QNetworkReply *reply, const QList<QSslError> &errors);
+
+};
+
+#endif // QGLOBALSETTINGS_H

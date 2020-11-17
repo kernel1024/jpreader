@@ -6,8 +6,8 @@
 #include <algorithm>
 
 #include "patreonextractor.h"
-#include "../genericfuncs.h"
-#include "../mainwindow.h"
+#include "utils/genericfuncs.h"
+#include "mainwindow.h"
 
 CPatreonExtractor::CPatreonExtractor(QObject *parent, QWidget *parentWidget)
     : CAbstractExtractor(parent,parentWidget)

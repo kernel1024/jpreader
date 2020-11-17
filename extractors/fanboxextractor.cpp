@@ -4,7 +4,8 @@
 #include <QJsonArray>
 #include <QBuffer>
 #include "fanboxextractor.h"
-#include "../globalcontrol.h"
+#include "global/globalcontrol.h"
+#include "utils/genericfuncs.h"
 
 namespace CDefaults {
 const int maxFanboxFilenameLength = 180;

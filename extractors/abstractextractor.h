@@ -1,5 +1,5 @@
-#ifndef CABSTRACTEXTRACTOR_H
-#define CABSTRACTEXTRACTOR_H
+#ifndef ABSTRACTEXTRACTOR_H
+#define ABSTRACTEXTRACTOR_H
 
 #include <QObject>
 #include <QNetworkReply>
@@ -8,8 +8,8 @@
 #include <QByteArray>
 #include <QRegularExpression>
 #include <QAction>
-#include "../structures.h"
-#include "../abstractthreadworker.h"
+#include "global/structures.h"
+#include "abstractthreadworker.h"
 
 class CAbstractExtractor : public CAbstractThreadWorker
 {
@@ -40,4 +40,4 @@ protected Q_SLOTS:
 
 };
 
-#endif // CABSTRACTEXTRACTOR_H
+#endif // ABSTRACTEXTRACTOR_H

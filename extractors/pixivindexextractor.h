@@ -7,7 +7,7 @@
 #include <QJsonObject>
 #include <QMutex>
 #include "abstractextractor.h"
-#include "../structures.h"
+#include "global/structures.h"
 
 class CPixivIndexExtractor : public CAbstractExtractor
 {

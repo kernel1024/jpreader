@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QMutex>
 #include <QNetworkReply>
-#include "../translator.h"
+#include "translator/translator.h"
 #include "abstractextractor.h"
 
 class CHtmlImagesExtractor : public CAbstractExtractor
@@ -27,7 +27,7 @@ protected:
     void startMain() override;
 
 public:
-    CHtmlImagesExtractor(QObject *parent = nullptr, CSnippetViewer *snv = nullptr);
+    CHtmlImagesExtractor(QObject *parent = nullptr, CBrowserTab *snv = nullptr);
     ~CHtmlImagesExtractor() = default;
     void setParams(const QString &source, const QUrl &origin,
                    bool translate, bool focus);

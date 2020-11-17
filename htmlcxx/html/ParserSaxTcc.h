@@ -1,7 +1,7 @@
 #include <cctype>
 #include <QString>
 #include "ParserSax.h"
-#include "../structures.h"
+#include "global/structures.h"
 
 const static
 struct literal_tag {

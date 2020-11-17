@@ -13,8 +13,8 @@
 #include <QRegularExpression>
 
 #include "pixivnovelextractor.h"
-#include "../genericfuncs.h"
-#include "../globalcontrol.h"
+#include "utils/genericfuncs.h"
+#include "global/globalcontrol.h"
 
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent, QWidget *parentWidget)
     : CAbstractExtractor(parent,parentWidget)

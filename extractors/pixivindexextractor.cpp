@@ -9,10 +9,10 @@
 #include <QBuffer>
 #include <algorithm>
 
-#include "../globalcontrol.h"
-#include "../genericfuncs.h"
+#include "global/globalcontrol.h"
+#include "utils/genericfuncs.h"
 #include "pixivindexextractor.h"
-#include "../pixivindextab.h"
+#include "utils/pixivindextab.h"
 
 namespace CDefaults {
 const int pixivBookmarksFetchCount = 24;

@@ -1,10 +1,11 @@
 #include <QBuffer>
 #include "htmlimagesextractor.h"
-#include "../htmlcxx/html/ParserDom.h"
+#include "utils/genericfuncs.h"
+#include "htmlcxx/html/ParserDom.h"
 
 using namespace htmlcxx;
 
-CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CSnippetViewer *snv)
+CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CBrowserTab *snv)
     : CAbstractExtractor(parent,snv)
 {
 }

@@ -8,7 +8,7 @@
 #include <QMutex>
 #include <QUrl>
 #include "abstractextractor.h"
-#include "../structures.h"
+#include "global/structures.h"
 
 class CPixivNovelExtractor : public CAbstractExtractor
 {

@@ -6,7 +6,7 @@
 #include <QString>
 #include <QUrl>
 #include "abstractextractor.h"
-#include "../structures.h"
+#include "global/structures.h"
 
 class CPatreonExtractor : public CAbstractExtractor
 {
