@@ -2,7 +2,7 @@
 #include <QScopedPointer>
 #include "auxtranslator.h"
 #include "utils/specwidgets.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 
 CAuxTranslator::CAuxTranslator(QObject *parent) :
     QObject(parent)

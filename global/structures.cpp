@@ -1,5 +1,6 @@
 #include "structures.h"
-#include "globalcontrol.h"
+#include "control.h"
+#include "network.h"
 
 CUrlHolder::CUrlHolder()
 {
@@ -126,9 +127,9 @@ QString CLangPair::toLongString() const
 {
     const QChar arrow(0x2192);
     return QSL("%1 %2 %3")
-            .arg(gSet->getLanguageName(langFrom.bcp47Name()),
+            .arg(gSet->net()->getLanguageName(langFrom.bcp47Name()),
                  arrow,
-                 gSet->getLanguageName(langTo.bcp47Name()));
+                 gSet->net()->getLanguageName(langTo.bcp47Name()));
 }
 
 bool CLangPair::operator==(const CLangPair &s) const

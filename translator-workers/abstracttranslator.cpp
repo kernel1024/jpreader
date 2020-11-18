@@ -1,6 +1,5 @@
 #include <QRandomGenerator>
 #include "abstracttranslator.h"
-#include "translator/translator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
 #include "yandextranslator.h"
@@ -9,6 +8,9 @@
 #include "yandexcloudtranslator.h"
 #include "googlecloudtranslator.h"
 #include "alicloudtranslator.h"
+#include "translator/translator.h"
+#include "global/control.h"
+#include "global/network.h"
 
 int CAbstractTranslator::getTranslatorRetryCount() const
 {
@@ -57,7 +59,7 @@ void CAbstractTranslator::doneTran(bool lazyClose)
     doneTranPrivate(lazyClose);
     const CStructures::TranslationEngine eng = engine();
     QMetaObject::invokeMethod(gSet,[eng](){
-        gSet->addTranslatorStatistics(eng, -1); // Force statistics update signal
+        gSet->net()->addTranslatorStatistics(eng, -1); // Force statistics update signal
     },Qt::QueuedConnection);
 }
 
@@ -74,7 +76,7 @@ QString CAbstractTranslator::tranString(const QString &src)
     const int len = src.length();
     const CStructures::TranslationEngine eng = engine();
     QMetaObject::invokeMethod(gSet,[eng,len](){
-        gSet->addTranslatorStatistics(eng, len);
+        gSet->net()->addTranslatorStatistics(eng, len);
     },Qt::QueuedConnection);
     return tranStringPrivate(src);
 }

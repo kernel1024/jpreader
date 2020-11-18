@@ -6,10 +6,12 @@
 #include "trans.h"
 #include "net.h"
 #include "ctxhandler.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/startup.h"
+#include "global/browserfuncs.h"
 #include "translator/translator.h"
 #include "utils/genericfuncs.h"
+#include "browser-utils/userscript.h"
 #include "miniqxt/qxttooltip.h"
 
 using namespace htmlcxx;
@@ -37,7 +39,7 @@ CBrowserTrans::CBrowserTrans(CBrowserTab *parent)
 void CBrowserTrans::applyScripts()
 {
     QUrl origin = snv->txtBrowser->page()->url();
-    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,false,true);
+    const QVector<CUserScript> scripts = gSet->browser()->getUserScriptsForUrl(origin,false,false,true);
     for (const auto &script : scripts) {
         QEventLoop ev;
         connect(this,&CBrowserTrans::scriptFinished,&ev,&QEventLoop::quit);
@@ -141,7 +143,7 @@ void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &titl
     snv->transButton->setEnabled(false);
     snv->waitHandler->setProgressEnabled(true);
 
-    snv->waitHandler->setLanguage(CLangPair(gSet->ui()->getActiveLangPair()).toLongString());
+    snv->waitHandler->setLanguage(CLangPair(gSet->actions()->getActiveLangPair()).toLongString());
     snv->waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
 
@@ -212,7 +214,7 @@ void CBrowserTrans::postTranslate()
 void CBrowserTrans::selectionChanged()
 {
     m_storedSelection = snv->txtBrowser->page()->selectedText();
-    if (!m_storedSelection.isEmpty() && gSet->ui()->actionSelectionDictionary->isChecked())
+    if (!m_storedSelection.isEmpty() && gSet->actions()->actionSelectionDictionary->isChecked())
         m_selectionTimer.start();
 }
 

@@ -1,6 +1,8 @@
 #include <QBuffer>
 #include "htmlimagesextractor.h"
 #include "utils/genericfuncs.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "htmlcxx/html/ParserDom.h"
 
 using namespace htmlcxx;
@@ -107,7 +109,7 @@ void CHtmlImagesExtractor::handleImages()
                 req.setRawHeader("referer",m_origin.toString().toUtf8());
                 req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
                 req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-                QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+                QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
                 connect(rpl,&QNetworkReply::finished,this,[this,rpl,it](){
                     subImageFinished(rpl,it);
                     rpl->deleteLater();

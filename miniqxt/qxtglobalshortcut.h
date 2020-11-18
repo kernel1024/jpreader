@@ -33,6 +33,7 @@
 
 #include <QObject>
 #include <QAbstractNativeEventFilter>
+#include <QAtomicInteger>
 #include <QKeySequence>
 #include <xcb/xcb.h>
 
@@ -66,7 +67,7 @@ private:
     bool m_enabled { false };
 
     static bool error;
-    static int ref;
+    static QAtomicInteger<int> ref;
 
     Q_DISABLE_COPY(QxtGlobalShortcut)
 

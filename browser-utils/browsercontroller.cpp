@@ -1,5 +1,6 @@
 #include "browsercontroller.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "browser/browser.h"
 
 CBrowserController::CBrowserController(QObject *parent) : QObject(parent)
@@ -26,7 +27,7 @@ void CBrowserController::openDefaultSearch(const QString &text)
     CMainWindow* w = gSet->activeWindow();
     if (w==nullptr) return;
 
-    QUrl url = gSet->createSearchUrl(text);
+    QUrl url = gSet->net()->createSearchUrl(text);
     new CBrowserTab(w,url);
     w->showNormal();
     w->raise();

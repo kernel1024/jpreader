@@ -17,6 +17,11 @@
 #include "trans.h"
 #include "miniqxt/qxttooltip.h"
 #include "global/contentfiltering.h"
+#include "global/ui.h"
+#include "global/network.h"
+#include "global/browserfuncs.h"
+#include "global/history.h"
+#include "global/actions.h"
 #include "search/searchtab.h"
 #include "utils/genericfuncs.h"
 #include "utils/specwidgets.h"
@@ -25,6 +30,7 @@
 #include "browser-utils/bookmarks.h"
 #include "browser-utils/authdlg.h"
 #include "browser-utils/noscriptdialog.h"
+#include "browser-utils/userscript.h"
 #include "extractors/htmlimagesextractor.h"
 
 namespace CDefaults {
@@ -155,14 +161,14 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
                          tr("Extract HTML via clipboard to separate tab"));
         connect(ac, &QAction::triggered, snv->netHandler, &CBrowserNet::extractHTMLFragment);
 
-        QStringList searchNames = gSet->getSearchEngines();
+        QStringList searchNames = gSet->net()->getSearchEngines();
         if (!searchNames.isEmpty()) {
             m_menu.addSeparator();
             ccm = m_menu.addMenu(QIcon::fromTheme(QSL("edit-web-search")),tr("Search with"));
 
             searchNames.sort(Qt::CaseInsensitive);
             for (const QString& name : qAsConst(searchNames)) {
-                QUrl url = gSet->createSearchUrl(sText,name);
+                QUrl url = gSet->net()->createSearchUrl(sText,name);
 
                 ac = ccm->addAction(name);
                 connect(ac, &QAction::triggered, this, [url,this](){
@@ -202,13 +208,13 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         ac = m_menu.addAction(QIcon::fromTheme(QSL("accessories-dictionary")),
                          tr("Local dictionary"));
         connect(ac, &QAction::triggered, this, [sText](){
-            gSet->showDictionaryWindowEx(sText);
+            gSet->ui()->showDictionaryWindowEx(sText);
         });
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit-verify")),
                          tr("Light translator"));
         connect(ac, &QAction::triggered, this, [sText](){
-            gSet->showLightTranslator(sText);
+            gSet->ui()->showLightTranslator(sText);
         });
 
         QUrl selectedUrl = QUrl::fromUserInput(sText);
@@ -298,7 +304,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
     m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::SelectAll));
     m_menu.addSeparator();
 
-    const QVector<CUserScript> scripts = gSet->getUserScriptsForUrl(origin,false,true,false);
+    const QVector<CUserScript> scripts = gSet->browser()->getUserScriptsForUrl(origin,false,true,false);
     if (!scripts.isEmpty()) {
         ccm = m_menu.addMenu(QIcon::fromTheme(QSL("run-build")),
                           tr("Start user script"));
@@ -338,7 +344,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("dialog-password")),
                       tr("Form autofill"));
-    if (gSet->haveSavedPassword(origin,QString())) {
+    if (gSet->browser()->haveSavedPassword(origin,QString())) {
         ac = ccm->addAction(QIcon::fromTheme(QSL("tools-wizard")),
                             tr("Insert username and password"),
                             snv->msgHandler,&CBrowserMsgHandler::pastePassword);
@@ -351,13 +357,13 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         ac = ccm->addAction(QIcon::fromTheme(QSL("edit-delete")),
                             tr("Delete saved username and password"));
         connect(ac, &QAction::triggered, this, [origin](){
-            gSet->removePassword(origin);
+            gSet->browser()->removePassword(origin);
         });
     } else {
         ac = ccm->addAction(QIcon::fromTheme(QSL("edit-rename")),
                             tr("Save username and password"));
         connect(ac, &QAction::triggered, this, [origin](){
-            QString realm = CGenericFuncs::elideString(gSet->cleanUrlForRealm(origin).toString(),
+            QString realm = CGenericFuncs::elideString(gSet->browser()->cleanUrlForRealm(origin).toString(),
                                                        CDefaults::maxRealmLabelEliding,Qt::ElideLeft);
             CAuthDlg dlg(QApplication::activeWindow(),origin,realm,true);
             dlg.exec();
@@ -431,7 +437,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("document-edit-verify")),
                          tr("Translator options"));
-    ccm->addActions(gSet->getTranslationLanguagesActions());
+    ccm->addActions(gSet->actions()->getTranslationLanguagesActions());
 
     m_menuActive.start();
 
@@ -471,7 +477,7 @@ void CBrowserCtxHandler::translateFragment()
     if (nt==nullptr) return;
     QString s = nt->data().toString();
     if (s.isEmpty()) return;
-    CLangPair lp(gSet->ui()->getActiveLangPair());
+    CLangPair lp(gSet->actions()->getActiveLangPair());
     if (!lp.isValid()) return;
 
     auto *th = new QThread();
@@ -526,7 +532,7 @@ void CBrowserCtxHandler::saveToFile()
     }
 
     if (fname.isNull() || fname.isEmpty()) return;
-    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+    gSet->ui()->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
     if (!selectedText.isEmpty()) {
         QFile f(fname);
@@ -564,18 +570,18 @@ void CBrowserCtxHandler::bookmarkPage() {
     QWebEnginePage *lf = snv->txtBrowser->page();
     AddBookmarkDialog dlg(lf->requestedUrl().toString(),lf->title(),snv);
     if (dlg.exec() == QDialog::Accepted)
-        Q_EMIT gSet->updateAllBookmarks();
+        Q_EMIT gSet->history()->updateAllBookmarks();
 }
 
 void CBrowserCtxHandler::showInEditor()
 {
-    QString fname = gSet->makeTmpFileName(QSL("html"),true);
-    snv->txtBrowser->page()->toHtml([fname,this](const QString& html) {
-        QFile tfile(fname);
-        tfile.open(QIODevice::WriteOnly);
-        tfile.write(html.toUtf8());
-        tfile.close();
-        gSet->appendCreatedFiles(fname);
+    snv->txtBrowser->page()->toHtml([this](const QString& html) {
+        QString fname = gSet->makeTmpFile(QSL("html"),html);
+        if (fname.isEmpty()) {
+            QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to create temp file."));
+            return;
+        }
 
         if (!QProcess::startDetached(gSet->settings()->sysEditor, QStringList() << fname)) {
             QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
@@ -601,9 +607,9 @@ void CBrowserCtxHandler::exportCookies()
                                                     QStringList( { tr("Text file, Netscape format (*.txt)") } ) );
 
     if (fname.isEmpty() || fname.isNull()) return;
-    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+    gSet->ui()->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    if (!gSet->exportCookies(fname,origin)) {
+    if (!gSet->net()->exportCookies(fname,origin)) {
         QMessageBox::critical(snv,QGuiApplication::applicationDisplayName(),
                               tr("Unable to create file."));
     }

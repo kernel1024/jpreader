@@ -14,7 +14,8 @@
 
 #include "pixivnovelextractor.h"
 #include "utils/genericfuncs.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/network.h"
 
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent, QWidget *parentWidget)
     : CAbstractExtractor(parent,parentWidget)
@@ -48,7 +49,7 @@ void CPixivNovelExtractor::startMain()
             QNetworkRequest req(m_mangaOrigin);
             req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
             req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+            QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
             connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
@@ -58,7 +59,7 @@ void CPixivNovelExtractor::startMain()
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
             if (exitIfAborted()) return;
             QNetworkRequest req(m_source);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+            QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
             connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
@@ -216,7 +217,7 @@ void CPixivNovelExtractor::subLoadFinished()
                     if (exitIfAborted()) return;
                     QNetworkRequest req(url);
                     req.setRawHeader("referer",rplUrl.toString().toUtf8());
-                    QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
+                    QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
                     connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
                 },Qt::QueuedConnection);
             }
@@ -334,7 +335,7 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
             req.setRawHeader("referer",m_origin.toString().toUtf8());
             req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
             req.setMaximumRedirectsAllowed(CDefaults::httpMaxRedirects);
-            QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+            QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
             connect(rpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
         },Qt::QueuedConnection);
     }

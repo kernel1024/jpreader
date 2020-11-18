@@ -3,7 +3,11 @@
 #include <QDebug>
 #include "browser.h"
 #include "msghandler.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/browserfuncs.h"
+#include "global/ui.h"
+#include "global/network.h"
+#include "global/actions.h"
 #include "utils/genericfuncs.h"
 
 namespace CDefaults {
@@ -74,9 +78,9 @@ void CBrowserMsgHandler::pastePassword()
     QString user;
     QString pass;
 
-    if (!gSet->haveSavedPassword(snv->txtBrowser->page()->url(),QString())) return;
+    if (!gSet->browser()->haveSavedPassword(snv->txtBrowser->page()->url(),QString())) return;
 
-    gSet->readPassword(snv->txtBrowser->page()->url(),QString(),user,pass);
+    gSet->browser()->readPassword(snv->txtBrowser->page()->url(),QString(),user,pass);
     QString inp = QSL("%1%2%3").arg(user,tabKey,pass);
 
     auto *ac = qobject_cast<QAction *>(sender());
@@ -119,7 +123,7 @@ void CBrowserMsgHandler::tranEngine(int index)
     if (ok) {
         auto e = static_cast<CStructures::TranslationEngine>(engine);
         if (CStructures::translationEngines().contains(e))
-            gSet->setTranslationEngine(e);
+            gSet->net()->setTranslationEngine(e);
     }
 
     m_lockTranEngine.unlock();
@@ -153,7 +157,7 @@ void CBrowserMsgHandler::urlEditSetFocus()
 void CBrowserMsgHandler::languageContextMenu(const QPoint &pos)
 {
     QMenu cm;
-    cm.addActions(gSet->getTranslationLanguagesActions());
+    cm.addActions(gSet->actions()->getTranslationLanguagesActions());
     cm.exec(snv->comboTranEngine->mapToGlobal(pos));
 }
 

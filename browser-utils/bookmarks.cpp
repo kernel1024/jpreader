@@ -51,7 +51,7 @@
 #include "bookmarks.h"
 
 #include "xbel.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "utils/genericfuncs.h"
 
 #include <QBuffer>

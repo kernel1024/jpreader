@@ -18,10 +18,14 @@
 #include "browser.h"
 #include "mainwindow.h"
 #include "utils/specwidgets.h"
-#include "global/globalcontrol.h"
+#include "utils/genericfuncs.h"
+#include "global/control.h"
 #include "global/structures.h"
 #include "global/contentfiltering.h"
-#include "utils/genericfuncs.h"
+#include "global/browserfuncs.h"
+#include "global/network.h"
+#include "global/history.h"
+#include "global/ui.h"
 
 #include "ctxhandler.h"
 #include "net.h"
@@ -126,7 +130,7 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     comboTranEngine->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(comboTranEngine, &QComboBox::customContextMenuRequested,
             msgHandler, &CBrowserMsgHandler::languageContextMenu);
-    connect(gSet, &CGlobalControl::translationEngineChanged, msgHandler, &CBrowserMsgHandler::updateTranEngine);
+    connect(gSet->ui(), &CGlobalUI::translationEngineChanged, msgHandler, &CBrowserMsgHandler::updateTranEngine);
 
     QShortcut* sc = nullptr;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
@@ -222,7 +226,7 @@ void CBrowserTab::updateButtonsState()
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
     passwordButton->setEnabled((!m_loading) &&
                                (txtBrowser->page()!=nullptr) &&
-                               (gSet->haveSavedPassword(txtBrowser->page()->url(),QString())));
+                               (gSet->browser()->haveSavedPassword(txtBrowser->page()->url(),QString())));
 }
 
 void CBrowserTab::navByUrlDefault()
@@ -247,7 +251,7 @@ void CBrowserTab::navByUrl(const QString& url)
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
             && (!u.isValid() || !url.contains('.'))) {
-        u = gSet->createSearchUrl(url);
+        u = gSet->net()->createSearchUrl(url);
     }
 
     navByUrl(u);
@@ -283,8 +287,8 @@ void CBrowserTab::titleChanged(const QString & title)
                 !txtBrowser->page()->url().toString().contains(
                     QSL("about:blank"),Qt::CaseInsensitive)) {
             CUrlHolder uh(title,txtBrowser->page()->url());
-            if (!gSet->updateMainHistoryTitle(uh,title.trimmed()))
-                gSet->appendMainHistory(uh);
+            if (!gSet->history()->updateMainHistoryTitle(uh,title.trimmed()))
+                gSet->history()->appendMainHistory(uh);
         }
     }
     parentWnd()->updateTitle();
@@ -330,7 +334,7 @@ void CBrowserTab::recycleTab()
         return;
     }
 
-    gSet->appendRecycled(tabTitle(),txtBrowser->page()->url());
+    gSet->history()->appendRecycled(tabTitle(),txtBrowser->page()->url());
 }
 
 QUrl CBrowserTab::getUrl()
@@ -365,7 +369,7 @@ void CBrowserTab::printToPDF()
     QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save to PDF"),gSet->settings()->savedAuxSaveDir,
                                                     QStringList( { tr("PDF file (*.pdf)") } ));
     if (fname.isEmpty()) return;
-    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+    gSet->ui()->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
     txtBrowser->page()->printToPdf(fname, printer.pageLayout());
 }
@@ -409,7 +413,7 @@ void CBrowserTab::updateWebViewAttributes()
 {
     txtBrowser->settings()->setAttribute(
                 QWebEngineSettings::AutoLoadImages,
-                gSet->webProfile()->settings()->testAttribute(
+                gSet->browser()->webProfile()->settings()->testAttribute(
                     QWebEngineSettings::AutoLoadImages));
 
     if (gSet->settings()->overrideStdFonts) {

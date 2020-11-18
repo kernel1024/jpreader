@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QScopedPointer>
 #include "titlestranslator.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "translator-workers/abstracttranslator.h"
 
 CTitlesTranslator::CTitlesTranslator(QObject *parent) :
@@ -23,7 +23,7 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     stopReq=false;
 
     QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
-                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
+                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->actions()->getActiveLangPair())));
     if (!tran || !tran->initTran()) {
         qCritical() << tr("Unable to initialize translation engine.");
         res.clear();

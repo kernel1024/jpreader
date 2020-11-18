@@ -6,7 +6,7 @@
 #include <QVariant>
 #include <QDebug>
 
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "utils/genericfuncs.h"
 #include "yandextranslator.h"
 

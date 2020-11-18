@@ -10,7 +10,7 @@
 #include <QFileInfo>
 #include <QScopedPointer>
 
-#include "global/globalcontrol.h"
+#include "global/control.h"
 
 #ifdef WITH_THREADED_SEARCH
 #include "abstractthreadedsearch.h"

@@ -10,12 +10,17 @@
 #include <QWebEngineProfile>
 #include <QWebEngineCertificateError>
 #include <vector>
+
 #include "specwidgets.h"
 #include "mainwindow.h"
-#include "global/globalcontrol.h"
-#include "global/contentfiltering.h"
-#include "search/searchtab.h"
 #include "genericfuncs.h"
+#include "global/control.h"
+#include "global/contentfiltering.h"
+#include "global/browserfuncs.h"
+#include "global/history.h"
+#include "global/network.h"
+#include "global/ui.h"
+#include "search/searchtab.h"
 #include "browser-utils/userscript.h"
 #include "browser/ctxhandler.h"
 #include "browser/browser.h"
@@ -249,7 +254,7 @@ void CSpecTabContainer::setTabTitle(const QString &title)
 
 void CSpecTabContainer::updateTabIcon(const QIcon &icon)
 {
-    if (!gSet->webProfile()->settings()->
+    if (!gSet->browser()->webProfile()->settings()->
             testAttribute(QWebEngineSettings::AutoLoadIconsForPage)) return;
     if (m_tabWidget==nullptr) return;
     m_tabWidget->setTabIcon(m_tabWidget->indexOf(this),icon);
@@ -266,7 +271,7 @@ void CSpecTabContainer::detachTab()
     if (m_tabWidget->count()<=1) return;
 
     // Reparenting
-    CMainWindow* mwnd = gSet->addMainWindowEx(false,false);
+    CMainWindow* mwnd = gSet->ui()->addMainWindowEx(false,false);
     m_tabWidget->removeTab(m_tabWidget->indexOf(this));
     m_parentWnd = mwnd;
     setParent(mwnd);
@@ -281,8 +286,8 @@ void CSpecTabContainer::closeTab(bool nowait)
     if (m_tabWidget->count()<=1) return; // prevent closing while only 1 tab remains
 
     if (!nowait) {
-        if (gSet->isBlockTabCloseActive()) return;
-        gSet->blockTabClose();
+        if (gSet->ui()->isBlockTabCloseActive()) return;
+        gSet->ui()->blockTabClose();
     }
     if (m_tabWidget) {
         if ((m_parentWnd->lastTabIndex()>=0) &&
@@ -313,7 +318,7 @@ CSpecWebView::CSpecWebView(QWidget *parent)
     if (parentViewer==nullptr)
         qCritical() << "parentViewer is nullptr";
 
-    m_page = new CSpecWebPage(gSet->webProfile(), this);
+    m_page = new CSpecWebPage(gSet->browser()->webProfile(), this);
     setPage(m_page);
 }
 
@@ -377,7 +382,7 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
         gSet->contentFilter()->clearNoScriptPageHosts(url.toString(CSettings::adblockUrlFmt));
 
         // Userscripts
-        const QVector<CUserScript> sl(gSet->getUserScriptsForUrl(url, isMainFrame, false, false));
+        const QVector<CUserScript> sl(gSet->browser()->getUserScriptsForUrl(url, isMainFrame, false, false));
 
         if (!sl.isEmpty())
             scripts().clear();
@@ -554,10 +559,10 @@ int CSpecUrlHistoryModel::rowCount(const QModelIndex &parent) const
 
     const int maxHistoryLength = 100;
 
-    if (gSet->mainHistory().count()>maxHistoryLength)
+    if (gSet->history()->mainHistory().count() > maxHistoryLength)
         return maxHistoryLength;
 
-    return gSet->mainHistory().count();
+    return gSet->history()->mainHistory().count();
 }
 
 QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
@@ -566,7 +571,7 @@ QVariant CSpecUrlHistoryModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     if (role==Qt::DisplayRole || role==Qt::EditRole)
-        return gSet->mainHistory().at(index.row()).url.toString();
+        return gSet->history()->mainHistory().at(index.row()).url.toString();
 
     return QVariant();
 }
@@ -629,7 +634,7 @@ void CFaviconLoader::queryStart(bool forceCached)
 
     } else {
         QNetworkRequest req(m_url);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
         connect(rpl,&QNetworkReply::finished,this,&CFaviconLoader::queryFinished);
     }
 }
@@ -650,9 +655,9 @@ void CFaviconLoader::queryFinished()
             QString host = rpl->url().host();
             QString path = rpl->url().path();
             if (!host.isEmpty()) {
-                gSet->addFavicon(host,ico);
+                gSet->net()->addFavicon(host,ico);
                 if (!path.isEmpty())
-                    gSet->addFavicon(host+path,ico);
+                    gSet->net()->addFavicon(host+path,ico);
             }
         }
     }

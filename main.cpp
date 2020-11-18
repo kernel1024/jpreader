@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/startup.h"
 
 int main(int argc, char *argv[])

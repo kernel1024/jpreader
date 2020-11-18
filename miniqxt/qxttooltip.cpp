@@ -43,23 +43,24 @@
 #include <QTimer>
 #include <QFrame>
 #include <QStyle>
+#include <QPointer>
 #include <QDebug>
 
 static const Qt::WindowFlags FLAGS = Qt::ToolTip;
 
 QxtToolTipPrivate* QxtToolTipPrivate::instance()
 {
-    static QxtToolTipPrivate* self = nullptr;
-    if (!self) {
+    static QPointer<QxtToolTipPrivate> self;
+
+    if (self.isNull()) {
         self = new QxtToolTipPrivate();
 
-        connect(QApplication::instance(),&QCoreApplication::aboutToQuit,self,[](){
+        connect(QCoreApplication::instance(),&QCoreApplication::aboutToQuit,self,[](){
             self->deleteLater();
-            self = nullptr;
         });
 
     }
-    return self;
+    return self.data();
 }
 
 QxtToolTipPrivate::QxtToolTipPrivate(QWidget *parent) : QWidget(parent, FLAGS)

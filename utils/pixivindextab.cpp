@@ -5,7 +5,7 @@
 #include <QMessageBox>
 
 #include "pixivindextab.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/startup.h"
 #include "utils/genericfuncs.h"
 #include "browser/browser.h"

@@ -4,7 +4,8 @@
 #include <QJsonArray>
 #include <QBuffer>
 #include "fanboxextractor.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "utils/genericfuncs.h"
 
 namespace CDefaults {
@@ -45,7 +46,7 @@ void CFanboxExtractor::startMain()
         req.setRawHeader("referer","https://www.fanbox.cc/");
         req.setRawHeader("accept","application/json, text/plain, */*");
         req.setRawHeader("origin","https://www.fanbox.cc");
-        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CFanboxExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CFanboxExtractor::pageLoadFinished);
@@ -161,7 +162,7 @@ void CFanboxExtractor::pageLoadFinished()
                             QNetworkRequest req(url);
                             req.setRawHeader("origin","https://www.fanbox.cc");
                             req.setRawHeader("referer",origin.toString().toUtf8());
-                            QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
+                            QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
                             connect(rplImg,&QNetworkReply::finished,this,&CFanboxExtractor::subImageFinished);
                         },Qt::QueuedConnection);
                     }

@@ -6,7 +6,7 @@
 #include <numeric>
 
 #include "genericfuncs.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 
 #ifdef WITH_POPPLER
 

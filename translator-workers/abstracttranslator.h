@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QString>
-#include "global/globalcontrol.h"
 #include "global/structures.h"
 
 namespace CDefaults {

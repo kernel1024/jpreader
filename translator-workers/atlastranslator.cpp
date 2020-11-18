@@ -1,6 +1,9 @@
 #include <QRegularExpression>
 #include <QUrl>
+
 #include "atlastranslator.h"
+#include "global/control.h"
+#include "global/network.h"
 
 CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16 port,
                                    const CLangPair &lang) :
@@ -14,12 +17,12 @@ CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16
     QSslConfiguration conf = m_sock.sslConfiguration();
     conf.setProtocol(gSet->settings()->atlProto);
     m_sock.setSslConfiguration(conf);
-    m_sock.ignoreSslErrors(gSet->ignoredSslErrorsList());
+    m_sock.ignoreSslErrors(gSet->net()->ignoredSslErrorsList());
 
     connect(&m_sock,qOverload<const QList<QSslError>&>(&QSslSocket::sslErrors),
             this,&CAtlasTranslator::sslError);
     connect(&m_sock,&QSslSocket::errorOccurred,this,&CAtlasTranslator::socketError);
-    connect(this,&CAtlasTranslator::sslCertErrors,gSet,&CGlobalControl::sslCertErrors);
+    connect(this,&CAtlasTranslator::sslCertErrors,gSet->net(),&CGlobalNetwork::sslCertErrors);
 }
 
 CAtlasTranslator::~CAtlasTranslator()

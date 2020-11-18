@@ -14,9 +14,11 @@ extern "C" {
 }
 
 #include "startup.h"
-#include "globalcontrol.h"
-#include "globalprivate.h"
+#include "control.h"
+#include "control_p.h"
 #include "contentfiltering.h"
+#include "network.h"
+#include "ui.h"
 #include "browser-utils/adblockrule.h"
 #include "browser-utils/bookmarks.h"
 #include "browser-utils/browsercontroller.h"
@@ -46,18 +48,11 @@ CGlobalStartup::CGlobalStartup(CGlobalControl *parent)
 {
 }
 
-CGlobalStartup::~CGlobalStartup()
-{
-    // TODO: need?
-//    if (gSet->d_func()->webProfile!=nullptr) {
-//        gSet->d_func()->webProfile->setParent(nullptr);
-//        delete gSet->d_func()->webProfile;
-//    }
-}
+CGlobalStartup::~CGlobalStartup() = default;
 
 void CGlobalStartup::initialize()
 {
-    const bool cliMode = m_g->m_ui.isNull();
+    const bool cliMode = m_g->m_actions.isNull();
 
     QElapsedTimer initTime;
     initTime.start();
@@ -118,14 +113,14 @@ void CGlobalStartup::initialize()
         if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
             qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
-        connect(m_g->app(m_g->parent()), &QApplication::focusChanged, m_g, &CGlobalControl::focusChanged);
+        connect(m_g->app(m_g->parent()), &QApplication::focusChanged, m_g->ui(), &CGlobalUI::focusChanged);
 
-        connect(m_g->m_ui->actionUseProxy, &QAction::toggled, m_g, &CGlobalControl::updateProxy);
+        connect(m_g->m_actions->actionUseProxy, &QAction::toggled, m_g->net(), &CGlobalNetwork::updateProxy);
 
-        connect(m_g->m_ui->actionJSUsage,&QAction::toggled,m_g,[](bool checked){
+        connect(m_g->m_actions->actionJSUsage,&QAction::toggled,m_g,[](bool checked){
             gSet->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,checked);
         });
-        connect(m_g->m_ui->actionLogNetRequests,&QAction::toggled,m_g,[](bool checked){
+        connect(m_g->m_actions->actionLogNetRequests,&QAction::toggled,m_g,[](bool checked){
             gSet->m_settings->debugNetReqLogging = checked;
         });
 
@@ -154,9 +149,9 @@ void CGlobalStartup::initialize()
                 m_g->d_func()->downloadManager.data(), &CDownloadManager::handleDownload);
         m_g->d_func()->webProfile->setUrlRequestInterceptor(new CSpecUrlInterceptor(this));
         connect(m_g->d_func()->webProfile->cookieStore(), &QWebEngineCookieStore::cookieAdded,
-                m_g, &CGlobalControl::cookieAdded);
+                m_g->net(), &CGlobalNetwork::cookieAdded);
         connect(m_g->d_func()->webProfile->cookieStore(), &QWebEngineCookieStore::cookieRemoved,
-                m_g, &CGlobalControl::cookieRemoved);
+                m_g->net(), &CGlobalNetwork::cookieRemoved);
         m_g->d_func()->webProfile->cookieStore()->loadAllCookies();
 
         m_g->d_func()->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),
@@ -181,11 +176,11 @@ void CGlobalStartup::initialize()
         m_g->d_func()->auxNetManager = new QNetworkAccessManager(this);
         m_g->d_func()->auxNetManager->setCookieJar(new CNetworkCookieJar(m_g->d_func()->auxNetManager));
         connect(m_g->d_func()->auxNetManager,&QNetworkAccessManager::authenticationRequired,
-                m_g,&CGlobalControl::authenticationRequired);
+                m_g->net(),&CGlobalNetwork::authenticationRequired);
         connect(m_g->d_func()->auxNetManager,&QNetworkAccessManager::proxyAuthenticationRequired,
-                m_g,&CGlobalControl::proxyAuthenticationRequired);
+                m_g->net(),&CGlobalNetwork::proxyAuthenticationRequired);
         connect(m_g->d_func()->auxNetManager,&QNetworkAccessManager::sslErrors,
-                m_g,&CGlobalControl::auxSSLCertError);
+                m_g->net(),&CGlobalNetwork::auxSSLCertError);
 
         m_g->d_func()->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
         connect(&(m_g->d_func()->tabsListTimer), &QTimer::timeout, m_g->settings(), &CSettings::writeTabsList);
@@ -222,7 +217,7 @@ void CGlobalStartup::initialize()
                 openUrls << u;
         }
 
-        m_g->addMainWindowEx(false,true,openUrls);
+        m_g->m_ui->addMainWindowEx(false,true,openUrls);
 
         qInfo() << "Initialization time, ms: " << initTime.elapsed();
 
@@ -329,7 +324,7 @@ void CGlobalStartup::ipcMessageReceived()
 
     QStringList cmd = QString::fromUtf8(bmsg).split('\n');
     if (cmd.first().startsWith(QSL("newWindow"))) {
-        m_g->addMainWindow();
+        m_g->m_ui->addMainWindowEx(false, true);
     } else if (cmd.first().startsWith(QSL("debugRestart"))) {
         qInfo() << tr("Closing jpreader instance (pid: %1)"
                       "after debugRestart request")
@@ -371,7 +366,7 @@ void CGlobalStartup::cleanupAndExit()
     if (m_g->d_func()->cleaningState) return;
     m_g->d_func()->cleaningState = true;
 
-    if (!m_g->m_ui.isNull()) {
+    if (!m_g->m_actions.isNull()) {
         m_g->m_settings->clearTabsList();
         m_g->m_settings->writeSettings();
 
@@ -382,7 +377,7 @@ void CGlobalStartup::cleanupAndExit()
             }
         }
 
-        m_g->m_ui->gctxTranHotkey.unsetShortcut();
+        m_g->m_actions->gctxTranHotkey.unsetShortcut();
     }
     cleanTmpFiles();
 
@@ -390,7 +385,7 @@ void CGlobalStartup::cleanupAndExit()
 
     CPDFWorker::freePdfToText();
 
-    if (!m_g->m_ui.isNull()) {
+    if (!m_g->m_actions.isNull()) {
         // free global objects
         m_g->d_func()->logWindow.reset(nullptr);
         m_g->d_func()->downloadManager.reset(nullptr);
@@ -425,7 +420,7 @@ bool CGlobalStartup::setupThreadedWorker(CAbstractThreadWorker *worker)
     connect(this,&CGlobalStartup::terminateWorkers,thread,&QThread::terminate);
 
     connect(worker,&CAbstractThreadWorker::started,
-            m_g->ui(),&CGlobalUI::updateBusyCursor,Qt::QueuedConnection);
+            m_g->actions(),&CGlobalActions::updateBusyCursor,Qt::QueuedConnection);
 
     m_g->d_func()->workerMonitor->workerStarted(worker);
 
@@ -448,7 +443,7 @@ void CGlobalStartup::cleanupWorker()
         m_g->d_func()->workerPool.removeAll(worker);
     }
 
-    m_g->m_ui->updateBusyCursor();
+    m_g->m_actions->updateBusyCursor();
 }
 
 void CGlobalStartup::cleanTmpFiles()

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTextStream>
+#include <QPointer>
 #include "global/structures.h"
 #include "translator-workers/abstracttranslator.h"
 

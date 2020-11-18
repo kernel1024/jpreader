@@ -33,7 +33,7 @@
 #include <QtDebug>
 #include <xcb/xcb.h>
 
-int QxtGlobalShortcut::ref = 0;
+QAtomicInteger<int> QxtGlobalShortcut::ref;
 QHash<QPair<xcb_keycode_t, uint16_t>, QxtGlobalShortcut*> QxtGlobalShortcut::shortcuts;
 
 /*

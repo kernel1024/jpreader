@@ -3,9 +3,10 @@
 #include <QInputDialog>
 #include "logdisplay.h"
 #include "genericfuncs.h"
-#include "global/globalcontrol.h"
-#include "global/globalprivate.h"
+#include "global/control.h"
+#include "global/control_p.h"
 #include "global/contentfiltering.h"
+#include "global/ui.h"
 #include "mainwindow.h"
 #include "specwidgets.h"
 #include "ui_logdisplay.h"
@@ -89,7 +90,7 @@ void CLogDisplay::showEvent(QShowEvent *event)
 
     updateMessages();
     if (firstShow && gSet!=nullptr) {
-        QRect geom = gSet->getLastMainWindowGeometry();
+        QRect geom = gSet->ui()->getLastMainWindowGeometry();
         if (!geom.isNull()) {
             QPoint p = geom.topLeft() + QPoint(horizontalMargin,verticalMargin);
             move(p);

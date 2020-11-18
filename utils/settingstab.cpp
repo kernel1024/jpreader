@@ -6,15 +6,20 @@
 #include <QWebEngineCookieStore>
 #include <QWebEngineSettings>
 #include <QLocale>
+#include <QPointer>
 #include <algorithm>
 #include <execution>
 
 #include "settingstab.h"
 #include "ui_settingstab.h"
 #include "mainwindow.h"
-#include "global/globalcontrol.h"
-#include "global/globalprivate.h"
+#include "global/control.h"
+#include "global/control_p.h"
 #include "global/contentfiltering.h"
+#include "global/network.h"
+#include "global/history.h"
+#include "global/browserfuncs.h"
+#include "global/ui.h"
 #include "genericfuncs.h"
 #include "multiinputdialog.h"
 #include "browser-utils/userscript.h"
@@ -98,7 +103,7 @@ CSettingsTab::~CSettingsTab()
 
 CSettingsTab *CSettingsTab::instance()
 {
-    static CSettingsTab* inst = nullptr;
+    static QPointer<CSettingsTab> inst;
     static QMutex lock;
     QMutexLocker locker(&lock);
 
@@ -106,17 +111,11 @@ CSettingsTab *CSettingsTab::instance()
         return nullptr;
 
     CMainWindow* wnd = gSet->activeWindow();
-    if (inst==nullptr) {
+    if (inst.isNull()) {
         inst = new CSettingsTab(wnd);
         inst->bindToTab(wnd->tabMain);
-
-        connect(inst,&CSettingsTab::destroyed,gSet,[](){
-            inst = nullptr;
-        });
-
         connect(gSet->settings(),&CSettings::adblockRulesUpdated,
                 inst,&CSettingsTab::updateAdblockList,Qt::QueuedConnection);
-
         inst->loadFromGlobal();
     }
 
@@ -139,11 +138,11 @@ void CSettingsTab::loadFromGlobal()
     ui->editBrowser->setText(gSet->m_settings->sysBrowser);
     ui->spinMaxRecycled->setValue(gSet->m_settings->maxRecycled);
     ui->spinMaxWhiteListItems->setValue(gSet->m_settings->maxAdblockWhiteList);
-    ui->checkJS->setChecked(gSet->webProfile()->settings()->
+    ui->checkJS->setChecked(gSet->m_browser->webProfile()->settings()->
                             testAttribute(QWebEngineSettings::JavascriptEnabled));
-    ui->checkAutoloadImages->setChecked(gSet->webProfile()->settings()->
+    ui->checkAutoloadImages->setChecked(gSet->m_browser->webProfile()->settings()->
                                         testAttribute(QWebEngineSettings::AutoLoadImages));
-    ui->checkEnablePlugins->setChecked(gSet->webProfile()->settings()->
+    ui->checkEnablePlugins->setChecked(gSet->m_browser->webProfile()->settings()->
                                        testAttribute(QWebEngineSettings::PluginsEnabled));
 
     switch (gSet->m_settings->translatorEngine) {
@@ -192,7 +191,7 @@ void CSettingsTab::loadFromGlobal()
     ui->checkUseAd->setChecked(gSet->m_settings->useAdblock);
     ui->checkUseNoScript->setChecked(gSet->m_settings->useNoScript);
 
-    ui->checkTransFont->setChecked(gSet->m_ui->useOverrideTransFont());
+    ui->checkTransFont->setChecked(gSet->m_actions->useOverrideTransFont());
     ui->checkStdFonts->setChecked(gSet->m_settings->overrideStdFonts);
     ui->transFont->setCurrentFont(gSet->m_settings->overrideTransFont);
     QFont f = QApplication::font();
@@ -205,8 +204,8 @@ void CSettingsTab::loadFromGlobal()
     f.setFamily(gSet->m_settings->fontSansSerif);
     ui->fontSansSerif->setCurrentFont(f);
     ui->transFontSize->setValue(gSet->m_settings->overrideTransFont.pointSize());
-    ui->transFont->setEnabled(gSet->m_ui->useOverrideTransFont());
-    ui->transFontSize->setEnabled(gSet->m_ui->useOverrideTransFont());
+    ui->transFont->setEnabled(gSet->m_actions->useOverrideTransFont());
+    ui->transFontSize->setEnabled(gSet->m_actions->useOverrideTransFont());
     ui->fontStandard->setEnabled(gSet->m_settings->overrideStdFonts);
     ui->fontFixed->setEnabled(gSet->m_settings->overrideStdFonts);
     ui->fontSerif->setEnabled(gSet->m_settings->overrideStdFonts);
@@ -218,9 +217,9 @@ void CSettingsTab::loadFromGlobal()
     ui->spinFontSizeMinimum->setEnabled(gSet->m_settings->overrideFontSizes);
     ui->spinFontSizeDefault->setEnabled(gSet->m_settings->overrideFontSizes);
     ui->spinFontSizeFixed->setEnabled(gSet->m_settings->overrideFontSizes);
-    ui->checkFontColorOverride->setChecked(gSet->m_ui->forceFontColor());
+    ui->checkFontColorOverride->setChecked(gSet->m_actions->forceFontColor());
 
-    ui->gctxHotkey->setKeySequence(gSet->m_ui->gctxTranHotkey.shortcut());
+    ui->gctxHotkey->setKeySequence(gSet->m_actions->gctxTranHotkey.shortcut());
     ui->checkCreateCoredumps->setChecked(gSet->m_settings->createCoredumps);
 #ifndef WITH_RECOLL
     ui->radioSearchRecoll->setEnabled(false);
@@ -238,7 +237,7 @@ void CSettingsTab::loadFromGlobal()
 
     ui->checkTabCloseBtn->setChecked(gSet->m_settings->showTabCloseButtons);
 
-    ui->checkLogNetworkRequests->setChecked(gSet->m_ui->actionLogNetRequests->isChecked());
+    ui->checkLogNetworkRequests->setChecked(gSet->m_actions->actionLogNetRequests->isChecked());
     ui->checkDumpHtml->setChecked(gSet->m_settings->debugDumpHtml);
 
     ui->checkUserAgent->setChecked(gSet->m_settings->overrideUserAgent);
@@ -251,9 +250,9 @@ void CSettingsTab::loadFromGlobal()
     ui->listDictPaths->addItems(gSet->m_settings->dictPaths);
 
     ui->checkDontUseNativeFileDialogs->setChecked(gSet->m_settings->dontUseNativeFileDialog);
-    ui->spinCacheSize->setValue(gSet->webProfile()->httpCacheMaximumSize()/CDefaults::oneMB);
+    ui->spinCacheSize->setValue(gSet->m_browser->webProfile()->httpCacheMaximumSize()/CDefaults::oneMB);
     ui->checkIgnoreSSLErrors->setChecked(gSet->m_settings->ignoreSSLErrors);
-    ui->checkTabFavicon->setChecked(gSet->webProfile()->settings()->
+    ui->checkTabFavicon->setChecked(gSet->m_browser->webProfile()->settings()->
                                     testAttribute(QWebEngineSettings::AutoLoadIconsForPage));
 
     ui->checkPdfExtractImages->setChecked(gSet->m_settings->pdfExtractImages);
@@ -341,57 +340,57 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->checkJS,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,val);
-        gSet->m_ui->actionJSUsage->setChecked(val);
+        gSet->m_browser->webProfile()->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,val);
+        gSet->m_actions->actionJSUsage->setChecked(val);
     });
     connect(ui->checkAutoloadImages,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,val);
+        gSet->m_browser->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,val);
     });
     connect(ui->checkEnablePlugins,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,val);
+        gSet->m_browser->webProfile()->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,val);
     });
 
     connect(ui->radioAtlas,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teAtlas);
+            gSet->m_net->setTranslationEngine(CStructures::teAtlas);
     });
     connect(ui->radioBingAPI,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teBingAPI);
+            gSet->m_net->setTranslationEngine(CStructures::teBingAPI);
     });
     connect(ui->radioYandexAPI,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teYandexAPI);
+            gSet->m_net->setTranslationEngine(CStructures::teYandexAPI);
     });
     connect(ui->radioGoogleGTX,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teGoogleGTX);
+            gSet->m_net->setTranslationEngine(CStructures::teGoogleGTX);
     });
     connect(ui->radioAmazonAWS,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teAmazonAWS);
+            gSet->m_net->setTranslationEngine(CStructures::teAmazonAWS);
     });
     connect(ui->radioYandexCloud,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teYandexCloud);
+            gSet->m_net->setTranslationEngine(CStructures::teYandexCloud);
     });
     connect(ui->radioGoogleCloud,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teGoogleCloud);
+            gSet->m_net->setTranslationEngine(CStructures::teGoogleCloud);
     });
     connect(ui->radioAliCloud,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->setTranslationEngine(CStructures::teAliCloud);
+            gSet->m_net->setTranslationEngine(CStructures::teAliCloud);
     });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
@@ -483,7 +482,7 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->checkTransFont,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->actionOverrideTransFont->setChecked(val);
+        gSet->m_actions->actionOverrideTransFont->setChecked(val);
     });
     connect(ui->checkStdFonts,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
@@ -533,7 +532,7 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->checkFontColorOverride,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->actionOverrideTransFontColor->setChecked(val);
+        gSet->m_actions->actionOverrideTransFontColor->setChecked(val);
     });
 
     connect(ui->checkUseAd,&QCheckBox::toggled,this,[this](bool val){
@@ -547,9 +546,9 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->gctxHotkey,&QKeySequenceEdit::keySequenceChanged,this,[this](const QKeySequence& val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->gctxTranHotkey.setShortcut(val);
-        if (!gSet->m_ui->gctxTranHotkey.shortcut().isEmpty())
-            gSet->m_ui->gctxTranHotkey.setEnabled();
+        gSet->m_actions->gctxTranHotkey.setShortcut(val);
+        if (!gSet->m_actions->gctxTranHotkey.shortcut().isEmpty())
+            gSet->m_actions->gctxTranHotkey.setEnabled();
     });
 
     connect(ui->radioSearchRecoll,&QRadioButton::toggled,this,[this](bool val){
@@ -579,7 +578,7 @@ void CSettingsTab::setupSettingsObservers()
     });
     connect(ui->checkLogNetworkRequests,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->m_ui->actionLogNetRequests->setChecked(val);
+        gSet->m_actions->actionLogNetRequests->setChecked(val);
     });
     connect(ui->checkDumpHtml,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
@@ -590,18 +589,18 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->overrideUserAgent = val;
         if (gSet->m_settings->overrideUserAgent && !gSet->m_settings->userAgent.isEmpty()) {
-            gSet->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
+            gSet->m_browser->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
         } else {
-            gSet->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
+            gSet->m_browser->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
         }
     });
     connect(ui->editUserAgent->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->userAgent = val;
         if (gSet->m_settings->overrideUserAgent && !gSet->m_settings->userAgent.isEmpty()) {
-            gSet->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
+            gSet->m_browser->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
         } else {
-            gSet->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
+            gSet->m_browser->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
         }
     });
 
@@ -638,7 +637,7 @@ void CSettingsTab::setupSettingsObservers()
     });
     connect(ui->spinCacheSize,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
-        gSet->webProfile()->setHttpCacheMaximumSize(val*CDefaults::oneMB);
+        gSet->m_browser->webProfile()->setHttpCacheMaximumSize(val*CDefaults::oneMB);
     });
     connect(ui->checkIgnoreSSLErrors,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
@@ -646,39 +645,39 @@ void CSettingsTab::setupSettingsObservers()
     });
     connect(ui->checkTabFavicon,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
-        gSet->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,val);
+        gSet->m_browser->webProfile()->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,val);
     });
 
 
     connect(ui->editProxyHost,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyHost = val;
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->spinProxyPort,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyPort = static_cast<quint16>(val);
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->editProxyLogin,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyLogin = val;
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->editProxyPassword,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyPassword = val;
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->checkUseProxy,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyUse = val;
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->checkUseProxyTranslator,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyUseTranslator = val;
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
     connect(ui->listProxyType,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
         if (m_loadingInterlock) return;
@@ -688,7 +687,7 @@ void CSettingsTab::setupSettingsObservers()
             case 2: gSet->m_settings->proxyType = QNetworkProxy::Socks5Proxy; break;
             default: gSet->m_settings->proxyType = QNetworkProxy::HttpCachingProxy; break;
         }
-        gSet->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
+        gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
 }
 
@@ -783,7 +782,7 @@ void CSettingsTab::clearHistory()
 {
     if (gSet) {
         gSet->d_func()->mainHistory.clear();
-        Q_EMIT gSet->updateAllHistoryLists();
+        Q_EMIT gSet->m_history->updateAllHistoryLists();
     }
     updateMainHistory();
 }
@@ -863,7 +862,7 @@ void CSettingsTab::updateCookiesTable()
 
 void CSettingsTab::clearCookies()
 {
-    QWebEngineCookieStore* wsc = gSet->webProfile()->cookieStore();
+    QWebEngineCookieStore* wsc = gSet->m_browser->webProfile()->cookieStore();
     if (wsc)
         wsc->deleteAllCookies();
 
@@ -877,9 +876,9 @@ void CSettingsTab::delCookies()
     auto cookiesList = cj->getAllCookies();
 
     QList<int> r = getSelectedRows(ui->tableCookies);
-    if (gSet->webProfile()->cookieStore()) {
+    if (gSet->m_browser->webProfile()->cookieStore()) {
         for (int idx : qAsConst(r))
-            gSet->webProfile()->cookieStore()->deleteCookie(cookiesList.at(idx));
+            gSet->m_browser->webProfile()->cookieStore()->deleteCookie(cookiesList.at(idx));
 
         updateCookiesTable();
     }
@@ -898,9 +897,9 @@ void CSettingsTab::exportCookies()
                                                     QStringList( { tr("Text file, Netscape format (*.txt)") } ) );
 
     if (fname.isEmpty() || fname.isNull()) return;
-    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+    gSet->m_ui->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
-    if (!gSet->exportCookies(fname,QUrl(),r)) {
+    if (!gSet->m_net->exportCookies(fname,QUrl(),r)) {
         QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
                               tr("Unable to create file."));
     }
@@ -1070,7 +1069,7 @@ void CSettingsTab::exportAd()
                                                     QStringList( { tr("Text file (*.txt)") } ) );
 
     if (fname.isEmpty() || fname.isNull()) return;
-    gSet->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
+    gSet->m_ui->setSavedAuxSaveDir(QFileInfo(fname).absolutePath());
 
     QFile f(fname);
     if (!f.open(QIODevice::WriteOnly)) {
@@ -1241,7 +1240,7 @@ void CSettingsTab::importUserScript()
 
 void CSettingsTab::updateUserScripts()
 {
-    const auto &scripts = gSet->getUserScripts();
+    const auto &scripts = gSet->m_browser->getUserScripts();
     ui->listUserScripts->clear();
 
     for (auto it = scripts.constBegin(), end = scripts.constEnd(); it != end; ++it) {
@@ -1259,7 +1258,7 @@ void CSettingsTab::saveUserScripts()
         QListWidgetItem *itm = ui->listUserScripts->item(i);
         res[itm->text()]=itm->data(Qt::UserRole).toString();
     }
-    gSet->initUserScripts(res);
+    gSet->m_browser->initUserScripts(res);
 }
 
 
@@ -1353,7 +1352,7 @@ void CSettingsTab::delQrs()
         gSet->d_func()->searchHistory.removeAll(i->text());
 
     updateQueryHistory();
-    Q_EMIT gSet->updateAllQueryLists();
+    Q_EMIT gSet->m_history->updateAllQueryLists();
 }
 
 void CSettingsTab::updateQueryHistory()
@@ -1381,9 +1380,9 @@ QWidget *CLangPairDelegate::createEditor(QWidget *parent, const QStyleOptionView
     Q_UNUSED(index)
     auto *editor = new QComboBox(parent);
     editor->setFrame(false);
-    const QStringList languages = gSet->getLanguageCodes();
+    const QStringList languages = gSet->net()->getLanguageCodes();
     for (const auto &bcp : languages) {
-        editor->addItem(gSet->getLanguageName(bcp),QVariant::fromValue(bcp));
+        editor->addItem(gSet->net()->getLanguageName(bcp),QVariant::fromValue(bcp));
     }
     return editor;
 }
@@ -1459,10 +1458,10 @@ QVariant CLangPairModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-            case 0: return QVariant(gSet->getLanguageName(gSet->m_settings->translatorPairs
-                                                          .at(index.row()).langFrom.bcp47Name()));
-            case 1: return QVariant(gSet->getLanguageName(gSet->m_settings->translatorPairs
-                                                          .at(index.row()).langTo.bcp47Name()));
+            case 0: return QVariant(gSet->net()->getLanguageName(gSet->m_settings->translatorPairs
+                                                                 .at(index.row()).langFrom.bcp47Name()));
+            case 1: return QVariant(gSet->net()->getLanguageName(gSet->m_settings->translatorPairs
+                                                                 .at(index.row()).langTo.bcp47Name()));
             default: return QVariant();
         }
     }
@@ -1494,7 +1493,7 @@ bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, in
             case 0: gSet->m_settings->translatorPairs[index.row()].langFrom = QLocale(value.toString()); break;
             case 1: gSet->m_settings->translatorPairs[index.row()].langTo = QLocale(value.toString()); break;
         }
-        gSet->m_ui->rebuildLanguageActions();
+        gSet->m_actions->rebuildLanguageActions();
         return true;
     }
     return false;
@@ -1511,7 +1510,7 @@ bool CLangPairModel::insertRows(int row, int count, const QModelIndex &parent)
     for (int i=0;i<count;i++)
         gSet->m_settings->translatorPairs.insert(row, CLangPair(QSL("ja"),QSL("en")));
     endInsertRows();
-    gSet->m_ui->rebuildLanguageActions();
+    gSet->m_actions->rebuildLanguageActions();
     return true;
 }
 
@@ -1526,7 +1525,7 @@ bool CLangPairModel::removeRows(int row, int count, const QModelIndex &parent)
     for (int i=0;i<count;i++)
         gSet->m_settings->translatorPairs.removeAt(row);
     endRemoveRows();
-    gSet->m_ui->rebuildLanguageActions();
+    gSet->m_actions->rebuildLanguageActions();
     return true;
 }
 

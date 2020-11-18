@@ -2,10 +2,14 @@
 #include <QMimeData>
 #include <QToolTip>
 #include <QThread>
-#include "globalui.h"
+
+#include "actions.h"
 #include "structures.h"
-#include "globalcontrol.h"
+#include "control.h"
 #include "startup.h"
+#include "ui.h"
+#include "network.h"
+#include "history.h"
 #include "translator/auxtranslator.h"
 #include "miniqxt/qxttooltip.h"
 #include "utils/specwidgets.h"
@@ -18,7 +22,7 @@ const int globalTranslatorDelay = 1000;
 const int globalThreadWorkerTestInterval = 5000;
 }
 
-CGlobalUI::CGlobalUI(QObject *parent)
+CGlobalActions::CGlobalActions(QObject *parent)
     : QObject(parent)
 {
     actionGlobalTranslator = new QAction(tr("Global context translator"),this);
@@ -88,13 +92,13 @@ CGlobalUI::CGlobalUI(QObject *parent)
     actionLogNetRequests->setChecked(false);
 
     connect(QApplication::clipboard(),&QClipboard::changed,
-            this,&CGlobalUI::clipboardChanged);
+            this,&CGlobalActions::clipboardChanged);
 
     gctxTimer.setInterval(CDefaults::globalTranslatorDelay);
     gctxTimer.setSingleShot(true);
     gctxSelection.clear();
     connect(&gctxTimer,&QTimer::timeout,
-            this,&CGlobalUI::startGlobalContextTranslate);
+            this,&CGlobalActions::startGlobalContextTranslate);
 
     gctxTranHotkey.setDisabled();
     connect(&gctxTranHotkey,&QxtGlobalShortcut::activated,
@@ -103,26 +107,26 @@ CGlobalUI::CGlobalUI(QObject *parent)
     threadedWorkerTestTimer.setInterval(CDefaults::globalThreadWorkerTestInterval);
     threadedWorkerTestTimer.setSingleShot(false);
     connect(&threadedWorkerTestTimer,&QTimer::timeout,
-            this,&CGlobalUI::updateBusyCursor);
+            this,&CGlobalActions::updateBusyCursor);
     threadedWorkerTestTimer.start();
 }
 
-bool CGlobalUI::useOverrideTransFont() const
+bool CGlobalActions::useOverrideTransFont() const
 {
     return actionOverrideTransFont->isChecked();
 }
 
-bool CGlobalUI::autoTranslate() const
+bool CGlobalActions::autoTranslate() const
 {
     return actionAutoTranslate->isChecked();
 }
 
-bool CGlobalUI::forceFontColor() const
+bool CGlobalActions::forceFontColor() const
 {
     return actionOverrideTransFontColor->isChecked();
 }
 
-void CGlobalUI::clipboardChanged(QClipboard::Mode mode)
+void CGlobalActions::clipboardChanged(QClipboard::Mode mode)
 {
     QClipboard *cb = QApplication::clipboard();
 
@@ -134,10 +138,10 @@ void CGlobalUI::clipboardChanged(QClipboard::Mode mode)
     }
 }
 
-void CGlobalUI::startGlobalContextTranslate()
+void CGlobalActions::startGlobalContextTranslate()
 {
     if (gctxSelection.isEmpty()) return;
-    CLangPair lp(gSet->ui()->getActiveLangPair());
+    CLangPair lp(gSet->actions()->getActiveLangPair());
     if (!lp.isValid()) return;
 
     auto *th = new QThread();
@@ -148,7 +152,7 @@ void CGlobalUI::startGlobalContextTranslate()
     connect(th,&QThread::finished,at,&CAuxTranslator::deleteLater);
     connect(th,&QThread::finished,th,&QThread::deleteLater);
     connect(at,&CAuxTranslator::gotTranslation,
-            this,&CGlobalUI::gctxTranslateReady,Qt::QueuedConnection);
+            this,&CGlobalActions::gctxTranslateReady,Qt::QueuedConnection);
     at->moveToThread(th);
     th->setObjectName(QSL("GCTX"));
     th->start();
@@ -158,12 +162,12 @@ void CGlobalUI::startGlobalContextTranslate()
     gctxSelection.clear();
 }
 
-void CGlobalUI::addActionNotification(QAction *action) const
+void CGlobalActions::addActionNotification(QAction *action) const
 {
-    connect(action,&QAction::toggled,this,&CGlobalUI::actionToggled);
+    connect(action,&QAction::toggled,this,&CGlobalActions::actionToggled);
 }
 
-void CGlobalUI::gctxTranslateReady(const QString &text)
+void CGlobalActions::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
 
@@ -173,7 +177,7 @@ void CGlobalUI::gctxTranslateReady(const QString &text)
     QxtToolTip::show(p,t,nullptr,QRect(),false,true);
 }
 
-void CGlobalUI::showGlobalTooltip(const QString &text)
+void CGlobalActions::showGlobalTooltip(const QString &text)
 {
     const int globalStatusTooltipFontSizeFrac = 125;
     const QPoint globalStatusTooltipOffset(90,90);
@@ -197,7 +201,7 @@ void CGlobalUI::showGlobalTooltip(const QString &text)
     });
 }
 
-void CGlobalUI::rebuildLanguageActions(QObject * control)
+void CGlobalActions::rebuildLanguageActions(QObject * control)
 {
     QObject* cg = control;
     if (cg==nullptr) cg = gSet;
@@ -223,8 +227,8 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
 
     for (const CLangPair& pair : qAsConst(g->settings()->translatorPairs)) {
         QAction *ac = languageSelector->addAction(QSL("%1 - %2").arg(
-                                      g->getLanguageName(pair.langFrom.bcp47Name()),
-                                      g->getLanguageName(pair.langTo.bcp47Name())));
+                                      g->m_net->getLanguageName(pair.langFrom.bcp47Name()),
+                                      g->m_net->getLanguageName(pair.langTo.bcp47Name())));
         ac->setCheckable(true);
         QString hash = pair.getHash();
         ac->setData(hash);
@@ -254,10 +258,10 @@ void CGlobalUI::rebuildLanguageActions(QObject * control)
         ac->setData(QVariant::fromValue(it.key()));
     }
 
-    Q_EMIT g->updateAllLanguagesLists();
+    Q_EMIT g->m_history->updateAllLanguagesLists();
 }
 
-bool CGlobalUI::getSubsentencesMode(CStructures::TranslationEngine engine) const
+bool CGlobalActions::getSubsentencesMode(CStructures::TranslationEngine engine) const
 {
     const auto list = subsentencesMode->actions();
     for (auto * const ac : list) {
@@ -268,7 +272,7 @@ bool CGlobalUI::getSubsentencesMode(CStructures::TranslationEngine engine) const
     return false;
 }
 
-CSubsentencesMode CGlobalUI::getSubsentencesModeHash() const
+CSubsentencesMode CGlobalActions::getSubsentencesModeHash() const
 {
     CSubsentencesMode res;
     const auto list = subsentencesMode->actions();
@@ -281,7 +285,7 @@ CSubsentencesMode CGlobalUI::getSubsentencesModeHash() const
     return res;
 }
 
-void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash) const
+void CGlobalActions::setSubsentencesModeHash(const CSubsentencesMode &hash) const
 {
     const auto list = subsentencesMode->actions();
     if (list.isEmpty()) {
@@ -300,7 +304,7 @@ void CGlobalUI::setSubsentencesModeHash(const CSubsentencesMode &hash) const
     }
 }
 
-void CGlobalUI::actionToggled()
+void CGlobalActions::actionToggled()
 {
     auto *ac = qobject_cast<QAction *>(sender());
     if (ac==nullptr) return;
@@ -318,7 +322,7 @@ void CGlobalUI::actionToggled()
     showGlobalTooltip(msg);
 }
 
-void CGlobalUI::updateBusyCursor()
+void CGlobalActions::updateBusyCursor()
 {
     static QAtomicInteger<bool> busyActive(false); // initially normal cursor
 
@@ -331,7 +335,7 @@ void CGlobalUI::updateBusyCursor()
     }
 }
 
-CStructures::TranslationMode CGlobalUI::getTranslationMode() const
+CStructures::TranslationMode CGlobalActions::getTranslationMode() const
 {
     bool okconv = false;
     CStructures::TranslationMode res = CStructures::tmAdditive;
@@ -343,7 +347,7 @@ CStructures::TranslationMode CGlobalUI::getTranslationMode() const
     return res;
 }
 
-QString CGlobalUI::getActiveLangPair() const
+QString CGlobalActions::getActiveLangPair() const
 {
     QString res;
     if (languageSelector->checkedAction()) {
@@ -357,7 +361,7 @@ QString CGlobalUI::getActiveLangPair() const
     return res;
 }
 
-void CGlobalUI::setActiveLangPair(const QString &hash) const
+void CGlobalActions::setActiveLangPair(const QString &hash) const
 {
     for (auto& ac : languageSelector->actions()) {
         if (ac->data().toString() == hash) {
@@ -365,4 +369,20 @@ void CGlobalUI::setActiveLangPair(const QString &hash) const
             break;
         }
     }
+}
+
+QList<QAction *> CGlobalActions::getTranslationLanguagesActions() const
+{
+    QList<QAction* > res;
+    if (gSet->m_actions.isNull()) return res;
+
+    return gSet->m_actions->languageSelector->actions();
+}
+
+QList<QAction *> CGlobalActions::getSubsentencesModeActions() const
+{
+    QList<QAction* > res;
+    if (gSet->m_actions.isNull()) return res;
+
+    return gSet->m_actions->subsentencesMode->actions();
 }

@@ -1,10 +1,12 @@
 #include <QMessageBox>
 #include <QThread>
+
 #include "lighttranslator.h"
-#include "ui_lighttranslator.h"
-#include "global/globalcontrol.h"
-#include "global/structures.h"
 #include "auxtranslator.h"
+#include "global/control.h"
+#include "global/structures.h"
+#include "global/network.h"
+#include "ui_lighttranslator.h"
 
 CLightTranslator::CLightTranslator(QWidget *parent) :
     QDialog(parent),
@@ -93,12 +95,12 @@ void CLightTranslator::reloadLanguageList()
 {
     for (const CLangPair& pair : qAsConst(gSet->settings()->translatorPairs)) {
         ui->comboLanguage->addItem(QSL("%1 - %2").arg(
-                                      gSet->getLanguageName(pair.langFrom.bcp47Name()),
-                                      gSet->getLanguageName(pair.langTo.bcp47Name())),
+                                      gSet->net()->getLanguageName(pair.langFrom.bcp47Name()),
+                                      gSet->net()->getLanguageName(pair.langTo.bcp47Name())),
                                    pair.getHash());
     }
-    if (gSet->ui()->languageSelector->checkedAction()) {
-        QString selectedHash = gSet->ui()->languageSelector->checkedAction()->data().toString();
+    if (gSet->actions()->languageSelector->checkedAction()) {
+        QString selectedHash = gSet->actions()->languageSelector->checkedAction()->data().toString();
         int idx = ui->comboLanguage->findData(selectedHash);
         if (idx>=0)
             ui->comboLanguage->setCurrentIndex(idx);

@@ -1,9 +1,11 @@
 #include <QMutex>
 #include <QSharedPointer>
+#include <QPointer>
 
 #include "translatorstatisticstab.h"
 #include "global/settings.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "utils/genericfuncs.h"
 #include "ui_translatorstatisticstab.h"
 
@@ -25,7 +27,7 @@ CTranslatorStatisticsTab::CTranslatorStatisticsTab(QWidget *parent) :
     connect(ui->radioRangeYear, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
     connect(ui->radioRangeAll, &QRadioButton::toggled, this, &CTranslatorStatisticsTab::radioRangeChanged);
 
-    connect(gSet, &CGlobalControl::translationStatisticsChanged, this, &CTranslatorStatisticsTab::updateGraph);
+    connect(gSet->net(), &CGlobalNetwork::translationStatisticsChanged, this, &CTranslatorStatisticsTab::updateGraph);
 }
 
 CTranslatorStatisticsTab::~CTranslatorStatisticsTab()
@@ -35,7 +37,7 @@ CTranslatorStatisticsTab::~CTranslatorStatisticsTab()
 
 CTranslatorStatisticsTab *CTranslatorStatisticsTab::instance()
 {
-    static CTranslatorStatisticsTab* inst = nullptr;
+    static QPointer<CTranslatorStatisticsTab> inst;
     static QMutex lock;
     QMutexLocker locker(&lock);
 
@@ -43,14 +45,9 @@ CTranslatorStatisticsTab *CTranslatorStatisticsTab::instance()
         return nullptr;
 
     CMainWindow* wnd = gSet->activeWindow();
-    if (inst==nullptr) {
+    if (inst.isNull()) {
         inst = new CTranslatorStatisticsTab(wnd);
         inst->bindToTab(wnd->tabMain);
-
-        connect(inst,&CTranslatorStatisticsTab::destroyed,gSet,[](){
-            inst = nullptr;
-        });
-
         inst->updateGraph();
     }
 

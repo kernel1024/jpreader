@@ -21,9 +21,10 @@
 #include "extractors/fanboxextractor.h"
 #include "extractors/patreonextractor.h"
 #include "extractors/htmlimagesextractor.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/startup.h"
 #include "global/contentfiltering.h"
+#include "global/history.h"
 #include "ui_downloadlistdlg.h"
 
 namespace CDefaults {
@@ -160,28 +161,23 @@ bool CBrowserNet::isValidLoadedUrl()
 
 bool CBrowserNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoTranslate)
 {
-    QByteArray ba = html.toUtf8();
-    QString fname = gSet->makeTmpFileName(QSL("html"),true);
-    QFile f(fname);
-    if (f.open(QIODevice::WriteOnly)) {
-        f.write(ba);
-        f.close();
-        gSet->appendCreatedFiles(fname);
-        if (createNewTab) {
-            auto *sv = new CBrowserTab(snv->parentWnd(),QUrl::fromLocalFile(fname));
-            sv->m_requestAutotranslate = autoTranslate;
-        } else {
-            snv->m_fileChanged = false;
-            snv->m_requestAutotranslate = autoTranslate;
-            snv->txtBrowser->load(QUrl::fromLocalFile(fname));
-            snv->m_auxContentLoaded=false;
-        }
-        return true;
+    QString fname = gSet->makeTmpFile(QSL("html"),html);
+    if (fname.isEmpty()) {
+        QMessageBox::critical(snv, QGuiApplication::applicationDisplayName(),
+                              tr("Unable to create temp file."));
+        return false;
     }
 
-    QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
-                         tr("Unable to create temporary file for document."));
-    return false;
+    if (createNewTab) {
+        auto *sv = new CBrowserTab(snv->parentWnd(),QUrl::fromLocalFile(fname));
+        sv->m_requestAutotranslate = autoTranslate;
+    } else {
+        snv->m_fileChanged = false;
+        snv->m_requestAutotranslate = autoTranslate;
+        snv->txtBrowser->load(QUrl::fromLocalFile(fname));
+        snv->m_auxContentLoaded=false;
+    }
+    return true;
 }
 
 void CBrowserNet::progressLoad(int progress)
@@ -215,8 +211,8 @@ void CBrowserNet::loadFinished(bool ok)
 
     snv->updateTabColor(true,false);
 
-    bool xorAutotranslate = (gSet->ui()->autoTranslate() && !snv->m_requestAutotranslate) ||
-                            (!gSet->ui()->autoTranslate() && snv->m_requestAutotranslate);
+    bool xorAutotranslate = (gSet->actions()->autoTranslate() && !snv->m_requestAutotranslate) ||
+                            (!gSet->actions()->autoTranslate() && snv->m_requestAutotranslate);
 
     if (xorAutotranslate && !snv->m_onceTranslated && (isValidLoadedUrl() || snv->m_auxContentLoaded))
         snv->transButton->click();
@@ -242,7 +238,7 @@ void CBrowserNet::userNavigationRequest(const QUrl &url, int type, bool isMainFr
 
     if (isMainFrame) {
         CUrlHolder uh(QSL("(blank)"),url);
-        gSet->appendMainHistory(uh);
+        gSet->history()->appendMainHistory(uh);
     }
 }
 
@@ -408,7 +404,7 @@ void CBrowserNet::load(const QUrl &url)
             snv->txtBrowser->load(url);
             snv->m_auxContentLoaded=false;
         }
-        gSet->appendRecent(fname);
+        gSet->history()->appendRecent(fname);
     } else {
         QUrl u = url;
         CGenericFuncs::checkAndUnpackUrl(u);

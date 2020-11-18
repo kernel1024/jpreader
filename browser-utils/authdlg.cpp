@@ -1,5 +1,6 @@
 #include "authdlg.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/browserfuncs.h"
 #include "ui_authdlg.h"
 
 CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
@@ -24,7 +25,7 @@ CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
     if (origin.isValid()) {
         QString user;
         QString pass;
-        gSet->readPassword(origin,realm,user,pass);
+        gSet->browser()->readPassword(origin,realm,user,pass);
         ui->lineUser->setText(user);
         ui->linePassword->setText(pass);
     }
@@ -56,7 +57,7 @@ QString CAuthDlg::getPassword()
 void CAuthDlg::acceptPass()
 {
     if (ui->checkSavePassword->isChecked() && m_origin.isValid())
-        gSet->savePassword(m_origin,m_realm,getUser(),getPassword());
+        gSet->browser()->savePassword(m_origin,m_realm,getUser(),getPassword());
     accept();
 }
 

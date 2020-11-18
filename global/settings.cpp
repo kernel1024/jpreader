@@ -6,10 +6,15 @@
 #include <QMessageBox>
 #include <QThread>
 #include <QDebug>
+
 #include "settings.h"
 #include "mainwindow.h"
-#include "globalcontrol.h"
-#include "globalprivate.h"
+#include "control.h"
+#include "control_p.h"
+#include "history.h"
+#include "browserfuncs.h"
+#include "network.h"
+#include "ui.h"
 #include "utils/settingstab.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "utils/genericfuncs.h"
@@ -63,10 +68,10 @@ CSettings::CSettings(CGlobalControl *parent)
 void CSettings::writeSettings()
 {
     if (!gSet) return;
-    if (gSet->ui() == nullptr) return;
+    if (gSet->actions() == nullptr) return;
     if (!gSet->d_func()->settingsSaveMutex.tryLock()) return;
 
-    QSettings settings(QSL("kernel1024"), QSL("jpreader"));
+    QSettings settings;
     settings.beginGroup(QSL("MainWindow"));
     settings.remove(QString());
 
@@ -97,7 +102,7 @@ void CSettings::writeSettings()
 
     settings.setValue(QSL("useAdblock"),useAdblock);
     settings.setValue(QSL("useNoScript"),useNoScript);
-    settings.setValue(QSL("useOverrideTransFont"),gSet->m_ui->useOverrideTransFont());
+    settings.setValue(QSL("useOverrideTransFont"),gSet->m_actions->useOverrideTransFont());
     settings.setValue(QSL("overrideTransFont"),overrideTransFont.family());
     settings.setValue(QSL("overrideTransFontSize"),overrideTransFont.pointSize());
     settings.setValue(QSL("overrideStdFonts"),overrideStdFonts);
@@ -109,9 +114,9 @@ void CSettings::writeSettings()
     settings.setValue(QSL("fontSizeMinimal"),fontSizeMinimal);
     settings.setValue(QSL("fontSizeDefault"),fontSizeDefault);
     settings.setValue(QSL("fontSizeFixed"),fontSizeFixed);
-    settings.setValue(QSL("forceTransFontColor"),gSet->m_ui->forceFontColor());
+    settings.setValue(QSL("forceTransFontColor"),gSet->m_actions->forceFontColor());
     settings.setValue(QSL("forcedTransFontColor"),forcedFontColor.name());
-    settings.setValue(QSL("gctxHotkey"),gSet->m_ui->gctxTranHotkey.shortcut().toString());
+    settings.setValue(QSL("gctxHotkey"),gSet->m_actions->gctxTranHotkey.shortcut().toString());
 
     settings.setValue(QSL("searchEngine"),static_cast<int>(searchEngine));
     settings.setValue(QSL("translatorRetryCount"),translatorRetryCount);
@@ -171,7 +176,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
 
     sslTrustedInvalidCerts = readData(bigdataDir,QSL("sslTrustedInvalidCerts")).value<CSslCertificateHash>();
 
-    if (g->m_ui.isNull()) return true;
+    if (g->m_actions.isNull()) return true; // CLI mode
 
     atlHostHistory = readData(bigdataDir,QSL("atlHostHistory"),QStringList()).toStringList();
     g->d_func()->mainHistory = readData(bigdataDir,QSL("mainHistory")).value<CUrlHolderVector>();
@@ -180,16 +185,16 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     g->d_func()->ctxSearchEngines = readData(bigdataDir,QSL("ctxSearchEngines")).value<CStringHash>();
     g->d_func()->recentFiles = readData(bigdataDir,QSL("recentFiles")).toStringList();
     translatorPairs = readData(bigdataDir,QSL("translatorPairs")).value<QVector<CLangPair> >();
-    g->m_ui->setSubsentencesModeHash(readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>());
+    g->m_actions->setSubsentencesModeHash(readData(bigdataDir,QSL("subsentencesMode")).value<CSubsentencesMode>());
     g->d_func()->noScriptWhiteList = readData(bigdataDir,QSL("noScriptWhiteList")).value<CStringSet>();
     translatorStatistics = readData(bigdataDir,QSL("translatorStatistics")).value<CTranslatorStatistics>();
     selectedLangPairs = readData(bigdataDir,QSL("selectedLangPairs")).value<CSelectedLangPairs>();
 
     g->d_func()->searchHistory = readData(bigdataDir,QSL("searchHistory")).toStringList();
-    Q_EMIT g->updateAllQueryLists();
+    Q_EMIT g->m_history->updateAllQueryLists();
 
     auto scripts = readData(bigdataDir,QSL("userScripts")).value<CStringHash>();
-    g->initUserScripts(scripts);
+    g->m_browser->initUserScripts(scripts);
 
     const QByteArray bookmarks = readByteArray(bigdataDir,QSL("bookmarks"));
     g->d_func()->bookmarksManager->load(bookmarks);
@@ -236,11 +241,11 @@ void CSettings::writeBinaryBigData(const QString &dirname)
         qCritical() << "Unable to save sslTrustedInvalidCerts.";
     if (!writeData(dirname,QSL("recentFiles"),      QVariant::fromValue(gSet->d_func()->recentFiles)))
         qCritical() << "Unable to save recentFiles.";
-    if (!writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->getUserScripts())))
+    if (!writeData(dirname,QSL("userScripts"),      QVariant::fromValue(gSet->m_browser->getUserScripts())))
         qCritical() << "Unable to save userScripts.";
     if (!writeData(dirname,QSL("translatorPairs"),  QVariant::fromValue(translatorPairs)))
         qCritical() << "Unable to save translatorPairs.";
-    if (!writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(gSet->m_ui->getSubsentencesModeHash())))
+    if (!writeData(dirname,QSL("subsentencesMode"), QVariant::fromValue(gSet->m_actions->getSubsentencesModeHash())))
         qCritical() << "Unable to save subsentencesMode.";
     if (!writeData(dirname,QSL("noScriptWhiteList"),QVariant::fromValue(gSet->d_func()->noScriptWhiteList)))
         qCritical() << "Unable to save noScriptWhiteList.";
@@ -321,7 +326,7 @@ void CSettings::readSettings(QObject *control)
     auto *g = qobject_cast<CGlobalControl *>(control);
     Q_ASSERT(g!=nullptr);
 
-    QSettings settings(QSL("kernel1024"), QSL("jpreader"));
+    QSettings settings;
     settings.beginGroup(QSL("MainWindow"));
 
     QFileInfo fi(settings.fileName());
@@ -442,26 +447,26 @@ void CSettings::readSettings(QObject *control)
         userAgentHistory << userAgent;
     }
 
-    if (!g->m_ui.isNull()) {
+    if (g->m_actions) { // GUI mode
 
         bool jsstate = settings.value(QSL("javascript"),true).toBool();
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
-        g->m_ui->actionJSUsage->setChecked(jsstate);
+        g->m_actions->actionJSUsage->setChecked(jsstate);
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
                                              settings.value(QSL("autoloadimages"),true).toBool());
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled,
                                              settings.value(QSL("enablePlugins"),false).toBool());
-        g->m_ui->actionOverrideTransFont->setChecked(settings.value(QSL("useOverrideTransFont"),
+        g->m_actions->actionOverrideTransFont->setChecked(settings.value(QSL("useOverrideTransFont"),
                                                             false).toBool());
 
-        g->m_ui->actionOverrideTransFontColor->setChecked(settings.value(
+        g->m_actions->actionOverrideTransFontColor->setChecked(settings.value(
                                                       QSL("forceTransFontColor"),false).toBool());
 
         QString hk = settings.value(QSL("gctxHotkey"),QString()).toString();
         if (!hk.isEmpty()) {
-            g->m_ui->gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
-            if (!g->m_ui->gctxTranHotkey.shortcut().isEmpty())
-                g->m_ui->gctxTranHotkey.setEnabled();
+            g->m_actions->gctxTranHotkey.setShortcut(QKeySequence::fromString(hk));
+            if (!g->m_actions->gctxTranHotkey.shortcut().isEmpty())
+                g->m_actions->gctxTranHotkey.setEnabled();
         }
 
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
@@ -474,11 +479,11 @@ void CSettings::readSettings(QObject *control)
 
     settings.endGroup();
 
-    g->updateProxyWithMenuUpdate(proxyUse,true);
-    if (!g->m_ui.isNull()) {
-        Q_EMIT g->updateAllBookmarks();
+    g->m_net->updateProxyWithMenuUpdate(proxyUse,true);
+    if (g->m_actions) { // GUI mode
+        Q_EMIT g->m_history->updateAllBookmarks();
 
-        g->m_ui->rebuildLanguageActions(g);
+        g->m_actions->rebuildLanguageActions(g);
     }
 }
 
@@ -493,12 +498,12 @@ void CSettings::settingsTab()
 
 void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 {
-    selectedLangPairs[translatorEngine] = gSet->m_ui->getActiveLangPair();
+    selectedLangPairs[translatorEngine] = gSet->m_actions->getActiveLangPair();
     translatorEngine = engine;
     if (selectedLangPairs.contains(engine))
-        gSet->m_ui->setActiveLangPair(selectedLangPairs.value(engine));
+        gSet->m_actions->setActiveLangPair(selectedLangPairs.value(engine));
 
-    Q_EMIT gSet->translationEngineChanged();
+    Q_EMIT gSet->m_ui->translationEngineChanged();
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)
@@ -508,7 +513,7 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
 
     QVector<QUrl> urls;
     urls.clear();
-    QSettings settings(QSL("kernel1024"), QSL("jpreader-tabs"));
+    QSettings settings(QCoreApplication::organizationName(), QSL("jpreader-tabs"));
     settings.beginGroup(QSL("OpenedTabs"));
     int cnt = settings.value(QSL("tabsCnt"), 0).toInt();
     for (int i=0;i<cnt;i++) {
@@ -548,7 +553,7 @@ QVector<QUrl> CSettings::getTabsList() const
 
 void CSettings::writeTabsListPrivate(const QVector<QUrl>& tabList)
 {
-    QSettings tabs(QSL("kernel1024"), QSL("jpreader-tabs"));
+    QSettings tabs(QCoreApplication::organizationName(), QSL("jpreader-tabs"));
     tabs.beginGroup(QSL("OpenedTabs"));
     tabs.remove(QString());
     tabs.setValue(QSL("tabsCnt"), tabList.count());

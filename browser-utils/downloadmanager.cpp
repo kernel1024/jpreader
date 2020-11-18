@@ -9,8 +9,10 @@
 #include "downloadmanager.h"
 #include "downloadwriter.h"
 #include "utils/genericfuncs.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/startup.h"
+#include "global/ui.h"
+#include "global/network.h"
 #include "browser/browser.h"
 #include "ui_downloadmanager.h"
 
@@ -95,7 +97,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
         return false;
     }
 
-    gSet->setSavedAuxSaveDir(containerPath);
+    gSet->ui()->setSavedAuxSaveDir(containerPath);
 
     qint64 offset = 0L;
     if (!isZipTarget) {
@@ -137,7 +139,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 
     // we need HEAD request for file size calculation
     if (offset > 0L) {
-        QNetworkReply* rpl = gSet->auxNetworkAccessManagerHead(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerHead(req);
         rpl->setProperty(CDefaults::replyHeadFileName,fname);
         rpl->setProperty(CDefaults::replyHeadOffset,offset);
         connect(rpl,&QNetworkReply::errorOccurred,this,&CDownloadManager::headRequestFailed);
@@ -159,7 +161,7 @@ void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &req
 {
     QNetworkRequest req = request;
     req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true);
-    QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+    QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
     appendItem(CDownloadItem(rpl, fileName, offset));
 
@@ -309,7 +311,7 @@ void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
         }
 
         QFileInfo fi(fname);
-        gSet->setSavedAuxSaveDir(fi.absolutePath());
+        gSet->ui()->setSavedAuxSaveDir(fi.absolutePath());
         item->setDownloadDirectory(fi.absolutePath());
         item->setDownloadFileName(fi.fileName());
     }

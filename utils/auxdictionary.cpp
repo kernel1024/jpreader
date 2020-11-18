@@ -6,7 +6,7 @@
 
 #include "auxdictionary.h"
 #include "genericfuncs.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "ui_auxdictionary.h"
 
 CAuxDictionary::CAuxDictionary(QWidget *parent) :

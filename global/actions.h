@@ -12,7 +12,7 @@
 
 class CMainWindow;
 
-class CGlobalUI : public QObject
+class CGlobalActions : public QObject
 {
     friend class CSettings;
 
@@ -44,7 +44,7 @@ public:
 
     QTimer threadedWorkerTestTimer;
 
-    explicit CGlobalUI(QObject *parent = nullptr);
+    explicit CGlobalActions(QObject *parent = nullptr);
 
     // Actions for Settings menu
     bool useOverrideTransFont() const;
@@ -58,6 +58,9 @@ public:
     QString getActiveLangPair() const;
     void setActiveLangPair(const QString& hash) const;
 
+    QList<QAction*> getTranslationLanguagesActions() const;
+    QList<QAction*> getSubsentencesModeActions() const;
+
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
     void gctxTranslateReady(const QString& text);
@@ -69,7 +72,6 @@ public Q_SLOTS:
 private:
     CSubsentencesMode getSubsentencesModeHash() const;
     void setSubsentencesModeHash(const CSubsentencesMode& hash) const;
-
 
 };
 

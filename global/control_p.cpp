@@ -6,11 +6,11 @@ extern "C" {
 #include <syslog.h>
 }
 
+#include "control_p.h"
 #include "utils/logdisplay.h"
-#include "browser-utils/downloadmanager.h"
 #include "utils/workermonitor.h"
+#include "browser-utils/downloadmanager.h"
 #include "translator/lighttranslator.h"
-#include "globalprivate.h"
 
 namespace CDefaults {
 const int settingsSavePeriod = 60000;
@@ -58,7 +58,6 @@ void CGlobalControlPrivate::clearAdblockWhiteList()
     adblockWhiteList.clear();
     adblockWhiteListMutex.unlock();
 }
-
 
 void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {

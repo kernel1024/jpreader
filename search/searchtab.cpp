@@ -5,12 +5,14 @@
 #include <QThread>
 #include <QScopedPointer>
 #include <QRandomGenerator>
+
 #include "searchtab.h"
-#include "ui_searchtab.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/history.h"
 #include "browser/browser.h"
 #include "utils/genericfuncs.h"
 #include "translator-workers/abstracttranslator.h"
+#include "ui_searchtab.h"
 #include "ui_hashviewer.h"
 
 CSearchTab::CSearchTab(CMainWindow *parent) :
@@ -129,7 +131,7 @@ void CSearchTab::updateQueryHistory()
 {
     QString t = ui->editSearch->currentText();
     ui->editSearch->clear();
-    ui->editSearch->addItems(gSet->searchHistory());
+    ui->editSearch->addItems(gSet->history()->searchHistory());
     ui->editSearch->setEditText(t);
 }
 
@@ -383,7 +385,7 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
         if ((row < 0) || (row >= model->rowCount())) return;
         CStringHash snip = model->getSnippet(row);
         QString s = snip[QSL("abstract")];
-        QString tranState = CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
+        QString tranState = CGenericFuncs::bool2str(gSet->actions()->actionSnippetAutotranslate->isChecked());
         if (s.isEmpty() || tranState!=snip.value(QSL("abstract:tran"))) {
             snip[QSL("abstract:untran")]=
                     createSpecSnippet(snip[QSL("jp:fullfilename")],true,s);
@@ -391,12 +393,12 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
                     createSpecSnippet(snip[QSL("jp:fullfilename")],false,s);
             s = snip[QSL("abstract")];
             snip[QSL("abstract:tran")] =
-                    CGenericFuncs::bool2str(gSet->ui()->actionSnippetAutotranslate->isChecked());
+                    CGenericFuncs::bool2str(gSet->actions()->actionSnippetAutotranslate->isChecked());
             model->setSnippet(row, snip);
         }
         s=QSL("<font size='+1'>%1</font>").arg(s);
         ui->snippetBrowser->setHtml(s);
-        if (gSet->ui()->actionSnippetAutotranslate->isChecked() &&
+        if (gSet->actions()->actionSnippetAutotranslate->isChecked() &&
             snip.value(QSL("abstract"))!=snip.value(QSL("abstract:untran")))
             ui->snippetBrowser->setToolTip(snip.value(QSL("abstract:untran")));
 
@@ -421,8 +423,8 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     QStringList queryTermsTran = queryTerms;
     QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
-                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
-    if (gSet->ui()->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
+                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->actions()->getActiveLangPair())));
+    if (gSet->actions()->actionSnippetAutotranslate->isChecked() && !forceUntranslated) {
         if (!tran || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
@@ -485,7 +487,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
             QString fspart = fileContents.mid(fsta,fsto-fsta);
             fileContents.remove(fsta,fsto-fsta);
             bool makeTran = (!tran.isNull()) &&
-                            gSet->ui()->actionSnippetAutotranslate->isChecked() &&
+                            gSet->actions()->actionSnippetAutotranslate->isChecked() &&
                             tran->isReady() &&
                             !forceUntranslated;
             if (makeTran)

@@ -16,8 +16,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include "genericfuncs.h"
-#include "global/globalcontrol.h"
-#include "global/globalprivate.h"
+#include "global/control.h"
+#include "global/control_p.h"
+#include "global/ui.h"
 #include "logdisplay.h"
 
 #include <unicode/utypes.h>
@@ -520,9 +521,9 @@ QString	CGenericFuncs::getExistingDirectoryD (QWidget * parent, const QString & 
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
-    gSet->setFileDialogNewFolderName(suggestedName);
+    gSet->ui()->setFileDialogNewFolderName(suggestedName);
     QString res = QFileDialog::getExistingDirectory(parent,caption,dir,opts);
-    gSet->setFileDialogNewFolderName(QString());
+    gSet->ui()->setFileDialogNewFolderName(QString());
     return res;
 }
 

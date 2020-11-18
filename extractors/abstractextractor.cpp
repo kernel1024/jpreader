@@ -1,7 +1,7 @@
 #include <QMessageBox>
 #include <QThread>
 #include "abstractextractor.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "mainwindow.h"
 
 #include "fanboxextractor.h"

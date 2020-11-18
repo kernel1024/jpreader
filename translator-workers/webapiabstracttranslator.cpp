@@ -5,8 +5,12 @@
 #include <QRegularExpression>
 #include <QJsonDocument>
 #include <QJsonObject>
+
 #include "webapiabstracttranslator.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "utils/genericfuncs.h"
+#include "utils/specwidgets.h"
 
 namespace CDefaults {
 const int maxTranslationStringLength = 5000;
@@ -97,7 +101,7 @@ void CWebAPIAbstractTranslator::initNAM()
         m_nam->setCookieJar(cj);
     }
 
-    if (gSet->ui()) {
+    if (gSet->actions()) {
         auto *cj = qobject_cast<CNetworkCookieJar *>(m_nam->cookieJar());
         auto *mj = qobject_cast<CNetworkCookieJar *>(gSet->auxNetworkAccessManager()->cookieJar());
         cj->initAllCookies(mj->getAllCookies());

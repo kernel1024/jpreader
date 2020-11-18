@@ -1,5 +1,5 @@
 #include "noscriptdialog.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "global/contentfiltering.h"
 #include "utils/genericfuncs.h"
 #include "ui_noscriptdialog.h"

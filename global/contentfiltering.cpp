@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <execution>
-#include "globalcontrol.h"
-#include "globalprivate.h"
+#include "control.h"
+#include "control_p.h"
 #include "contentfiltering.h"
 #include "utils/specwidgets.h"
 

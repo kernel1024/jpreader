@@ -21,12 +21,12 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
     m_translationEngine=gSet->settings()->translatorEngine;
     m_engineName=CStructures::translationEngines().value(m_translationEngine);
     m_retryCount=gSet->settings()->translatorRetryCount;
-    m_forceFontColor=gSet->ui()->forceFontColor();
+    m_forceFontColor=gSet->actions()->forceFontColor();
     m_forcedFontColor=gSet->settings()->forcedFontColor;
-    m_useOverrideTransFont=gSet->ui()->useOverrideTransFont();
+    m_useOverrideTransFont=gSet->actions()->useOverrideTransFont();
     m_overrideTransFont=gSet->settings()->overrideTransFont;
-    m_translationMode=gSet->ui()->getTranslationMode();
-    m_translateSubSentences=gSet->ui()->getSubsentencesMode(m_translationEngine);
+    m_translationMode=gSet->actions()->getTranslationMode();
+    m_translateSubSentences=gSet->actions()->getSubsentencesMode(m_translationEngine);
 }
 
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
@@ -34,7 +34,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
     resetAbortFlag();
 
     if (!m_tran && !m_tranInited) {
-        m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->ui()->getActiveLangPair())));
+        m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->actions()->getActiveLangPair())));
     }
 
     if (!m_tran || !m_tran->initTran()) {
@@ -548,7 +548,7 @@ void CTranslator::startMain()
 {
     QString translatedHtml;
     QString lastError;
-    CLangPair lp(gSet->ui()->getActiveLangPair());
+    CLangPair lp(gSet->actions()->getActiveLangPair());
     if (!lp.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
         Q_EMIT translationFinished(false,isAborted(),translatedHtml,lastError);

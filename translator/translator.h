@@ -12,7 +12,7 @@
 #include "html/ParserDom.h"
 #include "mainwindow.h"
 #include "translator-workers/abstracttranslator.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "browser/waitctl.h"
 #include "global/structures.h"
 #include "abstractthreadworker.h"

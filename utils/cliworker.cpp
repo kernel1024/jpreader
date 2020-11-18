@@ -1,8 +1,12 @@
 #include <QCommandLineParser>
+#include <QRegularExpression>
 #include <QThread>
 #include <QDebug>
-#include "utils/cliworker.h"
+
+#include "cliworker.h"
 #include "global/structures.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "utils/genericfuncs.h"
 #include "translator-workers/abstracttranslator.h"
 #include "translator-workers/atlastranslator.h"
@@ -69,9 +73,10 @@ bool CCLIWorker::parseArguments()
 
     if (parser.isSet(optListBCP47Codes)) {
         *m_out << tr("Valid language codes:") << Qt::endl;
-        const QStringList languages = gSet->getLanguageCodes();
+        const QStringList languages = gSet->net()->getLanguageCodes();
         for (const auto &bcp : languages) {
-            *m_out << QSL("    %1%2").arg(bcp,CDefaults::cliHelpColumnWidth).arg(gSet->getLanguageName(bcp)) << Qt::endl;
+            *m_out << QSL("    %1%2").arg(bcp,CDefaults::cliHelpColumnWidth)
+                      .arg(gSet->net()->getLanguageName(bcp)) << Qt::endl;
         }
 
         return false;

@@ -6,6 +6,13 @@ HEADERS = mainwindow.h \
     browser/net.h \
     browser/trans.h \
     browser/waitctl.h \
+    global/actions.h \
+    global/browserfuncs.h \
+    global/control.h \
+    global/control_p.h \
+    global/history.h \
+    global/network.h \
+    global/ui.h \
     translator-workers/abstracttranslator.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \
@@ -23,11 +30,8 @@ HEADERS = mainwindow.h \
     extractors/pixivindexextractor.h \
     extractors/pixivnovelextractor.h \
     extractors/deviantartextractor.h \
-    global/globalprivate.h \
-    global/globalcontrol.h \
     global/structures.h \
     global/settings.h \
-    global/globalui.h \
     global/contentfiltering.h \
     global/startup.h \
     browser-utils/authdlg.h \
@@ -76,6 +80,13 @@ SOURCES = main.cpp \
     browser/net.cpp \
     browser/trans.cpp \
     browser/waitctl.cpp \
+    global/actions.cpp \
+    global/browserfuncs.cpp \
+    global/control.cpp \
+    global/control_p.cpp \
+    global/history.cpp \
+    global/network.cpp \
+    global/ui.cpp \
     mainwindow.cpp \
     abstractthreadworker.cpp \
     translator-workers/alicloudtranslator.cpp \
@@ -95,11 +106,8 @@ SOURCES = main.cpp \
     extractors/pixivindexextractor.cpp \
     extractors/pixivnovelextractor.cpp \
     extractors/deviantartextractor.cpp \
-    global/globalprivate.cpp \
-    global/globalcontrol.cpp \
     global/structures.cpp \
     global/settings.cpp \
-    global/globalui.cpp \
     global/contentfiltering.cpp \
     global/startup.cpp \
     browser-utils/authdlg.cpp \

@@ -1,8 +1,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
-#include "global/globalcontrol.h"
-#include "translatorcache.h"
+
 #include "translatorcachedialog.h"
+#include "translatorcache.h"
+#include "global/control.h"
+#include "global/network.h"
 #include "browser/browser.h"
 #include "ui_translatorcachedialog.h"
 
@@ -13,7 +15,7 @@ CTranslatorCacheDialog::CTranslatorCacheDialog(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->buttonClearCache,&QPushButton::clicked,[this](){
-        gSet->clearTranslatorCache();
+        gSet->net()->clearTranslatorCache();
         updateCacheList();
     });
 

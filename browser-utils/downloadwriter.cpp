@@ -8,7 +8,7 @@
 #include "utils/genericfuncs.h"
 #include "downloadwriter.h"
 #include "global/structures.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 
 extern "C" {
 #include <zip.h>

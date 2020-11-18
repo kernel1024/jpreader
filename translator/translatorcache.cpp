@@ -6,7 +6,7 @@
 #include <execution>
 #include "translatorcache.h"
 #include "utils/genericfuncs.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
 #include "translatorcachedialog.h"
 
 CTranslatorCache::CTranslatorCache(QObject *parent) : QObject(parent)

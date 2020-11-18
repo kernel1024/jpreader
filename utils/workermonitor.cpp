@@ -1,9 +1,11 @@
 #include <QIcon>
 #include <QCloseEvent>
+
 #include "workermonitor.h"
 #include "ui_workermonitor.h"
-
 #include "global/structures.h"
+#include "global/control.h"
+#include "global/ui.h"
 #include "browser-utils/downloadwriter.h"
 #include "utils/genericfuncs.h"
 #include "translator/translator.h"
@@ -76,7 +78,7 @@ void CWorkerMonitor::showEvent(QShowEvent *event)
 
     ui->table->horizontalHeader()->setStretchLastSection(true);
 
-    QRect geom = gSet->getLastMainWindowGeometry();
+    QRect geom = gSet->ui()->getLastMainWindowGeometry();
     if (!geom.isNull()) {
         QPoint p = geom.topLeft() + QPoint(horizontalWindowMargin,verticalWindowMargin);
         move(p);

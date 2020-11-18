@@ -9,9 +9,10 @@
 #include <QBuffer>
 #include <algorithm>
 
-#include "global/globalcontrol.h"
-#include "utils/genericfuncs.h"
 #include "pixivindexextractor.h"
+#include "global/control.h"
+#include "global/network.h"
+#include "utils/genericfuncs.h"
 #include "utils/pixivindextab.h"
 
 namespace CDefaults {
@@ -101,7 +102,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
         if (exitIfAborted()) return;
         QNetworkRequest req(url);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::fetchNovelsInfo);
@@ -135,7 +136,7 @@ void CPixivIndexExtractor::startMain()
         }
 
         QNetworkRequest req(u);
-        QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         switch (m_indexMode) {
@@ -240,7 +241,7 @@ void CPixivIndexExtractor::bookmarksAjax()
                            .arg(offset+CDefaults::pixivBookmarksFetchCount)
                            .arg(CDefaults::pixivBookmarksFetchCount));
                     QNetworkRequest req(u);
-                    QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+                    QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
                     connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
@@ -309,7 +310,7 @@ void CPixivIndexExtractor::searchAjax()
                     uq.addQueryItem(QSL("p"),QSL("%1").arg(page+1));
                     u.setQuery(uq);
                     QNetworkRequest req(u);
-                    QNetworkReply* rpl = gSet->auxNetworkAccessManagerGet(req);
+                    QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
                     connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
                     connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::searchAjax);
@@ -368,7 +369,7 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
                 if (exitIfAborted()) return;
                 QNetworkRequest req(url);
                 req.setRawHeader("referer",origin.toString().toUtf8());
-                QNetworkReply *rplImg = gSet->auxNetworkAccessManagerGet(req);
+                QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
                 connect(rplImg,&QNetworkReply::finished,this,&CPixivIndexExtractor::subImageFinished);
             },Qt::QueuedConnection);
         }

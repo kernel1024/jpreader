@@ -1,7 +1,9 @@
 #include <QTextCodec>
 #include <QThread>
+
 #include "indexersearch.h"
-#include "global/globalcontrol.h"
+#include "global/control.h"
+#include "global/history.h"
 #include "utils/genericfuncs.h"
 
 CIndexerSearch::CIndexerSearch(QObject *parent) :
@@ -43,7 +45,7 @@ void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
     m_query = searchTerm;
     resultCount = 0;
 
-    gSet->appendSearchHistory(QStringList() << searchTerm);
+    gSet->history()->appendSearchHistory({ searchTerm });
     working = true;
     searchTimer.start();
     if (useFSSearch) {
@@ -91,8 +93,7 @@ void CIndexerSearch::addHit(const CStringHash &meta)
 
     QFileInfo fi(result.value(QSL("jp:fullfilename")));
     if (!result.contains(QSL("url"))) {
-        result[QSL("uri")] = QSL("file://%1")
-                                        .arg(fi.absoluteFilePath());
+        result[QSL("uri")] = QSL("file://%1").arg(fi.absoluteFilePath());
     }
 
     if (!result.contains(QSL("relevancyrating"))) {

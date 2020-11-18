@@ -5,7 +5,6 @@
 #include <QSslSocket>
 #include <QString>
 #include "abstracttranslator.h"
-#include "global/globalcontrol.h"
 
 namespace CDefaults {
 const unsigned int atlasMinRetryDelay = 3000;
