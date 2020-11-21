@@ -37,6 +37,7 @@ private:
     CPixivIndexExtractor::IndexMode m_indexMode { CPixivIndexExtractor::IndexMode::WorkIndex };
 
     void updateWidgets();
+    QStringList jsonToTags(const QJsonArray& tags) const;
     QString makeNovelInfoBlock(CStringHash* authors,
                                const QString& workId, const QString& workImgUrl,
                                const QString& title, int length,

@@ -121,6 +121,15 @@ void CPixivIndexTab::updateWidgets()
     }
 }
 
+QStringList CPixivIndexTab::jsonToTags(const QJsonArray &tags) const
+{
+    QStringList res;
+    res.reserve(tags.count());
+    for (const auto& t : qAsConst(tags))
+        res.append(t.toString());
+    return res;
+}
+
 void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous)
@@ -131,8 +140,16 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
 
     auto *proxy = qobject_cast<QAbstractProxyModel *>(ui->table->model());
     if (proxy) {
-        ui->editDescription->setHtml(m_model->item(proxy->mapToSource(current))
-                                     .value(QSL("description")).toString());
+        const QJsonObject item = m_model->item(proxy->mapToSource(current));
+        const QStringList tags = jsonToTags(item.value(QSL("tags")).toArray());
+        QString desc;
+        if (!tags.isEmpty())
+            desc = QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / ")));
+
+        desc.append(QSL("<b>Description:</b> %1.<br/>")
+                    .arg(item.value(QSL("description")).toString()));
+
+        ui->editDescription->setHtml(desc);
     }
 }
 
@@ -245,11 +262,7 @@ void CPixivIndexTab::htmlReport()
     } else {
         for (int row=0; row<proxy->rowCount(); row++) {
             const QJsonObject w = m_model->item(proxy->mapToSource(proxy->index(row,0)));
-            QStringList tags;
-            const QJsonArray wtags = w.value(QSL("tags")).toArray();
-            tags.reserve(wtags.count());
-            for (const auto& t : qAsConst(wtags))
-                tags.append(t.toString());
+            const QStringList tags = jsonToTags(w.value(QSL("tags")).toArray());
 
             html.append(makeNovelInfoBlock(&authors,
                                            w.value(QSL("id")).toString(),
