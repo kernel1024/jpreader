@@ -31,6 +31,10 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
 
     // ---------- Text extractors
 
+    const bool showAltTranslator = (gSet->settings()->previousTranslatorEngine !=
+            gSet->settings()->translatorEngine);
+    const QString altTranName = CStructures::translationEngines().value(gSet->settings()->previousTranslatorEngine);
+
     QList<QAction *> pixivActions;
     QUrl pixivUrl = pageUrl;
     if (!pixivUrl.host().contains(QSL("pixiv.net")))
@@ -58,6 +62,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("title")] = title;
         data[QSL("focus")] = false;
         data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -69,20 +74,37 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("title")] = title;
         data[QSL("focus")] = true;
         data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
 
-        ac = new QAction(tr("Extract pixiv novel in new background tab and translate"),menu);
+        ac = new QAction(tr("Translate pixiv novel in new background tab"),menu);
         data.clear();
         data[QSL("type")] = QSL("pixiv");
         data[QSL("url")] = pixivUrl;
         data[QSL("title")] = title;
         data[QSL("focus")] = false;
         data[QSL("translate")] = true;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
+
+        if (showAltTranslator) {
+            ac = new QAction(tr("Translate pixiv novel in new background tab (%1)")
+                             .arg(altTranName),menu);
+            data.clear();
+            data[QSL("type")] = QSL("pixiv");
+            data[QSL("url")] = pixivUrl;
+            data[QSL("title")] = title;
+            data[QSL("focus")] = false;
+            data[QSL("translate")] = true;
+            data[QSL("altTranslate")] = true;
+            ac->setData(data);
+            res.append(ac);
+            pixivActions.append(ac);
+        }
     }
 
 
@@ -156,35 +178,52 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
             res.append(ac);
         }
 
-        ac = new QAction(tr("Extract fanbox.cc novel in new background tab"),menu);
+        ac = new QAction(tr("Extract fanbox novel in new background tab"),menu);
         data.clear();
         data[QSL("type")] = QSL("fanbox");
         data[QSL("id")] = fanboxPostId;
         data[QSL("focus")] = false;
         data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         fanboxActions.append(ac);
 
-        ac = new QAction(tr("Extract fanbox.cc novel in new tab"),menu);
+        ac = new QAction(tr("Extract fanbox novel in new tab"),menu);
         data.clear();
         data[QSL("type")] = QSL("fanbox");
         data[QSL("id")] = fanboxPostId;
         data[QSL("focus")] = true;
         data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         fanboxActions.append(ac);
 
-        ac = new QAction(tr("Extract fanbox.cc novel in new background tab and translate"),menu);
+        ac = new QAction(tr("Translate fanbox novel in new background tab"),menu);
         data.clear();
         data[QSL("type")] = QSL("fanbox");
         data[QSL("id")] = fanboxPostId;
         data[QSL("focus")] = false;
         data[QSL("translate")] = true;
+        data[QSL("altTranslate")] = false;
         ac->setData(data);
         res.append(ac);
         fanboxActions.append(ac);
+
+        if (showAltTranslator) {
+            ac = new QAction(tr("Translate fanbox novel in new background tab (%1)")
+                             .arg(altTranName),menu);
+            data.clear();
+            data[QSL("type")] = QSL("fanbox");
+            data[QSL("id")] = fanboxPostId;
+            data[QSL("focus")] = false;
+            data[QSL("translate")] = true;
+            data[QSL("altTranslate")] = true;
+            ac->setData(data);
+            res.append(ac);
+            fanboxActions.append(ac);
+        }
     }
 
 
@@ -377,6 +416,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     hash.value(QSL("url")).toUrl(),
                     hash.value(QSL("title")).toString(),
                     hash.value(QSL("translate")).toBool(),
+                    hash.value(QSL("altTranslate")).toBool(),
                     hash.value(QSL("focus")).toBool());
 
     } else if (type == QSL("pixivList")) {
@@ -401,6 +441,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
                     hash.value(QSL("translate")).toBool(),
+                    hash.value(QSL("altTranslate")).toBool(),
                     hash.value(QSL("focus")).toBool(),
                     false);
 
@@ -413,6 +454,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         res = new CFanboxExtractor(nullptr,parentWidget);
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
+                    false,
                     false,
                     false,
                     true);

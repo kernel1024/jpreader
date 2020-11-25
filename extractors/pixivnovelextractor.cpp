@@ -23,10 +23,11 @@ CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent, QWidget *parentWidge
 }
 
 void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
-                                     bool translate, bool focus)
+                                     bool translate, bool alternateTranslate, bool focus)
 {
     m_title = title;
     m_translate = translate;
+    m_alternateTranslate = alternateTranslate;
     m_focus = focus;
     m_source = source;
 }
@@ -257,7 +258,8 @@ void CPixivNovelExtractor::subWorkFinished()
         m_html.replace(rx, rpl);
     }
 
-    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,m_translate);
+    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,
+                      m_translate,m_alternateTranslate);
     Q_EMIT finished();
 }
 

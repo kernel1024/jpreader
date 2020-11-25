@@ -27,7 +27,8 @@ public:
                           bool isPatreon = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
-    bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false);
+    bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false,
+                          bool alternateAutoTranslate = false);
     QUrl getLoadedUrl() const { return m_loadedUrl; }
 
 Q_SIGNALS:
@@ -47,7 +48,7 @@ public Q_SLOTS:
     void extractHTMLFragment();
     void processExtractorAction();
     void processExtractorActionIndirect(const QVariantHash &params);
-    void novelReady(const QString& html, bool focus, bool translate);
+    void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
     void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin);
 
     void pdfConverted(const QString& html);

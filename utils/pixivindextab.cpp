@@ -388,9 +388,10 @@ void CPixivIndexTab::processExtractorAction()
     }
 
     connect(ex,&CAbstractExtractor::novelReady,gSet,[]
-            (const QString &html, bool focus, bool translate){
+            (const QString &html, bool focus, bool translate, bool alternateTranslate){
         auto *sv = new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),focus,html);
         sv->setRequestAutotranslate(translate);
+        sv->setRequestAlternateAutotranslate(alternateTranslate);
     },Qt::QueuedConnection);
 
     QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);

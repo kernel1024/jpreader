@@ -159,7 +159,7 @@ bool CBrowserNet::isValidLoadedUrl()
     return isValidLoadedUrl(m_loadedUrl);
 }
 
-bool CBrowserNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoTranslate)
+bool CBrowserNet::loadWithTempFile(const QString &html, bool createNewTab, bool autoTranslate, bool alternateAutoTranslate)
 {
     QString fname = gSet->makeTmpFile(QSL("html"),html);
     if (fname.isEmpty()) {
@@ -171,9 +171,11 @@ bool CBrowserNet::loadWithTempFile(const QString &html, bool createNewTab, bool 
     if (createNewTab) {
         auto *sv = new CBrowserTab(snv->parentWnd(),QUrl::fromLocalFile(fname));
         sv->m_requestAutotranslate = autoTranslate;
+        sv->m_requestAlternateAutotranslate = alternateAutoTranslate;
     } else {
         snv->m_fileChanged = false;
         snv->m_requestAutotranslate = autoTranslate;
+        snv->m_requestAlternateAutotranslate = alternateAutoTranslate;
         snv->txtBrowser->load(QUrl::fromLocalFile(fname));
         snv->m_auxContentLoaded=false;
     }
@@ -253,7 +255,7 @@ void CBrowserNet::extractHTMLFragment()
         const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
         if (md->hasHtml()) {
             auto *ex = new CHtmlImagesExtractor(nullptr,snv);
-            ex->setParams(md->html(),url,false,true);
+            ex->setParams(md->html(),url,false,false,true);
             if (!gSet->startup()->setupThreadedWorker(ex)) {
                 delete ex;
             } else {
@@ -291,13 +293,14 @@ void CBrowserNet::processExtractorActionIndirect(const QVariantHash &params)
     QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
 }
 
-void CBrowserNet::novelReady(const QString &html, bool focus, bool translate)
+void CBrowserNet::novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate)
 {
     if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
         auto *sv = new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),focus,html);
         sv->m_requestAutotranslate = translate;
+        sv->m_requestAlternateAutotranslate = alternateTranslate;
     } else {
-        loadWithTempFile(html,true,translate);
+        loadWithTempFile(html,true,translate,alternateTranslate);
     }
 }
 

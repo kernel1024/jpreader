@@ -12,6 +12,7 @@ class CHtmlImagesExtractor : public CAbstractExtractor
     Q_OBJECT
 private:
     bool m_translate { false };
+    bool m_alternateTranslate { false };
     bool m_focus { false };
     QAtomicInteger<int> m_worksImgFetch;
     QList<CHTMLAttributesHash *> m_imgUrls;
@@ -30,7 +31,7 @@ public:
     CHtmlImagesExtractor(QObject *parent = nullptr, CBrowserTab *snv = nullptr);
     ~CHtmlImagesExtractor() = default;
     void setParams(const QString &source, const QUrl &origin,
-                   bool translate, bool focus);
+                   bool translate, bool alternateTranslate, bool focus);
     QString workerDescription() const override;
 
 private Q_SLOTS:

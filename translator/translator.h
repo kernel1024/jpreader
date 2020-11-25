@@ -65,6 +65,7 @@ private:
     QStringList m_allAnchorUrls;
     QString m_title;
     QUrl m_origin;
+    CLangPair m_langPair;
     int m_retryCount { 0 };
     int m_textNodesCnt { 0 };
     int m_textNodesProgress { 0 };
@@ -89,8 +90,9 @@ private:
 
 public:
     explicit CTranslator(QObject* parent, const QString &sourceHtml,
-                         const QString &title = QString(),
-                         const QUrl &origin = QUrl());
+                         const QString &title = QString(), const QUrl &origin = QUrl(),
+                         CStructures::TranslationEngine engine = CStructures::teAtlas,
+                         const CLangPair &langPair = CLangPair());
     ~CTranslator() override = default;
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;

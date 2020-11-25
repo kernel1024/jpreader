@@ -89,8 +89,11 @@ bool CCLIWorker::parseArguments()
     }
 
     const QString engine = parser.value(optEngine);
-    m_engine = CAbstractTranslator::translatorFactory(nullptr,m_lang,engine);
-    if (m_engine.isNull()) {
+    bool engineOk = false;
+    CStructures::TranslationEngine engineId = gSet->settings()->getTranslationEngineFromName(engine,&engineOk);
+    if (engineOk)
+        m_engine = CAbstractTranslator::translatorFactory(nullptr,engineId,m_lang);
+    if (!engineOk || m_engine.isNull()) {
         *m_out << tr("Unable to create translator %1 for language pair: %2")
                   .arg(engine,m_lang.toString()) << Qt::endl;
         return false;

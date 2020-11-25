@@ -32,7 +32,7 @@ protected:
     QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
 
 Q_SIGNALS:
-    void novelReady(const QString& html, bool focus, bool translate);
+    void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
     void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin);
 
 protected Q_SLOTS:

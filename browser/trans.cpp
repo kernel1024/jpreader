@@ -143,11 +143,16 @@ void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &titl
     snv->transButton->setEnabled(false);
     snv->waitHandler->setProgressEnabled(true);
 
-    snv->waitHandler->setLanguage(CLangPair(gSet->actions()->getActiveLangPair()).toLongString());
-    snv->waitHandler->setText(tr("Translating text with %1")
-                              .arg(CStructures::translationEngines().value(gSet->settings()->translatorEngine)));
+    CStructures::TranslationEngine engine = gSet->settings()->translatorEngine;
+    if (snv->m_requestAlternateAutotranslate)
+        engine = gSet->settings()->previousTranslatorEngine;
+    CLangPair lp(gSet->settings()->getSelectedLangPair(engine));
 
-    auto *ct = new CTranslator(nullptr,sourceHtml,title,origin);
+    snv->waitHandler->setLanguage(lp.toLongString());
+    snv->waitHandler->setText(tr("Translating text with %1")
+                              .arg(CStructures::translationEngines().value(engine)));
+
+    auto *ct = new CTranslator(nullptr,sourceHtml,title,origin,engine,lp);
     if (!gSet->startup()->setupThreadedWorker(ct)) {
         delete ct;
         return;

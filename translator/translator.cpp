@@ -12,13 +12,16 @@
 using namespace htmlcxx;
 
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
-                         const QString &title, const QUrl &origin)
+                         const QString &title, const QUrl &origin,
+                         CStructures::TranslationEngine engine,
+                         const CLangPair &langPair)
     : CAbstractThreadWorker(parent),
       m_sourceHtml(sourceHtml),
       m_title(title),
       m_origin(origin)
 {
-    m_translationEngine=gSet->settings()->translatorEngine;
+    m_translationEngine=engine;
+    m_langPair = langPair;
     m_engineName=CStructures::translationEngines().value(m_translationEngine);
     m_retryCount=gSet->settings()->translatorRetryCount;
     m_forceFontColor=gSet->actions()->forceFontColor();
@@ -34,7 +37,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
     resetAbortFlag();
 
     if (!m_tran && !m_tranInited) {
-        m_tran.reset(CAbstractTranslator::translatorFactory(this, CLangPair(gSet->actions()->getActiveLangPair())));
+        m_tran.reset(CAbstractTranslator::translatorFactory(this, m_translationEngine, m_langPair));
     }
 
     if (!m_tran || !m_tran->initTran()) {
@@ -548,8 +551,7 @@ void CTranslator::startMain()
 {
     QString translatedHtml;
     QString lastError;
-    CLangPair lp(gSet->actions()->getActiveLangPair());
-    if (!lp.isValid()) {
+    if (!m_langPair.isValid()) {
         lastError = tr("Translator initialization error: Unacceptable or empty translation pair.");
         Q_EMIT translationFinished(false,isAborted(),translatedHtml,lastError);
         Q_EMIT finished();
@@ -559,7 +561,7 @@ void CTranslator::startMain()
     if (gSet->settings()->translatorCacheEnabled) {
         translatedHtml = gSet->translatorCache()->cachedTranslatorResult(
                              m_sourceHtml,
-                             lp,
+                             m_langPair,
                              m_translationEngine,
                              m_translateSubSentences);
         if (!translatedHtml.isEmpty()) {
@@ -572,7 +574,7 @@ void CTranslator::startMain()
     if (m_translationEngine==CStructures::teAtlas) {
         bool oktrans = false;
 
-        if (!lp.isAtlasAcceptable()) {
+        if (!m_langPair.isAtlasAcceptable()) {
             lastError = tr("ATLAS error: Unacceptable translation pair. Only English and Japanese is supported.");
         } else {
             for (int i=0;i<m_retryCount;i++) {
@@ -610,7 +612,7 @@ void CTranslator::startMain()
 
     if (gSet->settings()->translatorCacheEnabled &&
             !isAborted()) {
-        gSet->translatorCache()->saveTranslatorResult(m_sourceHtml,translatedHtml,lp,
+        gSet->translatorCache()->saveTranslatorResult(m_sourceHtml,translatedHtml,m_langPair,
                                                       m_translationEngine,m_translateSubSentences,
                                                       m_title,m_origin);
     }

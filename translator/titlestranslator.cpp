@@ -23,7 +23,8 @@ void CTitlesTranslator::translateTitles(const QStringList &titles)
     stopReq=false;
 
     QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
-                CAbstractTranslator::translatorFactory(this, CLangPair(gSet->actions()->getActiveLangPair())));
+                CAbstractTranslator::translatorFactory(this, gSet->settings()->translatorEngine,
+                                                       CLangPair(gSet->actions()->getActiveLangPair())));
     if (!tran || !tran->initTran()) {
         qCritical() << tr("Unable to initialize translation engine.");
         res.clear();

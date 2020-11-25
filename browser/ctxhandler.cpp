@@ -92,7 +92,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         }
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new")),
-                         tr("Open in new background tab and translate"));
+                         tr("Translate in new background tab"));
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
             auto *sn = new CBrowserTab(snv->parentWnd(),linkUrl,QStringList(),false);
             sn->setRequestAutotranslate(true);
@@ -237,7 +237,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             });
 
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
-                             tr("Open in new background tab and translate"));
+                             tr("Translate in new background tab"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
                 auto *sn = new CBrowserTab(snv->parentWnd(),selectedUrl,QStringList(),false);
                 sn->setRequestAutotranslate(true);

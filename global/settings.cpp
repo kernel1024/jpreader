@@ -352,6 +352,7 @@ void CSettings::readSettings(QObject *control)
                                          CDefaults::maxAdblockWhiteList).toInt();
     sysBrowser = settings.value(QSL("browser"),CDefaults::sysBrowser).toString();
     sysEditor = settings.value(QSL("editor"),CDefaults::sysEditor).toString();
+    previousTranslatorEngine = translatorEngine;
     translatorEngine = static_cast<CStructures::TranslationEngine>(
                            settings.value(QSL("tr_engine"),CDefaults::translatorEngine).toInt());
     atlHost = settings.value(QSL("atlasHost"),"localhost").toString();
@@ -499,11 +500,34 @@ void CSettings::settingsTab()
 void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     selectedLangPairs[translatorEngine] = gSet->m_actions->getActiveLangPair();
+    previousTranslatorEngine = translatorEngine;
     translatorEngine = engine;
     if (selectedLangPairs.contains(engine))
         gSet->m_actions->setActiveLangPair(selectedLangPairs.value(engine));
 
     Q_EMIT gSet->m_ui->translationEngineChanged();
+}
+
+QString CSettings::getSelectedLangPair(CStructures::TranslationEngine engine) const
+{
+    return selectedLangPairs.value(engine);
+}
+
+CStructures::TranslationEngine CSettings::getTranslationEngineFromName(const QString &name, bool *ok) const
+{
+    CStructures::TranslationEngine res = gSet->settings()->translatorEngine;
+    (*ok) = false;
+    if (!name.isEmpty()) {
+        for (auto it = CStructures::translationEngineCodes().constBegin(),
+             end = CStructures::translationEngineCodes().constEnd(); it != end; ++it) {
+            if (name == it.value()) {
+                res = it.key();
+                (*ok) = true;
+                break;
+            }
+        }
+    }
+    return res;
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)

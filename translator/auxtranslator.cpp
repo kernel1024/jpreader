@@ -30,7 +30,7 @@ void CAuxTranslator::translatePriv()
 {
     if (!m_text.isEmpty()) {
         QScopedPointer<CAbstractTranslator,QScopedPointerDeleteLater> tran(
-                    CAbstractTranslator::translatorFactory(this, m_lang));
+                    CAbstractTranslator::translatorFactory(this, gSet->settings()->translatorEngine, m_lang));
         if (!tran || !tran->initTran()) {
             qCritical() << tr("Unable to initialize translation engine.");
             m_text = QSL("ERROR");

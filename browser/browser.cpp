@@ -180,6 +180,11 @@ void CBrowserTab::setRequestAutotranslate(bool requestAutotranslate)
     m_requestAutotranslate = requestAutotranslate;
 }
 
+void CBrowserTab::setRequestAlternateAutotranslate(bool requestAlternateAutotranslate)
+{
+    m_requestAlternateAutotranslate = requestAlternateAutotranslate;
+}
+
 void CBrowserTab::setTranslationRestriction()
 {
     m_onceTranslated = true;

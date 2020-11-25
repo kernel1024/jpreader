@@ -373,6 +373,9 @@
    </property>
   </action>
   <action name="actionFindText">
+   <property name="icon">
+    <iconset theme="edit-find"/>
+   </property>
    <property name="text">
     <string>&amp;Find text</string>
    </property>
@@ -475,7 +478,8 @@
   </action>
   <action name="actionWorkerMonitor">
    <property name="icon">
-    <iconset theme="system-run"/>
+    <iconset theme="system-run">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Worker monitor</string>

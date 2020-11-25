@@ -16,6 +16,7 @@ class CPixivNovelExtractor : public CAbstractExtractor
 private:
     QString m_title;
     bool m_translate { false };
+    bool m_alternateTranslate { false };
     bool m_focus { false };
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     QMutex m_imgMutex;
@@ -35,7 +36,7 @@ private:
 public:
     CPixivNovelExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(const QUrl& source, const QString& title,
-                   bool translate, bool focus);
+                   bool translate, bool alternateTranslate, bool focus);
     void setMangaOrigin(const QUrl& origin);
     QString workerDescription() const override;
 

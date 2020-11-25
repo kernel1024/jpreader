@@ -138,6 +138,7 @@ public:
     QNetworkProxy::ProxyType proxyType { CDefaults::proxyType };
     CStructures::SearchEngine searchEngine { CDefaults::searchEngine };
     CStructures::TranslationEngine translatorEngine { CDefaults::translatorEngine };
+    CStructures::TranslationEngine previousTranslatorEngine { CDefaults::translatorEngine };
     CStructures::AliCloudTranslatorMode aliCloudTranslatorMode { CDefaults::aliCloudTranslatorMode };
 
     bool jsLogConsole { CDefaults::jsLogConsole };
@@ -165,6 +166,8 @@ public:
 
     void readSettings(QObject *control = nullptr);
     void setTranslationEngine(CStructures::TranslationEngine engine);
+    QString getSelectedLangPair(CStructures::TranslationEngine engine) const;
+    CStructures::TranslationEngine getTranslationEngineFromName(const QString& name, bool *ok) const;
 
 Q_SIGNALS:
     void adblockRulesUpdated();

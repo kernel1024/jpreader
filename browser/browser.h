@@ -52,6 +52,7 @@ private:
     bool m_onceTranslated { false };
     bool m_loading { false };
     bool m_requestAutotranslate { false };
+    bool m_requestAlternateAutotranslate { false };
     bool m_pageLoaded { false };
     bool m_auxContentLoaded { false };
 
@@ -78,6 +79,7 @@ public:
     bool isTranslationBkgdFinished() const { return m_translationBkgdFinished; }
     bool isLoadingBkgdFinished() const { return m_loadingBkgdFinished; }
     void setRequestAutotranslate(bool requestAutotranslate);
+    void setRequestAlternateAutotranslate(bool requestAlternateAutotranslate);
     void setTranslationRestriction();
 
 public Q_SLOTS:

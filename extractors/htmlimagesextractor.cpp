@@ -13,9 +13,10 @@ CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CBrowserTab *snv)
 }
 
 void CHtmlImagesExtractor::setParams(const QString &source, const QUrl &origin,
-                                     bool translate, bool focus)
+                                     bool translate, bool alternateTranslate, bool focus)
 {
     m_translate = translate;
+    m_alternateTranslate = alternateTranslate;
     m_focus = focus;
     m_html = source;
     m_origin = origin;
@@ -93,7 +94,7 @@ void CHtmlImagesExtractor::finalizeHtml()
     QString res;
     CTranslator::generateHTML(m_doc,res);
 
-    Q_EMIT novelReady(res,m_focus,m_translate);
+    Q_EMIT novelReady(res,m_focus,m_translate,m_alternateTranslate);
     Q_EMIT finished();
 }
 

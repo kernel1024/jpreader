@@ -41,12 +41,14 @@ public:
     void doneTran(bool lazyClose = false);
     QString getErrorMsg() const;
     QString tranString(const QString& src);
-    unsigned long getRandomDelay(int min = CDefaults::tranMinRetryDelay, int max = CDefaults::tranMaxRetryDelay);
+    unsigned long getRandomDelay(int min = CDefaults::tranMinRetryDelay,
+                                 int max = CDefaults::tranMaxRetryDelay);
     int getTranslatorRetryCount() const;
     CLangPair language() const;
 
-    static CAbstractTranslator* translatorFactory(QObject *parent, const CLangPair &tranDirection,
-                                                  const QString &engineName = QString());
+    static CAbstractTranslator* translatorFactory(QObject *parent,
+                                                  CStructures::TranslationEngine engine,
+                                                  const CLangPair &tranDirection);
 
 Q_SIGNALS:
     void translatorBytesTransferred(qint64 size);

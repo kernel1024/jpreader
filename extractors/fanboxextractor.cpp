@@ -17,9 +17,10 @@ CFanboxExtractor::CFanboxExtractor(QObject *parent, QWidget *parentWidget)
 {
 }
 
-void CFanboxExtractor::setParams(int postId, bool translate, bool focus, bool isManga)
+void CFanboxExtractor::setParams(int postId, bool translate, bool alternateTranslate, bool focus, bool isManga)
 {
     m_translate = translate;
+    m_alternateTranslate = alternateTranslate;
     m_focus = focus;
     m_postId = postId;
     m_isManga = isManga;
@@ -174,7 +175,7 @@ void CFanboxExtractor::pageLoadFinished()
                     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
                                           m_title,m_text,true,
                                           QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
-                                      m_focus,m_translate);
+                                      m_focus,m_translate,m_alternateTranslate);
                 }
 
                 if (m_isManga && !images.isEmpty()) {
@@ -250,7 +251,7 @@ void CFanboxExtractor::subImageFinished()
         Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
                               m_title,m_text,true,
                               QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
-                          m_focus,m_translate);
+                          m_focus,m_translate,m_alternateTranslate);
 
         Q_EMIT finished();
     }

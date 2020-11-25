@@ -13,6 +13,7 @@ class CFanboxExtractor : public CAbstractExtractor
 private:
     int m_postId { -1 };
     bool m_translate { false };
+    bool m_alternateTranslate { false };
     bool m_focus { false };
     bool m_isManga { false };
     QVector<CUrlWithName> m_illustMap;
@@ -26,7 +27,7 @@ private:
 
 public:
     CFanboxExtractor(QObject *parent, QWidget *parentWidget);
-    void setParams(int postId, bool translate, bool focus, bool isManga);
+    void setParams(int postId, bool translate, bool alternateTranslate, bool focus, bool isManga);
     QString workerDescription() const override;
 
 protected:
