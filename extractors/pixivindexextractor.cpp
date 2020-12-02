@@ -267,7 +267,7 @@ void CPixivIndexExtractor::searchAjax()
         bool ok = false;
         int page = uq.queryItemValue(QSL("p")).toInt(&ok);
         if (!ok)
-            page = 0;
+            page = 1;
 
         QJsonParseError err {};
         const QByteArray data = rpl->readAll();
@@ -330,7 +330,7 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
     preloadNovelCovers(origin);
     if (m_worksImgFetch>0) return;
 
-    QVector<QJsonObject> list = m_list;
+    const QVector<QJsonObject> list = m_list;
     auto *window = gSet->activeWindow();
     auto indexMode = m_indexMode;
     auto indexID = m_indexId;

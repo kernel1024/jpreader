@@ -542,15 +542,19 @@ Qt::ItemFlags CPixivTableModel::flags(const QModelIndex &index) const
 
 QVariant CPixivTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
-        QStringList headers = basicHeaders();
+    if (role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            QStringList headers = basicHeaders();
 
-        headers.reserve(m_tags.count());
-        for (const auto& tag : qAsConst(m_tags))
-            headers.append(QSL("T:[%1]").arg(tag));
+            headers.reserve(m_tags.count());
+            for (const auto& tag : qAsConst(m_tags))
+                headers.append(QSL("T:[%1]").arg(tag));
 
-        if (section>=0 && section<headers.count())
-            return headers.at(section);
+            if (section>=0 && section<headers.count())
+                return headers.at(section);
+        } else {
+            return QSL("%1").arg(section+1);
+        }
     }
     return QVariant();
 }
