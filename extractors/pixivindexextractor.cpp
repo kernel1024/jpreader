@@ -39,6 +39,9 @@ QString CPixivIndexExtractor::workerDescription() const
     return tr("Pixiv index extractor (ID: %1)").arg(m_indexId);
 }
 
+/*
+ * Get novel JSON data from IDs.
+ */
 void CPixivIndexExtractor::fetchNovelsInfo()
 {
     if (parentWidget()==nullptr) return;
@@ -76,6 +79,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
         }
     }
 
+    // All IDs parsed? Go to postprocessing.
     if (m_ids.isEmpty()) {
         if (rpl) {
             showIndexResult(rpl->url());
@@ -85,6 +89,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
         return;
     }
 
+    // Parse next IDs group.
     const QString key = QSL("ids%5B%5D");
     const int maxQueryLen = 1024;
 
@@ -153,6 +158,9 @@ void CPixivIndexExtractor::startMain()
     },Qt::QueuedConnection);
 }
 
+/*
+ * Get all novel IDs from pixiv author profile.
+ */
 void CPixivIndexExtractor::profileAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
@@ -189,6 +197,9 @@ void CPixivIndexExtractor::profileAjax()
     }
 }
 
+/*
+ * Get all novel JSON data from pixiv author bookmarks.
+ */
 void CPixivIndexExtractor::bookmarksAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
@@ -256,6 +267,9 @@ void CPixivIndexExtractor::bookmarksAjax()
     Q_EMIT finished();
 }
 
+/*
+ * Get all novel JSON data from pixiv tag search.
+ */
 void CPixivIndexExtractor::searchAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
@@ -325,6 +339,9 @@ void CPixivIndexExtractor::searchAjax()
     Q_EMIT finished();
 }
 
+/*
+ * Novel JSON list postprocessing. Get cover images and transfer to results table.
+ */
 void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
 {
     preloadNovelCovers(origin);
@@ -346,8 +363,8 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
 void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
 {
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
-    m_worksImgFetch = 0;
 
+    int imgWorkCounter = 0;
     QStringList processedUrls;
     m_imgMutex.lock();
     for (const auto& w : qAsConst(m_list)) {
@@ -363,7 +380,7 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
         if (gSet->settings()->pixivFetchImages &&
                 supportedExt.contains(fi.suffix(),Qt::CaseInsensitive) &&
                 !processedUrls.contains(coverImgUrl)) {
-            m_worksImgFetch++;
+            imgWorkCounter++;
             processedUrls.append(coverImgUrl);
             QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,origin]{
                 if (exitIfAborted()) return;
@@ -374,15 +391,20 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
             },Qt::QueuedConnection);
         }
     }
+    m_worksImgFetch.storeRelease(imgWorkCounter);
     m_imgMutex.unlock();
 }
 
 void CPixivIndexExtractor::subImageFinished()
 {
+    static QByteArray errorImage =
+            QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
+
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull()) return;
     if (exitIfAborted()) return;
 
+    QByteArray dataUri;
     if (rpl->error() == QNetworkReply::NoError) {
         QByteArray ba = rpl->readAll();
         addLoadedRequest(ba.size());
@@ -403,23 +425,21 @@ void CPixivIndexExtractor::subImageFinished()
             QBuffer buf(&ba);
             buf.open(QIODevice::WriteOnly);
             if (img.save(&buf,"JPEG",gSet->settings()->pdfImageQuality)) {
-                QByteArray out("data:image/jpeg;base64,");
-                out.append(ba.toBase64());
-                ba = out;
-            } else {
-                ba.clear();
+                dataUri = QByteArrayLiteral("data:image/jpeg;base64,");
+                dataUri.append(ba.toBase64());
             }
-        } else {
-            ba.clear();
         }
-
-        m_imgMutex.lock();
-        for (auto &w : m_list) {
-            if ((w.value(QSL("url")).toString() == rpl->url().toString()) && !ba.isEmpty())
-                w.insert(QSL("url"),QJsonValue(QString::fromUtf8(ba)));
-        }
-        m_imgMutex.unlock();
     }
+
+    if (dataUri.isEmpty())
+        dataUri = errorImage;
+
+    m_imgMutex.lock();
+    for (auto &w : m_list) {
+        if (w.value(QSL("url")).toString() == rpl->url().toString())
+            w.insert(QSL("url"),QJsonValue(QString::fromUtf8(dataUri)));
+    }
+    m_imgMutex.unlock();
 
     QUrl origin = rpl->url();
     QMetaObject::invokeMethod(this,[this,origin](){
