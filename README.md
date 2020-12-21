@@ -14,7 +14,7 @@ Library dependencies:
     openssl
     recoll engine (optional)
     baloo 5.6.0 (optional) 
-    poppler 0.72 (optional)
+    poppler 0.85 (optional)
 
 Integrated static parts from libraries:
 

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QNetworkProxy>
+#include <QKeySequence>
 #include <QSsl>
 #include <QFont>
 #include <QColor>
@@ -114,6 +115,8 @@ public:
     QStringList userAgentHistory;
     QStringList atlHostHistory;
     QStringList charsetHistory;
+
+    QKeySequence gctxSequence;
 
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash sslTrustedInvalidCerts;

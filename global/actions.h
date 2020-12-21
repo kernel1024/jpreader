@@ -18,7 +18,7 @@ class CGlobalActions : public QObject
 
     Q_OBJECT
 public:
-    QxtGlobalShortcut gctxTranHotkey;
+    QPointer<QxtGlobalShortcut> gctxTranHotkey;
     QAction *actionUseProxy;
 
     QAction* actionSelectionDictionary;
@@ -66,6 +66,7 @@ public Q_SLOTS:
     void gctxTranslateReady(const QString& text);
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
+    void rebindGctxHotkey(QObject *control = nullptr);
     void actionToggled();
     void updateBusyCursor();
 

@@ -173,7 +173,7 @@ FORMS = main.ui \
     utils/hashviewer.ui \
     utils/workermonitor.ui
 
-QT += network xml dbus widgets webenginewidgets x11extras printsupport testlib
+QT += network xml dbus widgets webenginewidgets printsupport testlib
 
 CONFIG += warn_on \
     link_pkgconfig \
@@ -205,7 +205,7 @@ packagesExist(libzip) {
     error("libzip not found.")
 }
 
-PKGCONFIG += icu-uc icu-io icu-i18n xcb xcb-keysyms openssl
+PKGCONFIG += icu-uc icu-io icu-i18n openssl
 
 exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5
@@ -232,15 +232,13 @@ system( which recoll > /dev/null 2>&1 ) {
     message("Recoll support: NO")
 }
 
-packagesExist(poppler-cpp) {
-    packagesExist(poppler) {
-        CONFIG += use_poppler
-    }
+packagesExist(poppler) {
+    CONFIG += use_poppler
 }
 
 use_poppler {
     DEFINES += WITH_POPPLER=1
-    PKGCONFIG += poppler-cpp poppler
+    PKGCONFIG += poppler
     message("Using Poppler: YES")
 } else {
     message("Using Poppler: NO")

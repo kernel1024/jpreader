@@ -16,7 +16,6 @@ extern "C" {
 #include <memory>
 
 #include <poppler-config.h>
-#include <poppler-version.h>
 #include <GlobalParams.h>
 #include <Object.h>
 #include <Dict.h>
@@ -27,18 +26,6 @@ extern "C" {
 #include <PDFDocFactory.h>
 #include <TextOutputDev.h>
 #include <PDFDocEncoding.h>
-
-#if POPPLER_VERSION_MAJOR==0
-    #if POPPLER_VERSION_MINOR<85
-        #define JPDF_PRE085_API 1
-    #endif
-    #if POPPLER_VERSION_MINOR<83
-        #define JPDF_PRE083_API 1
-    #endif
-    #if POPPLER_VERSION_MINOR<73
-        #define JPDF_PRE073_API 1
-    #endif
-#endif
 
 #endif // WITH_POPPLER
 
@@ -80,17 +67,8 @@ void CPDFWorkerPrivate::metaDate(QString& out, Dict *infoDict, const char* key, 
     }
 }
 
-#ifdef JPDF_PRE085_API
-
-void popplerError(void *data, ErrorCategory category, Goffset pos, const char *msg)
-{
-    Q_UNUSED(data)
-#else
-
 void popplerError(ErrorCategory category, Goffset pos, const char *msg)
 {
-#endif
-
     static int loggedPopplerErrors = 0;
     const int maxPopplerErrors = 100;
 
@@ -404,11 +382,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
                     int size = static_cast<int>(data->getLength());
                     QByteArray ba;
                     ba.resize(size);
-#ifdef JPDF_PRE073_API
-                    data->doGetChars(size,reinterpret_cast<Guchar *>(ba.data()));
-#else
                     data->doGetChars(size,reinterpret_cast<unsigned char *>(ba.data()));
-#endif
 
                     StreamKind kind = xitem.getStream()->getKind();
                     if (kind==StreamKind::strFlate && // zlib stream
@@ -495,24 +469,13 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 void CPDFWorkerPrivate::initPdfToText()
 {
     const char* textEncoding = "UTF-8";
-#ifdef JPDF_PRE083_API
-    globalParams = new GlobalParams();
-#else
     globalParams = std::make_unique<GlobalParams>();
-#endif
-#ifdef JPDF_PRE085_API
-    setErrorCallback(&(popplerError),nullptr);
-#else
     setErrorCallback(&(popplerError));
-#endif
     globalParams->setTextEncoding(const_cast<char *>(textEncoding));
 }
 
 void CPDFWorkerPrivate::freePdfToText()
 {
-#ifdef JPDF_PRE083_API
-    delete globalParams;
-#endif
 }
 
 #endif // WITH_POPPLER

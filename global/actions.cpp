@@ -100,10 +100,6 @@ CGlobalActions::CGlobalActions(QObject *parent)
     connect(&gctxTimer,&QTimer::timeout,
             this,&CGlobalActions::startGlobalContextTranslate);
 
-    gctxTranHotkey.setDisabled();
-    connect(&gctxTranHotkey,&QxtGlobalShortcut::activated,
-            actionGlobalTranslator,&QAction::toggle);
-
     threadedWorkerTestTimer.setInterval(CDefaults::globalThreadWorkerTestInterval);
     threadedWorkerTestTimer.setSingleShot(false);
     connect(&threadedWorkerTestTimer,&QTimer::timeout,
@@ -167,6 +163,24 @@ void CGlobalActions::addActionNotification(QAction *action) const
     connect(action,&QAction::toggled,this,&CGlobalActions::actionToggled);
 }
 
+void CGlobalActions::rebindGctxHotkey(QObject *control)
+{
+    QObject* cg = control;
+    if (cg==nullptr) cg = gSet;
+    if (cg==nullptr) return;
+
+    auto *g = qobject_cast<CGlobalControl *>(cg);
+    Q_ASSERT(g!=nullptr);
+
+    if (gctxTranHotkey)
+        gctxTranHotkey->deleteLater();
+
+    if (!(g->settings()->gctxSequence.isEmpty())) {
+        gctxTranHotkey = new QxtGlobalShortcut(g->settings()->gctxSequence,this);
+        connect(gctxTranHotkey.data(), &QxtGlobalShortcut::activated, actionGlobalTranslator, &QAction::toggle);
+    }
+}
+
 void CGlobalActions::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
@@ -221,7 +235,7 @@ void CGlobalActions::rebuildLanguageActions(QObject * control)
     languageSelector->deleteLater();
     languageSelector = new QActionGroup(this);
 
-    connect(languageSelector,&QActionGroup::triggered,gSet,[](QAction* action){
+    connect(languageSelector,&QActionGroup::triggered,g,[](QAction* action){
         gSet->m_settings->selectedLangPairs[gSet->m_settings->translatorEngine] = action->data().toString();
     });
 

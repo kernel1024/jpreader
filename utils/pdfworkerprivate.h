@@ -6,7 +6,6 @@
 
 #ifdef WITH_POPPLER
 #include <poppler-config.h>
-#include <poppler-version.h>
 #include <GlobalParams.h>
 #include <Object.h>
 #include <Dict.h>

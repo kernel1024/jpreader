@@ -377,7 +377,7 @@ void CGlobalStartup::cleanupAndExit()
             }
         }
 
-        m_g->m_actions->gctxTranHotkey.unsetShortcut();
+        m_g->m_actions->gctxTranHotkey->deleteLater();
     }
     cleanTmpFiles();
 

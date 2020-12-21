@@ -219,7 +219,7 @@ void CSettingsTab::loadFromGlobal()
     ui->spinFontSizeFixed->setEnabled(gSet->m_settings->overrideFontSizes);
     ui->checkFontColorOverride->setChecked(gSet->m_actions->forceFontColor());
 
-    ui->gctxHotkey->setKeySequence(gSet->m_actions->gctxTranHotkey.shortcut());
+    ui->gctxHotkey->setKeySequence(gSet->m_settings->gctxSequence);
     ui->checkCreateCoredumps->setChecked(gSet->m_settings->createCoredumps);
 #ifndef WITH_RECOLL
     ui->radioSearchRecoll->setEnabled(false);
@@ -546,9 +546,8 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->gctxHotkey,&QKeySequenceEdit::keySequenceChanged,this,[this](const QKeySequence& val){
         if (m_loadingInterlock) return;
-        gSet->m_actions->gctxTranHotkey.setShortcut(val);
-        if (!gSet->m_actions->gctxTranHotkey.shortcut().isEmpty())
-            gSet->m_actions->gctxTranHotkey.setEnabled();
+        gSet->m_settings->gctxSequence = val;
+        gSet->m_actions->rebindGctxHotkey();
     });
 
     connect(ui->radioSearchRecoll,&QRadioButton::toggled,this,[this](bool val){
