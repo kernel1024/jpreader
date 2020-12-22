@@ -73,7 +73,7 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
     }
     std::sort(headerNames.begin(),headerNames.end());
 
-    QString signedHeaders = headerNames.join(QChar(';'));
+    QString signedHeaders = headerNames.join(u';');
 
     QString canonicalHeaders;
     for (const auto& key : qAsConst(headerNames)) {

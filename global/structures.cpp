@@ -72,7 +72,7 @@ CLangPair::CLangPair(const CLangPair &other)
 
 CLangPair::CLangPair(const QString &hash)
 {
-    QStringList sl = hash.split('#');
+    QStringList sl = hash.split(u'#');
     if (sl.count()!=2) {
         nullify();
         return;

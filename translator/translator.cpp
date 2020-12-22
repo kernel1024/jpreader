@@ -374,15 +374,15 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
     QString ssrc = src.text;
     ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
-    ssrc = ssrc.replace('\r','\n');
+    ssrc = ssrc.replace(u'\r',u'\n');
     ssrc = ssrc.replace(QRegularExpression(QSL("\n{2,}")),QSL("\n"));
-    QStringList sl = ssrc.split('\n',Qt::SkipEmptyParts);
+    QStringList sl = ssrc.split(u'\n',Qt::SkipEmptyParts);
 
     QString sout;
     QStringList srctls;
 
-    const QChar questionMark('?');
-    const QChar fullwidthQuestionMark(0xff1f);
+    const QChar questionMark(u'?');
+    const QChar fullwidthQuestionMark(u'\uFF1F');
     const int progressUpdateFrac = 5;
 
     for(int i=0;i<sl.count();i++) {
@@ -397,7 +397,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             QString srct = sl.at(i);
 
             if (srct.trimmed().isEmpty()) {
-                sout += QSL("\n");
+                sout += u'\n';
             } else {
                 QString t;
 
@@ -496,7 +496,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
         if (!srctls.isEmpty() && ((m_translationMode==CStructures::tmOverwriting)
                                   || (m_translationMode==CStructures::tmTooltip))) {
             src.text = QSL("<span title=\"%1\">%2</span>")
-                       .arg(srctls.join('\n').replace('"','\''),sout);
+                       .arg(srctls.join(u'\n').replace(u'"',u'\''),sout);
         } else {
             src.text = sout;
         }
@@ -632,7 +632,7 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reforma
         html.append(QSL("<")+src.tagName);
         for (const QString &key : qAsConst(src.attributesOrder)) {
             const QString val = src.attributes.value(key);
-            if (!val.contains('"')) {
+            if (!val.contains(u'"')) {
                 html.append(QSL(" %1=\"%2\"").arg(key,val));
             } else {
                 html.append(QSL(" %1='%2'").arg(key,val));
@@ -648,7 +648,7 @@ void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reforma
 
     html.append(src.closingText);
     if (reformat)
-        html.append('\n');
+        html.append(u'\n');
 }
 
 void CTranslator::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)

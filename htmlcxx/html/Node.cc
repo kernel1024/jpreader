@@ -18,13 +18,13 @@ void Node::parseAttributes()
     mAttributes.clear();
     mAttributesOrder.clear();
 
-    if (!lText.contains(QLatin1Char('<'))) return;
+    if (!lText.contains(u'<')) return;
 
     QString::Iterator ptr = lText.data();
     QString::Iterator end = ptr;
 
     // Skip up to tag start
-    ptr += lText.indexOf(QLatin1Char('<'));
+    ptr += lText.indexOf(u'<');
 
     // Chop opening braces
     ++ptr;
@@ -39,7 +39,7 @@ void Node::parseAttributes()
     // Skip blankspace after tagname
     while (ptr < lText.end() && ptr->isSpace()) ++ptr;
 
-    while (ptr < lText.end() && *ptr != '>')
+    while (ptr < lText.end() && *ptr != u'>')
     {
         QString key;
         QString val;
@@ -51,18 +51,18 @@ void Node::parseAttributes()
         while (ptr < lText.end() && ptr->isSpace()) ++ptr;
 
         end = ptr;
-        while (end < lText.end() && (end->isLetterOrNumber() || *end == '-')) ++end;
+        while (end < lText.end() && (end->isLetterOrNumber() || *end == u'-')) ++end;
         key = QString(ptr, static_cast<int>(end - ptr)).toLower();
         ptr = end;
 
         // skip blankspace
         while (ptr < lText.end() && ptr->isSpace()) ++ptr;
 
-        if (*ptr == '=')
+        if (*ptr == u'=')
         {
             ++ptr;
             while (ptr < lText.end() && ptr->isSpace()) ++ptr;
-            if (*ptr == '"' || *ptr == '\'')
+            if (*ptr == u'"' || *ptr == u'\'')
             {
                 QChar quote = *ptr;
                 QString::Iterator pptr = ptr;
@@ -74,8 +74,8 @@ void Node::parseAttributes()
                     end += qidx;
                 } else {
                     //b = mText.find_first_of(" >", a+1);
-                    int end1 = tmp.indexOf(' ');
-                    int end2 = tmp.indexOf('>');
+                    int end1 = tmp.indexOf(u' ');
+                    int end2 = tmp.indexOf(u'>');
                     if (end1>=0 && end1 < end2) end += end1;
                     else if (end2>=0) end += end2;
                     else return;
@@ -89,7 +89,7 @@ void Node::parseAttributes()
                 ptr = end + 1;
             } else {
                 end = ptr;
-                while (end < lText.end() && !end->isSpace() && *end != '>') end++;
+                while (end < lText.end() && !end->isSpace() && *end != u'>') end++;
                 val = QString(ptr, static_cast<int>(end - ptr));
                 ptr = end;
             }

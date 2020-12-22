@@ -42,8 +42,8 @@ QVariant CSearchModel::data(const QModelIndex &index, int role) const
             case 0: return m_snippets[idx][QSL("title")];
             case 1: {
                 QString score = m_snippets[idx][QSL("relevancyrating")];
-                if (score.endsWith('%'))
-                    score.remove('%');
+                if (score.endsWith(u'%'))
+                    score.remove(u'%');
 
                 bool ok = false;
                 float sf = score.toFloat(&ok);

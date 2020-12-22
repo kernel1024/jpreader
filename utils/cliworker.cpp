@@ -175,12 +175,12 @@ QString CCLIWorker::translatePriv(const QString &text)
     QString sout;
     QStringList srctls;
 
-    const QChar questionMark('?');
-    const QChar fullwidthQuestionMark(0xff1f);
+    const QChar questionMark(u'?');
+    const QChar fullwidthQuestionMark(u'\uFF1F');
 
     QString srct = text;
-    srct = srct.replace('\r',' ');
-    srct = srct.replace('\n',' ');
+    srct = srct.replace(u'\r',u' ');
+    srct = srct.replace(u'\n',u' ');
 
     if (!srct.trimmed().isEmpty()) {
         QString t;

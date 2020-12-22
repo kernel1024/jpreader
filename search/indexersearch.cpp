@@ -161,7 +161,7 @@ void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString 
 int CIndexerSearch::calculateHitRate(const QString &fc)
 {
 
-    QStringList ql = m_query.split(' ');
+    QStringList ql = m_query.split(u' ');
     int hits = 0;
     for(int i=0;i<ql.count();i++)
         hits += fc.count(ql.at(i),Qt::CaseInsensitive);

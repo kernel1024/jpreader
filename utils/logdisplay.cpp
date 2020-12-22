@@ -38,9 +38,9 @@ void CLogDisplay::updateMessages()
     if (!isVisible()) return;
     if (gSet->d_func()->debugMessages.isEmpty()) return;
 
-    QString log = gSet->d_func()->debugMessages.join('\n');
+    QString log = gSet->d_func()->debugMessages.join(u'\n');
     gSet->d_func()->debugMessages.clear();
-    log.append('\n');
+    log.append(u'\n');
 
     ui->logView->moveCursor(QTextCursor::End);
     ui->logView->insertPlainText(log);

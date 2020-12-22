@@ -50,7 +50,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 			while (mpLiteral)
 			{
 //				DEBUGP("Treating literal %s\n", mpLiteral);
-				while (c != end && *c != '<') ++c;
+                while (c != end && *c != u'<') ++c;
 
 				if (c == end) {
 					if (c != begin) this->parseContent(begin, c);
@@ -60,7 +60,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 				iterator end_text(c);
 				++c;
 
-				if (*c == '/')
+                if (*c == u'/')
 				{
 					++c;
                     const QChar *l = mpLiteral;
@@ -78,7 +78,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						// matched all and is not tag plaintext
                         while (c->isSpace()) ++c;
 
-						if (*c == '>')
+                        if (*c == u'>')
 						{
 							++c;
 							if (begin != end_text)
@@ -90,13 +90,13 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						}
 					}
 				}
-				else if (*c == '!')
+                else if (*c == u'!')
 				{
 					// we may find a comment and we should support it
 					iterator e(c);
 					++e;
 
-					if (e != end && *e == '-' && ++e != end && *e == '-')
+                    if (e != end && *e == u'-' && ++e != end && *e == u'-')
 					{
 //						DEBUGP("Parsing comment\n");
 						++e;
@@ -113,7 +113,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 				}
 			}
 
-			if (*c == '<')
+            if (*c == u'<')
 			{
 				iterator d(c);
 				++d;
@@ -135,7 +135,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						break;
 					}
 
-					if (*d == '/')
+                    if (*d == u'/')
 					{
 						if (begin != c)
 							this->parseContent(begin, c);
@@ -164,7 +164,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						break;
 					}
 
-					if (*d == '!')
+                    if (*d == u'!')
 					{
 						// comment
 						if (begin != c)
@@ -173,7 +173,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						iterator e(d);
 						++e;
 
-						if (e != end && *e == '-' && ++e != end && *e == '-')
+                        if (e != end && *e == u'-' && ++e != end && *e == u'-')
 						{
 //							DEBUGP("Parsing comment\n");
 							++e;
@@ -192,7 +192,7 @@ void htmlcxx::HTML::ParserSax::parse(_Iterator &begin, _Iterator &end, std::forw
 						break;
 					}
 
-					if (*d == '?' || *d == '%')
+                    if (*d == u'?' || *d == u'%')
 					{
 						// something like <?xml or <%VBSCRIPT
 						if (begin != c)
@@ -268,7 +268,7 @@ void htmlcxx::HTML::ParserSax::parseHtmlTag(_Iterator b, _Iterator c)
 {
 	_Iterator name_begin(b);
 	++name_begin;
-	bool is_end_tag = (*name_begin == '/');
+    bool is_end_tag = (*name_begin == u'/');
 	if (is_end_tag) ++name_begin;
 
 	_Iterator name_end(name_begin);
@@ -316,12 +316,12 @@ _Iterator
 htmlcxx::HTML::ParserSax::skipHtmlComment(_Iterator c, _Iterator end)
 {
 	while ( c != end ) {
-		if (*c++ == '-' && c != end && *c == '-')
+        if (*c++ == u'-' && c != end && *c == u'-')
 		{
 			_Iterator d(c);
             while (++c != end && c->isSpace())
                 ;
-			if (c == end || *c++ == '>') break;
+            if (c == end || *c++ == u'>') break;
 			c = d;
 		}
 	}
@@ -356,9 +356,9 @@ const char *find_next_quote(const char *c, const char *end, QChar quote)
 template <typename _Iterator>
 _Iterator htmlcxx::HTML::ParserSax::skipHtmlTag(_Iterator c, _Iterator end)
 {
-	while (c != end && *c != '>')
+    while (c != end && *c != u'>')
 	{
-		if (*c != '=') 
+        if (*c != u'=')
 		{
 			++c;
 		}
@@ -369,7 +369,7 @@ _Iterator htmlcxx::HTML::ParserSax::skipHtmlTag(_Iterator c, _Iterator end)
 
 			if (c == end) break;
 
-			if (*c == '\"' || *c == '\'') 
+            if (*c == u'\"' || *c == u'\'')
 			{
 				_Iterator save(c);
                 QChar quote = *c++;

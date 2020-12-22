@@ -118,7 +118,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             connect(eac,&QAction::triggered,this,[this,params](){
                 snv->txtBrowser->page()->toHtml([this,params](const QString& html){
                     QVariantHash pl = params;
-                    pl[QSL("html")] = html;
+                    pl.insert(QSL("html"),html);
                     snv->netHandler->processExtractorActionIndirect(pl);
                 });
             });
@@ -140,7 +140,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
                          tr("Create plain text in separate tab"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
-            s = s.replace('\n',QSL("<br/>"));
+            s = s.replace(u'\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),true,s);
         });
@@ -149,7 +149,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
                          tr("Translate plain text in separate tab"));
         connect(ac, &QAction::triggered, this, [sText,this](){
             QString s = sText;
-            s = s.replace('\n',QSL("<br/>"));
+            s = s.replace(u'\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
             auto *sn = new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),true,s);
             sn->setRequestAutotranslate(true);

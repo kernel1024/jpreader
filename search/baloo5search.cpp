@@ -21,7 +21,7 @@ void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
     Baloo::ResultIterator i = baloo.exec();
     while (i.next()) {
         QString fname = i.filePath();
-        if (fname.endsWith('/') || fname.endsWith('\\')) continue;
+        if (fname.endsWith(u'/') || fname.endsWith(u'\\')) continue;
         Q_EMIT addHit({ { QSL("jp:fullfilename"), fname } });
     }
     setWorking(false);

@@ -99,30 +99,30 @@ void CUserScript::setSource(const QString &src)
             continue;
         }
 
-        if (!line.startsWith('@'))
+        if (!line.startsWith(u'@'))
             continue;
 
         line = line.mid(1);
 
-        const QString keyword(line.section(' ', 0, 0));
+        const QString keyword(line.section(u' ', 0, 0));
 
         if (keyword == QSL("description")) {
-            m_description = line.section(' ', 1, -1).trimmed();
+            m_description = line.section(u' ', 1, -1).trimmed();
 
         } else if (keyword == QSL("exclude")) {
-            m_excludeRules.append(line.section(' ', 1, -1).trimmed());
+            m_excludeRules.append(line.section(u' ', 1, -1).trimmed());
 
         } else if (keyword == QSL("homepage")) {
-            m_homePage = QUrl(line.section(' ', 1, -1).trimmed());
+            m_homePage = QUrl(line.section(u' ', 1, -1).trimmed());
 
         } else if (keyword == QSL("include")) {
-            m_includeRules.append(line.section(' ', 1, -1).trimmed());
+            m_includeRules.append(line.section(u' ', 1, -1).trimmed());
 
         } else if (keyword == QSL("match")) {
-            line = line.section(' ', 1, -1).trimmed();
+            line = line.section(u' ', 1, -1).trimmed();
 
             if (QRegularExpression(QSL("^.+://.*/.*")).match(line).hasMatch()
-                    && (!line.startsWith('*') || line.at(1) == QLatin1Char(':')))
+                    && (!line.startsWith(u'*') || line.at(1) == u':'))
             {
                 const QString scheme(line.left(line.indexOf(QSL("://"))));
 
@@ -134,12 +134,12 @@ void CUserScript::setSource(const QString &src)
                         scheme == CMagicFileSchemeHandler::getScheme().toLower())
                 {
                     const QString pathAndDomain(line.mid(line.indexOf(QSL("://")) + 3));
-                    const QString domain(pathAndDomain.left(pathAndDomain.indexOf('/')));
+                    const QString domain(pathAndDomain.left(pathAndDomain.indexOf(u'/')));
 
-                    if (domain.indexOf('*') < 0 ||
-                            (domain.indexOf('*') == 0 &&
+                    if (domain.indexOf(u'*') < 0 ||
+                            (domain.indexOf(u'*') == 0 &&
                              (domain.length() == 1 ||
-                              (domain.length() > 1 && domain.at(1) == QLatin1Char('.')))))
+                              (domain.length() > 1 && domain.at(1) == u'.'))))
                     {
                         m_matchRules.append(line);
                         continue;
@@ -150,13 +150,13 @@ void CUserScript::setSource(const QString &src)
             qWarning() << "Invalid match rule for User Script, line:" << line;
 
         } else if (keyword == QSL("name")) {
-            m_title = line.section(' ', 1, -1).trimmed();
+            m_title = line.section(u' ', 1, -1).trimmed();
 
         } else if (keyword == QSL("noframes")) {
             m_shouldRunOnSubFrames = true;
 
         } else if (keyword == QSL("run-at")) {
-            const QString injectionTime(line.section(' ', 1, -1).trimmed());
+            const QString injectionTime(line.section(u' ', 1, -1).trimmed());
 
             if (injectionTime == QSL("document-start")) {
                 m_injectionTime = DocumentCreationTime;
@@ -176,10 +176,10 @@ void CUserScript::setSource(const QString &src)
                 m_injectionTime = DocumentReadyTime;
             }
         } else if (keyword == QSL("updateURL")) {
-            m_updateUrl = QUrl(line.section(' ', 1, -1).trimmed());
+            m_updateUrl = QUrl(line.section(u' ', 1, -1).trimmed());
 
         } else if (keyword == QSL("version")) {
-            m_version = line.section(' ', 1, -1).trimmed();
+            m_version = line.section(u' ', 1, -1).trimmed();
         }
     }
 

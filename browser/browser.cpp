@@ -255,7 +255,7 @@ void CBrowserTab::navByUrl(const QString& url)
             = { QSL("gdlookup"), QSL("about"), QSL("chrome"), CMagicFileSchemeHandler::getScheme() };
 
     if (!validSpecSchemes.contains(u.scheme().toLower())
-            && (!u.isValid() || !url.contains('.'))) {
+            && (!u.isValid() || !url.contains(u'.'))) {
         u = gSet->net()->createSearchUrl(url);
     }
 
@@ -272,7 +272,7 @@ void CBrowserTab::titleChanged(const QString & title)
         if (!s.isEmpty()) {
             s=QFileInfo(s).fileName();
         } else {
-            QStringList sl = uri.path().split('/');
+            QStringList sl = uri.path().split(u'/');
             if (!sl.isEmpty()) {
                 s=sl.last();
             } else {
@@ -388,7 +388,7 @@ QString CBrowserTab::getDocTitle()
 {
     QString s = txtBrowser->title();
     if (s.isEmpty()) {
-        QStringList f = getUrl().path().split('/');
+        QStringList f = getUrl().path().split(u'/');
         if (!f.isEmpty()) {
             s = f.last();
         } else {

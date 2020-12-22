@@ -324,7 +324,7 @@ void CGlobalActions::actionToggled()
     if (ac==nullptr) return;
 
     QString msg = ac->text();
-    msg.remove('&');
+    msg.remove(u'&');
     if (ac->isCheckable()) {
         if (ac->isChecked()) {
             msg.append(tr(" is ON"));

@@ -24,12 +24,12 @@ void CRecollSearch::recollReadyRead()
     auto *recoll = qobject_cast<QProcess *>(sender());
     if (recoll==nullptr) return;
 
-    QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split('\n');
+    QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split(u'\n');
     QRegularExpression rxname(QSL("^[a-z]+$"));
 
     for(int i=0;i<outList.count();i++) {
         QString s = outList.at(i).trimmed();
-        QStringList sl = s.split(' ');
+        QStringList sl = s.split(u' ');
         CStringHash snip;
 
         if ((sl.count() % 2) != 0) continue; // must be even elements
@@ -73,10 +73,9 @@ void CRecollSearch::doSearch(const QString &qr, int maxLimit)
         recoll->deleteLater();
     });
 
-    recoll->start(QSL("recoll"),QStringList() << QSL("-n")
-                  << QString::number(maxLimit) << QSL("-t")
-                  << QSL("-F") << QString() << QSL("-N")
-                  << QSL("-q") << qr);
+    recoll->start(QSL("recoll"),
+                  { QSL("-n"), QString::number(maxLimit), QSL("-t"), QSL("-F"),
+                    QString(), QSL("-N"), QSL("-q"), qr });
 
     recoll->waitForStarted();
 }

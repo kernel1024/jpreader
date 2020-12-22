@@ -770,7 +770,7 @@ void CSettingsTab::showLoadedDicts()
 
     const QStringList loadedDicts = gSet->d_func()->dictManager->getLoadedDictionaries();
     if (!loadedDicts.isEmpty())
-        msg = tr("Loaded %1 dictionaries:\n").arg(loadedDicts.count())+loadedDicts.join('\n');
+        msg = tr("Loaded %1 dictionaries:\n").arg(loadedDicts.count())+loadedDicts.join(u'\n');
     QMessageBox::information(this,QGuiApplication::applicationDisplayName(),msg);
 }
 

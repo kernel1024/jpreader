@@ -75,7 +75,7 @@ void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogCo
     if (category==QSL("default")) {
         category.clear();
     } else {
-        category.append(' ');
+        category.append(u' ');
     }
     int logpri = LOG_NOTICE;
 
@@ -108,7 +108,7 @@ void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogCo
         gSet->d_func()->debugMessages << fmsg;
         while (gSet->d_func()->debugMessages.count()>maxMessagesCount)
             gSet->d_func()->debugMessages.removeFirst();
-        fmsg.append('\n');
+        fmsg.append(u'\n');
 
         if (runnedFromQtCreator()) {
             fprintf(stderr, "%s", fmsg.toLocal8Bit().constData()); // NOLINT

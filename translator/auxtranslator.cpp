@@ -38,11 +38,11 @@ void CAuxTranslator::translatePriv()
             QString ssrc = m_text;
             QString res;
             ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
-            ssrc = ssrc.replace('\r','\n');
-            const QStringList sl = ssrc.split('\n',Qt::KeepEmptyParts);
+            ssrc = ssrc.replace(u'\r',u'\n');
+            const QStringList sl = ssrc.split(u'\n',Qt::KeepEmptyParts);
             for (const QString &s : qAsConst(sl)) {
                 if (s.trimmed().isEmpty()) {
-                    res.append('\n');
+                    res.append(u'\n');
                 } else {
                     QString r = tran->tranString(s);
                     if (r.trimmed().isEmpty()) {
@@ -50,7 +50,7 @@ void CAuxTranslator::translatePriv()
                     } else {
                         res.append(r);
                     }
-                    res.append('\n');
+                    res.append(u'\n');
                 }
             }
             tran->doneTran();

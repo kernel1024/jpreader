@@ -341,7 +341,7 @@ void CSearchTab::doSearch()
 
     QDir fsdir = QDir(QSL("/"));
     if (!ui->editDir->text().isEmpty())
-        fsdir = QDir(ui->editDir->text());
+        fsdir.setPath(ui->editDir->text());
     Q_EMIT startSearch(lastQuery,fsdir);
 }
 
@@ -469,8 +469,8 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     QString fileContents = cd->toUnicode(fc.constData());
 
     fileContents.remove(QRegularExpression(QSL("<[^>]*>")));
-    fileContents.remove('\n');
-    fileContents.remove('\r');
+    fileContents.remove(u'\n');
+    fileContents.remove(u'\r');
     QHash<int,QStringList> snippets;
 
     const int snipWidth = 12;
@@ -577,10 +577,10 @@ QStringList CSearchTab::splitQuery(const QString &aQuery) {
     bool qmark=false;
     int i=0;
     while (true) {
-        if (sltx[i]=='\"') {
+        if (sltx.at(i)==u'\"') {
             if (qmark) { // closing mark
-                tmp=sltx.mid(sltx.indexOf('\"')+1,i-1-sltx.indexOf('\"'));
-                sltx.remove(sltx.indexOf('\"'),i+1-sltx.indexOf('\"'));
+                tmp=sltx.mid(sltx.indexOf(u'\"')+1,i-1-sltx.indexOf(u'\"'));
+                sltx.remove(sltx.indexOf(u'\"'),i+1-sltx.indexOf(u'\"'));
                 qmark=false;
                 res << tmp.trimmed();
                 i=0;
@@ -589,7 +589,7 @@ QStringList CSearchTab::splitQuery(const QString &aQuery) {
             }
         }
         if ((i>0) && (!qmark) &&
-                (sltx[i]==' ') && (sltx[i-1]!=' ')) {
+                (sltx.at(i)==u' ') && (sltx.at(i-1)!=u' ')) {
             tmp=sltx.mid(0,i);
             sltx.remove(0,i+1);
             res << tmp.trimmed();

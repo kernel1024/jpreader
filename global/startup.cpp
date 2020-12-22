@@ -322,7 +322,7 @@ void CGlobalStartup::ipcMessageReceived()
     socket->close();
     socket->deleteLater();
 
-    QStringList cmd = QString::fromUtf8(bmsg).split('\n');
+    QStringList cmd = QString::fromUtf8(bmsg).split(u'\n');
     if (cmd.first().startsWith(QSL("newWindow"))) {
         m_g->m_ui->addMainWindowEx(false, true);
     } else if (cmd.first().startsWith(QSL("debugRestart"))) {
@@ -377,7 +377,8 @@ void CGlobalStartup::cleanupAndExit()
             }
         }
 
-        m_g->m_actions->gctxTranHotkey->deleteLater();
+        if (m_g->m_actions->gctxTranHotkey)
+            m_g->m_actions->gctxTranHotkey->deleteLater();
     }
     cleanTmpFiles();
 
@@ -472,7 +473,7 @@ void CGlobalStartup::initLanguagesList()
                        .arg(QLocale::languageToString(locale.language()),bcp);
 
         // filter out unsupported codes for dialects
-        if (bcp.contains('-') && !bcp.startsWith(QSL("zh"))) continue;
+        if (bcp.contains(u'-') && !bcp.startsWith(QSL("zh"))) continue;
 
         // replace C locale with English
         if (bcp == QSL("en"))

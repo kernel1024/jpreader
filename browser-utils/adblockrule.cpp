@@ -58,7 +58,7 @@ void CAdBlockRule::setFilter(const QString &filter)
     m_plainRule.clear();
     bool regExpRule = false;
 
-    if (filter.startsWith(QSL("!"))
+    if (filter.startsWith(u'!')
             || filter.trimmed().isEmpty())
         m_enabled = false;
 
@@ -70,26 +70,26 @@ void CAdBlockRule::setFilter(const QString &filter)
         m_exception = true;
         parsedLine = parsedLine.mid(2);
     }
-    if (parsedLine.startsWith(QLatin1Char('/'))) {
-        if (parsedLine.endsWith(QLatin1Char('/'))) {
+    if (parsedLine.startsWith(u'/')) {
+        if (parsedLine.endsWith(u'/')) {
             parsedLine = parsedLine.mid(1);
             parsedLine = parsedLine.left(parsedLine.size() - 1);
             regExpRule = true;
         }
     }
-    int options = parsedLine.indexOf(QSL("$"), 0);
+    int options = parsedLine.indexOf(u'$', 0);
     if (options >= 0) {
-        m_options = parsedLine.mid(options + 1).split(QLatin1Char(','));
+        m_options = parsedLine.mid(options + 1).split(u',');
         parsedLine = parsedLine.left(options);
     }
 
     bool hasWildcards = parsedLine.contains(QRegularExpression(QSL("[\\*\\$]")));
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
-        (!parsedLine.contains('^') || parsedLine.endsWith('^'))) {
+        (!parsedLine.contains(u'^') || parsedLine.endsWith(u'^'))) {
         m_plainRule = parsedLine;
         if (m_plainRule.startsWith(QSL("||")))
             m_plainRule = m_plainRule.mid(2);
-        if (m_plainRule.endsWith('^'))
+        if (m_plainRule.endsWith(u'^'))
             m_plainRule = m_plainRule.left(m_plainRule.length()-1);
     }
 
@@ -135,9 +135,9 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
             QString host = url.host();
             for (const QString &option : qAsConst(m_options)) {
                 if (option.startsWith(QSL("domain="))) {
-                    const QStringList domainOptions = option.mid(7).split(QLatin1Char('|'));
+                    const QStringList domainOptions = option.mid(7).split(u'|');
                     for (const QString& domainOption : domainOptions) {
-                        bool negate = domainOption.at(0) == QLatin1Char('~');
+                        bool negate = (domainOption.at(0) == u'~');
                         bool hostMatched = false;
                         if (negate) {
                             hostMatched = domainOption.mid(1) == host;

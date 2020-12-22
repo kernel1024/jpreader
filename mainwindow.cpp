@@ -627,8 +627,8 @@ void CMainWindow::updateTitle()
             QTextDocument doc;
             doc.setHtml(sv->tabTitle());
             t = QSL("%1 - %2").arg(doc.toPlainText(), t);
-            t.remove('\r');
-            t.remove('\n');
+            t.remove(u'\r');
+            t.remove(u'\n');
         }
 
         auto *bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
@@ -1015,7 +1015,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
         QStringList sl = data.value(QSL("text/uri-list"))
                          .split(QRegularExpression(QSL("\n|\r\n|\r")));
         for (int i=0;i<sl.count();i++) {
-            if (sl.at(i).startsWith('#')) continue;
+            if (sl.at(i).startsWith(u'#')) continue;
             QUrl u(sl.at(i));
             if (u.isValid()) {
                 ul << u;

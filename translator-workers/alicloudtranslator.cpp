@@ -135,7 +135,7 @@ QString CAliCloudTranslator::canonicalizedQuery(const CStringHash &params) const
         v.replace(QSL("%7E"), QSL("~"));
 
         if (!res.isEmpty())
-            res.append('&');
+            res.append(u'&');
         res.append(QSL("%1=%2").arg(k,v));
     }
 
@@ -166,7 +166,7 @@ QString CAliCloudTranslator::tranStringInternal(const QString &src)
     QByteArray bodyData;
     for (auto it = body.constKeyValueBegin(), end = body.constKeyValueEnd(); it != end; it++) {
         if (!bodyData.isEmpty())
-            bodyData.append('&');
+            bodyData.append(u'&');
         bodyData.append(QSL("%1=%2").arg(it->first,
                                          QString::fromLatin1(QUrl::toPercentEncoding(it->second)))
                         .toLatin1());

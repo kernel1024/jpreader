@@ -139,7 +139,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             match = it.next();
             QString im = match.captured();
             im.remove(QRegularExpression(QSL(".*:")));
-            im.remove(']');
+            im.remove(u']');
             im = im.trimmed();
             if (!im.isEmpty())
                 imgs << im;
@@ -238,7 +238,7 @@ void CPixivNovelExtractor::subWorkFinished()
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
-        QStringList kl = it.key().split('_');
+        QStringList kl = it.key().split(u'_');
 
         QRegularExpression rx;
         if (kl.last()==QSL("1")) {
@@ -317,8 +317,8 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
     m_imgUrls.clear();
 
     for(const QString &img : imgs) {
-        if (img.indexOf('-')>0) {
-            QStringList sl = img.split('-');
+        if (img.indexOf(u'-')>0) {
+            QStringList sl = img.split(u'-');
             bool ok = false;
             int page = sl.last().toInt(&ok);
             if (ok && page>0)

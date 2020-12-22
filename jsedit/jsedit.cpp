@@ -276,28 +276,28 @@ void JSHighlighter::highlightBlock(const QString &text)
             } else if (ch.isDigit()) {
                 ++i;
                 state = Number;
-            } else if (ch.isLetter() || ch == '_') {
+            } else if (ch.isLetter() || ch == u'_') {
                 ++i;
                 state = Identifier;
-            } else if (ch == '\'' || ch == '\"') {
+            } else if (ch == u'\'' || ch == u'\"') {
                 ++i;
                 state = String;
-            } else if (ch == '/' && next == '*') {
+            } else if (ch == u'/' && next == u'*') {
                 ++i;
                 ++i;
                 state = Comment;
-            } else if (ch == '/' && next == '/') {
+            } else if (ch == u'/' && next == u'/') {
                 i = text.length();
                 setFormat(start, text.length(), m_colors[JSEdit::Comment]);
-            } else if (ch == '/' && next != '*') {
+            } else if (ch == u'/' && next != u'*') {
                 ++i;
                 state = Regex;
             } else {
                 if (!QSL("(){}[]").contains(ch))
                     setFormat(start, 1, m_colors[JSEdit::Operator]);
-                if (ch =='{' || ch == '}') {
+                if (ch ==u'{' || ch == u'}') {
                     bracketPositions += i;
-                    if (ch == '{') {
+                    if (ch == u'{') {
                         bracketLevel++;
                     } else {
                         bracketLevel--;
@@ -318,7 +318,7 @@ void JSHighlighter::highlightBlock(const QString &text)
             break;
 
         case Identifier:
-            if (ch.isSpace() || !(ch.isDigit() || ch.isLetter() || ch == '_')) {
+            if (ch.isSpace() || !(ch.isDigit() || ch.isLetter() || ch == u'_')) {
                 QString token = text.mid(start, i - start).trimmed();
                 if (m_keywords.contains(token)) {
                     setFormat(start, i - start, m_colors[JSEdit::Keyword]);
@@ -334,7 +334,7 @@ void JSHighlighter::highlightBlock(const QString &text)
         case String:
             if (ch == text.at(start)) {
                 QChar prev = (i > 0) ? text.at(i - 1) : QChar();
-                if (prev != '\\') {
+                if (prev != u'\\') {
                     ++i;
                     setFormat(start, i - start, m_colors[JSEdit::String]);
                     state = Start;
@@ -347,7 +347,7 @@ void JSHighlighter::highlightBlock(const QString &text)
             break;
 
         case Comment:
-            if (ch == '*' && next == '/') {
+            if (ch == u'*' && next == u'/') {
                 ++i;
                 ++i;
                 setFormat(start, i - start, m_colors[JSEdit::Comment]);
@@ -358,9 +358,9 @@ void JSHighlighter::highlightBlock(const QString &text)
             break;
 
         case Regex:
-            if (ch == '/') {
+            if (ch == u'/') {
                 QChar prev = (i > 0) ? text.at(i - 1) : QChar();
-                if (prev != '\\') {
+                if (prev != u'\\') {
                     ++i;
                     setFormat(start, i - start, m_colors[JSEdit::String]);
                     state = Start;
@@ -540,7 +540,7 @@ static int findClosingMatch(const QTextDocument *doc, int cursorPosition)
                     int absPos = block.position() + blockData->bracketPositions.at(c);
                     if (absPos <= cursorPosition)
                         continue;
-                    if (doc->characterAt(absPos) == '{') {
+                    if (doc->characterAt(absPos) == u'{') {
                         depth++;
                     } else {
                         depth--;
@@ -568,7 +568,7 @@ static int findOpeningMatch(const QTextDocument *doc, int cursorPosition)
                     int absPos = block.position() + blockData->bracketPositions.at(c);
                     if (absPos >= cursorPosition - 1)
                         continue;
-                    if (doc->characterAt(absPos) == '}') {
+                    if (doc->characterAt(absPos) == u'}') {
                         depth++;
                     } else {
                         depth--;
@@ -754,7 +754,7 @@ static int findClosingConstruct(const QTextBlock &block)
     int offset = block.position();
     for (const int pos : qAsConst(blockData->bracketPositions)) {
         int absPos = offset + pos;
-        if (doc->characterAt(absPos) == '{') {
+        if (doc->characterAt(absPos) == u'{') {
             int matchPos = findClosingMatch(doc, absPos);
             if (matchPos >= 0)
                 return matchPos;
@@ -887,7 +887,7 @@ bool JSEdit::eventFilter(QObject *obj, QEvent *event)
 
             // Add indent after opening brace
             if (pos>0 && ((pos-1) < currentLine.length()) &&
-                    (currentLine.at(pos-1) == QChar('{'))) {
+                    (currentLine.at(pos-1) == u'{')) {
                 textCursor().insertText(QSL("    "));
             }
             ensureCursorVisible();
@@ -940,7 +940,7 @@ void JSEdit::updateCursor()
             QTextCursor cursor = textCursor();
             int cursorPosition = cursor.position();
 
-            if (document()->characterAt(cursorPosition) == '{') {
+            if (document()->characterAt(cursorPosition) == u'{') {
                 int matchPos = findClosingMatch(document(), cursorPosition);
                 if (matchPos < 0) {
                     d->errorPositions += cursorPosition;
@@ -950,7 +950,7 @@ void JSEdit::updateCursor()
                 }
             }
 
-            if (document()->characterAt(cursorPosition - 1) == '}') {
+            if (document()->characterAt(cursorPosition - 1) == u'}') {
                 int matchPos = findOpeningMatch(document(), cursorPosition);
                 if (matchPos < 0) {
                     d->errorPositions += cursorPosition - 1;
@@ -1020,11 +1020,11 @@ void JSEdit::updateSidebar()
     int sw = 0;
     if (d->showLineNumbers) {
         int digits = qMax(2,CGenericFuncs::numDigits(blockCount()));
-        sw += fontMetrics().boundingRect('w').width() * digits;
+        sw += fontMetrics().boundingRect(u'w').width() * digits;
     }
     if (d->codeFolding) {
         int fh = fontMetrics().lineSpacing();
-        int fw = fontMetrics().boundingRect('w').width();
+        int fw = fontMetrics().boundingRect(u'w').width();
         d->sidebar->foldIndicatorWidth = qMax(fw, fh);
         sw += d->sidebar->foldIndicatorWidth;
     }

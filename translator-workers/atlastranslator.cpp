@@ -139,7 +139,7 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
     }
 //    qDebug() << "FROM TRAN: " << sumbuf;
     sumbuf = sumbuf.simplified();
-    sumbuf.replace('+',' ');
+    sumbuf.replace(u'+',u' ');
     s = QString::fromLatin1(sumbuf);
     if (sumbuf.isEmpty() || !s.contains(QRegularExpression(QSL("^RES:")))) {
         if (s.contains(QSL("NEED_RESTART"))) {

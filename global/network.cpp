@@ -229,17 +229,17 @@ bool CGlobalNetwork::exportCookies(const QString &filename, const QUrl &baseUrl,
 
     for (const auto &cookie : qAsConst(cookiesList)) {
         fs << cookie.domain()
-           << '\t'
-           << CGenericFuncs::bool2str2(cookie.domain().startsWith('.'))
-           << '\t'
+           << u'\t'
+           << CGenericFuncs::bool2str2(cookie.domain().startsWith(u'.'))
+           << u'\t'
            << cookie.path()
-           << '\t'
+           << u'\t'
            << CGenericFuncs::bool2str2(cookie.isSecure())
-           << '\t'
+           << u'\t'
            << cookie.expirationDate().toSecsSinceEpoch()
-           << '\t'
+           << u'\t'
            << cookie.name()
-           << '\t'
+           << u'\t'
            << cookie.value()
            << Qt::endl;
     }

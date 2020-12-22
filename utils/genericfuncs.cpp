@@ -299,14 +299,14 @@ QString CGenericFuncs::getClipboardContent(bool noFormatting, bool plainpre) {
 
 QString CGenericFuncs::wordWrap(const QString &str, int wrapLength)
 {
-    const QStringList stl = str.split(' ');
+    const QStringList stl = str.split(u' ');
     QString ret;
     int cnt = 0;
     for (const auto &st : stl) {
-        ret += st + ' ';
+        ret += st + u' ';
         cnt += st.length()+1;
         if (cnt>wrapLength) {
-            ret += '\n';
+            ret += u'\n';
             cnt = 0;
         }
     }
@@ -466,7 +466,7 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
         ex.remove(QRegularExpression(QSL("^.*\\(")));
         ex.remove(QRegularExpression(QSL("\\).*$")));
         ex.remove(QRegularExpression(QSL("^.*\\.")));
-        res.append(ex.split(' '));
+        res.append(ex.split(u' '));
     }
 
     return res;
@@ -617,7 +617,7 @@ QString CGenericFuncs::bool2str2(bool value)
 QString CGenericFuncs::paddedNumber(int value, int maxValue)
 {
     const int base = 10;
-    QString res = QSL("%1").arg(value,CGenericFuncs::numDigits(maxValue),base,QLatin1Char('0'));
+    QString res = QSL("%1").arg(value,CGenericFuncs::numDigits(maxValue),base,QChar(u'0'));
     return res;
 }
 
@@ -640,7 +640,7 @@ int CGenericFuncs::numDigits(int n)
 
 QString CGenericFuncs::secsToString(qint64 seconds)
 {
-    const QChar zeroChar('0');
+    const QChar zeroChar(u'0');
 
     qint64 secs = seconds;
     qint64 hours = seconds / CDefaults::oneHour;
@@ -762,8 +762,8 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
                     stop = start + maxFileSize;
                 QString s = fileContents.mid(start,stop-start);
                 s.remove(QRegularExpression(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption));
-                s.remove('\r');
-                s.remove('\n');
+                s.remove(u'\r');
+                s.remove(u'\n');
                 return s;
             }
         }

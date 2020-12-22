@@ -138,7 +138,7 @@ void CPDFWorkerPrivate::outputToString(void *stream, const char *text, int len)
     if (tx.length()==1 && (tx.at(0).isLetter() || tx.at(0).isPunct() || tx.at(0).isSymbol())) {
         worker->m_prevblock = true;
     } else {
-        if (!worker->m_prevblock) worker->m_text.append('\n');
+        if (!worker->m_prevblock) worker->m_text.append(u'\n');
         worker->m_prevblock = false;
     }
 }
@@ -183,16 +183,16 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
                   (pm.isPunct() && !endMarkers.contains(pm)))) {
                 s.insert(pos,QSL("</p><p>"));
             } else if (pm.script()<=QChar::Script_Syriac) { // still insert spaces for common european scripts
-                s.insert(pos,QLatin1Char(' '));
+                s.insert(pos,u' ');
             }
         }
     }
 
     // delete remaining newlines
-    s.remove('\n');
+    s.remove(u'\n');
 
     // replace page separators
-    s = s.replace('\f',QSL("</p>%1<p>").arg(m_pageSeparator));
+    s = s.replace(u'\f',QSL("</p>%1<p>").arg(m_pageSeparator));
 
     s = QSL("<p>") + s + QSL("</p>");
 
@@ -228,14 +228,14 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
                      endMarkers.contains(pc) || // after sentence or paragraph
                      pc.isPunct())) { // after punctuation separators
                 // insert newline before opening quotation
-                s.insert(idx,'\n');
+                s.insert(idx,u'\n');
                 idx++;
                 clen = 0;
             } else if ((closingQuotation.contains(c) && (!denyNewline)) ||
                        (endMarkers.contains(c) && (clen>maxParagraphLength))) {
                 // insert newline after closing quotation
                 // -- or after long sentences
-                s.insert(idx+1,'\n');
+                s.insert(idx+1,u'\n');
                 idx+=2;
                 clen = 0;
             } else if (closingQuotation.contains(c) && denyNewline) {
@@ -248,7 +248,7 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
         }
         idx++;
     }
-    s = s.replace('\n',QSL("</p>\n<p>"));
+    s = s.replace(u'\n',QSL("</p>\n<p>"));
 
     return s;
 }
@@ -297,7 +297,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 
     PDFDoc *doc = nullptr;
     QFileInfo fi(filename);
-    GooString fileName(filename.toUtf8());
+    GooString fileName(filename.toUtf8().constData());
     TextOutputDev *textOut = nullptr;
     Object info;
     int lastPage = 0;

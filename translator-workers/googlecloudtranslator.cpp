@@ -61,14 +61,14 @@ bool CGoogleCloudTranslator::initTran()
                                 .arg(m_gcpEmail,scope,aud,exp,iat);
 
     QByteArray jwt = jwtHeader.toUtf8().toBase64(QByteArray::Base64UrlEncoding);
-    jwt.append('.');
+    jwt.append(u'.');
     jwt.append(jwtClaimSet.toUtf8().toBase64(QByteArray::Base64UrlEncoding));
 
     QByteArray sign = CGenericFuncs::signSHA256withRSA(jwt,m_gcpPrivateKey.toLatin1());
     if (sign.isEmpty())
         return false;
 
-    jwt.append('.');
+    jwt.append(u'.');
     jwt.append(sign.toBase64(QByteArray::Base64UrlEncoding));
 
     initNAM();
