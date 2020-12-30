@@ -22,7 +22,7 @@ class CBrowserTrans;
 class CBrowserWaitCtl;
 
 namespace CDefaults {
-const int maxDataUrlFileSize = 1024*1024;
+const int maxDataUrlFileSize = 256*1024;
 }
 
 class CBrowserTab : public CSpecTabContainer, public Ui::BrowserTab

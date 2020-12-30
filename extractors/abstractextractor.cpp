@@ -10,6 +10,10 @@
 #include "pixivnovelextractor.h"
 #include "deviantartextractor.h"
 
+namespace CDefaults {
+const int extractorCreationInterlockMS = 1000;
+}
+
 CAbstractExtractor::CAbstractExtractor(QObject *parent, QWidget* parentWidget)
     : CAbstractThreadWorker(parent)
 {
@@ -405,7 +409,16 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
 
 CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, QWidget* parentWidget)
 {
+    static QMutex lockMutex;
+    QMutexLocker locker(&lockMutex);
+
     CAbstractExtractor *res = nullptr;
+    static QElapsedTimer lockTimer;
+    if (lockTimer.isValid()) {
+        if (lockTimer.elapsed() < CDefaults::extractorCreationInterlockMS)
+            return res;
+    }
+    lockTimer.restart();
 
     const auto hash = data.toHash();
     const QString type = hash.value(QSL("type")).toString();
