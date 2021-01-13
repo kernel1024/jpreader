@@ -2,8 +2,10 @@
 #define PIXIVINDEXTAB_H
 
 #include <QObject>
+#include <QPointer>
 #include <QJsonObject>
 #include <QUrlQuery>
+#include <QSortFilterProxyModel>
 #include "utils/specwidgets.h"
 #include "translator/titlestranslator.h"
 #include "extractors/pixivindexextractor.h"
@@ -30,7 +32,8 @@ private:
 
     QScopedPointer<CTitlesTranslator,QScopedPointerDeleteLater> m_titleTran;
     Ui::CPixivIndexTab *ui { nullptr };
-    CPixivTableModel *m_model { nullptr };
+    QPointer<CPixivTableModel> m_model;
+    QPointer<QSortFilterProxyModel> m_proxyModel;
     QString m_indexId;
     QString m_title;
     QUrlQuery m_sourceQuery;
@@ -57,6 +60,10 @@ public Q_SLOTS:
     void startTitlesAndTagsTranslation();
     void gotTitlesAndTagsTranslation(const QStringList &res);
     void updateTranslatorProgress(int pos);
+
+private Q_SLOTS:
+    void modelSorted(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint);
+    void comboSortChanged(int index);
 
 Q_SIGNALS:
     void translateTitlesAndTags(const QStringList &titles);
@@ -86,6 +93,9 @@ public:
     QString tag(const QModelIndex& index) const;
     QStringList getStringsForTranslation() const;
     void setStringsFromTranslation(const QStringList& translated);
+    QStringList getTags() const;
+    QString getTagForColumn(int column, int *tagNumber = nullptr) const;
+    int getColumnForTag(const QString& tag) const;
 
 protected:
     int rowCount(const QModelIndex &parent) const override;

@@ -32,10 +32,10 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     ui->table->setContextMenuPolicy(Qt::CustomContextMenu);
 
     m_model = new CPixivTableModel(this,list);
-    auto *proxyModel = new QSortFilterProxyModel(this);
-    proxyModel->setSourceModel(m_model);
-    proxyModel->setSortRole(CDefaults::pixivSortRole);
-    ui->table->setModel(proxyModel);
+    m_proxyModel = new QSortFilterProxyModel(this);
+    m_proxyModel->setSourceModel(m_model);
+    m_proxyModel->setSortRole(CDefaults::pixivSortRole);
+    ui->table->setModel(m_proxyModel);
 
     connect(ui->table,&QTableView::activated,this,&CPixivIndexTab::novelActivated);
     connect(ui->table->selectionModel(),&QItemSelectionModel::currentRowChanged,
@@ -47,6 +47,9 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     connect(ui->editDescription,&QTextBrowser::anchorClicked,this,[this](const QUrl& url){
         linkClicked(url.toString());
     });
+
+    connect(m_proxyModel,&QSortFilterProxyModel::layoutChanged,this,&CPixivIndexTab::modelSorted);
+    connect(ui->comboSort,&QComboBox::currentIndexChanged,this,&CPixivIndexTab::comboSortChanged);
 
     m_titleTran.reset(new CTitlesTranslator());
     auto *thread = new QThread();
@@ -118,6 +121,10 @@ void CPixivIndexTab::updateWidgets()
                          "%3</a>.").arg(header,m_indexId,author);
         }
         ui->labelHead->setText(header);
+
+        ui->comboSort->blockSignals(true);
+        ui->comboSort->addItems(m_model->getTags());
+        ui->comboSort->blockSignals(false);
     }
 }
 
@@ -422,8 +429,34 @@ void CPixivIndexTab::updateTranslatorProgress(int pos)
         ui->progressTranslator->setValue(pos);
         if (!ui->frameTranslator->isVisible())
             ui->frameTranslator->show();
-    } else
+    } else {
         ui->frameTranslator->hide();
+    }
+}
+
+void CPixivIndexTab::modelSorted(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint)
+{
+    Q_UNUSED(parents)
+    Q_UNUSED(hint)
+
+    const QString sortTag = m_model->getTagForColumn(m_proxyModel->sortColumn());
+    int idx = -1;
+    if (!sortTag.isEmpty())
+        idx = ui->comboSort->findText(sortTag);
+
+    ui->comboSort->blockSignals(true);
+    ui->comboSort->setCurrentIndex(idx);
+    ui->comboSort->blockSignals(false);
+}
+
+void CPixivIndexTab::comboSortChanged(int index)
+{
+    if (index<0) return;
+
+    int col = m_model->getColumnForTag(ui->comboSort->currentText());
+    if (col<0) return;
+
+    ui->table->sortByColumn(col,m_proxyModel->sortOrder());
 }
 
 CPixivTableModel::CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list)
@@ -463,7 +496,6 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
     const int row = index.row();
     const int col = index.column();
     const auto w = m_list.at(row);
-    const int basicWidth = basicHeaders().count();
 
     if (role == Qt::DisplayRole) {
         switch (col) {
@@ -479,10 +511,9 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
             case 5: return QSL("%1").arg(w.value(QSL("bookmarkCount")).toInt());
             case 6: return w.value(QSL("seriesTitle")).toString();
             default: { // tag columns
-                int tagNum = col - basicWidth;
-                if (tagNum>=0 && tagNum<m_tags.count()) {
+                const QString tag = getTagForColumn(col);
+                if (!tag.isEmpty()) {
                     const QJsonArray wtags = w.value(QSL("tags")).toArray();
-                    const QString tag = m_tags.at(tagNum);
                     if (wtags.contains(QJsonValue(tag)))
                         return tag;
                 }
@@ -494,10 +525,10 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
         if (col == 1) {
             tooltip = w.value(QSL("translatedTitle")).toString();
         } else if (!m_translatedTags.isEmpty()) { // tag columns
-            int tagNum = col - basicWidth;
-            if (tagNum>=0 && tagNum<m_tags.count()) {
+            int tagNum = 0;
+            const QString tag = getTagForColumn(col,&tagNum);
+            if (!tag.isEmpty()) {
                 const QJsonArray wtags = w.value(QSL("tags")).toArray();
-                const QString tag = m_tags.at(tagNum);
                 if (wtags.contains(QJsonValue(tag)))
                     tooltip = m_translatedTags.at(tagNum);
             }
@@ -517,10 +548,9 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
             case 5: return w.value(QSL("bookmarkCount")).toInt();
             case 6: return w.value(QSL("seriesTitle")).toString();
             default: { // tag columns
-                int tagNum = col - basicWidth;
-                if (tagNum>=0 && tagNum<m_tags.count()) {
+                const QString tag = getTagForColumn(col);
+                if (!tag.isEmpty()) {
                     const QJsonArray wtags = w.value(QSL("tags")).toArray();
-                    const QString tag = m_tags.at(tagNum);
                     if (wtags.contains(QJsonValue(tag)))
                         return tag;
                 }
@@ -619,6 +649,32 @@ QStringList CPixivTableModel::basicHeaders() const
     static const QStringList res({ tr("ID"), tr("Title"), tr("Author"), tr("Size"), tr("Date"),
                                    tr("Bookmarked"), tr("Series") });
     return res;
+}
+
+QStringList CPixivTableModel::getTags() const
+{
+    return m_tags;
+}
+
+QString CPixivTableModel::getTagForColumn(int column, int *tagNumber) const
+{
+    int tagNum = column - basicHeaders().count();
+
+    if (tagNumber != nullptr)
+        *tagNumber = tagNum;
+
+    if (tagNum>=0 && tagNum<m_tags.count())
+        return m_tags.at(tagNum);
+
+    return QString();
+}
+
+int CPixivTableModel::getColumnForTag(const QString &tag) const
+{
+    int col = m_tags.indexOf(tag);
+    if (col<0) return col;
+
+    return (col + basicHeaders().count());
 }
 
 void CPixivTableModel::updateTags()

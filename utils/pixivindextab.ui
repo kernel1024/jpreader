@@ -37,6 +37,30 @@
       </spacer>
      </item>
      <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Tag sort</string>
+       </property>
+       <property name="buddy">
+        <cstring>comboSort</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboSort">
+       <property name="placeholderText">
+        <string>- select tag -</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonTranslateTitles">
        <property name="text">
         <string>Translate</string>
@@ -116,7 +140,10 @@
  <tabstops>
   <tabstop>table</tabstop>
   <tabstop>editDescription</tabstop>
+  <tabstop>comboSort</tabstop>
+  <tabstop>buttonTranslateTitles</tabstop>
   <tabstop>buttonReport</tabstop>
+  <tabstop>buttonStopTranslator</tabstop>
  </tabstops>
  <resources/>
  <connections/>
