@@ -362,12 +362,14 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
 
 void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
 {
+    static const QByteArray emptyImage =
+            QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
     int imgWorkCounter = 0;
     QStringList processedUrls;
     m_imgMutex.lock();
-    for (const auto& w : qAsConst(m_list)) {
+    for (auto& w : m_list) {
         QString coverImgUrl = w.value(QSL("url")).toString();
         if (coverImgUrl.contains(QSL("common/images")) ||
                 coverImgUrl.contains(QSL("data:image"))) {
@@ -375,6 +377,11 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
         }
         QUrl url(w.value(QSL("url")).toString());
         if (!url.isValid() || url.isEmpty()) continue;
+
+        if (!(gSet->settings()->pixivFetchCovers)) {
+            w.insert(QSL("url"),QJsonValue(QString::fromUtf8(emptyImage)));
+            continue;
+        }
 
         QFileInfo fi(coverImgUrl);
         if (gSet->settings()->pixivFetchImages &&
@@ -397,7 +404,7 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
 
 void CPixivIndexExtractor::subImageFinished()
 {
-    static QByteArray errorImage =
+    static const QByteArray errorImage =
             QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));

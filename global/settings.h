@@ -58,6 +58,7 @@ const bool proxyUseTranslator = false;
 const bool ignoreSSLErrors = false;
 const bool pdfExtractImages = true;
 const bool pixivFetchImages = false;
+const bool pixivFetchCovers = false;
 const bool translatorCacheEnabled = false;
 const bool downloaderCleanCompleted = false;
 const auto fontFixed = "Courier New";
@@ -162,6 +163,7 @@ public:
     bool ignoreSSLErrors { CDefaults::ignoreSSLErrors };
     bool pdfExtractImages { CDefaults::pdfExtractImages };
     bool pixivFetchImages { CDefaults::pixivFetchImages };
+    bool pixivFetchCovers { CDefaults::pixivFetchCovers };
     bool translatorCacheEnabled { CDefaults::translatorCacheEnabled };
     bool downloaderCleanCompleted { CDefaults::downloaderCleanCompleted };
 
