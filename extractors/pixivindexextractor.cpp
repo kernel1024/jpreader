@@ -25,10 +25,13 @@ CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, QWidget *parentWidge
 }
 
 void CPixivIndexExtractor::setParams(const QString &pixivId, const QString &sourceQuery,
-                                     CPixivIndexExtractor::IndexMode mode)
+                                     CPixivIndexExtractor::IndexMode mode, int maxCount, const QDate &dateFrom, const QDate &dateTo)
 {
     m_indexMode = mode;
     m_indexId = pixivId;
+    m_maxCount = maxCount;
+    m_dateFrom = dateFrom;
+    m_dateTo = dateTo;
 
     m_sourceQuery.setQuery(sourceQuery);
     m_sourceQuery.removeAllQueryItems(QSL("p"));
@@ -73,10 +76,35 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                                            .value(QSL("works")).toObject();
 
                 m_list.reserve(tworks.count());
-                for (const auto& work : qAsConst(tworks))
-                    m_list.append(work.toObject());
+                for (const auto& work : qAsConst(tworks)) {
+                    const QJsonObject w = work.toObject();
+
+                    const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
+                                                                     Qt::ISODate);
+                    // results ordered by date desc
+                    if (!m_dateTo.isNull() && (createDT.date() > m_dateTo)) continue;
+                    if (!m_dateFrom.isNull() && (createDT.date() < m_dateFrom)) {
+                        m_ids.clear();
+                        showIndexResult(rpl->url());
+                        return;
+                    }
+
+                    m_list.append(w);
+
+                    if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+                        m_ids.clear();
+                        showIndexResult(rpl->url());
+                        return;
+                    }
+                }
             }
         }
+    }
+
+    if (!rpl.isNull() && (m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+        m_ids.clear();
+        showIndexResult(rpl->url());
+        return;
     }
 
     // All IDs parsed? Go to postprocessing.
@@ -236,8 +264,22 @@ void CPixivIndexExtractor::bookmarksAjax()
                                       .value(QSL("works")).toArray();
 
             m_list.reserve(tworks.count());
-            for (const auto& work : qAsConst(tworks))
-                m_list.append(work.toObject());
+            for (const auto& work : qAsConst(tworks)) {
+                const QJsonObject w = work.toObject();
+
+                const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
+                                                                 Qt::ISODate);
+                // bookmarks is not ordered by date, simple filter all results
+                if (!m_dateFrom.isNull() && (createDT.date() < m_dateFrom)) continue;
+                if (!m_dateTo.isNull() && (createDT.date() > m_dateTo)) continue;
+
+                m_list.append(w);
+
+                if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+                    showIndexResult(rpl->url());
+                    return;
+                }
+            }
 
             int totalWorks = obj.value(QSL("body")).toObject()
                              .value(QSL("total")).toInt();
@@ -307,8 +349,25 @@ void CPixivIndexExtractor::searchAjax()
                                       .value(QSL("data")).toArray();
 
             m_list.reserve(tworks.count());
-            for (const auto& work : qAsConst(tworks))
-                m_list.append(work.toObject());
+            for (const auto& work : qAsConst(tworks)) {
+                const QJsonObject w = work.toObject();
+
+                const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
+                                                                 Qt::ISODate);
+                // results ordered by date desc
+                if (!m_dateTo.isNull() && (createDT.date() > m_dateTo)) continue;
+                if (!m_dateFrom.isNull() && (createDT.date() < m_dateFrom)) {
+                    showIndexResult(rpl->url());
+                    return;
+                }
+
+                m_list.append(w);
+
+                if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+                    showIndexResult(rpl->url());
+                    return;
+                }
+            }
 
             int totalWorks = obj.value(QSL("body")).toObject()
                              .value(QSL("novel")).toObject()
@@ -353,8 +412,22 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
     auto indexID = m_indexId;
     auto sourceQuery = m_sourceQuery;
 
-    QMetaObject::invokeMethod(window,[origin,list,window,indexMode,indexID,sourceQuery](){
-        new CPixivIndexTab(window,list,indexMode,indexID,sourceQuery);
+    QString filterDesc;
+    if (m_maxCount>0)
+        filterDesc = tr("%1 max count").arg(m_maxCount);
+    if (!m_dateFrom.isNull()) {
+        if (!filterDesc.isEmpty()) filterDesc.append(QSL(", "));
+        filterDesc.append(tr("from %1").arg(QLocale::system().toString(m_dateFrom,QLocale::ShortFormat)));
+    }
+    if (!m_dateTo.isNull()) {
+        if (!filterDesc.isEmpty()) filterDesc.append(QSL(", "));
+        filterDesc.append(tr("to %1").arg(QLocale::system().toString(m_dateTo,QLocale::ShortFormat)));
+    }
+    if (filterDesc.isEmpty())
+        filterDesc = tr("None");
+
+    QMetaObject::invokeMethod(window,[origin,list,window,indexMode,indexID,sourceQuery,filterDesc](){
+        new CPixivIndexTab(window,list,indexMode,indexID,sourceQuery,filterDesc);
     },Qt::QueuedConnection);
 
     Q_EMIT finished();

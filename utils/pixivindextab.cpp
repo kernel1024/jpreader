@@ -18,7 +18,8 @@ const int pixivSortRole = Qt::UserRole + 1;
 
 CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list,
                                CPixivIndexExtractor::IndexMode indexMode,
-                               const QString &indexId, const QUrlQuery &sourceQuery) :
+                               const QString &indexId, const QUrlQuery &sourceQuery,
+                               const QString &extractorFilterDesc) :
     CSpecTabContainer(parent),
     ui(new Ui::CPixivIndexTab),
     m_indexId(indexId),
@@ -35,6 +36,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     m_proxyModel = new QSortFilterProxyModel(this);
     m_proxyModel->setSourceModel(m_model);
     m_proxyModel->setSortRole(CDefaults::pixivSortRole);
+    m_proxyModel->setFilterKeyColumn(-1);
     ui->table->setModel(m_proxyModel);
 
     connect(ui->table,&QTableView::activated,this,&CPixivIndexTab::novelActivated);
@@ -47,6 +49,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     connect(ui->editDescription,&QTextBrowser::anchorClicked,this,[this](const QUrl& url){
         linkClicked(url.toString());
     });
+    connect(ui->editFilter,&QLineEdit::textEdited,this,&CPixivIndexTab::filterChanged);
 
     connect(m_proxyModel,&QSortFilterProxyModel::layoutChanged,this,&CPixivIndexTab::modelSorted);
     connect(ui->comboSort,&QComboBox::currentIndexChanged,this,&CPixivIndexTab::comboSortChanged);
@@ -69,7 +72,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
 
     ui->frameTranslator->hide();
 
-    updateWidgets();
+    updateWidgets(extractorFilterDesc);
     bindToTab(parentWnd()->tabMain);
 }
 
@@ -83,17 +86,14 @@ QString CPixivIndexTab::title() const
     return m_title;
 }
 
-void CPixivIndexTab::updateWidgets()
+void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
 {
     ui->labelHead->clear();
     ui->labelCount->clear();
+    ui->labelExtractorFilter->setText(extractorFilterDesc);
     ui->editDescription->clear();
 
     ui->table->resizeColumnsToContents();
-
-    auto *proxy = qobject_cast<QAbstractProxyModel *>(ui->table->model());
-    if (proxy)
-        ui->labelCount->setText(tr("Found %1 novels.").arg(proxy->rowCount()));
 
     if (m_model->isEmpty()) {
         ui->labelHead->setText(tr("Nothing found."));
@@ -125,7 +125,19 @@ void CPixivIndexTab::updateWidgets()
         ui->comboSort->blockSignals(true);
         ui->comboSort->addItems(m_model->getTags());
         ui->comboSort->blockSignals(false);
+
+        updateCountLabel();
     }
+}
+
+void CPixivIndexTab::updateCountLabel()
+{
+    QString res = tr("Loaded %1 novels").arg(m_model->count());
+    if (!(ui->editFilter->text().isEmpty()))
+        res.append(tr(" (%1 filtered)").arg(m_proxyModel->rowCount()));
+    res.append(QSL("."));
+
+    ui->labelCount->setText(res);
 }
 
 QStringList CPixivIndexTab::jsonToTags(const QJsonArray &tags) const
@@ -184,6 +196,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     if (proxy == nullptr) return;
     idx = proxy->mapToSource(idx);
 
+    const QString text = m_model->text(idx);
     const QJsonObject item = m_model->item(idx);
     const QString id = item.value(QSL("id")).toString();
     const QString user = item.value(QSL("userId")).toString();
@@ -248,6 +261,15 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
                 ac->setText(tr("Tag: %1").arg(tag));
         }
         cm.addActions(extractorsList);
+    }
+
+    if (!text.isEmpty()) {
+        if (!cm.isEmpty())
+            cm.addSeparator();
+        cm.addAction(QIcon::fromTheme(QSL("edit-copy")),tr("Copy \"%1\" to clipboard").arg(text),this,[text](){
+            QClipboard *cb = QApplication::clipboard();
+            cb->setText(text);
+        });
     }
 
     if (cm.isEmpty()) return;
@@ -459,6 +481,14 @@ void CPixivIndexTab::comboSortChanged(int index)
     ui->table->sortByColumn(col,m_proxyModel->sortOrder());
 }
 
+void CPixivIndexTab::filterChanged(const QString &filter)
+{
+    if (m_proxyModel)
+        m_proxyModel->setFilterFixedString(filter);
+
+    updateCountLabel();
+}
+
 CPixivTableModel::CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list)
     : QAbstractTableModel(parent),
       m_list(list)
@@ -599,6 +629,11 @@ bool CPixivTableModel::isEmpty() const
     return m_list.isEmpty();
 }
 
+int CPixivTableModel::count() const
+{
+    return m_list.count();
+}
+
 QJsonObject CPixivTableModel::item(const QModelIndex &index) const
 {
     if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
@@ -613,6 +648,14 @@ QString CPixivTableModel::tag(const QModelIndex &index) const
         return QString();
 
     if (index.column()<basicHeaders().count())
+        return QString();
+
+    return data(index,Qt::DisplayRole).toString();
+}
+
+QString CPixivTableModel::text(const QModelIndex &index) const
+{
+    if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
         return QString();
 
     return data(index,Qt::DisplayRole).toString();

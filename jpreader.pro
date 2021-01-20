@@ -165,6 +165,7 @@ FORMS = main.ui \
     browser-utils/addbookmarkdialog.ui \
     browser-utils/noscriptdialog.ui \
     utils/pixivindextab.ui \
+    utils/searchlimitsdialog.ui \
     utils/settingstab.ui \
     utils/logdisplay.ui \
     utils/auxdictionary.ui \

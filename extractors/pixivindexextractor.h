@@ -19,12 +19,16 @@ public:
 
     CPixivIndexExtractor(QObject *parent, QWidget *parentWidget);
     void setParams(const QString& pixivId, const QString& sourceQuery,
-                   CPixivIndexExtractor::IndexMode mode);
+                   CPixivIndexExtractor::IndexMode mode, int maxCount,
+                   const QDate& dateFrom, const QDate& dateTo);
     QString workerDescription() const override;
 
 private:
+    int m_maxCount { -1 };
     QString m_indexId;
     QUrlQuery m_sourceQuery;
+    QDate m_dateFrom;
+    QDate m_dateTo;
     QVector<QJsonObject> m_list;
     QStringList m_ids;
     IndexMode m_indexMode { WorkIndex };

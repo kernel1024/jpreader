@@ -23,7 +23,8 @@ class CPixivIndexTab : public CSpecTabContainer
 public:
     explicit CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list,
                             CPixivIndexExtractor::IndexMode indexMode,
-                            const QString &indexId, const QUrlQuery &sourceQuery);
+                            const QString &indexId, const QUrlQuery &sourceQuery,
+                            const QString &extractorFilterDesc);
     ~CPixivIndexTab() override;
     QString title() const;
 
@@ -39,7 +40,8 @@ private:
     QUrlQuery m_sourceQuery;
     CPixivIndexExtractor::IndexMode m_indexMode { CPixivIndexExtractor::IndexMode::WorkIndex };
 
-    void updateWidgets();
+    void updateWidgets(const QString& extractorFilterDesc);
+    void updateCountLabel();
     QStringList jsonToTags(const QJsonArray& tags) const;
     QString makeNovelInfoBlock(CStringHash* authors,
                                const QString& workId, const QString& workImgUrl,
@@ -64,6 +66,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void modelSorted(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint);
     void comboSortChanged(int index);
+    void filterChanged(const QString& filter);
 
 Q_SIGNALS:
     void translateTitlesAndTags(const QStringList &titles);
@@ -89,8 +92,10 @@ public:
 
     CStringHash authors() const;
     bool isEmpty() const;
+    int count() const;
     QJsonObject item(const QModelIndex& index) const;
     QString tag(const QModelIndex& index) const;
+    QString text(const QModelIndex& index) const;
     QStringList getStringsForTranslation() const;
     void setStringsFromTranslation(const QStringList& translated);
     QStringList getTags() const;
