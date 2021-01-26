@@ -38,7 +38,7 @@ private:
     QString m_indexId;
     QString m_title;
     QUrlQuery m_sourceQuery;
-    CPixivIndexExtractor::IndexMode m_indexMode { CPixivIndexExtractor::IndexMode::WorkIndex };
+    CPixivIndexExtractor::IndexMode m_indexMode { CPixivIndexExtractor::IndexMode::imWorkIndex };
 
     void updateWidgets(const QString& extractorFilterDesc);
     void updateCountLabel();

@@ -17,9 +17,6 @@ class CAbstractExtractor : public CAbstractThreadWorker
 private:
     QWidget* m_parentWidget { nullptr };
 
-    static bool extractorLimitsDialog(QWidget *parentWidget, const QString &title, const QString &groupTitle,
-                                      int &maxCount, QDate &dateFrom, QDate &dateTo);
-
 public:
     CAbstractExtractor(QObject *parent, QWidget *parentWidget);
 

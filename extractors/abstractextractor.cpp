@@ -4,8 +4,6 @@
 #include "global/control.h"
 #include "mainwindow.h"
 
-#include "ui_searchlimitsdialog.h"
-
 #include "fanboxextractor.h"
 #include "patreonextractor.h"
 #include "pixivindexextractor.h"
@@ -154,7 +152,6 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("type")] = QSL("pixivList");
         data[QSL("id")] = pixivTag;
         data[QSL("mode")] = QSL("novelSearch");
-        data[QSL("query")] = pageUrl.query();
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -436,29 +433,39 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
 
     } else if (type == QSL("pixivList")) {
         static int maxCount = 0;
+        static bool originalsOnly = false;
         static QDate dateFrom;
         static QDate dateTo;
-        if (extractorLimitsDialog(parentWidget,tr("Pixiv index filter"),
-                                  tr("Extractor filter"),
-                                  maxCount,dateFrom,dateTo)) {
-            CPixivIndexExtractor::IndexMode mode = CPixivIndexExtractor::WorkIndex;
-            if (hash.value(QSL("mode")).toString() == QSL("work")) {
-                mode = CPixivIndexExtractor::WorkIndex;
-            } else if (hash.value(QSL("mode")).toString() == QSL("bookmarks")) {
-                mode = CPixivIndexExtractor::BookmarksIndex;
-            } else if (hash.value(QSL("mode")).toString() == QSL("novelSearch")) {
-                mode = CPixivIndexExtractor::TagSearchIndex;
-            } else {
-                return res;
-            }
+        static QString languageCode;
+        static CPixivIndexExtractor::NovelSearchLength nsl = CPixivIndexExtractor::nslDefault;
+        static CPixivIndexExtractor::TagSearchMode tsm = CPixivIndexExtractor::tsmTagFull;
+
+        QString keywords = hash.value(QSL("id")).toString();
+        CPixivIndexExtractor::IndexMode mode = CPixivIndexExtractor::imWorkIndex;
+        if (hash.value(QSL("mode")).toString() == QSL("work")) {
+            mode = CPixivIndexExtractor::imWorkIndex;
+        } else if (hash.value(QSL("mode")).toString() == QSL("bookmarks")) {
+            mode = CPixivIndexExtractor::imBookmarksIndex;
+        } else if (hash.value(QSL("mode")).toString() == QSL("novelSearch")) {
+            mode = CPixivIndexExtractor::imTagSearchIndex;
+        } else {
+            return res;
+        }
+        if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,tr("Pixiv index filter"),
+                                  tr("Extractor filter"),(mode == CPixivIndexExtractor::imTagSearchIndex),
+                                  maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl))
+        {
             res = new CPixivIndexExtractor(nullptr,parentWidget);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
-                        hash.value(QSL("id")).toString(),
-                        hash.value(QSL("query")).toString(),
+                        keywords,
                         mode,
                         maxCount,
                         dateFrom,
-                        dateTo);
+                        dateTo,
+                        tsm,
+                        originalsOnly,
+                        languageCode,
+                        nsl);
         }
 
     } else if (type == QSL("fanbox")) {
@@ -508,48 +515,6 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
     }
 
     return res;
-}
-
-bool CAbstractExtractor::extractorLimitsDialog(QWidget *parentWidget, const QString& title,
-                                               const QString& groupTitle,
-                                               int &maxCount, QDate &dateFrom, QDate &dateTo)
-{
-    QDialog dlg(parentWidget);
-    Ui::CSearchLimitsDialog ui;
-    ui.setupUi(&dlg);
-    dlg.setWindowTitle(title);
-    ui.groupBox->setTitle(groupTitle);
-
-    ui.spinMaxCount->setValue(maxCount);
-    if (dateFrom.isValid()) {
-        ui.dateFrom->setDate(dateFrom);
-        ui.checkDateFrom->setChecked(true);
-    } else {
-        ui.dateFrom->setDate(QDate::currentDate());
-    }
-    if (dateTo.isValid()) {
-        ui.dateTo->setDate(dateTo);
-        ui.checkDateTo->setChecked(true);
-    } else {
-        ui.dateTo->setDate(QDate::currentDate());
-    }
-
-    if (dlg.exec() == QDialog::Accepted) {
-        maxCount = ui.spinMaxCount->value();
-        if (ui.checkDateFrom->isChecked()) {
-            dateFrom = ui.dateFrom->date();
-        } else {
-            dateFrom = QDate();
-        }
-        if (ui.checkDateTo->isChecked()) {
-            dateTo = ui.dateTo->date();
-        } else {
-            dateTo = QDate();
-        }
-        return true;
-    }
-
-    return false;
 }
 
 void CAbstractExtractor::showError(const QString &message)

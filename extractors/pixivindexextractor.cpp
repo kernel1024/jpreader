@@ -9,6 +9,8 @@
 #include <QBuffer>
 #include <algorithm>
 
+#include "ui_pixivindexlimitsdialog.h"
+
 #include "pixivindexextractor.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -24,8 +26,10 @@ CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, QWidget *parentWidge
 {
 }
 
-void CPixivIndexExtractor::setParams(const QString &pixivId, const QString &sourceQuery,
-                                     CPixivIndexExtractor::IndexMode mode, int maxCount, const QDate &dateFrom, const QDate &dateTo)
+void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode mode, int maxCount,
+                                     const QDate &dateFrom, const QDate &dateTo,
+                                     CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
+                                     const QString languageCode, CPixivIndexExtractor::NovelSearchLength novelLength)
 {
     m_indexMode = mode;
     m_indexId = pixivId;
@@ -33,8 +37,48 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, const QString &sour
     m_dateFrom = dateFrom;
     m_dateTo = dateTo;
 
-    m_sourceQuery.setQuery(sourceQuery);
-    m_sourceQuery.removeAllQueryItems(QSL("p"));
+    m_sourceQuery.clear();
+    if (mode == IndexMode::imTagSearchIndex) {
+        m_sourceQuery.addQueryItem(QSL("word"),m_indexId);
+        m_sourceQuery.addQueryItem(QSL("order"),QSL("date_d"));
+        m_sourceQuery.addQueryItem(QSL("mode"),QSL("all"));
+        QDate dFrom = m_dateFrom;
+        QDate dTo = m_dateTo;
+        if (!dFrom.isNull() || !dTo.isNull()) {
+            if (dFrom.isNull()) dFrom = QDate(2000,1,1);
+            if (dTo.isNull()) dTo = QDate::currentDate();
+            m_sourceQuery.addQueryItem(QSL("scd"),dFrom.toString(Qt::ISODate));
+            m_sourceQuery.addQueryItem(QSL("ecd"),dTo.toString(Qt::ISODate));
+        }
+        switch (tagMode) {
+            case TagSearchMode::tsmTagOnly: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag_only")); break;
+            case TagSearchMode::tsmTagFull: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag_full")); break; // default
+            case TagSearchMode::tsmText: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tc")); break;
+            case TagSearchMode::tsmTagAll: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag")); break;
+        }
+        switch (novelLength) {
+            case NovelSearchLength::nslDefault: break;
+            case NovelSearchLength::nslFlash:
+                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("0"));
+                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("4999"));
+                break;
+            case NovelSearchLength::nslShort:
+                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("5000"));
+                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("19999"));
+                break;
+            case NovelSearchLength::nslMedium:
+                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("20000"));
+                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("79999"));
+                break;
+            case NovelSearchLength::nslLong:
+                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("80000"));
+                break;
+        }
+        if (originalOnly)
+            m_sourceQuery.addQueryItem(QSL("original_only"),QSL("1"));
+        if (!languageCode.isEmpty())
+            m_sourceQuery.addQueryItem(QSL("work_lang"),languageCode);
+    }
 }
 
 QString CPixivIndexExtractor::workerDescription() const
@@ -152,16 +196,16 @@ void CPixivIndexExtractor::startMain()
         QUrl u;
 
         switch (m_indexMode) {
-            case WorkIndex:
+            case imWorkIndex:
                 u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_indexId));
                 break;
-            case BookmarksIndex:
+            case imBookmarksIndex:
                 u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
                              "tag=&offset=0&limit=%2&rest=show")
                          .arg(m_indexId)
                          .arg(CDefaults::pixivBookmarksFetchCount));
                 break;
-            case TagSearchIndex:
+            case imTagSearchIndex:
                 u = QUrl(QSL("https://www.pixiv.net/ajax/search/novels/%1")
                          .arg(m_indexId));
                 u.setQuery(m_sourceQuery);
@@ -173,13 +217,13 @@ void CPixivIndexExtractor::startMain()
 
         connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
         switch (m_indexMode) {
-            case WorkIndex:
+            case imWorkIndex:
                 connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::profileAjax);
                 break;
-            case BookmarksIndex:
+            case imBookmarksIndex:
                 connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::bookmarksAjax);
                 break;
-            case TagSearchIndex:
+            case imTagSearchIndex:
                 connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::searchAjax);
                 break;
         }
@@ -350,18 +394,7 @@ void CPixivIndexExtractor::searchAjax()
 
             m_list.reserve(tworks.count());
             for (const auto& work : qAsConst(tworks)) {
-                const QJsonObject w = work.toObject();
-
-                const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
-                                                                 Qt::ISODate);
-                // results ordered by date desc
-                if (!m_dateTo.isNull() && (createDT.date() > m_dateTo)) continue;
-                if (!m_dateFrom.isNull() && (createDT.date() < m_dateFrom)) {
-                    showIndexResult(rpl->url());
-                    return;
-                }
-
-                m_list.append(w);
+                m_list.append(work.toObject());
 
                 if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
                     showIndexResult(rpl->url());
@@ -526,4 +559,90 @@ void CPixivIndexExtractor::subImageFinished()
         showIndexResult(origin);
     },Qt::QueuedConnection);
     m_worksImgFetch--;
+}
+
+bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QString& title,
+                                                 const QString& groupTitle, bool isTagSearch,
+                                                 int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
+                                                 CPixivIndexExtractor::TagSearchMode &mode, bool &originalOnly,
+                                                 QString &languageCode, NovelSearchLength &novelLength)
+{
+    QDialog dlg(parentWidget);
+    Ui::CPixivIndexLimitsDialog ui;
+    ui.setupUi(&dlg);
+    dlg.setWindowTitle(title);
+    ui.groupBox->setTitle(groupTitle);
+
+    // TODO create separate class for this
+
+    ui.comboLanguage->setEnabled(isTagSearch);
+    ui.comboMode->setEnabled(isTagSearch);
+    ui.comboLength->setEnabled(isTagSearch);
+    ui.checkOriginalOnly->setEnabled(isTagSearch);
+    ui.editKeywords->setEnabled(isTagSearch);
+
+    ui.comboLanguage->addItem(tr("Any language"),QVariant::fromValue(QString()));
+    const QStringList languages = gSet->net()->getLanguageCodes();
+    for (const auto &bcp : languages) {
+        ui.comboLanguage->addItem(gSet->net()->getLanguageName(bcp),QVariant::fromValue(bcp));
+    }
+    ui.comboLanguage->setCurrentIndex(0);
+    if (!languageCode.isEmpty()) {
+        int idx = ui.comboLanguage->findData(QVariant::fromValue(languageCode));
+        if (idx>0) ui.comboLanguage->setCurrentIndex(idx);
+    }
+
+    ui.comboMode->addItem(tr("Tags (partial match)"));
+    ui.comboMode->addItem(tr("Tags (perfect match)"));
+    ui.comboMode->addItem(tr("Text"));
+    ui.comboMode->addItem(tr("Tags, titles, captions"));
+    ui.comboMode->setCurrentIndex(static_cast<int>(mode));
+
+    ui.comboLength->addItem(tr("All"));
+    ui.comboLength->addItem(tr("Flash (less than 5000)"));
+    ui.comboLength->addItem(tr("Short (5000 - 20000)"));
+    ui.comboLength->addItem(tr("Medium (20000 - 80000)"));
+    ui.comboLength->addItem(tr("Long (80000+)"));
+    ui.comboLength->setCurrentIndex(static_cast<int>(novelLength));
+
+    ui.editKeywords->setText(keywords);
+    ui.checkOriginalOnly->setChecked(originalOnly);
+    ui.spinMaxCount->setValue(maxCount);
+    if (dateFrom.isValid()) {
+        ui.dateFrom->setDate(dateFrom);
+        ui.checkDateFrom->setChecked(true);
+    } else {
+        ui.dateFrom->setDate(QDate::currentDate());
+    }
+    if (dateTo.isValid()) {
+        ui.dateTo->setDate(dateTo);
+        ui.checkDateTo->setChecked(true);
+    } else {
+        ui.dateTo->setDate(QDate::currentDate());
+    }
+
+    if (dlg.exec() == QDialog::Accepted) {
+        keywords = ui.editKeywords->text();
+        originalOnly = ui.checkOriginalOnly->isChecked();
+        maxCount = ui.spinMaxCount->value();
+
+        if (ui.checkDateFrom->isChecked()) {
+            dateFrom = ui.dateFrom->date();
+        } else {
+            dateFrom = QDate();
+        }
+        if (ui.checkDateTo->isChecked()) {
+            dateTo = ui.dateTo->date();
+        } else {
+            dateTo = QDate();
+        }
+
+        languageCode = ui.comboLanguage->currentData().toString();
+        mode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui.comboMode->currentIndex());
+        novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui.comboLength->currentIndex());
+
+        return true;
+    }
+
+    return false;
 }

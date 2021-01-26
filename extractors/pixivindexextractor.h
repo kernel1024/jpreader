@@ -14,14 +14,26 @@ class CPixivIndexExtractor : public CAbstractExtractor
     Q_OBJECT
 
 public:
-    enum IndexMode { WorkIndex, BookmarksIndex, TagSearchIndex };
+    enum IndexMode { imWorkIndex, imBookmarksIndex, imTagSearchIndex };
     Q_ENUM(IndexMode)
+    enum TagSearchMode { tsmTagOnly = 0, tsmTagFull = 1, tsmText = 2, tsmTagAll = 3 };
+    Q_ENUM(TagSearchMode)
+    enum NovelSearchLength { nslDefault = 0, nslFlash = 1, nslShort = 2, nslMedium = 3, nslLong = 4 };
+    Q_ENUM(NovelSearchLength)
 
     CPixivIndexExtractor(QObject *parent, QWidget *parentWidget);
-    void setParams(const QString& pixivId, const QString& sourceQuery,
-                   CPixivIndexExtractor::IndexMode mode, int maxCount,
-                   const QDate& dateFrom, const QDate& dateTo);
     QString workerDescription() const override;
+
+    void setParams(const QString& pixivId, CPixivIndexExtractor::IndexMode mode, int maxCount,
+                   const QDate& dateFrom, const QDate& dateTo,
+                   CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
+                   const QString languageCode, CPixivIndexExtractor::NovelSearchLength novelLength);
+
+    static bool extractorLimitsDialog(QWidget *parentWidget, const QString &title,
+                                      const QString &groupTitle, bool isTagSearch,
+                                      int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
+                                      CPixivIndexExtractor::TagSearchMode &mode, bool &originalOnly,
+                                      QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength);
 
 private:
     int m_maxCount { -1 };
@@ -31,7 +43,7 @@ private:
     QDate m_dateTo;
     QVector<QJsonObject> m_list;
     QStringList m_ids;
-    IndexMode m_indexMode { WorkIndex };
+    IndexMode m_indexMode { imWorkIndex };
     QAtomicInteger<int> m_worksImgFetch;
     QMutex m_imgMutex;
 
