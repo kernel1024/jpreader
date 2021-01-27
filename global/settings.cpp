@@ -190,6 +190,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     g->d_func()->noScriptWhiteList = readData(bigdataDir,QSL("noScriptWhiteList")).value<CStringSet>();
     translatorStatistics = readData(bigdataDir,QSL("translatorStatistics")).value<CTranslatorStatistics>();
     selectedLangPairs = readData(bigdataDir,QSL("selectedLangPairs")).value<CSelectedLangPairs>();
+    g->d_func()->pixivKeywordsHistory = readData(bigdataDir,QSL("pixivKeywordHistory")).toStringList();
 
     g->d_func()->searchHistory = readData(bigdataDir,QSL("searchHistory")).toStringList();
     Q_EMIT g->m_history->updateAllQueryLists();
@@ -254,6 +255,8 @@ void CSettings::writeBinaryBigData(const QString &dirname)
         qCritical() << "Unable to save translatorStatistics.";
     if (!writeData(dirname,QSL("selectedLangPairs"),QVariant::fromValue(selectedLangPairs)))
         qCritical() << "Unable to save selectedLangPairs.";
+    if (!writeData(dirname,QSL("pixivKeywordHistory"), QVariant::fromValue(gSet->d_func()->pixivKeywordsHistory)))
+        qCritical() << "Unable to save pixivKeywordHistory.";
 
     if (!writeByteArray(dirname,QSL("bookmarks"),   gSet->d_func()->bookmarksManager->save()))
         qCritical() << "Unable to save bookmarks.";

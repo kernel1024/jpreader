@@ -51,7 +51,6 @@ private:
 
 public Q_SLOTS:
 	void helpAbout();
-
 	void openBookmark();
     void openAuxFiles(const QStringList &filenames);
     void openAuxFileWithDialog();
@@ -59,6 +58,7 @@ public Q_SLOTS:
     void openEmptyBrowser();
     void openRecycled();
     void openChromiumURLs();
+    void pixivSearch();
     void tabChanged(int idx);
     void createFromClipboard();
     void createFromClipboardPlain();

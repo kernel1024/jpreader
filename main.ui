@@ -180,10 +180,12 @@
     <addaction name="actionDownloadManager"/>
     <addaction name="actionDictionary"/>
     <addaction name="actionDetachTab"/>
-    <addaction name="actionChromiumURLs"/>
     <addaction name="actionTranslatorStatistics"/>
     <addaction name="actionTranslatorCache"/>
     <addaction name="actionWorkerMonitor"/>
+    <addaction name="separator"/>
+    <addaction name="actionChromiumURLs"/>
+    <addaction name="actionPixivSearch"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -374,7 +376,8 @@
   </action>
   <action name="actionFindText">
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Find text</string>
@@ -483,6 +486,11 @@
    </property>
    <property name="text">
     <string>Worker monitor</string>
+   </property>
+  </action>
+  <action name="actionPixivSearch">
+   <property name="text">
+    <string>Pixiv search...</string>
    </property>
   </action>
  </widget>

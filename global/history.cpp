@@ -27,6 +27,11 @@ const QStringList &CGlobalHistory::searchHistory() const
     return gSet->d_func()->searchHistory;
 }
 
+const QStringList &CGlobalHistory::pixivKeywords() const
+{
+    return gSet->d_func()->pixivKeywordsHistory;
+}
+
 void CGlobalHistory::appendSearchHistory(const QStringList& req)
 {
     for(int i=0;i<req.count();i++) {
@@ -98,4 +103,14 @@ void CGlobalHistory::appendRecent(const QString& filename)
         gSet->d_func()->recentFiles.removeLast();
 
     Q_EMIT updateAllRecentLists();
+}
+
+void CGlobalHistory::appendPixivKeywords(const QString &keywords)
+{
+    if (gSet->d_func()->pixivKeywordsHistory.contains(keywords))
+        gSet->d_func()->pixivKeywordsHistory.removeAll(keywords);
+    gSet->d_func()->pixivKeywordsHistory.prepend(keywords);
+
+    while (gSet->d_func()->pixivKeywordsHistory.count() > gSet->m_settings->maxHistory)
+        gSet->d_func()->pixivKeywordsHistory.removeLast();
 }

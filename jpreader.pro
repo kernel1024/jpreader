@@ -58,6 +58,7 @@ HEADERS = mainwindow.h \
     translator/translatorstatisticstab.h \
     translator/uitranslator.h \
     utils/pdfworkerprivate.h \
+    utils/pixivindexlimitsdialog.h \
     utils/settingstab.h \
     utils/genericfuncs.h \
     utils/cliworker.h \
@@ -134,6 +135,7 @@ SOURCES = main.cpp \
     translator/translatorstatisticstab.cpp \
     translator/uitranslator.cpp \
     utils/cliworker.cpp \
+    utils/pixivindexlimitsdialog.cpp \
     utils/pixivindextab.cpp \
     utils/pdfworkerprivate.cpp \
     utils/settingstab.cpp \

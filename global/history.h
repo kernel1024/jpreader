@@ -15,12 +15,14 @@ public:
     const CUrlHolderVector &mainHistory() const;
     const QStringList &recentFiles() const;
     const QStringList &searchHistory() const;
+    const QStringList &pixivKeywords() const;
     void appendRecycled(const QString &title, const QUrl &url);
     void removeRecycledItem(int idx);
     void appendSearchHistory(const QStringList &req);
     void appendMainHistory(const CUrlHolder &item);
     bool updateMainHistoryTitle(const CUrlHolder &item, const QString &newTitle);
     void appendRecent(const QString &filename);
+    void appendPixivKeywords(const QString& keywords);
 
 Q_SIGNALS:
     void updateAllBookmarks();

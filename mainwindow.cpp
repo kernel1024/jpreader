@@ -35,6 +35,8 @@
 #include "translator/lighttranslator.h"
 #include "translator/translatorstatisticstab.h"
 #include "translator/translatorcache.h"
+#include "extractors/abstractextractor.h"
+#include "extractors/pixivindexextractor.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -113,6 +115,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
     connect(actionTranslatorStatistics, &QAction::triggered, gSet->ui(), &CGlobalUI::translationStatisticsTab);
     connect(actionTranslatorCache, &QAction::triggered, gSet->translatorCache(), &CTranslatorCache::showDialog);
+    connect(actionPixivSearch, &QAction::triggered, this, &CMainWindow::pixivSearch);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
@@ -861,6 +864,22 @@ void CMainWindow::openRecycled()
 void CMainWindow::openChromiumURLs()
 {
     new CBrowserTab(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
+}
+
+void CMainWindow::pixivSearch()
+{
+    QVariantHash data;
+    data[QSL("type")] = QSL("pixivList");
+    data[QSL("id")] = QString();
+    data[QSL("mode")] = QSL("novelSearch");
+    auto *ex = CAbstractExtractor::extractorFactory(data,this);
+    if (ex == nullptr) return;
+    if (!gSet->startup()->setupThreadedWorker(ex)) {
+        delete ex;
+        return;
+    }
+
+    QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
 }
 
 void CMainWindow::updateRecycled()

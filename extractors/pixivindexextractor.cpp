@@ -9,13 +9,12 @@
 #include <QBuffer>
 #include <algorithm>
 
-#include "ui_pixivindexlimitsdialog.h"
-
 #include "pixivindexextractor.h"
 #include "global/control.h"
 #include "global/network.h"
 #include "utils/genericfuncs.h"
 #include "utils/pixivindextab.h"
+#include "utils/pixivindexlimitsdialog.h"
 
 namespace CDefaults {
 const int pixivBookmarksFetchCount = 24;
@@ -565,84 +564,15 @@ bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QS
                                                  const QString& groupTitle, bool isTagSearch,
                                                  int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
                                                  CPixivIndexExtractor::TagSearchMode &mode, bool &originalOnly,
-                                                 QString &languageCode, NovelSearchLength &novelLength)
+                                                 QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength)
 {
-    QDialog dlg(parentWidget);
-    Ui::CPixivIndexLimitsDialog ui;
-    ui.setupUi(&dlg);
-    dlg.setWindowTitle(title);
-    ui.groupBox->setTitle(groupTitle);
-
-    // TODO create separate class for this
-
-    ui.comboLanguage->setEnabled(isTagSearch);
-    ui.comboMode->setEnabled(isTagSearch);
-    ui.comboLength->setEnabled(isTagSearch);
-    ui.checkOriginalOnly->setEnabled(isTagSearch);
-    ui.editKeywords->setEnabled(isTagSearch);
-
-    ui.comboLanguage->addItem(tr("Any language"),QVariant::fromValue(QString()));
-    const QStringList languages = gSet->net()->getLanguageCodes();
-    for (const auto &bcp : languages) {
-        ui.comboLanguage->addItem(gSet->net()->getLanguageName(bcp),QVariant::fromValue(bcp));
-    }
-    ui.comboLanguage->setCurrentIndex(0);
-    if (!languageCode.isEmpty()) {
-        int idx = ui.comboLanguage->findData(QVariant::fromValue(languageCode));
-        if (idx>0) ui.comboLanguage->setCurrentIndex(idx);
-    }
-
-    ui.comboMode->addItem(tr("Tags (partial match)"));
-    ui.comboMode->addItem(tr("Tags (perfect match)"));
-    ui.comboMode->addItem(tr("Text"));
-    ui.comboMode->addItem(tr("Tags, titles, captions"));
-    ui.comboMode->setCurrentIndex(static_cast<int>(mode));
-
-    ui.comboLength->addItem(tr("All"));
-    ui.comboLength->addItem(tr("Flash (less than 5000)"));
-    ui.comboLength->addItem(tr("Short (5000 - 20000)"));
-    ui.comboLength->addItem(tr("Medium (20000 - 80000)"));
-    ui.comboLength->addItem(tr("Long (80000+)"));
-    ui.comboLength->setCurrentIndex(static_cast<int>(novelLength));
-
-    ui.editKeywords->setText(keywords);
-    ui.checkOriginalOnly->setChecked(originalOnly);
-    ui.spinMaxCount->setValue(maxCount);
-    if (dateFrom.isValid()) {
-        ui.dateFrom->setDate(dateFrom);
-        ui.checkDateFrom->setChecked(true);
-    } else {
-        ui.dateFrom->setDate(QDate::currentDate());
-    }
-    if (dateTo.isValid()) {
-        ui.dateTo->setDate(dateTo);
-        ui.checkDateTo->setChecked(true);
-    } else {
-        ui.dateTo->setDate(QDate::currentDate());
-    }
+    CPixivIndexLimitsDialog dlg(parentWidget);
+    dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,mode,
+                  originalOnly,languageCode,novelLength);
 
     if (dlg.exec() == QDialog::Accepted) {
-        keywords = ui.editKeywords->text();
-        originalOnly = ui.checkOriginalOnly->isChecked();
-        maxCount = ui.spinMaxCount->value();
-
-        if (ui.checkDateFrom->isChecked()) {
-            dateFrom = ui.dateFrom->date();
-        } else {
-            dateFrom = QDate();
-        }
-        if (ui.checkDateTo->isChecked()) {
-            dateTo = ui.dateTo->date();
-        } else {
-            dateTo = QDate();
-        }
-
-        languageCode = ui.comboLanguage->currentData().toString();
-        mode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui.comboMode->currentIndex());
-        novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui.comboLength->currentIndex());
-
+        dlg.getParams(maxCount,dateFrom,dateTo,keywords,mode,originalOnly,languageCode,novelLength);
         return true;
     }
-
     return false;
 }

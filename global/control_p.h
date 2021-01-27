@@ -59,6 +59,7 @@ public:
     QStringList searchHistory;
     QHash<QString,QIcon> favicons;
     QStringList createdFiles;
+    QStringList pixivKeywordsHistory;
 
     bool blockTabCloseActive { false };
 

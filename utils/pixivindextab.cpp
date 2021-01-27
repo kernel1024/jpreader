@@ -114,14 +114,15 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
         m_title = tr("Pixiv %1 for %2").arg(header,author);
         setTabTitle(m_title);
         if (m_indexMode == CPixivIndexExtractor::imTagSearchIndex) {
-            header = QSL("Pixiv %1 list for <a href=\"https://www.pixiv.net/tags/%2/novels?%4\">"
-                         "%3</a>.").arg(header,m_indexId,author,m_sourceQuery.query());
+            QUrl u(QSL("https://www.pixiv.net/tags/%1/novels").arg(m_indexId));
+            u.setQuery(m_sourceQuery);
+            header = QSL("Pixiv %1 list for <a href=\"%2\">"
+                         "%3</a>.").arg(header,u.toString(QUrl::FullyEncoded),author);
         } else {
             header = QSL("Pixiv %1 list for <a href=\"https://www.pixiv.net/users/%2\">"
                          "%3</a>.").arg(header,m_indexId,author);
         }
         ui->labelHead->setText(header);
-        // TODO: other tag search parameters?
 
         ui->comboSort->blockSignals(true);
         ui->comboSort->addItems(m_model->getTags());
