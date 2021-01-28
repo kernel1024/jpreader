@@ -25,26 +25,33 @@ CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, QWidget *parentWidge
 {
 }
 
-void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode mode, int maxCount,
+void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode indexMode, int maxCount,
                                      const QDate &dateFrom, const QDate &dateTo,
                                      CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
-                                     const QString languageCode, CPixivIndexExtractor::NovelSearchLength novelLength)
+                                     const QString &languageCode, CPixivIndexExtractor::NovelSearchLength novelLength,
+                                     CPixivIndexExtractor::NovelSearchRating novelRating)
 {
-    m_indexMode = mode;
+    static const QDate minimalDate = QDate(2000,1,1);
+
+    m_indexMode = indexMode;
     m_indexId = pixivId;
     m_maxCount = maxCount;
     m_dateFrom = dateFrom;
     m_dateTo = dateTo;
 
     m_sourceQuery.clear();
-    if (mode == IndexMode::imTagSearchIndex) {
+    if (indexMode == IndexMode::imTagSearchIndex) {
         m_sourceQuery.addQueryItem(QSL("word"),m_indexId);
         m_sourceQuery.addQueryItem(QSL("order"),QSL("date_d"));
-        m_sourceQuery.addQueryItem(QSL("mode"),QSL("all"));
+        switch (novelRating) {
+            case NovelSearchRating::nsrAll: m_sourceQuery.addQueryItem(QSL("mode"),QSL("all")); break;
+            case NovelSearchRating::nsrSafe: m_sourceQuery.addQueryItem(QSL("mode"),QSL("safe")); break;
+            case NovelSearchRating::nsrR18: m_sourceQuery.addQueryItem(QSL("mode"),QSL("r18")); break;
+        }
         QDate dFrom = m_dateFrom;
         QDate dTo = m_dateTo;
         if (!dFrom.isNull() || !dTo.isNull()) {
-            if (dFrom.isNull()) dFrom = QDate(2000,1,1);
+            if (dFrom.isNull()) dFrom = minimalDate;
             if (dTo.isNull()) dTo = QDate::currentDate();
             m_sourceQuery.addQueryItem(QSL("scd"),dFrom.toString(Qt::ISODate));
             m_sourceQuery.addQueryItem(QSL("ecd"),dTo.toString(Qt::ISODate));
@@ -563,15 +570,16 @@ void CPixivIndexExtractor::subImageFinished()
 bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QString& title,
                                                  const QString& groupTitle, bool isTagSearch,
                                                  int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
-                                                 CPixivIndexExtractor::TagSearchMode &mode, bool &originalOnly,
-                                                 QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength)
+                                                 CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
+                                                 QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
+                                                 CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     CPixivIndexLimitsDialog dlg(parentWidget);
-    dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,mode,
-                  originalOnly,languageCode,novelLength);
+    dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,tagMode,
+                  originalOnly,languageCode,novelLength,novelRating);
 
     if (dlg.exec() == QDialog::Accepted) {
-        dlg.getParams(maxCount,dateFrom,dateTo,keywords,mode,originalOnly,languageCode,novelLength);
+        dlg.getParams(maxCount,dateFrom,dateTo,keywords,tagMode,originalOnly,languageCode,novelLength,novelRating);
         return true;
     }
     return false;

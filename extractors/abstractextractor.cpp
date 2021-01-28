@@ -438,6 +438,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         static QDate dateTo;
         static QString languageCode;
         static CPixivIndexExtractor::NovelSearchLength nsl = CPixivIndexExtractor::nslDefault;
+        static CPixivIndexExtractor::NovelSearchRating nsr = CPixivIndexExtractor::nsrAll;
         static CPixivIndexExtractor::TagSearchMode tsm = CPixivIndexExtractor::tsmTagFull;
 
         QString keywords = hash.value(QSL("id")).toString();
@@ -453,7 +454,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         }
         if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,tr("Pixiv index filter"),
                                   tr("Extractor filter"),(mode == CPixivIndexExtractor::imTagSearchIndex),
-                                  maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl))
+                                  maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr))
         {
             res = new CPixivIndexExtractor(nullptr,parentWidget);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
@@ -465,7 +466,8 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                         tsm,
                         originalsOnly,
                         languageCode,
-                        nsl);
+                        nsl,
+                        nsr);
         }
 
     } else if (type == QSL("fanbox")) {

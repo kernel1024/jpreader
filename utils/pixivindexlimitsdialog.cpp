@@ -27,6 +27,10 @@ CPixivIndexLimitsDialog::CPixivIndexLimitsDialog(QWidget *parent)
     ui->comboLength->addItem(tr("Short (5000 - 20000)"));
     ui->comboLength->addItem(tr("Medium (20000 - 80000)"));
     ui->comboLength->addItem(tr("Long (80000+)"));
+
+    ui->comboRating->addItem(tr("All"));
+    ui->comboRating->addItem(tr("Safe"));
+    ui->comboRating->addItem(tr("R-18"));
 }
 
 CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
@@ -37,9 +41,10 @@ CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
 
 void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &groupTitle, bool isTagSearch,
                                         int maxCount, const QDate &dateFrom, const QDate &dateTo,
-                                        const QString &keywords, CPixivIndexExtractor::TagSearchMode mode,
+                                        const QString &keywords, CPixivIndexExtractor::TagSearchMode tagMode,
                                         bool originalOnly, const QString &languageCode,
-                                        CPixivIndexExtractor::NovelSearchLength novelLength)
+                                        CPixivIndexExtractor::NovelSearchLength novelLength,
+                                        CPixivIndexExtractor::NovelSearchRating novelRating)
 {
     setWindowTitle(title);
     ui->groupBox->setTitle(groupTitle);
@@ -50,8 +55,9 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
     ui->checkOriginalOnly->setEnabled(isTagSearch);
     ui->editKeywords->setEnabled(isTagSearch);
 
-    ui->comboMode->setCurrentIndex(static_cast<int>(mode));
+    ui->comboMode->setCurrentIndex(static_cast<int>(tagMode));
     ui->comboLength->setCurrentIndex(static_cast<int>(novelLength));
+    ui->comboRating->setCurrentIndex(static_cast<int>(novelRating));
     ui->comboLanguage->setCurrentIndex(0);
     if (!languageCode.isEmpty()) {
         int idx = ui->comboLanguage->findData(QVariant::fromValue(languageCode));
@@ -79,8 +85,9 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
 }
 
 void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
-                                        CPixivIndexExtractor::TagSearchMode &mode, bool &originalOnly,
-                                        QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength)
+                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
+                                        QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
+                                        CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
@@ -98,8 +105,9 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
     }
 
     languageCode = ui->comboLanguage->currentData().toString();
-    mode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui->comboMode->currentIndex());
+    tagMode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui->comboMode->currentIndex());
     novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui->comboLength->currentIndex());
+    novelRating = static_cast<CPixivIndexExtractor::NovelSearchRating>(ui->comboRating->currentIndex());
 
     gSet->history()->appendPixivKeywords(keywords);
 }

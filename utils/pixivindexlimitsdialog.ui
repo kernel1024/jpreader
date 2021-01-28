@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>336</height>
+    <height>367</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,6 +57,19 @@
        <widget class="QComboBox" name="comboMode"/>
       </item>
       <item row="2" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Rating</string>
+        </property>
+        <property name="buddy">
+         <cstring>comboRating</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="comboRating"/>
+      </item>
+      <item row="3" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Max results count</string>
@@ -66,7 +79,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QSpinBox" name="spinMaxCount">
         <property name="specialValueText">
          <string>All</string>
@@ -79,14 +92,14 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QCheckBox" name="checkDateFrom">
         <property name="text">
          <string>Date from</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QDateEdit" name="dateFrom">
         <property name="enabled">
          <bool>false</bool>
@@ -96,14 +109,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QCheckBox" name="checkDateTo">
         <property name="text">
          <string>Date to</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="QDateEdit" name="dateTo">
         <property name="enabled">
          <bool>false</bool>
@@ -113,7 +126,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Text length</string>
@@ -123,10 +136,10 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="QComboBox" name="comboLength"/>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Language</string>
@@ -136,10 +149,10 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="7" column="1">
        <widget class="QComboBox" name="comboLanguage"/>
       </item>
-      <item row="7" column="1">
+      <item row="8" column="1">
        <widget class="QCheckBox" name="checkOriginalOnly">
         <property name="text">
          <string>Only original works</string>
@@ -161,6 +174,7 @@
  <tabstops>
   <tabstop>editKeywords</tabstop>
   <tabstop>comboMode</tabstop>
+  <tabstop>comboRating</tabstop>
   <tabstop>spinMaxCount</tabstop>
   <tabstop>checkDateFrom</tabstop>
   <tabstop>dateFrom</tabstop>

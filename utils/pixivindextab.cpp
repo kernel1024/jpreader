@@ -103,7 +103,7 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
         switch (m_indexMode) {
             case CPixivIndexExtractor::imWorkIndex: header = tr("works"); break;
             case CPixivIndexExtractor::imBookmarksIndex: header = tr("bookmarks"); break;
-            case CPixivIndexExtractor::imTagSearchIndex: header = tr("tag search"); break;
+            case CPixivIndexExtractor::imTagSearchIndex: header = tr("search"); break;
         }
         QString author = m_model->authors().value(m_indexId);
         if (author.isEmpty())
@@ -111,8 +111,9 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
         if (m_indexMode == CPixivIndexExtractor::imTagSearchIndex)
             author = m_indexId;
 
-        m_title = tr("Pixiv %1 for %2").arg(header,author);
+        m_title = tr("Pixiv: %1").arg(author);
         setTabTitle(m_title);
+
         if (m_indexMode == CPixivIndexExtractor::imTagSearchIndex) {
             QUrl u(QSL("https://www.pixiv.net/tags/%1/novels").arg(m_indexId));
             u.setQuery(m_sourceQuery);
@@ -317,7 +318,7 @@ void CPixivIndexTab::htmlReport()
     switch (m_indexMode) {
         case CPixivIndexExtractor::imWorkIndex: header = tr("works"); break;
         case CPixivIndexExtractor::imBookmarksIndex: header = tr("bookmarks"); break;
-        case CPixivIndexExtractor::imTagSearchIndex: header = tr("tag search"); break;
+        case CPixivIndexExtractor::imTagSearchIndex: header = tr("search"); break;
     }
     QString author = authors.value(m_indexId);
     if (author.isEmpty())
@@ -326,8 +327,10 @@ void CPixivIndexTab::htmlReport()
         author = m_indexId;
 
     if (m_indexMode == CPixivIndexExtractor::imTagSearchIndex) {
-        header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/tags/%2/novels?%4\">"
-                     "%3</a>.</h3>").arg(header,m_indexId,author,m_sourceQuery.query());
+        QUrl u(QSL("https://www.pixiv.net/tags/%1/novels").arg(m_indexId));
+        u.setQuery(m_sourceQuery);
+        header = QSL("Pixiv %1 list for <a href=\"%2\">"
+                     "%3</a>.").arg(header,u.toString(QUrl::FullyEncoded),author);
     } else {
         header = QSL("<h3>Pixiv %1 list for <a href=\"https://www.pixiv.net/users/%2\">"
                      "%3</a>.</h3>").arg(header,m_indexId,author);
@@ -418,9 +421,12 @@ void CPixivIndexTab::processExtractorAction()
         return;
     }
 
-    connect(ex,&CAbstractExtractor::novelReady,gSet,[]
+    QStringList searchList;
+    if (m_indexMode == CPixivIndexExtractor::imTagSearchIndex)
+        searchList = m_indexId.split(QChar(' '),Qt::SkipEmptyParts);
+    connect(ex,&CAbstractExtractor::novelReady,gSet,[searchList]
             (const QString &html, bool focus, bool translate, bool alternateTranslate){
-        auto *sv = new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),focus,html);
+        auto *sv = new CBrowserTab(gSet->activeWindow(),QUrl(),searchList,focus,html);
         sv->setRequestAutotranslate(translate);
         sv->setRequestAlternateAutotranslate(alternateTranslate);
     },Qt::QueuedConnection);
