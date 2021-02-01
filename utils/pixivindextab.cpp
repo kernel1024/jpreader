@@ -538,7 +538,12 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole) {
         switch (col) {
             case 0: return w.value(QSL("id")).toString();
-            case 1: return w.value(QSL("title")).toString();
+            case 1: {
+                const QString translatedTitle = w.value(QSL("translatedTitle")).toString();
+                if (!translatedTitle.isEmpty())
+                    return translatedTitle;
+                return w.value(QSL("title")).toString();
+            }
             case 2: return w.value(QSL("userName")).toString();
             case 3: return QSL("%1").arg(w.value(QSL("textCount")).toInt());
             case 4: {
@@ -561,7 +566,9 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::ToolTipRole) {
         QString tooltip;
         if (col == 1) {
-            tooltip = w.value(QSL("translatedTitle")).toString();
+            const QString translatedTitle = w.value(QSL("translatedTitle")).toString();
+            if (!translatedTitle.isEmpty())
+                tooltip = w.value(QSL("title")).toString();
         } else if (!m_translatedTags.isEmpty()) { // tag columns
             int tagNum = 0;
             const QString tag = getTagForColumn(col,&tagNum);
@@ -689,7 +696,7 @@ void CPixivTableModel::setStringsFromTranslation(const QStringList &translated)
 
     m_translatedTags.append(translated.mid(m_list.count()));
 
-    Q_EMIT dataChanged(index(0,1),index(m_list.count(),1),{ Qt::ToolTipRole });
+    Q_EMIT dataChanged(index(0,1),index(m_list.count(),1),{ Qt::ToolTipRole, Qt::DisplayRole });
     Q_EMIT dataChanged(index(0,basicHeaders().count()),
                        index(m_list.count(),basicHeaders().count() + m_tags.count() - 1),
                        { Qt::ToolTipRole });
