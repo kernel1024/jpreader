@@ -125,7 +125,7 @@ void CDownloadWriter::appendBytesToFile(const QByteArray &data)
     }
 }
 
-void CDownloadWriter::finalizeFile(bool success)
+void CDownloadWriter::finalizeFile(bool success, bool forceDelete)
 {
     if (exitIfAborted()) return;
 
@@ -136,6 +136,8 @@ void CDownloadWriter::finalizeFile(bool success)
             m_rawFile.flush();
             m_rawFile.close();
         }
+        if (forceDelete && m_rawFile.exists())
+            m_rawFile.remove();
     } else {
         if (success && !exitIfAborted()) {
             gSet->zipWriter()->appendFileToZip(m_fileName,m_zipFile,m_zipData);

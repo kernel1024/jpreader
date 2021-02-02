@@ -22,6 +22,7 @@ const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
 const int downloadManagerColumnCount = 4;
 const int maxZipWriterErrorsInteractive = 5;
+const int retryRestartMS = 1000;
 const auto replyAuxId = "replyAuxID";
 const auto replyHeadFileName = "replyHeadFileName";
 const auto replyHeadOffset = "replyHeadOffset";
@@ -157,13 +158,26 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 }
 
 void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
-                                                     qint64 offset)
+                                                     qint64 offset, const QUuid reuseExistingDownloadItem)
 {
+    int row = -1;
+    if (!reuseExistingDownloadItem.isNull()) {
+        row = m_downloads.indexOf(CDownloadItem(reuseExistingDownloadItem));
+        if (row<0 || row>=m_downloads.count()) {
+            qWarning() << "Download removed by user, abort restarting process.";
+            return;
+        }
+    }
+
     QNetworkRequest req = request;
     req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true);
     QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
 
-    appendItem(CDownloadItem(rpl, fileName, offset));
+    if (row<0) {
+        appendItem(CDownloadItem(rpl, fileName, offset));
+    } else {
+        m_downloads[row].reuseReply(rpl);
+    }
 
     connect(rpl, &QNetworkReply::finished,
             this, &CDownloadsModel::downloadFinished);
@@ -604,18 +618,19 @@ void CDownloadsModel::downloadFinished()
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
 
     int row = -1;
-
+    QUuid auxId;
     if (item) {
         row = m_downloads.indexOf(CDownloadItem(item->id()));
     } else if (rpl) {
-        const QUuid id = rpl->property(CDefaults::replyAuxId).toUuid();
-        row = m_downloads.indexOf(CDownloadItem(id));
+        auxId = rpl->property(CDefaults::replyAuxId).toUuid();
+        row = m_downloads.indexOf(CDownloadItem(auxId));
     } else {
         qCritical() << "Download finished fast cleanup, unable to track download";
         return;
     }
     Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
+    bool isRestarting = false;
     if (item) {
         m_downloads[row].state = item->state();
         m_downloads[row].downloadItem = nullptr;
@@ -627,14 +642,33 @@ void CDownloadsModel::downloadFinished()
             success = false;
             m_downloads[row].state = QWebEngineDownloadItem::DownloadInterrupted;
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
+            if (m_downloads.at(row).retries < gSet->settings()->translatorRetryCount) {
+                m_downloads[row].retries++;
+                m_downloads[row].errorString.append(tr(" Restarting %1 of %2.")
+                                                    .arg(m_downloads.at(row).retries)
+                                                    .arg(gSet->settings()->translatorRetryCount));
+                isRestarting = true;
+            }
         }
         m_downloads[row].reply = nullptr;
 
         QPointer<CDownloadWriter> writer = m_downloads.at(row).writer;
         if (writer) {
-            QMetaObject::invokeMethod(writer,[writer,success](){
-                writer->finalizeFile(success);
+            QMetaObject::invokeMethod(writer,[writer,success,isRestarting](){
+                writer->finalizeFile(success,isRestarting);
             },Qt::QueuedConnection);
+        }
+
+        if (isRestarting) {
+            const QNetworkRequest req = rpl->request();
+            const int retries = m_downloads.at(row).retries;
+            QTimer::singleShot(CDefaults::retryRestartMS,this,[this,req,auxId,retries](){
+                qWarning() << QSL("Restarting download %1 of %2 for %3")
+                              .arg(retries)
+                              .arg(gSet->settings()->translatorRetryCount)
+                              .arg(req.url().toString());
+                createDownloadForNetworkRequest(req,QString(),0U,auxId);
+            });
         }
     }
 
@@ -642,9 +676,9 @@ void CDownloadsModel::downloadFinished()
 
     updateProgressLabel();
 
-    if ((m_downloads.at(row).autoDelete) ||
+    if (!isRestarting && ((m_downloads.at(row).autoDelete) ||
             (item && (item->state() == QWebEngineDownloadItem::DownloadCompleted)
-             && gSet->settings()->downloaderCleanCompleted)) {
+             && gSet->settings()->downloaderCleanCompleted))) {
 
         deleteDownloadItem(index(row,0));
     }
@@ -1009,6 +1043,20 @@ QString CDownloadItem::getZipName() const
         return pathName.split(CDefaults::zipSeparator).first();
 
     return QString();
+}
+
+void CDownloadItem::reuseReply(QNetworkReply *rpl)
+{
+    reply = rpl;
+    url = rpl->url();
+    received = initialOffset;
+
+    errorString.clear();
+    state = QWebEngineDownloadItem::DownloadRequested;
+    oldReceived = 0L;
+    total = 0L;
+
+    rpl->setProperty(CDefaults::replyAuxId,auxId);
 }
 
 CDownloadBarDelegate::CDownloadBarDelegate(QObject *parent, CDownloadsModel *model)

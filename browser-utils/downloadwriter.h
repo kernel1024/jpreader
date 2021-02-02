@@ -43,7 +43,7 @@ protected:
 
 public Q_SLOTS:
     void appendBytesToFile(const QByteArray &data);
-    void finalizeFile(bool success);
+    void finalizeFile(bool success, bool forceDelete);
 
 Q_SIGNALS:
     void error(const QString& message);

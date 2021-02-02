@@ -23,6 +23,7 @@ class CDownloadItem
 {
 public:
     quint32 id { 0 };
+    qint32 retries { 0 };
     QString pathName;
     QString mimeType;
     QString errorString;
@@ -52,6 +53,7 @@ public:
     bool isEmpty() const;
     QString getFileName() const;
     QString getZipName() const;
+    void reuseReply(QNetworkReply* rpl);
 };
 
 Q_DECLARE_METATYPE(CDownloadItem)
@@ -129,7 +131,8 @@ public:
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
     void makeWriterJob(CDownloadItem &item) const;
-    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset);
+    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset,
+                                         const QUuid reuseExistingDownloadItem = QUuid());
 
     void appendItem(const CDownloadItem& item);
 
