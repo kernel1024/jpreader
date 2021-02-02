@@ -113,8 +113,8 @@ void CFanboxExtractor::pageLoadFinished()
             }
 
             QVector<CUrlWithName> images;
-            QJsonArray jimgUrls = mbody.value(QSL("images")).toArray();
-            for (const auto &jimg : qAsConst(jimgUrls)) {
+            const QJsonArray jimgUrls = mbody.value(QSL("images")).toArray();
+            for (const auto &jimg : jimgUrls) {
                 QString url = jimg.toObject().value(QSL("originalUrl")).toString();
                 if (!url.isEmpty())
                     images.append(qMakePair(url,QString()));
@@ -136,8 +136,8 @@ void CFanboxExtractor::pageLoadFinished()
                              .arg(m_authorId,author));
             }
 
-            QJsonObject jillusts = mbody.value(QSL("imageMap")).toObject();
-            for (const auto &jimg : qAsConst(jillusts)) {
+            const QJsonObject jillusts = mbody.value(QSL("imageMap")).toObject();
+            for (const auto &jimg : jillusts) {
                 QString id = jimg.toObject().value(QSL("id")).toString();
                 QString url = jimg.toObject().value(QSL("originalUrl")).toString();
                 if (!id.isEmpty() && !url.isEmpty())
@@ -176,6 +176,11 @@ void CFanboxExtractor::pageLoadFinished()
                                           m_title,m_text,true,
                                           QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
                                       m_focus,m_translate,m_alternateTranslate);
+                }
+
+                if (m_isManga && images.isEmpty() && !m_illustMap.isEmpty()) {
+                    for (const auto &img : qAsConst(m_illustMap))
+                        images.append(qMakePair(img.first,QString()));
                 }
 
                 if (m_isManga && !images.isEmpty()) {
