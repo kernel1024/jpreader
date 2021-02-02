@@ -79,6 +79,7 @@ void CBrowserNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUr
 
     ui.label->setText(tr("%1 downloadable URLs detected.").arg(urls.count()));
     ui.syntax->setCurrentIndex(0);
+    ui.checkAddNumbers->setChecked(isFanbox || isPatreon);
 
     ui.table->setColumnCount(2);
     ui.table->setHorizontalHeaderLabels({ tr("File name"), tr("URL") });

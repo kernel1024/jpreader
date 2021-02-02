@@ -438,7 +438,9 @@ void CDownloadsModel::updateProgressLabel()
     int failures = 0;
     int cancelled = 0;
     int active = 0;
+    int retries = 0;
     for(const auto &item : qAsConst(m_downloads)) {
+        retries += item.retries;
         switch (item.state) {
             case QWebEngineDownloadItem::DownloadCancelled:
                 cancelled++;
@@ -457,13 +459,14 @@ void CDownloadsModel::updateProgressLabel()
     }
 
     m_manager->setProgressLabel(tr("Downloaded: %1 of %2. Active: %3. Failures: %4. Cancelled %5.\n"
-                                   "Total downloaded: %6.")
+                                   "Total downloaded: %6. Retries: %7.")
                                 .arg(completed)
                                 .arg(total)
                                 .arg(active)
                                 .arg(failures)
                                 .arg(cancelled)
-                                .arg(CGenericFuncs::formatFileSize(m_manager->receivedBytes())));
+                                .arg(CGenericFuncs::formatFileSize(m_manager->receivedBytes()))
+                                .arg(retries));
 }
 
 CDownloadsModel::CDownloadsModel(CDownloadManager *parent)

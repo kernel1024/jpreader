@@ -91,6 +91,7 @@ void CFanboxExtractor::pageLoadFinished()
             QString author = body.value(QSL("user")).toObject().value(QSL("name")).toString();
             m_authorId = body.value(QSL("creatorId")).toString();
             m_text = mbody.value(QSL("text")).toString();
+            QStringList imageIdOrder;
             const QJsonArray jblocks = mbody.value(QSL("blocks")).toArray();
             for (const auto &jblock : jblocks) {
                 QString bvalue = jblock.toObject().value(QSL("type")).toString();
@@ -98,6 +99,7 @@ void CFanboxExtractor::pageLoadFinished()
                 QString imageId = jblock.toObject().value(QSL("imageId")).toString();
                 if (!imageId.isEmpty()) {
                     m_text.append(QSL("<img>%1</img>").arg(imageId));
+                    imageIdOrder.append(imageId);
                 } else if (!bvalue.isEmpty()) {
                     m_text.append(QSL("<%1>%2</%1>").arg(bvalue,btext));
                 }
@@ -136,12 +138,15 @@ void CFanboxExtractor::pageLoadFinished()
                              .arg(m_authorId,author));
             }
 
+            QHash<QString,QString> imageIdHash;
             const QJsonObject jillusts = mbody.value(QSL("imageMap")).toObject();
             for (const auto &jimg : jillusts) {
                 QString id = jimg.toObject().value(QSL("id")).toString();
                 QString url = jimg.toObject().value(QSL("originalUrl")).toString();
-                if (!id.isEmpty() && !url.isEmpty())
+                if (!id.isEmpty() && !url.isEmpty()) {
                     m_illustMap.append(qMakePair(url,id));
+                    imageIdHash.insert(id,url);
+                }
             }
 
             if (!m_isManga && !m_illustMap.isEmpty()) {
@@ -178,9 +183,13 @@ void CFanboxExtractor::pageLoadFinished()
                                       m_focus,m_translate,m_alternateTranslate);
                 }
 
-                if (m_isManga && images.isEmpty() && !m_illustMap.isEmpty()) {
-                    for (const auto &img : qAsConst(m_illustMap))
-                        images.append(qMakePair(img.first,QString()));
+                if (m_isManga && images.isEmpty() && !imageIdHash.isEmpty()) {
+                    for (const auto &ord : qAsConst(imageIdOrder)) {
+                        if (imageIdHash.contains(ord))
+                            images.append(qMakePair(imageIdHash.take(ord),QString()));
+                    }
+                    for (auto it = imageIdHash.constKeyValueBegin(), end = imageIdHash.constKeyValueEnd(); it != end; ++it)
+                        images.append(qMakePair((*it).second,QString()));
                 }
 
                 if (m_isManga && !images.isEmpty()) {
