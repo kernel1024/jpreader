@@ -115,6 +115,11 @@ void CGlobalUI::setFileDialogNewFolderName(const QString &name)
     gSet->d_func()->uiTranslator->setFileDialogNewFolderName(name);
 }
 
+void CGlobalUI::setPixivFetchCovers(bool state)
+{
+    gSet->m_settings->pixivFetchCovers = state;
+}
+
 void CGlobalUI::blockTabClose()
 {
     gSet->d_func()->blockTabCloseActive=true;

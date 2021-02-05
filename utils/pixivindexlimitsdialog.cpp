@@ -42,7 +42,7 @@ CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
 void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &groupTitle, bool isTagSearch,
                                         int maxCount, const QDate &dateFrom, const QDate &dateTo,
                                         const QString &keywords, CPixivIndexExtractor::TagSearchMode tagMode,
-                                        bool originalOnly, const QString &languageCode,
+                                        bool originalOnly, bool fetchCovers, const QString &languageCode,
                                         CPixivIndexExtractor::NovelSearchLength novelLength,
                                         CPixivIndexExtractor::NovelSearchRating novelRating)
 {
@@ -69,6 +69,7 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
     ui->editKeywords->setCurrentText(keywords);
 
     ui->checkOriginalOnly->setChecked(originalOnly);
+    ui->checkFetchCovers->setChecked(fetchCovers);
     ui->spinMaxCount->setValue(maxCount);
     if (dateFrom.isValid()) {
         ui->dateFrom->setDate(dateFrom);
@@ -85,12 +86,13 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
 }
 
 void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
-                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
+                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly, bool &fetchCovers,
                                         QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
                                         CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
+    fetchCovers = ui->checkFetchCovers->isChecked();
     maxCount = ui->spinMaxCount->value();
 
     if (ui->checkDateFrom->isChecked()) {

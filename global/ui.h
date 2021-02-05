@@ -25,6 +25,7 @@ public:
     QRect getLastMainWindowGeometry() const;
     bool isBlockTabCloseActive() const;
     void setFileDialogNewFolderName(const QString& name);
+    void setPixivFetchCovers(bool state);
 
     void showLightTranslator(const QString& text = QString());
 

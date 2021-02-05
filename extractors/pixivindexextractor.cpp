@@ -12,6 +12,7 @@
 #include "pixivindexextractor.h"
 #include "global/control.h"
 #include "global/network.h"
+#include "global/ui.h"
 #include "utils/genericfuncs.h"
 #include "utils/pixivindextab.h"
 #include "utils/pixivindexlimitsdialog.h"
@@ -125,7 +126,6 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                 const QJsonObject tworks = obj.value(QSL("body")).toObject()
                                            .value(QSL("works")).toObject();
 
-                m_list.reserve(tworks.count());
                 for (const auto& work : qAsConst(tworks)) {
                     const QJsonObject w = work.toObject();
 
@@ -196,7 +196,7 @@ void CPixivIndexExtractor::startMain()
 {
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
-        m_list.clear();
+        m_list = QJsonArray();
         if (exitIfAborted()) return;
 
         QUrl u;
@@ -313,7 +313,6 @@ void CPixivIndexExtractor::bookmarksAjax()
             const QJsonArray tworks = obj.value(QSL("body")).toObject()
                                       .value(QSL("works")).toArray();
 
-            m_list.reserve(tworks.count());
             for (const auto& work : qAsConst(tworks)) {
                 const QJsonObject w = work.toObject();
 
@@ -398,7 +397,6 @@ void CPixivIndexExtractor::searchAjax()
                                       .value(QSL("novel")).toObject()
                                       .value(QSL("data")).toArray();
 
-            m_list.reserve(tworks.count());
             for (const auto& work : qAsConst(tworks)) {
                 m_list.append(work.toObject());
 
@@ -445,7 +443,7 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
     preloadNovelCovers(origin);
     if (m_worksImgFetch>0) return;
 
-    const QVector<QJsonObject> list = m_list;
+    const QJsonArray list = m_list;
     auto *window = gSet->activeWindow();
     auto indexMode = m_indexMode;
     auto indexID = m_indexId;
@@ -481,17 +479,19 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
     int imgWorkCounter = 0;
     QStringList processedUrls;
     m_imgMutex.lock();
-    for (auto& w : m_list) {
-        QString coverImgUrl = w.value(QSL("url")).toString();
+    for (int i=0; i<m_list.count(); i++) {
+        QJsonObject obj = m_list.at(i).toObject();
+        QString coverImgUrl = obj.value(QSL("url")).toString();
         if (coverImgUrl.contains(QSL("common/images")) ||
                 coverImgUrl.contains(QSL("data:image"))) {
             continue;
         }
-        QUrl url(w.value(QSL("url")).toString());
+        QUrl url(obj.value(QSL("url")).toString());
         if (!url.isValid() || url.isEmpty()) continue;
 
         if (!(gSet->settings()->pixivFetchCovers)) {
-            w.insert(QSL("url"),QJsonValue(QString::fromUtf8(emptyImage)));
+            obj.insert(QSL("url"),QJsonValue(QString::fromUtf8(emptyImage)));
+            m_list[i] = obj;
             continue;
         }
 
@@ -554,9 +554,12 @@ void CPixivIndexExtractor::subImageFinished()
         dataUri = errorImage;
 
     m_imgMutex.lock();
-    for (auto &w : m_list) {
-        if (w.value(QSL("url")).toString() == rpl->url().toString())
-            w.insert(QSL("url"),QJsonValue(QString::fromUtf8(dataUri)));
+    for (int i=0; i<m_list.count(); i++) {
+        QJsonObject obj = m_list.at(i).toObject();
+        if (obj.value(QSL("url")).toString() == rpl->url().toString()) {
+            obj.insert(QSL("url"),QJsonValue(QString::fromUtf8(dataUri)));
+            m_list[i] = obj;
+        }
     }
     m_imgMutex.unlock();
 
@@ -575,11 +578,14 @@ bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QS
                                                  CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     CPixivIndexLimitsDialog dlg(parentWidget);
+    bool fetchCovers = gSet->settings()->pixivFetchCovers;
     dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,tagMode,
-                  originalOnly,languageCode,novelLength,novelRating);
+                  originalOnly,fetchCovers,languageCode,novelLength,novelRating);
 
     if (dlg.exec() == QDialog::Accepted) {
-        dlg.getParams(maxCount,dateFrom,dateTo,keywords,tagMode,originalOnly,languageCode,novelLength,novelRating);
+        dlg.getParams(maxCount,dateFrom,dateTo,keywords,tagMode,originalOnly,
+                      fetchCovers,languageCode,novelLength,novelRating);
+        gSet->ui()->setPixivFetchCovers(fetchCovers);
         return true;
     }
     return false;

@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QPointer>
-#include <QJsonObject>
+#include <QJsonArray>
 #include <QUrlQuery>
 #include <QSortFilterProxyModel>
 #include "utils/specwidgets.h"
@@ -21,11 +21,12 @@ class CPixivIndexTab : public CSpecTabContainer
     Q_OBJECT
 
 public:
-    explicit CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list,
+    explicit CPixivIndexTab(QWidget *parent, const QJsonArray &list,
                             CPixivIndexExtractor::IndexMode indexMode,
                             const QString &indexId, const QUrlQuery &sourceQuery,
                             const QString &extractorFilterDesc);
     ~CPixivIndexTab() override;
+    static CPixivIndexTab* fromJson(QWidget *parentWidget, const QJsonObject& data);
     QString title() const;
 
 private:
@@ -57,6 +58,7 @@ public Q_SLOTS:
     void novelActivated(const QModelIndex &index);
     void tableContextMenu(const QPoint &pos);
     void htmlReport();
+    void saveToFile();
     void linkClicked(const QString& link);
     void processExtractorAction();
     void startTitlesAndTagsTranslation();
@@ -78,7 +80,7 @@ class CPixivTableModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
-    QVector<QJsonObject> m_list;
+    QJsonArray m_list;
     QStringList m_tags;
     QStringList m_translatedTags;
     CStringHash m_authors;
@@ -87,7 +89,7 @@ private:
     QStringList basicHeaders() const;
 
 public:
-    CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list);
+    CPixivTableModel(QObject *parent, const QJsonArray &list);
     ~CPixivTableModel() override;
 
     CStringHash authors() const;
@@ -101,6 +103,7 @@ public:
     QStringList getTags() const;
     QString getTagForColumn(int column, int *tagNumber = nullptr) const;
     int getColumnForTag(const QString& tag) const;
+    QJsonArray toJsonArray() const;
 
 protected:
     int rowCount(const QModelIndex &parent) const override;

@@ -5,6 +5,7 @@
 #include <QNetworkReply>
 #include <QUrlQuery>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QMutex>
 #include "abstractextractor.h"
 #include "global/structures.h"
@@ -45,7 +46,7 @@ private:
     QUrlQuery m_sourceQuery;
     QDate m_dateFrom;
     QDate m_dateTo;
-    QVector<QJsonObject> m_list;
+    QJsonArray m_list;
     QStringList m_ids;
     IndexMode m_indexMode { imWorkIndex };
     QAtomicInteger<int> m_worksImgFetch;

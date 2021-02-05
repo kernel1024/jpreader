@@ -7,6 +7,7 @@
 #include "pixivindextab.h"
 #include "global/control.h"
 #include "global/startup.h"
+#include "global/ui.h"
 #include "utils/genericfuncs.h"
 #include "browser/browser.h"
 #include "extractors/abstractextractor.h"
@@ -16,7 +17,7 @@ namespace CDefaults {
 const int pixivSortRole = Qt::UserRole + 1;
 }
 
-CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list,
+CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
                                CPixivIndexExtractor::IndexMode indexMode,
                                const QString &indexId, const QUrlQuery &sourceQuery,
                                const QString &extractorFilterDesc) :
@@ -45,6 +46,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
     connect(ui->table,&QTableView::customContextMenuRequested,this,&CPixivIndexTab::tableContextMenu);
     connect(ui->labelHead,&QLabel::linkActivated,this,&CPixivIndexTab::linkClicked);
     connect(ui->buttonReport,&QPushButton::clicked,this,&CPixivIndexTab::htmlReport);
+    connect(ui->buttonSave,&QPushButton::clicked,this,&CPixivIndexTab::saveToFile);
     connect(ui->buttonTranslateTitles,&QPushButton::clicked,this,&CPixivIndexTab::startTitlesAndTagsTranslation);
     connect(ui->editDescription,&QTextBrowser::anchorClicked,this,[this](const QUrl& url){
         linkClicked(url.toString());
@@ -79,6 +81,17 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QVector<QJsonObject> &list
 CPixivIndexTab::~CPixivIndexTab()
 {
     delete ui;
+}
+
+CPixivIndexTab *CPixivIndexTab::fromJson(QWidget *parentWidget, const QJsonObject &data)
+{
+    const QJsonArray list = data.value(QSL("list")).toArray();
+    const auto indexMode = static_cast<CPixivIndexExtractor::IndexMode>(data.value(QSL("indexMode")).toInt(0));
+    const QString indexId = data.value(QSL("indexId")).toString();
+    const QUrlQuery sourceQuery(data.value(QSL("sourceQuery")).toString());
+    const QString filterDesc = data.value(QSL("filterDesc")).toString();
+
+    return new CPixivIndexTab(parentWidget,list,indexMode,indexId,sourceQuery,filterDesc);
 }
 
 QString CPixivIndexTab::title() const
@@ -342,6 +355,31 @@ void CPixivIndexTab::htmlReport()
     new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),true,html);
 }
 
+void CPixivIndexTab::saveToFile()
+{
+    QString fileName = CGenericFuncs::getSaveFileNameD(this,tr("Save list to file"),gSet->settings()->savedAuxSaveDir,
+                                                    QStringList( { tr("Json Pixiv List (*.jspix)") } ));
+    if (fileName.isEmpty()) return;
+    gSet->ui()->setSavedAuxSaveDir(QFileInfo(fileName).absolutePath());
+
+    QJsonObject root;
+    root.insert(QSL("list"),m_model->toJsonArray());
+    root.insert(QSL("indexMode"),static_cast<int>(m_indexMode));
+    root.insert(QSL("indexId"),m_indexId);
+    root.insert(QSL("sourceQuery"),m_sourceQuery.toString());
+    root.insert(QSL("filterDesc"),ui->labelExtractorFilter->text());
+    QJsonDocument doc(root);
+
+    QFile f(fileName);
+    if (!f.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                              tr("Unable to create file %1").arg(fileName));
+        return;
+    }
+    f.write(doc.toJson(QJsonDocument::Indented));
+    f.close();
+}
+
 QString CPixivIndexTab::makeNovelInfoBlock(CStringHash *authors,
                                            const QString& workId, const QString& workImgUrl,
                                            const QString& title, int length,
@@ -497,7 +535,7 @@ void CPixivIndexTab::filterChanged(const QString &filter)
     updateCountLabel();
 }
 
-CPixivTableModel::CPixivTableModel(QObject *parent, const QVector<QJsonObject> &list)
+CPixivTableModel::CPixivTableModel(QObject *parent, const QJsonArray &list)
     : QAbstractTableModel(parent),
       m_list(list)
 {
@@ -533,7 +571,7 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
 
     const int row = index.row();
     const int col = index.column();
-    const auto w = m_list.at(row);
+    const auto w = m_list.at(row).toObject();
 
     if (role == Qt::DisplayRole) {
         switch (col) {
@@ -654,7 +692,7 @@ QJsonObject CPixivTableModel::item(const QModelIndex &index) const
     if (!checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
         return QJsonObject();
 
-    return m_list.at(index.row());
+    return m_list.at(index.row()).toObject();
 }
 
 QString CPixivTableModel::tag(const QModelIndex &index) const
@@ -681,7 +719,7 @@ QStringList CPixivTableModel::getStringsForTranslation() const
     QStringList res;
     res.reserve(m_list.count() + m_tags.count());
     for (const auto &w : qAsConst(m_list))
-        res.append(w.value(QSL("title")).toString());
+        res.append(w.toObject().value(QSL("title")).toString());
     res.append(m_tags);
     return res;
 }
@@ -691,8 +729,11 @@ void CPixivTableModel::setStringsFromTranslation(const QStringList &translated)
     if (translated.isEmpty()
             || ((m_list.count() + m_tags.count()) != translated.count())) return;
 
-    for (int i=0;i<m_list.count();i++)
-        m_list[i].insert(QSL("translatedTitle"),translated.at(i));
+    for (int i=0;i<m_list.count();i++) {
+        QJsonObject obj = m_list.at(i).toObject();
+        obj.insert(QSL("translatedTitle"),translated.at(i));
+        m_list[i] = obj;
+    }
 
     m_translatedTags.append(translated.mid(m_list.count()));
 
@@ -735,6 +776,11 @@ int CPixivTableModel::getColumnForTag(const QString &tag) const
     return (col + basicHeaders().count());
 }
 
+QJsonArray CPixivTableModel::toJsonArray() const
+{
+    return m_list;
+}
+
 void CPixivTableModel::updateTags()
 {
     m_tags.clear();
@@ -742,15 +788,16 @@ void CPixivTableModel::updateTags()
     m_translatedTags.clear();
 
     for (const auto &w : qAsConst(m_list)) {
-        const QJsonArray wtags = w.value(QSL("tags")).toArray();
+        const QJsonObject obj = w.toObject();
+        const QJsonArray wtags = obj.value(QSL("tags")).toArray();
         for (const auto& t : qAsConst(wtags)) {
             const QString tag = t.toString();
             if (!m_tags.contains(tag))
                 m_tags.append(tag);
         }
 
-        const QString authorId = w.value(QSL("userId")).toString();
-        m_authors[authorId] = w.value(QSL("userName")).toString();
+        const QString authorId = obj.value(QSL("userId")).toString();
+        m_authors[authorId] = obj.value(QSL("userName")).toString();
     }
     std::sort(m_tags.begin(), m_tags.end());
 }

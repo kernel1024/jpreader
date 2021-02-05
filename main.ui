@@ -112,6 +112,7 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpenClip"/>
     <addaction name="actionOpenInDir"/>
+    <addaction name="actionOpenPixivList"/>
     <addaction name="actionSave"/>
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
@@ -491,6 +492,14 @@
   <action name="actionPixivSearch">
    <property name="text">
     <string>Pixiv search...</string>
+   </property>
+  </action>
+  <action name="actionOpenPixivList">
+   <property name="text">
+    <string>Open Pixiv index file...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Pixiv index file (*.jspix)</string>
    </property>
   </action>
  </widget>

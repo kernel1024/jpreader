@@ -58,6 +58,7 @@ public Q_SLOTS:
     void openEmptyBrowser();
     void openRecycled();
     void openChromiumURLs();
+    void openPixivList();
     void pixivSearch();
     void tabChanged(int idx);
     void createFromClipboard();

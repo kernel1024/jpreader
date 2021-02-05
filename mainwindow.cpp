@@ -9,6 +9,8 @@
 #include <QWebEngineProfile>
 #include <QMimeData>
 #include <QRegularExpression>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "miniqxt/qxttooltip.h"
 #include "mainwindow.h"
@@ -99,6 +101,7 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionOpenInDir, &QAction::triggered, this, &CMainWindow::openAuxFileInDir);
     connect(actionOpenCB, &QAction::triggered, this, &CMainWindow::createFromClipboard);
     connect(actionOpenCBPlain, &QAction::triggered, this, &CMainWindow::createFromClipboardPlain);
+    connect(actionOpenPixivList, &QAction::triggered, this, &CMainWindow::openPixivList);
     connect(actionSave, &QAction::triggered, this, &CMainWindow::save);
     connect(actionClearCB, &QAction::triggered, this, &CMainWindow::clearClipboard);
     connect(actionClearCache, &QAction::triggered, gSet->net(), &CGlobalNetwork::clearCaches);
@@ -864,6 +867,47 @@ void CMainWindow::openRecycled()
 void CMainWindow::openChromiumURLs()
 {
     new CBrowserTab(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
+}
+
+void CMainWindow::openPixivList()
+{
+    const QStringList fnames = CGenericFuncs::getOpenFileNamesD(this,tr("Open Pixiv novel list"),
+                                                                gSet->settings()->savedAuxDir,
+                                                                { tr("Json Pixiv List (*.jspix)") });
+    if (fnames.isEmpty()) return;
+
+    gSet->ui()->setSavedAuxDir(QFileInfo(fnames.first()).absolutePath());
+
+    int errorsCount = 0;
+    for(const auto& fname : fnames) {
+        if (fname.isEmpty()) continue;
+
+        QFile f(fname);
+        if (!f.open(QIODevice::ReadOnly)) {
+            qCritical() << tr("Unable to open file %1.").arg(fname);
+            errorsCount++;
+            continue;
+        }
+
+        QJsonParseError err {};
+        QJsonDocument doc = QJsonDocument::fromJson(f.readAll(),&err);
+        f.close();
+        if (doc.isNull() || !doc.isObject()) {
+            qCritical() << tr("JSON parser error for file %1: %2 at %3.")
+                           .arg(fname)
+                           .arg(err.error)
+                           .arg(err.offset);
+            errorsCount++;
+            continue;
+        }
+
+        CPixivIndexTab::fromJson(this,doc.object());
+    }
+
+    if (errorsCount>0) {
+        QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                             tr("Some files cannot be loaded, %1 errors occured.\nCheck log output.").arg(errorsCount));
+    }
 }
 
 void CMainWindow::pixivSearch()
