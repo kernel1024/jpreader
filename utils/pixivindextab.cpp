@@ -15,6 +15,7 @@
 
 namespace CDefaults {
 const int pixivSortRole = Qt::UserRole + 1;
+const double previewProps = 600.0/400.0;
 }
 
 CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
@@ -30,6 +31,10 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
     setTabTitle(tr("Pixiv list"));
+
+    double coverHeight = static_cast<double>(ui->editDescription->maximumHeight());
+    double coverWidth = coverHeight / CDefaults::previewProps;
+    ui->labelCover->setMinimumWidth(coverWidth);
 
     ui->table->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -103,9 +108,11 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
 {
     ui->labelHead->clear();
     ui->labelCount->clear();
+    ui->labelCover->clear();
     ui->labelExtractorFilter->setText(extractorFilterDesc);
     ui->editDescription->clear();
 
+    ui->labelCover->setVisible(gSet->settings()->pixivFetchCovers);
     ui->table->resizeColumnsToContents();
 
     if (m_model->isEmpty()) {
@@ -165,6 +172,30 @@ QStringList CPixivIndexTab::jsonToTags(const QJsonArray &tags) const
     return res;
 }
 
+void CPixivIndexTab::setCoverLabel(const QString &dataUrl)
+{
+    ui->labelCover->clear();
+    const QString b64marker = QSL(";base64,");
+    const QString start = QSL("data:image/");
+
+    if (!dataUrl.startsWith(start,Qt::CaseInsensitive)) return;
+    int b64markerPos = dataUrl.indexOf(b64marker,Qt::CaseInsensitive);
+    if (b64markerPos < 0) return;
+
+    const QString base64 = dataUrl.mid(b64markerPos + b64marker.length());
+
+    auto result = QByteArray::fromBase64Encoding(base64.toLatin1());
+    if (result.decodingStatus != QByteArray::Base64DecodingStatus::Ok) return;
+
+    QImage cover = QImage::fromData(result.decoded);
+    if (cover.isNull()) return;
+    cover = cover.scaled(1,ui->editDescription->height(),
+                         Qt::AspectRatioMode::KeepAspectRatioByExpanding,
+                         Qt::SmoothTransformation);
+
+    ui->labelCover->setPixmap(QPixmap::fromImage(cover));
+}
+
 void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous)
@@ -185,6 +216,9 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
                     .arg(item.value(QSL("description")).toString()));
 
         ui->editDescription->setHtml(desc);
+
+        if (ui->labelCover->isVisible())
+            setCoverLabel(item.value(QSL("url")).toString());
     }
 }
 

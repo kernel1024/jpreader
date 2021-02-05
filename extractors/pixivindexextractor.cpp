@@ -481,7 +481,7 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
     m_imgMutex.lock();
     for (int i=0; i<m_list.count(); i++) {
         QJsonObject obj = m_list.at(i).toObject();
-        QString coverImgUrl = obj.value(QSL("url")).toString();
+        QString coverImgUrl = obj.value(QSL("url")).toString(); // TODO: fetch common covers to dataUrl
         if (coverImgUrl.contains(QSL("common/images")) ||
                 coverImgUrl.contains(QSL("data:image"))) {
             continue;

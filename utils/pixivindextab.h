@@ -44,6 +44,7 @@ private:
     void updateWidgets(const QString& extractorFilterDesc);
     void updateCountLabel();
     QStringList jsonToTags(const QJsonArray& tags) const;
+    void setCoverLabel(const QString& dataUrl);
     QString makeNovelInfoBlock(CStringHash* authors,
                                const QString& workId, const QString& workImgUrl,
                                const QString& title, int length,
