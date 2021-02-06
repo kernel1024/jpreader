@@ -31,6 +31,9 @@ public:
     QStringList getSearchEngines() const;
     void setTranslationEngine(CStructures::TranslationEngine engine);
 
+    void addPixivCommonCover(const QString& url, const QString& data);
+    QString getPixivCommonCover(const QString& url) const;
+
 Q_SIGNALS:
     void translationStatisticsChanged();
 

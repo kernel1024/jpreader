@@ -464,7 +464,7 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
         filterDesc = tr("None");
 
     QMetaObject::invokeMethod(window,[origin,list,window,indexMode,indexID,sourceQuery,filterDesc](){
-        new CPixivIndexTab(window,list,indexMode,indexID,sourceQuery,filterDesc);
+        new CPixivIndexTab(window,list,indexMode,indexID,sourceQuery,filterDesc,origin);
     },Qt::QueuedConnection);
 
     Q_EMIT finished();
@@ -476,28 +476,39 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
             QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
+    if (gSet->settings()->pixivFetchCovers == CStructures::pxfmLazyFetch) {
+        m_worksImgFetch.storeRelease(0);
+        return;
+    }
+
     int imgWorkCounter = 0;
     QStringList processedUrls;
     m_imgMutex.lock();
     for (int i=0; i<m_list.count(); i++) {
         QJsonObject obj = m_list.at(i).toObject();
-        QString coverImgUrl = obj.value(QSL("url")).toString(); // TODO: fetch common covers to dataUrl
-        if (coverImgUrl.contains(QSL("common/images")) ||
-                coverImgUrl.contains(QSL("data:image"))) {
-            continue;
-        }
-        QUrl url(obj.value(QSL("url")).toString());
-        if (!url.isValid() || url.isEmpty()) continue;
+        QString coverImgUrl = obj.value(QSL("url")).toString();
+        if (coverImgUrl.contains(QSL("data:image"))) continue;
 
-        if (!(gSet->settings()->pixivFetchCovers)) {
+        if (gSet->settings()->pixivFetchCovers == CStructures::pxfmNone) {
             obj.insert(QSL("url"),QJsonValue(QString::fromUtf8(emptyImage)));
             m_list[i] = obj;
             continue;
         }
 
+        if (coverImgUrl.contains(QSL("common/images"))) {
+            const QString data = gSet->net()->getPixivCommonCover(coverImgUrl);
+            if (!data.isEmpty()) {
+                obj.insert(QSL("url"),QJsonValue(data));
+                m_list[i] = obj;
+                continue;
+            }
+        }
+
+        QUrl url(coverImgUrl);
+        if (!url.isValid() || url.isEmpty()) continue;
+
         QFileInfo fi(coverImgUrl);
-        if (gSet->settings()->pixivFetchImages &&
-                supportedExt.contains(fi.suffix(),Qt::CaseInsensitive) &&
+        if (supportedExt.contains(fi.suffix(),Qt::CaseInsensitive) &&
                 !processedUrls.contains(coverImgUrl)) {
             imgWorkCounter++;
             processedUrls.append(coverImgUrl);
@@ -520,8 +531,12 @@ void CPixivIndexExtractor::subImageFinished()
             QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull()) return;
-    if (exitIfAborted()) return;
+    if (rpl.isNull() || exitIfAborted()) {
+        if (m_list.isEmpty()) {
+            Q_EMIT auxImgLoadFinished(QUrl(),QString());
+        }
+        return;
+    }
 
     QByteArray dataUri;
     if (rpl->error() == QNetworkReply::NoError) {
@@ -553,17 +568,30 @@ void CPixivIndexExtractor::subImageFinished()
     if (dataUri.isEmpty())
         dataUri = errorImage;
 
+    const QUrl origin = rpl->url();
+    const QString data = QString::fromUtf8(dataUri);
+    const QString rplUrl = origin.toString();
+
+    if (rplUrl.contains(QSL("common/images")))
+        gSet->net()->addPixivCommonCover(rplUrl,data);
+
+    if (m_list.isEmpty()) {
+        // Auxiliary call
+        Q_EMIT auxImgLoadFinished(origin,data);
+        return;
+    }
+
     m_imgMutex.lock();
     for (int i=0; i<m_list.count(); i++) {
         QJsonObject obj = m_list.at(i).toObject();
-        if (obj.value(QSL("url")).toString() == rpl->url().toString()) {
-            obj.insert(QSL("url"),QJsonValue(QString::fromUtf8(dataUri)));
+        const QString coverImgUrl = obj.value(QSL("url")).toString();
+        if (coverImgUrl == rplUrl) {
+            obj.insert(QSL("url"),QJsonValue(data));
             m_list[i] = obj;
         }
     }
     m_imgMutex.unlock();
 
-    QUrl origin = rpl->url();
     QMetaObject::invokeMethod(this,[this,origin](){
         showIndexResult(origin);
     },Qt::QueuedConnection);
@@ -578,7 +606,7 @@ bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QS
                                                  CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     CPixivIndexLimitsDialog dlg(parentWidget);
-    bool fetchCovers = gSet->settings()->pixivFetchCovers;
+    auto fetchCovers = gSet->settings()->pixivFetchCovers;
     dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,tagMode,
                   originalOnly,fetchCovers,languageCode,novelLength,novelRating);
 

@@ -24,7 +24,7 @@ public:
     explicit CPixivIndexTab(QWidget *parent, const QJsonArray &list,
                             CPixivIndexExtractor::IndexMode indexMode,
                             const QString &indexId, const QUrlQuery &sourceQuery,
-                            const QString &extractorFilterDesc);
+                            const QString &extractorFilterDesc, const QUrl &coversOrigin);
     ~CPixivIndexTab() override;
     static CPixivIndexTab* fromJson(QWidget *parentWidget, const QJsonObject& data);
     QString title() const;
@@ -38,13 +38,15 @@ private:
     QPointer<QSortFilterProxyModel> m_proxyModel;
     QString m_indexId;
     QString m_title;
+    QUrl m_coversOrigin;
     QUrlQuery m_sourceQuery;
     CPixivIndexExtractor::IndexMode m_indexMode { CPixivIndexExtractor::IndexMode::imWorkIndex };
 
     void updateWidgets(const QString& extractorFilterDesc);
     void updateCountLabel();
     QStringList jsonToTags(const QJsonArray& tags) const;
-    void setCoverLabel(const QString& dataUrl);
+    void setCoverLabel(const QModelIndex& index);
+    void fetchCoverLabel(const QModelIndex &index, const QUrl& url);
     QString makeNovelInfoBlock(CStringHash* authors,
                                const QString& workId, const QString& workImgUrl,
                                const QString& title, int length,
@@ -104,6 +106,7 @@ public:
     QStringList getTags() const;
     QString getTagForColumn(int column, int *tagNumber = nullptr) const;
     int getColumnForTag(const QString& tag) const;
+    void setCoverImageForUrl(const QUrl& url, const QString& data);
     QJsonArray toJsonArray() const;
 
 protected:

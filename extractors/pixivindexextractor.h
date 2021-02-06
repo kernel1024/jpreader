@@ -59,11 +59,16 @@ private:
 protected:
     void startMain() override;
 
+public Q_SLOTS:
+    void subImageFinished();
+
+Q_SIGNALS:
+    void auxImgLoadFinished(const QUrl& url, const QString& data);
+
 private Q_SLOTS:
     void profileAjax();
     void bookmarksAjax();
     void searchAjax();
-    void subImageFinished();
 };
 
 #endif // PIXIVINDEXEXTRACTOR_H

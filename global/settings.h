@@ -39,6 +39,7 @@ const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
 const CStructures::SearchEngine searchEngine = CStructures::seNone;
 const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const CStructures::AliCloudTranslatorMode aliCloudTranslatorMode = CStructures::aliTranslatorGeneral;
+const CStructures::PixivFetchCoversMode pixivFetchCovers = CStructures::pxfmLazyFetch;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
@@ -58,7 +59,6 @@ const bool proxyUseTranslator = false;
 const bool ignoreSSLErrors = false;
 const bool pdfExtractImages = true;
 const bool pixivFetchImages = false;
-const bool pixivFetchCovers = false;
 const bool translatorCacheEnabled = false;
 const bool downloaderCleanCompleted = false;
 const auto fontFixed = "Courier New";
@@ -144,6 +144,7 @@ public:
     CStructures::TranslationEngine translatorEngine { CDefaults::translatorEngine };
     CStructures::TranslationEngine previousTranslatorEngine { CDefaults::translatorEngine };
     CStructures::AliCloudTranslatorMode aliCloudTranslatorMode { CDefaults::aliCloudTranslatorMode };
+    CStructures::PixivFetchCoversMode pixivFetchCovers { CDefaults::pixivFetchCovers };
 
     bool jsLogConsole { CDefaults::jsLogConsole };
     bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };
@@ -163,7 +164,6 @@ public:
     bool ignoreSSLErrors { CDefaults::ignoreSSLErrors };
     bool pdfExtractImages { CDefaults::pdfExtractImages };
     bool pixivFetchImages { CDefaults::pixivFetchImages };
-    bool pixivFetchCovers { CDefaults::pixivFetchCovers };
     bool translatorCacheEnabled { CDefaults::translatorCacheEnabled };
     bool downloaderCleanCompleted { CDefaults::downloaderCleanCompleted };
 

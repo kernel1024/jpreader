@@ -1,4 +1,4 @@
-#include <QSortFilterProxyModel>
+﻿#include <QSortFilterProxyModel>
 #include <QJsonArray>
 #include <QMenu>
 #include <QThread>
@@ -6,6 +6,7 @@
 
 #include "pixivindextab.h"
 #include "global/control.h"
+#include "global/network.h"
 #include "global/startup.h"
 #include "global/ui.h"
 #include "utils/genericfuncs.h"
@@ -16,15 +17,17 @@
 namespace CDefaults {
 const int pixivSortRole = Qt::UserRole + 1;
 const double previewProps = 600.0/400.0;
+const auto coverLabelDataUrl = "dataUrl";
 }
 
 CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
                                CPixivIndexExtractor::IndexMode indexMode,
                                const QString &indexId, const QUrlQuery &sourceQuery,
-                               const QString &extractorFilterDesc) :
+                               const QString &extractorFilterDesc, const QUrl &coversOrigin) :
     CSpecTabContainer(parent),
     ui(new Ui::CPixivIndexTab),
     m_indexId(indexId),
+    m_coversOrigin(coversOrigin),
     m_sourceQuery(sourceQuery),
     m_indexMode(indexMode)
 {
@@ -34,7 +37,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
 
     double coverHeight = static_cast<double>(ui->editDescription->maximumHeight());
     double coverWidth = coverHeight / CDefaults::previewProps;
-    ui->labelCover->setMinimumWidth(coverWidth);
+    ui->labelCover->setMinimumWidth(static_cast<int>(coverWidth));
 
     ui->table->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -95,8 +98,9 @@ CPixivIndexTab *CPixivIndexTab::fromJson(QWidget *parentWidget, const QJsonObjec
     const QString indexId = data.value(QSL("indexId")).toString();
     const QUrlQuery sourceQuery(data.value(QSL("sourceQuery")).toString());
     const QString filterDesc = data.value(QSL("filterDesc")).toString();
+    const QUrl coversOrigin(data.value(QSL("coversOrigin")).toString());
 
-    return new CPixivIndexTab(parentWidget,list,indexMode,indexId,sourceQuery,filterDesc);
+    return new CPixivIndexTab(parentWidget,list,indexMode,indexId,sourceQuery,filterDesc,coversOrigin);
 }
 
 QString CPixivIndexTab::title() const
@@ -112,7 +116,7 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
     ui->labelExtractorFilter->setText(extractorFilterDesc);
     ui->editDescription->clear();
 
-    ui->labelCover->setVisible(gSet->settings()->pixivFetchCovers);
+    ui->labelCover->setVisible(gSet->settings()->pixivFetchCovers != CStructures::pxfmNone);
     ui->table->resizeColumnsToContents();
 
     if (m_model->isEmpty()) {
@@ -172,16 +176,27 @@ QStringList CPixivIndexTab::jsonToTags(const QJsonArray &tags) const
     return res;
 }
 
-void CPixivIndexTab::setCoverLabel(const QString &dataUrl)
+void CPixivIndexTab::setCoverLabel(const QModelIndex &index)
 {
-    ui->labelCover->clear();
-    const QString b64marker = QSL(";base64,");
-    const QString start = QSL("data:image/");
+    static const QString b64marker = QSL(";base64,");
+    static const QString start = QSL("data:image/");
 
-    if (!dataUrl.startsWith(start,Qt::CaseInsensitive)) return;
+    const QString dataUrl = m_model->item(index).value(QSL("url")).toString();
+
+    ui->labelCover->clear();
+    ui->labelCover->setProperty(CDefaults::coverLabelDataUrl,dataUrl);
+
+    if (!dataUrl.startsWith(start,Qt::CaseInsensitive)) {
+        QUrl url(dataUrl);
+        if ((gSet->settings()->pixivFetchCovers == CStructures::pxfmLazyFetch)
+                && url.isValid() && dataUrl.startsWith(QSL("http"),Qt::CaseInsensitive)) {
+            fetchCoverLabel(index,url);
+        }
+        return;
+    }
+
     int b64markerPos = dataUrl.indexOf(b64marker,Qt::CaseInsensitive);
     if (b64markerPos < 0) return;
-
     const QString base64 = dataUrl.mid(b64markerPos + b64marker.length());
 
     auto result = QByteArray::fromBase64Encoding(base64.toLatin1());
@@ -196,6 +211,41 @@ void CPixivIndexTab::setCoverLabel(const QString &dataUrl)
     ui->labelCover->setPixmap(QPixmap::fromImage(cover));
 }
 
+void CPixivIndexTab::fetchCoverLabel(const QModelIndex &index, const QUrl &url)
+{
+    const QString coverImgUrl = url.toString();
+    if (coverImgUrl.contains(QSL("common/images"))) {
+        const QString data = gSet->net()->getPixivCommonCover(coverImgUrl);
+        if (!data.isEmpty()) {
+            m_model->setCoverImageForUrl(coverImgUrl,data);
+            setCoverLabel(index);
+            return;
+        }
+    }
+
+    auto *extractor = new CPixivIndexExtractor(this,this);
+
+    connect(extractor,&CPixivIndexExtractor::auxImgLoadFinished,this,
+            [this,index,extractor](const QUrl& origin, const QString& data){
+        // Check if other query is launched while we downloaded cover
+        if (origin.toString() == ui->labelCover->property(CDefaults::coverLabelDataUrl).toString()) {
+            // Update cover and widget
+            if (!origin.isEmpty() && !data.isEmpty()) {
+                m_model->setCoverImageForUrl(origin,data);
+                setCoverLabel(index);
+            }
+        }
+        extractor->deleteLater();
+    });
+
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,extractor]{
+        QNetworkRequest req(url);
+        req.setRawHeader("referer",m_coversOrigin.toString().toUtf8());
+        QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
+        connect(rplImg,&QNetworkReply::finished,extractor,&CPixivIndexExtractor::subImageFinished);
+    },Qt::QueuedConnection);
+}
+
 void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous)
@@ -206,7 +256,8 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
 
     auto *proxy = qobject_cast<QAbstractProxyModel *>(ui->table->model());
     if (proxy) {
-        const QJsonObject item = m_model->item(proxy->mapToSource(current));
+        const QModelIndex idx = proxy->mapToSource(current);
+        const QJsonObject item = m_model->item(idx);
         const QStringList tags = jsonToTags(item.value(QSL("tags")).toArray());
         QString desc;
         if (!tags.isEmpty())
@@ -218,7 +269,7 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
         ui->editDescription->setHtml(desc);
 
         if (ui->labelCover->isVisible())
-            setCoverLabel(item.value(QSL("url")).toString());
+            setCoverLabel(idx);
     }
 }
 
@@ -402,6 +453,7 @@ void CPixivIndexTab::saveToFile()
     root.insert(QSL("indexId"),m_indexId);
     root.insert(QSL("sourceQuery"),m_sourceQuery.toString());
     root.insert(QSL("filterDesc"),ui->labelExtractorFilter->text());
+    root.insert(QSL("coversOrigin"),m_coversOrigin.toString());
     QJsonDocument doc(root);
 
     QFile f(fileName);
@@ -808,6 +860,18 @@ int CPixivTableModel::getColumnForTag(const QString &tag) const
     if (col<0) return col;
 
     return (col + basicHeaders().count());
+}
+
+void CPixivTableModel::setCoverImageForUrl(const QUrl &url, const QString &data)
+{
+    for (int i=0; i<m_list.count(); i++) {
+        QJsonObject obj = m_list.at(i).toObject();
+        const QString coverImgUrl = obj.value(QSL("url")).toString();
+        if (coverImgUrl == url.toString()) {
+            obj.insert(QSL("url"),QJsonValue(data));
+            m_list[i] = obj;
+        }
+    }
 }
 
 QJsonArray CPixivTableModel::toJsonArray() const

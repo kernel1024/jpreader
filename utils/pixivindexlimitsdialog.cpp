@@ -31,6 +31,10 @@ CPixivIndexLimitsDialog::CPixivIndexLimitsDialog(QWidget *parent)
     ui->comboRating->addItem(tr("All"));
     ui->comboRating->addItem(tr("Safe"));
     ui->comboRating->addItem(tr("R-18"));
+
+    ui->comboFetchCovers->addItem(tr("None"));
+    ui->comboFetchCovers->addItem(tr("Lazy (on click)"));
+    ui->comboFetchCovers->addItem(tr("Fetch all at once"));
 }
 
 CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
@@ -42,7 +46,8 @@ CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
 void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &groupTitle, bool isTagSearch,
                                         int maxCount, const QDate &dateFrom, const QDate &dateTo,
                                         const QString &keywords, CPixivIndexExtractor::TagSearchMode tagMode,
-                                        bool originalOnly, bool fetchCovers, const QString &languageCode,
+                                        bool originalOnly, CStructures::PixivFetchCoversMode fetchCovers,
+                                        const QString &languageCode,
                                         CPixivIndexExtractor::NovelSearchLength novelLength,
                                         CPixivIndexExtractor::NovelSearchRating novelRating)
 {
@@ -58,6 +63,8 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
     ui->comboMode->setCurrentIndex(static_cast<int>(tagMode));
     ui->comboLength->setCurrentIndex(static_cast<int>(novelLength));
     ui->comboRating->setCurrentIndex(static_cast<int>(novelRating));
+    ui->comboFetchCovers->setCurrentIndex(static_cast<int>(fetchCovers));
+
     ui->comboLanguage->setCurrentIndex(0);
     if (!languageCode.isEmpty()) {
         int idx = ui->comboLanguage->findData(QVariant::fromValue(languageCode));
@@ -69,7 +76,6 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
     ui->editKeywords->setCurrentText(keywords);
 
     ui->checkOriginalOnly->setChecked(originalOnly);
-    ui->checkFetchCovers->setChecked(fetchCovers);
     ui->spinMaxCount->setValue(maxCount);
     if (dateFrom.isValid()) {
         ui->dateFrom->setDate(dateFrom);
@@ -86,13 +92,12 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
 }
 
 void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
-                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly, bool &fetchCovers,
+                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly, CStructures::PixivFetchCoversMode &fetchCovers,
                                         QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
                                         CPixivIndexExtractor::NovelSearchRating &novelRating)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
-    fetchCovers = ui->checkFetchCovers->isChecked();
     maxCount = ui->spinMaxCount->value();
 
     if (ui->checkDateFrom->isChecked()) {
@@ -110,6 +115,7 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
     tagMode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui->comboMode->currentIndex());
     novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui->comboLength->currentIndex());
     novelRating = static_cast<CPixivIndexExtractor::NovelSearchRating>(ui->comboRating->currentIndex());
+    fetchCovers = static_cast<CStructures::PixivFetchCoversMode>(ui->comboFetchCovers->currentIndex());
 
     gSet->history()->appendPixivKeywords(keywords);
 }

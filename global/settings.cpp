@@ -156,7 +156,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("pdfImageQuality"),pdfImageQuality);
 
     settings.setValue(QSL("pixivFetchImages"),pixivFetchImages);
-    settings.setValue(QSL("pixivFetchCovers"),pixivFetchCovers);
+    settings.setValue(QSL("pixivFetchCovers"),static_cast<int>(pixivFetchCovers));
 
     settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
@@ -437,8 +437,8 @@ void CSettings::readSettings(QObject *control)
 
     pixivFetchImages = settings.value(QSL("pixivFetchImages"),
                                       CDefaults::pixivFetchImages).toBool();
-    pixivFetchCovers = settings.value(QSL("pixivFetchCovers"),
-                                      CDefaults::pixivFetchCovers).toBool();
+    pixivFetchCovers = static_cast<CStructures::PixivFetchCoversMode>(settings.value(QSL("pixivFetchCovers"),
+                                      CDefaults::pixivFetchCovers).toInt());
 
     translatorCacheEnabled = settings.value(QSL("translatorCacheEnabled"),
                                             CDefaults::translatorCacheEnabled).toBool();

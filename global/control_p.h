@@ -60,6 +60,7 @@ public:
     QHash<QString,QIcon> favicons;
     QStringList createdFiles;
     QStringList pixivKeywordsHistory;
+    CStringHash pixivCommonCovers;
 
     bool blockTabCloseActive { false };
 
@@ -89,6 +90,8 @@ public:
 
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
+
+    QMutex pixivCommonCoversMutex;
 
     QSize openFileDialogSize;
     QSize saveFileDialogSize;

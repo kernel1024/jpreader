@@ -277,3 +277,15 @@ void CGlobalNetwork::setTranslationEngine(CStructures::TranslationEngine engine)
 {
     gSet->m_settings->setTranslationEngine(engine);
 }
+
+void CGlobalNetwork::addPixivCommonCover(const QString &url, const QString &data)
+{
+    QMutexLocker locker(&(gSet->d_func()->pixivCommonCoversMutex));
+    gSet->d_func()->pixivCommonCovers.insert(url,data);
+}
+
+QString CGlobalNetwork::getPixivCommonCover(const QString &url) const
+{
+    QMutexLocker locker(&(gSet->d_func()->pixivCommonCoversMutex));
+    return gSet->d_func()->pixivCommonCovers.value(url);
+}

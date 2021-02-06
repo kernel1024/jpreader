@@ -260,7 +260,6 @@ void CSettingsTab::loadFromGlobal()
     ui->spinPdfImageMaxSize->setValue(gSet->m_settings->pdfImageMaxSize);
 
     ui->checkPixivFetchImages->setChecked(gSet->m_settings->pixivFetchImages);
-    ui->checkPixivFetchCovers->setChecked(gSet->m_settings->pixivFetchCovers);
 
     ui->checkTranslatorCacheEnabled->setChecked(gSet->m_settings->translatorCacheEnabled);
     ui->spinTranslatorCacheSize->setValue(gSet->m_settings->translatorCacheSize);
@@ -620,10 +619,6 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->checkPixivFetchImages,&QCheckBox::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         gSet->m_settings->pixivFetchImages = val;
-    });
-    connect(ui->checkPixivFetchCovers,&QCheckBox::toggled,this,[this](bool val){
-        if (m_loadingInterlock) return;
-        gSet->m_settings->pixivFetchCovers = val;
     });
 
     connect(ui->checkTranslatorCacheEnabled,&QCheckBox::toggled,this,[this](bool val){

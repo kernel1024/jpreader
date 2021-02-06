@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>822</width>
-        <height>4500</height>
+        <height>4471</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -146,16 +146,6 @@
                   </property>
                   <property name="text">
                    <string>Fetch images for novels</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkPixivFetchCovers">
-                  <property name="toolTip">
-                   <string>Fetch and embedd custom novel covers with pixiv index extractor</string>
-                  </property>
-                  <property name="text">
-                   <string>Fetch covers for Pixiv</string>
                   </property>
                  </widget>
                 </item>
@@ -2202,7 +2192,6 @@
   <tabstop>checkLogNetworkRequests</tabstop>
   <tabstop>checkJSLogConsole</tabstop>
   <tabstop>checkPixivFetchImages</tabstop>
-  <tabstop>checkPixivFetchCovers</tabstop>
   <tabstop>checkDownloaderCleanCompleted</tabstop>
   <tabstop>checkPdfExtractImages</tabstop>
   <tabstop>spinPdfImageQuality</tabstop>

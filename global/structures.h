@@ -78,6 +78,13 @@ enum AliCloudTranslatorMode {
 };
 Q_ENUM_NS(AliCloudTranslatorMode)
 
+enum PixivFetchCoversMode {
+    pxfmNone = 0,
+    pxfmLazyFetch = 1,
+    pxfmFetchAll = 2
+};
+Q_ENUM_NS(PixivFetchCoversMode)
+
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 const QMap<CStructures::TranslationEngine, QString> &translationEngineCodes();
 
