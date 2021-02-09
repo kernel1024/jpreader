@@ -95,6 +95,7 @@ void CPixivNovelExtractor::novelLoadFinished()
         QString hauthornum;
         QString htitle;
         QStringList tags;
+        CStringHash embImages;
 
         QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
         int idx = html.indexOf(rxToken);
@@ -110,7 +111,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             if (idx>0)
                 html.truncate(idx+1);
 
-            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle);
+            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages);
         } else {
             html = tr("Unable to extract novel. Unknown page structure.");
         }
@@ -147,7 +148,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         m_title = wtitle;
         m_origin = origin;
-        handleImages(imgs);
+        handleImages(imgs,embImages,rpl->url());
 
         if (!tags.isEmpty()) {
             QString tagList;
@@ -175,8 +176,6 @@ void CPixivNovelExtractor::novelLoadFinished()
 
 void CPixivNovelExtractor::subLoadFinished()
 {
-    const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
-
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (rpl.isNull()) return;
     if (exitIfAborted()) return;
@@ -203,27 +202,14 @@ void CPixivNovelExtractor::subLoadFinished()
             return;
         }
 
-        m_imgMutex.lock();
         for (auto it = idxs.constBegin(), end = idxs.constEnd(); it != end; ++it) {
             int page = (*it);
             if (page<1 || page>imageUrls.count()) continue;
-            QUrl url = QUrl(imageUrls.at(page-1).first);
-            m_imgUrls[QSL("%1_%2").arg(key).arg(page)] = url.toString();
 
-            QFileInfo fi(url.toString());
-            if (gSet->settings()->pixivFetchImages &&
-                    supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
-                m_worksImgFetch++;
-                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,rplUrl]{
-                    if (exitIfAborted()) return;
-                    QNetworkRequest req(url);
-                    req.setRawHeader("referer",rplUrl.toString().toUtf8());
-                    QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
-                    connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
-                },Qt::QueuedConnection);
-            }
+            const QUrl url = QUrl(imageUrls.at(page-1).first);
+            const QString pageId = QSL("%1_%2").arg(key).arg(page);
+            pixivDirectFetchImage(url,rplUrl,pageId);
         }
-        m_imgMutex.unlock();
     } else {
         qWarning() << "Failed to fetch image from " << rplUrl;
         qDebug() << rpl->rawHeaderPairs();
@@ -232,30 +218,54 @@ void CPixivNovelExtractor::subLoadFinished()
     m_worksPageLoad--;
 }
 
+void CPixivNovelExtractor::pixivDirectFetchImage(const QUrl& url, const QUrl& referer, const QString& pageId)
+{
+    static const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
+    QMutexLocker locker(&m_imgMutex);
+
+    m_imgUrls[pageId] = url.toString();
+
+    QFileInfo fi(url.toString());
+    if (gSet->settings()->pixivFetchImages &&
+            supportedExt.contains(fi.suffix(),Qt::CaseInsensitive)) {
+        m_worksImgFetch++;
+        QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,referer]{
+            if (exitIfAborted()) return;
+            QNetworkRequest req(url);
+            req.setRawHeader("referer",referer.toString().toUtf8());
+            QNetworkReply *rplImg = gSet->net()->auxNetworkAccessManagerGet(req);
+            connect(rplImg,&QNetworkReply::finished,this,&CPixivNovelExtractor::subImageFinished);
+        },Qt::QueuedConnection);
+    }
+}
+
 void CPixivNovelExtractor::subWorkFinished()
 {
     if (m_worksPageLoad>0 || m_worksImgFetch>0) return;
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
-        QStringList kl = it.key().split(u'_');
-
         QRegularExpression rx;
-        if (kl.last()==QSL("1")) {
-            rx = QRegularExpression(QSL("\\[pixivimage:%1(?:-1)?\\]").arg(kl.first()));
+        if (it.key().startsWith(QSL("E#"))) {
+            rx = QRegularExpression(QSL("\\[uploadedimage:%1\\]").arg(it.key().mid(2)));
         } else {
-            rx = QRegularExpression(QSL("\\[pixivimage:%1-%2\\]")
-                         .arg(kl.first(),kl.last()));
+            const QStringList kl = it.key().split(u'_');
+            if (kl.last() == QSL("1")) {
+                rx = QRegularExpression(QSL("\\[pixivimage:%1(?:-1)?\\]").arg(kl.first()));
+            } else {
+                rx = QRegularExpression(QSL("\\[pixivimage:%1-%2\\]")
+                                        .arg(kl.first(),kl.last()));
+            }
         }
 
-        QString rpl = QSL("<br /><img src=\"%1\"").arg(it.value());
+        QString imgHtml = QSL("<br /><img src=\"%1\"").arg(it.value());
         if (it.value().startsWith(QSL("data:"))) {
-            rpl.append(QSL("/ ><br />"));
+            imgHtml.append(QSL("/ ><br />"));
         } else {
-            rpl.append(QSL(" width=\"%1px;\"/ ><br />")
+            imgHtml.append(QSL(" width=\"%1px;\"/ ><br />")
                        .arg(gSet->settings()->pdfImageMaxSize));
         }
-        m_html.replace(rx, rpl);
+        m_html.replace(rx, imgHtml);
     }
 
     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,
@@ -311,10 +321,14 @@ void CPixivNovelExtractor::subImageFinished()
     m_worksImgFetch--;
 }
 
-void CPixivNovelExtractor::handleImages(const QStringList &imgs)
+void CPixivNovelExtractor::handleImages(const QStringList &imgs, const CStringHash &embImgs, const QUrl &mainReferer)
 {
     m_imgList.clear();
     m_imgUrls.clear();
+    m_worksImgFetch = 0;
+
+    for(auto it = embImgs.constKeyValueBegin(), end = embImgs.constKeyValueEnd(); it != end; ++it)
+        pixivDirectFetchImage(QUrl(it->second),mainReferer,QSL("E#%1").arg(it->first));
 
     for(const QString &img : imgs) {
         if (img.indexOf(u'-')>0) {
@@ -323,12 +337,12 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs)
             int page = sl.last().toInt(&ok);
             if (ok && page>0)
                 m_imgList[sl.first()].append(page);
-        } else
+        } else {
             m_imgList[img].append(1);
+        }
     }
 
     m_worksPageLoad = m_imgList.count();
-    m_worksImgFetch = 0;
     for(auto it  = m_imgList.constBegin(), end = m_imgList.constEnd(); it != end; ++it) {
         QUrl url(QSL("https://www.pixiv.net/artworks/%1").arg(it.key()));
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
@@ -408,7 +422,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
 
 QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &tags,
                                              QString &author, QString &authorNum,
-                                             QString &title)
+                                             QString &title, CStringHash& embeddedImages)
 {
     QByteArray cnt = html.toUtf8();
     QString res;
@@ -434,6 +448,15 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
                 tags.append(t);
         }
 
+        const QJsonObject embImages = obj.value(QSL("textEmbeddedImages")).toObject();
+        const QStringList embImagesList = embImages.keys();
+        for(int i=0; i<embImagesList.count(); i++) {
+            const QString &id = embImagesList.at(i);
+            const QString url = embImages.value(id).toObject()
+                                .value(QSL("urls")).toObject()
+                                .value(QSL("original")).toString();
+            embeddedImages.insert(id,url);
+        }
     } else {
         return tr("ERROR: Unable to find novel subdocument.");
 

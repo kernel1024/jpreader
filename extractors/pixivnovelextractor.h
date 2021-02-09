@@ -28,10 +28,13 @@ private:
     QString m_novelId;
     QString m_html;
 
-    void handleImages(const QStringList& imgs);
+    void handleImages(const QStringList& imgs, const CStringHash &embImgs, const QUrl &mainReferer);
+    void pixivDirectFetchImage(const QUrl &url, const QUrl &referer, const QString &pageId);
     QString parseJsonNovel(const QString& html, QStringList& tags,
-                           QString& author, QString& authorNum, QString& title);
-    QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin, QString *illustID = nullptr);
+                           QString& author, QString& authorNum, QString& title,
+                           CStringHash &embeddedImages);
+    QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin,
+                                              QString *illustID = nullptr);
 
 public:
     CPixivNovelExtractor(QObject *parent, QWidget *parentWidget);
