@@ -118,7 +118,6 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
     // TR command and response
     QString s = QString::fromLatin1(QUrl::toPercentEncoding(src," ")).trimmed();
     if (s.isEmpty()) return QString();
-//    qDebug() << "TO TRAN: " << s;
     QByteArray buf = QSL("TR:%1\r\n").arg(s).toLatin1();
     Q_EMIT translatorBytesTransferred(buf.size());
     m_sock.write(buf);
@@ -137,7 +136,6 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
         sumbuf.append(buf);
         if (buf.endsWith("\r\n")||buf.endsWith("\r")) break;
     }
-//    qDebug() << "FROM TRAN: " << sumbuf;
     sumbuf = sumbuf.simplified();
     sumbuf.replace(u'+',u' ');
     s = QString::fromLatin1(sumbuf);
