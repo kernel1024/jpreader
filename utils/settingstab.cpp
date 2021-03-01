@@ -393,8 +393,9 @@ void CSettingsTab::setupSettingsObservers()
             gSet->m_net->setTranslationEngine(CStructures::teAliCloud);
     });
 
-    connect(ui->atlHost->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
+    connect(ui->atlHost->lineEdit(),&QLineEdit::editingFinished,this,[this](){
         if (m_loadingInterlock) return;
+        const QString val = ui->atlHost->lineEdit()->text();
         gSet->m_settings->atlHost=val;
         if (gSet->m_settings->atlHostHistory.contains(val)) {
             gSet->m_settings->atlHostHistory.move(gSet->m_settings->atlHostHistory.indexOf(val),0);
@@ -593,8 +594,9 @@ void CSettingsTab::setupSettingsObservers()
             gSet->m_browser->webProfile()->setHttpUserAgent(QWebEngineProfile::defaultProfile()->httpUserAgent());
         }
     });
-    connect(ui->editUserAgent->lineEdit(),&QLineEdit::textChanged,this,[this](const QString& val){
+    connect(ui->editUserAgent->lineEdit(),&QLineEdit::editingFinished,this,[this](){
         if (m_loadingInterlock) return;
+        const QString val = ui->editUserAgent->lineEdit()->text();
         gSet->m_settings->userAgent = val;
         if (gSet->m_settings->overrideUserAgent && !gSet->m_settings->userAgent.isEmpty()) {
             gSet->m_browser->webProfile()->setHttpUserAgent(gSet->m_settings->userAgent);
