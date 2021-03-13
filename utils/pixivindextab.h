@@ -83,6 +83,7 @@ class CPixivTableModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
+    int m_maxRowCount { -1 };
     QJsonArray m_list;
     QStringList m_tags;
     QStringList m_translatedTags;
@@ -108,6 +109,7 @@ public:
     int getColumnForTag(const QString& tag) const;
     void setCoverImageForUrl(const QUrl& url, const QString& data);
     QJsonArray toJsonArray() const;
+    void overrideRowCount(int maxRowCount = -1);
 
 protected:
     int rowCount(const QModelIndex &parent) const override;

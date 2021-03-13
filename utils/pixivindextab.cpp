@@ -16,6 +16,7 @@
 
 namespace CDefaults {
 const int pixivSortRole = Qt::UserRole + 1;
+const int maxRowCountColumnResize = 25;
 const double previewProps = 600.0/400.0;
 const auto coverLabelDataUrl = "dataUrl";
 }
@@ -117,7 +118,9 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
     ui->editDescription->clear();
 
     ui->labelCover->setVisible(gSet->settings()->pixivFetchCovers != CStructures::pxfmNone);
+    m_model->overrideRowCount(CDefaults::maxRowCountColumnResize);
     ui->table->resizeColumnsToContents();
+    m_model->overrideRowCount();
 
     if (m_model->isEmpty()) {
         ui->labelHead->setText(tr("Nothing found."));
@@ -636,6 +639,8 @@ int CPixivTableModel::rowCount(const QModelIndex &parent) const
         return 0;
     if (parent.isValid())
         return 0;
+    if (m_maxRowCount >= 0)
+        return std::min(m_maxRowCount,m_list.count());
 
     return m_list.count();
 }
@@ -877,6 +882,11 @@ void CPixivTableModel::setCoverImageForUrl(const QUrl &url, const QString &data)
 QJsonArray CPixivTableModel::toJsonArray() const
 {
     return m_list;
+}
+
+void CPixivTableModel::overrideRowCount(int maxRowCount)
+{
+    m_maxRowCount = maxRowCount;
 }
 
 void CPixivTableModel::updateTags()
