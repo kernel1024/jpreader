@@ -2,6 +2,7 @@
 #include <QByteArray>
 #include <QFileInfo>
 #include <QMessageLogger>
+#include <QScopedPointer>
 #include <QBuffer>
 #include <numeric>
 
@@ -26,6 +27,13 @@ extern "C" {
 #include <PDFDocFactory.h>
 #include <TextOutputDev.h>
 #include <PDFDocEncoding.h>
+
+#include <poppler/cpp/poppler-version.h>
+#if POPPLER_VERSION_MAJOR==21
+    #if POPPLER_VERSION_MINOR<3
+        #define ZPDF_PRE2103_API 1
+    #endif
+#endif
 
 #endif // WITH_POPPLER
 
@@ -295,20 +303,24 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
 
     QString result;
 
-    PDFDoc *doc = nullptr;
     QFileInfo fi(filename);
     GooString fileName(filename.toUtf8().constData());
-    TextOutputDev *textOut = nullptr;
     Object info;
     int lastPage = 0;
 
     result.clear();
     m_outLengths.clear();
 
-    doc = PDFDocFactory().createPDFDoc(fileName);
+#ifdef ZPDF_PRE2103_API
+    PDFDoc *doc = PDFDocFactory().createPDFDoc(fileName);
+#else
+    std::unique_ptr<PDFDoc> doc(PDFDocFactory().createPDFDoc(fileName));
+#endif
 
     if (!doc->isOk()) {
+#ifdef ZPDF_PRE2103_API
         delete doc;
+#endif
         qCritical() << "pdfToText: Cannot create PDF Doc object";
         result = QSL("pdfToText: Cannot create PDF Doc object");
         *error = true;
@@ -348,21 +360,20 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     m_text.clear();
 
     // write text
-    textOut = new TextOutputDev(&CPDFWorkerPrivate::outputToString,static_cast<void*>(this),
-                                physLayout, fixedPitch, rawOrder);
-    if (textOut->isOk()) {
-        doc->displayPages(textOut, 1, lastPage, resolution, resolution, 0,
+    QScopedPointer<TextOutputDev> textOut(new TextOutputDev(&CPDFWorkerPrivate::outputToString,static_cast<void*>(this),
+                                physLayout, fixedPitch, rawOrder));
+    if (!textOut.isNull() && textOut->isOk()) {
+        doc->displayPages(textOut.data(), 1, lastPage, resolution, resolution, 0,
                           true, false, false);
     } else {
-        delete textOut;
+#ifdef ZPDF_PRE2103_API
         delete doc;
+#endif
         qCritical() << "pdfToText: Cannot create TextOutput object";
         result = QSL("pdfToText: Cannot create TextOutput object");
         *error = true;
         return result;
     }
-
-    delete textOut;
 
     QHash<int,QVector<QByteArray> > images;
     if (gSet->settings()->pdfExtractImages) {
@@ -460,7 +471,9 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
     result.append(QSL("</body>\n"));
     result.append(QSL("</html>\n"));
 
+#ifdef ZPDF_PRE2103_API
     delete doc;
+#endif
 
     *error = false;
     return result;
