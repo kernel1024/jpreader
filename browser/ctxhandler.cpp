@@ -35,7 +35,6 @@
 
 namespace CDefaults {
 const int menuActiveTimerInterval = 1000;
-const int maxRealmLabelEliding = 60;
 const int maxTranslateFragmentCharWidth = 80;
 }
 
@@ -344,15 +343,21 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("dialog-password")),
                       tr("Form autofill"));
-    if (gSet->browser()->haveSavedPassword(origin,QString())) {
+    const QString loginRealm = gSet->browser()->cleanUrlForRealm(origin).toString();
+    if (gSet->browser()->haveSavedPassword(origin,loginRealm)) {
         ac = ccm->addAction(QIcon::fromTheme(QSL("tools-wizard")),
-                            tr("Insert username and password"),
-                            snv->msgHandler,&CBrowserMsgHandler::pastePassword);
-        ac->setData(1);
-        ac = ccm->addAction(tr("Insert username"),snv->msgHandler,&CBrowserMsgHandler::pastePassword);
-        ac->setData(2);
-        ac = ccm->addAction(tr("Insert password"),snv->msgHandler,&CBrowserMsgHandler::pastePassword);
-        ac->setData(3);
+                            tr("Insert username and password"));
+        connect(ac,&QAction::triggered,this,[this,loginRealm](){
+            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
+        });
+        ac = ccm->addAction(tr("Insert username"));
+        connect(ac,&QAction::triggered,this,[this,loginRealm](){
+            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmUsername);
+        });
+        ac = ccm->addAction(tr("Insert password"));
+        connect(ac,&QAction::triggered,this,[this,loginRealm](){
+            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmPassword);
+        });
         ccm->addSeparator();
         ac = ccm->addAction(QIcon::fromTheme(QSL("edit-delete")),
                             tr("Delete saved username and password"));
@@ -362,10 +367,8 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
     } else {
         ac = ccm->addAction(QIcon::fromTheme(QSL("edit-rename")),
                             tr("Save username and password"));
-        connect(ac, &QAction::triggered, this, [origin](){
-            QString realm = CGenericFuncs::elideString(gSet->browser()->cleanUrlForRealm(origin).toString(),
-                                                       CDefaults::maxRealmLabelEliding,Qt::ElideLeft);
-            CAuthDlg dlg(QApplication::activeWindow(),origin,realm,true);
+        connect(ac, &QAction::triggered, this, [origin,loginRealm](){
+            CAuthDlg dlg(QApplication::activeWindow(),origin,loginRealm,true);
             dlg.exec();
         });
     }

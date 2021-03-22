@@ -21,9 +21,16 @@ private:
     QTimer m_focusTimer;
 
 public:
+    enum PasteLoginMode {
+        plmBoth,
+        plmUsername,
+        plmPassword
+    };
+    Q_ENUM(PasteLoginMode)
     explicit CBrowserMsgHandler(CBrowserTab * parent);
     void updateZoomFactor();
     void activateFocusDelay();
+    void pastePassword(const QString& realm, CBrowserMsgHandler::PasteLoginMode mode);
 
 public Q_SLOTS:
     void linkHovered(const QString &link);
@@ -31,7 +38,6 @@ public Q_SLOTS:
     void searchFwd();
     void searchBack();
     void searchFocus();
-    void pastePassword();
     void setZoom(const QString& z);
     void navByClick();
     void tranEngine(int index);

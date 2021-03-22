@@ -80,7 +80,10 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     connect(backNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::back);
     connect(comboZoom, &QComboBox::currentTextChanged, msgHandler, &CBrowserMsgHandler::setZoom);
     connect(searchEdit->lineEdit(), &QLineEdit::returnPressed, fwdButton, &QPushButton::click);
-    connect(passwordButton, &QPushButton::clicked, msgHandler, &CBrowserMsgHandler::pastePassword);
+    connect(passwordButton, &QPushButton::clicked, this, [this](){
+        const QString loginRealm = gSet->browser()->cleanUrlForRealm(txtBrowser->page()->url()).toString();
+        msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
+    });
     connect(reloadButton, &QPushButton::clicked, txtBrowser, [this](){
         txtBrowser->pageAction(QWebEnginePage::ReloadAndBypassCache)->activate(QAction::Trigger);
     });
@@ -225,13 +228,15 @@ void CBrowserTab::updateTabColor(bool loadFinished, bool tranFinished)
 
 void CBrowserTab::updateButtonsState()
 {
+    const QUrl origin = txtBrowser->page()->url();
     stopButton->setEnabled(m_loading);
     reloadButton->setEnabled(!m_loading);
     fwdNavButton->setEnabled(txtBrowser->history()->canGoForward());
     backNavButton->setEnabled(txtBrowser->history()->canGoBack());
     passwordButton->setEnabled((!m_loading) &&
                                (txtBrowser->page()!=nullptr) &&
-                               (gSet->browser()->haveSavedPassword(txtBrowser->page()->url(),QString())));
+                               (gSet->browser()->haveSavedPassword(origin,
+                                                                   gSet->browser()->cleanUrlForRealm(origin).toString())));
 }
 
 void CBrowserTab::navByUrlDefault()

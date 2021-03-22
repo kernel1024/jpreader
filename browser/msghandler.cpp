@@ -72,26 +72,23 @@ void CBrowserMsgHandler::searchFocus()
     snv->searchEdit->setFocus();
 }
 
-void CBrowserMsgHandler::pastePassword()
+void CBrowserMsgHandler::pastePassword(const QString& realm, CBrowserMsgHandler::PasteLoginMode mode)
 {
     const QChar tabKey(0x9);
     QString user;
     QString pass;
 
-    if (!gSet->browser()->haveSavedPassword(snv->txtBrowser->page()->url(),QString())) return;
+    if (!gSet->browser()->haveSavedPassword(snv->txtBrowser->page()->url(),realm)) return;
 
-    gSet->browser()->readPassword(snv->txtBrowser->page()->url(),QString(),user,pass);
+    gSet->browser()->readPassword(snv->txtBrowser->page()->url(),realm,user,pass);
     QString inp = QSL("%1%2%3").arg(user,tabKey,pass);
 
-    auto *ac = qobject_cast<QAction *>(sender());
-    if (ac) {
-        bool ok = false;
-        int idx = ac->data().toInt(&ok);
-        if (ok) {
-            if (idx==2) inp = user;
-            else if (idx==3) inp = pass;
-        }
+    if (mode == PasteLoginMode::plmUsername) {
+        inp = user;
+    } else if (mode == PasteLoginMode::plmPassword) {
+        inp = pass;
     }
+
     if (!inp.isEmpty())
         CGenericFuncs::sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
 }
