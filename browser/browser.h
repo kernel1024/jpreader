@@ -81,6 +81,7 @@ public:
     void setRequestAutotranslate(bool requestAutotranslate);
     void setRequestAlternateAutotranslate(bool requestAlternateAutotranslate);
     void setTranslationRestriction();
+    void sendInputToBrowser(const QString &text);
 
 public Q_SLOTS:
     void navByUrlDefault();

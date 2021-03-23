@@ -193,6 +193,11 @@ void CBrowserTab::setTranslationRestriction()
     m_onceTranslated = true;
 }
 
+void CBrowserTab::sendInputToBrowser(const QString &text)
+{
+    CGenericFuncs::sendKeyboardInputToView(txtBrowser->page()->view(),text);
+}
+
 void CBrowserTab::updateTabColor(bool loadFinished, bool tranFinished)
 {
     int selfIdx = parentWnd()->tabMain->indexOf(this);

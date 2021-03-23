@@ -15,6 +15,7 @@ class CTranslatorCache;
 class CTranslator;
 class CWorkerMonitor;
 class CZipWriter;
+class CAutofillAssistant;
 
 class CGlobalControlPrivate;
 class CGlobalContentFiltering;
@@ -62,6 +63,7 @@ public:
     ZDict::ZDictController* dictionaryManager() const;
     CTranslatorCache* translatorCache() const;
     CZipWriter* zipWriter() const;
+    CAutofillAssistant *autofillAssistant() const;
 
     // Global subsystems
     const CSettings *settings() const;

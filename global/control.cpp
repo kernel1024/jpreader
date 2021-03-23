@@ -158,6 +158,12 @@ CWorkerMonitor *CGlobalControl::workerMonitor() const
     return d->workerMonitor.data();
 }
 
+CAutofillAssistant *CGlobalControl::autofillAssistant() const
+{
+    Q_D(const CGlobalControl);
+    return d->autofillAssistant.data();
+}
+
 CLogDisplay *CGlobalControl::logWindow() const
 {
     Q_D(const CGlobalControl);

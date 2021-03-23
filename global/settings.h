@@ -118,6 +118,7 @@ public:
     QStringList charsetHistory;
 
     QKeySequence gctxSequence;
+    QKeySequence autofillSequence;
 
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash sslTrustedInvalidCerts;

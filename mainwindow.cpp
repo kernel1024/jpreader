@@ -26,6 +26,7 @@
 #include "browser-utils/downloadmanager.h"
 #include "browser-utils/bookmarks.h"
 #include "browser-utils/downloadmanager.h"
+#include "browser-utils/autofillassistant.h"
 #include "search/searchtab.h"
 #include "utils/settingstab.h"
 #include "utils/genericfuncs.h"
@@ -144,6 +145,11 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     if (gSet->workerMonitor()!=nullptr) {
         connect(actionWorkerMonitor, &QAction::triggered,
                 gSet->workerMonitor(), &CWorkerMonitor::show);
+    }
+
+    if (gSet->autofillAssistant()!=nullptr) {
+        connect(actionAutofillAssistant, &QAction::triggered,
+                gSet->autofillAssistant(), &CAutofillAssistant::show);
     }
 
     QShortcut* sc = nullptr;
@@ -484,6 +490,18 @@ bool CMainWindow::isTitleRenameTimerActive() const
 int CMainWindow::lastTabIndex() const
 {
     return lastTabIdx;
+}
+
+bool CMainWindow::sendInputToActiveBrowser(const QString &text)
+{
+    QWidget *wv = tabMain->currentWidget();
+    if (wv == nullptr) return false;
+
+    auto *sv = qobject_cast<CBrowserTab*>(tabMain->currentWidget());
+    if (sv == nullptr) return false;
+
+    sv->sendInputToBrowser(text);
+    return true;
 }
 
 void CMainWindow::updateHelperList()

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CAutofillAssistant</class>
+ <widget class="QWidget" name="CAutofillAssistant">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>357</width>
+    <height>458</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Autofill Assistant</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Strings sequence</string>
+       </property>
+       <property name="buddy">
+        <cstring>editor</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonLoad">
+       <property name="text">
+        <string>Load...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="JSEdit" name="editor">
+     <property name="toolTip">
+      <string>String list for sequential paste.
+Use Enter (new line) for string separation.
+Each paste automatically moves selection to next string.</string>
+     </property>
+     <property name="lineWrapMode">
+      <enum>QPlainTextEdit::NoWrap</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkSendTab">
+     <property name="text">
+      <string>Send Tab key after paste</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonPaste">
+     <property name="text">
+      <string>Paste and forward</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>JSEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header location="global">jsedit/jsedit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

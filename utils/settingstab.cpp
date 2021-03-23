@@ -220,6 +220,7 @@ void CSettingsTab::loadFromGlobal()
     ui->checkFontColorOverride->setChecked(gSet->m_actions->forceFontColor());
 
     ui->gctxHotkey->setKeySequence(gSet->m_settings->gctxSequence);
+    ui->autofillHotkey->setKeySequence(gSet->m_settings->autofillSequence);
     ui->checkCreateCoredumps->setChecked(gSet->m_settings->createCoredumps);
 #ifndef WITH_RECOLL
     ui->radioSearchRecoll->setEnabled(false);
@@ -549,6 +550,11 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->gctxSequence = val;
         gSet->m_actions->rebindGctxHotkey();
+    });
+    connect(ui->autofillHotkey,&QKeySequenceEdit::keySequenceChanged,this,[this](const QKeySequence& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->autofillSequence = val;
+        gSet->m_actions->rebindAutofillHotkey();
     });
 
     connect(ui->radioSearchRecoll,&QRadioButton::toggled,this,[this](bool val){

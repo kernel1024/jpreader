@@ -90,7 +90,7 @@ void CBrowserMsgHandler::pastePassword(const QString& realm, CBrowserMsgHandler:
     }
 
     if (!inp.isEmpty())
-        CGenericFuncs::sendKeyboardInputToView(snv->txtBrowser->page()->view(),inp);
+        snv->sendInputToBrowser(inp);
 }
 
 void CBrowserMsgHandler::setZoom(const QString& z)

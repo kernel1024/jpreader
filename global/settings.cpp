@@ -117,6 +117,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("forceTransFontColor"),gSet->m_actions->forceFontColor());
     settings.setValue(QSL("forcedTransFontColor"),forcedFontColor.name());
     settings.setValue(QSL("gctxHotkey"),gctxSequence.toString());
+    settings.setValue(QSL("autofillHotkey"),autofillSequence.toString());
 
     settings.setValue(QSL("searchEngine"),static_cast<int>(searchEngine));
     settings.setValue(QSL("translatorRetryCount"),translatorRetryCount);
@@ -470,6 +471,7 @@ void CSettings::readSettings(QObject *control)
                                                       QSL("forceTransFontColor"),false).toBool());
 
         gctxSequence = QKeySequence::fromString(settings.value(QSL("gctxHotkey"),QString()).toString());
+        autofillSequence = QKeySequence::fromString(settings.value(QSL("autofillHotkey"),QString()).toString());
 
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadIconsForPage,
                                                 settings.value(QSL("showFavicons"),true).toBool());
@@ -487,6 +489,7 @@ void CSettings::readSettings(QObject *control)
 
         g->m_actions->rebuildLanguageActions(g);
         g->m_actions->rebindGctxHotkey(g);
+        g->m_actions->rebindAutofillHotkey(g);
     }
 }
 

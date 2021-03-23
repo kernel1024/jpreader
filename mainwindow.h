@@ -27,6 +27,7 @@ public:
     void startTitleRenameTimer();
     bool isTitleRenameTimerActive() const;
     int lastTabIndex() const;
+    bool sendInputToActiveBrowser(const QString& text);
 
 private:
     QMenu* recycledMenu;

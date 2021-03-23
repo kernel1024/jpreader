@@ -16,6 +16,7 @@
 #include "utils/cliworker.h"
 #include "browser-utils/downloadwriter.h"
 #include "zdict/zdictcontroller.h"
+#include "browser-utils/autofillassistant.h"
 
 class CMainWindow;
 class CLightTranslator;
@@ -50,6 +51,7 @@ public:
     QScopedPointer<CUITranslator, QScopedPointerDeleteLater> uiTranslator;
     QScopedPointer<CCLIWorker, QScopedPointerDeleteLater> cliWorker;
     QScopedPointer<CWorkerMonitor, QScopedPointerDeleteLater> workerMonitor;
+    QScopedPointer<CAutofillAssistant, QScopedPointerDeleteLater> autofillAssistant;
     QList<CAbstractThreadWorker *> workerPool;
 
     QStringList recentFiles;

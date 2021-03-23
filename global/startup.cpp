@@ -100,6 +100,7 @@ void CGlobalStartup::initialize()
         m_g->d_func()->downloadManager.reset(new CDownloadManager(nullptr,m_g->d_func()->zipWriter));
         m_g->d_func()->bookmarksManager = new BookmarksManager(this);
         m_g->d_func()->workerMonitor.reset(new CWorkerMonitor());
+        m_g->d_func()->autofillAssistant.reset(new CAutofillAssistant());
 
         m_g->d_func()->auxTranslatorDBus = new CAuxTranslator(this);
         m_g->d_func()->browserControllerDBus = new CBrowserController(this);
@@ -393,6 +394,7 @@ void CGlobalStartup::cleanupAndExit()
         m_g->d_func()->workerMonitor.reset(nullptr);
         m_g->d_func()->auxDictionary.reset(nullptr);
         m_g->d_func()->lightTranslator.reset(nullptr);
+        m_g->d_func()->autofillAssistant.reset(nullptr);
         m_g->d_func()->ipcServer->close();
         m_g->d_func()->ipcServer.reset(nullptr);
     }

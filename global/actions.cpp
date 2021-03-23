@@ -10,6 +10,7 @@
 #include "ui.h"
 #include "network.h"
 #include "history.h"
+#include "browser-utils/autofillassistant.h"
 #include "translator/auxtranslator.h"
 #include "miniqxt/qxttooltip.h"
 #include "utils/specwidgets.h"
@@ -178,6 +179,27 @@ void CGlobalActions::rebindGctxHotkey(QObject *control)
     if (!(g->settings()->gctxSequence.isEmpty())) {
         gctxTranHotkey = new QxtGlobalShortcut(g->settings()->gctxSequence,this);
         connect(gctxTranHotkey.data(), &QxtGlobalShortcut::activated, actionGlobalTranslator, &QAction::toggle);
+    }
+}
+
+void CGlobalActions::rebindAutofillHotkey(QObject *control)
+{
+    QObject* cg = control;
+    if (cg==nullptr) cg = gSet;
+    if (cg==nullptr) return;
+
+    auto *g = qobject_cast<CGlobalControl *>(cg);
+    Q_ASSERT(g!=nullptr);
+
+    if (autofillHotkey)
+        autofillHotkey->deleteLater();
+
+    if (!(g->settings()->autofillSequence.isEmpty())) {
+        autofillHotkey = new QxtGlobalShortcut(g->settings()->autofillSequence,this);
+        connect(autofillHotkey.data(), &QxtGlobalShortcut::activated, this, [](){
+            if (gSet->autofillAssistant())
+                gSet->autofillAssistant()->pasteAndForward();
+        });
     }
 }
 

@@ -184,6 +184,7 @@
     <addaction name="actionTranslatorStatistics"/>
     <addaction name="actionTranslatorCache"/>
     <addaction name="actionWorkerMonitor"/>
+    <addaction name="actionAutofillAssistant"/>
     <addaction name="separator"/>
     <addaction name="actionChromiumURLs"/>
     <addaction name="actionPixivSearch"/>
@@ -500,6 +501,14 @@
    </property>
    <property name="toolTip">
     <string>Open Pixiv index file (*.jspix)</string>
+   </property>
+  </action>
+  <action name="actionAutofillAssistant">
+   <property name="icon">
+    <iconset theme="tools-wizard"/>
+   </property>
+   <property name="text">
+    <string>Autofill assistant</string>
    </property>
   </action>
  </widget>

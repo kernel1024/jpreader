@@ -1,5 +1,6 @@
 HEADERS = mainwindow.h \
     abstractthreadworker.h \
+    browser-utils/autofillassistant.h \
     browser/browser.h \
     browser/ctxhandler.h \
     browser/msghandler.h \
@@ -75,6 +76,7 @@ HEADERS = mainwindow.h \
     jsedit/jsedit_p.h
 
 SOURCES = main.cpp \
+    browser-utils/autofillassistant.cpp \
     browser/browser.cpp \
     browser/ctxhandler.cpp \
     browser/msghandler.cpp \
@@ -154,6 +156,7 @@ RESOURCES = \
     jpreader.qrc
 
 FORMS = main.ui \
+    browser-utils/autofillassistant.ui \
     browser/browser.ui \
     search/searchtab.ui \
     translator/lighttranslator.ui \
