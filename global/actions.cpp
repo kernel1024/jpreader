@@ -182,27 +182,6 @@ void CGlobalActions::rebindGctxHotkey(QObject *control)
     }
 }
 
-void CGlobalActions::rebindAutofillHotkey(QObject *control)
-{
-    QObject* cg = control;
-    if (cg==nullptr) cg = gSet;
-    if (cg==nullptr) return;
-
-    auto *g = qobject_cast<CGlobalControl *>(cg);
-    Q_ASSERT(g!=nullptr);
-
-    if (autofillHotkey)
-        autofillHotkey->deleteLater();
-
-    if (!(g->settings()->autofillSequence.isEmpty())) {
-        autofillHotkey = new QxtGlobalShortcut(g->settings()->autofillSequence,this);
-        connect(autofillHotkey.data(), &QxtGlobalShortcut::activated, this, [](){
-            if (gSet->autofillAssistant())
-                gSet->autofillAssistant()->pasteAndForward();
-        });
-    }
-}
-
 void CGlobalActions::gctxTranslateReady(const QString &text)
 {
     const int maxTooltipCharacterWidth = 80;
@@ -338,6 +317,44 @@ void CGlobalActions::setSubsentencesModeHash(const CSubsentencesMode &hash) cons
                 ac->setChecked(hash.value(engine));
         }
     }
+}
+
+bool CGlobalActions::eventFilter(QObject *object, QEvent *event)
+{
+    auto *g = qobject_cast<CGlobalControl *>(parent());
+    if (g == nullptr)
+        return QObject::eventFilter(object, event);
+
+    Qt::Key sc_key = Qt::Key(0); // NOLINT
+    Qt::KeyboardModifiers sc_mods = Qt::NoModifier;
+
+    if (!g->m_settings->autofillSequence.isEmpty()) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        sc_key = g->m_settings->autofillSequence[0].key();
+        sc_mods = g->m_settings->autofillSequence[0].keyboardModifiers();
+#else
+        Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier
+                                        | Qt::AltModifier | Qt::MetaModifier;
+
+        auto sc = static_cast<unsigned int>(g->m_settings->autofillSequence[0]);
+        sc_key = static_cast<Qt::Key>((sc ^ allMods) & sc);
+        sc_mods = Qt::KeyboardModifiers(sc & allMods);
+#endif
+    }
+
+    if ((event->type() == QEvent::KeyPress) && (sc_key != Qt::Key(0))) {
+        auto * const keyEvent = dynamic_cast<QKeyEvent*>(event);
+        const int key = keyEvent->key();
+        const Qt::KeyboardModifiers mods = keyEvent->modifiers();
+
+        if ((sc_key == key) && (sc_mods == mods)) {
+            if (g->autofillAssistant())
+                g->autofillAssistant()->pasteAndForward();
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(object, event);
 }
 
 void CGlobalActions::actionToggled()

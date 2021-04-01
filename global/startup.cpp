@@ -114,6 +114,8 @@ void CGlobalStartup::initialize()
         if (!dbus.registerService(QString::fromLatin1(CDefaults::DBusName)))
             qCritical() << dbus.lastError().name() << dbus.lastError().message();
 
+        m_g->app(m_g->parent())->installEventFilter(m_g->m_actions.data());
+
         connect(m_g->app(m_g->parent()), &QApplication::focusChanged, m_g->ui(), &CGlobalUI::focusChanged);
 
         connect(m_g->m_actions->actionUseProxy, &QAction::toggled, m_g->net(), &CGlobalNetwork::updateProxy);

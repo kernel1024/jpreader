@@ -489,7 +489,6 @@ void CSettings::readSettings(QObject *control)
 
         g->m_actions->rebuildLanguageActions(g);
         g->m_actions->rebindGctxHotkey(g);
-        g->m_actions->rebindAutofillHotkey(g);
     }
 }
 

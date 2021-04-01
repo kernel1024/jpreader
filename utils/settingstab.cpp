@@ -554,7 +554,6 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->autofillHotkey,&QKeySequenceEdit::keySequenceChanged,this,[this](const QKeySequence& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->autofillSequence = val;
-        gSet->m_actions->rebindAutofillHotkey();
     });
 
     connect(ui->radioSearchRecoll,&QRadioButton::toggled,this,[this](bool val){

@@ -19,7 +19,6 @@ class CGlobalActions : public QObject
     Q_OBJECT
 public:
     QPointer<QxtGlobalShortcut> gctxTranHotkey;
-    QPointer<QxtGlobalShortcut> autofillHotkey;
     QAction *actionUseProxy;
 
     QAction* actionSelectionDictionary;
@@ -68,13 +67,15 @@ public Q_SLOTS:
     void showGlobalTooltip(const QString& text);
     void rebuildLanguageActions(QObject *control = nullptr);
     void rebindGctxHotkey(QObject *control = nullptr);
-    void rebindAutofillHotkey(QObject *control = nullptr);
     void actionToggled();
     void updateBusyCursor();
 
 private:
     CSubsentencesMode getSubsentencesModeHash() const;
     void setSubsentencesModeHash(const CSubsentencesMode& hash) const;
+
+protected:
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 };
 

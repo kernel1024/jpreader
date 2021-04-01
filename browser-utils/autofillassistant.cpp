@@ -1,6 +1,7 @@
 #include <QTextCursor>
 #include <QTextBlock>
 #include <QMessageBox>
+#include <QSettings>
 
 #include "utils/genericfuncs.h"
 #include "global/control.h"
@@ -15,6 +16,7 @@ CAutofillAssistant::CAutofillAssistant(QWidget *parent) :
     ui(new Ui::CAutofillAssistant)
 {
     ui->setupUi(this);
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
 
     ui->editor->setBracketsMatchingEnabled(false);
     ui->editor->setCodeFoldingEnabled(false);
@@ -24,10 +26,20 @@ CAutofillAssistant::CAutofillAssistant(QWidget *parent) :
 
     connect(ui->buttonPaste,&QPushButton::clicked,this,&CAutofillAssistant::pasteAndForward);
     connect(ui->buttonLoad,&QPushButton::clicked,this,&CAutofillAssistant::loadFromFile);
+
+    QSettings stg;
+    stg.beginGroup(QSL("AutofillAssistant"));
+    ui->checkSendTab->setChecked(stg.value(QSL("sendTab"),true).toBool());
+    stg.endGroup();
 }
 
 CAutofillAssistant::~CAutofillAssistant()
 {
+    QSettings stg;
+    stg.beginGroup(QSL("AutofillAssistant"));
+    stg.setValue(QSL("sendTab"), ui->checkSendTab->isChecked());
+    stg.endGroup();
+
     delete ui;
 }
 
