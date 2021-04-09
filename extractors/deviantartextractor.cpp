@@ -1,6 +1,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QUrlQuery>
 #include "deviantartextractor.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -70,6 +71,12 @@ void CDeviantartExtractor::galleryAjax()
         if (doc.isObject()) {
             QJsonObject obj = doc.object();
 
+            QUrlQuery uq(rpl->url());
+            bool okconv = false;
+            int offset = uq.queryItemValue(QSL("offset")).toInt(&okconv);
+            if (!okconv)
+                offset = -1;
+
             const QJsonArray tworks = obj.value(QSL("results")).toArray();
 
             m_list.reserve(tworks.count());
@@ -77,10 +84,10 @@ void CDeviantartExtractor::galleryAjax()
                 m_list.append(work.toObject().value(QSL("deviation")).toObject());
 
             bool hasMore = obj.value(QSL("hasMore")).toBool();
-            int nextOffset = obj.value(QSL("nextOffset")).toInt();
 
-            if (hasMore && (nextOffset>0) && (tworks.count()>0)) {
+            if (hasMore && (offset>=0) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
+                int nextOffset = offset + tworks.count();
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,nextOffset]{
                     if (exitIfAborted()) return;
 
