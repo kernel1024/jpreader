@@ -22,6 +22,7 @@
 #include <QTextBrowser>
 #include <QNetworkCookieJar>
 #include <QWebEngineView>
+#include <QTableWidgetItem>
 
 #include <QWebEngineUrlRequestInterceptor>
 #include <QWebEngineUrlRequestInfo>
@@ -156,6 +157,13 @@ protected:
     void contextMenuEvent(QContextMenuEvent* event) override;
 Q_SIGNALS:
     void contextMenuRequested(const QPoint &pos, const QWebEngineContextMenuData &data);
+};
+
+class CDateTimeTableWidgetItem : public QTableWidgetItem {
+public:
+    explicit CDateTimeTableWidgetItem(const QDateTime &dt, int type = Type);
+    ~CDateTimeTableWidgetItem() override = default;
+    bool operator<(const QTableWidgetItem &other) const override;
 };
 
 class CSpecLogHighlighter : public QSyntaxHighlighter {

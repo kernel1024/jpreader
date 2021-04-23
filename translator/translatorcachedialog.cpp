@@ -6,6 +6,7 @@
 #include "global/control.h"
 #include "global/network.h"
 #include "browser/browser.h"
+#include "utils/specwidgets.h"
 #include "ui_translatorcachedialog.h"
 
 CTranslatorCacheDialog::CTranslatorCacheDialog(QWidget *parent)
@@ -49,7 +50,7 @@ void CTranslatorCacheDialog::updateCacheList()
             QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
             if (!doc.isNull() && doc.isObject()) {
                 QJsonObject obj = doc.object();
-                obj.insert(QSL("#filedate"),file.lastModified().toString());
+                obj.insert(QSL("#filedate"),file.lastModified().toString(Qt::ISODateWithMs));
                 obj.insert(QSL("#md5"),file.baseName());
                 infoList.append(obj);
             }
@@ -64,7 +65,8 @@ void CTranslatorCacheDialog::updateCacheList()
         auto *itm = new QTableWidgetItem(item.value(QSL("title")).toString());
         itm->setData(Qt::UserRole,item.value(QSL("#md5")).toString());
         ui->table->setItem(row,0,itm);
-        ui->table->setItem(row,1,new QTableWidgetItem(item.value(QSL("#filedate")).toString()));
+        ui->table->setItem(row,1,new CDateTimeTableWidgetItem(
+                               QDateTime::fromString(item.value(QSL("#filedate")).toString(),Qt::ISODateWithMs)));
         ui->table->setItem(row,2,new QTableWidgetItem(item.value(QSL("origin")).toString(tr("(none)"))));
         ui->table->setItem(row,3,new QTableWidgetItem(QSL("%1").arg(item.value(QSL("length")).toInt())));
         ui->table->setItem(row,4,new QTableWidgetItem(item.value(QSL("engine")).toString()));

@@ -25,6 +25,10 @@
 #include "browser/ctxhandler.h"
 #include "browser/browser.h"
 
+namespace CDefaults {
+const int dateTimeListWidgetItemSortRole = 100;
+}
+
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
     : QTabWidget(p)
 {
@@ -713,4 +717,16 @@ void CMagicFileSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 
     connect(request, &QObject::destroyed, f, &QObject::deleteLater);
     request->reply(mime.toUtf8(),f);
+}
+
+CDateTimeTableWidgetItem::CDateTimeTableWidgetItem(const QDateTime &dt, int type)
+    : QTableWidgetItem(dt.toString(Qt::TextDate),type)
+{
+    setData(Qt::UserRole + CDefaults::dateTimeListWidgetItemSortRole, dt.toMSecsSinceEpoch());
+}
+
+bool CDateTimeTableWidgetItem::operator<(const QTableWidgetItem &other) const
+{
+    return (data(Qt::UserRole + CDefaults::dateTimeListWidgetItemSortRole).toLongLong() <
+            other.data(Qt::UserRole + CDefaults::dateTimeListWidgetItemSortRole).toLongLong());
 }
