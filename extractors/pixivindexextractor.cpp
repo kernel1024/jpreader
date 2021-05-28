@@ -83,8 +83,12 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtracto
         }
         if (originalOnly)
             m_sourceQuery.addQueryItem(QSL("original_only"),QSL("1"));
-        if (!languageCode.isEmpty())
-            m_sourceQuery.addQueryItem(QSL("work_lang"),languageCode);
+        if (!languageCode.isEmpty()) {
+            QString lang = languageCode.toLower();
+            if (lang == QSL("zh"))
+                lang = QSL("zh-cn");
+            m_sourceQuery.addQueryItem(QSL("work_lang"),lang);
+        }
     }
 }
 
