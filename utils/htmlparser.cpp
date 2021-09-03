@@ -2,15 +2,14 @@
 
 using namespace htmlcxx;
 
-CHTMLParser::CHTMLParser()
-{    
-}
+CHTMLParser::CHTMLParser() = default;
 
-const tree<HTML::Node> &CHTMLParser::parseHTML(const QString &src)
+const CHTMLNode CHTMLParser::parseHTML(const QString &src)
 {
     HTML::ParserDom parser;
     parser.parse(src);
-    return parser.getTree();
+    CHTMLNode res(parser.getTree());
+    return res;
 }
 
 void CHTMLParser::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)

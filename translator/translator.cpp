@@ -57,41 +57,32 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
         dumpPage(token,QSL("1-source"),src);
     src = src.remove(0,src.indexOf(QSL("<html"),Qt::CaseInsensitive));
 
-    auto tr = CHTMLParser::parseHTML(src);
-
-    if (gSet->settings()->debugDumpHtml) {
-        std::stringstream sst;
-        sst << tr;
-        dumpPage(token,QSL("2-tree"),QByteArray::fromRawData(sst.str().data(),
-                                                        static_cast<int>(sst.str().size())));
-    }
-
-    CHTMLNode doc(tr);
+    CHTMLNode doc = CHTMLParser::parseHTML(src);
 
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("3-converted"),doc);
+        dumpPage(token,QSL("2-converted"),doc);
 
     m_translatorFailed = false;
     m_textNodesCnt=0;
     m_metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("4-preprocessed"),doc);
+        dumpPage(token,QSL("3-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("5-calculated"),doc);
+        dumpPage(token,QSL("4-calculated"),doc);
 
     m_textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("6-translated"),doc);
+        dumpPage(token,QSL("5-translated"),doc);
 
     examineNode(doc,PXPostprocess);
     CHTMLParser::generateHTML(doc,dstHtml);
 
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("7-finalized"),dstHtml);
+        dumpPage(token,QSL("6-finalized"),dstHtml);
 
     m_tran->doneTran();
 
@@ -112,39 +103,30 @@ bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
         dumpPage(token,QSL("parser-1-source"),src);
     src = src.remove(0,src.indexOf(QSL("<html"),Qt::CaseInsensitive));
 
-    auto tr = CHTMLParser::parseHTML(src);
-
-    if (gSet->settings()->debugDumpHtml) {
-        std::stringstream sst;
-        sst << tr;
-        dumpPage(token,QSL("parser-2-tree"),QByteArray::fromRawData(sst.str().data(),
-                                                               static_cast<int>(sst.str().size())));
-    }
-
-    CHTMLNode doc(tr);
+    CHTMLNode doc = CHTMLParser::parseHTML(src);
 
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("parser-3-converted"),doc);
+        dumpPage(token,QSL("parser-2-converted"),doc);
 
     m_translatorFailed=false;
     m_textNodesCnt=0;
     m_metaSrcUrl.clear();
     examineNode(doc,PXPreprocess);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("parser-4-preprocessed"),doc);
+        dumpPage(token,QSL("parser-3-preprocessed"),doc);
 
     examineNode(doc,PXCalculate);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("parser-5-calculated"),doc);
+        dumpPage(token,QSL("parser-4-calculated"),doc);
 
     m_textNodesProgress=0;
     examineNode(doc,PXTranslate);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("parser-6-translated"),doc);
+        dumpPage(token,QSL("parser-5-translated"),doc);
 
     CHTMLParser::generateHTML(doc,destHtml);
     if (gSet->settings()->debugDumpHtml)
-        dumpPage(token,QSL("parser-7-finalized"),destHtml);
+        dumpPage(token,QSL("parser-6-finalized"),destHtml);
 
     return true;
 }

@@ -269,7 +269,7 @@ void CBrowserTrans::openSeparateTranslationTab(const QString &html, const QUrl& 
 {
     QString dst;
 
-    CHTMLNode doc(CHTMLParser::parseHTML(html));
+    CHTMLNode doc = CHTMLParser::parseHTML(html);
     CHTMLParser::replaceLocalHrefs(doc, baseUrl);
     CHTMLParser::generateHTML(doc,dst);
 

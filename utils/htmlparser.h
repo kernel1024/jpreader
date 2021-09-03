@@ -39,7 +39,7 @@ class CHTMLParser
 public:
     CHTMLParser();
 
-    static const tree<htmlcxx::HTML::Node> &parseHTML(const QString& src);
+    static const CHTMLNode parseHTML(const QString& src);
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);
     static void generatePlainText(const CHTMLNode &src, QString &html, int depth = 0);

@@ -27,7 +27,7 @@ QString CHtmlImagesExtractor::workerDescription() const
 
 void CHtmlImagesExtractor::startMain()
 {
-    m_doc = CHTMLNode(CHTMLParser::parseHTML(m_html));
+    m_doc = CHTMLParser::parseHTML(m_html);
 
     examineNode(m_doc);
 

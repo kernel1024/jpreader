@@ -45,7 +45,7 @@ CSourceViewer::~CSourceViewer()
 
 QString CSourceViewer::reformatSource(const QString& html)
 {
-    CHTMLNode doc(CHTMLParser::parseHTML(html));
+    CHTMLNode doc = CHTMLParser::parseHTML(html);
     QString dst;
     CHTMLParser::generateHTML(doc,dst,true,0);
     return dst;
