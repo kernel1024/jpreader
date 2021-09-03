@@ -1,9 +1,12 @@
+#include "search/xapianindexworker.h"
+
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
 #include <QWebEngineUrlScheme>
 #include <QNetworkReply>
 #include <QAuthenticator>
+#include <QStandardPaths>
 #include <QElapsedTimer>
 
 #include <algorithm>
@@ -40,6 +43,8 @@ const int dictionariesLoadingDelay = 1500;
 const int ipcTimeout = 1000;
 const int workerMaxShutdownTimeMS = 5000;
 const int workerWaitGranularityMS = 250;
+const int xapianWorkerStartupLockMS = 500;
+const int oneK = 1000;
 }
 
 CGlobalStartup::CGlobalStartup(CGlobalControl *parent)
@@ -185,6 +190,11 @@ void CGlobalStartup::initialize()
         connect(m_g->d_func()->auxNetManager,&QNetworkAccessManager::sslErrors,
                 m_g->net(),&CGlobalNetwork::auxSSLCertError);
 
+        connect(m_g->m_actions->actionXapianForceFullScan,&QAction::triggered,
+                m_g->m_startup.data(),&CGlobalStartup::startupXapianIndexer);
+        connect(m_g->m_actions->actionXapianClearAndRescan,&QAction::triggered,
+                m_g->m_startup.data(),&CGlobalStartup::startupXapianIndexer);
+
         m_g->d_func()->tabsListTimer.setInterval(CDefaults::tabListSavePeriod);
         connect(&(m_g->d_func()->tabsListTimer), &QTimer::timeout, m_g->settings(), &CSettings::writeTabsList);
         m_g->d_func()->tabsListTimer.start();
@@ -208,6 +218,10 @@ void CGlobalStartup::initialize()
 
         QTimer::singleShot(CDefaults::dictionariesLoadingDelay,m_g->d_func()->dictManager,[](){
             gSet->d_func()->dictManager->loadDictionaries(gSet->m_settings->dictPaths);
+        });
+
+        QTimer::singleShot(gSet->m_settings->xapianStartDelay*CDefaults::oneK,this,[this](){
+            startupXapianIndexer();
         });
 
         QApplication::setStyle(new CSpecMenuStyle);
@@ -488,4 +502,32 @@ void CGlobalStartup::initLanguagesList()
             m_g->d_func()->langSortedBCP47List.insert(name,bcp);
         }
     }
+}
+
+void CGlobalStartup::startupXapianIndexer()
+{
+    Q_EMIT stopXapianWorkers();
+
+#ifdef WITH_XAPIAN
+    CXapianIndexWorker::WorkerMode mode = CXapianIndexWorker::xwIndexFull;
+    auto *ac = qobject_cast<QAction *>(sender());
+    if (ac) {
+        bool okconv = false;
+        mode = static_cast<CXapianIndexWorker::WorkerMode>(ac->data().toInt(&okconv));
+        if (!okconv) return;
+    }
+
+    QTimer::singleShot(CDefaults::xapianWorkerStartupLockMS,this,[this,mode](){
+        auto *xw = new CXapianIndexWorker(nullptr,QStringList(),(mode == CXapianIndexWorker::xwClearAndIndexFull));
+        if (!gSet->startup()->setupThreadedWorker(xw)) {
+            delete xw;
+            return;
+        }
+
+        connect(this,&CGlobalStartup::stopXapianWorkers,
+                xw,&CAbstractThreadWorker::abort,Qt::QueuedConnection);
+
+        QMetaObject::invokeMethod(xw,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+    });
+#endif
 }

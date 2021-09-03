@@ -6,7 +6,7 @@
 
 #include "sourceviewer.h"
 #include "utils/genericfuncs.h"
-#include "translator/translator.h"
+#include "utils/htmlparser.h"
 #include "ui_sourceviewer.h"
 
 CSourceViewer::CSourceViewer(CBrowserTab *origin, QWidget *parent) :
@@ -45,12 +45,9 @@ CSourceViewer::~CSourceViewer()
 
 QString CSourceViewer::reformatSource(const QString& html)
 {
-    htmlcxx::HTML::ParserDom parser;
-    parser.parse(html);
-    tree<htmlcxx::HTML::Node> tree = parser.getTree();
-    CHTMLNode doc(tree);
+    CHTMLNode doc(CHTMLParser::parseHTML(html));
     QString dst;
-    CTranslator::generateHTML(doc,dst,true,0);
+    CHTMLParser::generateHTML(doc,dst,true,0);
     return dst;
 }
 

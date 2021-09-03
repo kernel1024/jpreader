@@ -52,6 +52,13 @@ CMainWindow* CGlobalUI::addMainWindowEx(bool withSearch, bool withBrowser, const
     mainWindow->show();
 
     mainWindow->menuTools->addAction(gSet->m_actions->actionLogNetRequests);
+#ifdef WITH_XAPIAN
+    mainWindow->menuTools->addSeparator();
+    QMenu *xmenu = mainWindow->menuTools->addMenu(tr("Xapian indexer"));
+    xmenu->addAction(gSet->m_actions->actionXapianForceFullScan);
+    xmenu->addSeparator();
+    xmenu->addAction(gSet->m_actions->actionXapianClearAndRescan);
+#endif
     mainWindow->menuTools->addSeparator();
     mainWindow->menuTools->addAction(gSet->m_actions->actionGlobalTranslator);
     mainWindow->menuTools->addAction(gSet->m_actions->actionSelectionDictionary);

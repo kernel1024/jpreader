@@ -16,6 +16,9 @@ extern "C" {
 }
 #include <memory>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <poppler-config.h>
 #include <GlobalParams.h>
 #include <Object.h>
@@ -27,6 +30,8 @@ extern "C" {
 #include <PDFDocFactory.h>
 #include <TextOutputDev.h>
 #include <PDFDocEncoding.h>
+
+#pragma GCC diagnostic pop
 
 #include <poppler/cpp/poppler-version.h>
 #if POPPLER_VERSION_MAJOR==21

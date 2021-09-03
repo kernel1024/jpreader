@@ -24,6 +24,9 @@ public:
     QAction* actionSelectionDictionary;
     QAction* actionGlobalTranslator;
 
+    QAction *actionXapianForceFullScan;
+    QAction *actionXapianClearAndRescan;
+
     QAction *actionJSUsage;
     QAction *actionSnippetAutotranslate;
     QAction *actionLogNetRequests;

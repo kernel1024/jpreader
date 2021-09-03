@@ -1,11 +1,9 @@
 #include <QBuffer>
 #include "htmlimagesextractor.h"
 #include "utils/genericfuncs.h"
+#include "utils/htmlparser.h"
 #include "global/control.h"
 #include "global/network.h"
-#include "htmlcxx/html/ParserDom.h"
-
-using namespace htmlcxx;
 
 CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CBrowserTab *snv)
     : CAbstractExtractor(parent,snv)
@@ -29,12 +27,7 @@ QString CHtmlImagesExtractor::workerDescription() const
 
 void CHtmlImagesExtractor::startMain()
 {
-    HTML::ParserDom parser;
-    parser.parse(m_html);
-
-    tree<HTML::Node> tr = parser.getTree();
-
-    m_doc = CHTMLNode(tr);
+    m_doc = CHTMLNode(CHTMLParser::parseHTML(m_html));
 
     examineNode(m_doc);
 
@@ -92,7 +85,7 @@ void CHtmlImagesExtractor::finalizeHtml()
     if (m_worksImgFetch>0) return;
 
     QString res;
-    CTranslator::generateHTML(m_doc,res);
+    CHTMLParser::generateHTML(m_doc,res);
 
     Q_EMIT novelReady(res,m_focus,m_translate,m_alternateTranslate);
     Q_EMIT finished();

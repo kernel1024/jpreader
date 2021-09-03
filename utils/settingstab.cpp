@@ -69,6 +69,8 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     connect(ui->buttonAddNoScript, &QPushButton::clicked, this, &CSettingsTab::addNoScriptHost);
     connect(ui->buttonDelNoScript, &QPushButton::clicked, this, &CSettingsTab::delNoScriptHost);
     connect(ui->buttonGcpJsonFile, &QPushButton::clicked, this, &CSettingsTab::selectGcpJsonFile);
+    connect(ui->buttonXapianAddDir, &QPushButton::clicked, this, &CSettingsTab::addXapianIndexDir);
+    connect(ui->buttonXapianDelDir, &QPushButton::clicked, this, &CSettingsTab::delXapianIndexDir);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
 
@@ -91,9 +93,47 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->comboAliMode->addItem(tr("Medical (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECMedical));
     ui->comboAliMode->addItem(tr("Social (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECSocial));
 
+    ui->comboXapianStemmerLang->addItem(tr("None"),QString());
+    ui->comboXapianStemmerLang->addItem(tr("Arabic"),QSL("ar"));
+    ui->comboXapianStemmerLang->addItem(tr("Armenian"),QSL("hy"));
+    ui->comboXapianStemmerLang->addItem(tr("Basque"),QSL("eu"));
+    ui->comboXapianStemmerLang->addItem(tr("Catalan"),QSL("ca"));
+    ui->comboXapianStemmerLang->addItem(tr("Danish"),QSL("da"));
+    ui->comboXapianStemmerLang->addItem(tr("Dutch"),QSL("nl"));
+    ui->comboXapianStemmerLang->addItem(tr("English - Martin Porter's 2002 revision of his stemmer"),QSL("en"));
+    ui->comboXapianStemmerLang->addItem(tr("Early English - e.g. Shakespeare, Dickens"),QSL("earlyenglish"));
+    ui->comboXapianStemmerLang->addItem(tr("English - Lovin's stemmer"),QSL("lovins"));
+    ui->comboXapianStemmerLang->addItem(tr("English - Porter's stemmer as described in his 1980 paper"),QSL("porter"));
+    ui->comboXapianStemmerLang->addItem(tr("Finnish"),QSL("fi"));
+    ui->comboXapianStemmerLang->addItem(tr("French"),QSL("fr"));
+    ui->comboXapianStemmerLang->addItem(tr("German"),QSL("de"));
+    ui->comboXapianStemmerLang->addItem(tr("German - Normalises umlauts and szlig"),QSL("german2"));
+    ui->comboXapianStemmerLang->addItem(tr("Hungarian"),QSL("hu"));
+    ui->comboXapianStemmerLang->addItem(tr("Indonesian"),QSL("id"));
+    ui->comboXapianStemmerLang->addItem(tr("Irish"),QSL("ga"));
+    ui->comboXapianStemmerLang->addItem(tr("Italian"),QSL("it"));
+    ui->comboXapianStemmerLang->addItem(tr("Dutch different stemmer"),QSL("kraaij_pohlmann"));
+    ui->comboXapianStemmerLang->addItem(tr("Lithuanian"),QSL("lt"));
+    ui->comboXapianStemmerLang->addItem(tr("Nepali"),QSL("ne"));
+    ui->comboXapianStemmerLang->addItem(tr("Norwegian"),QSL("no"));
+    ui->comboXapianStemmerLang->addItem(tr("Portuguese"),QSL("pt"));
+    ui->comboXapianStemmerLang->addItem(tr("Romanian"),QSL("ro"));
+    ui->comboXapianStemmerLang->addItem(tr("Russian"),QSL("ru"));
+    ui->comboXapianStemmerLang->addItem(tr("Spanish"),QSL("es"));
+    ui->comboXapianStemmerLang->addItem(tr("Swedish"),QSL("sv"));
+    ui->comboXapianStemmerLang->addItem(tr("Tamil"),QSL("ta"));
+    ui->comboXapianStemmerLang->addItem(tr("Turkish"),QSL("tr"));
+
     setupSettingsObservers();
 
     ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->minimum());
+
+#ifndef WITH_XAPIAN
+    ui->comboXapianStemmerLang->setEnabled(false);
+    ui->spinXapianStartDelay->setEnabled(false);
+    ui->listXapianIndexDirs->setEnabled(false);
+    ui->radioSearchXapian->setEnabled(false);
+#endif
 }
 
 CSettingsTab::~CSettingsTab()
@@ -222,6 +262,9 @@ void CSettingsTab::loadFromGlobal()
     ui->gctxHotkey->setKeySequence(gSet->m_settings->gctxSequence);
     ui->autofillHotkey->setKeySequence(gSet->m_settings->autofillSequence);
     ui->checkCreateCoredumps->setChecked(gSet->m_settings->createCoredumps);
+#ifndef WITH_XAPIAN
+    ui->radioSearchXapian->setEnabled(false);
+#endif
 #ifndef WITH_RECOLL
     ui->radioSearchRecoll->setEnabled(false);
 #endif
@@ -232,6 +275,8 @@ void CSettingsTab::loadFromGlobal()
         ui->radioSearchRecoll->setChecked(true);
     } else if ((gSet->m_settings->searchEngine==CStructures::seBaloo5) && (ui->radioSearchBaloo5->isEnabled())) {
         ui->radioSearchBaloo5->setChecked(true);
+    } else if ((gSet->m_settings->searchEngine==CStructures::seXapian) && (ui->radioSearchXapian->isEnabled())) {
+        ui->radioSearchXapian->setChecked(true);
     } else {
         ui->radioSearchNone->setChecked(true);
     }
@@ -268,6 +313,17 @@ void CSettingsTab::loadFromGlobal()
     // flip proxy use check, for updating controls enabling logic
     ui->checkUseProxy->setChecked(true);
     ui->checkUseProxy->setChecked(false);
+
+    int stemIdx = 0;
+    if (!gSet->m_settings->xapianStemmerLang.isEmpty()) {
+        stemIdx = ui->comboXapianStemmerLang->findData(gSet->m_settings->xapianStemmerLang);
+        if (stemIdx<0)
+            stemIdx = 0;
+    }
+    ui->comboXapianStemmerLang->setCurrentIndex(stemIdx);
+    ui->spinXapianStartDelay->setValue(gSet->m_settings->xapianStartDelay);
+    ui->listXapianIndexDirs->clear();
+    ui->listXapianIndexDirs->addItems(gSet->m_settings->xapianIndexDirList);
 
     ui->editProxyHost->setText(gSet->m_settings->proxyHost);
     ui->spinProxyPort->setValue(gSet->m_settings->proxyPort);
@@ -306,6 +362,15 @@ void CSettingsTab::resizeEvent(QResizeEvent *event)
     ui->listTransDirections->setColumnWidth(1, transDirectionsColumnWidthFrac*event->size().width()/100);
 
     QWidget::resizeEvent(event);
+}
+
+QStringList CSettingsTab::getListStrings(QListWidget *list) const
+{
+    QStringList res;
+    res.reserve(list->count());
+    for (int i=0;i<list->count();i++)
+        res.append(list->item(i)->text());
+    return res;
 }
 
 void CSettingsTab::setupSettingsObservers()
@@ -566,6 +631,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->m_settings->searchEngine = CStructures::seBaloo5;
     });
+    connect(ui->radioSearchXapian,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->m_settings->searchEngine = CStructures::seXapian;
+    });
     connect(ui->radioSearchNone,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
@@ -655,6 +725,16 @@ void CSettingsTab::setupSettingsObservers()
     });
 
 
+    connect(ui->spinXapianStartDelay,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->xapianStartDelay = val;
+    });
+    connect(ui->comboXapianStemmerLang,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->xapianStemmerLang = ui->comboXapianStemmerLang->currentData().toString();
+    });
+
     connect(ui->editProxyHost,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->proxyHost = val;
@@ -716,6 +796,24 @@ void CSettingsTab::selectGcpJsonFile()
     if (!s.isEmpty()) ui->editGcpJsonKey->setText(s);
 }
 
+void CSettingsTab::addXapianIndexDir()
+{
+    const QString s = CGenericFuncs::getExistingDirectoryD(this,tr("Select directory"));
+    if (!s.isEmpty()) {
+        ui->listXapianIndexDirs->addItem(s);
+        gSet->m_settings->updateXapianIndexDirs(getListStrings(ui->listXapianIndexDirs));
+    }
+}
+
+void CSettingsTab::delXapianIndexDir()
+{
+    int idx = ui->listXapianIndexDirs->currentRow();
+    if (idx<0 || idx>=ui->listXapianIndexDirs->count()) return;
+    QListWidgetItem *a = ui->listXapianIndexDirs->takeItem(idx);
+    delete a;
+    gSet->m_settings->updateXapianIndexDirs(getListStrings(ui->listXapianIndexDirs));
+}
+
 void CSettingsTab::fontColorDlg()
 {
     QColor c = QColorDialog::getColor(gSet->m_settings->forcedFontColor,this);
@@ -741,7 +839,7 @@ QList<int> CSettingsTab::getSelectedRows(QTableWidget *table) const
 
 void CSettingsTab::addDictPath()
 {
-    QString s = CGenericFuncs::getExistingDirectoryD(this,tr("Select directory"));
+    const QString s = CGenericFuncs::getExistingDirectoryD(this,tr("Select directory"));
     if (!s.isEmpty()) {
         ui->listDictPaths->addItem(s);
         saveDictPaths();
@@ -759,13 +857,10 @@ void CSettingsTab::delDictPath()
 
 void CSettingsTab::saveDictPaths()
 {
-    QStringList res;
-    res.reserve(ui->listDictPaths->count());
-    for (int i=0;i<ui->listDictPaths->count();i++)
-        res.append(ui->listDictPaths->item(i)->text());
+    const QStringList dirs = getListStrings(ui->listDictPaths);
 
-    if (CGenericFuncs::compareStringLists(gSet->m_settings->dictPaths,res)!=0) {
-        gSet->m_settings->dictPaths = res;
+    if (CGenericFuncs::compareStringLists(gSet->m_settings->dictPaths,dirs)!=0) {
+        gSet->m_settings->dictPaths = dirs;
         gSet->d_func()->dictManager->loadDictionaries(
                     gSet->m_settings->dictPaths);
     }

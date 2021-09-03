@@ -9,38 +9,13 @@
 #include <QScopedPointer>
 #include <QAtomicInteger>
 #include <netdb.h>
-#include "html/ParserDom.h"
 #include "mainwindow.h"
 #include "translator-workers/abstracttranslator.h"
 #include "global/control.h"
-#include "browser/waitctl.h"
 #include "global/structures.h"
+#include "browser/waitctl.h"
+#include "utils/htmlparser.h"
 #include "abstractthreadworker.h"
-
-using CHTMLAttributesHash = QHash<QString,QString>;
-
-class CHTMLNode
-{
-public:
-    QString text, tagName, closingText;
-    QVector<CHTMLNode> children;
-    CHTMLAttributesHash attributes;
-    QStringList attributesOrder;
-    bool isTag { false };
-    bool isComment { false };
-    CHTMLNode() = default;
-    ~CHTMLNode() = default;
-    CHTMLNode(const CHTMLNode& other);
-    explicit CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
-    explicit CHTMLNode(const QString& innerText);
-    CHTMLNode &operator=(const CHTMLNode& other) = default;
-    bool operator==(const CHTMLNode &s) const;
-    bool operator!=(const CHTMLNode &s) const;
-    void normalize();
-    bool isTextNode() const;
-};
-
-Q_DECLARE_METATYPE(CHTMLNode)
 
 class CBrowserWaitCtl;
 
@@ -89,18 +64,15 @@ private:
     void dumpPage(QUuid token, const QString& suffix, const QByteArray& page);
 
 public:
-    explicit CTranslator(QObject* parent, const QString &sourceHtml,
-                         const QString &title = QString(), const QUrl &origin = QUrl(),
-                         CStructures::TranslationEngine engine = CStructures::teAtlas,
-                         const CLangPair &langPair = CLangPair());
+    CTranslator(QObject* parent, const QString &sourceHtml,
+                const QString &title = QString(), const QUrl &origin = QUrl(),
+                CStructures::TranslationEngine engine = CStructures::teAtlas,
+                const CLangPair &langPair = CLangPair());
     ~CTranslator() override = default;
     bool documentReparse(const QString& sourceHtml, QString& destHtml);
     QStringList getImgUrls() const;
     QStringList getAnchorUrls() const;
     QString workerDescription() const override;
-    static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
-                             int depth = 0);
-    static void replaceLocalHrefs(CHTMLNode &node, const QUrl &baseUrl);
 
 protected:
     void startMain() override;

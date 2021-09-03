@@ -9,8 +9,6 @@
 #include "translatorcache.h"
 #include <sstream>
 
-using namespace htmlcxx;
-
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
                          const QString &title, const QUrl &origin,
                          CStructures::TranslationEngine engine,
@@ -59,10 +57,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
         dumpPage(token,QSL("1-source"),src);
     src = src.remove(0,src.indexOf(QSL("<html"),Qt::CaseInsensitive));
 
-    HTML::ParserDom parser;
-    parser.parse(src);
-
-    tree<HTML::Node> tr = parser.getTree();
+    auto tr = CHTMLParser::parseHTML(src);
 
     if (gSet->settings()->debugDumpHtml) {
         std::stringstream sst;
@@ -93,7 +88,7 @@ bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
         dumpPage(token,QSL("6-translated"),doc);
 
     examineNode(doc,PXPostprocess);
-    generateHTML(doc,dstHtml);
+    CHTMLParser::generateHTML(doc,dstHtml);
 
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QSL("7-finalized"),dstHtml);
@@ -117,10 +112,7 @@ bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
         dumpPage(token,QSL("parser-1-source"),src);
     src = src.remove(0,src.indexOf(QSL("<html"),Qt::CaseInsensitive));
 
-    HTML::ParserDom parser;
-    parser.parse(src);
-
-    tree<HTML::Node> tr = parser.getTree();
+    auto tr = CHTMLParser::parseHTML(src);
 
     if (gSet->settings()->debugDumpHtml) {
         std::stringstream sst;
@@ -150,7 +142,7 @@ bool CTranslator::documentReparse(const QString &sourceHtml, QString &destHtml)
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QSL("parser-6-translated"),doc);
 
-    generateHTML(doc,destHtml);
+    CHTMLParser::generateHTML(doc,destHtml);
     if (gSet->settings()->debugDumpHtml)
         dumpPage(token,QSL("parser-7-finalized"),destHtml);
 
@@ -529,7 +521,7 @@ void CTranslator::dumpPage(QUuid token, const QString &suffix, const CHTMLNode &
     }
     QString html;
     html.clear();
-    generateHTML(page, html);
+    CHTMLParser::generateHTML(page, html);
     f.write(html.toUtf8());
     f.close();
 }
@@ -624,112 +616,4 @@ void CTranslator::startMain()
 void CTranslator::addTranslatorRequestBytes(qint64 size)
 {
     addLoadedRequest(size);
-}
-
-void CTranslator::generateHTML(const CHTMLNode &src, QString &html, bool reformat, int depth)
-{
-    if (src.isTag && !src.tagName.isEmpty()) {
-        html.append(QSL("<")+src.tagName);
-        for (const QString &key : qAsConst(src.attributesOrder)) {
-            const QString val = src.attributes.value(key);
-            if (!val.contains(u'"')) {
-                html.append(QSL(" %1=\"%2\"").arg(key,val));
-            } else {
-                html.append(QSL(" %1='%2'").arg(key,val));
-            }
-        }
-        html.append(QSL(">"));
-    } else {
-        html.append(src.text);
-    }
-
-    for (const CHTMLNode &node : qAsConst(src.children))
-        generateHTML(node,html,reformat,depth+1);
-
-    html.append(src.closingText);
-    if (reformat)
-        html.append(u'\n');
-}
-
-void CTranslator::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
-{
-    if (node.tagName.toLower()==QSL("a")) {
-        if (node.attributes.contains(QSL("href"))) {
-            QUrl ref = QUrl(node.attributes.value(QSL("href")));
-            if (ref.isRelative())
-                node.attributes[QSL("href")]=baseUrl.resolved(ref).toString();
-        }
-    }
-
-    for (auto &child : node.children) {
-        replaceLocalHrefs(child,baseUrl);
-    }
-}
-
-CHTMLNode::CHTMLNode(const CHTMLNode &other)
-{
-    text = other.text;
-    tagName = other.tagName;
-    closingText = other.closingText;
-    isTag = other.isTag;
-    isComment = other.isComment;
-    attributes = other.attributes;
-    attributesOrder = other.attributesOrder;
-    children = other.children;
-}
-
-CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
-{
-    tree<HTML::Node>::iterator it = node.begin();
-
-    it->parseAttributes();
-
-    text = it->text();
-    tagName = it->tagName();
-    closingText = it->closingText();
-    isTag = it->isTag();
-    isComment = it->isComment();
-    attributes = it->attributes();
-    attributesOrder = it->attributesOrder();
-    children.reserve(static_cast<int>(it.number_of_children()));
-    for (unsigned i=0; i<it.number_of_children(); i++ )
-        children << CHTMLNode(node.child(it,i));
-}
-
-CHTMLNode::CHTMLNode(const QString &innerText)
-{
-    // creates text node
-    text = innerText;
-    tagName = innerText;
-}
-
-bool CHTMLNode::operator==(const CHTMLNode &s) const
-{
-    return (text == s.text);
-}
-
-bool CHTMLNode::operator!=(const CHTMLNode &s) const
-{
-    return !operator==(s);
-}
-
-void CHTMLNode::normalize()
-{
-    int i = 0;
-    while (i<(children.count()-1)) {
-        if (children.at(i).isTextNode() &&
-                children.at(i+1).isTextNode()) {
-            if (!children.at(i+1).text.trimmed().isEmpty())
-                children[i].text += children.at(i+1).text;
-            children.removeAt(i+1);
-            i = 0;
-            continue;
-        }
-        i++;
-    }
-}
-
-bool CHTMLNode::isTextNode() const
-{
-    return (!isTag && !isComment);
 }

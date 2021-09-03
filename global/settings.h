@@ -33,6 +33,7 @@ const int fontSizeMinimal = 12;
 const int fontSizeDefault = 12;
 const int fontSizeFixed = 12;
 const int translatorCacheSize = 128;
+const int xapianStartDelay = 30;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
@@ -106,6 +107,8 @@ public:
     QString aliAccessKeyID;
     QString aliAccessKeySecret;
 
+    QString xapianStemmerLang;
+
     QString proxyHost;
     QString proxyLogin;
     QString proxyPassword;
@@ -116,6 +119,7 @@ public:
     QStringList userAgentHistory;
     QStringList atlHostHistory;
     QStringList charsetHistory;
+    QStringList xapianIndexDirList;
 
     QKeySequence gctxSequence;
     QKeySequence autofillSequence;
@@ -137,6 +141,7 @@ public:
     int fontSizeFixed { CDefaults::fontSizeFixed };
     int translatorCacheSize { CDefaults::translatorCacheSize };
     int translatorRetryCount { CDefaults::translatorRetryCount };
+    int xapianStartDelay { CDefaults::xapianStartDelay };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };
@@ -172,6 +177,7 @@ public:
 
     void readSettings(QObject *control = nullptr);
     void setTranslationEngine(CStructures::TranslationEngine engine);
+    void updateXapianIndexDirs(const QStringList& directories);
     QString getSelectedLangPair(CStructures::TranslationEngine engine) const;
     CStructures::TranslationEngine getTranslationEngineFromName(const QString& name, bool *ok) const;
 

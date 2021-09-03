@@ -36,6 +36,7 @@ public:
     static QTextCodec* detectEncoding(const QByteArray &content);
     static QString detectEncodingName(const QByteArray &content);
     static QString detectDecodeToUnicode(const QByteArray &content);
+    static QByteArray detectDecodeToUtf8(const QByteArray &content);
     static QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false,
                                   const QUrl &origin = QUrl());
     static QString makeSpecialUrlsHtml();
@@ -90,7 +91,6 @@ public:
     static QByteArray hmacSha1(const QByteArray &key, const QByteArray &baseString);
 
     static void profiler(int line, const QElapsedTimer &time);
-
 
 private:
     Q_DISABLE_COPY(CGenericFuncs)

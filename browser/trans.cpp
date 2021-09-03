@@ -11,10 +11,9 @@
 #include "global/browserfuncs.h"
 #include "translator/translator.h"
 #include "utils/genericfuncs.h"
+#include "utils/htmlparser.h"
 #include "browser-utils/userscript.h"
 #include "miniqxt/qxttooltip.h"
-
-using namespace htmlcxx;
 
 namespace CDefaults {
 const int selectionTimerDelay = 1000;
@@ -268,13 +267,11 @@ void CBrowserTrans::findWordTranslation(const QString &text)
 
 void CBrowserTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
 {
-    HTML::ParserDom parser;
-    parser.parse(html);
-    tree<HTML::Node> tree = parser.getTree();
-    CHTMLNode doc(tree);
     QString dst;
-    CTranslator::replaceLocalHrefs(doc, baseUrl);
-    CTranslator::generateHTML(doc,dst);
+
+    CHTMLNode doc(CHTMLParser::parseHTML(html));
+    CHTMLParser::replaceLocalHrefs(doc, baseUrl);
+    CHTMLParser::generateHTML(doc,dst);
 
     snv->netHandler->loadWithTempFile(dst, true);
 }

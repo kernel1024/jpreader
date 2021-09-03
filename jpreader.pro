@@ -14,6 +14,7 @@ HEADERS = mainwindow.h \
     global/history.h \
     global/network.h \
     global/ui.h \
+    search/xapianindexworker.h \
     translator-workers/abstracttranslator.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \
@@ -58,6 +59,7 @@ HEADERS = mainwindow.h \
     translator/translatorcachedialog.h \
     translator/translatorstatisticstab.h \
     translator/uitranslator.h \
+    utils/htmlparser.h \
     utils/pdfworkerprivate.h \
     utils/pixivindexlimitsdialog.h \
     utils/settingstab.h \
@@ -92,6 +94,7 @@ SOURCES = main.cpp \
     global/ui.cpp \
     mainwindow.cpp \
     abstractthreadworker.cpp \
+    search/xapianindexworker.cpp \
     translator-workers/alicloudtranslator.cpp \
     translator-workers/awstranslator.cpp \
     translator-workers/atlastranslator.cpp \
@@ -137,6 +140,7 @@ SOURCES = main.cpp \
     translator/translatorstatisticstab.cpp \
     translator/uitranslator.cpp \
     utils/cliworker.cpp \
+    utils/htmlparser.cpp \
     utils/pixivindexlimitsdialog.cpp \
     utils/pixivindextab.cpp \
     utils/pdfworkerprivate.cpp \
@@ -262,6 +266,18 @@ use_source-highlight {
     message("Using source-highlight: YES");
 } else {
     message("Using source-highlight: NO");
+}
+
+packagesExist(xapian-core-1.5) {
+    CONFIG += use_xapian
+}
+
+use_xapian {
+    DEFINES += WITH_XAPIAN=1
+    PKGCONFIG += xapian-core-1.5
+    message("Using Xapian: YES")
+} else {
+    message("Using Xapian: NO")
 }
 
 GITREV = $$system(git rev-list HEAD|head -n1|cut -c -7)

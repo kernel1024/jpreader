@@ -81,6 +81,7 @@ private:
 
     void resizeEvent(QResizeEvent *event) override;
 
+    QStringList getListStrings(QListWidget* list) const;
     QList<int> getSelectedRows(QTableWidget* table) const;
     void adblockFocusSearchedRule(QList<QTreeWidgetItem *> &items);
     void setupSettingsObservers();
@@ -137,6 +138,8 @@ public Q_SLOTS:
     void addNoScriptHost();
     void delNoScriptHost();
     void selectGcpJsonFile();
+    void addXapianIndexDir();
+    void delXapianIndexDir();
 };
 
 #endif // SETTINGSTAB_H

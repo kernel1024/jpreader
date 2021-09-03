@@ -25,6 +25,7 @@
 #include <unicode/localpointer.h>
 #include <unicode/uenum.h>
 #include <unicode/ucsdet.h>
+#include <unicode/ucnv.h>
 
 extern "C" {
 #include <unistd.h>
@@ -147,6 +148,42 @@ QString CGenericFuncs::detectDecodeToUnicode(const QByteArray& content)
 {
     QTextCodec *cd = detectEncoding(content);
     return cd->toUnicode(content);
+}
+
+QByteArray CGenericFuncs::detectDecodeToUtf8(const QByteArray& content)
+{
+    if (content.isEmpty())
+        return QByteArray();
+
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter *conv = nullptr;
+
+    auto cleanup = qScopeGuard([&conv]{
+        if (conv)
+            ucnv_close(conv);
+    });
+
+    const QString encoding = detectEncodingName(content);
+    // TODO: recheck return value
+    if (encoding.toLower() == QSL("utf-8"))
+        return content;
+
+    if (encoding.isEmpty())
+        return QByteArray();
+
+    conv = ucnv_open(encoding.toUtf8().constData(),&status);
+    if (!U_SUCCESS(status) && (conv == nullptr))
+        return QByteArray();
+
+    int utf16len = content.length() / static_cast<uint8_t>(ucnv_getMinCharSize(conv));
+    QByteArray targetBuf(utf16len*4,'\0');
+    int len = ucnv_fromAlgorithmic(conv,UCNV_UTF8,targetBuf.data(),targetBuf.size(),content.constData(),content.length(),&status);
+    if (!U_SUCCESS(status))
+        return QByteArray();
+
+    targetBuf.truncate(len);
+
+    return targetBuf;
 }
 
 QString CGenericFuncs::unsplitMobileText(const QString& text)

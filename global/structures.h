@@ -31,7 +31,8 @@ Q_ENUM_NS(TranslationEngine)
 enum SearchEngine {
     seNone = 0,
     seRecoll = 2,
-    seBaloo5 = 3
+    seBaloo5 = 3,
+    seXapian = 4
 };
 Q_ENUM_NS(SearchEngine)
 

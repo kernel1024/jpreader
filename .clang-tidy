@@ -8,7 +8,8 @@ Checks:          '-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readabi
 -modernize-use-trailing-return-type,
 -modernize-pass-by-value,
 -misc-no-recursion,
--readability-convert-member-functions-to-static'
+-readability-convert-member-functions-to-static,
+-readability-function-cognitive-complexity'
 
 CheckOptions:    
   - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic

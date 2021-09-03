@@ -15,6 +15,7 @@
 #include "browserfuncs.h"
 #include "network.h"
 #include "ui.h"
+#include "startup.h"
 #include "utils/settingstab.h"
 #include "miniqxt/qxtglobalshortcut.h"
 #include "utils/genericfuncs.h"
@@ -48,7 +49,9 @@ CSettings::CSettings(CGlobalControl *parent)
     savedAuxDir=QDir::homePath();
     savedAuxSaveDir=savedAuxDir;
 
-#if WITH_RECOLL
+#if WITH_XAPIAN
+    searchEngine = CStructures::seXapian;
+#elif WITH_RECOLL
     searchEngine = CStructures::seRecoll;
 #elif WITH_BALOO5
     searchEngine = CStructures::seBaloo5;
@@ -161,6 +164,10 @@ void CSettings::writeSettings()
 
     settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
+
+    settings.setValue(QSL("xapianStemmerLang"),xapianStemmerLang);
+    settings.setValue(QSL("xapianStartDelay"),xapianStartDelay);
+    settings.setValue(QSL("xapianIndexDirList"),xapianIndexDirList);
 
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
@@ -446,6 +453,10 @@ void CSettings::readSettings(QObject *control)
     translatorCacheSize = settings.value(QSL("translatorCacheSize"),
                                          CDefaults::translatorCacheSize).toInt();
 
+    xapianStemmerLang = settings.value(QSL("xapianStemmerLang"),QString()).toString();
+    xapianStartDelay = settings.value(QSL("xapianStartDelay"),CDefaults::xapianStartDelay).toInt();
+    xapianIndexDirList = settings.value(QSL("xapianIndexDirList"),QStringList()).toStringList();
+
     overrideUserAgent=settings.value(QSL("overrideUserAgent"),
                                      CDefaults::overrideUserAgent).toBool();
     userAgent=settings.value(QSL("userAgent"),QString()).toString();
@@ -510,6 +521,12 @@ void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
         gSet->m_actions->setActiveLangPair(selectedLangPairs.value(engine));
 
     Q_EMIT gSet->m_ui->translationEngineChanged();
+}
+
+void CSettings::updateXapianIndexDirs(const QStringList &directories)
+{
+    xapianIndexDirList = directories;
+    gSet->m_startup->startupXapianIndexer();
 }
 
 QString CSettings::getSelectedLangPair(CStructures::TranslationEngine engine) const

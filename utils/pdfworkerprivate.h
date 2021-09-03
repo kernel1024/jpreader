@@ -5,11 +5,16 @@
 #include "global/structures.h"
 
 #ifdef WITH_POPPLER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <poppler-config.h>
 #include <GlobalParams.h>
 #include <Object.h>
 #include <Dict.h>
 #include <Error.h>
+
+#pragma GCC diagnostic pop
 #endif // WITH_POPPLER
 
 class CPDFWorkerPrivate : public QObject

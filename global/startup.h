@@ -34,12 +34,13 @@ private:
 Q_SIGNALS:
     void stopWorkers();
     void terminateWorkers();
+    void stopXapianWorkers();
 
 public Q_SLOTS:
     void cleanupAndExit();
     void ipcMessageReceived();
     void cleanupWorker();
-
+    void startupXapianIndexer();
 
 };
 
