@@ -1,3 +1,4 @@
+#include "xapianindexworker_p.h"
 #include "xapianindexworker.h"
 
 #include <algorithm>
@@ -28,45 +29,56 @@ namespace CDefaults {
 const auto docIDPrefix = "QFH";
 }
 
-CXapianIndexWorker::CXapianIndexWorker(QObject *parent, const QStringList& forcedScanDirList, bool cleanDB)
+CXapianIndexWorker::CXapianIndexWorker(QObject *parent, bool cleanupDatabase)
     : CAbstractThreadWorker(parent),
-      m_cleanDB(cleanDB)
+      dptr(new CXapianIndexWorkerPrivate(this))
 {
-    m_stemLang = gSet->settings()->xapianStemmerLang.toStdString();
-    if (forcedScanDirList.isEmpty()) {
-        m_indexDirs = gSet->settings()->xapianIndexDirList;
-    } else {
-        m_indexDirs = forcedScanDirList;
-    }
-    m_cacheDir = QDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+    Q_D(CXapianIndexWorker);
+
+    d->m_cleanupDatabase = cleanupDatabase;
+    d->m_stemLang = gSet->settings()->xapianStemmerLang.toStdString();
+    d->m_indexDirs = gSet->settings()->xapianIndexDirList;
+    d->m_cacheDir.setPath(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+}
+
+CXapianIndexWorker::~CXapianIndexWorker() = default;
+
+void CXapianIndexWorker::forceScanDirList(const QStringList &forcedScanDirList)
+{
+    Q_D(CXapianIndexWorker);
+
+    d->m_indexDirs = forcedScanDirList;
+    d->m_cleanupDatabase = false;
 }
 
 void CXapianIndexWorker::startMain()
 {
+    Q_D(CXapianIndexWorker);
+
 #ifdef WITH_XAPIAN
     static QMutex mainIndexerMutex;
     QMutexLocker locker(&mainIndexerMutex);
 
-    if (!m_cacheDir.isReadable()) return;
+    if (!d->m_cacheDir.isReadable()) return;
 
-    const QString dbFile = m_cacheDir.filePath(QSL("xapian_index"));
+    const QString dbFile = d->m_cacheDir.filePath(QSL("xapian_index"));
 
     QElapsedTimer tmr;
     tmr.start();
 
     int dbMode = Xapian::DB_CREATE_OR_OPEN;
-    if (m_cleanDB)
+    if (d->m_cleanupDatabase)
         dbMode = Xapian::DB_CREATE_OR_OVERWRITE;
 
-    m_db.reset(new Xapian::WritableDatabase(dbFile.toStdString(), dbMode));
-    auto dbCleanup = qScopeGuard([this]{
-        m_db->commit();
-        m_db->close();
+    d->m_db.reset(new Xapian::WritableDatabase(dbFile.toStdString(), dbMode));
+    auto dbCleanup = qScopeGuard([this,d]{
+        d->m_db->commit();
+        d->m_db->close();
         Q_EMIT finished();
     });
 
     std::map<std::string,QString> fsFiles;
-    for (const auto &dir : qAsConst(m_indexDirs)) {
+    for (const auto &dir : qAsConst(d->m_indexDirs)) {
         QDirIterator it(dir, QDir::Files | QDir::Readable, QDirIterator::Subdirectories);
         while (it.hasNext()) {
             const QString fi = it.next();
@@ -86,7 +98,7 @@ void CXapianIndexWorker::startMain()
     tmr.restart();
     std::map<std::string,QString> baseIDs;
     const std::string prefix(CDefaults::docIDPrefix);
-    for (auto it = m_db->allterms_begin(prefix), end = m_db->allterms_end(prefix); it != end; ++it) {
+    for (auto it = d->m_db->allterms_begin(prefix), end = d->m_db->allterms_end(prefix); it != end; ++it) {
         baseIDs.emplace(*it,QString());
         if (isAborted()) {
             qWarning() << QSL("XapianIndexer: Aborting.");
@@ -116,7 +128,7 @@ void CXapianIndexWorker::startMain()
     tmr.restart();
     if (!deletedFiles.empty()) {
         for (const auto& fpair : deletedFiles) {
-            m_db->delete_document(fpair.first);
+            d->m_db->delete_document(fpair.first);
             if (isAborted()) {
                 qWarning() << QSL("XapianIndexer: Aborting.");
                 return;
@@ -146,10 +158,12 @@ void CXapianIndexWorker::startMain()
 
 QString CXapianIndexWorker::workerDescription() const
 {
-    if (m_db.isNull())
+    const Q_D(CXapianIndexWorker);
+
+    if (d->m_db.isNull())
         return tr("Xapian indexer (initializing)");
 
-    return tr("Xapian indexer (%1 root dirs)").arg(m_indexDirs.count());
+    return tr("Xapian indexer (%1 root dirs)").arg(d->m_indexDirs.count());
 }
 
 bool CXapianIndexWorker::fileMeta(const QString& filename, std::string &docID, qint64 &size, QString &suffix)
@@ -180,6 +194,8 @@ bool CXapianIndexWorker::fileMeta(const QString& filename, std::string &docID, q
 
 bool CXapianIndexWorker::handleFile(const QString &filename)
 {
+    const Q_D(CXapianIndexWorker);
+
 #ifdef WITH_XAPIAN
     QString mime;
     QByteArray textContent;
@@ -200,7 +216,7 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
         mime = CGenericFuncs::detectMIME(textContent);
         if (mime.startsWith(QSL("text/html"),Qt::CaseInsensitive)) // HTML file
         {
-            CHTMLNode doc(CHTMLParser::parseHTML(textContent));
+            CHTMLNode doc(CHTMLParser::parseHTML(CGenericFuncs::detectDecodeToUnicode(textContent)));
             QString html;
             CHTMLParser::generatePlainText(doc,html);
             textContent = html.toUtf8();
@@ -220,8 +236,8 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
         if (!utf8Content.isEmpty()) {
             // ******* Add file to database
             Xapian::TermGenerator generator;
-            if (!m_stemLang.empty())
-                generator.set_stemmer(Xapian::Stem(m_stemLang));
+            if (!d->m_stemLang.empty())
+                generator.set_stemmer(Xapian::Stem(d->m_stemLang));
             generator.set_flags(Xapian::TermGenerator::FLAG_CJK_WORDS);
             generator.set_document(doc);
             generator.index_text(utf8Content.toStdString());
@@ -240,7 +256,7 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
         static QMutex dbMutex;
         {
             QMutexLocker locker(&dbMutex);
-            m_db->replace_document(docID,doc);
+            d->m_db->replace_document(docID,doc);
         }
     } catch (const Xapian::Error &err) {
         errMsg = QString::fromStdString(err.get_msg());
@@ -260,4 +276,9 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
 
 #endif
     return true;
+}
+
+CXapianIndexWorkerPrivate::CXapianIndexWorkerPrivate(QObject *parent)
+    : QObject(parent)
+{
 }

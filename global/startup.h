@@ -20,6 +20,8 @@ public:
     // Worker control
     bool setupThreadedWorker(CAbstractThreadWorker *worker);
     bool isThreadedWorkersActive() const;
+    void startupXapianIndexerDirect(bool fromInotify,
+                                    bool cleanupDatabase);
 
 private:
     CGlobalControl *m_g;

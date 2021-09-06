@@ -15,6 +15,7 @@ HEADERS = mainwindow.h \
     global/network.h \
     global/ui.h \
     search/xapianindexworker.h \
+    search/xapianindexworker_p.h \
     translator-workers/abstracttranslator.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \

@@ -1,5 +1,6 @@
 #include <QFile>
 #include <QFileInfo>
+#include <QDirIterator>
 
 extern "C" {
 #include <unistd.h>
@@ -7,6 +8,7 @@ extern "C" {
 }
 
 #include "control_p.h"
+#include "startup.h"
 #include "utils/logdisplay.h"
 #include "utils/workermonitor.h"
 #include "browser-utils/downloadmanager.h"
@@ -14,9 +16,13 @@ extern "C" {
 
 namespace CDefaults {
 const int settingsSavePeriod = 60000;
+const int maxInotifyWatches = 200;
+const int maxAccumulatedInotifyEvents = 10000;
 }
 
-CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
+CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent)
+    : QObject(parent),
+      xapianFilesystemWatcher(new QFileSystemWatcher(this))
 {
     if (qobject_cast<QGuiApplication *>(QCoreApplication::instance())) {
         m_appIcon.addFile(QSL(":/img/globe16"));
@@ -27,6 +33,20 @@ CGlobalControlPrivate::CGlobalControlPrivate(QObject *parent) : QObject(parent)
         settingsSaveTimer.setInterval(CDefaults::settingsSavePeriod);
         settingsSaveTimer.setSingleShot(false);
     }
+
+    xapianIndexerTimer.setProperty(CDefaults::propXapianInotifyTimer,true);
+    connect(xapianFilesystemWatcher.data(),&QFileSystemWatcher::directoryChanged,this,
+            [this](const QString &path){
+        QMutexLocker locker(&xapianTimerMutex);
+        if (!xapianIndexerPathAccumulator.contains(path))
+            xapianIndexerPathAccumulator.append(path);
+
+        if (xapianIndexerPathAccumulator.count()>CDefaults::maxAccumulatedInotifyEvents) {
+            gSet->m_startup->startupXapianIndexerDirect(true,false);
+        } else {
+            xapianIndexerTimer.start();
+        }
+    });
 }
 
 CGlobalControlPrivate::~CGlobalControlPrivate() = default;
@@ -57,6 +77,53 @@ void CGlobalControlPrivate::clearAdblockWhiteList()
     adblockWhiteListMutex.lock();
     adblockWhiteList.clear();
     adblockWhiteListMutex.unlock();
+}
+
+void CGlobalControlPrivate::reloadXapianFilesystemWatcher(QObject *control)
+{
+    const int maxInotifyWatches = 3 * getMaxUserInotifyWatches() / 4;
+
+    QObject* cg = control;
+    if (cg==nullptr) cg = gSet;
+    if (cg==nullptr) return;
+
+    auto *g = qobject_cast<CGlobalControl *>(cg);
+    Q_ASSERT(g!=nullptr);
+
+    QStringList watchList;
+    watchList.reserve(g->settings()->xapianIndexDirList.count()); // just for clazy
+    for (const auto& dir : qAsConst(g->settings()->xapianIndexDirList)) {
+        QFileInfo rfi(dir);
+        if (rfi.isDir() && rfi.isReadable() && !watchList.contains(rfi.absoluteFilePath()))
+            watchList.append(rfi.absoluteFilePath());
+        QDirIterator it(dir,QDir::Dirs | QDir::NoDotAndDotDot,QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            QFileInfo fi(it.next());
+            if (fi.isDir() && fi.isReadable() && !watchList.contains(fi.absoluteFilePath()))
+                watchList.append(fi.absoluteFilePath());
+        }
+        if (watchList.count()>maxInotifyWatches)
+            break;
+    }
+
+    const QStringList removeDirList = xapianFilesystemWatcher->directories();
+    xapianFilesystemWatcher->removePaths(removeDirList);
+
+    xapianFilesystemWatcher->addPaths(watchList);
+}
+
+int CGlobalControlPrivate::getMaxUserInotifyWatches()
+{
+    int res = CDefaults::maxInotifyWatches;
+
+    QFile f(QSL("/proc/sys/fs/inotify/max_user_watches"));
+    if (f.open(QIODevice::ReadOnly)) {
+        bool ok = false;
+        res = QString::fromUtf8(f.readLine()).trimmed().toInt(&ok);
+        if (!ok)
+            res = CDefaults::maxInotifyWatches;
+    }
+    return res;
 }
 
 void CGlobalControlPrivate::stdConsoleOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)

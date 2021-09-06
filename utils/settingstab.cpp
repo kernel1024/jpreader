@@ -321,7 +321,7 @@ void CSettingsTab::loadFromGlobal()
             stemIdx = 0;
     }
     ui->comboXapianStemmerLang->setCurrentIndex(stemIdx);
-    ui->spinXapianStartDelay->setValue(gSet->m_settings->xapianStartDelay);
+    ui->spinXapianStartDelay->setValue(gSet->m_settings->getXapianTimerInterval());
     ui->listXapianIndexDirs->clear();
     ui->listXapianIndexDirs->addItems(gSet->m_settings->xapianIndexDirList);
 
@@ -727,7 +727,7 @@ void CSettingsTab::setupSettingsObservers()
 
     connect(ui->spinXapianStartDelay,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
-        gSet->m_settings->xapianStartDelay = val;
+        gSet->m_settings->setupXapianTimerInterval(gSet,val);
     });
     connect(ui->comboXapianStemmerLang,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
         Q_UNUSED(val)

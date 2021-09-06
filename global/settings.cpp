@@ -166,7 +166,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
 
     settings.setValue(QSL("xapianStemmerLang"),xapianStemmerLang);
-    settings.setValue(QSL("xapianStartDelay"),xapianStartDelay);
+    settings.setValue(QSL("xapianStartDelay"),getXapianTimerInterval());
     settings.setValue(QSL("xapianIndexDirList"),xapianIndexDirList);
 
     settings.endGroup();
@@ -453,8 +453,8 @@ void CSettings::readSettings(QObject *control)
     translatorCacheSize = settings.value(QSL("translatorCacheSize"),
                                          CDefaults::translatorCacheSize).toInt();
 
+    setupXapianTimerInterval(g,settings.value(QSL("xapianStartDelay"),CDefaults::xapianStartDelay).toInt());
     xapianStemmerLang = settings.value(QSL("xapianStemmerLang"),QString()).toString();
-    xapianStartDelay = settings.value(QSL("xapianStartDelay"),CDefaults::xapianStartDelay).toInt();
     xapianIndexDirList = settings.value(QSL("xapianIndexDirList"),QStringList()).toStringList();
 
     overrideUserAgent=settings.value(QSL("overrideUserAgent"),
@@ -500,6 +500,7 @@ void CSettings::readSettings(QObject *control)
 
         g->m_actions->rebuildLanguageActions(g);
         g->m_actions->rebindGctxHotkey(g);
+        g->d_func()->reloadXapianFilesystemWatcher(g);
     }
 }
 
@@ -526,7 +527,8 @@ void CSettings::setTranslationEngine(CStructures::TranslationEngine engine)
 void CSettings::updateXapianIndexDirs(const QStringList &directories)
 {
     xapianIndexDirList = directories;
-    gSet->m_startup->startupXapianIndexer();
+    gSet->d_func()->reloadXapianFilesystemWatcher();
+    gSet->m_startup->startupXapianIndexerDirect(false,false);
 }
 
 QString CSettings::getSelectedLangPair(CStructures::TranslationEngine engine) const
@@ -549,6 +551,23 @@ CStructures::TranslationEngine CSettings::getTranslationEngineFromName(const QSt
         }
     }
     return res;
+}
+
+void CSettings::setupXapianTimerInterval(QObject* control, int secs)
+{
+    auto *g = qobject_cast<CGlobalControl *>(control);
+    Q_ASSERT(g!=nullptr);
+
+    int xapianSec = secs;
+    if (xapianSec<5) xapianSec = 5;
+    g->d_func()->xapianIndexerTimer.stop();
+    g->d_func()->xapianIndexerTimer.setSingleShot(true);
+    g->d_func()->xapianIndexerTimer.setInterval(xapianSec*CDefaults::oneK);
+}
+
+int CSettings::getXapianTimerInterval()
+{
+    return gSet->d_func()->xapianIndexerTimer.interval() / CDefaults::oneK;
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)

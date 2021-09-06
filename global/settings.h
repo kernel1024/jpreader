@@ -19,6 +19,7 @@ class CMainWindow;
 class CSettingsPrivate;
 
 namespace CDefaults {
+const int oneK = 1000;
 const int maxHistory = 5000;
 const int maxRecent = 10;
 const int maxSearchLimit = 1000;
@@ -67,6 +68,7 @@ const auto fontSerif = "Times New Roman";
 const auto fontSansSerif = "Verdana";
 const auto sysBrowser = "konqueror";
 const auto sysEditor = "kwrite";
+const auto propXapianInotifyTimer = "inotify";
 }
 
 class CGlobalControl;
@@ -141,7 +143,6 @@ public:
     int fontSizeFixed { CDefaults::fontSizeFixed };
     int translatorCacheSize { CDefaults::translatorCacheSize };
     int translatorRetryCount { CDefaults::translatorRetryCount };
-    int xapianStartDelay { CDefaults::xapianStartDelay };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };
@@ -180,6 +181,9 @@ public:
     void updateXapianIndexDirs(const QStringList& directories);
     QString getSelectedLangPair(CStructures::TranslationEngine engine) const;
     CStructures::TranslationEngine getTranslationEngineFromName(const QString& name, bool *ok) const;
+
+    void setupXapianTimerInterval(QObject *control, int secs);
+    int getXapianTimerInterval();
 
 Q_SIGNALS:
     void adblockRulesUpdated();

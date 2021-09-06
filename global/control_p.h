@@ -6,6 +6,7 @@
 #include <QLocalServer>
 #include <QMutex>
 #include <QIcon>
+#include <QFileSystemWatcher>
 #include "structures.h"
 #include "browser-utils/adblockrule.h"
 #include "browser-utils/userscript.h"
@@ -52,6 +53,7 @@ public:
     QScopedPointer<CCLIWorker, QScopedPointerDeleteLater> cliWorker;
     QScopedPointer<CWorkerMonitor, QScopedPointerDeleteLater> workerMonitor;
     QScopedPointer<CAutofillAssistant, QScopedPointerDeleteLater> autofillAssistant;
+    QScopedPointer<QFileSystemWatcher, QScopedPointerDeleteLater> xapianFilesystemWatcher;
     QList<CAbstractThreadWorker *> workerPool;
 
     QStringList recentFiles;
@@ -93,6 +95,10 @@ public:
     QTimer settingsSaveTimer;
     QMutex settingsSaveMutex;
 
+    QTimer xapianIndexerTimer;
+    QMutex xapianTimerMutex;
+    QStringList xapianIndexerPathAccumulator;
+
     QMutex pixivCommonCoversMutex;
 
     QSize openFileDialogSize;
@@ -106,6 +112,9 @@ public:
     static bool runnedFromQtCreator();
 
     void clearAdblockWhiteList();
+    void reloadXapianFilesystemWatcher(QObject *control = nullptr);
+
+    int getMaxUserInotifyWatches();
 
 private:
     Q_DISABLE_COPY(CGlobalControlPrivate)

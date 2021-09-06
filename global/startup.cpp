@@ -1,5 +1,3 @@
-#include "search/xapianindexworker.h"
-
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
@@ -32,6 +30,7 @@ extern "C" {
 #include "utils/pdftotext.h"
 #include "utils/logdisplay.h"
 #include "utils/workermonitor.h"
+#include "search/xapianindexworker.h"
 
 #include "auxtranslator_adaptor.h"
 #include "browsercontroller_adaptor.h"
@@ -44,7 +43,6 @@ const int ipcTimeout = 1000;
 const int workerMaxShutdownTimeMS = 5000;
 const int workerWaitGranularityMS = 250;
 const int xapianWorkerStartupLockMS = 500;
-const int oneK = 1000;
 }
 
 CGlobalStartup::CGlobalStartup(CGlobalControl *parent)
@@ -220,9 +218,7 @@ void CGlobalStartup::initialize()
             gSet->d_func()->dictManager->loadDictionaries(gSet->m_settings->dictPaths);
         });
 
-        QTimer::singleShot(gSet->m_settings->xapianStartDelay*CDefaults::oneK,this,[this](){
-            startupXapianIndexer();
-        });
+        connect(&(m_g->d_func()->xapianIndexerTimer),&QTimer::timeout,this,&CGlobalStartup::startupXapianIndexer);
 
         QApplication::setStyle(new CSpecMenuStyle);
         QApplication::setQuitOnLastWindowClosed(false);
@@ -235,6 +231,7 @@ void CGlobalStartup::initialize()
         }
 
         m_g->m_ui->addMainWindowEx(false,true,openUrls);
+        m_g->d_func()->xapianIndexerTimer.start();
 
         qInfo() << "Initialization time, ms: " << initTime.elapsed();
 
@@ -504,24 +501,23 @@ void CGlobalStartup::initLanguagesList()
     }
 }
 
-void CGlobalStartup::startupXapianIndexer()
+void CGlobalStartup::startupXapianIndexerDirect(bool fromInotify, bool cleanupDatabase)
 {
     Q_EMIT stopXapianWorkers();
 
 #ifdef WITH_XAPIAN
-    CXapianIndexWorker::WorkerMode mode = CXapianIndexWorker::xwIndexFull;
-    auto *ac = qobject_cast<QAction *>(sender());
-    if (ac) {
-        bool okconv = false;
-        mode = static_cast<CXapianIndexWorker::WorkerMode>(ac->data().toInt(&okconv));
-        if (!okconv) return;
-    }
+    QTimer::singleShot(CDefaults::xapianWorkerStartupLockMS,this,
+                       [this,fromInotify,cleanupDatabase](){
+        QMutexLocker locker(&(gSet->d_func()->xapianTimerMutex));
 
-    QTimer::singleShot(CDefaults::xapianWorkerStartupLockMS,this,[this,mode](){
-        auto *xw = new CXapianIndexWorker(nullptr,QStringList(),(mode == CXapianIndexWorker::xwClearAndIndexFull));
+        auto *xw = new CXapianIndexWorker(nullptr,cleanupDatabase);
         if (!gSet->startup()->setupThreadedWorker(xw)) {
             delete xw;
             return;
+        }
+        if (fromInotify) {
+            xw->forceScanDirList(gSet->d_func()->xapianIndexerPathAccumulator);
+            gSet->d_func()->xapianIndexerPathAccumulator.clear();
         }
 
         connect(this,&CGlobalStartup::stopXapianWorkers,
@@ -530,4 +526,23 @@ void CGlobalStartup::startupXapianIndexer()
         QMetaObject::invokeMethod(xw,&CAbstractThreadWorker::start,Qt::QueuedConnection);
     });
 #endif
+}
+
+void CGlobalStartup::startupXapianIndexer()
+{
+    bool cleanupDatabase = false;
+    bool fromInotify = false;
+    auto *ac = qobject_cast<QAction *>(sender());
+    if (ac) {
+        cleanupDatabase = (ac->data().toString().toLower() == QSL("cleanup"));
+        fromInotify = false;
+    }
+
+    auto *tm = qobject_cast<QTimer *>(sender());
+    if (tm) {
+        cleanupDatabase = false;
+        fromInotify = (tm->property(CDefaults::propXapianInotifyTimer).toBool());
+    }
+
+    startupXapianIndexerDirect(fromInotify,cleanupDatabase);
 }

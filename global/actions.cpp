@@ -52,10 +52,9 @@ CGlobalActions::CGlobalActions(QObject *parent)
     actionSnippetAutotranslate->setChecked(false);
 
     actionXapianForceFullScan = new QAction(tr("Force full scan"),this);
-    actionXapianForceFullScan->setData(CXapianIndexWorker::xwIndexFull);
     actionXapianClearAndRescan = new QAction(QIcon::fromTheme(QSL("data-warning")),
                                              tr("Clear index and full rescan"),this);
-    actionXapianClearAndRescan->setData(CXapianIndexWorker::xwClearAndIndexFull);
+    actionXapianClearAndRescan->setData(QSL("cleanup"));
 
     languageSelector = new QActionGroup(this);
     translationMode = new QActionGroup(this);

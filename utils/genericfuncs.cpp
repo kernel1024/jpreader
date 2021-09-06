@@ -164,7 +164,6 @@ QByteArray CGenericFuncs::detectDecodeToUtf8(const QByteArray& content)
     });
 
     const QString encoding = detectEncodingName(content);
-    // TODO: recheck return value
     if (encoding.toLower() == QSL("utf-8"))
         return content;
 
