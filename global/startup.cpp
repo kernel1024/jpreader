@@ -231,7 +231,7 @@ void CGlobalStartup::initialize()
         }
 
         m_g->m_ui->addMainWindowEx(false,true,openUrls);
-        m_g->d_func()->xapianIndexerTimer.start();
+        QTimer::singleShot(m_g->d_func()->xapianIndexerTimer.interval(),this,&CGlobalStartup::startupXapianIndexer);
 
         qInfo() << "Initialization time, ms: " << initTime.elapsed();
 
