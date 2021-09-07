@@ -255,7 +255,7 @@ void CBrowserNet::extractHTMLFragment()
         QClipboard *cb = QApplication::clipboard();
         const QMimeData *md = cb->mimeData(QClipboard::Clipboard);
         if (md->hasHtml()) {
-            auto *ex = new CHtmlImagesExtractor(nullptr,snv);
+            auto *ex = new CHtmlImagesExtractor(nullptr);
             ex->setParams(md->html(),url,false,false,true);
             if (!gSet->startup()->setupThreadedWorker(ex)) {
                 delete ex;

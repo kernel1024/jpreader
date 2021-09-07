@@ -74,6 +74,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
             engine.data(), &CIndexerSearch::doSearch, Qt::QueuedConnection);
     connect(engine.data(), &CIndexerSearch::gotResult,
             this, &CSearchTab::gotSearchResult, Qt::QueuedConnection);
+    connect(engine.data(), &CIndexerSearch::gotError,
+            this, &CSearchTab::gotSearchError,Qt::QueuedConnection);
     thread->setObjectName(QSL("SearchTabEngine"));
     thread->start();
 
@@ -108,6 +110,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
         ui->labelMode->setText(QSL("Recoll search"));
     } else if (engine->getCurrentIndexerService()==CStructures::seBaloo5) {
         ui->labelMode->setText(QSL("Baloo KF5 search"));
+    } else if (engine->getCurrentIndexerService()==CStructures::seXapian) {
+        ui->labelMode->setText(QSL("Xapian search"));
     } else {
         ui->labelMode->setText(QSL("Local file search"));
     }
@@ -145,6 +149,11 @@ void CSearchTab::selectDir()
 void CSearchTab::gotSearchResult(const CStringHash& item)
 {
     model->addItem(item);
+}
+
+void CSearchTab::gotSearchError(const QString &message)
+{
+    QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),message);
 }
 
 void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
@@ -444,12 +453,6 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     if (!auxText.isEmpty())
         return s;
 
-    QFileInfo fi(aFilename);
-    if (!fi.exists()) {
-        s=tr("File not found in directory.");
-        return s;
-    }
-
     QFile f(aFilename);
     if (!f.open(QIODevice::ReadOnly)) {
         s=tr("File not found");
@@ -464,9 +467,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     }
     f.close();
 
-    QTextCodec *cd = CGenericFuncs::detectEncoding(fc);
-
-    QString fileContents = cd->toUnicode(fc.constData());
+    QString fileContents = CGenericFuncs::detectDecodeToUnicode(fc.constData());
 
     fileContents.remove(QRegularExpression(QSL("<[^>]*>")));
     fileContents.remove(u'\n');

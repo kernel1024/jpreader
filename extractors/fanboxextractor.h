@@ -26,7 +26,7 @@ private:
     QString m_postNum;
 
 public:
-    CFanboxExtractor(QObject *parent, QWidget *parentWidget);
+    CFanboxExtractor(QObject *parent);
     void setParams(int postId, bool translate, bool alternateTranslate, bool focus, bool isManga);
     QString workerDescription() const override;
 

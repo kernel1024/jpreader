@@ -37,7 +37,7 @@ private:
                                               QString *illustID = nullptr);
 
 public:
-    CPixivNovelExtractor(QObject *parent, QWidget *parentWidget);
+    CPixivNovelExtractor(QObject *parent);
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool alternateTranslate, bool focus);
     void setMangaOrigin(const QUrl& origin);

@@ -226,7 +226,7 @@ void CPixivIndexTab::fetchCoverLabel(const QModelIndex &index, const QUrl &url)
         }
     }
 
-    auto *extractor = new CPixivIndexExtractor(this,this);
+    auto *extractor = new CPixivIndexExtractor(this);
 
     connect(extractor,&CPixivIndexExtractor::auxImgLoadFinished,this,
             [this,index,extractor](const QUrl& origin, const QString& data){

@@ -6,85 +6,71 @@
 #include "global/history.h"
 #include "utils/genericfuncs.h"
 
+#include "baloo5search.h"
+#include "recollsearch.h"
+#include "xapiansearch.h"
+#include "defaultsearch.h"
+
 CIndexerSearch::CIndexerSearch(QObject *parent) :
     QObject(parent)
 {
-    indexerSerivce = gSet->settings()->searchEngine;
-    if ((indexerSerivce == CStructures::seRecoll) || (indexerSerivce == CStructures::seBaloo5)) {
-#ifdef WITH_THREADED_SEARCH
-        if (!isValidConfig()) {
-            engine.reset(nullptr);
-            return;
-        }
-        auto *th = new QThread();
-        if (indexerSerivce == CStructures::seRecoll) {
-            engine.reset(new CRecollSearch());
-        } else {
-            engine.reset(new CBaloo5Search());
-        }
-        engine->moveToThread(th);
-        connect(engine.data(),&CAbstractThreadedSearch::addHit,
-                this,&CIndexerSearch::addHit,Qt::QueuedConnection);
-        connect(engine.data(),&CAbstractThreadedSearch::finished,
-                this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
-        connect(this,&CIndexerSearch::startThreadedSearch,
-                engine.data(),&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
-        connect(engine.data(),&CAbstractThreadedSearch::destroyed,th,&QThread::quit);
-        connect(th,&QThread::finished,th,&QThread::deleteLater);
-        th->setObjectName(QSL("%1").arg(QString::fromLatin1(engine->metaObject()->className())));
-        th->start();
-#endif
-    }
+    m_engineMode = gSet->settings()->searchEngine;
 }
 
 void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)
 {
-    if (working) return;
-    bool useFSSearch = (!searchDir.isRoot() && searchDir.isReadable());
+    if (m_working) return;
+    m_working = true;
 
-    m_query = searchTerm;
-    resultCount = 0;
-
-    gSet->history()->appendSearchHistory({ searchTerm });
-    working = true;
-    searchTimer.start();
-    if (useFSSearch) {
-        searchInDir(searchDir,m_query);
+    bool isSearchDirValid = (!searchDir.isRoot() && searchDir.isReadable());
+    if (!isValidConfig()) {
+        Q_EMIT gotError(tr("Search: incorrect search engine specified."));
         engineFinished();
-    } else {
-        if ((indexerSerivce == CStructures::seBaloo5) || (indexerSerivce == CStructures::seRecoll)) {
-#ifdef WITH_THREADED_SEARCH
-            if (isValidConfig()) {
-                Q_EMIT startThreadedSearch(m_query,gSet->settings()->maxSearchLimit);
-            } else {
-                engineFinished();
-            }
-#endif
+        return;
+    }
+    setupEngine();
+    if (m_engineMode == CStructures::seNone) {
+        if (isSearchDirValid) {
+            auto *fs = qobject_cast<CDefaultSearch *>(m_engine.data());
+            if (fs)
+                fs->setSearchDir(searchDir);
         } else {
+            Q_EMIT gotError(tr("Search: incorrect directory specified for default file search."));
             engineFinished();
+            return;
         }
     }
+
+    m_query = searchTerm;
+    m_resultCount = 0;
+    m_searchTimer.start();
+    gSet->history()->appendSearchHistory({ searchTerm });
+
+    Q_EMIT startThreadedSearch(m_query,gSet->settings()->maxSearchLimit);
 }
 
 bool CIndexerSearch::isValidConfig()
 {
 #ifndef WITH_RECOLL
-    if (indexerSerivce == seRecoll) return false;
+    if (m_engineMode == CStructures::seRecoll) return false;
 #endif
 #ifndef WITH_BALOO5
-    if (indexerSerivce == seBaloo5) return false;
+    if (m_engineMode == CStructures::seBaloo5) return false;
+#endif
+#ifndef WITH_XAPIAN
+    if (m_engineMode == CStructures::seXapian) return false;
 #endif
     return true;
 }
 
 bool CIndexerSearch::isWorking() const
 {
-    return working;
+    return m_working;
 }
 
 CStructures::SearchEngine CIndexerSearch::getCurrentIndexerService()
 {
-    return indexerSerivce;
+    return m_engineMode;
 }
 
 void CIndexerSearch::addHit(const CStringHash &meta)
@@ -93,7 +79,7 @@ void CIndexerSearch::addHit(const CStringHash &meta)
 
     QFileInfo fi(result.value(QSL("jp:fullfilename")));
     if (!result.contains(QSL("url"))) {
-        result[QSL("uri")] = QSL("file://%1").arg(fi.absoluteFilePath());
+        result[QSL("url")] = QSL("file://%1").arg(fi.absoluteFilePath());
     }
 
     if (!result.contains(QSL("relevancyrating"))) {
@@ -119,13 +105,18 @@ void CIndexerSearch::addHit(const CStringHash &meta)
     if (!result.contains(QSL("title")))
         result[QSL("title")]=fi.fileName();
 
-    resultCount++;
+    m_resultCount++;
     Q_EMIT gotResult(result);
+}
+
+void CIndexerSearch::engineError(const QString &message)
+{
+    Q_EMIT gotError(message);
 }
 
 void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString &title)
 {
-    QFileInfo fi(filename);
+    const QFileInfo fi(filename);
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
         hitRate = -1;
@@ -140,12 +131,9 @@ void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString 
     }
     f.close();
 
-    QTextCodec *cd = CGenericFuncs::detectEncoding(fb);
-    QString fc = cd->toUnicode(fb.constData());
-
+    const QString mime = CGenericFuncs::detectMIME(fb);
+    const QString fc = CGenericFuncs::detectDecodeToUnicode(fb.constData());
     hitRate = calculateHitRate(fc);
-
-    QString mime = CGenericFuncs::detectMIME(fb);
     if (mime.contains(QSL("html"),Qt::CaseInsensitive)) {
         title = CGenericFuncs::extractFileTitle(fc);
         if (title.isEmpty())
@@ -153,47 +141,52 @@ void CIndexerSearch::processFile(const QString &filename, int &hitRate, QString 
     } else {
         title = fi.fileName();
     }
-
-    fb.clear();
-    fc.clear();
 }
 
 int CIndexerSearch::calculateHitRate(const QString &fc)
 {
-
-    QStringList ql = m_query.split(u' ');
+    const QStringList ql = m_query.split(u' ');
     int hits = 0;
-    for(int i=0;i<ql.count();i++)
-        hits += fc.count(ql.at(i),Qt::CaseInsensitive);
+    for(const auto &s : ql)
+        hits += fc.count(s,Qt::CaseInsensitive);
     return hits;
 }
 
-void CIndexerSearch::searchInDir(const QDir &dir, const QString &qr)
+void CIndexerSearch::setupEngine()
 {
-    static const QStringList anyFile( { QSL("*") } );
+    auto *th = new QThread();
 
-    QFileInfoList fl = dir.entryInfoList(anyFile,QDir::Dirs | QDir::NoDotAndDotDot);
-    for (int i=0;i<fl.count();i++) {
-        if (fl.at(i).isDir() && fl.at(i).isReadable())
-            searchInDir(QDir(fl.at(i).absoluteFilePath()),qr);
+    switch (m_engineMode) {
+        case CStructures::seXapian: m_engine.reset(new CXapianSearch()); break;
+        case CStructures::seRecoll: m_engine.reset(new CRecollSearch()); break;
+        case CStructures::seBaloo5: m_engine.reset(new CBaloo5Search()); break;
+        case CStructures::seNone:   m_engine.reset(new CDefaultSearch()); break;
     }
 
-    fl = dir.entryInfoList(anyFile,QDir::Files | QDir::Readable | QDir::NoDotAndDotDot);
-    for (int i=0;i<fl.count();i++) {
-        if (!(fl.at(i).isFile() && fl.at(i).isReadable())) continue;
-        addHit({ { QSL("jp:fullfilename"),fl.at(i).absoluteFilePath() } });
-    }
+    m_engine->moveToThread(th);
+    connect(m_engine.data(),&CAbstractThreadedSearch::addHit,
+            this,&CIndexerSearch::addHit,Qt::QueuedConnection);
+    connect(m_engine.data(),&CAbstractThreadedSearch::errorOccured,
+            this,&CIndexerSearch::engineError,Qt::QueuedConnection);
+    connect(m_engine.data(),&CAbstractThreadedSearch::finished,
+            this,&CIndexerSearch::engineFinished,Qt::QueuedConnection);
+    connect(this,&CIndexerSearch::startThreadedSearch,
+            m_engine.data(),&CAbstractThreadedSearch::doSearch,Qt::QueuedConnection);
+    connect(m_engine.data(),&CAbstractThreadedSearch::destroyed,th,&QThread::quit);
+    connect(th,&QThread::finished,th,&QThread::deleteLater);
+    th->setObjectName(QSL("%1").arg(QString::fromLatin1(m_engine->metaObject()->className())));
+    th->start();
 }
 
 void CIndexerSearch::engineFinished()
 {
-    if (!working) return;
-    working = false;
+    if (!m_working) return;
+    m_working = false;
     const double oneK = 1000.0;
 
     CStringHash stats;
     stats[QSL("jp:elapsedtime")] = QString::number(
-                static_cast<double>(searchTimer.elapsed())/oneK,'f',3);
-    stats[QSL("jp:totalhits")] = QString::number(resultCount);
+                static_cast<double>(m_searchTimer.elapsed())/oneK,'f',3);
+    stats[QSL("jp:totalhits")] = QString::number(m_resultCount);
     Q_EMIT searchFinished(stats,m_query);
 }

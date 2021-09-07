@@ -84,6 +84,7 @@ public Q_SLOTS:
     void setToolsVisibility(bool visible);
     void printToPDF();
     void save();
+    void displayStatusBarMessage(const QString& text);
 
     // Menu updaters
     void updateBookmarks();

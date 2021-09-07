@@ -28,7 +28,7 @@ protected:
     void startMain() override;
 
 public:
-    CHtmlImagesExtractor(QObject *parent = nullptr, CBrowserTab *snv = nullptr);
+    CHtmlImagesExtractor(QObject *parent = nullptr);
     ~CHtmlImagesExtractor() = default;
     void setParams(const QString &source, const QUrl &origin,
                    bool translate, bool alternateTranslate, bool focus);

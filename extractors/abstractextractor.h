@@ -14,13 +14,8 @@
 class CAbstractExtractor : public CAbstractThreadWorker
 {
     Q_OBJECT
-private:
-    QWidget* m_parentWidget { nullptr };
-
 public:
-    CAbstractExtractor(QObject *parent, QWidget *parentWidget);
-
-    QWidget *parentWidget() const;
+    CAbstractExtractor(QObject *parent);
 
     static QList<QAction *> addMenuActions(const QUrl& pageUrl, const QUrl &origin,
                                            const QString &title, QMenu *menu, QObject *workersParent,

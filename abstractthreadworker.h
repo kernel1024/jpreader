@@ -36,6 +36,8 @@ Q_SIGNALS:
     void finished();
     void dataLoaded(qint64 loadedTotalSize, qint64 loadedRequestCount,
                     const QString& description);
+    void errorOccured(const QString& message); // TODO: use error diagnostics in other workers
+    void statusMessage(const QString& text);
 
 };
 

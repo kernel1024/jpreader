@@ -64,6 +64,7 @@ public Q_SLOTS:
     void applyFilter();
     void applySnippet(const QItemSelection & selected, const QItemSelection & deselected);
     void gotSearchResult(const CStringHash &item);
+    void gotSearchError(const QString &message);
 };
 
 #endif // SEARCHTAB_H

@@ -5,8 +5,8 @@
 #include "global/control.h"
 #include "global/network.h"
 
-CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent, CBrowserTab *snv)
-    : CAbstractExtractor(parent,snv)
+CHtmlImagesExtractor::CHtmlImagesExtractor(QObject *parent)
+    : CAbstractExtractor(parent)
 {
 }
 

@@ -14,16 +14,11 @@ namespace CDefaults {
 const int extractorCreationInterlockMS = 1000;
 }
 
-CAbstractExtractor::CAbstractExtractor(QObject *parent, QWidget* parentWidget)
+CAbstractExtractor::CAbstractExtractor(QObject *parent)
     : CAbstractThreadWorker(parent)
 {
-    m_parentWidget = parentWidget;
 }
 
-QWidget *CAbstractExtractor::parentWidget() const
-{
-    return m_parentWidget;
-}
 
 QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const QUrl &origin,
                                                     const QString &title, QMenu *menu,
@@ -423,7 +418,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
     const QString type = hash.value(QSL("type")).toString();
 
     if (type == QSL("pixiv")) {
-        res = new CPixivNovelExtractor(nullptr,parentWidget);
+        res = new CPixivNovelExtractor(nullptr);
         (qobject_cast<CPixivNovelExtractor *>(res))->setParams(
                     hash.value(QSL("url")).toUrl(),
                     hash.value(QSL("title")).toString(),
@@ -456,7 +451,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                                   tr("Extractor filter"),(mode == CPixivIndexExtractor::imTagSearchIndex),
                                   maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr))
         {
-            res = new CPixivIndexExtractor(nullptr,parentWidget);
+            res = new CPixivIndexExtractor(nullptr);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
                         keywords,
                         mode,
@@ -471,7 +466,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         }
 
     } else if (type == QSL("fanbox")) {
-        res = new CFanboxExtractor(nullptr,parentWidget);
+        res = new CFanboxExtractor(nullptr);
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
                     hash.value(QSL("translate")).toBool(),
@@ -480,12 +475,12 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     false);
 
     } else if (type == QSL("pixivManga")) {
-        res = new CPixivNovelExtractor(nullptr,parentWidget);
+        res = new CPixivNovelExtractor(nullptr);
         (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
                     hash.value(QSL("url")).toUrl());
 
     } else if (type == QSL("fanboxManga")) {
-        res = new CFanboxExtractor(nullptr,parentWidget);
+        res = new CFanboxExtractor(nullptr);
         (qobject_cast<CFanboxExtractor *>(res))->setParams(
                     hash.value(QSL("id")).toInt(),
                     false,
@@ -494,21 +489,21 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     true);
 
     } else if (type == QSL("patreonManga")) {
-        res = new CPatreonExtractor(nullptr,parentWidget);
+        res = new CPatreonExtractor(nullptr);
         (qobject_cast<CPatreonExtractor *>(res))->setParams(
                     hash.value(QSL("html")).toString(),
                     hash.value(QSL("url")).toUrl(),
                     false);
 
     } else if (type == QSL("patreonAttachments")) {
-        res = new CPatreonExtractor(nullptr,parentWidget);
+        res = new CPatreonExtractor(nullptr);
         (qobject_cast<CPatreonExtractor *>(res))->setParams(
                     hash.value(QSL("html")).toString(),
                     hash.value(QSL("url")).toUrl(),
                     true);
 
     } else if (type == QSL("deviantartGallery")) {
-        res = new CDeviantartExtractor(nullptr,parentWidget);
+        res = new CDeviantartExtractor(nullptr);
         (qobject_cast<CDeviantartExtractor *>(res))->setParams(
                     hash.value(QSL("userID")).toString(),
                     hash.value(QSL("folderID")).toString(),
@@ -523,17 +518,7 @@ void CAbstractExtractor::showError(const QString &message)
 {
     const QString err = QSL("%1 error: %2").arg(QString::fromLatin1(metaObject()->className()), message);
     qCritical() << err;
-
-    QWidget *w = nullptr;
-    QObject *ctx = QApplication::instance();
-    if (m_parentWidget) {
-        w = m_parentWidget->window();
-        ctx = m_parentWidget;
-    }
-    QMetaObject::invokeMethod(ctx,[message,w,err](){
-        QMessageBox::warning(w,QGuiApplication::applicationDisplayName(),err);
-    },Qt::QueuedConnection);
-
+    Q_EMIT errorOccured(err);
     Q_EMIT finished();
 }
 

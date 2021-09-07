@@ -6,6 +6,7 @@
 #include <QAuthenticator>
 #include <QStandardPaths>
 #include <QElapsedTimer>
+#include <QMessageBox>
 
 #include <algorithm>
 #include <execution>
@@ -437,6 +438,19 @@ bool CGlobalStartup::setupThreadedWorker(CAbstractThreadWorker *worker)
 
     connect(worker,&CAbstractThreadWorker::started,
             m_g->actions(),&CGlobalActions::updateBusyCursor,Qt::QueuedConnection);
+
+    connect(worker,&CAbstractThreadWorker::errorOccured,this,[this](const QString& message){
+        CMainWindow* mw = m_g->activeWindow();
+        if (mw) {
+            QMessageBox::critical(mw,QGuiApplication::applicationDisplayName(),
+                                  tr("Background worker error:\n%1").arg(message));
+        }
+    },Qt::QueuedConnection);
+    connect(worker,&CAbstractThreadWorker::statusMessage,this,[this](const QString& message){
+        CMainWindow* mw = m_g->activeWindow();
+        if (mw)
+            mw->displayStatusBarMessage(message);
+    },Qt::QueuedConnection);
 
     m_g->d_func()->workerMonitor->workerStarted(worker);
 

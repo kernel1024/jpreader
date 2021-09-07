@@ -12,8 +12,8 @@ namespace CDefaults {
 const int maxFanboxFilenameLength = 180;
 }
 
-CFanboxExtractor::CFanboxExtractor(QObject *parent, QWidget *parentWidget)
-    : CAbstractExtractor(parent,parentWidget)
+CFanboxExtractor::CFanboxExtractor(QObject *parent)
+    : CAbstractExtractor(parent)
 {
 }
 
@@ -59,7 +59,7 @@ void CFanboxExtractor::pageLoadFinished()
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (rpl.isNull()) return;
     if (exitIfAborted()) return;
     if (rpl->error() == QNetworkReply::NoError) {
         QUrl origin = rpl->url();

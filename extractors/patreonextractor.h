@@ -17,7 +17,7 @@ private:
     QUrl m_origin;
 
 public:
-    CPatreonExtractor(QObject *parent, QWidget *parentWidget);
+    CPatreonExtractor(QObject *parent);
     void setParams(const QString& pageHtml, const QUrl& origin, bool extractAttachments);
     QString workerDescription() const override;
 

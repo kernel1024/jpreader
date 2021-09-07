@@ -23,6 +23,7 @@ public:
 Q_SIGNALS:
     void addHit(const CStringHash &meta);
     void finished();
+    void errorOccured(const QString& message);
 
 public Q_SLOTS:
     virtual void doSearch(const QString &qr, int maxLimit) = 0;

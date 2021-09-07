@@ -43,7 +43,7 @@
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
-const int dictManagerStatusMessageTimeout = 5000;
+const int statusBarMessageTimeout = 5000;
 }
 
 CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &viewerUrls, QWidget *parent)
@@ -129,10 +129,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(splitter, &QSplitter::splitterMoved, this, &CMainWindow::splitterMoved);
     connect(tabMain, &CSpecTabWidget::tooltipRequested, this, &CMainWindow::tabBarTooltip);
 
-    connect(gSet->dictionaryManager(),&ZDict::ZDictController::dictionariesLoaded,
-            this,[this](const QString& message){
-        statusBar()->showMessage(message,CDefaults::dictManagerStatusMessageTimeout);
-    },Qt::QueuedConnection);
+    connect(gSet->dictionaryManager(), &ZDict::ZDictController::dictionariesLoaded,
+            this, &CMainWindow::displayStatusBarMessage,Qt::QueuedConnection);
 
     if (gSet->logWindow()!=nullptr)
         connect(actionShowLog, &QAction::triggered, gSet->logWindow(), &CLogDisplay::show);
@@ -382,6 +380,11 @@ void CMainWindow::save()
     auto *ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->currentWidget());
     if (ts)
         ts->save();
+}
+
+void CMainWindow::displayStatusBarMessage(const QString &text)
+{
+    statusBar()->showMessage(text,CDefaults::statusBarMessageTimeout);
 }
 
 void CMainWindow::splitterMoved(int pos, int index)

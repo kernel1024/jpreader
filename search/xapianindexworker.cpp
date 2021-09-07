@@ -26,6 +26,7 @@ extern "C" {
 #include <QDebug>
 
 namespace CDefaults {
+const int progressMsgFrequency = 1000;
 const auto docIDPrefix = "QFH";
 }
 
@@ -60,9 +61,9 @@ void CXapianIndexWorker::startMain()
     QMutexLocker locker(&mainIndexerMutex);
 
     if (!d->m_cacheDir.isReadable()) return;
-
     const QString dbFile = d->m_cacheDir.filePath(QSL("xapian_index"));
 
+    QString errMsg;
     QElapsedTimer tmr;
     tmr.start();
 
@@ -70,10 +71,39 @@ void CXapianIndexWorker::startMain()
     if (d->m_cleanupDatabase)
         dbMode = Xapian::DB_CREATE_OR_OVERWRITE;
 
-    d->m_db.reset(new Xapian::WritableDatabase(dbFile.toStdString(), dbMode));
+    try {
+        d->m_db.reset(new Xapian::WritableDatabase(dbFile.toStdString(), dbMode));
+    } catch (const Xapian::Error &err) {
+        errMsg = QString::fromStdString(err.get_msg());
+    } catch (const std::string &s) {
+        errMsg = QString::fromStdString(s);
+    } catch (const char *s) {
+        errMsg = QString::fromUtf8(s);
+    }
+    if (!errMsg.isEmpty()) {
+        errMsg = QSL("XapianIndexer: Xapian database creation exception: %1").arg(errMsg);
+        Q_EMIT errorOccured(errMsg);
+        qCritical() << errMsg;
+        return;
+    }
+
     auto dbCleanup = qScopeGuard([this,d]{
-        d->m_db->commit();
-        d->m_db->close();
+        QString errMsgSG;
+        try {
+            d->m_db->commit();
+            d->m_db->close();
+        } catch (const Xapian::Error &err) {
+            errMsgSG = QString::fromStdString(err.get_msg());
+        } catch (const std::string &s) {
+            errMsgSG = QString::fromStdString(s);
+        } catch (const char *s) {
+            errMsgSG = QString::fromUtf8(s);
+        }
+        if (!errMsgSG.isEmpty()) {
+            errMsgSG = QSL("XapianIndexer: Xapian database sync exception: %1").arg(errMsgSG);
+            Q_EMIT errorOccured(errMsgSG);
+            qCritical() << errMsgSG;
+        }
         Q_EMIT finished();
     });
 
@@ -98,12 +128,26 @@ void CXapianIndexWorker::startMain()
     tmr.restart();
     std::map<std::string,QString> baseIDs;
     const std::string prefix(CDefaults::docIDPrefix);
-    for (auto it = d->m_db->allterms_begin(prefix), end = d->m_db->allterms_end(prefix); it != end; ++it) {
-        baseIDs.emplace(*it,QString());
-        if (isAborted()) {
-            qWarning() << QSL("XapianIndexer: Aborting.");
-            return;
+    try {
+        for (auto it = d->m_db->allterms_begin(prefix), end = d->m_db->allterms_end(prefix); it != end; ++it) {
+            baseIDs.emplace(*it,QString());
+            if (isAborted()) {
+                qWarning() << QSL("XapianIndexer: Aborting.");
+                return;
+            }
         }
+    } catch (const Xapian::Error &err) {
+        errMsg = QString::fromStdString(err.get_msg());
+    } catch (const std::string &s) {
+        errMsg = QString::fromStdString(s);
+    } catch (const char *s) {
+        errMsg = QString::fromUtf8(s);
+    }
+    if (!errMsg.isEmpty()) {
+        errMsg = QSL("XapianIndexer: Xapian database initial scan exception: %1").arg(errMsg);
+        Q_EMIT errorOccured(errMsg);
+        qCritical() << errMsg;
+        return;
     }
     qInfo() << QSL("XapianIndexer: Base contents: %1 files (%2 ms).").arg(baseIDs.size()).arg(tmr.elapsed());
 
@@ -126,15 +170,29 @@ void CXapianIndexWorker::startMain()
     qInfo() << QSL("XapianIndexer: Files to remove from database: %1 (%2 ms).").arg(deletedFiles.size()).arg(tmr.elapsed());
 
     tmr.restart();
-    if (!deletedFiles.empty()) {
-        for (const auto& fpair : deletedFiles) {
-            d->m_db->delete_document(fpair.first);
-            if (isAborted()) {
-                qWarning() << QSL("XapianIndexer: Aborting.");
-                return;
+    try {
+        if (!deletedFiles.empty()) {
+            for (const auto& fpair : deletedFiles) {
+                d->m_db->delete_document(fpair.first);
+                if (isAborted()) {
+                    qWarning() << QSL("XapianIndexer: Aborting.");
+                    return;
+                }
             }
+            qInfo() << QSL("XapianIndexer: Deleted files was removed from base (%1 ms).").arg(tmr.elapsed());
         }
-        qInfo() << QSL("XapianIndexer: Deleted files was removed from base (%1 ms).").arg(tmr.elapsed());
+    } catch (const Xapian::Error &err) {
+        errMsg = QString::fromStdString(err.get_msg());
+    } catch (const std::string &s) {
+        errMsg = QString::fromStdString(s);
+    } catch (const char *s) {
+        errMsg = QString::fromUtf8(s);
+    }
+    if (!errMsg.isEmpty()) {
+        errMsg = QSL("XapianIndexer: Xapian database deleted cleanup exception: %1").arg(errMsg);
+        Q_EMIT errorOccured(errMsg);
+        qCritical() << errMsg;
+        return;
     }
 
     tmr.restart();
@@ -145,6 +203,11 @@ void CXapianIndexWorker::startMain()
                       [this,&cnt](const auto& fpair) {
             if (handleFile(fpair.second))
                 cnt++;
+            if (cnt % CDefaults::progressMsgFrequency == 0) {
+                const QString msg = tr("Xapian: Indexed %1 files...").arg(cnt);
+                qInfo() << msg;
+                Q_EMIT statusMessage(msg);
+            }
             if (isAborted()) {
                 qWarning() << QSL("XapianIndexer: Aborting.");
                 return;
@@ -230,26 +293,38 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
     }
 
     Xapian::Document doc;
+    QString errMsg;
 
-    if (!textContent.isEmpty()) {
-        const QByteArray utf8Content = CGenericFuncs::detectDecodeToUtf8(textContent);
-        if (!utf8Content.isEmpty()) {
-            // ******* Add file to database
-            Xapian::TermGenerator generator;
-            if (!d->m_stemLang.empty())
-                generator.set_stemmer(Xapian::Stem(d->m_stemLang));
-            generator.set_flags(Xapian::TermGenerator::FLAG_CJK_WORDS);
-            generator.set_document(doc);
-            generator.index_text(utf8Content.toStdString());
-        } else {
-            qCritical() << QSL("XapianIndexer: Unable to decode file %1 to UTF-8").arg(filename);
-            textContent.clear(); // codepage error
+    try {
+        if (!textContent.isEmpty()) {
+            const QByteArray utf8Content = CGenericFuncs::detectDecodeToUtf8(textContent);
+            if (!utf8Content.isEmpty()) {
+                // ******* Add file to database
+                Xapian::TermGenerator generator;
+                if (!d->m_stemLang.empty())
+                    generator.set_stemmer(Xapian::Stem(d->m_stemLang));
+                generator.set_flags(Xapian::TermGenerator::FLAG_CJK_WORDS);
+                generator.set_document(doc);
+                generator.index_text(utf8Content.toStdString());
+            } else {
+                qCritical() << QSL("XapianIndexer: Unable to decode file %1 to UTF-8").arg(filename);
+                textContent.clear(); // codepage error
+            }
         }
+    } catch (const Xapian::Error &err) {
+        errMsg = QString::fromStdString(err.get_msg());
+    } catch (const std::string &s) {
+        errMsg = QString::fromStdString(s);
+    } catch (const char *s) {
+        errMsg = QString::fromUtf8(s);
+    }
+    if (!errMsg.isEmpty()) {
+        qCritical() << QSL("XapianIndexer: Xapian term generator exception: %1").arg(errMsg);
+        textContent.clear(); // xapian error
     }
 
-    // Leave empty document for failed or unknown file to avoid rescan.
+    // Write empty document for failed or unknown file to avoid rescan.
 
-    QString errMsg;
     try {
         doc.set_data(filename.toStdString());
         doc.add_boolean_term(docID);
@@ -265,10 +340,9 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
     } catch (const char *s) {
         errMsg = QString::fromUtf8(s);
     }
-
     if (!errMsg.isEmpty()) {
-        qCritical() << QSL("XapianIndexer: Xapian exception: %1").arg(errMsg);
-        textContent.clear(); // xapian database error
+        qCritical() << QSL("XapianIndexer: Xapian database writing exception: %1").arg(errMsg);
+        textContent.clear();
     }
 
     if (!textContent.isEmpty())

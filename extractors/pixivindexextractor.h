@@ -24,7 +24,7 @@ public:
     enum NovelSearchRating { nsrAll = 0, nsrSafe = 1, nsrR18 = 2 };
     Q_ENUM(NovelSearchRating)
 
-    CPixivIndexExtractor(QObject *parent, QWidget *parentWidget);
+    CPixivIndexExtractor(QObject *parent);
     QString workerDescription() const override;
 
     void setParams(const QString& pixivId, CPixivIndexExtractor::IndexMode indexMode, int maxCount,

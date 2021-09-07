@@ -1,7 +1,7 @@
 #ifndef RECOLLSEARCH_H
 #define RECOLLSEARCH_H
 
-#include <QProcess>
+#include <QObject>
 #include "abstractthreadedsearch.h"
 
 class CRecollSearch : public CAbstractThreadedSearch

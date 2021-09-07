@@ -14,8 +14,10 @@ HEADERS = mainwindow.h \
     global/history.h \
     global/network.h \
     global/ui.h \
+    search/defaultsearch.h \
     search/xapianindexworker.h \
     search/xapianindexworker_p.h \
+    search/xapiansearch.h \
     translator-workers/abstracttranslator.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \
@@ -95,7 +97,9 @@ SOURCES = main.cpp \
     global/ui.cpp \
     mainwindow.cpp \
     abstractthreadworker.cpp \
+    search/defaultsearch.cpp \
     search/xapianindexworker.cpp \
+    search/xapiansearch.cpp \
     translator-workers/alicloudtranslator.cpp \
     translator-workers/awstranslator.cpp \
     translator-workers/atlastranslator.cpp \
@@ -200,7 +204,9 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
 DEFINES += QT_NO_CAST_TO_ASCII QT_NO_CAST_FROM_BYTEARRAY
 
-LIBS += -lz
+LIBS += -lz -ltbb
+# for deprecations in GCC 11-12 without oneTBB
+DEFINES += TBB_SUPPRESS_DEPRECATED_MESSAGES
 
 exists( /usr/include/magic.h ) {
     LIBS += -lmagic
@@ -225,7 +231,6 @@ exists( /usr/include/KF5/Baloo/Baloo/Query ) {
     INCLUDEPATH += /usr/include/KF5/Baloo
     CONFIG += use_baloo5
     DEFINES += WITH_BALOO5=1
-    DEFINES += WITH_THREADED_SEARCH=1
     LIBS += -lKF5Baloo
     message("KF5 Baloo support: YES")
 }
@@ -237,9 +242,6 @@ exists( /usr/include/KF5/Baloo/Baloo/Query ) {
 system( which recoll > /dev/null 2>&1 ) {
     CONFIG += use_recoll
     DEFINES += WITH_RECOLL=1
-    !use_baloo5 {
-        DEFINES += WITH_THREADED_SEARCH=1
-    }
     message("Recoll support: YES")
 } else {
     message("Recoll support: NO")

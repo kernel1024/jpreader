@@ -21,8 +21,8 @@ namespace CDefaults {
 const int pixivBookmarksFetchCount = 24;
 }
 
-CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent, QWidget *parentWidget)
-    : CAbstractExtractor(parent,parentWidget)
+CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent)
+    : CAbstractExtractor(parent)
 {
 }
 
@@ -102,8 +102,6 @@ QString CPixivIndexExtractor::workerDescription() const
  */
 void CPixivIndexExtractor::fetchNovelsInfo()
 {
-    if (parentWidget()==nullptr) return;
-
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
     if (exitIfAborted()) return;
     if (rpl) {
@@ -246,7 +244,7 @@ void CPixivIndexExtractor::startMain()
 void CPixivIndexExtractor::profileAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (rpl.isNull()) return;
     if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
@@ -285,7 +283,7 @@ void CPixivIndexExtractor::profileAjax()
 void CPixivIndexExtractor::bookmarksAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (rpl.isNull()) return;
     if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {
@@ -368,7 +366,7 @@ void CPixivIndexExtractor::bookmarksAjax()
 void CPixivIndexExtractor::searchAjax()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
-    if (rpl.isNull() || parentWidget()==nullptr) return;
+    if (rpl.isNull()) return;
     if (exitIfAborted()) return;
 
     if (rpl->error() == QNetworkReply::NoError) {

@@ -17,7 +17,7 @@ private:
     void finalizeGallery();
 
 public:
-    CDeviantartExtractor(QObject *parent, QWidget *parentWidget);
+    CDeviantartExtractor(QObject *parent);
 
     void setParams(const QString& userID, const QString& folderID, const QString& folderName);
     QString workerDescription() const override;
