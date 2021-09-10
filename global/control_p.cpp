@@ -107,9 +107,11 @@ void CGlobalControlPrivate::reloadXapianFilesystemWatcher(QObject *control)
     }
 
     const QStringList removeDirList = xapianFilesystemWatcher->directories();
-    xapianFilesystemWatcher->removePaths(removeDirList);
+    if (!removeDirList.isEmpty())
+        xapianFilesystemWatcher->removePaths(removeDirList);
 
-    xapianFilesystemWatcher->addPaths(watchList);
+    if (!watchList.isEmpty())
+        xapianFilesystemWatcher->addPaths(watchList);
 }
 
 int CGlobalControlPrivate::getMaxUserInotifyWatches()
