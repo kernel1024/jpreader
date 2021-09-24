@@ -21,6 +21,7 @@ public:
     QDir m_cacheDir;
     std::string m_stemLang;
     bool m_cleanupDatabase { false };
+    bool m_fastIncrementalIndex { false };
 
     CXapianIndexWorkerPrivate(QObject *parent = nullptr);
 };

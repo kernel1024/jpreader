@@ -50,6 +50,7 @@ void CXapianIndexWorker::forceScanDirList(const QStringList &forcedScanDirList)
 
     d->m_indexDirs = forcedScanDirList;
     d->m_cleanupDatabase = false;
+    d->m_fastIncrementalIndex = true;
 }
 
 void CXapianIndexWorker::startMain()
@@ -160,39 +161,41 @@ void CXapianIndexWorker::startMain()
     });
     qInfo() << QSL("XapianIndexer: Files to add: %1 (%2 ms).").arg(newFiles.size()).arg(tmr.elapsed());
 
-    tmr.restart();
-    std::vector<std::pair<std::string,QString> > deletedFiles;
-    std::set_difference(baseIDs.cbegin(),baseIDs.cend(),fsFiles.cbegin(),fsFiles.cend(),
-                        std::back_inserter(deletedFiles),
-                        [](const auto& s1, const auto& s2){
-        return s1.first < s2.first;
-    });
-    qInfo() << QSL("XapianIndexer: Files to remove from database: %1 (%2 ms).").arg(deletedFiles.size()).arg(tmr.elapsed());
+    if (!d->m_fastIncrementalIndex) {
+        tmr.restart();
+        std::vector<std::pair<std::string,QString> > deletedFiles;
+        std::set_difference(baseIDs.cbegin(),baseIDs.cend(),fsFiles.cbegin(),fsFiles.cend(),
+                            std::back_inserter(deletedFiles),
+                            [](const auto& s1, const auto& s2){
+            return s1.first < s2.first;
+        });
+        qInfo() << QSL("XapianIndexer: Files to remove from database: %1 (%2 ms).").arg(deletedFiles.size()).arg(tmr.elapsed());
 
-    tmr.restart();
-    try {
-        if (!deletedFiles.empty()) {
-            for (const auto& fpair : deletedFiles) {
-                d->m_db->delete_document(fpair.first);
-                if (isAborted()) {
-                    qWarning() << QSL("XapianIndexer: Aborting.");
-                    return;
+        tmr.restart();
+        try {
+            if (!deletedFiles.empty()) {
+                for (const auto& fpair : deletedFiles) {
+                    d->m_db->delete_document(fpair.first);
+                    if (isAborted()) {
+                        qWarning() << QSL("XapianIndexer: Aborting.");
+                        return;
+                    }
                 }
+                qInfo() << QSL("XapianIndexer: Deleted files was removed from base (%1 ms).").arg(tmr.elapsed());
             }
-            qInfo() << QSL("XapianIndexer: Deleted files was removed from base (%1 ms).").arg(tmr.elapsed());
+        } catch (const Xapian::Error &err) {
+            errMsg = QString::fromStdString(err.get_msg());
+        } catch (const std::string &s) {
+            errMsg = QString::fromStdString(s);
+        } catch (const char *s) {
+            errMsg = QString::fromUtf8(s);
         }
-    } catch (const Xapian::Error &err) {
-        errMsg = QString::fromStdString(err.get_msg());
-    } catch (const std::string &s) {
-        errMsg = QString::fromStdString(s);
-    } catch (const char *s) {
-        errMsg = QString::fromUtf8(s);
-    }
-    if (!errMsg.isEmpty()) {
-        errMsg = QSL("XapianIndexer: Xapian database deleted cleanup exception: %1").arg(errMsg);
-        Q_EMIT errorOccured(errMsg);
-        qCritical() << errMsg;
-        return;
+        if (!errMsg.isEmpty()) {
+            errMsg = QSL("XapianIndexer: Xapian database deleted cleanup exception: %1").arg(errMsg);
+            Q_EMIT errorOccured(errMsg);
+            qCritical() << errMsg;
+            return;
+        }
     }
 
     tmr.restart();
