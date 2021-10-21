@@ -565,8 +565,7 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
 
     } else if (role == Qt::TextAlignmentRole) {
         if (index.column() == 2)
-            return Qt::AlignHCenter;
-        return Qt::AlignLeft;
+            return Qt::AlignCenter;
 
     } else if (role == Qt::ToolTipRole || role == Qt::StatusTipRole) {
         if (!t.errorString.isEmpty() && index.column()==0)
