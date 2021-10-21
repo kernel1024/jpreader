@@ -1,4 +1,3 @@
-#include <QTextCodec>
 #include <QPointer>
 #include <QMessageBox>
 #include <QFileInfo>
@@ -370,8 +369,8 @@ void CBrowserNet::load(const QUrl &url)
             QFile data(fname);
             if (data.open(QFile::ReadOnly)) {
                 QByteArray ba = data.readAll();
-                QTextCodec* cd = CGenericFuncs::detectEncoding(ba);
-                QString cn=CGenericFuncs::makeSimpleHtml(fi.fileName(),cd->toUnicode(ba));
+                QString cn=CGenericFuncs::makeSimpleHtml(fi.fileName(),
+                                                         CGenericFuncs::detectDecodeToUnicode(ba));
                 snv->m_fileChanged = false;
                 snv->m_translationBkgdFinished=false;
                 snv->m_loadingBkgdFinished=false;

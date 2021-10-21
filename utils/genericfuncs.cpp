@@ -1,4 +1,3 @@
-#include <QTextCodec>
 #include <QStringList>
 #include <QMimeData>
 #include <QString>
@@ -104,50 +103,54 @@ QString CGenericFuncs::detectMIME(const QByteArray &buf)
 
 QString CGenericFuncs::detectEncodingName(const QByteArray& content)
 {
-    QString codepage;
-
-    if (!gSet->settings()->forcedCharset.isEmpty() &&
-            QTextCodec::availableCodecs().contains(gSet->settings()->forcedCharset.toLatin1())) {
-        return gSet->settings()->forcedCharset;
-    }
-
-    QTextCodec* enc = QTextCodec::codecForLocale();
+    QString res;
     QByteArray icu_enc;
     UErrorCode status = U_ZERO_ERROR;
     UCharsetDetector* csd = ucsdet_open(&status);
     ucsdet_setText(csd, content.constData(), content.length(), &status);
     const UCharsetMatch *ucm = ucsdet_detect(csd, &status);
-    if (status==U_ZERO_ERROR && ucm) {
+    if (U_SUCCESS(status) && (ucm != nullptr)) {
         const char* cname = ucsdet_getName(ucm,&status);
-        if (status==U_ZERO_ERROR) icu_enc = QByteArray(cname);
+        if (U_SUCCESS(status))
+            icu_enc = QByteArray(cname);
     }
-    if (QTextCodec::availableCodecs().contains(icu_enc)) {
-        enc = QTextCodec::codecForName(icu_enc);
-    }
+    if (!icu_enc.isEmpty())
+        res = QString::fromUtf8(icu_enc);
     ucsdet_close(csd);
 
-    codepage = QString::fromUtf8(QTextCodec::codecForHtml(content,enc)->name());
-    if (codepage.contains(QSL("x-sjis"),Qt::CaseInsensitive)) codepage=QSL("SJIS");
-    return codepage;
-}
+    if (res.contains(QSL("x-sjis"),Qt::CaseInsensitive))
+        res = QSL("SJIS");
 
-QTextCodec* CGenericFuncs::detectEncoding(const QByteArray& content)
-{
-    QString codepage = detectEncodingName(content);
-
-    if (!codepage.isEmpty())
-        return QTextCodec::codecForName(codepage.toLatin1());
-
-    if (!QTextCodec::codecForLocale())
-        return QTextCodec::codecForName("UTF-8");
-
-    return QTextCodec::codecForLocale();
+    return res;
 }
 
 QString CGenericFuncs::detectDecodeToUnicode(const QByteArray& content)
 {
-    QTextCodec *cd = detectEncoding(content);
-    return cd->toUnicode(content);
+    if (content.isEmpty())
+        return QString();
+
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter *conv = nullptr;
+
+    auto cleanup = qScopeGuard([&conv]{
+        if (conv)
+            ucnv_close(conv);
+    });
+
+    const QString encoding = detectEncodingName(content);
+    if (encoding.isEmpty())
+        return QString::fromUtf8(content); // fallback
+
+    conv = ucnv_open(encoding.toUtf8().constData(),&status);
+    if (!U_SUCCESS(status) && (conv == nullptr))
+        return QString::fromUtf8(content);
+
+    std::vector<UChar> targetBuf(content.length() / static_cast<uint8_t>(ucnv_getMinCharSize(conv)));
+    int len = ucnv_toUChars(conv,&targetBuf[0],targetBuf.size(),content.constData(),content.length(),&status);
+    if (!U_SUCCESS(status))
+        return QString::fromUtf8(content);
+
+    return QString::fromUtf16(&targetBuf[0],len);
 }
 
 QByteArray CGenericFuncs::detectDecodeToUtf8(const QByteArray& content)
@@ -183,6 +186,49 @@ QByteArray CGenericFuncs::detectDecodeToUtf8(const QByteArray& content)
     targetBuf.truncate(len);
 
     return targetBuf;
+}
+
+QList<QByteArray> CGenericFuncs::availableICUCodecs()
+{
+    QList<QByteArray> codecs;
+    int n = ucnv_countAvailable();
+    for (int i = 0; i < n; ++i) {
+        const char *name = ucnv_getAvailableName(i);
+        UErrorCode error = U_ZERO_ERROR;
+        const char *standardName = ucnv_getStandardName(name, "MIME", &error);
+        if (U_FAILURE(error) || !standardName) {
+            error = U_ZERO_ERROR;
+            standardName = ucnv_getStandardName(name, "IANA", &error);
+        }
+        if (U_FAILURE(error))
+            continue;
+        error = U_ZERO_ERROR;
+        int ac = ucnv_countAliases(standardName, &error);
+        if (U_FAILURE(error))
+            continue;
+        for (int j = 0; j < ac; ++j) {
+            error = U_ZERO_ERROR;
+            const char *alias = ucnv_getAlias(standardName, j, &error);
+            if (!U_SUCCESS(error))
+                continue;
+            codecs += alias;
+        }
+    }
+    return codecs;
+}
+
+bool CGenericFuncs::codecIsValid(const QByteArray& name)
+{
+    const QList<QByteArray> list = CGenericFuncs::availableICUCodecs();
+    const QByteArray baName = name.toLower();
+    return std::any_of(list.constBegin(),list.constEnd(),[name,baName](const QByteArray& codec){
+        return (QString::fromUtf8(codec).toLower() == baName);
+    });
+}
+
+bool CGenericFuncs::codecIsValid(const QString& name)
+{
+    return codecIsValid(name.toUtf8());
 }
 
 QString CGenericFuncs::unsplitMobileText(const QString& text)
@@ -720,31 +766,30 @@ void CGenericFuncs::processedMSleep(unsigned long msecs)
 const QVector<QStringList> &CGenericFuncs::encodingsByScript()
 {
     static const QVector<QStringList> enc = {
-        { QSL("Western European"), QSL("ISO 8859-1"), QSL("ISO 8859-15"),
-          QSL("ISO 8859-14"), QSL("cp 1252"), QSL("CP850"), QSL("x-MacRoman") },
-        { QSL("Central European"), QSL("ISO 8859-2"), QSL("ISO 8859-3"),
-          QSL("cp 1250"), QSL("x-MacCentralEurope") },
-        { QSL("Baltic"), QSL("ISO 8859-4"), QSL("ISO 8859-13"),
-          QSL("cp 1257") },
-        { QSL("Turkish"), QSL("cp 1254"), QSL("ISO 8859-9"), QSL("x-MacTurkish") },
-        { QSL("Cyrillic"), QSL("KOI8-R"), QSL("ISO 8859-5"), QSL("cp 1251"),
+        { QSL("Western European"), QSL("ISO-8859-1"), QSL("ISO-8859-15"),
+          QSL("ISO-8859-14"), QSL("cp1252"), QSL("CP850"), QSL("x-MacRoman") },
+        { QSL("Central European"), QSL("ISO-8859-2"), QSL("ISO-8859-3"),
+          QSL("cp1250"), QSL("x-MacCentralEurope") },
+        { QSL("Baltic"), QSL("ISO-8859-4"), QSL("ISO-8859-13"),
+          QSL("cp1257") },
+        { QSL("Turkish"), QSL("cp1254"), QSL("ISO-8859-9"), QSL("x-MacTurkish") },
+        { QSL("Cyrillic"), QSL("KOI8-R"), QSL("ISO-8859-5"), QSL("cp1251"),
           QSL("KOI8-U"), QSL("CP866"), QSL("x-MacCyrillic") },
         { QSL("Chinese"), QSL("HZ"), QSL("GBK"), QSL("GB18030"),
           QSL("BIG5"), QSL("BIG5-HKSCS"), QSL("ISO-2022-CN"),
           QSL("ISO-2022-CN-EXT") },
-        { QSL("Korean"), QSL("CP949"), QSL("ISO-2022-KR") },
+        { QSL("Korean"), QSL("MS949"), QSL("ISO-2022-KR") },
         { QSL("Japanese"), QSL("EUC-JP"), QSL("SHIFT_JIS"), QSL("ISO-2022-JP"),
           QSL("ISO-2022-JP-2"), QSL("ISO-2022-JP-1") },
-        { QSL("Greek"), QSL("ISO 8859-7"), QSL("cp 1253"), QSL("x-MacGreek") },
-        { QSL("Arabic"), QSL("ISO 8859-6"), QSL("cp 1256") },
-        { QSL("Hebrew"), QSL("ISO 8859-8"), QSL("cp 1255"), QSL("CP862") },
-        { QSL("Thai"), QSL("CP874") },
+        { QSL("Greek"), QSL("ISO-8859-7"), QSL("cp1253"), QSL("x-MacGreek") },
+        { QSL("Arabic"), QSL("ISO-8859-6"), QSL("cp1256") },
+        { QSL("Hebrew"), QSL("ISO-8859-8"), QSL("cp1255"), QSL("CP862") },
+        { QSL("Thai"), QSL("MS874") },
         { QSL("Vietnamese"), QSL("CP1258") },
         { QSL("Unicode"), QSL("UTF-8"), QSL("UTF-7"), QSL("UTF-16"),
           QSL("UTF-16BE"), QSL("UTF-16LE"), QSL("UTF-32"), QSL("UTF-32BE"),
           QSL("UTF-32LE") },
-        { QSL("Other"), QSL("windows-1258"), QSL("IBM874"), QSL("TSCII"),
-          QSL("Macintosh") }
+        { QSL("Other"), QSL("windows-1258"), QSL("Macintosh") }
     };
 
     return enc;

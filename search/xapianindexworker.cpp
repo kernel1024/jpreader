@@ -7,7 +7,6 @@
 
 #include <QMutex>
 #include <QMutexLocker>
-#include <QTextCodec>
 #include <QDirIterator>
 #include <QCryptographicHash>
 #include <QStandardPaths>

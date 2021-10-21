@@ -640,7 +640,7 @@ int CPixivTableModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
     if (m_maxRowCount >= 0)
-        return std::min(m_maxRowCount,m_list.count());
+        return std::min(m_maxRowCount,static_cast<int>(m_list.count()));
 
     return m_list.count();
 }

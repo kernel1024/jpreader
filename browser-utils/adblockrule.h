@@ -62,7 +62,7 @@ private:
     bool m_enabled { false };
 };
 
-using CAdBlockVector = QVector<CAdBlockRule>;
+using CAdBlockVector = QList<CAdBlockRule>;
 
 Q_DECLARE_METATYPE(CAdBlockRule)
 

@@ -1,6 +1,7 @@
 #include "search/xapianindexworker.h"
 
 #include <QApplication>
+#include <QActionGroup>
 #include <QMimeData>
 #include <QToolTip>
 #include <QThread>

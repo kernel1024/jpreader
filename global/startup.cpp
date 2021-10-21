@@ -72,7 +72,9 @@ void CGlobalStartup::initialize()
     qRegisterMetaType<QSslCertificate>("QSslCertificate");
     qRegisterMetaType<CIntList>("CIntList");
     qRegisterMetaType<CLangPair>("CLangPair");
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     qRegisterMetaTypeStreamOperators<CUrlHolder>("CUrlHolder");
+
     qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
     qRegisterMetaTypeStreamOperators<CAdBlockVector>("CAdBlockVector");
     qRegisterMetaTypeStreamOperators<CUrlHolderVector>("CUrlHolderVector");
@@ -83,6 +85,18 @@ void CGlobalStartup::initialize()
     qRegisterMetaTypeStreamOperators<CSubsentencesMode>("CSubsentencesMode");
     qRegisterMetaTypeStreamOperators<CTranslatorStatistics>("CTranslatorStatistics");
     qRegisterMetaTypeStreamOperators<CSelectedLangPairs>("CSelectedLangPairs");
+#else
+    qRegisterMetaType<CAdBlockRule>("CAdBlockRule");
+    qRegisterMetaType<CAdBlockVector>("CAdBlockVector");
+    qRegisterMetaType<CUrlHolderVector>("CUrlHolderVector");
+    qRegisterMetaType<CStringHash>("CStringHash");
+    qRegisterMetaType<CSslCertificateHash>("CSslCertificateHash");
+    qRegisterMetaType<CLangPairVector>("CLangPairVector");
+    qRegisterMetaType<CStringSet>("CStringSet");
+    qRegisterMetaType<CSubsentencesMode>("CSubsentencesMode");
+    qRegisterMetaType<CTranslatorStatistics>("CTranslatorStatistics");
+    qRegisterMetaType<CSelectedLangPairs>("CSelectedLangPairs");
+#endif
 
     initLanguagesList();
 

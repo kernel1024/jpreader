@@ -2,7 +2,6 @@
 #include <QScreen>
 #include <QWindow>
 #include <QMessageBox>
-#include <QTextCodec>
 #include <QAbstractNetworkCache>
 #include <QTextDocument>
 #include <QWebEngineSettings>
@@ -1011,16 +1010,14 @@ void CMainWindow::reloadCharsetList()
     for(int i=0;i<cList.count();i++) {
         QMenu* midx = menuCharset->addMenu(cList.at(i).at(0));
         for(int j=1;j<cList.at(i).count();j++) {
-            QTextCodec* codec = QTextCodec::codecForName(cList.at(i).at(j).toLatin1());
-            if (codec==nullptr) {
-                qWarning() << tr("Encoding %1 not supported.").arg(cList.at(i).at(j));
+            const QString codec = cList.at(i).at(j);
+            if (!CGenericFuncs::codecIsValid(codec)) {
+                qWarning() << tr("Encoding %1 not supported.").arg(codec);
                 continue;
             }
-            QString cname = QString::fromUtf8(codec->name());
-            act = midx->addAction(cname,gSet->ui(),&CGlobalUI::forceCharset);
-            act->setData(cname);
-            codec = QTextCodec::codecForName(cname.toLatin1().data());
-            if (codec!=nullptr && codec->name() == gSet->settings()->forcedCharset) {
+            act = midx->addAction(codec,gSet->ui(),&CGlobalUI::forceCharset);
+            act->setData(codec);
+            if (codec == gSet->settings()->forcedCharset) {
                 act->setCheckable(true);
                 act->setChecked(true);
             }

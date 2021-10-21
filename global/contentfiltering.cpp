@@ -26,10 +26,10 @@ bool CGlobalContentFiltering::isUrlBlocked(const QUrl& url, QString &filter)
 
     if (gSet->d_func()->adblockWhiteList.contains(u)) return false;
 
-    const auto *it = std::find_if(std::execution::par,
-                                  gSet->d_func()->adblock.constBegin(),
-                                  gSet->d_func()->adblock.constEnd(),
-                                  [u](const CAdBlockRule& rule){
+    auto it = std::find_if(std::execution::par,
+                           gSet->d_func()->adblock.constBegin(),
+                           gSet->d_func()->adblock.constEnd(),
+                           [u](const CAdBlockRule& rule){
         return rule.networkMatch(u);
     });
     if (it != gSet->d_func()->adblock.constEnd()) {
@@ -78,7 +78,7 @@ void CGlobalContentFiltering::adblockAppend(const CAdBlockRule& url, bool fast)
     }
 }
 
-void CGlobalContentFiltering::adblockAppend(const QVector<CAdBlockRule> &urls)
+void CGlobalContentFiltering::adblockAppend(const QList<CAdBlockRule> &urls)
 {
     gSet->d_func()->adblockModifyMutex.lock();
     gSet->d_func()->adblock.append(urls);
@@ -89,7 +89,7 @@ void CGlobalContentFiltering::adblockAppend(const QVector<CAdBlockRule> &urls)
     Q_EMIT adblockRulesUpdated();
 }
 
-void CGlobalContentFiltering::adblockDelete(const QVector<CAdBlockRule> &rules)
+void CGlobalContentFiltering::adblockDelete(const QList<CAdBlockRule> &rules)
 {
     gSet->d_func()->adblockModifyMutex.lock();
     gSet->d_func()->adblock.erase(std::remove_if(std::execution::par,

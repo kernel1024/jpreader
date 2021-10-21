@@ -1,5 +1,4 @@
 #include <QMessageBox>
-#include <QTextCodec>
 #include <QUrl>
 #include <QDesktopServices>
 #include <QThread>

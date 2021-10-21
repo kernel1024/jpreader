@@ -1,5 +1,6 @@
 #include <QMessageBox>
 #include <QThread>
+#include <QActionGroup>
 
 #include "lighttranslator.h"
 #include "auxtranslator.h"

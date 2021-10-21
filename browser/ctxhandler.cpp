@@ -52,19 +52,32 @@ CBrowserCtxHandler::CBrowserCtxHandler(CBrowserTab *parent)
     connect(snv->txtBrowser,&CSpecWebView::contextMenuRequested,this,&CBrowserCtxHandler::contextMenu);
 }
 
-void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuData& data)
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data)
+#else
+void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextMenuRequest *data)
+#endif
 {
     QString sText;
+    QString linkText;
     QUrl linkUrl;
     QUrl imageUrl;
     const QUrl origin = snv->txtBrowser->page()->url();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     if (data.isValid()) {
         sText = data.selectedText();
         linkUrl = data.linkUrl();
         if (data.mediaType()==QWebEngineContextMenuData::MediaTypeImage)
             imageUrl = data.mediaUrl();
     }
+#else
+    sText = data->selectedText();
+    linkUrl = data->linkUrl();
+    linkText = data->linkText(); // TODO: add commands for linkText
+    if (data->mediaType() == QWebEngineContextMenuRequest::MediaTypeImage)
+        imageUrl = data->mediaUrl();
+#endif
 
     const QClipboard *cb = QApplication::clipboard();
     QAction *ac = nullptr;
@@ -553,16 +566,21 @@ void CBrowserCtxHandler::saveToFile()
                 f.write(result.toUtf8());
                 f.close();
             });
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
         } else if (fmt == fMHT) {
             snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::MimeHtmlSaveFormat);
-
         } else if (fmt == fHtml) {
             snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::SingleHtmlSaveFormat);
-
         } else if (fmt == fFullHtml){
             snv->txtBrowser->page()->save(fname,QWebEngineDownloadItem::CompleteHtmlSaveFormat);
-
+#else
+        } else if (fmt == fMHT) {
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadRequest::MimeHtmlSaveFormat);
+        } else if (fmt == fHtml) {
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadRequest::SingleHtmlSaveFormat);
+        } else if (fmt == fFullHtml){
+            snv->txtBrowser->page()->save(fname,QWebEngineDownloadRequest::CompleteHtmlSaveFormat);
+#endif
         } else {
             qCritical() << "Unknown selected filter" << selectedFilter;
         }

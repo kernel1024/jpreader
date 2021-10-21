@@ -2,14 +2,25 @@
 #define DOWNLOADMANAGER_H
 
 #include <QDialog>
+#include <QItemDelegate>
 #include <QAbstractTableModel>
-#include <QWebEngineDownloadItem>
-#include <QAbstractItemDelegate>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QPointer>
 #include <QTimer>
 #include <QUuid>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+#include <QWebEngineDownloadItem>
+using CDownloadState = QWebEngineDownloadItem::DownloadState;
+using CDownloadPageFormat = QWebEngineDownloadItem::SavePageFormat;
+using CDownloadInterruptReason = QWebEngineDownloadItem::DownloadInterruptReason;
+#else
+#include <QWebEngineDownloadRequest>
+using CDownloadState = QWebEngineDownloadRequest::DownloadState;
+using CDownloadPageFormat = QWebEngineDownloadRequest::SavePageFormat;
+using CDownloadInterruptReason = QWebEngineDownloadRequest::DownloadInterruptReason;
+#endif
 
 namespace Ui {
 class CDownloadManager;
@@ -27,12 +38,16 @@ public:
     QString pathName;
     QString mimeType;
     QString errorString;
-    QWebEngineDownloadItem::DownloadState state { QWebEngineDownloadItem::DownloadRequested };
+    CDownloadState state { CDownloadState::DownloadRequested };
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+    QPointer<QWebEngineDownloadItem> downloadItem;
+#else
+    QPointer<QWebEngineDownloadRequest> downloadItem;
+#endif
     qint64 oldReceived { 0L };
     qint64 received { 0L };
     qint64 total { 0L };
     qint64 initialOffset { 0L };
-    QPointer<QWebEngineDownloadItem> downloadItem;
     QPointer<QNetworkReply> reply;
     QPointer<CDownloadWriter> writer;
     QUuid auxId;
@@ -43,7 +58,11 @@ public:
     CDownloadItem() = default;
     CDownloadItem(const CDownloadItem& other) = default;
     explicit CDownloadItem(quint32 itemId);
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     explicit CDownloadItem(QWebEngineDownloadItem* item);
+#else
+    explicit CDownloadItem(QWebEngineDownloadRequest* item);
+#endif
     CDownloadItem(QNetworkReply* rpl, const QString& fname, const qint64 offset);
     explicit CDownloadItem(const QUuid &uuid);
     ~CDownloadItem() = default;
@@ -76,7 +95,11 @@ public:
     void addReceivedBytes(qint64 size);
 
 public Q_SLOTS:
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     void handleDownload(QWebEngineDownloadItem* item);
+#else
+    void handleDownload(QWebEngineDownloadRequest* item);
+#endif
     void contextMenu(const QPoint& pos);
     void updateWriterStatus();
 
@@ -116,6 +139,7 @@ private:
 
     void updateProgressLabel();
     bool abortDownloadPriv(int row);
+    void downloadFinishedPrev(QObject* source);
 
 public:
     explicit CDownloadsModel(CDownloadManager* parent);
@@ -135,11 +159,11 @@ public:
                                          const QUuid reuseExistingDownloadItem = QUuid());
 
     void appendItem(const CDownloadItem& item);
+    void auxDownloadProgress(qint64 bytesReceived, qint64 bytesTotal, QObject *source);
 
 public Q_SLOTS:
     void downloadFinished();
-    void downloadStateChanged(QWebEngineDownloadItem::DownloadState state);
-    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void downloadStateChanged(CDownloadState state);
     void requestRedirected(const QUrl &url);
 
     void abortDownload();
@@ -158,21 +182,18 @@ private Q_SLOTS:
 
 };
 
-class CDownloadBarDelegate : public QAbstractItemDelegate {
+class CDownloadBarDelegate : public QItemDelegate
+{
     Q_OBJECT
+    Q_DISABLE_COPY(CDownloadBarDelegate)
 private:
     CDownloadsModel* m_model;
-
-    Q_DISABLE_COPY(CDownloadBarDelegate)
-
 public:
     CDownloadBarDelegate(QObject *parent, CDownloadsModel* model);
     ~CDownloadBarDelegate() override = default;
-
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
                const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 };
-
 
 #endif // DOWNLOADMANAGER_H

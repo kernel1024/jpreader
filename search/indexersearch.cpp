@@ -1,4 +1,3 @@
-#include <QTextCodec>
 #include <QThread>
 
 #include "indexersearch.h"

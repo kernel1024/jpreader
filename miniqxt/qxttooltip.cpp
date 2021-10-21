@@ -122,7 +122,11 @@ void QxtToolTipPrivate::setToolTip(QWidget* tooltip)
     }
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void QxtToolTipPrivate::enterEvent(QEvent* event)
+#else
+void QxtToolTipPrivate::enterEvent(QEnterEvent* event)
+#endif
 {
     Q_UNUSED(event)
 

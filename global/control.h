@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QNetworkAccessManager>
 #include "settings.h"
 #include "actions.h"
 #include "zdict/zdictcontroller.h"

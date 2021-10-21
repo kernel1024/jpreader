@@ -195,7 +195,11 @@ void CBrowserTab::setTranslationRestriction()
 
 void CBrowserTab::sendInputToBrowser(const QString &text)
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     CGenericFuncs::sendKeyboardInputToView(txtBrowser->page()->view(),text);
+#else
+    CGenericFuncs::sendKeyboardInputToView(QWebEngineView::forPage(txtBrowser->page()),text);
+#endif
 }
 
 void CBrowserTab::updateTabColor(bool loadFinished, bool tranFinished)

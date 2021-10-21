@@ -1,4 +1,3 @@
-#include <QTextCodec>
 #include <QWebEngineSettings>
 
 #include "ui.h"
@@ -9,6 +8,7 @@
 #include "browserfuncs.h"
 #include "translator/lighttranslator.h"
 #include "translator/translatorstatisticstab.h"
+#include "utils/genericfuncs.h"
 
 namespace CDefaults{
 const int tabCloseInterlockDelay = 500;
@@ -200,9 +200,10 @@ void CGlobalUI::forceCharset()
 
     QString cs = act->data().toString();
     if (!cs.isEmpty()) {
-        QTextCodec* codec = QTextCodec::codecForName(cs.toLatin1().data());
-        if (codec!=nullptr)
-            cs = QString::fromUtf8(codec->name());
+        if (!CGenericFuncs::codecIsValid(cs)) {
+            qWarning() << "Codec not supported by ICU: " << cs;
+            return;
+        }
 
         gSet->m_settings->charsetHistory.removeAll(cs);
         gSet->m_settings->charsetHistory.prepend(cs);

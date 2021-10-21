@@ -16,8 +16,8 @@ public:
     bool isUrlBlocked(const QUrl &url, QString &filter);
     void adblockAppend(const QString &url);
     void adblockAppend(const CAdBlockRule &url, bool fast = false);
-    void adblockAppend(const QVector<CAdBlockRule> &urls);
-    void adblockDelete(const QVector<CAdBlockRule> &rules);
+    void adblockAppend(const QList<CAdBlockRule> &urls);
+    void adblockDelete(const QList<CAdBlockRule> &rules);
     void adblockClear();
 
     // No-Script

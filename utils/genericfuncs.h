@@ -33,10 +33,12 @@ public:
 
     static QString detectMIME(const QString& filename);
     static QString detectMIME(const QByteArray& buf);
-    static QTextCodec* detectEncoding(const QByteArray &content);
     static QString detectEncodingName(const QByteArray &content);
     static QString detectDecodeToUnicode(const QByteArray &content);
     static QByteArray detectDecodeToUtf8(const QByteArray &content);
+    static QList<QByteArray> availableICUCodecs();
+    static bool codecIsValid(const QByteArray &name);
+    static bool codecIsValid(const QString &name);
     static QString makeSimpleHtml(const QString& title, const QString& content, bool integratedTitle = false,
                                   const QUrl &origin = QUrl());
     static QString makeSpecialUrlsHtml();
