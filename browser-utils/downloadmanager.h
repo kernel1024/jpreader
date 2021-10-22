@@ -2,7 +2,7 @@
 #define DOWNLOADMANAGER_H
 
 #include <QDialog>
-#include <QItemDelegate>
+#include <QStyledItemDelegate>
 #include <QAbstractTableModel>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -35,6 +35,7 @@ class CDownloadItem
 public:
     quint32 id { 0 };
     qint32 retries { 0 };
+    bool aborted { false };
     QString pathName;
     QString mimeType;
     QString errorString;
@@ -182,7 +183,7 @@ private Q_SLOTS:
 
 };
 
-class CDownloadBarDelegate : public QItemDelegate
+class CDownloadBarDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
     Q_DISABLE_COPY(CDownloadBarDelegate)

@@ -40,11 +40,7 @@ CDownloadManager::CDownloadManager(QWidget *parent, CZipWriter *zipWriter) :
     ui->tableDownloads->setModel(m_model);
     ui->tableDownloads->verticalHeader()->hide();
     ui->tableDownloads->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    // BUG: QTBUG-93412
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     ui->tableDownloads->setItemDelegateForColumn(2,new CDownloadBarDelegate(this,m_model));
-#endif
 
     ui->labelWriter->setPixmap(QIcon::fromTheme(QSL("document-save")).pixmap(CDefaults::writerStatusLabelSize));
     QSizePolicy sp = ui->labelWriter->sizePolicy();
@@ -575,7 +571,7 @@ QVariant CDownloadsModel::data(const QModelIndex &index, int role) const
         return t.getFileName();
 
     } else if (role == Qt::UserRole+1) {
-        if (t.total<=0) return t.total;
+        if (t.total<=0) return 0;
         return 100*t.received/t.total;
     }
     return QVariant();
@@ -683,7 +679,8 @@ void CDownloadsModel::downloadFinishedPrev(QObject* source)
             success = false;
             m_downloads[row].state = CDownloadState::DownloadInterrupted;
             m_downloads[row].errorString = tr("Error %1: %2").arg(rpl->error()).arg(rpl->errorString());
-            if (m_downloads.at(row).retries < gSet->settings()->translatorRetryCount) {
+            if (!m_downloads.at(row).aborted &&
+                    (m_downloads.at(row).retries < gSet->settings()->translatorRetryCount)) {
                 m_downloads[row].retries++;
                 m_downloads[row].errorString.append(tr(" Restarting %1 of %2.")
                                                     .arg(m_downloads.at(row).retries)
@@ -831,12 +828,15 @@ void CDownloadsModel::abortAll()
 bool CDownloadsModel::abortDownloadPriv(int row)
 {
     bool res = false;
-    if (m_downloads.at(row).state==CDownloadState::DownloadInProgress) {
+    if ((m_downloads.at(row).state==CDownloadState::DownloadInProgress) ||
+            (m_downloads.at(row).state==CDownloadState::DownloadRequested)) {
         if (m_downloads.at(row).downloadItem) {
             m_downloads[row].downloadItem->cancel();
+            m_downloads[row].aborted = true;
             res = true;
         } else if (m_downloads.at(row).reply) {
             m_downloads[row].reply->abort();
+            m_downloads[row].aborted = true;
             res = true;
         }
     }
@@ -1116,7 +1116,7 @@ void CDownloadItem::reuseReply(QNetworkReply *rpl)
 }
 
 CDownloadBarDelegate::CDownloadBarDelegate(QObject *parent, CDownloadsModel *model)
-    : QItemDelegate(parent)
+    : QStyledItemDelegate(parent)
 {
     m_model = model;
 }
@@ -1132,21 +1132,26 @@ void CDownloadBarDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         QRect r = option.rect;
         r.setHeight(r.height()-topMargin); r.moveTop(r.top()+bottomMargin);
         progressBarOption.rect = r;
+        progressBarOption.invertedAppearance = false;
+        progressBarOption.bottomToTop = false;
+        progressBarOption.palette = option.palette;
+        progressBarOption.state = QStyle::State_Horizontal;
+        progressBarOption.textAlignment = Qt::AlignCenter;
+        progressBarOption.minimum = 0;
         if (progress>=0) {
-            progressBarOption.minimum = 0;
             progressBarOption.maximum = 100;
             progressBarOption.progress = progress;
             progressBarOption.text = QSL("%1%").arg(progress);
             progressBarOption.textVisible = true;
         } else {
-            progressBarOption.minimum = 0;
             progressBarOption.maximum = 0;
+            progressBarOption.progress = 0;
             progressBarOption.textVisible = false;
         }
         QApplication::style()->drawControl(QStyle::CE_ProgressBar,
                                            &progressBarOption, painter);
     } else {
-        QItemDelegate::paint(painter,option,index);
+        QStyledItemDelegate::paint(painter,option,index);
     }
 }
 

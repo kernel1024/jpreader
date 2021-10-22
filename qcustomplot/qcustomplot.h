@@ -1544,7 +1544,7 @@ class QCPLabelPainterPrivate
   Q_GADGET
 public:
   /*!
-    TODO
+    QCPTODO
   */
   enum AnchorMode { amRectangular    ///< 
                     ,amSkewedUpright ///<
@@ -1553,7 +1553,7 @@ public:
   Q_ENUMS(AnchorMode)
   
   /*!
-    TODO
+    QCPTODO
   */
   enum AnchorReferenceType { artNormal    ///< 
                              ,artTangent ///<
@@ -1561,7 +1561,7 @@ public:
   Q_ENUMS(AnchorReferenceType)
   
   /*!
-    TODO
+    QCPTODO
   */
   enum AnchorSide { asLeft      ///< 
                     ,asRight    ///< 
@@ -1655,7 +1655,7 @@ protected:
   
   // introduced virtual methods:
   virtual void drawLabelMaybeCached(QCPPainter *painter, const QFont &font, const QColor &color, const QPointF &pos, AnchorSide side, double rotation, const QString &text);
-  virtual QByteArray generateLabelParameterHash() const; // TODO: get rid of this in favor of invalidation flag upon setters?
+  virtual QByteArray generateLabelParameterHash() const; // QCPTODO: get rid of this in favor of invalidation flag upon setters?
 
   // non-virtual methods:
   QPointF getAnchorPos(const QPointF &tickPos);
@@ -7224,7 +7224,7 @@ public:
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   /*!
-    TODO
+    QCPTODO
   */
   enum LabelMode { lmUpright   ///< 
                    ,lmRotated ///< 
@@ -7484,7 +7484,7 @@ class QCP_LIB_DECL QCPPolarGrid :public QCPLayerable
   /// \endcond
 public:
   /*!
-    TODO
+    QCPTODO
   */
   enum GridType { gtAngular = 0x01 ///< 
                   ,gtRadial = 0x02 ///< 
@@ -7653,7 +7653,7 @@ public:
   
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const; // actually introduced in QCPLayerable as non-pure, but we want to force reimplementation for plottables
-  virtual QCPPlottableInterface1D *interface1D() { return 0; } // TODO: return this later, when QCPAbstractPolarPlottable is created
+  virtual QCPPlottableInterface1D *interface1D() { return 0; } // QCPTODO: return this later, when QCPAbstractPolarPlottable is created
   virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const;
   
@@ -7678,7 +7678,7 @@ protected:
   QCPDataSelection mSelection;
   //QCPSelectionDecorator *mSelectionDecorator;
   
-  // introduced virtual methods (later reimplemented TODO from QCPAbstractPolarPlottable):
+  // introduced virtual methods (later reimplemented QCPTODO from QCPAbstractPolarPlottable):
   virtual QRect clipRect() const;
   virtual void draw(QCPPainter *painter);
   virtual QCP::Interaction selectionCategory() const;

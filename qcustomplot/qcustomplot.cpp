@@ -5596,7 +5596,7 @@ void QCPLabelPainterPrivate::drawTickLabel(QCPPainter *painter, const QPointF &t
   Returns the size ("margin" in QCPAxisRect context, so measured perpendicular to the axis backbone
   direction) needed to fit the axis.
 */
-/* TODO: needed?
+/* QCPTODO: needed?
 int QCPLabelPainterPrivate::size() const
 {
   int result = 0;
@@ -5653,7 +5653,7 @@ QByteArray QCPLabelPainterPrivate::generateLabelParameterHash() const
   QByteArray result;
   result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(mRotation));
-  //result.append(QByteArray::number((int)tickLabelSide)); TODO: check whether this is really a cache-invalidating property
+  //result.append(QByteArray::number((int)tickLabelSide)); QCPTODO: check whether this is really a cache-invalidating property
   result.append(QByteArray::number((int)mSubstituteExponent));
   result.append(QString(mMultiplicationSymbol).toUtf8());
   result.append(mColor.name().toLatin1()+QByteArray::number(mColor.alpha(), 16));
@@ -5709,7 +5709,7 @@ void QCPLabelPainterPrivate::drawLabelMaybeCached(QCPPainter *painter, const QFo
     if (!labelClippedByBorder)
     {
       painter->drawPixmap(pos+cachedLabel->offset, cachedLabel->pixmap);
-      finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio(); // TODO: collect this in a member rect list?
+      finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio(); // QCPTODO: collect this in a member rect list?
     }
     mLabelCache.insert(QString::fromUtf8(key), cachedLabel);
   } else // label caching disabled, draw text directly on surface:
@@ -5758,6 +5758,7 @@ QPointF QCPLabelPainterPrivate::getAnchorPos(const QPointF &tickPos)
         case asBottomRight: return tickPos+QPointF(-mPadding*M_SQRT1_2, -mPadding*M_SQRT1_2);
         case asBottomLeft:  return tickPos+QPointF(mPadding*M_SQRT1_2, -mPadding*M_SQRT1_2);
       }
+      break;
     }
     case amSkewedUpright:
     case amSkewedRotated:
@@ -5941,8 +5942,8 @@ void QCPLabelPainterPrivate::getMaxTickLabelSize(const QFont &font, const QStrin
     finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio();
   } else // label caching disabled or no label with this text cached:
   {
-    // TODO: LabelData labelData = getTickLabelData(font, text);
-    // TODO: finalSize = labelData.rotatedTotalBounds.size();
+    // QCPTODO: LabelData labelData = getTickLabelData(font, text);
+    // QCPTODO: finalSize = labelData.rotatedTotalBounds.size();
   }
   
   // expand passed tickLabelsSize if current tick label is larger:
@@ -31957,7 +31958,7 @@ void QCPPolarAxisRadial::scaleRange(double factor, double center)
 void QCPPolarAxisRadial::rescale(bool onlyVisiblePlottables)
 {
   Q_UNUSED(onlyVisiblePlottables)
-  /* TODO
+  /* QCPTODO
   QList<QCPAbstractPlottable*> p = plottables();
   QCPRange newRange;
   bool haveRange = false;
@@ -32076,12 +32077,12 @@ double QCPPolarAxisRadial::radiusToCoord(double radius) const
 */
 QCPPolarAxisRadial::SelectablePart QCPPolarAxisRadial::getPartAt(const QPointF &pos) const
 {
-  Q_UNUSED(pos) // TODO remove later
+  Q_UNUSED(pos) // QCPTODO remove later
   if (!mVisible)
     return spNone;
   
   /*
-    TODO:
+    QCPTODO:
   if (mAxisPainter->axisSelectionBox().contains(pos.toPoint()))
     return spAxis;
   else if (mAxisPainter->tickLabelsSelectionBox().contains(pos.toPoint()))
@@ -32181,11 +32182,11 @@ void QCPPolarAxisRadial::mousePressEvent(QMouseEvent *event, const QVariant &det
 */
 void QCPPolarAxisRadial::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
 {
-  Q_UNUSED(event) // TODO remove later
-  Q_UNUSED(startPos) // TODO remove later
+  Q_UNUSED(event) // QCPTODO remove later
+  Q_UNUSED(startPos) // QCPTODO remove later
   if (mDragging)
   {
-    /* TODO
+    /* QCPTODO
     const double startPixel = orientation() == Qt::Horizontal ? startPos.x() : startPos.y();
     const double currentPixel = orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y();
     if (mScaleType == QCPPolarAxisRadial::stLinear)
@@ -32253,7 +32254,7 @@ void QCPPolarAxisRadial::wheelEvent(QWheelEvent *event)
     return;
   }
   
-  // TODO:
+  // QCPTODO:
   //const double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
   //const double factor = qPow(mRangeZoomFactor, wheelSteps);
   //scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
@@ -32592,7 +32593,7 @@ QCPPolarAxisAngular::QCPPolarAxisAngular(QCustomPlot *parentPlot) :
   mDragging(false),
   mLabelPainter(parentPlot)
 {
-  // TODO:
+  // QCPTODO:
   //mInsetLayout->initializeParentPlot(mParentPlot);
   //mInsetLayout->setParentLayerable(this);
   //mInsetLayout->setParent(this);
@@ -32895,13 +32896,13 @@ QPointF QCPPolarAxisAngular::coordToPixel(double angleCoord, double radiusCoord)
 */
 QCPPolarAxisAngular::SelectablePart QCPPolarAxisAngular::getPartAt(const QPointF &pos) const
 {
-  Q_UNUSED(pos) // TODO remove later
+  Q_UNUSED(pos) // QCPTODO remove later
   
   if (!mVisible)
     return spNone;
   
   /*
-    TODO:
+    QCPTODO:
   if (mAxisPainter->axisSelectionBox().contains(pos.toPoint()))
     return spAxis;
   else if (mAxisPainter->tickLabelsSelectionBox().contains(pos.toPoint()))
@@ -34403,7 +34404,7 @@ QFont QCPPolarLegendItem::getFont() const
 
 /* start of documentation of inline functions */
 
-// TODO
+// QCPTODO
 
 /* end of documentation of inline functions */
 
@@ -34432,14 +34433,14 @@ QCPPolarGraph::QCPPolarGraph(QCPPolarAxisAngular *keyAxis, QCPPolarAxisRadial *v
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
   mSelectable(QCP::stWhole)
-  //mSelectionDecorator(0) // TODO
+  //mSelectionDecorator(0) // QCPTODO
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
   
   mKeyAxis->registerPolarGraph(this);
   
-  //setSelectionDecorator(new QCPSelectionDecorator); // TODO
+  //setSelectionDecorator(new QCPSelectionDecorator); // QCPTODO
   
   setPen(QPen(Qt::blue, 0));
   setBrush(Qt::NoBrush);
@@ -34448,7 +34449,7 @@ QCPPolarGraph::QCPPolarGraph(QCPPolarAxisAngular *keyAxis, QCPPolarAxisRadial *v
 
 QCPPolarGraph::~QCPPolarGraph()
 {
-  /* TODO
+  /* QCPTODO
   if (mSelectionDecorator)
   {
     delete mSelectionDecorator;
@@ -34838,7 +34839,7 @@ bool QCPPolarGraph::addToLegend(QCPLegend *legend)
     return false;
   }
   
-  //if (!legend->hasItemWithPlottable(this)) // TODO
+  //if (!legend->hasItemWithPlottable(this)) // QCPTODO
   //{
     legend->addItem(new QCPPolarLegendItem(legend, this));
     return true;
@@ -34864,7 +34865,7 @@ bool QCPPolarGraph::removeFromLegend(QCPLegend *legend) const
   
   
   QCPPolarLegendItem *removableItem = 0;
-  for (int i=0; i<legend->itemCount(); ++i) // TODO: reduce this to code in QCPAbstractPlottable::removeFromLegend once unified
+  for (int i=0; i<legend->itemCount(); ++i) // QCPTODO: reduce this to code in QCPAbstractPlottable::removeFromLegend once unified
   {
     if (QCPPolarLegendItem *pli = qobject_cast<QCPPolarLegendItem*>(legend->item(i)))
     {
@@ -35365,7 +35366,7 @@ void QCPPolarGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const 
 {
   lineData->clear();
   
-  // TODO: fix for log axes and thick line style
+  // QCPTODO: fix for log axes and thick line style
   
   const QCPRange range = mValueAxis->range();
   bool reversed = mValueAxis->rangeReversed();
@@ -35384,7 +35385,7 @@ void QCPPolarGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const 
       if (aboveRange) // jumped directly from above to below visible range, draw previous point so entry angle is correct
       {
         aboveRange = false;
-        if (!reversed) // TODO: with inner radius, we'll need else case here with projected border point
+        if (!reversed) // QCPTODO: with inner radius, we'll need else case here with projected border point
           lineData->append(*(it-1));
       }
       if (!belowRange)
