@@ -74,12 +74,12 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 #else
     sText = data->selectedText();
     linkUrl = data->linkUrl();
-    linkText = data->linkText(); // TODO: add commands for linkText
+    linkText = data->linkText();
     if (data->mediaType() == QWebEngineContextMenuRequest::MediaTypeImage)
         imageUrl = data->mediaUrl();
 #endif
 
-    const QClipboard *cb = QApplication::clipboard();
+    QClipboard *cb = QApplication::clipboard();
     QAction *ac = nullptr;
     QMenu *ccm = nullptr;
 
@@ -111,6 +111,13 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         });
 
         m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
+        if (!linkText.isEmpty()) {
+            ac = m_menu.addAction(QIcon::fromTheme(QSL("edit-copy")),tr("Copy link text to clipboard"));
+            connect(ac, &QAction::triggered, this, [linkText,cb]() {
+                cb->setText(linkText,QClipboard::Clipboard);
+            });
+
+        }
         m_menu.addSeparator();
     }
 
