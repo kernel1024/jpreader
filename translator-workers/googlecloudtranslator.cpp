@@ -179,7 +179,7 @@ QString CGoogleCloudTranslator::tranStringInternal(const QString &src)
 
     QString res;
     const QJsonArray translist = doc.object().value(QSL("translations")).toArray();
-    for (const QJsonValue &tv : qAsConst(translist)) {
+    for (const auto &tv : qAsConst(translist)) {
         if (tv.toObject().contains(QSL("translatedText"))) {
             res+=tv.toObject().value(QSL("translatedText")).toString();
         }

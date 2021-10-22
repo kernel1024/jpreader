@@ -232,10 +232,9 @@ void CPixivNovelExtractor::subLoadFinished()
                     connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
                 },Qt::QueuedConnection);
                 return;
-            } else {
-                qWarning() << "Failed to redirect to " << rpl->rawHeader("Location");
-                qDebug() << rpl->rawHeaderPairs();
             }
+            qWarning() << "Failed to redirect to " << rpl->rawHeader("Location");
+            qDebug() << rpl->rawHeaderPairs();
         }
     } else {
         m_redirectCounter.remove(key);

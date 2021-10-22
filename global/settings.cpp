@@ -576,10 +576,10 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     gSet->d_func()->restoreLoadChecked = true;
 
     QVector<QUrl> urls;
-    urls.clear();
     QSettings settings(QCoreApplication::organizationName(), QSL("jpreader-tabs"));
     settings.beginGroup(QSL("OpenedTabs"));
     int cnt = settings.value(QSL("tabsCnt"), 0).toInt();
+    urls.reserve(cnt);
     for (int i=0;i<cnt;i++) {
         QUrl u = settings.value(QSL("tab_%1").arg(i),QUrl()).toUrl();
         if (u.isValid() && !u.isEmpty())

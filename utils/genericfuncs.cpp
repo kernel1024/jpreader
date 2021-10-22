@@ -220,7 +220,7 @@ QList<QByteArray> CGenericFuncs::availableICUCodecs()
 bool CGenericFuncs::codecIsValid(const QByteArray& name)
 {
     const QList<QByteArray> list = CGenericFuncs::availableICUCodecs();
-    const QByteArray baName = name.toLower();
+    const QString baName = QString::fromUtf8(name).toLower();
     return std::any_of(list.constBegin(),list.constEnd(),[name,baName](const QByteArray& codec){
         return (QString::fromUtf8(codec).toLower() == baName);
     });

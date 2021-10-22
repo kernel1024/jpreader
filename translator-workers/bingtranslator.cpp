@@ -112,9 +112,9 @@ QString CBingTranslator::tranStringInternal(const QString &src)
 
     QString res;
     const QJsonArray rootlist = doc.array();
-    for (const QJsonValue &rv : qAsConst(rootlist)) {
+    for (const auto &rv : qAsConst(rootlist)) {
         const QJsonArray translist = rv.toObject().value(QSL("translations")).toArray();
-        for (const QJsonValue &tv : qAsConst(translist)) {
+        for (const auto &tv : qAsConst(translist)) {
             if (tv.toObject().contains(QSL("text"))) {
                 res+=tv.toObject().value(QSL("text")).toString();
             }

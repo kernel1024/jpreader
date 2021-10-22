@@ -175,7 +175,7 @@ bool QxtGlobalShortcutFilter::setupShortcut(QxtGlobalShortcut *shortcut)
 
     bool res = inst->addShortcut(shortcut);
     if (res) {
-        QObject::connect(shortcut,&QxtGlobalShortcut::destroying,[](QxtGlobalShortcut* sc){
+        QObject::connect(shortcut,&QxtGlobalShortcut::destroying,inst,[](QxtGlobalShortcut* sc){
             QMutexLocker locker(&scMutex);
 
             if (inst.isNull()) return;

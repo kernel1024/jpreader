@@ -93,6 +93,7 @@ void CFanboxExtractor::pageLoadFinished()
             m_text = mbody.value(QSL("text")).toString();
             QStringList imageIdOrder;
             const QJsonArray jblocks = mbody.value(QSL("blocks")).toArray();
+            imageIdOrder.reserve(jblocks.count());
             for (const auto &jblock : jblocks) {
                 QString bvalue = jblock.toObject().value(QSL("type")).toString();
                 QString btext = jblock.toObject().value(QSL("text")).toString();
@@ -116,6 +117,7 @@ void CFanboxExtractor::pageLoadFinished()
 
             QVector<CUrlWithName> images;
             const QJsonArray jimgUrls = mbody.value(QSL("images")).toArray();
+            images.reserve(jimgUrls.count());
             for (const auto &jimg : jimgUrls) {
                 QString url = jimg.toObject().value(QSL("originalUrl")).toString();
                 if (!url.isEmpty())

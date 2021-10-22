@@ -173,7 +173,6 @@ QString CCLIWorker::translate(const QString &text)
 QString CCLIWorker::translatePriv(const QString &text)
 {
     QString sout;
-    QStringList srctls;
 
     const QChar questionMark(u'?');
     const QChar fullwidthQuestionMark(u'\uFF1F');

@@ -15,7 +15,7 @@ CTranslatorCacheDialog::CTranslatorCacheDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->buttonClearCache,&QPushButton::clicked,[this](){
+    connect(ui->buttonClearCache,&QPushButton::clicked,this,[this](){
         gSet->net()->clearTranslatorCache();
         updateCacheList();
     });
@@ -44,6 +44,7 @@ void CTranslatorCacheDialog::updateCacheList()
                                    { QSL("*.info") },
                                    QDir::Files | QDir::Writable | QDir::Readable);
     QList<QJsonObject> infoList;
+    infoList.reserve(list.count());
     for (const auto &file : list) {
         QFile f(file.absoluteFilePath());
         if (f.open(QIODevice::ReadOnly)) {
