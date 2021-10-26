@@ -88,6 +88,7 @@ Q_ENUM_NS(PixivFetchCoversMode)
 
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 const QMap<CStructures::TranslationEngine, QString> &translationEngineCodes();
+const QStringList &incompatibleHttp2Urls();
 
 }
 

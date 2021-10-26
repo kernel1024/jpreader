@@ -208,3 +208,9 @@ QDataStream &operator>>(QDataStream &in, CStructures::TranslationEngine &obj)
     obj = static_cast<CStructures::TranslationEngine>(buf);
     return in;
 }
+
+const QStringList &CStructures::incompatibleHttp2Urls()
+{
+    static const QStringList urls({ QSL("pximg.net"), QSL("pixiv.net") });
+    return urls;
+}

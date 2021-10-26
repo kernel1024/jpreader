@@ -18,12 +18,17 @@ public:
     void addFavicon(const QString& key, const QIcon &icon);
 
     // Network
-    QNetworkReply *auxNetworkAccessManagerHead(const QNetworkRequest &request) const;
-    QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request) const;
-    QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data) const;
+    QNetworkReply *auxNetworkAccessManagerHead(const QNetworkRequest &request,
+                                               bool bypassHttp2Suppression = false) const;
+    QNetworkReply *auxNetworkAccessManagerGet(const QNetworkRequest &request,
+                                              bool bypassHttp2Suppression = false) const;
+    QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data,
+                                               bool bypassHttp2Suppression = false) const;
     QList<QSslError> ignoredSslErrorsList() const;
+    bool isHostInDomainsList(const QUrl& url, const QStringList& domains) const;
 
-    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(), const QList<int> &cookieIndexes = {});
+    bool exportCookies(const QString& filename = QString(), const QUrl& baseUrl = QUrl(),
+                       const QList<int> &cookieIndexes = {});
     void addTranslatorStatistics(CStructures::TranslationEngine engine, int textLength);
 
     QStringList getLanguageCodes() const;

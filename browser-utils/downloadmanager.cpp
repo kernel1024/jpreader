@@ -140,7 +140,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 
     // we need HEAD request for file size calculation
     if (offset > 0L) {
-        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerHead(req);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerHead(req,true);
         rpl->setProperty(CDefaults::replyHeadFileName,fname);
         rpl->setProperty(CDefaults::replyHeadOffset,offset);
         connect(rpl,&QNetworkReply::errorOccurred,this,&CDownloadManager::headRequestFailed);
@@ -171,7 +171,7 @@ void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &req
 
     QNetworkRequest req = request;
     req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute,true);
-    QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
+    QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req,true);
 
     if (row<0) {
         appendItem(CDownloadItem(rpl, fileName, offset));

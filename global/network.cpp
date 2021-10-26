@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <QMessageBox>
 
 #include "network.h"
@@ -73,31 +74,46 @@ QList<QSslError> CGlobalNetwork::ignoredSslErrorsList() const
     return expectedErrors;
 }
 
-QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerHead(const QNetworkRequest &request) const
+bool CGlobalNetwork::isHostInDomainsList(const QUrl &url, const QStringList &domains) const
+{
+    const QString hostname = url.host();
+    return std::any_of(domains.constBegin(),domains.constEnd(),[hostname](const QString& domain){
+        return hostname.endsWith(domain);
+    });
+}
+
+QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerHead(const QNetworkRequest &request, bool bypassHttp2Suppression) const
 {
     QNetworkRequest req = request;
     if (!gSet->m_settings->userAgent.isEmpty())
         req.setRawHeader("User-Agent", gSet->m_settings->userAgent.toLatin1());
+    if (!bypassHttp2Suppression && isHostInDomainsList(request.url(),CStructures::incompatibleHttp2Urls()))
+        req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->head(req);
     res->ignoreSslErrors(ignoredSslErrorsList());
     return res;
 }
 
-QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerGet(const QNetworkRequest &request) const
+QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerGet(const QNetworkRequest &request, bool bypassHttp2Suppression) const
 {
     QNetworkRequest req = request;
     if (!gSet->m_settings->userAgent.isEmpty())
         req.setRawHeader("User-Agent", gSet->m_settings->userAgent.toLatin1());
+    if (!bypassHttp2Suppression && isHostInDomainsList(request.url(),CStructures::incompatibleHttp2Urls()))
+        req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->get(req);
     res->ignoreSslErrors(ignoredSslErrorsList());
     return res;
 }
 
-QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data) const
+QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data,
+                                                           bool bypassHttp2Suppression) const
 {
     QNetworkRequest req = request;
     if (!gSet->m_settings->userAgent.isEmpty())
         req.setRawHeader("User-Agent", gSet->m_settings->userAgent.toLatin1());
+    if (!bypassHttp2Suppression && isHostInDomainsList(request.url(),CStructures::incompatibleHttp2Urls()))
+        req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->post(req,data);
     res->ignoreSslErrors(ignoredSslErrorsList());
     return res;
