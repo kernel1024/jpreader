@@ -2,7 +2,6 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QNetworkCookie>
-#include <QRegularExpression>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -11,10 +10,6 @@
 #include "global/network.h"
 #include "utils/genericfuncs.h"
 #include "utils/specwidgets.h"
-
-namespace CDefaults {
-const int maxTranslationStringLength = 5000;
-}
 
 CWebAPIAbstractTranslator::CWebAPIAbstractTranslator(QObject *parent, const CLangPair &lang)
     : CAbstractTranslator (parent, lang)
@@ -33,37 +28,16 @@ QString CWebAPIAbstractTranslator::tranStringPrivate(const QString& src)
         return QSL("ERROR:TRAN_NOT_READY");
     }
 
-    const int margin = 10;
-
-    if (src.length()>=CDefaults::maxTranslationStringLength) {
-        // Split by separator chars
-        QRegularExpression rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
-        QStringList srcl = src.split(rx);
-        // Check for max length
-        QStringList srout;
-        srout.clear();
-        for (int i=0;i<srcl.count();i++) {
-            QString s = srcl.at(i);
-            while (!s.isEmpty()) {
-                srout << s.left(CDefaults::maxTranslationStringLength - margin);
-                s.remove(0,CDefaults::maxTranslationStringLength - margin);
-            }
+    QString res;
+    for (const QString &str : splitLongText(src)) {
+        QString s = tranStringInternal(str);
+        if (!getErrorMsg().isEmpty()) {
+            res=s;
+            break;
         }
-        srcl.clear();
-        QString res;
-        res.clear();
-        for (int i=0;i<srout.count();i++) {
-            QString s = tranStringInternal(srout.at(i));
-            if (!getErrorMsg().isEmpty()) {
-                res=s;
-                break;
-            }
-            res+=s;
-        }
-        return res;
+        res.append(s);
     }
-
-    return tranStringInternal(src);
+    return res;
 }
 
 bool CWebAPIAbstractTranslator::waitForReply(QNetworkReply *reply, int *httpStatus)

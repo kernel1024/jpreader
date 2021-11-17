@@ -22,6 +22,7 @@ HEADERS = mainwindow.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \
     translator-workers/atlastranslator.h \
+    translator-workers/deeplfreetranslator.h \
     translator-workers/yandexcloudtranslator.h \
     translator-workers/yandextranslator.h \
     translator-workers/googlecloudtranslator.h \
@@ -105,6 +106,7 @@ SOURCES = main.cpp \
     translator-workers/atlastranslator.cpp \
     translator-workers/abstracttranslator.cpp \
     translator-workers/bingtranslator.cpp \
+    translator-workers/deeplfreetranslator.cpp \
     translator-workers/yandexcloudtranslator.cpp \
     translator-workers/yandextranslator.cpp \
     translator-workers/googlecloudtranslator.cpp \

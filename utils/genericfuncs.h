@@ -1,6 +1,7 @@
 #ifndef GENERICFUNCS_H
 #define GENERICFUNCS_H
 
+#include <chrono>
 #include <QString>
 #include <QByteArray>
 #include <QVector>
@@ -64,6 +65,7 @@ public:
     static QString secsToString(qint64 seconds);
     static void processedSleep(unsigned long secs);
     static void processedMSleep(unsigned long msecs);
+    static void processedMSleep(std::chrono::milliseconds msecs);
     static bool writeBytesToZip(const QString& zipFile, const QString& fileName, const QByteArray& data);
     static QString unsplitMobileText(const QString &text);
     static QString makeSafeFilename(const QString &text);

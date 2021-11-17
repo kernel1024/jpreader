@@ -220,7 +220,7 @@ class CFaviconLoader : public QObject
 private:
     QUrl m_url;
 public:
-    explicit CFaviconLoader(QObject *parent, const QUrl &url);
+    CFaviconLoader(QObject *parent, const QUrl &url);
 public Q_SLOTS:
     void queryStart(bool forceCached);
     void queryFinished();

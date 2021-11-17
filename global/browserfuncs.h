@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QWebEngineProfile>
 #include <QNetworkCookie>
+#include <functional>
 
 #include "structures.h"
 #include "browser-utils/userscript.h"
@@ -23,6 +24,11 @@ public:
 
     // Chromium
     QWebEngineProfile* webProfile() const;
+
+    // Headless worker
+    void headlessDOMWorker(const QUrl& url, const QString &javaScript,
+                           const std::function<bool (const QVariant &)> &matchFunc) const;
+    bool isDOMWorkerReady() const;
 
     // Userscripts
     QVector<CUserScript> getUserScriptsForUrl(const QUrl &url, bool isMainFrame, bool isContextMenu,

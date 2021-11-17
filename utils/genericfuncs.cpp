@@ -763,6 +763,17 @@ void CGenericFuncs::processedMSleep(unsigned long msecs)
     }
 }
 
+void CGenericFuncs::processedMSleep(std::chrono::milliseconds msecs)
+{
+    using namespace std::chrono_literals;
+    const std::chrono::milliseconds granularity = 50ms;
+    for (auto i=0;i<(msecs/granularity);i++) {
+        QThread::msleep(granularity.count());
+        QApplication::processEvents();
+    }
+
+}
+
 const QVector<QStringList> &CGenericFuncs::encodingsByScript()
 {
     static const QVector<QStringList> enc = {

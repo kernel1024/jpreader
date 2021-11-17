@@ -42,6 +42,9 @@ public:
 Q_SIGNALS:
     void translationStatisticsChanged();
 
+private Q_SLOTS:
+    void auxNetError(QNetworkReply::NetworkError error);
+
 public Q_SLOTS:
     void updateProxy(bool useProxy);
     void updateProxyWithMenuUpdate(bool useProxy, bool forceMenuUpdate);

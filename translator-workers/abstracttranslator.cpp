@@ -1,4 +1,5 @@
 #include <QRandomGenerator>
+#include <QRegularExpression>
 #include "abstracttranslator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
@@ -8,9 +9,14 @@
 #include "yandexcloudtranslator.h"
 #include "googlecloudtranslator.h"
 #include "alicloudtranslator.h"
+#include "deeplfreetranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
+
+namespace CDefaults {
+const int maxTranslationStringLength = 5000;
+}
 
 int CAbstractTranslator::getTranslatorRetryCount() const
 {
@@ -25,6 +31,29 @@ bool CAbstractTranslator::isAborted()
         return false;
 
     return sequencedTranslator->isAborted();
+}
+
+QStringList CAbstractTranslator::splitLongText(const QString &src) const
+{
+    QStringList res;
+    if (src.length()>=CDefaults::maxTranslationStringLength) {
+        const int margin = 10;
+
+        // Split by separator chars
+        QRegularExpression rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+        QStringList srcl = src.split(rx);
+        // Check for max length
+        for (int i=0;i<srcl.count();i++) {
+            QString s = srcl.at(i);
+            while (!s.isEmpty()) {
+                res.append(s.left(CDefaults::maxTranslationStringLength - margin));
+                s.remove(0,CDefaults::maxTranslationStringLength - margin);
+            }
+        }
+    } else {
+        res.append(src);
+    }
+    return res;
 }
 
 void CAbstractTranslator::setErrorMsg(const QString &msg)
@@ -124,6 +153,9 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
     if (engine==CStructures::teAliCloud) {
         res = new CAliCloudTranslator(parent, tranDirection, gSet->settings()->aliCloudTranslatorMode,
                                       gSet->settings()->aliAccessKeyID, gSet->settings()->aliAccessKeySecret);
+    }
+    if (engine==CStructures::teDeeplFree) {
+        res = new CDeeplFreeTranslator(parent, tranDirection);
     }
 
     return res;

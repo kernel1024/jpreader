@@ -173,7 +173,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teAmazonAWS, QSL("Amazon Translate") },
         { teYandexCloud, QSL("Yandex Cloud") },
         { teGoogleCloud, QSL("Google Cloud") },
-        { teAliCloud, QSL("Alibaba Cloud") }
+        { teAliCloud, QSL("Alibaba Cloud") },
+        { teDeeplFree, QSL("DeepL Free") }
     };
 
     return engines;
@@ -189,7 +190,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teAmazonAWS, QSL("aws") },
         { teYandexCloud, QSL("yandex-cloud") },
         { teGoogleCloud, QSL("gcp") },
-        { teAliCloud, QSL("alicloud") }
+        { teAliCloud, QSL("alicloud") },
+        { teDeeplFree, QSL("deepl-free") }
     };
 
     return engines;
@@ -211,6 +213,6 @@ QDataStream &operator>>(QDataStream &in, CStructures::TranslationEngine &obj)
 
 const QStringList &CStructures::incompatibleHttp2Urls()
 {
-    static const QStringList urls({ QSL("pximg.net"), QSL("pixiv.net") });
+    static const QStringList urls({ QSL("pximg.net"), QSL("pixiv.net"), QSL("yandex.com") });
     return urls;
 }

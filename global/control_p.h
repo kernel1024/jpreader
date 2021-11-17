@@ -44,6 +44,8 @@ public:
     CTranslatorCache *translatorCache { nullptr };
     CZipWriter *zipWriter { nullptr };
 
+    QWebEngineProfile *domWorkerProfile { nullptr };
+
     QScopedPointer<CLogDisplay, QScopedPointerDeleteLater> logWindow;
     QScopedPointer<CDownloadManager, QScopedPointerDeleteLater> downloadManager;
     QScopedPointer<CAuxDictionary, QScopedPointerDeleteLater> auxDictionary;
@@ -54,7 +56,9 @@ public:
     QScopedPointer<CWorkerMonitor, QScopedPointerDeleteLater> workerMonitor;
     QScopedPointer<CAutofillAssistant, QScopedPointerDeleteLater> autofillAssistant;
     QScopedPointer<QFileSystemWatcher, QScopedPointerDeleteLater> xapianFilesystemWatcher;
+    QScopedPointer<QWebEngineView, QScopedPointerDeleteLater> domWorker;
     QList<CAbstractThreadWorker *> workerPool;
+    QMutex domWorkerMutex;
 
     QStringList recentFiles;
     CStringHash ctxSearchEngines;

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <QMessageBox>
+#include <QMetaEnum>
 
 #include "network.h"
 #include "control.h"
@@ -82,7 +83,8 @@ bool CGlobalNetwork::isHostInDomainsList(const QUrl &url, const QStringList &dom
     });
 }
 
-QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerHead(const QNetworkRequest &request, bool bypassHttp2Suppression) const
+QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerHead(const QNetworkRequest &request,
+                                                           bool bypassHttp2Suppression) const
 {
     QNetworkRequest req = request;
     if (!gSet->m_settings->userAgent.isEmpty())
@@ -91,10 +93,12 @@ QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerHead(const QNetworkRequest
         req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->head(req);
     res->ignoreSslErrors(ignoredSslErrorsList());
+    connect(res,&QNetworkReply::errorOccurred,this,&CGlobalNetwork::auxNetError);
     return res;
 }
 
-QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerGet(const QNetworkRequest &request, bool bypassHttp2Suppression) const
+QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerGet(const QNetworkRequest &request,
+                                                          bool bypassHttp2Suppression) const
 {
     QNetworkRequest req = request;
     if (!gSet->m_settings->userAgent.isEmpty())
@@ -103,6 +107,7 @@ QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerGet(const QNetworkRequest 
         req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->get(req);
     res->ignoreSslErrors(ignoredSslErrorsList());
+    connect(res,&QNetworkReply::errorOccurred,this,&CGlobalNetwork::auxNetError);
     return res;
 }
 
@@ -116,6 +121,7 @@ QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerPost(const QNetworkRequest
         req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
     QNetworkReply *res = gSet->d_func()->auxNetManager->post(req,data);
     res->ignoreSslErrors(ignoredSslErrorsList());
+    connect(res,&QNetworkReply::errorOccurred,this,&CGlobalNetwork::auxNetError);
     return res;
 }
 
@@ -304,4 +310,17 @@ QString CGlobalNetwork::getPixivCommonCover(const QString &url) const
 {
     QMutexLocker locker(&(gSet->d_func()->pixivCommonCoversMutex));
     return gSet->d_func()->pixivCommonCovers.value(url);
+}
+
+void CGlobalNetwork::auxNetError(QNetworkReply::NetworkError error)
+{
+    const auto errorEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
+    auto *reply = qobject_cast<QNetworkReply *>(sender());
+
+    if ((reply != nullptr) && (error != QNetworkReply::NoError)) {
+        qWarning() << QSL("Aux network error: %1 %2 (%3)")
+                      .arg(QString::fromUtf8(errorEnum.valueToKey(error)),
+                           reply->errorString(),
+                           reply->url().toString());
+    }
 }

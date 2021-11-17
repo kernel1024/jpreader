@@ -24,7 +24,8 @@ enum TranslationEngine {
     teAmazonAWS = 5,
     teYandexCloud = 6,
     teGoogleCloud = 7,
-    teAliCloud = 8
+    teAliCloud = 8,
+    teDeeplFree = 9
 };
 Q_ENUM_NS(TranslationEngine)
 

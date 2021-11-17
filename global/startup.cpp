@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <execution>
+#include <chrono>
 
 extern "C" {
 #include <sys/resource.h>
@@ -36,14 +37,20 @@ extern "C" {
 #include "auxtranslator_adaptor.h"
 #include "browsercontroller_adaptor.h"
 
+using namespace std::chrono_literals;
+
 namespace CDefaults {
 const auto ipcEOF = "\n###";
-const int tabListSavePeriod = 30000;
-const int dictionariesLoadingDelay = 1500;
-const int ipcTimeout = 1000;
-const int workerMaxShutdownTimeMS = 5000;
-const int workerWaitGranularityMS = 250;
-const int xapianWorkerStartupLockMS = 500;
+const auto tabListSavePeriod = 30s;
+const auto dictionariesLoadingDelay = 2s;
+const auto ipcTimeout = 1s;
+const auto workerMaxShutdownTime = 5s;
+const auto workerWaitGranularity = 250ms;
+const auto xapianWorkerStartupLockTime = 500ms;
+const auto domWorkerStartupDelay = 1s;
+const auto domWorkerUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) "
+                                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                "Chrome/77.0.3864.0 Safari/537.36";
 }
 
 CGlobalStartup::CGlobalStartup(CGlobalControl *parent)
@@ -178,6 +185,9 @@ void CGlobalStartup::initialize()
         m_g->d_func()->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),
                                                            new CMagicFileSchemeHandler(this));
 
+        m_g->d_func()->domWorkerProfile = new QWebEngineProfile(this);
+        m_g->d_func()->domWorkerProfile->setHttpUserAgent(QString::fromUtf8(CDefaults::domWorkerUserAgent));
+
         m_g->d_func()->translatorCache = new CTranslatorCache(this);
         QString tcache = fs + QSL("translator_cache") + QDir::separator();
         m_g->d_func()->translatorCache->setCachePath(tcache);
@@ -247,6 +257,11 @@ void CGlobalStartup::initialize()
 
         m_g->m_ui->addMainWindowEx(false,true,openUrls);
         QTimer::singleShot(m_g->d_func()->xapianIndexerTimer.interval(),this,&CGlobalStartup::startupXapianIndexer);
+        QTimer::singleShot(CDefaults::domWorkerStartupDelay,this,[](){
+            gSet->d_func()->domWorker.reset(new QWebEngineView(nullptr));
+            gSet->d_func()->domWorker->setPage(new QWebEnginePage(gSet->d_func()->domWorkerProfile,
+                                                                  gSet->d_func()->domWorker.data()));
+        });
 
         qInfo() << "Initialization time, ms: " << initTime.elapsed();
 
@@ -283,13 +298,14 @@ void CGlobalStartup::preinit(int &argc, char *argv[], bool *cliMode)
 bool CGlobalStartup::setupIPC()
 {
     if (!m_g->d_func()->ipcServer.isNull()) return false;
+    auto ipcTimeout = std::chrono::duration_cast<std::chrono::milliseconds>(CDefaults::ipcTimeout).count();
 
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
     serverName.replace(QRegularExpression(QSL("[^\\w\\-.]")), QString());
 
     QScopedPointer<QLocalSocket> socket(new QLocalSocket());
     socket->connectToServer(serverName);
-    if (socket->waitForConnected(CDefaults::ipcTimeout)){
+    if (socket->waitForConnected(ipcTimeout)){
         // Connected. Process is already running, send message to it
         if (CGlobalControlPrivate::runnedFromQtCreator()) { // This is debug run, try to close old instance
             // Send close request
@@ -301,7 +317,7 @@ bool CGlobalStartup::setupIPC()
             QApplication::processEvents();
             // Check for closing
             socket->connectToServer(serverName);
-            if (socket->waitForConnected(CDefaults::ipcTimeout)) { // connected, unable to close
+            if (socket->waitForConnected(ipcTimeout)) { // connected, unable to close
                 sendIPCMessage(socket.data(),QSL("newWindow"));
                 socket->flush();
                 socket->close();
@@ -342,10 +358,11 @@ void  CGlobalStartup::sendIPCMessage(QLocalSocket *socket, const QString &msg)
 
 void CGlobalStartup::ipcMessageReceived()
 {
+    auto ipcTimeout = std::chrono::duration_cast<std::chrono::milliseconds>(CDefaults::ipcTimeout).count();
     QLocalSocket *socket = m_g->d_func()->ipcServer->nextPendingConnection();
     QByteArray bmsg;
     do {
-        if (!socket->waitForReadyRead(CDefaults::ipcTimeout)) return;
+        if (!socket->waitForReadyRead(ipcTimeout)) return;
         bmsg.append(socket->readAll());
     } while (!bmsg.contains(CDefaults::ipcEOF));
     socket->close();
@@ -364,28 +381,26 @@ void CGlobalStartup::ipcMessageReceived()
 
 void CGlobalStartup::stopAndCloseWorkers()
 {
-    QElapsedTimer tmr;
-
     Q_EMIT stopWorkers();
     m_g->d_func()->zipWriter->abortAllWorkers();
 
-    tmr.start();
+    auto started = std::chrono::steady_clock::now();
     while ((!m_g->d_func()->workerPool.isEmpty() || CZipWriter::isBusy()) &&
-           (tmr.elapsed() < CDefaults::workerMaxShutdownTimeMS)) {
-        CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
+           ((std::chrono::steady_clock::now() - started) < CDefaults::workerMaxShutdownTime)) {
+        CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
     }
-    CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
+    CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
 
     if (CZipWriter::isBusy())
         m_g->d_func()->zipWriter->terminateAllWorkers();
     if (!m_g->d_func()->workerPool.isEmpty()) {
         Q_EMIT terminateWorkers();
-        tmr.start();
+        started = std::chrono::steady_clock::now();
         while (!m_g->d_func()->workerPool.isEmpty() &&
-               tmr.elapsed() < CDefaults::workerMaxShutdownTimeMS) {
-            CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
+               ((std::chrono::steady_clock::now() - started) < CDefaults::workerMaxShutdownTime)) {
+            CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
         }
-        CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularityMS);
+        CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
         m_g->d_func()->workerPool.clear(); // Just stop problematic workers, do not try to free memory correctly
     }
 }
@@ -425,6 +440,7 @@ void CGlobalStartup::cleanupAndExit()
         m_g->d_func()->autofillAssistant.reset(nullptr);
         m_g->d_func()->ipcServer->close();
         m_g->d_func()->ipcServer.reset(nullptr);
+        m_g->d_func()->domWorker.reset(nullptr);
     }
 
     QMetaObject::invokeMethod(QApplication::instance(),&QApplication::quit,Qt::QueuedConnection);
@@ -534,7 +550,7 @@ void CGlobalStartup::startupXapianIndexerDirect(bool fromInotify, bool cleanupDa
     Q_EMIT stopXapianWorkers();
 
 #ifdef WITH_XAPIAN
-    QTimer::singleShot(CDefaults::xapianWorkerStartupLockMS,this,
+    QTimer::singleShot(CDefaults::xapianWorkerStartupLockTime,this,
                        [this,fromInotify,cleanupDatabase](){
         QMutexLocker locker(&(gSet->d_func()->xapianTimerMutex));
 

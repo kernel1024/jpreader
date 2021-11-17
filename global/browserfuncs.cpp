@@ -1,3 +1,4 @@
+#include <chrono>
 #include <QSettings>
 
 #include "browserfuncs.h"
@@ -5,6 +6,13 @@
 #include "control_p.h"
 #include "utils/specwidgets.h"
 #include "utils/genericfuncs.h"
+
+using namespace std::chrono_literals;
+
+namespace CDefaults {
+const auto domWorkerCheckInterval = 500ms;
+const auto domWorkerReplyTimeout = 60s;
+}
 
 CGlobalBrowserFuncs::CGlobalBrowserFuncs(QObject *parent)
     : QObject(parent)
@@ -147,4 +155,54 @@ CStringHash CGlobalBrowserFuncs::getUserScripts()
     gSet->d_func()->userScriptsMutex.unlock();
 
     return res;
+}
+
+void CGlobalBrowserFuncs::headlessDOMWorker(const QUrl &url, const QString &javaScript,
+                                            const std::function<bool (const QVariant &)> &matchFunc) const
+{
+    if (!isDOMWorkerReady()) return;
+
+    QMutexLocker locker(&(gSet->d_func()->domWorkerMutex));
+
+    QTimer retryTimer;
+    QTimer failTimer;
+    QPointer<QEventLoop> eventLoop(new QEventLoop());
+
+    retryTimer.setInterval(CDefaults::domWorkerCheckInterval);
+    retryTimer.setSingleShot(false);
+    failTimer.setInterval(CDefaults::domWorkerReplyTimeout);
+    failTimer.setSingleShot(true);
+    connect(&failTimer,&QTimer::timeout,eventLoop.data(),[eventLoop,url](){
+        qWarning() << QSL("Failed to load page '%1' in DOM worker, aborting.").arg(url.toString());
+        if (eventLoop)
+            eventLoop->quit();
+    });
+
+    QMetaObject::invokeMethod(gSet->d_func()->domWorker->page(),[url](){
+        gSet->d_func()->domWorker->load(url);
+    });
+
+    connect(&retryTimer,&QTimer::timeout,gSet->d_func()->domWorker->page(),
+            [javaScript,eventLoop,matchFunc](){
+        if (eventLoop.isNull())
+            return;
+
+        gSet->d_func()->domWorker->page()->runJavaScript(javaScript,
+                                                         [eventLoop,matchFunc](const QVariant &result) {
+            if (matchFunc(result))
+                eventLoop->quit();
+        });
+    });
+
+    failTimer.start();
+    retryTimer.start();
+    eventLoop->exec();
+    retryTimer.stop();
+    failTimer.stop();
+    eventLoop->deleteLater();
+}
+
+bool CGlobalBrowserFuncs::isDOMWorkerReady() const
+{
+    return !(gSet->d_func()->domWorker.isNull());
 }

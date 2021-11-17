@@ -27,6 +27,7 @@ protected:
     void clearErrorMsg();
     void setLanguage(const CLangPair& lang);
     bool isAborted();
+    QStringList splitLongText(const QString& src) const;
 
 public:
     explicit CAbstractTranslator(QObject *parent, const CLangPair& lang);

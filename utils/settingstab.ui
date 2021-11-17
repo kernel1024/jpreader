@@ -26,7 +26,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-431</y>
+        <y>0</y>
         <width>822</width>
         <height>4884</height>
        </rect>
@@ -757,6 +757,13 @@
                    <widget class="QRadioButton" name="radioAliCloud">
                     <property name="text">
                      <string>Alibaba Cloud</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioDeeplFree">
+                    <property name="text">
+                     <string>DeepL Free</string>
                     </property>
                    </widget>
                   </item>
@@ -2370,6 +2377,7 @@
   <tabstop>radioAmazonAWS</tabstop>
   <tabstop>radioGoogleCloud</tabstop>
   <tabstop>radioAliCloud</tabstop>
+  <tabstop>radioDeeplFree</tabstop>
   <tabstop>tranRetryCnt</tabstop>
   <tabstop>checkTranslatorCacheEnabled</tabstop>
   <tabstop>spinTranslatorCacheSize</tabstop>
