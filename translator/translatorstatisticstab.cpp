@@ -162,6 +162,7 @@ void CTranslatorStatisticsTab::updateGraph()
     const double weekRangeExtraFactor = 0.5;
     const double rowCompactVerticalStretchFactor = 0.001;
     const int graphBrushAlpha = 50;
+    const int legendWrap = 5;
 
     ui->plot->clearGraphs();
 
@@ -194,6 +195,7 @@ void CTranslatorStatisticsTab::updateGraph()
     legend->setLayer(QSL("legend"));
     legend->setBorderPen(QPen(QColor(Qt::black),1));
     legend->setFillOrder(QCPLegend::foColumnsFirst);
+    legend->setWrap(legendWrap);
     legend->setVisible(true);
 
     // Key axis range calculation

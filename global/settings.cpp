@@ -23,16 +23,58 @@
 #include "browser-utils/userscript.h"
 #include "browser-utils/bookmarks.h"
 
-const QVector<QColor> CSettings::graphColors = {
-    QColor(Qt::darkBlue), QColor(Qt::darkGreen), QColor(Qt::darkMagenta),
-    QColor(Qt::darkCyan), QColor(Qt::darkRed),   QColor(Qt::darkGray),
-    QColor(Qt::darkYellow) };
+namespace CMaterialColors {
+const unsigned int red400 = 0xef5350;
+const unsigned int pink400 = 0xec407a;
 
-const QVector<QColor> CSettings::snippetColors = {
-    QColor(Qt::red), QColor(Qt::green), QColor(Qt::blue), QColor(Qt::cyan),
-    QColor(Qt::magenta), QColor(Qt::darkRed), QColor(Qt::darkGreen),
-    QColor(Qt::darkBlue), QColor(Qt::darkCyan), QColor(Qt::darkMagenta),
-    QColor(Qt::darkYellow), QColor(Qt::gray) };
+const unsigned int purple400 = 0xab47bc;
+const unsigned int deepPurple400 = 0x7e57c2;
+const unsigned int indigo400 = 0x5c6bc0;
+
+const unsigned int blue400 = 0x42a5f5;
+const unsigned int lightBlue400 = 0x29b6f6;
+const unsigned int cyan400 = 0x26c6da;
+const unsigned int teal400 = 0x26a69a;
+
+const unsigned int green400 = 0x66bb6a;
+const unsigned int lightGreen400 = 0x9ccc65;
+const unsigned int lime400 = 0xd4e157;
+
+const unsigned int yellow400 = 0xffee58;
+const unsigned int amber400 = 0xffca28;
+const unsigned int orange400 = 0xffa726;
+const unsigned int deepOrange400 = 0xff7043;
+
+const unsigned int brown400 = 0x8d6e63;
+const unsigned int gray400 = 0xbdbdbd;
+const unsigned int blueGray400 = 0x78909c;
+
+const QVector<QColor> contrastColors = {
+    QColor(red400),
+    QColor(blue400),
+    QColor(purple400),
+    QColor(green400),
+    QColor(amber400),
+    QColor(gray400),
+    QColor(pink400),
+    QColor(indigo400),
+    QColor(teal400),
+    QColor(lime400),
+    QColor(deepOrange400),
+    QColor(blueGray400),
+    QColor(deepPurple400),
+    QColor(cyan400),
+    QColor(lightGreen400),
+    QColor(orange400),
+    QColor(brown400),
+    QColor(lightBlue400),
+    QColor(yellow400)
+};
+}
+
+const QVector<QColor> CSettings::graphColors = CMaterialColors::contrastColors;
+
+const QVector<QColor> CSettings::snippetColors = CMaterialColors::contrastColors;
 
 const QUrl::FormattingOptions CSettings::adblockUrlFmt = QUrl::RemoveUserInfo
                                                          | QUrl::RemovePort
