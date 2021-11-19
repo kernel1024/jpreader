@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <execution>
+#include <unordered_set>
 #include "control.h"
 #include "control_p.h"
 #include "contentfiltering.h"
@@ -27,12 +28,12 @@ bool CGlobalContentFiltering::isUrlBlocked(const QUrl& url, QString &filter)
     if (gSet->d_func()->adblockWhiteList.contains(u)) return false;
 
     auto it = std::find_if(std::execution::par,
-                           gSet->d_func()->adblock.constBegin(),
-                           gSet->d_func()->adblock.constEnd(),
-                           [u](const CAdBlockRule& rule){
+                           gSet->d_func()->adblock.begin(),
+                           gSet->d_func()->adblock.end(),
+                           [u](const CAdBlockRule& rule) -> bool {
         return rule.networkMatch(u);
     });
-    if (it != gSet->d_func()->adblock.constEnd()) {
+    if (it != gSet->d_func()->adblock.end()) {
         filter = it->filter();
         return true;
     }
@@ -69,7 +70,7 @@ void CGlobalContentFiltering::adblockAppend(const QString& url)
 void CGlobalContentFiltering::adblockAppend(const CAdBlockRule& url, bool fast)
 {
     gSet->d_func()->adblockModifyMutex.lock();
-    gSet->d_func()->adblock.append(url);
+    gSet->d_func()->adblock.push_back(url);
     gSet->d_func()->adblockModifyMutex.unlock();
 
     if (!fast) {
@@ -78,25 +79,17 @@ void CGlobalContentFiltering::adblockAppend(const CAdBlockRule& url, bool fast)
     }
 }
 
-void CGlobalContentFiltering::adblockAppend(const QList<CAdBlockRule> &urls)
+void CGlobalContentFiltering::adblockDelete(const CAdBlockVector &rules)
 {
-    gSet->d_func()->adblockModifyMutex.lock();
-    gSet->d_func()->adblock.append(urls);
-    gSet->d_func()->adblockModifyMutex.unlock();
+    const std::unordered_set<CAdBlockRule> excludes(rules.begin(),rules.end());
 
-    gSet->d_func()->clearAdblockWhiteList();
-
-    Q_EMIT adblockRulesUpdated();
-}
-
-void CGlobalContentFiltering::adblockDelete(const QList<CAdBlockRule> &rules)
-{
     gSet->d_func()->adblockModifyMutex.lock();
     gSet->d_func()->adblock.erase(std::remove_if(std::execution::par,
                                                  gSet->d_func()->adblock.begin(),
                                                  gSet->d_func()->adblock.end(),
-                                    [rules](const CAdBlockRule& rule){
-        return rules.contains(rule);
+                                    [excludes](const CAdBlockRule& rule){
+        auto res = excludes.find(rule);
+        return (res != excludes.end());
     }),gSet->d_func()->adblock.end());
     gSet->d_func()->adblockModifyMutex.unlock();
 

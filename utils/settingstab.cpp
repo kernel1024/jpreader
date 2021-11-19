@@ -1022,7 +1022,7 @@ void CSettingsTab::updateAdblockList()
     ui->treeAdblock->setHeaderLabels(QStringList() << tr("AdBlock patterns"));
     QHash<QString,QTreeWidgetItem*> cats;
     ui->treeAdblock->clear();
-    for (int i=0;i<adblockList.count();i++) {
+    for (size_t i=0; i<adblockList.size(); i++) {
         QTreeWidgetItem* tli = nullptr;
         QString cat = adblockList.at(i).listID();
         if (cats.contains(cat)) {
@@ -1035,10 +1035,10 @@ void CSettingsTab::updateAdblockList()
 
         auto *item = new QTreeWidgetItem(tli);
         item->setText(0,adblockList.at(i).filter());
-        item->setData(0,Qt::UserRole+1,i);
+        item->setData(0,Qt::UserRole+1,static_cast<qulonglong>(i));
     }
     ui->lblAdblockTotalRules->setText(
-                tr("Total rules: %1.").arg(adblockList.count()));
+                tr("Total rules: %1.").arg(adblockList.size()));
 }
 
 void CSettingsTab::adblockFocusSearchedRule(QList<QTreeWidgetItem *> & items)
@@ -1107,7 +1107,7 @@ void CSettingsTab::delAd()
     const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
     r.reserve(il.count());
     for (const QTreeWidgetItem* i : il)
-        r << gSet->d_func()->adblock.at(i->data(0,Qt::UserRole+1).toInt());
+        r.push_back(gSet->d_func()->adblock.at(i->data(0,Qt::UserRole+1).toULongLong()));
 
     gSet->contentFilter()->adblockDelete(r);
 }
@@ -1137,7 +1137,7 @@ void CSettingsTab::importAd()
         ruleStrings.append(fs.readLine());
     f.close();
 
-    int psz = gSet->d_func()->adblock.count();
+    int psz = gSet->d_func()->adblock.size();
     QAtomicInteger<int> cssRule = 0;
     std::for_each(std::execution::par,ruleStrings.constBegin(),ruleStrings.constEnd(),
                   [baseFileName,&cssRule](const QString& line){
@@ -1152,7 +1152,7 @@ void CSettingsTab::importAd()
     updateAdblockList();
     gSet->d_func()->clearAdblockWhiteList();
 
-    psz = gSet->d_func()->adblock.count() - psz;
+    psz = gSet->d_func()->adblock.size() - psz;
     QMessageBox::information(this,QGuiApplication::applicationDisplayName(),
                              tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));
 }
@@ -1169,7 +1169,7 @@ void CSettingsTab::exportAd()
     const QList<QTreeWidgetItem *> il = ui->treeAdblock->selectedItems();
     r.reserve(il.count());
     for (const QTreeWidgetItem* i : il)
-        r << gSet->d_func()->adblock.at(i->data(0,Qt::UserRole+1).toInt());
+        r.push_back(gSet->d_func()->adblock.at(i->data(0,Qt::UserRole+1).toULongLong()));
 
     QString fname = CGenericFuncs::getSaveFileNameD(this,tr("Save AdBlock patterns to file"),
                                                     gSet->settings()->savedAuxSaveDir,

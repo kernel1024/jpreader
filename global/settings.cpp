@@ -254,11 +254,23 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     const QByteArray adblock = readByteArray(bigdataDir,QSL("adblock"));
     QThread* th = QThread::create([this,g,adblock]() {
         QDataStream bufs(adblock);
-        g->d_func()->adblockModifyMutex.lock();
-        bufs >> g->d_func()->adblock;
-        g->d_func()->adblockModifyMutex.unlock();
-        qInfo() << "Adblock rules loaded";
-        Q_EMIT adblockRulesUpdated();
+        CAdBlockVector rules;
+        QVariant vcount;
+        bufs >> vcount;
+        if (vcount.isValid() && vcount.canConvert<qulonglong>()) {
+            qulonglong count = vcount.toULongLong();
+            rules.reserve(count);
+            for (qulonglong i=0; i<count; i++) {
+                CAdBlockRule rule;
+                bufs >> rule;
+                rules.push_back(rule);
+            }
+            g->d_func()->adblockModifyMutex.lock();
+            g->d_func()->adblock = rules;
+            g->d_func()->adblockModifyMutex.unlock();
+            qInfo() << "Adblock rules loaded";
+            Q_EMIT adblockRulesUpdated();
+        }
     });
     connect(th,&QThread::finished,th,&QThread::deleteLater);
     th->setObjectName(QSL("AdblockLoader"));
@@ -314,7 +326,10 @@ void CSettings::writeBinaryBigData(const QString &dirname)
     // save adblock data as binary dump for bulk loading with deferred parsing
     QByteArray buf;
     QDataStream bufs(&buf,QIODevice::WriteOnly);
-    bufs << gSet->d_func()->adblock;
+    qulonglong count = gSet->d_func()->adblock.size();
+    bufs << QVariant::fromValue(count);
+    for (const auto &rule : gSet->d_func()->adblock)
+        bufs << rule;
     if (!writeByteArray(dirname,QSL("adblock"),buf))
         qCritical() << "Unable to save adblock.";
 }

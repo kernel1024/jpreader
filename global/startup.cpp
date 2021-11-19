@@ -83,7 +83,6 @@ void CGlobalStartup::initialize()
     qRegisterMetaTypeStreamOperators<CUrlHolder>("CUrlHolder");
 
     qRegisterMetaTypeStreamOperators<CAdBlockRule>("CAdBlockRule");
-    qRegisterMetaTypeStreamOperators<CAdBlockVector>("CAdBlockVector");
     qRegisterMetaTypeStreamOperators<CUrlHolderVector>("CUrlHolderVector");
     qRegisterMetaTypeStreamOperators<CStringHash>("CStringHash");
     qRegisterMetaTypeStreamOperators<CSslCertificateHash>("CSslCertificateHash");
@@ -94,7 +93,6 @@ void CGlobalStartup::initialize()
     qRegisterMetaTypeStreamOperators<CSelectedLangPairs>("CSelectedLangPairs");
 #else
     qRegisterMetaType<CAdBlockRule>("CAdBlockRule");
-    qRegisterMetaType<CAdBlockVector>("CAdBlockVector");
     qRegisterMetaType<CUrlHolderVector>("CUrlHolderVector");
     qRegisterMetaType<CStringHash>("CStringHash");
     qRegisterMetaType<CSslCertificateHash>("CSslCertificateHash");

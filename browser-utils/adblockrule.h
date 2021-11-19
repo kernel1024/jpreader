@@ -14,6 +14,7 @@
 #include <QString>
 #include <QRegularExpression>
 #include <QStringList>
+#include <vector>
 
 class CAdBlockRule
 {
@@ -62,7 +63,18 @@ private:
     bool m_enabled { false };
 };
 
-using CAdBlockVector = QList<CAdBlockRule>;
+using CAdBlockVector = std::vector<CAdBlockRule>;
+
+namespace std {
+template <>
+struct hash<CAdBlockRule>
+{
+    std::size_t operator()(const CAdBlockRule& k) const
+    {
+        return (qHash(k.filter()) ^ (qHash(k.listID()) >> 1));
+    }
+};
+}
 
 Q_DECLARE_METATYPE(CAdBlockRule)
 
