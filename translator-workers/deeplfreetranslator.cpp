@@ -2,6 +2,10 @@
 #include "global/control.h"
 #include "global/browserfuncs.h"
 
+namespace CDefaults {
+const int deeplMaxFailedQueriesInRow = 4;
+}
+
 CDeeplFreeTranslator::CDeeplFreeTranslator(QObject *parent, const CLangPair &lang)
     : CAbstractTranslator(parent,lang)
 {
@@ -11,6 +15,7 @@ CDeeplFreeTranslator::~CDeeplFreeTranslator() = default;
 
 bool CDeeplFreeTranslator::initTran()
 {
+    m_failedQueriesCounter = 0;
     return true;
 }
 
@@ -35,23 +40,43 @@ QString CDeeplFreeTranslator::tranStringPrivate(const QString &src)
 
 QString CDeeplFreeTranslator::tranStringInternal(const QString &src)
 {
+    if (src.isEmpty())
+        return QString();
+
     QUrl url(QSL("https://www.deepl.com/translator#%1/%2/%3")
              .arg(language().langFrom.bcp47Name(),
                   language().langTo.bcp47Name(),
                   QUrl::toPercentEncoding(src)));
 
     QString res;
-    gSet->browser()->headlessDOMWorker(url,
-                                       QSL("document.querySelector('textarea[dl-test=translator-target-input]').value;"),
-                                       [&res](const QVariant &result) -> bool {
-        const QString str = result.toString();
-        if (!str.isEmpty())
-            res = str;
-        return !str.isEmpty();
-    });
+    for (int retry = 0; retry < gSet->settings()->translatorRetryCount; retry++) {
+        gSet->browser()->headlessDOMWorker(url,
+                                           QSL("document.querySelector('textarea[dl-test="
+                                               "translator-target-input]').value;"),
+                                           [&res](const QVariant &result) -> bool {
+            const QString str = result.toString();
+            if (!str.isEmpty())
+                res = str;
+            return !str.isEmpty();
+        });
 
-    if (res.isEmpty())
-        res = QSL("ERROR:DEEPL_NO_RESPONSE");
+        if (!res.isEmpty())
+            break;
+
+        qWarning() << QSL("DeepL request retry #%1").arg(retry+1);
+    }
+
+
+    if (res.isEmpty()) {
+        if (m_failedQueriesCounter < CDefaults::deeplMaxFailedQueriesInRow) {
+            res = src;
+        } else {
+            res = QSL("ERROR:DEEPL_NO_RESPONSE");
+        }
+        m_failedQueriesCounter++;
+    } else {
+        m_failedQueriesCounter = 0;
+    }
 
     if (res.startsWith(QSL("ERROR:")))
         setErrorMsg(tr("ERROR: DeepL translator error or timeout."));

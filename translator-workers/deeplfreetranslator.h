@@ -13,6 +13,7 @@ class CDeeplFreeTranslator : public CAbstractTranslator
     Q_DISABLE_COPY(CDeeplFreeTranslator)
 
 private:
+    int m_failedQueriesCounter { 0 };
     QString tranStringInternal(const QString& src);
 
 public:
