@@ -169,15 +169,17 @@ void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &titl
 
 void CBrowserTrans::translationFinished(bool success, bool aborted, const QString& resultHtml, const QString& error)
 {
+    Q_UNUSED(aborted)
+
     snv->waitPanel->hide();
     snv->transButton->setEnabled(true);
-    if (aborted) return;
-
-    if (success) {
+    if (!resultHtml.isEmpty() && !resultHtml.startsWith(QSL("ERROR:"))) {
         snv->m_translatedHtml=resultHtml;
         postTranslate();
         snv->parentWnd()->updateTabs();
-    } else {
+    }
+
+    if (!success) {
         if (resultHtml.startsWith(QSL("ERROR:"))) {
             QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
                                  tr("Translator error.\n\n%1").arg(resultHtml));
