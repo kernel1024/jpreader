@@ -208,6 +208,7 @@ void CSettingsTab::loadFromGlobal()
     ui->atlSSLProto->setCurrentIndex(idx);
     updateAtlCertLabel();
     ui->tranRetryCnt->setValue(gSet->m_settings->translatorRetryCount);
+    ui->domWorkerRetryTimeoutSec->setValue(gSet->m_settings->domWorkerReplyTimeoutSec);
 
     ui->editBingKey->setText(gSet->m_settings->bingKey);
     ui->editYandexKey->setText(gSet->m_settings->yandexKey);
@@ -482,6 +483,10 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->tranRetryCnt,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
         if (m_loadingInterlock) return;
         gSet->m_settings->translatorRetryCount=val;
+    });
+    connect(ui->domWorkerRetryTimeoutSec,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->domWorkerReplyTimeoutSec=val;
     });
     connect(ui->atlToken,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;

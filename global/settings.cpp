@@ -211,6 +211,8 @@ void CSettings::writeSettings()
     settings.setValue(QSL("xapianStartDelay"),getXapianTimerInterval());
     settings.setValue(QSL("xapianIndexDirList"),xapianIndexDirList);
 
+    settings.setValue(QSL("domWorkerReplyTimeoutSec"),domWorkerReplyTimeoutSec);
+
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
 }
@@ -509,6 +511,9 @@ void CSettings::readSettings(QObject *control)
                                             CDefaults::translatorCacheEnabled).toBool();
     translatorCacheSize = settings.value(QSL("translatorCacheSize"),
                                          CDefaults::translatorCacheSize).toInt();
+
+    domWorkerReplyTimeoutSec = settings.value(QSL("domWorkerReplyTimeoutSec"),
+                                              CDefaults::domWorkerReplyTimeoutSec).toInt();
 
     setupXapianTimerInterval(g,settings.value(QSL("xapianStartDelay"),CDefaults::xapianStartDelay).toInt());
     xapianStemmerLang = settings.value(QSL("xapianStemmerLang"),QString()).toString();

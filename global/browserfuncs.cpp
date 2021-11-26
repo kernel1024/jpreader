@@ -11,7 +11,6 @@ using namespace std::chrono_literals;
 
 namespace CDefaults {
 const auto domWorkerCheckInterval = 500ms;
-const auto domWorkerReplyTimeout = 60s;
 }
 
 CGlobalBrowserFuncs::CGlobalBrowserFuncs(QObject *parent)
@@ -170,7 +169,7 @@ void CGlobalBrowserFuncs::headlessDOMWorker(const QUrl &url, const QString &java
 
     retryTimer.setInterval(CDefaults::domWorkerCheckInterval);
     retryTimer.setSingleShot(false);
-    failTimer.setInterval(CDefaults::domWorkerReplyTimeout);
+    failTimer.setInterval(1s * gSet->settings()->domWorkerReplyTimeoutSec);
     failTimer.setSingleShot(true);
     connect(&failTimer,&QTimer::timeout,eventLoop.data(),[eventLoop,url](){
         qWarning() << QSL("Failed to load page '%1' in DOM worker, aborting.").arg(url.toString());
