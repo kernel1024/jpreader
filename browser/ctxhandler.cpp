@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QThread>
 #include <QRegularExpression>
+#include <QDesktopServices>
 
 #include "ctxhandler.h"
 #include "net.h"
@@ -111,6 +112,12 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         });
 
         m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
+        ac = m_menu.addAction(QIcon::fromTheme(QSL("system-run")),
+                         tr("Open link with default application"));
+        connect(ac, &QAction::triggered, this, [linkUrl]() {
+            QDesktopServices::openUrl(linkUrl);
+        });
+
         if (!linkText.isEmpty()) {
             ac = m_menu.addAction(QIcon::fromTheme(QSL("edit-copy")),tr("Copy link text to clipboard"));
             connect(ac, &QAction::triggered, this, [linkText,cb]() {
