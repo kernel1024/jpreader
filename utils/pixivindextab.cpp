@@ -663,6 +663,8 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
     const int row = index.row();
     const int col = index.column();
     const auto w = m_list.at(row).toObject();
+    static const QIcon bookmarkedIcon = QIcon::fromTheme(QSL("emblem-favorite"));
+    static const QIcon unknownIcon = QIcon::fromTheme(QSL("unknown"));
 
     if (role == Qt::DisplayRole) {
         switch (col) {
@@ -709,6 +711,12 @@ QVariant CPixivTableModel::data(const QModelIndex &index, int role) const
         }
         if (!tooltip.isEmpty())
             return tooltip;
+    } else if (role == Qt::DecorationRole) {
+        if (col == 5) { // bookmarks column
+            if (w.value(QSL("bookmarkData")).isNull())
+                return unknownIcon;
+            return bookmarkedIcon;
+        }
     }
 
     if (role == CDefaults::pixivSortRole) {
