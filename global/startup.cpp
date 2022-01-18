@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <execution>
+#include <chrono>
+
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
@@ -7,10 +11,6 @@
 #include <QStandardPaths>
 #include <QElapsedTimer>
 #include <QMessageBox>
-
-#include <algorithm>
-#include <execution>
-#include <chrono>
 
 extern "C" {
 #include <sys/resource.h>

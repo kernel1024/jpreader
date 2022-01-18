@@ -1,9 +1,9 @@
-#include "xapianindexworker_p.h"
-#include "xapianindexworker.h"
-
 #include <algorithm>
 #include <execution>
 #include <filesystem>
+
+#include "xapianindexworker_p.h"
+#include "xapianindexworker.h"
 
 #include <QMutex>
 #include <QMutexLocker>

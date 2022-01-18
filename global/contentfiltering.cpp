@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <execution>
 #include <unordered_set>
+
 #include "control.h"
 #include "control_p.h"
 #include "contentfiltering.h"

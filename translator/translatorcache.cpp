@@ -1,9 +1,10 @@
+#include <algorithm>
+#include <execution>
+
 #include <QCryptographicHash>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDir>
-#include <algorithm>
-#include <execution>
 #include "translatorcache.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"

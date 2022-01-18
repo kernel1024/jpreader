@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <execution>
+
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QColorDialog>
@@ -7,8 +10,6 @@
 #include <QWebEngineSettings>
 #include <QLocale>
 #include <QPointer>
-#include <algorithm>
-#include <execution>
 
 #include "settingstab.h"
 #include "ui_settingstab.h"
