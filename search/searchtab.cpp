@@ -187,9 +187,6 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
             arg(stats[QSL("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
     parentWnd()->setSearchStatus(tr("Ready"));
-    parentWnd()->updateTitle();
-    parentWnd()->updateTabs();
-
     setTabTitle(tr("S:[%1]").arg(lastQuery));
 }
 

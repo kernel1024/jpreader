@@ -213,6 +213,16 @@ void CSettings::writeSettings()
 
     settings.setValue(QSL("domWorkerReplyTimeoutSec"),domWorkerReplyTimeoutSec);
 
+    settings.setValue(QSL("mangaCacheWidth"),mangaCacheWidth);
+    settings.setValue(QSL("mangaMagnifySize"),mangaMagnifySize);
+    settings.setValue(QSL("mangaScrollDelta"),mangaScrollDelta);
+    settings.setValue(QSL("mangaScrollFactor"),mangaScrollFactor);
+    settings.setValue(QSL("upscaleFilter"),static_cast<int>(mangaUpscaleFilter));
+    settings.setValue(QSL("downscaleFilter"),static_cast<int>(mangaDownscaleFilter));
+    settings.setValue(QSL("mangaResizeBlur"),mangaResizeBlur);
+    settings.setValue(QSL("mangaBackgroundColor"),mangaBackgroundColor.name());
+    settings.setValue(QSL("mangaUseFineRendering"),mangaUseFineRendering);
+
     settings.endGroup();
     gSet->d_func()->settingsSaveMutex.unlock();
 }
@@ -528,6 +538,19 @@ void CSettings::readSettings(QObject *control)
         userAgentHistory << userAgent;
     }
 
+    mangaCacheWidth = settings.value(QSL("mangaCacheWidth"),CDefaults::mangaCacheWidth).toInt();
+    mangaMagnifySize = settings.value(QSL("mangaMagnifySize"),CDefaults::mangaMagnifySize).toInt();
+    mangaScrollDelta = settings.value(QSL("mangaScrollDelta"),CDefaults::mangaScrollDelta).toInt();
+    mangaScrollFactor = settings.value(QSL("mangaScrollFactor"),CDefaults::mangaScrollFactor).toInt();
+    mangaUpscaleFilter = static_cast<Blitz::ScaleFilterType>(
+                             settings.value(QSL("upscaleFilter"),Blitz::MitchellFilter).toInt());
+    mangaDownscaleFilter = static_cast<Blitz::ScaleFilterType>(
+                               settings.value(QSL("downscaleFilter"),Blitz::LanczosFilter).toInt());
+    mangaResizeBlur = settings.value(QSL("mangaResizeBlur"),CDefaults::mangaResizeBlur).toDouble();
+    mangaBackgroundColor = QColor(settings.value(QSL("mangaBackgroundColor"),
+                                                 CDefaults::mangaBackgroundColor).toString());
+    mangaUseFineRendering = settings.value(QSL("mangaUseFineRendering"),CDefaults::mangaUseFineRendering).toBool();
+
     if (g->m_actions) { // GUI mode
 
         bool jsstate = settings.value(QSL("javascript"),true).toBool();
@@ -630,6 +653,12 @@ void CSettings::setupXapianTimerInterval(QObject* control, int secs)
 int CSettings::getXapianTimerInterval()
 {
     return gSet->d_func()->xapianIndexerTimer.interval() / CDefaults::oneK;
+}
+
+void CSettings::setMangaBackgroundColor(const QColor &color)
+{
+    mangaBackgroundColor = color;
+    Q_EMIT mangaViewerSettingsUpdated();
 }
 
 void CSettings::checkRestoreLoad(CMainWindow *w)

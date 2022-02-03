@@ -93,6 +93,7 @@ private:
     void updateQueryHistory();
     void updateMainHistory();
     void updateSearchEngines();
+    void updateMangaBackgroundColorPreview();
 
     void saveSearchEngines();
     void saveUserScripts();
@@ -140,6 +141,7 @@ public Q_SLOTS:
     void selectGcpJsonFile();
     void addXapianIndexDir();
     void delXapianIndexDir();
+    void mangaBackgroundColorDlg();
 };
 
 #endif // SETTINGSTAB_H

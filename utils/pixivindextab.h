@@ -27,7 +27,6 @@ public:
                             const QString &extractorFilterDesc, const QUrl &coversOrigin);
     ~CPixivIndexTab() override;
     static CPixivIndexTab* fromJson(QWidget *parentWidget, const QJsonObject& data);
-    QString title() const;
 
 private:
     Q_DISABLE_COPY(CPixivIndexTab)

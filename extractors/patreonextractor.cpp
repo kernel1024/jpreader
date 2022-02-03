@@ -139,7 +139,7 @@ void CPatreonExtractor::startMain()
         for (const auto& url : qAsConst(urls))
             res.append(url.second);
 
-        Q_EMIT mangaReady(res,title,m_origin);
+        Q_EMIT mangaReady(res,title,m_origin,false);
     }
 
     Q_EMIT finished();

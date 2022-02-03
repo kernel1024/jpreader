@@ -29,6 +29,12 @@ public:
 
     void showLightTranslator(const QString& text = QString());
 
+    int getMangaDetectedScrollDelta() const;
+    void setMangaDetectedScrollDelta(int value);
+    QColor getMangaForegroundColor() const;
+    void addMangaFineRenderTime(qint64 msec);
+    qint64 getMangaAvgFineRenderTime() const;
+
 Q_SIGNALS:
     void startAuxTranslation();
     void translationEngineChanged();

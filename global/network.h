@@ -24,6 +24,7 @@ public:
                                               bool bypassHttp2Suppression = false) const;
     QNetworkReply *auxNetworkAccessManagerPost(const QNetworkRequest &request, const QByteArray &data,
                                                bool bypassHttp2Suppression = false) const;
+    void auxNetworkAccessManagerClearCache();
     QList<QSslError> ignoredSslErrorsList() const;
     bool isHostInDomainsList(const QUrl& url, const QStringList& domains) const;
 

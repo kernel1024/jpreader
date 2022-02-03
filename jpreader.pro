@@ -14,6 +14,10 @@ HEADERS = mainwindow.h \
     global/history.h \
     global/network.h \
     global/ui.h \
+    manga/mangaviewtab.h \
+    manga/scalefilter.h \
+    manga/zmangaview.h \
+    manga/zscrollarea.h \
     search/defaultsearch.h \
     search/xapianindexworker.h \
     search/xapianindexworker_p.h \
@@ -98,6 +102,10 @@ SOURCES = main.cpp \
     global/ui.cpp \
     mainwindow.cpp \
     abstractthreadworker.cpp \
+    manga/mangaviewtab.cpp \
+    manga/scalefilter.cpp \
+    manga/zmangaview.cpp \
+    manga/zscrollarea.cpp \
     search/defaultsearch.cpp \
     search/xapianindexworker.cpp \
     search/xapiansearch.cpp \
@@ -169,6 +177,7 @@ RESOURCES = \
 FORMS = main.ui \
     browser-utils/autofillassistant.ui \
     browser/browser.ui \
+    manga/mangaviewtab.ui \
     search/searchtab.ui \
     translator/lighttranslator.ui \
     translator/translatorcachedialog.ui \

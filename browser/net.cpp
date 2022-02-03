@@ -24,6 +24,7 @@
 #include "global/startup.h"
 #include "global/contentfiltering.h"
 #include "global/history.h"
+#include "manga/mangaviewtab.h"
 #include "ui_downloadlistdlg.h"
 
 namespace CDefaults {
@@ -32,10 +33,9 @@ const int clipboardHtmlAquireDelay = 1000;
 }
 
 CBrowserNet::CBrowserNet(CBrowserTab *parent)
-    : QObject(parent)
+    : QObject(parent),
+      snv(parent)
 {
-    snv = parent;
-
     m_finishedTimer.setInterval(CDefaults::browserPageFinishedTimeoutMS);
     m_finishedTimer.setSingleShot(true);
     connect(&m_finishedTimer,&QTimer::timeout,this,[this](){
@@ -304,7 +304,8 @@ void CBrowserNet::novelReady(const QString &html, bool focus, bool translate, bo
     }
 }
 
-void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin)
+void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+                             bool useViewer)
 {
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
     bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
@@ -312,6 +313,9 @@ void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &c
     if (urls.isEmpty() || containerName.isEmpty()) {
         QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
                              tr("Image urls not found or container name not detected."));
+    } else if (useViewer) {
+        auto *mv = new CMangaViewTab(snv->parentWnd());
+        mv->loadMangaPages(urls,containerName,origin,isFanbox);
     } else {
         multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
     }

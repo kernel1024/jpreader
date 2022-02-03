@@ -21,7 +21,6 @@ const char zipSeparator = 0x00;
 const int writerStatusTimerIntervalMS = 2000;
 const int writerStatusLabelSize = 24;
 const int downloadManagerColumnCount = 4;
-const int maxZipWriterErrorsInteractive = 5;
 const int retryRestartMS = 1000;
 const auto replyAuxId = "replyAuxID";
 const auto replyHeadFileName = "replyHeadFileName";
@@ -92,7 +91,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 
     bool isZipTarget = false;
     QString fname;
-    if (!computeFileName(fname,isZipTarget,index,maxIndex,url,containerPath,suggestedFilename)) {
+    if (!CDownloadManager::computeFileName(fname,isZipTarget,index,maxIndex,url,containerPath,suggestedFilename)) {
         QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
                               tr("Computed file name is empty."));
         return false;

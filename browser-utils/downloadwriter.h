@@ -14,6 +14,10 @@
 #include <QTimer>
 #include "abstractthreadworker.h"
 
+namespace CDefaults {
+const int maxZipWriterErrorsInteractive = 5;
+}
+
 class CDownloadWriter : public CAbstractThreadWorker
 {
     Q_OBJECT

@@ -253,6 +253,8 @@ void CSpecTabContainer::setTabTitle(const QString &title)
         m_parentWnd->startTitleRenameTimer();
         m_parentWnd->tabMain->setTabText(idx,m_tabWidget->fontMetrics()
                                          .elidedText(m_tabTitle,Qt::ElideRight,tabTitleElidingWidth));
+        m_parentWnd->updateTitle();
+        m_parentWnd->updateTabs();
     }
 }
 

@@ -18,6 +18,7 @@ private:
     bool m_translate { false };
     bool m_alternateTranslate { false };
     bool m_focus { false };
+    bool m_useMangaViewer { false };
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     QMutex m_imgMutex;
     QHash<QString,CIntList> m_imgList;
@@ -41,7 +42,7 @@ public:
     CPixivNovelExtractor(QObject *parent);
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool alternateTranslate, bool focus);
-    void setMangaOrigin(const QUrl& origin);
+    void setMangaOrigin(const QUrl& origin, bool useViewer);
     QString workerDescription() const override;
 
 protected:

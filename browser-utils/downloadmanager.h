@@ -120,7 +120,7 @@ private:
     Q_DISABLE_COPY(CDownloadManager)
 
     bool computeFileName(QString &fileName, bool &isZipTarget, int index, int maxIndex, const QUrl &url,
-                         const QString &containerPath, const QString &suggestedFilename) const;
+                                const QString &containerPath, const QString &suggestedFilename) const;
 
 protected:
     void closeEvent(QCloseEvent * event) override;

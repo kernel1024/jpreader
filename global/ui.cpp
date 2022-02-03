@@ -191,6 +191,62 @@ void CGlobalUI::showLightTranslator(const QString &text)
         gSet->d_func()->lightTranslator->appendSourceText(text);
 }
 
+int CGlobalUI::getMangaDetectedScrollDelta() const
+{
+    return gSet->d_func()->mangaDetectedScrollDelta;
+}
+
+void CGlobalUI::setMangaDetectedScrollDelta(int value)
+{
+    gSet->d_func()->mangaDetectedScrollDelta = value;
+}
+
+QColor CGlobalUI::getMangaForegroundColor() const
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    const float redLuma = 0.2989;
+    const float greenLuma = 0.5870;
+    const float blueLuma = 0.1140;
+    const float halfLuma = 0.5;
+    float r = 0.0;
+    float g = 0.0;
+    float b = 0.0;
+#else
+    const qreal redLuma = 0.2989;
+    const qreal greenLuma = 0.5870;
+    const qreal blueLuma = 0.1140;
+    const qreal halfLuma = 0.5;
+    qreal r = 0.0;
+    qreal g = 0.0;
+    qreal b = 0.0;
+#endif
+    gSet->settings()->mangaBackgroundColor.getRgbF(&r,&g,&b);
+    qreal br = r*redLuma+g*greenLuma+b*blueLuma;
+    if (br>halfLuma)
+        return QColor(Qt::black);
+
+    return QColor(Qt::white);
+}
+
+void CGlobalUI::addMangaFineRenderTime(qint64 msec)
+{
+    QMutexLocker locker(&(gSet->d_func()->mangaFineRenderMutex));
+
+    gSet->d_func()->mangaFineRenderTimes.append(msec);
+    if (gSet->d_func()->mangaFineRenderTimes.count()>100)
+        gSet->d_func()->mangaFineRenderTimes.removeFirst();
+
+    qint64 sum = 0;
+    for (const qint64 a : qAsConst(gSet->d_func()->mangaFineRenderTimes))
+        sum += a;
+    gSet->d_func()->mangaAvgFineRenderTime = static_cast<int>(sum) / gSet->d_func()->mangaFineRenderTimes.count();
+}
+
+qint64 CGlobalUI::getMangaAvgFineRenderTime() const
+{
+    return gSet->d_func()->mangaAvgFineRenderTime;
+}
+
 void CGlobalUI::forceCharset()
 {
     const int maxCharsetHistory = 10;

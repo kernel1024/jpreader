@@ -7,6 +7,7 @@
 #include <QWebEngineSettings>
 #include <QWebEngineUrlScheme>
 #include <QNetworkReply>
+#include <QNetworkDiskCache>
 #include <QAuthenticator>
 #include <QStandardPaths>
 #include <QElapsedTimer>
@@ -40,6 +41,7 @@ extern "C" {
 using namespace std::chrono_literals;
 
 namespace CDefaults {
+constexpr qint64 auxCacheSize = 250 * CDefaults::oneMB;
 const auto ipcEOF = "\n###";
 const auto tabListSavePeriod = 30s;
 const auto dictionariesLoadingDelay = 2s;
@@ -107,6 +109,18 @@ void CGlobalStartup::initialize()
 
     CPDFWorker::initPdfToText();
 
+    // cache locations
+    QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+
+    if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QSL(".cache")
+                           + QDir::separator() + QSL("jpreader");
+    if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
+
+    QString fcache = fs + QSL("cache") + QDir::separator();
+    QString fdata = fs + QSL("local_storage") + QDir::separator();
+    QString tcache = fs + QSL("translator_cache") + QDir::separator();
+    QString auxcache = fs + QSL("aux_cache") + QDir::separator();
+
     if (cliMode) {
         m_g->d_func()->cliWorker.reset(new CCLIWorker());
         connect(m_g->d_func()->cliWorker.data(),&CCLIWorker::finished,this,&CGlobalStartup::cleanupAndExit);
@@ -152,15 +166,7 @@ void CGlobalStartup::initialize()
 
         m_g->d_func()->webProfile = new QWebEngineProfile(QSL("jpreader"),this);
 
-        QString fs = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-
-        if (fs.isEmpty()) fs = QDir::homePath() + QDir::separator() + QSL(".cache")
-                               + QDir::separator() + QSL("jpreader");
-        if (!fs.endsWith(QDir::separator())) fs += QDir::separator();
-
-        QString fcache = fs + QSL("cache") + QDir::separator();
         m_g->d_func()->webProfile->setCachePath(fcache);
-        QString fdata = fs + QSL("local_storage") + QDir::separator();
         m_g->d_func()->webProfile->setPersistentStoragePath(fdata);
 
         m_g->d_func()->webProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
@@ -187,7 +193,6 @@ void CGlobalStartup::initialize()
         m_g->d_func()->domWorkerProfile->setHttpUserAgent(QString::fromUtf8(CDefaults::domWorkerUserAgent));
 
         m_g->d_func()->translatorCache = new CTranslatorCache(this);
-        QString tcache = fs + QSL("translator_cache") + QDir::separator();
         m_g->d_func()->translatorCache->setCachePath(tcache);
     }
 
@@ -202,7 +207,13 @@ void CGlobalStartup::initialize()
 
     if (!cliMode) {
         m_g->d_func()->dictManager = new ZDict::ZDictController(this);
+
+        auto *namCache = new QNetworkDiskCache(this);
+        namCache->setCacheDirectory(auxcache);
+        namCache->setMaximumCacheSize(CDefaults::auxCacheSize);
+
         m_g->d_func()->auxNetManager = new QNetworkAccessManager(this);
+        m_g->d_func()->auxNetManager->setCache(namCache);
         m_g->d_func()->auxNetManager->setCookieJar(new CNetworkCookieJar(m_g->d_func()->auxNetManager));
         connect(m_g->d_func()->auxNetManager,&QNetworkAccessManager::authenticationRequired,
                 m_g->net(),&CGlobalNetwork::authenticationRequired);

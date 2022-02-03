@@ -104,11 +104,6 @@ CPixivIndexTab *CPixivIndexTab::fromJson(QWidget *parentWidget, const QJsonObjec
     return new CPixivIndexTab(parentWidget,list,indexMode,indexId,sourceQuery,filterDesc,coversOrigin);
 }
 
-QString CPixivIndexTab::title() const
-{
-    return m_title;
-}
-
 void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
 {
     ui->labelHead->clear();

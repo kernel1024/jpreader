@@ -14,6 +14,7 @@
 #include <QDir>
 
 #include "structures.h"
+#include "manga/scalefilter.h"
 
 class CMainWindow;
 class CSettingsPrivate;
@@ -36,6 +37,12 @@ const int fontSizeFixed = 12;
 const int translatorCacheSize = 128;
 const int xapianStartDelay = 30;
 const int domWorkerReplyTimeoutSec = 60;
+const int mangaMagnifySize = 150;
+const int mangaScrollDelta = 120;
+const int mangaScrollFactor = 5;
+const int mangaCacheWidth = 6;
+const unsigned int mangaBackgroundColor = 0x303030;
+const double mangaResizeBlur = 1.0;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
@@ -64,6 +71,7 @@ const bool pdfExtractImages = true;
 const bool pixivFetchImages = false;
 const bool translatorCacheEnabled = false;
 const bool downloaderCleanCompleted = false;
+const bool mangaUseFineRendering = true;
 const auto fontFixed = "Courier New";
 const auto fontSerif = "Times New Roman";
 const auto fontSansSerif = "Verdana";
@@ -127,6 +135,8 @@ public:
     QKeySequence gctxSequence;
     QKeySequence autofillSequence;
 
+    QColor mangaBackgroundColor { QColor(CDefaults::mangaBackgroundColor) };
+
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash sslTrustedInvalidCerts;
     CTranslatorStatistics translatorStatistics;
@@ -145,6 +155,10 @@ public:
     int translatorCacheSize { CDefaults::translatorCacheSize };
     int translatorRetryCount { CDefaults::translatorRetryCount };
     int domWorkerReplyTimeoutSec { CDefaults::domWorkerReplyTimeoutSec };
+    int mangaMagnifySize { CDefaults::mangaMagnifySize };
+    int mangaScrollDelta { CDefaults::mangaScrollDelta };
+    int mangaScrollFactor { CDefaults::mangaScrollFactor };
+    int mangaCacheWidth { CDefaults::mangaCacheWidth };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };
@@ -154,6 +168,9 @@ public:
     CStructures::TranslationEngine previousTranslatorEngine { CDefaults::translatorEngine };
     CStructures::AliCloudTranslatorMode aliCloudTranslatorMode { CDefaults::aliCloudTranslatorMode };
     CStructures::PixivFetchCoversMode pixivFetchCovers { CDefaults::pixivFetchCovers };
+    Blitz::ScaleFilterType mangaUpscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
+    Blitz::ScaleFilterType mangaDownscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
+    double mangaResizeBlur { CDefaults::mangaResizeBlur };
 
     bool jsLogConsole { CDefaults::jsLogConsole };
     bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };
@@ -175,6 +192,7 @@ public:
     bool pixivFetchImages { CDefaults::pixivFetchImages };
     bool translatorCacheEnabled { CDefaults::translatorCacheEnabled };
     bool downloaderCleanCompleted { CDefaults::downloaderCleanCompleted };
+    bool mangaUseFineRendering { CDefaults::mangaUseFineRendering };
 
     explicit CSettings(CGlobalControl *parent);
 
@@ -186,9 +204,11 @@ public:
 
     void setupXapianTimerInterval(QObject *control, int secs);
     int getXapianTimerInterval();
+    void setMangaBackgroundColor(const QColor &color);
 
 Q_SIGNALS:
     void adblockRulesUpdated();
+    void mangaViewerSettingsUpdated();
 
 private:
     QVector<QUrl> getTabsList() const;

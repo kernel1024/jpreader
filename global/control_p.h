@@ -79,6 +79,11 @@ public:
     QIcon m_appIcon;
     bool restoreLoadChecked { false };
 
+    int mangaDetectedScrollDelta { CDefaults::mangaScrollDelta };
+    qint64 mangaAvgFineRenderTime { 0L };
+    QMutex mangaFineRenderMutex;
+    QList<qint64> mangaFineRenderTimes;
+
     QHash<QString, CUserScript> userScripts;
     QMutex userScriptsMutex;
     bool cleaningState { false };

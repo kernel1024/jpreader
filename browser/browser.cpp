@@ -310,8 +310,6 @@ void CBrowserTab::titleChanged(const QString & title)
                 gSet->history()->appendMainHistory(uh);
         }
     }
-    parentWnd()->updateTitle();
-    parentWnd()->updateTabs();
 }
 
 void CBrowserTab::urlChanged(const QUrl & url)

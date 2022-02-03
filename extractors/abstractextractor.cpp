@@ -249,6 +249,18 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
+
+        ac = new QAction(tr("Load Pixiv illustration to viewer"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivMangaView");
+        if (origin.toString().contains(pixivMangaRx)) {
+            data[QSL("url")] = origin;
+        } else {
+            data[QSL("url")] = pixivUrl;
+        }
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
     }
     if (fanboxPostId>0) {
         if (!res.isEmpty()) {
@@ -477,7 +489,14 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
     } else if (type == QSL("pixivManga")) {
         res = new CPixivNovelExtractor(nullptr);
         (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
-                    hash.value(QSL("url")).toUrl());
+                    hash.value(QSL("url")).toUrl(),
+                    false);
+
+    } else if (type == QSL("pixivMangaView")) {
+        res = new CPixivNovelExtractor(nullptr);
+        (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
+                    hash.value(QSL("url")).toUrl(),
+                    true);
 
     } else if (type == QSL("fanboxManga")) {
         res = new CFanboxExtractor(nullptr);

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <QMessageBox>
+#include <QAbstractNetworkCache>
 #include <QMetaEnum>
 
 #include "network.h"
@@ -125,6 +126,13 @@ QNetworkReply *CGlobalNetwork::auxNetworkAccessManagerPost(const QNetworkRequest
     return res;
 }
 
+void CGlobalNetwork::auxNetworkAccessManagerClearCache()
+{
+    auto *cache = gSet->d_func()->auxNetManager->cache();
+    if (cache)
+        cache->clear();
+}
+
 void CGlobalNetwork::authenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator) const
 {
     QString user;
@@ -202,6 +210,7 @@ void CGlobalNetwork::clearCaches()
 {
     gSet->d_func()->webProfile->clearHttpCache();
     gSet->d_func()->translatorCache->clearCache();
+    auxNetworkAccessManagerClearCache();
 }
 
 void CGlobalNetwork::clearTranslatorCache()

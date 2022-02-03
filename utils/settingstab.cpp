@@ -72,6 +72,7 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     connect(ui->buttonGcpJsonFile, &QPushButton::clicked, this, &CSettingsTab::selectGcpJsonFile);
     connect(ui->buttonXapianAddDir, &QPushButton::clicked, this, &CSettingsTab::addXapianIndexDir);
     connect(ui->buttonXapianDelDir, &QPushButton::clicked, this, &CSettingsTab::delXapianIndexDir);
+    connect(ui->buttonMangaBkColor, &QPushButton::clicked, this, &CSettingsTab::mangaBackgroundColorDlg);
 
     connect(ui->editAdSearch, &QLineEdit::textChanged, this, &CSettingsTab::adblockSearch);
 
@@ -328,6 +329,17 @@ void CSettingsTab::loadFromGlobal()
     ui->listXapianIndexDirs->clear();
     ui->listXapianIndexDirs->addItems(gSet->m_settings->xapianIndexDirList);
 
+    ui->spinMangaBlur->setValue(gSet->m_settings->mangaResizeBlur);
+    ui->spinMangaCacheWidth->setValue(gSet->m_settings->mangaCacheWidth);
+    ui->spinMangaMagnify->setValue(gSet->m_settings->mangaMagnifySize);
+    ui->spinMangaScrollDelta->setValue(gSet->m_settings->mangaScrollDelta);
+    ui->spinMangaScrollFactor->setValue(gSet->m_settings->mangaScrollFactor);
+    ui->labelMangaDetectedDelta->setText(tr("Detected delta per one scroll event: %1 deg")
+                                         .arg(gSet->m_ui->getMangaDetectedScrollDelta()));
+    ui->checkMangaFineRendering->setChecked(gSet->m_settings->mangaUseFineRendering);
+    ui->comboMangaUpscaleFilter->setCurrentIndex(static_cast<int>(gSet->m_settings->mangaUpscaleFilter));
+    ui->comboMangaDownscaleFilter->setCurrentIndex(static_cast<int>(gSet->m_settings->mangaDownscaleFilter));
+
     ui->editProxyHost->setText(gSet->m_settings->proxyHost);
     ui->spinProxyPort->setValue(gSet->m_settings->proxyPort);
     ui->editProxyLogin->setText(gSet->m_settings->proxyLogin);
@@ -353,6 +365,7 @@ void CSettingsTab::loadFromGlobal()
     updateAdblockList();
     updateNoScriptWhitelist();
     updateUserScripts();
+    updateMangaBackgroundColorPreview();
 
     m_loadingInterlock = false;
 }
@@ -787,6 +800,47 @@ void CSettingsTab::setupSettingsObservers()
         }
         gSet->m_net->updateProxyWithMenuUpdate(gSet->m_settings->proxyUse,true);
     });
+
+    connect(ui->spinMangaBlur,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaResizeBlur=val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->spinMangaCacheWidth,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaCacheWidth=val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->spinMangaMagnify,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaMagnifySize=val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->spinMangaScrollDelta,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaScrollDelta=val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->spinMangaScrollFactor,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaScrollFactor=val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->checkMangaFineRendering,&QCheckBox::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaUseFineRendering = val;
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->comboMangaUpscaleFilter,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaUpscaleFilter = static_cast<Blitz::ScaleFilterType>(val);
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->comboMangaDownscaleFilter,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->mangaDownscaleFilter = static_cast<Blitz::ScaleFilterType>(val);
+        Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
 }
 
 void CSettingsTab::selectBrowser()
@@ -824,6 +878,14 @@ void CSettingsTab::delXapianIndexDir()
     QListWidgetItem *a = ui->listXapianIndexDirs->takeItem(idx);
     delete a;
     gSet->m_settings->updateXapianIndexDirs(getListStrings(ui->listXapianIndexDirs));
+}
+
+void CSettingsTab::mangaBackgroundColorDlg()
+{
+    QColor c = QColorDialog::getColor(gSet->m_settings->mangaBackgroundColor,this);
+    if (!c.isValid()) return;
+    gSet->m_settings->setMangaBackgroundColor(c);
+    updateMangaBackgroundColorPreview();
 }
 
 void CSettingsTab::fontColorDlg()
@@ -1216,6 +1278,12 @@ void CSettingsTab::updateSearchEngines()
         li->setData(Qt::UserRole+1,it.value());
         ui->listSearch->addItem(li);
     }
+}
+
+void CSettingsTab::updateMangaBackgroundColorPreview()
+{
+    ui->frameMangaBkColor->setStyleSheet(QSL("QFrame { background: %1; }")
+                                         .arg(gSet->m_settings->mangaBackgroundColor.name(QColor::HexRgb)));
 }
 
 void CSettingsTab::addSearchEngine()

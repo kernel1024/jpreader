@@ -49,7 +49,7 @@ public Q_SLOTS:
     void processExtractorAction();
     void processExtractorActionIndirect(const QVariantHash &params);
     void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
-    void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin);
+    void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin, bool useViewer);
 
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);

@@ -33,9 +33,10 @@ void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
     m_source = source;
 }
 
-void CPixivNovelExtractor::setMangaOrigin(const QUrl &origin)
+void CPixivNovelExtractor::setMangaOrigin(const QUrl &origin, bool useViewer)
 {
     m_mangaOrigin = origin;
+    m_useMangaViewer = useViewer;
 }
 
 QString CPixivNovelExtractor::workerDescription() const
@@ -198,7 +199,7 @@ void CPixivNovelExtractor::subLoadFinished()
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
-            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin);
+            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin,m_useMangaViewer);
             Q_EMIT finished();
             return;
         }

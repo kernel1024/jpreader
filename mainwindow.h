@@ -35,15 +35,15 @@ private:
     QMenu* recentMenu;
     QLabel* stSearchStatus;
     CSpecTabBar* tabHelper;
-    int savedHelperIdx;
-    int savedHelperWidth;
-    int savedSplitterWidth;
-    int lastTabIdx;
+    int savedHelperIdx { -1 };
+    int savedHelperWidth { 0 };
+    int savedSplitterWidth { 0 };
+    int lastTabIdx { 0 };
     QPoint savedPos;
     QSize savedSize;
-    bool fullScreen;
-    bool savedMaximized;
-    bool helperVisible;
+    bool fullScreen { false };
+    bool savedMaximized { false };
+    bool helperVisible { false };
     QTimer titleRenamedLock;
 
     Q_DISABLE_COPY(CMainWindow)

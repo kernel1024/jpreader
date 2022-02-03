@@ -39,6 +39,7 @@
 #include "translator/translatorcache.h"
 #include "extractors/abstractextractor.h"
 #include "extractors/pixivindexextractor.h"
+#include "manga/mangaviewtab.h"
 
 namespace CDefaults {
 const int titleRenameLockTimeout = 500;
@@ -51,20 +52,17 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     setupUi(this);
 
     tabMain->setParentWnd(this);
-    lastTabIdx=0;
+    
     setWindowIcon(gSet->ui()->appIcon());
     setAttribute(Qt::WA_DeleteOnClose,true);
 
     tabMain->tabBar()->setBrowserTabs(true);
-
+    
     stSearchStatus = new QLabel(this);
     stSearchStatus->setText(tr("Ready"));
     stSearchStatus->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     statusBar()->addPermanentWidget(stSearchStatus);
-
-    savedHelperWidth=0;
-    savedHelperIdx=-1;
-    helperVisible = false;
+    
     tabHelper = new CSpecTabBar(this);
     tabHelper->setShape(QTabBar::RoundedWest);
 
@@ -274,13 +272,6 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         return;
     }
 
-    auto *st = qobject_cast<CSettingsTab *>(tabMain->widget(idx));
-    if (st) {
-        auto *t = new QLabel(tr("Settings tab"));
-        QxtToolTip::show(globalPos,t,tabMain->tabBar());
-        return;
-    }
-
     auto *ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->widget(idx));
     if (ts) {
         auto *t = new QLabel(tr("Translator statistics tab - %1").arg(ts->getTimeRangeString()));
@@ -288,9 +279,9 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         return;
     }
 
-    auto *pt = qobject_cast<CPixivIndexTab *>(tabMain->widget(idx));
-    if (pt) {
-        auto *t = new QLabel(pt->title());
+    auto *st = qobject_cast<CSpecTabContainer *>(tabMain->widget(idx));
+    if (st) {
+        auto *t = new QLabel(st->tabTitle());
         QxtToolTip::show(globalPos,t,tabMain->tabBar());
         return;
     }
@@ -379,6 +370,10 @@ void CMainWindow::save()
     auto *ts = qobject_cast<CTranslatorStatisticsTab *>(tabMain->currentWidget());
     if (ts)
         ts->save();
+
+    auto *mv = qobject_cast<CMangaViewTab *>(tabMain->currentWidget());
+    if (mv)
+        mv->save();
 }
 
 void CMainWindow::displayStatusBarMessage(const QString &text)
@@ -541,19 +536,9 @@ void CMainWindow::updateHelperList()
                     it->setToolTip(qr);
                 }
 
-                auto *st = qobject_cast<CSettingsTab*>(tabMain->widget(i));
+                auto *st = qobject_cast<CSpecTabContainer*>(tabMain->widget(i));
                 if (st) {
-                    it->setText(tr("Settings tab"));
-                }
-
-                auto *ts = qobject_cast<CTranslatorStatisticsTab*>(tabMain->widget(i));
-                if (ts) {
-                    it->setText(tr("Translator statistics tab"));
-                }
-
-                auto *pt = qobject_cast<CPixivIndexTab*>(tabMain->widget(i));
-                if (pt) {
-                    it->setText(pt->title());
+                    it->setText(st->tabTitle());
                 }
                 helperList->addItem(it);
             }
@@ -661,17 +646,9 @@ void CMainWindow::updateTitle()
         if (bv!=nullptr && !bv->getLastQuery().isEmpty())
             t = tr("[%1] search - %2").arg(bv->getLastQuery(),t);
 
-        auto *st = qobject_cast<CSettingsTab*>(tabMain->currentWidget());
+        auto *st = qobject_cast<CSpecTabContainer*>(tabMain->currentWidget());
         if (st)
-            t = tr("Settings - %1").arg(t);
-
-        auto *ts = qobject_cast<CTranslatorStatisticsTab*>(tabMain->currentWidget());
-        if (ts)
-            t = tr("Translator statistics - %1").arg(t);
-
-        auto *pt = qobject_cast<CPixivIndexTab*>(tabMain->currentWidget());
-        if (pt)
-            t = tr("%1 - %2").arg(pt->title(),t);
+            t = tr("%1 - %2").arg(st->tabTitle(),t);
     }
     setWindowTitle(t);
 }
