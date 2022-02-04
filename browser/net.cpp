@@ -305,7 +305,7 @@ void CBrowserNet::novelReady(const QString &html, bool focus, bool translate, bo
 }
 
 void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
-                             bool useViewer)
+                             bool useViewer, bool focus)
 {
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
     bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
@@ -314,7 +314,7 @@ void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &c
         QMessageBox::warning(snv,QGuiApplication::applicationDisplayName(),
                              tr("Image urls not found or container name not detected."));
     } else if (useViewer) {
-        auto *mv = new CMangaViewTab(snv->parentWnd());
+        auto *mv = new CMangaViewTab(snv->parentWnd(),focus);
         mv->loadMangaPages(urls,containerName,origin,isFanbox);
     } else {
         multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);

@@ -116,6 +116,7 @@ public:
     virtual void recycleTab() { }
     virtual void setToolbarVisibility(bool visible) { Q_UNUSED(visible) }
     virtual void outsideDragStart() { }
+    virtual void tabAcquiresFocus() { }
 
     CMainWindow* parentWnd() { return m_parentWnd; }
     CSpecTabWidget* tabWidget() { return m_tabWidget; }

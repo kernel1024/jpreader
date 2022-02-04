@@ -459,10 +459,10 @@ void CMainWindow::tabChanged(int idx)
 
     if (tabMain->widget(idx)!=nullptr) {
         auto *sn = qobject_cast<CBrowserTab *>(tabMain->widget(idx));
-        bool isSnippetViewer = (sn!=nullptr);
-        actionAddBM->setEnabled(isSnippetViewer);
-        if (isSnippetViewer)
-            sn->tabAcquiresFocus();
+        actionAddBM->setEnabled(sn != nullptr);
+        auto *tab = qobject_cast<CSpecTabContainer *>(tabMain->widget(idx));
+        if (tab)
+            tab->tabAcquiresFocus();
     }
 
     updateTitle();

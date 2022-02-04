@@ -224,7 +224,6 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         }
     }
 
-
     // ---------- Manga extractors
 
     QRegularExpression pixivMangaRx(QSL("pixiv.net/.*?artworks/\\d+"),
@@ -238,9 +237,10 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
             res.append(ac);
         }
 
-        ac = new QAction(tr("Download all images from Pixiv illustration"),menu);
+        ac = new QAction(tr("Load Pixiv illustration to background viewer tab"),menu);
         data.clear();
-        data[QSL("type")] = QSL("pixivManga");
+        data[QSL("type")] = QSL("pixivMangaView");
+        data[QSL("focus")] = false;
         if (origin.toString().contains(pixivMangaRx)) {
             data[QSL("url")] = origin;
         } else {
@@ -250,9 +250,22 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         res.append(ac);
         pixivActions.append(ac);
 
-        ac = new QAction(tr("Load Pixiv illustration to viewer"),menu);
+        ac = new QAction(tr("Load Pixiv illustration to new viewer tab"),menu);
         data.clear();
         data[QSL("type")] = QSL("pixivMangaView");
+        data[QSL("focus")] = true;
+        if (origin.toString().contains(pixivMangaRx)) {
+            data[QSL("url")] = origin;
+        } else {
+            data[QSL("url")] = pixivUrl;
+        }
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
+
+        ac = new QAction(tr("Download all images from Pixiv illustration"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivManga");
         if (origin.toString().contains(pixivMangaRx)) {
             data[QSL("url")] = origin;
         } else {
@@ -488,15 +501,17 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
 
     } else if (type == QSL("pixivManga")) {
         res = new CPixivNovelExtractor(nullptr);
-        (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
+        (qobject_cast<CPixivNovelExtractor *>(res))->setMangaParams(
                     hash.value(QSL("url")).toUrl(),
+                    false,
                     false);
 
     } else if (type == QSL("pixivMangaView")) {
         res = new CPixivNovelExtractor(nullptr);
-        (qobject_cast<CPixivNovelExtractor *>(res))->setMangaOrigin(
+        (qobject_cast<CPixivNovelExtractor *>(res))->setMangaParams(
                     hash.value(QSL("url")).toUrl(),
-                    true);
+                    true,
+                    hash.value(QSL("focus")).toBool());
 
     } else if (type == QSL("fanboxManga")) {
         res = new CFanboxExtractor(nullptr);

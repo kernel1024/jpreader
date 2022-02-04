@@ -82,6 +82,7 @@ public:
     void setRequestAlternateAutotranslate(bool requestAlternateAutotranslate);
     void setTranslationRestriction();
     void sendInputToBrowser(const QString &text);
+    void tabAcquiresFocus() override;
 
 public Q_SLOTS:
     void navByUrlDefault();
@@ -92,7 +93,6 @@ public Q_SLOTS:
     void statusBarMsg(const QString & msg);
     void takeScreenshot();
     void save();
-    void tabAcquiresFocus();
 };
 
 #endif

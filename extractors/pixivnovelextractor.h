@@ -42,7 +42,7 @@ public:
     CPixivNovelExtractor(QObject *parent);
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool alternateTranslate, bool focus);
-    void setMangaOrigin(const QUrl& origin, bool useViewer);
+    void setMangaParams(const QUrl& origin, bool useViewer, bool focus);
     QString workerDescription() const override;
 
 protected:

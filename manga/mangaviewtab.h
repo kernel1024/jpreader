@@ -13,10 +13,11 @@ class CMangaViewTab : public CSpecTabContainer
 {
     Q_OBJECT
 public:
-    explicit CMangaViewTab(CMainWindow *parent);
+    explicit CMangaViewTab(CMainWindow *parent, bool setFocused = true);
     ~CMangaViewTab() override;
     void loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title,
                         const QUrl &referer, bool isFanbox);
+    void tabAcquiresFocus() override;
 
 private:
     void updateTabTitle();
@@ -48,6 +49,7 @@ private:
     QUrl m_origin;
     bool m_aborted { false };
 
+    void updateTabColor(bool loadFinished);
 };
 
 #endif // MANGAVIEWTAB_H

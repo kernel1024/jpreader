@@ -7,7 +7,7 @@
 #include "mangaviewtab.h"
 #include "ui_mangaviewtab.h"
 
-CMangaViewTab::CMangaViewTab(CMainWindow *parent) :
+CMangaViewTab::CMangaViewTab(CMainWindow *parent, bool setFocused) :
     CSpecTabContainer(parent),
     ui(new Ui::CMangaViewTab)
 {
@@ -61,7 +61,7 @@ CMangaViewTab::CMangaViewTab(CMainWindow *parent) :
     ui->btnZoomFit->click();
     ui->labelStatus->setText(tr("Ready"));
 
-    bindToTab(parentWnd()->tabMain);
+    bindToTab(parentWnd()->tabMain,setFocused);
 }
 
 CMangaViewTab::~CMangaViewTab()
@@ -88,14 +88,14 @@ void CMangaViewTab::updateTabTitle()
 
 void CMangaViewTab::updateStatusLabel(const QString &msg)
 {
-    QString text;
-    if (m_aborted)
-        text.append(tr("<b>Aborted</b>"));
-
-    if (text.isEmpty()) {
-        text.append(msg);
-    } else {
-        text.append(QSL(", %1").arg(msg));
+    QString text = msg;
+    const QString aborted = tr("<b>Aborted</b>");
+    if (m_aborted) {
+        if (text.isEmpty()) {
+            text.append(aborted);
+        } else {
+            text.append(QSL(", %1").arg(aborted));
+        }
     }
     ui->labelStatus->setText(text);
 }
@@ -142,7 +142,7 @@ void CMangaViewTab::loadingStarted()
     ui->labelLoadInfo->clear();
     ui->loadingProgress->setValue(0);
     ui->btnAbortLoading->setEnabled(true);
-    updateStatusLabel(tr("Loading..."));
+    updateStatusLabel(tr("Loading"));
 }
 
 void CMangaViewTab::loadingFinished()
@@ -150,6 +150,7 @@ void CMangaViewTab::loadingFinished()
     ui->frameLoading->hide();
     if (!m_aborted)
         updateStatusLabel(tr("Ok"));
+    updateTabColor(true);
 }
 
 void CMangaViewTab::loadingProgress(int value, qint64 size)
@@ -210,4 +211,35 @@ void CMangaViewTab::openOrigin()
     if (!m_origin.isEmpty() && m_origin.isValid()) {
         new CBrowserTab(parentWnd(),m_origin);
     }
+}
+
+void CMangaViewTab::updateTabColor(bool loadFinished)
+{
+    int selfIdx = parentWnd()->tabMain->indexOf(this);
+    if (selfIdx<0) return;
+
+    // reset color on focus acquiring
+    if (!loadFinished) {
+        parentWnd()->tabMain->tabBar()->setTabTextColor(
+                    selfIdx,gSet->app()->palette(parentWnd()->tabMain->tabBar()).windowText().color());
+        return;
+    }
+
+    QColor color;
+    // change color for background tab only
+    if (parentWnd()->tabMain->currentIndex()!=selfIdx) {
+        if (loadFinished) {
+            color = QColor(Qt::blue);
+        }
+
+        if (color.isValid()) {
+            parentWnd()->tabMain->tabBar()->setTabTextColor(selfIdx,color);
+            parentWnd()->updateTabs();
+        }
+    }
+}
+
+void CMangaViewTab::tabAcquiresFocus()
+{
+    updateTabColor(false);
 }
