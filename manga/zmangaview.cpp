@@ -249,7 +249,7 @@ void ZMangaView::paintEvent(QPaintEvent *event)
     } else {
         if (m_curUnscaledPixmap.isNull()) {
             const int preferredIconSize = 32;
-            QPixmap p = QIcon::fromTheme(QSL("edit-delete")).pixmap(preferredIconSize);
+            QPixmap p = QIcon::fromTheme(QSL("edit-download")).pixmap(preferredIconSize);
             w.drawPixmap((width()-p.width())/2,(height()-p.height())/2,p);
             w.setPen(QPen(gSet->ui()->getMangaForegroundColor()));
             w.drawText(0,(height()-p.height())/2+p.height()+CDefaults::errorPageLoadMsgVerticalMargin,

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>410</height>
+    <width>841</width>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,7 +39,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Tag sort</string>
+        <string>Sort</string>
        </property>
        <property name="buddy">
         <cstring>comboSort</cstring>
@@ -49,7 +49,17 @@
      <item>
       <widget class="QComboBox" name="comboSort">
        <property name="placeholderText">
-        <string>- select tag -</string>
+        <string>- select column -</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonReverseSort">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="view-sort"/>
        </property>
       </widget>
      </item>
@@ -109,7 +119,6 @@
        <widget class="QLabel" name="labelExtractorFilter">
         <property name="font">
          <font>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -139,6 +148,31 @@
        <widget class="QLineEdit" name="editFilter"/>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListView" name="list">
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="horizontalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="movement">
+      <enum>QListView::Static</enum>
+     </property>
+     <property name="resizeMode">
+      <enum>QListView::Adjust</enum>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::IconMode</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
@@ -218,8 +252,10 @@
  </widget>
  <tabstops>
   <tabstop>table</tabstop>
+  <tabstop>list</tabstop>
   <tabstop>editDescription</tabstop>
   <tabstop>comboSort</tabstop>
+  <tabstop>buttonReverseSort</tabstop>
   <tabstop>buttonTranslateTitles</tabstop>
   <tabstop>buttonSave</tabstop>
   <tabstop>buttonReport</tabstop>

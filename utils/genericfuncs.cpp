@@ -640,6 +640,18 @@ QByteArray CGenericFuncs::hmacSha1(const QByteArray &key, const QByteArray &base
     return hashed;
 }
 
+QImage CGenericFuncs::dataUrlToImage(const QString &dataUrl)
+{
+    static const QString b64marker = QSL(";base64,");
+    int b64markerPos = dataUrl.indexOf(b64marker,Qt::CaseInsensitive);
+    if (b64markerPos < 0) return QImage();
+    const QString base64 = dataUrl.mid(b64markerPos + b64marker.length());
+
+    auto result = QByteArray::fromBase64Encoding(base64.toLatin1());
+    if (result.decodingStatus != QByteArray::Base64DecodingStatus::Ok) return QImage();
+    return QImage::fromData(result.decoded);
+}
+
 QByteArray CGenericFuncs::signSHA256withRSA(const QByteArray &data, const QByteArray &privateKey)
 {
     QByteArray res;

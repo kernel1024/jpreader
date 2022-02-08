@@ -24,13 +24,13 @@ public:
                    CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
                    CStructures::PixivFetchCoversMode fetchCovers, const QString &languageCode,
                    CPixivIndexExtractor::NovelSearchLength novelLength,
-                   CPixivIndexExtractor::NovelSearchRating novelRating);
+                   CPixivIndexExtractor::SearchRating novelRating);
 
     void getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
                    CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
                    CStructures::PixivFetchCoversMode &fetchCovers, QString &languageCode,
                    CPixivIndexExtractor::NovelSearchLength &novelLength,
-                   CPixivIndexExtractor::NovelSearchRating &novelRating);
+                   CPixivIndexExtractor::SearchRating &novelRating);
 
 };
 

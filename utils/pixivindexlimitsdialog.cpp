@@ -49,7 +49,7 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
                                         bool originalOnly, CStructures::PixivFetchCoversMode fetchCovers,
                                         const QString &languageCode,
                                         CPixivIndexExtractor::NovelSearchLength novelLength,
-                                        CPixivIndexExtractor::NovelSearchRating novelRating)
+                                        CPixivIndexExtractor::SearchRating novelRating)
 {
     setWindowTitle(title);
     ui->groupBox->setTitle(groupTitle);
@@ -94,7 +94,7 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
 void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
                                         CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly, CStructures::PixivFetchCoversMode &fetchCovers,
                                         QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
-                                        CPixivIndexExtractor::NovelSearchRating &novelRating)
+                                        CPixivIndexExtractor::SearchRating &novelRating)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
@@ -114,7 +114,7 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
     languageCode = ui->comboLanguage->currentData().toString();
     tagMode = static_cast<CPixivIndexExtractor::TagSearchMode>(ui->comboMode->currentIndex());
     novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui->comboLength->currentIndex());
-    novelRating = static_cast<CPixivIndexExtractor::NovelSearchRating>(ui->comboRating->currentIndex());
+    novelRating = static_cast<CPixivIndexExtractor::SearchRating>(ui->comboRating->currentIndex());
     fetchCovers = static_cast<CStructures::PixivFetchCoversMode>(ui->comboFetchCovers->currentIndex());
 
     gSet->history()->appendPixivKeywords(keywords);

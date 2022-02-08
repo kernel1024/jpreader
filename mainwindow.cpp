@@ -868,7 +868,7 @@ void CMainWindow::openChromiumURLs()
 
 void CMainWindow::openPixivList()
 {
-    const QStringList fnames = CGenericFuncs::getOpenFileNamesD(this,tr("Open Pixiv novel list"),
+    const QStringList fnames = CGenericFuncs::getOpenFileNamesD(this,tr("Open Pixiv index list"),
                                                                 gSet->settings()->savedAuxDir,
                                                                 { tr("Json Pixiv List (*.jspix)") });
     if (fnames.isEmpty()) return;
@@ -912,7 +912,8 @@ void CMainWindow::pixivSearch()
     QVariantHash data;
     data[QSL("type")] = QSL("pixivList");
     data[QSL("id")] = QString();
-    data[QSL("mode")] = QSL("novelSearch");
+    data[QSL("mode")] = QSL("tagSearch");
+    data[QSL("base")] = QSL("novel");
     auto *ex = CAbstractExtractor::extractorFactory(data,this);
     if (ex == nullptr) return;
     if (!gSet->startup()->setupThreadedWorker(ex)) {

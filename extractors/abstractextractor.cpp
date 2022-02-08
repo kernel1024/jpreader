@@ -120,6 +120,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("type")] = QSL("pixivList");
         data[QSL("id")] = pixivId;
         data[QSL("mode")] = QSL("work");
+        data[QSL("base")] = QSL("novel");
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -129,6 +130,31 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data[QSL("type")] = QSL("pixivList");
         data[QSL("id")] = pixivId;
         data[QSL("mode")] = QSL("bookmarks");
+        data[QSL("base")] = QSL("novel");
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
+
+        ac = new QAction(menu);
+        ac->setSeparator(true);
+        pixivActions.append(ac);
+
+        ac = new QAction(tr("Extract artworks list for author in new tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivList");
+        data[QSL("id")] = pixivId;
+        data[QSL("mode")] = QSL("work");
+        data[QSL("base")] = QSL("artwork");
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
+
+        ac = new QAction(tr("Extract artworks bookmarks list for author in new tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivList");
+        data[QSL("id")] = pixivId;
+        data[QSL("mode")] = QSL("bookmarks");
+        data[QSL("base")] = QSL("artwork");
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -146,7 +172,18 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data.clear();
         data[QSL("type")] = QSL("pixivList");
         data[QSL("id")] = pixivTag;
-        data[QSL("mode")] = QSL("novelSearch");
+        data[QSL("mode")] = QSL("tagSearch");
+        data[QSL("base")] = QSL("novel");
+        ac->setData(data);
+        res.append(ac);
+        pixivActions.append(ac);
+
+        ac = new QAction(tr("Extract artwork tag search list in new tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("pixivList");
+        data[QSL("id")] = pixivTag;
+        data[QSL("mode")] = QSL("tagSearch");
+        data[QSL("base")] = QSL("artwork");
         ac->setData(data);
         res.append(ac);
         pixivActions.append(ac);
@@ -458,7 +495,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         static QDate dateTo;
         static QString languageCode;
         static CPixivIndexExtractor::NovelSearchLength nsl = CPixivIndexExtractor::nslDefault;
-        static CPixivIndexExtractor::NovelSearchRating nsr = CPixivIndexExtractor::nsrAll;
+        static CPixivIndexExtractor::SearchRating nsr = CPixivIndexExtractor::srAll;
         static CPixivIndexExtractor::TagSearchMode tsm = CPixivIndexExtractor::tsmTagFull;
 
         QString keywords = hash.value(QSL("id")).toString();
@@ -467,11 +504,15 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
             mode = CPixivIndexExtractor::imWorkIndex;
         } else if (hash.value(QSL("mode")).toString() == QSL("bookmarks")) {
             mode = CPixivIndexExtractor::imBookmarksIndex;
-        } else if (hash.value(QSL("mode")).toString() == QSL("novelSearch")) {
+        } else if (hash.value(QSL("mode")).toString() == QSL("tagSearch")) {
             mode = CPixivIndexExtractor::imTagSearchIndex;
         } else {
             return res;
         }
+        CPixivIndexExtractor::ExtractorMode exMode = CPixivIndexExtractor::emNovels;
+        if (hash.value(QSL("base")).toString() == QSL("artwork"))
+            exMode = CPixivIndexExtractor::emArtworks;
+
         if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,tr("Pixiv index filter"),
                                   tr("Extractor filter"),(mode == CPixivIndexExtractor::imTagSearchIndex),
                                   maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr))
@@ -479,6 +520,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
             res = new CPixivIndexExtractor(nullptr);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
                         keywords,
+                        exMode,
                         mode,
                         maxCount,
                         dateFrom,

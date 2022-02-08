@@ -94,6 +94,8 @@ public:
 
     static QByteArray hmacSha1(const QByteArray &key, const QByteArray &baseString);
 
+    static QImage dataUrlToImage(const QString &dataUrl);
+
     static void profiler(int line, const QElapsedTimer &time);
 
 private:

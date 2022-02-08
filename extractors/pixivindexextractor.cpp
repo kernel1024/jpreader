@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <execution>
+
 #include <QTimer>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -7,7 +10,6 @@
 #include <QJsonArray>
 #include <QUrlQuery>
 #include <QBuffer>
-#include <algorithm>
 
 #include "pixivindexextractor.h"
 #include "global/control.h"
@@ -26,14 +28,16 @@ CPixivIndexExtractor::CPixivIndexExtractor(QObject *parent)
 {
 }
 
-void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtractor::IndexMode indexMode, int maxCount,
+void CPixivIndexExtractor::setParams(const QString &pixivId, ExtractorMode extractorMode,
+                                     CPixivIndexExtractor::IndexMode indexMode, int maxCount,
                                      const QDate &dateFrom, const QDate &dateTo,
                                      CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
                                      const QString &languageCode, CPixivIndexExtractor::NovelSearchLength novelLength,
-                                     CPixivIndexExtractor::NovelSearchRating novelRating)
+                                     CPixivIndexExtractor::SearchRating searchRating)
 {
     static const QDate minimalDate = QDate(2000,1,1);
 
+    m_extractorMode = extractorMode;
     m_indexMode = indexMode;
     m_indexId = pixivId;
     m_maxCount = maxCount;
@@ -41,13 +45,13 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, CPixivIndexExtracto
     m_dateTo = dateTo;
 
     m_sourceQuery.clear();
-    if (indexMode == IndexMode::imTagSearchIndex) {
+    if (indexMode == IndexMode::imTagSearchIndex) { // TODO: artworks has additional fields, not implemented
         m_sourceQuery.addQueryItem(QSL("word"),m_indexId);
         m_sourceQuery.addQueryItem(QSL("order"),QSL("date_d"));
-        switch (novelRating) {
-            case NovelSearchRating::nsrAll: m_sourceQuery.addQueryItem(QSL("mode"),QSL("all")); break;
-            case NovelSearchRating::nsrSafe: m_sourceQuery.addQueryItem(QSL("mode"),QSL("safe")); break;
-            case NovelSearchRating::nsrR18: m_sourceQuery.addQueryItem(QSL("mode"),QSL("r18")); break;
+        switch (searchRating) {
+            case SearchRating::srAll: m_sourceQuery.addQueryItem(QSL("mode"),QSL("all")); break;
+            case SearchRating::srSafe: m_sourceQuery.addQueryItem(QSL("mode"),QSL("safe")); break;
+            case SearchRating::srR18: m_sourceQuery.addQueryItem(QSL("mode"),QSL("r18")); break;
         }
         QDate dFrom = m_dateFrom;
         QDate dTo = m_dateTo;
@@ -194,28 +198,157 @@ void CPixivIndexExtractor::fetchNovelsInfo()
     },Qt::QueuedConnection);
 }
 
+/*
+ * Get artwork JSON data from IDs.
+ */
+void CPixivIndexExtractor::fetchArtworksInfo()
+{
+    QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (exitIfAborted()) return;
+    if (rpl) {
+        if (rpl->error() == QNetworkReply::NoError) {
+            QJsonParseError err {};
+            const QByteArray data = rpl->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data,&err);
+            addLoadedRequest(data.size());
+            if (doc.isNull()) {
+                showError(tr("JSON parser error %1 at %2.")
+                          .arg(err.error)
+                          .arg(err.offset));
+                return;
+            }
+
+            if (doc.isObject()) {
+                QJsonObject obj = doc.object();
+                if (obj.value(QSL("error")).toBool(false)) {
+                    showError(tr("Novel list extractor error: %1")
+                              .arg(obj.value(QSL("message")).toString()));
+                    return;
+                }
+
+                const QJsonObject tworks = obj.value(QSL("body")).toObject()
+                                           .value(QSL("works")).toObject();
+
+                for (const auto& work : qAsConst(tworks)) {
+                    const QJsonObject w = work.toObject();
+
+                    // value illustType == 1 for manga, 0 for illust
+
+                    const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
+                                                                     Qt::ISODate);
+                    // results ordered by date desc
+                    if (!m_dateTo.isNull() && (createDT.date() > m_dateTo)) continue;
+                    if (!m_dateFrom.isNull() && (createDT.date() < m_dateFrom)) {
+                        m_illustsIds.clear();
+                        m_mangaIds.clear();
+                        showIndexResult(rpl->url());
+                        return;
+                    }
+
+                    m_list.append(w);
+
+                    // maxCount limiter
+                    if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+                        m_illustsIds.clear();
+                        m_mangaIds.clear();
+                        showIndexResult(rpl->url());
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    // maxCount limiter
+    if (!rpl.isNull() && (m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
+        m_illustsIds.clear();
+        m_mangaIds.clear();
+        showIndexResult(rpl->url());
+        return;
+    }
+
+    // Parse next IDs group.
+    const QString key = QSL("ids%5B%5D");
+    const int maxQueryLen = 1024;
+
+    QUrlQuery uq;
+    QUrl url(QSL("https://www.pixiv.net/ajax/user/%1/profile/illusts")
+             .arg(m_indexId));
+
+    if (!m_mangaIds.isEmpty()) {
+        int len = 0;
+        while (len < maxQueryLen && !m_mangaIds.isEmpty()) {
+            QString v = m_mangaIds.takeFirst();
+            uq.addQueryItem(key,v);
+            len += key.length()+v.length()+2;
+        }
+        uq.addQueryItem(QSL("work_category"),QSL("manga"));
+        uq.addQueryItem(QSL("is_first_page"),(rpl.isNull() ? QSL("1") : QSL("0")));
+        url.setQuery(uq);
+
+    } else if (!m_illustsIds.isEmpty()) {
+        int len = 0;
+        while (len < maxQueryLen && !m_illustsIds.isEmpty()) {
+            QString v = m_illustsIds.takeFirst();
+            uq.addQueryItem(key,v);
+            len += key.length()+v.length()+2;
+        }
+        uq.addQueryItem(QSL("work_category"),QSL("illust"));
+        uq.addQueryItem(QSL("is_first_page"),(rpl.isNull() ? QSL("1") : QSL("0")));
+        url.setQuery(uq);
+
+    } else { // All IDs parsed? Go to postprocessing.
+        if (rpl) {
+            showIndexResult(rpl->url());
+        } else {
+            showError(tr("Artworks list is empty."));
+        }
+        return;
+    }
+
+    QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url]{
+        if (exitIfAborted()) return;
+        QNetworkRequest req(url);
+        QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req);
+
+        connect(rpl,&QNetworkReply::errorOccurred,this,&CPixivIndexExtractor::loadError);
+        connect(rpl,&QNetworkReply::finished,this,&CPixivIndexExtractor::fetchArtworksInfo);
+    },Qt::QueuedConnection);
+}
+
+
 void CPixivIndexExtractor::startMain()
 {
     QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
         m_ids.clear();
+        m_illustsIds.clear();
+        m_mangaIds.clear();
         m_list = QJsonArray();
         if (exitIfAborted()) return;
 
         QUrl u;
-
+        QString querySelector;
         switch (m_indexMode) {
             case imWorkIndex:
                 u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/profile/all").arg(m_indexId));
                 break;
             case imBookmarksIndex:
-                u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
-                             "tag=&offset=0&limit=%2&rest=show")
-                         .arg(m_indexId)
+                switch (m_extractorMode) {
+                    case emNovels: querySelector = QSL("novels"); break;
+                    case emArtworks: querySelector = QSL("illusts"); break;
+                }
+                u = QUrl(QSL("https://www.pixiv.net/ajax/user/%1/%2/bookmarks?"
+                             "tag=&offset=0&limit=%3&rest=show")
+                         .arg(m_indexId,querySelector)
                          .arg(CDefaults::pixivBookmarksFetchCount));
                 break;
             case imTagSearchIndex:
-                u = QUrl(QSL("https://www.pixiv.net/ajax/search/novels/%1")
-                         .arg(m_indexId));
+                switch (m_extractorMode) {
+                    case emNovels: querySelector = QSL("novels"); break;
+                    case emArtworks: querySelector = QSL("artworks"); break;
+                }
+                u = QUrl(QSL("https://www.pixiv.net/ajax/search/%1/%2")
+                         .arg(querySelector,m_indexId));
                 u.setQuery(m_sourceQuery);
                 break;
         }
@@ -267,12 +400,24 @@ void CPixivIndexExtractor::profileAjax()
                 return;
             }
 
-            m_ids = obj.value(QSL("body")).toObject()
-                    .value(QSL("novels")).toObject().keys();
+            if (m_extractorMode == emNovels) {
+                m_ids = obj.value(QSL("body")).toObject()
+                        .value(QSL("novels")).toObject().keys();
 
-            QMetaObject::invokeMethod(this,[this]{
-                fetchNovelsInfo();
-            },Qt::QueuedConnection);
+                QMetaObject::invokeMethod(this,[this]{
+                    fetchNovelsInfo();
+                },Qt::QueuedConnection);
+            } else {
+                m_illustsIds = obj.value(QSL("body")).toObject()
+                               .value(QSL("illusts")).toObject().keys();
+                m_mangaIds = obj.value(QSL("body")).toObject()
+                             .value(QSL("manga")).toObject().keys();
+
+                QMetaObject::invokeMethod(this,[this]{
+                    fetchArtworksInfo();
+                },Qt::QueuedConnection);
+
+            }
         }
     }
 }
@@ -339,9 +484,14 @@ void CPixivIndexExtractor::bookmarksAjax()
                 // We still have unfetched links, and last fetch was not empty
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,offset]{
                     if (exitIfAborted()) return;
-                    QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/novels/bookmarks?"
-                                          "tag=&offset=%2&limit=%3&rest=show")
-                           .arg(m_indexId)
+                    QString querySelector;
+                    switch (m_extractorMode) {
+                        case emNovels: querySelector = QSL("novels"); break;
+                        case emArtworks: querySelector = QSL("illusts"); break;
+                    }
+                    QUrl u(QSL("https://www.pixiv.net/ajax/user/%1/%2/bookmarks?"
+                                          "tag=&offset=%3&limit=%4&rest=show")
+                           .arg(m_indexId,querySelector)
                            .arg(offset+CDefaults::pixivBookmarksFetchCount)
                            .arg(CDefaults::pixivBookmarksFetchCount));
                     QNetworkRequest req(u);
@@ -395,11 +545,16 @@ void CPixivIndexExtractor::searchAjax()
                 return;
             }
 
+            QString selector;
+            switch (m_extractorMode) {
+                case emNovels: selector = QSL("novel"); break;
+                case emArtworks: selector = QSL("illustManga"); break;
+            }
             const QJsonArray tworks = obj.value(QSL("body")).toObject()
-                                      .value(QSL("novel")).toObject()
+                                      .value(selector).toObject()
                                       .value(QSL("data")).toArray();
 
-            for (const auto& work : qAsConst(tworks)) {
+            for (const auto& work : tworks) {
                 m_list.append(work.toObject());
 
                 if ((m_maxCount > 0) && (m_list.count() >= m_maxCount)) {
@@ -409,15 +564,20 @@ void CPixivIndexExtractor::searchAjax()
             }
 
             int totalWorks = obj.value(QSL("body")).toObject()
-                             .value(QSL("novel")).toObject()
+                             .value(selector).toObject()
                              .value(QSL("total")).toInt();
 
             if ((totalWorks>m_list.count()) && (tworks.count()>0)) {
                 // We still have unfetched links, and last fetch was not empty
                 QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,page]{
                     if (exitIfAborted()) return;
-                    QUrl u(QSL("https://www.pixiv.net/ajax/search/novels/%1")
-                           .arg(m_indexId));
+                    QString querySelector;
+                    switch (m_extractorMode) {
+                        case emNovels: querySelector = QSL("novels"); break;
+                        case emArtworks: querySelector = QSL("artworks"); break;
+                    }
+                    QUrl u(QSL("https://www.pixiv.net/ajax/search/%1/%2")
+                           .arg(querySelector,m_indexId));
                     QUrlQuery uq = m_sourceQuery;
                     uq.addQueryItem(QSL("p"),QSL("%1").arg(page+1));
                     u.setQuery(uq);
@@ -438,7 +598,7 @@ void CPixivIndexExtractor::searchAjax()
 }
 
 /*
- * Novel JSON list postprocessing. Get cover images and transfer to results table.
+ * JSON list postprocessing. Get cover images and transfer to results table.
  */
 void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
 {
@@ -450,6 +610,7 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
     auto indexMode = m_indexMode;
     auto indexID = m_indexId;
     auto sourceQuery = m_sourceQuery;
+    auto extractorMode = m_extractorMode;
 
     QString filterDesc;
     if (m_maxCount>0)
@@ -465,8 +626,8 @@ void CPixivIndexExtractor::showIndexResult(const QUrl &origin)
     if (filterDesc.isEmpty())
         filterDesc = tr("None");
 
-    QMetaObject::invokeMethod(window,[origin,list,window,indexMode,indexID,sourceQuery,filterDesc](){
-        new CPixivIndexTab(window,list,indexMode,indexID,sourceQuery,filterDesc,origin);
+    QMetaObject::invokeMethod(window,[origin,list,window,indexMode,indexID,sourceQuery,filterDesc,extractorMode](){
+        new CPixivIndexTab(window,list,extractorMode,indexMode,indexID,sourceQuery,filterDesc,origin);
     },Qt::QueuedConnection);
 
     Q_EMIT finished();
@@ -478,7 +639,8 @@ void CPixivIndexExtractor::preloadNovelCovers(const QUrl& origin)
             QByteArrayLiteral("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
     const QStringList &supportedExt = CGenericFuncs::getSupportedImageExtensions();
 
-    if (gSet->settings()->pixivFetchCovers == CStructures::pxfmLazyFetch) {
+    if ((m_extractorMode == emArtworks) ||
+            (gSet->settings()->pixivFetchCovers == CStructures::pxfmLazyFetch)) {
         m_worksImgFetch.storeRelease(0);
         return;
     }
@@ -605,7 +767,7 @@ bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QS
                                                  int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
                                                  CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
                                                  QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
-                                                 CPixivIndexExtractor::NovelSearchRating &novelRating)
+                                                 CPixivIndexExtractor::SearchRating &novelRating)
 {
     CPixivIndexLimitsDialog dlg(parentWidget);
     auto fetchCovers = gSet->settings()->pixivFetchCovers;
