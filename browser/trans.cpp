@@ -23,10 +23,8 @@ const int maxTooltipSearchIterations = 15;
 }
 
 CBrowserTrans::CBrowserTrans(CBrowserTab *parent)
-    : QObject(parent)
+    : QObject(parent), snv(parent)
 {
-    snv = parent;
-
     m_selectionTimer.setInterval(CDefaults::selectionTimerDelay);
     m_selectionTimer.setSingleShot(true);
 
@@ -129,7 +127,7 @@ void CBrowserTrans::getUrlsFromPageAndParse()
             }
             urls.append(qMakePair(u.toString(),QString()));
         }
-        snv->netHandler->multiFileDownload(urls, baseUrl);
+        CBrowserNet::multiFileDownload(urls, baseUrl);
     });
 }
 

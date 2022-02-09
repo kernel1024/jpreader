@@ -12,7 +12,11 @@
 #include "global/ui.h"
 #include "utils/genericfuncs.h"
 #include "browser/browser.h"
+#include "browser/net.h"
 #include "extractors/abstractextractor.h"
+#include "extractors/fanboxextractor.h"
+#include "extractors/patreonextractor.h"
+#include "manga/mangaviewtab.h"
 #include "ui_pixivindextab.h"
 
 namespace CDefaults {
@@ -592,6 +596,23 @@ void CPixivIndexTab::processExtractorAction()
         auto *sv = new CBrowserTab(gSet->activeWindow(),QUrl(),searchList,focus,html);
         sv->setRequestAutotranslate(translate);
         sv->setRequestAlternateAutotranslate(alternateTranslate);
+    },Qt::QueuedConnection);
+
+    connect(ex,&CAbstractExtractor::mangaReady,this,[this]
+            (const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+            bool useViewer, bool focus){
+        bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
+        bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
+
+        if (urls.isEmpty() || containerName.isEmpty()) {
+            QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                                 tr("Image urls not found or container name not detected."));
+        } else if (useViewer) {
+            auto *mv = new CMangaViewTab(gSet->activeWindow(),focus);
+            mv->loadMangaPages(urls,containerName,origin,isFanbox);
+        } else {
+            CBrowserNet::multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
+        }
     },Qt::QueuedConnection);
 
     QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);

@@ -44,13 +44,13 @@ CBrowserNet::CBrowserNet(CBrowserTab *parent)
 }
 
 void CBrowserNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& referer, const QString& containerName,
-                              bool isFanbox, bool isPatreon)
+                                    bool isFanbox, bool isPatreon)
 {
     static QSize multiImgDialogSize = QSize();
 
     if (gSet->downloadManager()==nullptr) return;
 
-    QDialog dlg(snv);
+    QDialog dlg(gSet->activeWindow());
     Ui::DownloadListDlg ui;
     ui.setupUi(&dlg);
     if (multiImgDialogSize.isValid())
@@ -118,10 +118,10 @@ void CBrowserNet::multiFileDownload(const QVector<CUrlWithName> &urls, const QUr
         QString fname = containerName;
         if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
             fname += QSL(".zip");
-        container = CGenericFuncs::getSaveFileNameD(snv,tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+        container = CGenericFuncs::getSaveFileNameD(gSet->activeWindow(),tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
                                                     QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
     } else {
-        container = CGenericFuncs::getExistingDirectoryD(snv,tr("Save images to directory"),
+        container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save images to directory"),
                                                          CGenericFuncs::getTmpDir(),
                                                          QFileDialog::ShowDirsOnly,containerName);
     }
@@ -317,7 +317,7 @@ void CBrowserNet::mangaReady(const QVector<CUrlWithName> &urls, const QString &c
         auto *mv = new CMangaViewTab(snv->parentWnd(),focus);
         mv->loadMangaPages(urls,containerName,origin,isFanbox);
     } else {
-        multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
+        CBrowserNet::multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
     }
 }
 

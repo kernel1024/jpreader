@@ -22,9 +22,9 @@ private:
 
 public:
     explicit CBrowserNet(CBrowserTab * parent);
-    void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
-                          const QString &containerName = QString(), bool isFanbox = false,
-                          bool isPatreon = false);
+    static void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
+                                  const QString &containerName = QString(), bool isFanbox = false,
+                                  bool isPatreon = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false,
