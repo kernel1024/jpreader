@@ -16,25 +16,6 @@ CPixivIndexLimitsDialog::CPixivIndexLimitsDialog(QWidget *parent)
     for (const auto &bcp : languages) {
         ui->comboLanguage->addItem(gSet->net()->getLanguageName(bcp),QVariant::fromValue(bcp));
     }
-
-    ui->comboMode->addItem(tr("Tags (partial match)"));
-    ui->comboMode->addItem(tr("Tags (perfect match)"));
-    ui->comboMode->addItem(tr("Text"));
-    ui->comboMode->addItem(tr("Tags, titles, captions"));
-
-    ui->comboLength->addItem(tr("All"));
-    ui->comboLength->addItem(tr("Flash (less than 5000)"));
-    ui->comboLength->addItem(tr("Short (5000 - 20000)"));
-    ui->comboLength->addItem(tr("Medium (20000 - 80000)"));
-    ui->comboLength->addItem(tr("Long (80000+)"));
-
-    ui->comboRating->addItem(tr("All"));
-    ui->comboRating->addItem(tr("Safe"));
-    ui->comboRating->addItem(tr("R-18"));
-
-    ui->comboFetchCovers->addItem(tr("None"));
-    ui->comboFetchCovers->addItem(tr("Lazy (on click)"));
-    ui->comboFetchCovers->addItem(tr("Fetch all at once"));
 }
 
 CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
@@ -43,16 +24,20 @@ CPixivIndexLimitsDialog::~CPixivIndexLimitsDialog()
 
 }
 
-void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &groupTitle, bool isTagSearch,
+void CPixivIndexLimitsDialog::setParams(CPixivIndexExtractor::ExtractorMode exMode,
+                                        bool isTagSearch,
                                         int maxCount, const QDate &dateFrom, const QDate &dateTo,
                                         const QString &keywords, CPixivIndexExtractor::TagSearchMode tagMode,
                                         bool originalOnly, CStructures::PixivFetchCoversMode fetchCovers,
                                         const QString &languageCode,
                                         CPixivIndexExtractor::NovelSearchLength novelLength,
-                                        CPixivIndexExtractor::SearchRating novelRating)
+                                        CPixivIndexExtractor::SearchRating novelRating,
+                                        CPixivIndexExtractor::ArtworkSearchType artworkType,
+                                        CPixivIndexExtractor::ArtworkSearchSize artworkSize,
+                                        CPixivIndexExtractor::ArtworkSearchRatio artworkRatio,
+                                        const QString &artworkCreationTool)
 {
-    setWindowTitle(title);
-    ui->groupBox->setTitle(groupTitle);
+    ui->exModeStack->setCurrentIndex((exMode == CPixivIndexExtractor::emNovels) ? 0 : 1);
 
     ui->comboLanguage->setEnabled(isTagSearch);
     ui->comboMode->setEnabled(isTagSearch);
@@ -64,6 +49,11 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
     ui->comboLength->setCurrentIndex(static_cast<int>(novelLength));
     ui->comboRating->setCurrentIndex(static_cast<int>(novelRating));
     ui->comboFetchCovers->setCurrentIndex(static_cast<int>(fetchCovers));
+
+    ui->comboArtworkType->setCurrentIndex(static_cast<int>(artworkType));
+    ui->comboArtworkSize->setCurrentIndex(static_cast<int>(artworkSize));
+    ui->comboArtworkRatio->setCurrentIndex(static_cast<int>(artworkRatio));
+    ui->editArtworkTool->setEditText(artworkCreationTool);
 
     ui->comboLanguage->setCurrentIndex(0);
     if (!languageCode.isEmpty()) {
@@ -92,9 +82,15 @@ void CPixivIndexLimitsDialog::setParams(const QString &title, const QString &gro
 }
 
 void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
-                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly, CStructures::PixivFetchCoversMode &fetchCovers,
-                                        QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
-                                        CPixivIndexExtractor::SearchRating &novelRating)
+                                        CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
+                                        CStructures::PixivFetchCoversMode &fetchCovers,
+                                        QString &languageCode,
+                                        CPixivIndexExtractor::NovelSearchLength &novelLength,
+                                        CPixivIndexExtractor::SearchRating &novelRating,
+                                        CPixivIndexExtractor::ArtworkSearchType &artworkType,
+                                        CPixivIndexExtractor::ArtworkSearchSize &artworkSize,
+                                        CPixivIndexExtractor::ArtworkSearchRatio &artworkRatio,
+                                        QString &artworkCreationTool)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
@@ -116,6 +112,11 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
     novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui->comboLength->currentIndex());
     novelRating = static_cast<CPixivIndexExtractor::SearchRating>(ui->comboRating->currentIndex());
     fetchCovers = static_cast<CStructures::PixivFetchCoversMode>(ui->comboFetchCovers->currentIndex());
+
+    artworkType = static_cast<CPixivIndexExtractor::ArtworkSearchType>(ui->comboArtworkType->currentIndex());
+    artworkSize = static_cast<CPixivIndexExtractor::ArtworkSearchSize>(ui->comboArtworkSize->currentIndex());
+    artworkRatio = static_cast<CPixivIndexExtractor::ArtworkSearchRatio>(ui->comboArtworkRatio->currentIndex());
+    artworkCreationTool = ui->editArtworkTool->lineEdit()->text();
 
     gSet->history()->appendPixivKeywords(keywords);
 }

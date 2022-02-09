@@ -33,7 +33,9 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, ExtractorMode extra
                                      const QDate &dateFrom, const QDate &dateTo,
                                      CPixivIndexExtractor::TagSearchMode tagMode, bool originalOnly,
                                      const QString &languageCode, CPixivIndexExtractor::NovelSearchLength novelLength,
-                                     CPixivIndexExtractor::SearchRating searchRating)
+                                     CPixivIndexExtractor::SearchRating rating, ArtworkSearchType artworkType,
+                                     ArtworkSearchSize artworkSize, ArtworkSearchRatio artworkRatio,
+                                     const QString &artworkCreationTool)
 {
     static const QDate minimalDate = QDate(2000,1,1);
 
@@ -44,15 +46,17 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, ExtractorMode extra
     m_dateFrom = dateFrom;
     m_dateTo = dateTo;
 
+    const bool artworksMode = (m_extractorMode == ExtractorMode::emArtworks);
     m_sourceQuery.clear();
-    if (indexMode == IndexMode::imTagSearchIndex) { // TODO: artworks has additional fields, not implemented
+    if (indexMode == IndexMode::imTagSearchIndex) {
         m_sourceQuery.addQueryItem(QSL("word"),m_indexId);
         m_sourceQuery.addQueryItem(QSL("order"),QSL("date_d"));
-        switch (searchRating) {
+        switch (rating) {
             case SearchRating::srAll: m_sourceQuery.addQueryItem(QSL("mode"),QSL("all")); break;
             case SearchRating::srSafe: m_sourceQuery.addQueryItem(QSL("mode"),QSL("safe")); break;
             case SearchRating::srR18: m_sourceQuery.addQueryItem(QSL("mode"),QSL("r18")); break;
         }
+
         QDate dFrom = m_dateFrom;
         QDate dTo = m_dateTo;
         if (!dFrom.isNull() || !dTo.isNull()) {
@@ -61,32 +65,74 @@ void CPixivIndexExtractor::setParams(const QString &pixivId, ExtractorMode extra
             m_sourceQuery.addQueryItem(QSL("scd"),dFrom.toString(Qt::ISODate));
             m_sourceQuery.addQueryItem(QSL("ecd"),dTo.toString(Qt::ISODate));
         }
+
+        TagSearchMode s_mode = tagMode;
+        if (artworksMode && (s_mode == TagSearchMode::tsmText))
+            s_mode = TagSearchMode::tsmTagAll;
         switch (tagMode) {
             case TagSearchMode::tsmTagOnly: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag_only")); break;
             case TagSearchMode::tsmTagFull: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag_full")); break; // default
             case TagSearchMode::tsmText: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tc")); break;
             case TagSearchMode::tsmTagAll: m_sourceQuery.addQueryItem(QSL("s_mode"),QSL("s_tag")); break;
         }
-        switch (novelLength) {
-            case NovelSearchLength::nslDefault: break;
-            case NovelSearchLength::nslFlash:
-                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("0"));
-                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("4999"));
-                break;
-            case NovelSearchLength::nslShort:
-                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("5000"));
-                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("19999"));
-                break;
-            case NovelSearchLength::nslMedium:
-                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("20000"));
-                m_sourceQuery.addQueryItem(QSL("tgt"),QSL("79999"));
-                break;
-            case NovelSearchLength::nslLong:
-                m_sourceQuery.addQueryItem(QSL("tlt"),QSL("80000"));
-                break;
+
+        if (artworksMode) {
+            switch (artworkType) {
+                case ArtworkSearchType::astAll: m_sourceQuery.addQueryItem(QSL("type"),QSL("all")); break;
+                case ArtworkSearchType::astIllustAndUgoira:
+                    m_sourceQuery.addQueryItem(QSL("type"),QSL("illust_and_ugoira")); break;
+                case ArtworkSearchType::astIllust: m_sourceQuery.addQueryItem(QSL("type"),QSL("illust")); break;
+                case ArtworkSearchType::astManga: m_sourceQuery.addQueryItem(QSL("type"),QSL("manga")); break;
+                case ArtworkSearchType::astUgoira: m_sourceQuery.addQueryItem(QSL("type"),QSL("ugoira")); break;
+            }
+            switch (artworkSize) {
+                case ArtworkSearchSize::ass3kPlus:
+                    m_sourceQuery.addQueryItem(QSL("wlt"),QSL("3000"));
+                    m_sourceQuery.addQueryItem(QSL("hlt"),QSL("3000"));
+                    break;
+                case ArtworkSearchSize::ass2k:
+                    m_sourceQuery.addQueryItem(QSL("wlt"),QSL("1000"));
+                    m_sourceQuery.addQueryItem(QSL("wgt"),QSL("2000"));
+                    m_sourceQuery.addQueryItem(QSL("hlt"),QSL("1000"));
+                    m_sourceQuery.addQueryItem(QSL("hgt"),QSL("2000"));
+                    break;
+                case ArtworkSearchSize::ass1k:
+                    m_sourceQuery.addQueryItem(QSL("wgt"),QSL("999"));
+                    m_sourceQuery.addQueryItem(QSL("hgt"),QSL("999"));
+                    break;
+                case ArtworkSearchSize::assAll: break;
+            }
+            switch (artworkRatio) {
+                case ArtworkSearchRatio::asrHorizontal: m_sourceQuery.addQueryItem(QSL("ratio"),QSL("0.5")); break;
+                case ArtworkSearchRatio::asrVertical: m_sourceQuery.addQueryItem(QSL("ratio"),QSL("-0.5")); break;
+                case ArtworkSearchRatio::asrSquare: m_sourceQuery.addQueryItem(QSL("ratio"),QSL("0")); break;
+                case ArtworkSearchRatio::asrAll: break;
+            }
+            if (!artworkCreationTool.isEmpty())
+                m_sourceQuery.addQueryItem(QSL("tool"),artworkCreationTool);
+
+        } else {
+            switch (novelLength) {
+                case NovelSearchLength::nslDefault: break;
+                case NovelSearchLength::nslFlash:
+                    m_sourceQuery.addQueryItem(QSL("tlt"),QSL("0"));
+                    m_sourceQuery.addQueryItem(QSL("tgt"),QSL("4999"));
+                    break;
+                case NovelSearchLength::nslShort:
+                    m_sourceQuery.addQueryItem(QSL("tlt"),QSL("5000"));
+                    m_sourceQuery.addQueryItem(QSL("tgt"),QSL("19999"));
+                    break;
+                case NovelSearchLength::nslMedium:
+                    m_sourceQuery.addQueryItem(QSL("tlt"),QSL("20000"));
+                    m_sourceQuery.addQueryItem(QSL("tgt"),QSL("79999"));
+                    break;
+                case NovelSearchLength::nslLong:
+                    m_sourceQuery.addQueryItem(QSL("tlt"),QSL("80000"));
+                    break;
+            }
+            if (originalOnly)
+                m_sourceQuery.addQueryItem(QSL("original_only"),QSL("1"));
         }
-        if (originalOnly)
-            m_sourceQuery.addQueryItem(QSL("original_only"),QSL("1"));
         if (!languageCode.isEmpty()) {
             QString lang = languageCode.toLower();
             if (lang == QSL("zh"))
@@ -762,21 +808,29 @@ void CPixivIndexExtractor::subImageFinished()
     m_worksImgFetch--;
 }
 
-bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget, const QString& title,
-                                                 const QString& groupTitle, bool isTagSearch,
+bool CPixivIndexExtractor::extractorLimitsDialog(QWidget *parentWidget,
+                                                 CPixivIndexExtractor::ExtractorMode exMode,
+                                                 bool isTagSearch,
                                                  int &maxCount, QDate &dateFrom, QDate &dateTo, QString &keywords,
                                                  CPixivIndexExtractor::TagSearchMode &tagMode, bool &originalOnly,
-                                                 QString &languageCode, CPixivIndexExtractor::NovelSearchLength &novelLength,
-                                                 CPixivIndexExtractor::SearchRating &novelRating)
+                                                 QString &languageCode,
+                                                 CPixivIndexExtractor::NovelSearchLength &novelLength,
+                                                 CPixivIndexExtractor::SearchRating &novelRating,
+                                                 CPixivIndexExtractor::ArtworkSearchType &artworkType,
+                                                 CPixivIndexExtractor::ArtworkSearchSize &artworkSize,
+                                                 CPixivIndexExtractor::ArtworkSearchRatio &artworkRatio,
+                                                 QString &artworkCreationTool)
 {
     CPixivIndexLimitsDialog dlg(parentWidget);
     auto fetchCovers = gSet->settings()->pixivFetchCovers;
-    dlg.setParams(title,groupTitle,isTagSearch,maxCount,dateFrom,dateTo,keywords,tagMode,
-                  originalOnly,fetchCovers,languageCode,novelLength,novelRating);
+    dlg.setParams(exMode,isTagSearch,maxCount,dateFrom,dateTo,keywords,tagMode,
+                  originalOnly,fetchCovers,languageCode,novelLength,novelRating,artworkType,
+                  artworkSize,artworkRatio,artworkCreationTool);
 
     if (dlg.exec() == QDialog::Accepted) {
         dlg.getParams(maxCount,dateFrom,dateTo,keywords,tagMode,originalOnly,
-                      fetchCovers,languageCode,novelLength,novelRating);
+                      fetchCovers,languageCode,novelLength,novelRating,artworkType,
+                      artworkSize,artworkRatio,artworkCreationTool);
         gSet->ui()->setPixivFetchCovers(fetchCovers);
         return true;
     }

@@ -35,6 +35,8 @@ const double dynamicZoomUpScale = 3.0;
 const auto propertyMangaPageNum = "PAGENUM";
 }
 
+// TODO: use downscaled images from pixiv for speed up, export via standard multidownload generator, not from cache
+
 ZMangaView::ZMangaView(QWidget *parent) :
     QWidget(parent)
 {

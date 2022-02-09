@@ -48,6 +48,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
         m_table = ui->list;
         ui->table->hide();
         ui->list->setModelColumn(1);
+        ui->buttonReport->setEnabled(false);
     } else {
         m_table = ui->table;
         ui->list->hide();
@@ -250,9 +251,18 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
         const QModelIndex idx = proxy->mapToSource(current);
         const QJsonObject item = m_model->item(idx);
         const QStringList tags = jsonToTags(item.value(QSL("tags")).toArray());
+        const QDateTime dt = QDateTime::fromString(item.value(QSL("createDate")).toString(),
+                                                   Qt::ISODate);
         QString desc;
         if (!tags.isEmpty())
             desc = QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / ")));
+
+        if (extractorMode() == CPixivIndexExtractor::emArtworks) {
+            desc.append(tr("<b>Size:</b> %1x%2 px, <b>created at:</b> %3.<br/>")
+                        .arg(item.value(QSL("width")).toInt())
+                        .arg(item.value(QSL("height")).toInt())
+                        .arg(dt.toString(QSL("yyyy/MM/dd hh:mm"))));
+        }
 
         desc.append(QSL("<b>Description:</b> %1.<br/>")
                     .arg(item.value(QSL("description")).toString()));
@@ -273,7 +283,6 @@ void CPixivIndexTab::itemActivated(const QModelIndex &index)
         const QString id = m_model->item(proxy->mapToSource(index))
                            .value(QSL("id")).toString();
         if (!id.isEmpty()) {
-            QString selector;
             if (m_extractorMode == CPixivIndexExtractor::emNovels) {
                 new CBrowserTab(gSet->activeWindow(),QUrl(
                                     QSL("https://www.pixiv.net/novel/show.php?id=%1").arg(id)));
@@ -295,6 +304,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     if (proxy == nullptr) return;
     idx = proxy->mapToSource(idx);
 
+    const bool artworksMode = (extractorMode() == CPixivIndexExtractor::emArtworks);
     const QString text = m_model->text(idx);
     const QJsonObject item = m_model->item(idx);
     const QString id = item.value(QSL("id")).toString();
@@ -304,24 +314,44 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     const QString title = item.value(QSL("title")).toString();
     const QString tag = m_model->tag(idx);
 
-    // TODO: artworks support
     QUrl novelUrl;
-    if (!id.isEmpty())
-        novelUrl = QUrl(QSL("https://www.pixiv.net/novel/show.php?id=%1").arg(id));
+    QUrl artworkUrl;
+    if (!id.isEmpty()) {
+        if (artworksMode) {
+            artworkUrl = QUrl(QSL("https://www.pixiv.net/artworks/%1").arg(id));
+        } else {
+            novelUrl = QUrl(QSL("https://www.pixiv.net/novel/show.php?id=%1").arg(id));
+        }
+    }
     QUrl userUrl;
     if (!user.isEmpty())
         userUrl = QUrl(QSL("https://www.pixiv.net/users/%1").arg(user));
     QUrl seriesUrl;
-    if (!series.isEmpty())
-        seriesUrl = QUrl(QSL("https://www.pixiv.net/novel/series/%1").arg(series));
+    if (!series.isEmpty()) {
+        if (artworksMode && !user.isEmpty()) { // Just in case, do not make separate series queries
+            seriesUrl = QUrl(QSL("https://www.pixiv.net/user/%1/series/%2").arg(user,series));
+        } else {
+            seriesUrl = QUrl(QSL("https://www.pixiv.net/novel/series/%1").arg(series));
+        }
+    }
     QUrl tagUrl;
-    if (!tag.isEmpty())
-        tagUrl = QUrl(QSL("https://www.pixiv.net/tags/%1/novels").arg(tag));
+    if (!tag.isEmpty()) {
+        if (artworksMode) {
+            tagUrl = QUrl(QSL("https://www.pixiv.net/tags/%1/artworks").arg(tag));
+        } else {
+            tagUrl = QUrl(QSL("https://www.pixiv.net/tags/%1/novels").arg(tag));
+        }
+    }
 
     QMenu cm;
     if (!novelUrl.isEmpty()) {
         cm.addAction(tr("Open novel in new browser tab"),gSet,[novelUrl](){
             new CBrowserTab(gSet->activeWindow(),novelUrl);
+        });
+    }
+    if (!artworkUrl.isEmpty()) {
+        cm.addAction(tr("Open artwork in new browser tab"),gSet,[artworkUrl](){
+            new CBrowserTab(gSet->activeWindow(),artworkUrl);
         });
     }
     if (!seriesUrl.isEmpty()) {
@@ -331,6 +361,15 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     }
 
     auto extractorsList = CAbstractExtractor::addMenuActions(novelUrl,QUrl(),title,&cm,this,true);
+    for (auto *eac : qAsConst(extractorsList))
+        connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
+    if (!extractorsList.isEmpty()) {
+        if (!cm.isEmpty())
+            cm.addSeparator();
+        cm.addActions(extractorsList);
+    }
+
+    extractorsList = CAbstractExtractor::addMenuActions(artworkUrl,QUrl(),title,&cm,this,true);
     for (auto *eac : qAsConst(extractorsList))
         connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
     if (!extractorsList.isEmpty()) {
@@ -381,7 +420,6 @@ void CPixivIndexTab::htmlReport()
 {
     QString html;
     CStringHash authors;
-    // TODO: artworks support
 
     auto *proxy = qobject_cast<QAbstractProxyModel *>(m_table->model());
     if (proxy == nullptr) return;
@@ -477,7 +515,6 @@ QString CPixivIndexTab::makeNovelInfoBlock(CStringHash *authors,
 {
     QLocale locale;
     QString res;
-    // TODO: artworks support
 
     res.append(QSL("<div style='border-top:1px black solid;padding-top:10px;overflow:auto;'>"));
     res.append(QSL("<div style='width:120px;float:left;margin-right:20px;'>"));
@@ -645,9 +682,10 @@ void CPixivIndexTab::mangaSettingsChanged()
 
 CPixivIndexModel::CPixivIndexModel(QObject *parent, CPixivIndexTab *tab, const QJsonArray &list)
     : QAbstractTableModel(parent),
-      m_list(list)
+      m_list(list),
+      m_tab(tab)
 {
-    m_tab = tab;
+    
     updateTags();
 }
 
@@ -758,7 +796,6 @@ QVariant CPixivIndexModel::data(const QModelIndex &index, int role) const
             QPainter cp(&rp);
             cp.fillRect(0,0,rp.width(),rp.height(),gSet->settings()->mangaBackgroundColor);
 
-            QImage p;
             if (m_cachedCovers.contains(row)) {
                 cp.drawImage(0,0,m_cachedCovers.value(row));
             } else {
@@ -776,8 +813,9 @@ QVariant CPixivIndexModel::data(const QModelIndex &index, int role) const
             }
             printCoverInfo(&cp,index);
             return rp;
+        }
 
-        } else if (col == 5) { // bookmarks column
+        if (col == 5) { // bookmarks column
             if (w.value(QSL("bookmarkData")).isNull())
                 return unknownIcon;
             return bookmarkedIcon;
@@ -794,9 +832,8 @@ QVariant CPixivIndexModel::data(const QModelIndex &index, int role) const
             case 3: {
                 if (artworksMode) {
                     return w.value(QSL("pageCount")).toInt();
-                } else {
-                    return w.value(QSL("textCount")).toInt();
                 }
+                return w.value(QSL("textCount")).toInt();
             }
             case 4: return QDateTime::fromString(w.value(QSL("createDate")).toString(),
                                                  Qt::ISODate);

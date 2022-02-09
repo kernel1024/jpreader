@@ -47,7 +47,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         pixivId = mchPixivId.captured(QSL("userID"));
 
     QString pixivTag;
-    QRegularExpression rxPixivTag(QSL("pixiv.net/(.*/)?tags/(?<tag>\\S+)/novels"));
+    QRegularExpression rxPixivTag(QSL("pixiv.net/(.*/)?tags/(?<tag>\\S+)/(novels|artworks)"));
     auto mchPixivTag = rxPixivTag.match(pixivUrl.toString());
     if (mchPixivTag.hasMatch())
         pixivTag = mchPixivTag.captured(QSL("tag"));
@@ -497,6 +497,10 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         static CPixivIndexExtractor::NovelSearchLength nsl = CPixivIndexExtractor::nslDefault;
         static CPixivIndexExtractor::SearchRating nsr = CPixivIndexExtractor::srAll;
         static CPixivIndexExtractor::TagSearchMode tsm = CPixivIndexExtractor::tsmTagFull;
+        static CPixivIndexExtractor::ArtworkSearchType awType = CPixivIndexExtractor::astAll;
+        static CPixivIndexExtractor::ArtworkSearchSize awSize = CPixivIndexExtractor::assAll;
+        static CPixivIndexExtractor::ArtworkSearchRatio awRatio = CPixivIndexExtractor::asrAll;
+        static QString awTool;
 
         QString keywords = hash.value(QSL("id")).toString();
         CPixivIndexExtractor::IndexMode mode = CPixivIndexExtractor::imWorkIndex;
@@ -513,9 +517,10 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         if (hash.value(QSL("base")).toString() == QSL("artwork"))
             exMode = CPixivIndexExtractor::emArtworks;
 
-        if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,tr("Pixiv index filter"),
-                                  tr("Extractor filter"),(mode == CPixivIndexExtractor::imTagSearchIndex),
-                                  maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr))
+        if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,exMode,
+                                  (mode == CPixivIndexExtractor::imTagSearchIndex),
+                                  maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr,
+                                  awType,awSize,awRatio,awTool))
         {
             res = new CPixivIndexExtractor(nullptr);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
@@ -529,7 +534,11 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                         originalsOnly,
                         languageCode,
                         nsl,
-                        nsr);
+                        nsr,
+                        awType,
+                        awSize,
+                        awRatio,
+                        awTool);
         }
 
     } else if (type == QSL("fanbox")) {

@@ -97,7 +97,7 @@
      <x>0</x>
      <y>0</y>
      <width>883</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -173,6 +173,13 @@
       <string>Subsentences mode</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuPixivSearch">
+     <property name="title">
+      <string>Pixiv search...</string>
+     </property>
+     <addaction name="actionPixivSearchNovel"/>
+     <addaction name="actionPixivSearchArtwork"/>
+    </widget>
     <addaction name="menuTranslationMode"/>
     <addaction name="menuTranslationLanguages"/>
     <addaction name="menuSubsentencesMode"/>
@@ -187,7 +194,7 @@
     <addaction name="actionAutofillAssistant"/>
     <addaction name="separator"/>
     <addaction name="actionChromiumURLs"/>
-    <addaction name="actionPixivSearch"/>
+    <addaction name="menuPixivSearch"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -490,11 +497,6 @@
     <string>Worker monitor</string>
    </property>
   </action>
-  <action name="actionPixivSearch">
-   <property name="text">
-    <string>Pixiv search...</string>
-   </property>
-  </action>
   <action name="actionOpenPixivList">
    <property name="text">
     <string>Open Pixiv index file...</string>
@@ -505,10 +507,21 @@
   </action>
   <action name="actionAutofillAssistant">
    <property name="icon">
-    <iconset theme="tools-wizard"/>
+    <iconset theme="tools-wizard">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Autofill assistant</string>
+   </property>
+  </action>
+  <action name="actionPixivSearchNovel">
+   <property name="text">
+    <string>Novel...</string>
+   </property>
+  </action>
+  <action name="actionPixivSearchArtwork">
+   <property name="text">
+    <string>Artwork...</string>
    </property>
   </action>
  </widget>

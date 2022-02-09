@@ -89,6 +89,9 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     titleRenamedLock.setInterval(CDefaults::titleRenameLockTimeout);
     titleRenamedLock.setSingleShot(true);
 
+    actionPixivSearchNovel->setData(QSL("novel"));
+    actionPixivSearchArtwork->setData(QSL("artwork"));
+
     connect(actionAbout, &QAction::triggered, this, &CMainWindow::helpAbout);
     connect(actionAboutQt, &QAction::triggered, gSet->app(), &QApplication::aboutQt);
     connect(actionSettings, &QAction::triggered, gSet->ui(), &CGlobalUI::settingsTab);
@@ -116,7 +119,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     connect(actionChromiumURLs, &QAction::triggered, this, &CMainWindow::openChromiumURLs);
     connect(actionTranslatorStatistics, &QAction::triggered, gSet->ui(), &CGlobalUI::translationStatisticsTab);
     connect(actionTranslatorCache, &QAction::triggered, gSet->translatorCache(), &CTranslatorCache::showDialog);
-    connect(actionPixivSearch, &QAction::triggered, this, &CMainWindow::pixivSearch);
+    connect(actionPixivSearchNovel, &QAction::triggered, this, &CMainWindow::pixivSearch);
+    connect(actionPixivSearchArtwork, &QAction::triggered, this, &CMainWindow::pixivSearch);
     connect(actionPrintPDF, &QAction::triggered, this, &CMainWindow::printToPDF);
     connect(actionSaveSettings,&QAction::triggered, gSet, &CGlobalControl::writeSettings);
     connect(tabMain, &CSpecTabWidget::currentChanged, this, &CMainWindow::tabChanged);
@@ -909,11 +913,14 @@ void CMainWindow::openPixivList()
 
 void CMainWindow::pixivSearch()
 {
+    auto *ac = qobject_cast<QAction *>(sender());
+    if ((ac == nullptr) || (!ac->data().canConvert<QString>())) return;
+
     QVariantHash data;
     data[QSL("type")] = QSL("pixivList");
     data[QSL("id")] = QString();
     data[QSL("mode")] = QSL("tagSearch");
-    data[QSL("base")] = QSL("novel");
+    data[QSL("base")] = ac->data().toString();
     auto *ex = CAbstractExtractor::extractorFactory(data,this);
     if (ex == nullptr) return;
     if (!gSet->startup()->setupThreadedWorker(ex)) {
