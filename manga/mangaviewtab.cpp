@@ -1,8 +1,13 @@
 #include <QtMath>
 #include <QMessageBox>
 #include "browser/browser.h"
+#include "browser/net.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"
+#include "global/startup.h"
+#include "extractors/abstractextractor.h"
+#include "extractors/fanboxextractor.h"
+#include "extractors/patreonextractor.h"
 #include "mainwindow.h"
 #include "mangaviewtab.h"
 #include "ui_mangaviewtab.h"
@@ -202,6 +207,42 @@ void CMangaViewTab::exportError(const QString &msg)
 
 void CMangaViewTab::save()
 {
+    if (gSet->settings()->pixivMangaPageSize != CStructures::pxmpOriginal) {
+        QVariantHash data;
+        data.clear();
+        data[QSL("type")] = QSL("pixivManga");
+        data[QSL("url")] = m_origin;
+
+        auto *ex = CAbstractExtractor::extractorFactory(data,this);
+        if (ex == nullptr) return;
+        if (!gSet->startup()->setupThreadedWorker(ex)) {
+            delete ex;
+            return;
+        }
+
+        connect(ex,&CAbstractExtractor::mangaReady,this,[this]
+                (const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+                bool useViewer, bool focus){
+            Q_UNUSED(useViewer)
+            Q_UNUSED(focus)
+            // TODO: move this handler to something shared and global. Repeats 3 times over the code.
+
+            bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
+            bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
+
+            if (urls.isEmpty() || containerName.isEmpty()) {
+                QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
+                                     tr("Image urls not found or container name not detected."));
+            } else {
+                CBrowserNet::multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
+            }
+
+        },Qt::QueuedConnection);
+
+        QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
+        return;
+    }
+
     if (ui->mangaView->exportPages())
         updateStatusLabel(tr("Saved"));
 }
