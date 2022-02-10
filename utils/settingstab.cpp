@@ -339,6 +339,7 @@ void CSettingsTab::loadFromGlobal()
     ui->checkMangaFineRendering->setChecked(gSet->m_settings->mangaUseFineRendering);
     ui->comboMangaUpscaleFilter->setCurrentIndex(static_cast<int>(gSet->m_settings->mangaUpscaleFilter));
     ui->comboMangaDownscaleFilter->setCurrentIndex(static_cast<int>(gSet->m_settings->mangaDownscaleFilter));
+    ui->comboPixivMangaPageSize->setCurrentIndex(static_cast<int>(gSet->m_settings->pixivMangaPageSize));
 
     ui->editProxyHost->setText(gSet->m_settings->proxyHost);
     ui->spinProxyPort->setValue(gSet->m_settings->proxyPort);
@@ -840,6 +841,10 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->mangaDownscaleFilter = static_cast<Blitz::ScaleFilterType>(val);
         Q_EMIT gSet->m_settings->mangaViewerSettingsUpdated();
+    });
+    connect(ui->comboPixivMangaPageSize,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->pixivMangaPageSize = static_cast<CStructures::PixivMangaPageSize>(val);
     });
 }
 

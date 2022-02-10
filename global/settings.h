@@ -50,6 +50,7 @@ const CStructures::SearchEngine searchEngine = CStructures::seNone;
 const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const CStructures::AliCloudTranslatorMode aliCloudTranslatorMode = CStructures::aliTranslatorGeneral;
 const CStructures::PixivFetchCoversMode pixivFetchCovers = CStructures::pxfmLazyFetch;
+const CStructures::PixivMangaPageSize pixivMangaPageSize = CStructures::pxmpOriginal;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
@@ -168,6 +169,7 @@ public:
     CStructures::TranslationEngine previousTranslatorEngine { CDefaults::translatorEngine };
     CStructures::AliCloudTranslatorMode aliCloudTranslatorMode { CDefaults::aliCloudTranslatorMode };
     CStructures::PixivFetchCoversMode pixivFetchCovers { CDefaults::pixivFetchCovers };
+    CStructures::PixivMangaPageSize pixivMangaPageSize { CDefaults::pixivMangaPageSize };
     Blitz::ScaleFilterType mangaUpscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
     Blitz::ScaleFilterType mangaDownscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
     double mangaResizeBlur { CDefaults::mangaResizeBlur };

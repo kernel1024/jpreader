@@ -36,6 +36,7 @@ private:
     bool m_zoomDynamic { false };
     bool m_aborted { false };
     bool m_finished { false };
+    bool m_cleanup { false };
     int m_rotation { 0 };
     int m_currentPage { 0 };
     int m_scrollAccumulator { 0 };

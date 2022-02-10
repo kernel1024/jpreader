@@ -262,6 +262,10 @@ void CPixivIndexTab::tableSelectionChanged(const QModelIndex &current, const QMo
             desc = QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / ")));
 
         if (extractorMode() == CPixivIndexExtractor::emArtworks) {
+            desc.append(tr("<b>Author:</b> <a href=\"https://www.pixiv.net/users/%1\">%2</a><br/>")
+                        .arg(item.value(QSL("userId")).toString(),
+                             item.value(QSL("userName")).toString()));
+
             desc.append(tr("<b>Size:</b> %1x%2 px, <b>created at:</b> %3.<br/>")
                         .arg(item.value(QSL("width")).toInt())
                         .arg(item.value(QSL("height")).toInt())
@@ -881,9 +885,11 @@ void CPixivIndexModel::printCoverInfo(QPainter *painter, const QModelIndex &inde
             !checkIndex(index,CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
         return;
 
+    const QChar heart(0x2665);
     const int textMargin = 4;
     const int textBorder = 3;
-    const qreal roundRadius = 2.0;
+    const double roundRadius = 2.0;
+    const double bookmarkFontFactor = 1.5;
     const int row = index.row();
     const auto w = m_list.at(row).toObject();
     QString text;
@@ -895,6 +901,7 @@ void CPixivIndexModel::printCoverInfo(QPainter *painter, const QModelIndex &inde
     f.setWeight(QFont::Bold);
     painter->setFont(f);
 
+    // page count
     text = QSL("%1").arg(w.value(QSL("pageCount")).toInt());
 
     textRect = painter->fontMetrics().boundingRect(text);
@@ -905,6 +912,19 @@ void CPixivIndexModel::printCoverInfo(QPainter *painter, const QModelIndex &inde
     painter->setBrush(QColor(Qt::darkGray));
     painter->drawRoundedRect(textRect,roundRadius,roundRadius);
     painter->drawText(textRect,Qt::AlignCenter,text);
+
+    // self-bookmark sign
+    if (!w.value(QSL("bookmarkData")).isNull()) {
+        f.setPointSizeF(bookmarkFontFactor * f.pointSizeF());
+        painter->setFont(f);
+
+        text = heart;
+        textRect = painter->fontMetrics().boundingRect(text);
+        textRect = textRect.marginsAdded(QMargins(textBorder,textBorder,textBorder,textBorder));
+        textRect.moveTopLeft(QPoint(textMargin,textMargin));
+        painter->setPen(QColor(Qt::red));
+        painter->drawText(textRect,Qt::AlignCenter,text);
+    }
 
     painter->restore();
 }

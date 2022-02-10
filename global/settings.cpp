@@ -203,6 +203,7 @@ void CSettings::writeSettings()
 
     settings.setValue(QSL("pixivFetchImages"),pixivFetchImages);
     settings.setValue(QSL("pixivFetchCovers"),static_cast<int>(pixivFetchCovers));
+    settings.setValue(QSL("pixivMangaPageSize"),static_cast<int>(pixivMangaPageSize));
 
     settings.setValue(QSL("translatorCacheEnabled"),translatorCacheEnabled);
     settings.setValue(QSL("translatorCacheSize"),translatorCacheSize);
@@ -516,6 +517,8 @@ void CSettings::readSettings(QObject *control)
                                       CDefaults::pixivFetchImages).toBool();
     pixivFetchCovers = static_cast<CStructures::PixivFetchCoversMode>(settings.value(QSL("pixivFetchCovers"),
                                       CDefaults::pixivFetchCovers).toInt());
+    pixivMangaPageSize = static_cast<CStructures::PixivMangaPageSize>(settings.value(QSL("pixivMangaPageSize"),
+                                      CDefaults::pixivMangaPageSize).toInt());
 
     translatorCacheEnabled = settings.value(QSL("translatorCacheEnabled"),
                                             CDefaults::translatorCacheEnabled).toBool();

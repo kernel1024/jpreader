@@ -87,6 +87,13 @@ enum PixivFetchCoversMode {
 };
 Q_ENUM_NS(PixivFetchCoversMode)
 
+enum PixivMangaPageSize {
+    pxmpSmall = 0,
+    pxmpRegular = 1,
+    pxmpOriginal = 2
+};
+Q_ENUM_NS(PixivMangaPageSize)
+
 const QMap<CStructures::TranslationEngine, QString> &translationEngines();
 const QMap<CStructures::TranslationEngine, QString> &translationEngineCodes();
 const QStringList &incompatibleHttp2Urls();

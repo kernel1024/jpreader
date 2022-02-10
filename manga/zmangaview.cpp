@@ -52,6 +52,7 @@ ZMangaView::ZMangaView(QWidget *parent) :
 
 ZMangaView::~ZMangaView()
 {
+    m_cleanup = true;
     if (m_networkLoadersActive > 0) {
         Q_EMIT abortNetworkRequest();
     }
@@ -116,6 +117,7 @@ void ZMangaView::displayCurrentPage()
 
 void ZMangaView::closeManga()
 {
+    if (m_cleanup) return;
     m_curPixmap = QImage();
     m_openedManga.clear();
     m_pageData.clear();
@@ -132,6 +134,7 @@ void ZMangaView::closeManga()
 
 void ZMangaView::setPage(int page)
 {
+    if (m_cleanup) return;
     m_scrollAccumulator = 0;
     if (page<0 || page>=m_pageCount) return;
     getPage(page);
@@ -321,6 +324,7 @@ void ZMangaView::redrawPage()
 
 void ZMangaView::redrawPageEx(const QImage& scaled, int page)
 {
+    if (m_cleanup) return;
     if (!m_scroller) return;
     if (!scaled.isNull() && page!=m_currentPage) return;
 
@@ -416,6 +420,7 @@ void ZMangaView::redrawPageEx(const QImage& scaled, int page)
 
 void ZMangaView::ownerResized(const QSize &size)
 {
+    if (m_cleanup) return;
     Q_UNUSED(size)
 
     redrawPage();
@@ -423,6 +428,7 @@ void ZMangaView::ownerResized(const QSize &size)
 
 bool ZMangaView::exportPages()
 {
+    if (m_cleanup) return false;
     if (m_openedManga.isEmpty() || (m_pageCount<1) || (m_zipWorkersActive>0))
         return false;
 
@@ -495,6 +501,7 @@ CDownloadWriter* ZMangaView::makeWriterJob(const QString& zipName, const QString
 
 void ZMangaView::writerCompleted(bool success)
 {
+    if (m_cleanup) return;
     Q_UNUSED(success)
 
     m_zipWorkersActive--;
@@ -506,39 +513,46 @@ void ZMangaView::writerCompleted(bool success)
 
 void ZMangaView::writerError(const QString &message)
 {
+    if (m_cleanup) return;
     Q_EMIT exportError(message);
 }
 
 void ZMangaView::navFirst()
 {
+    if (m_cleanup) return;
     setPage(0);
 }
 
 void ZMangaView::navPrev()
 {
+    if (m_cleanup) return;
     if (m_currentPage>0)
         setPage(m_currentPage-1);
 }
 
 void ZMangaView::navNext()
 {
+    if (m_cleanup) return;
     if (m_currentPage<m_pageCount-1)
         setPage(m_currentPage+1);
 }
 
 void ZMangaView::navLast()
 {
+    if (m_cleanup) return;
     setPage(m_pageCount-1);
 }
 
 void ZMangaView::abortLoading()
 {
+    if (m_cleanup) return;
     m_aborted = true;
     Q_EMIT abortNetworkRequest();
 }
 
 void ZMangaView::setZoomDynamic(bool state)
 {
+    if (m_cleanup) return;
     m_zoomDynamic = state;
     redrawPage();
 }
@@ -555,6 +569,7 @@ bool ZMangaView::isMangaOpened() const
 
 void ZMangaView::setZoomAny(int comboIdx)
 {
+    if (m_cleanup) return;
     auto *cb = qobject_cast<QComboBox *>(sender());
     if (cb==nullptr) return;
     QString s = cb->itemText(comboIdx);
@@ -571,6 +586,7 @@ void ZMangaView::setZoomAny(int comboIdx)
 
 void ZMangaView::viewRotateCCW()
 {
+    if (m_cleanup) return;
     m_rotation--;
     if (m_rotation<0) m_rotation = 3;
     displayCurrentPage();
@@ -579,6 +595,7 @@ void ZMangaView::viewRotateCCW()
 
 void ZMangaView::viewRotateCW()
 {
+    if (m_cleanup) return;
     m_rotation++;
     if (m_rotation>3) m_rotation = 0;
     displayCurrentPage();
@@ -587,6 +604,7 @@ void ZMangaView::viewRotateCW()
 
 void ZMangaView::cacheGotPage(const QImage &pageImage, int num)
 {
+    if (m_cleanup) return;
     if (m_processingPages.contains(num))
         m_processingPages.removeOne(num);
 
@@ -716,6 +734,8 @@ void ZMangaView::loadMangaPages(const QVector<CUrlWithName> &pages, const QStrin
 void ZMangaView::mangaPageDownloaded()
 {
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(sender()));
+    if (m_cleanup) return;
+
     int status = CGenericFuncs::getHttpStatusFromReply(rpl.data());
     bool numOk = false;
     int pageNum = rpl->property(CDefaults::propertyMangaPageNum).toInt(&numOk);

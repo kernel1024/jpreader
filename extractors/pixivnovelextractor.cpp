@@ -415,6 +415,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
     QString illustId;
     QString suffix;
     QString path;
+    QString szSelector;
     int pageCount = -1;
 
     if (doc.isObject()) {
@@ -429,8 +430,25 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
         illustId = obj.value(QSL("illustId")).toString();
         pageCount = qRound(obj.value(QSL("pageCount")).toDouble(-1.0));
 
-        QString fname = obj.value(QSL("urls")).toObject()
-                        .value(QSL("original")).toString();
+        QString pageUrlSelector = QSL("original");
+        if (m_useMangaViewer) {
+            switch (gSet->settings()->pixivMangaPageSize) {
+                case CStructures::PixivMangaPageSize::pxmpOriginal:
+                    pageUrlSelector = QSL("original");
+                    szSelector.clear();
+                    break;
+                case CStructures::PixivMangaPageSize::pxmpRegular:
+                    pageUrlSelector = QSL("regular");
+                    szSelector = QSL("_master1200");
+                    break;
+                case CStructures::PixivMangaPageSize::pxmpSmall:
+                    pageUrlSelector = QSL("small");
+                    szSelector = QSL("_master1200");
+                    break;
+            }
+        }
+        const QString fname = obj.value(QSL("urls")).toObject()
+                              .value(pageUrlSelector).toString();
         if (!fname.isNull()) {
             QFileInfo fi(fname);
             path = fi.path();
@@ -442,8 +460,8 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
         if (path.isEmpty() || illustId.isEmpty() || suffix.isEmpty())
             continue;
 
-        res.append(qMakePair(QSL("%1/%2_p%3.%4")
-                             .arg(path,illustId,QString::number(i),suffix),
+        res.append(qMakePair(QSL("%1/%2_p%3%4.%5")
+                             .arg(path,illustId,QString::number(i),szSelector,suffix),
                              QString()));
     }
 
