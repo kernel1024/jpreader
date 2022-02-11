@@ -1,6 +1,7 @@
 HEADERS = mainwindow.h \
     abstractthreadworker.h \
     browser-utils/autofillassistant.h \
+    browser-utils/downloadmodel.h \
     browser/browser.h \
     browser/ctxhandler.h \
     browser/msghandler.h \
@@ -87,6 +88,7 @@ HEADERS = mainwindow.h \
 
 SOURCES = main.cpp \
     browser-utils/autofillassistant.cpp \
+    browser-utils/downloadmodel.cpp \
     browser/browser.cpp \
     browser/ctxhandler.cpp \
     browser/msghandler.cpp \
