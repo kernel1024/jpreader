@@ -680,7 +680,7 @@ void CMainWindow::createStartBrowser()
     QString html;
     if (f.open(QIODevice::ReadOnly))
         html = QString::fromUtf8(f.readAll());
-    new CBrowserTab(this,QUrl(),QStringList(),true,html,QSL("100%"),true);
+    new CBrowserTab(this,QUrl(),QStringList(),html,true,true);
 }
 
 void CMainWindow::checkTabs()
@@ -749,8 +749,7 @@ void CMainWindow::createFromClipboard()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard"),tx);
-    auto *sv = new CBrowserTab(this, QUrl(), QStringList(), true, tx);
-    sv->txtBrowser->setFocus(Qt::OtherFocusReason);
+    new CBrowserTab(this, QUrl(), QStringList(), tx);
 }
 
 void CMainWindow::createFromClipboardPlain()
@@ -762,8 +761,7 @@ void CMainWindow::createFromClipboardPlain()
         return;
     }
     tx = CGenericFuncs::makeSimpleHtml(tr("Clipboard plain"),tx);
-    auto *sv = new CBrowserTab(this, QUrl(), QStringList(), true, tx);
-    sv->txtBrowser->setFocus(Qt::OtherFocusReason);
+    new CBrowserTab(this, QUrl(), QStringList(),tx);
 }
 
 void CMainWindow::clearClipboard()
@@ -867,7 +865,7 @@ void CMainWindow::openRecycled()
 
 void CMainWindow::openChromiumURLs()
 {
-    new CBrowserTab(this,QUrl(),QStringList(),true,CGenericFuncs::makeSpecialUrlsHtml());
+    new CBrowserTab(this,QUrl(),QStringList(),CGenericFuncs::makeSpecialUrlsHtml());
 }
 
 void CMainWindow::openPixivList()

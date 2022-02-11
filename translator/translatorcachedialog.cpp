@@ -88,8 +88,6 @@ void CTranslatorCacheDialog::tableItemActivated(QTableWidgetItem *item)
     const QString md5 = itm->data(Qt::UserRole).toString();
 
     const QString html = gSet->translatorCache()->cachedTranslatorResult(md5);
-    if (!html.isEmpty()) {
-        auto *snv = new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),true,html);
-        snv->setTranslationRestriction();
-    }
+    if (!html.isEmpty())
+        new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),html,true,false,false,false,true);
 }

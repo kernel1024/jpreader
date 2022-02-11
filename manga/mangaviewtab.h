@@ -16,7 +16,7 @@ public:
     explicit CMangaViewTab(CMainWindow *parent, bool setFocused = true);
     ~CMangaViewTab() override;
     void loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title,
-                        const QUrl &referer, bool isFanbox);
+                        const QUrl &referer, bool isFanbox, bool originalScale);
     void tabAcquiresFocus() override;
 
 private:
@@ -48,6 +48,7 @@ private:
     QStringList m_exportErrors;
     QUrl m_origin;
     bool m_aborted { false };
+    bool m_originalScale { false };
 
     void updateTabColor(bool loadFinished);
 };

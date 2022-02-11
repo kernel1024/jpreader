@@ -22,21 +22,18 @@ private:
 
 public:
     explicit CBrowserNet(CBrowserTab * parent);
-    static void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
-                                  const QString &containerName = QString(), bool isFanbox = false,
-                                  bool isPatreon = false);
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
-    bool loadWithTempFile(const QString & html, bool createNewTab, bool autoTranslate = false,
-                          bool alternateAutoTranslate = false);
     QUrl getLoadedUrl() const { return m_loadedUrl; }
 
 Q_SIGNALS:
     void startPdfConversion(const QString& filename);
 
 public Q_SLOTS:
-    void load(const QUrl & url);
-    void load(const QString & html, const QUrl& baseUrl = QUrl());
+    void load(const QUrl & url, bool autoTranslate, bool alternateAutoTranslate);
+    void load(const QString & html, const QUrl& baseUrl,
+              bool autoTranslate, bool alternateAutoTranslate,
+              bool onceTranslated);
     void authenticationRequired(const QUrl& requestUrl, QAuthenticator* authenticator);
     void proxyAuthenticationRequired(const QUrl & requestUrl, QAuthenticator * authenticator,
                                      const QString & proxyHost);
@@ -48,10 +45,6 @@ public Q_SLOTS:
     void extractHTMLFragment();
     void processExtractorAction();
     void processExtractorActionIndirect(const QVariantHash &params);
-    void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
-    void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
-                    bool useViewer, bool focus);
-
     void pdfConverted(const QString& html);
     void pdfError(const QString& message);
 

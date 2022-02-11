@@ -34,6 +34,7 @@ extern "C" {
 #include "utils/logdisplay.h"
 #include "utils/workermonitor.h"
 #include "search/xapianindexworker.h"
+#include "extractors/abstractextractor.h"
 
 #include "auxtranslator_adaptor.h"
 #include "browsercontroller_adaptor.h"
@@ -41,7 +42,7 @@ extern "C" {
 using namespace std::chrono_literals;
 
 namespace CDefaults {
-constexpr qint64 auxCacheSize = 250 * CDefaults::oneMB;
+constexpr qint64 auxCacheSize = 250L * CDefaults::oneMB;
 const auto ipcEOF = "\n###";
 const auto tabListSavePeriod = 30s;
 const auto dictionariesLoadingDelay = 2s;
@@ -490,6 +491,14 @@ bool CGlobalStartup::setupThreadedWorker(CAbstractThreadWorker *worker)
         if (mw)
             mw->displayStatusBarMessage(message);
     },Qt::QueuedConnection);
+
+    auto *ex = qobject_cast<CAbstractExtractor *>(worker);
+    if (ex) {
+        connect(ex,&CAbstractExtractor::novelReady,
+                gSet->downloadManager(),&CDownloadManager::novelReady,Qt::QueuedConnection);
+        connect(ex,&CAbstractExtractor::mangaReady,
+                gSet->downloadManager(),&CDownloadManager::mangaReady,Qt::QueuedConnection);
+    }
 
     m_g->d_func()->workerMonitor->workerStarted(worker);
 

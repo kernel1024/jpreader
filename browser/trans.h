@@ -17,7 +17,6 @@ private:
     QString m_storedSelection;
     QUrl m_savedBaseUrl;
     void findWordTranslation(const QString& text);
-    void openSeparateTranslationTab(const QString& html, const QUrl &baseUrl);
     void applyScripts();
 
 Q_SIGNALS:

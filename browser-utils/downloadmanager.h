@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QTimer>
 #include <QUuid>
+#include "global/structures.h"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
 #include <QWebEngineDownloadItem>
@@ -64,7 +65,7 @@ public:
 #else
     explicit CDownloadItem(QWebEngineDownloadRequest* item);
 #endif
-    CDownloadItem(QNetworkReply* rpl, const QString& fname, const qint64 offset);
+    CDownloadItem(QNetworkReply* rpl, const QString& fname, qint64 offset);
     explicit CDownloadItem(const QUuid &uuid);
     ~CDownloadItem() = default;
     CDownloadItem &operator=(const CDownloadItem& other) = default;
@@ -95,6 +96,9 @@ public:
     qint64 receivedBytes() const;
     void addReceivedBytes(qint64 size);
 
+    void multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl &referer,
+                           const QString &containerName, bool isFanbox, bool isPatreon);
+
 public Q_SLOTS:
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     void handleDownload(QWebEngineDownloadItem* item);
@@ -103,7 +107,9 @@ public Q_SLOTS:
 #endif
     void contextMenu(const QPoint& pos);
     void updateWriterStatus();
-
+    void novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate);
+    void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+                    bool useViewer, bool focus, bool originalScale);
 private Q_SLOTS:
     void headRequestFinished();
     void headRequestFailed(QNetworkReply::NetworkError error);
@@ -157,7 +163,7 @@ public:
     void deleteDownloadItem(const QModelIndex & index);
     void makeWriterJob(CDownloadItem &item) const;
     void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset,
-                                         const QUuid reuseExistingDownloadItem = QUuid());
+                                         const QUuid &reuseExistingDownloadItem = QUuid());
 
     void appendItem(const CDownloadItem& item);
     void auxDownloadProgress(qint64 bytesReceived, qint64 bytesTotal, QObject *source);

@@ -29,7 +29,7 @@ protected:
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
     void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin,
-                    bool useViewer, bool focus);
+                    bool useViewer, bool focus, bool originalScale);
 
 protected Q_SLOTS:
     void loadError(QNetworkReply::NetworkError error);

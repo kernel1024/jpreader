@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include "browser/browser.h"
 #include "browser/net.h"
+#include "browser-utils/downloadmanager.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"
 #include "global/startup.h"
@@ -75,11 +76,12 @@ CMangaViewTab::~CMangaViewTab()
 }
 
 void CMangaViewTab::loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title,
-                                   const QUrl &referer, bool isFanbox)
+                                   const QUrl &referer, bool isFanbox, bool originalScale)
 {
     ui->mangaView->loadMangaPages(pages,title,referer,isFanbox);
     m_mangaTitle = title;
     m_origin = referer;
+    m_originalScale = originalScale;
     updateTabTitle();
 }
 
@@ -207,7 +209,7 @@ void CMangaViewTab::exportError(const QString &msg)
 
 void CMangaViewTab::save()
 {
-    if (gSet->settings()->pixivMangaPageSize != CStructures::pxmpOriginal) {
+    if (!m_originalScale) {
         QVariantHash data;
         data.clear();
         data[QSL("type")] = QSL("pixivManga");
@@ -219,25 +221,6 @@ void CMangaViewTab::save()
             delete ex;
             return;
         }
-
-        connect(ex,&CAbstractExtractor::mangaReady,this,[this]
-                (const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
-                bool useViewer, bool focus){
-            Q_UNUSED(useViewer)
-            Q_UNUSED(focus)
-            // TODO: move this handler to something shared and global. Repeats 3 times over the code.
-
-            bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
-            bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
-
-            if (urls.isEmpty() || containerName.isEmpty()) {
-                QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
-                                     tr("Image urls not found or container name not detected."));
-            } else {
-                CBrowserNet::multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
-            }
-
-        },Qt::QueuedConnection);
 
         QMetaObject::invokeMethod(ex,&CAbstractExtractor::start,Qt::QueuedConnection);
         return;

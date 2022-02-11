@@ -36,17 +36,16 @@ class CBrowserTab : public CSpecTabContainer, public Ui::BrowserTab
     friend class CBrowserWaitCtl;
 
 private:
-    CBrowserCtxHandler *ctxHandler;
-    CBrowserMsgHandler *msgHandler;
-    CBrowserNet *netHandler;
-    CBrowserTrans *transHandler;
-    CBrowserWaitCtl *waitHandler;
+    CBrowserCtxHandler *m_ctxHandler;
+    CBrowserMsgHandler *m_msgHandler;
+    CBrowserNet *m_netHandler;
+    CBrowserTrans *m_transHandler;
+    CBrowserWaitCtl *m_waitHandler;
 
     QPixmap m_pageImage;
     QStringList m_searchList;
     QString m_translatedHtml;
     bool m_startPage;
-    bool m_fileChanged { false };
     bool m_translationBkgdFinished { false };
     bool m_loadingBkgdFinished { false };
     bool m_onceTranslated { false };
@@ -61,9 +60,9 @@ private:
 public:
     explicit CBrowserTab(QWidget* parent, const QUrl& aUri = QUrl(),
                          const QStringList& aSearchText = QStringList(),
-                         bool setFocused = true, const QString& AuxContent = QString(),
-                         const QString& zoom = QSL("100%"),
-                         bool startPage = false);
+                         const QString& AuxContent = QString(),
+                         bool setFocused = true, bool startPage = false, bool autoTranslate = false,
+                         bool alternateAutoTranslate = false, bool onceTranslated = false);
     virtual QString getDocTitle();
     void keyPressEvent(QKeyEvent* event) override;
     void updateButtonsState();
@@ -78,11 +77,9 @@ public:
     QPixmap pageImage() const { return m_pageImage; }
     bool isTranslationBkgdFinished() const { return m_translationBkgdFinished; }
     bool isLoadingBkgdFinished() const { return m_loadingBkgdFinished; }
-    void setRequestAutotranslate(bool requestAutotranslate);
-    void setRequestAlternateAutotranslate(bool requestAlternateAutotranslate);
-    void setTranslationRestriction();
     void sendInputToBrowser(const QString &text);
     void tabAcquiresFocus() override;
+    CBrowserNet *netHandler() const;
 
 public Q_SLOTS:
     void navByUrlDefault();

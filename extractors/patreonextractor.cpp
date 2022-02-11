@@ -84,6 +84,7 @@ void CPatreonExtractor::startMain()
 
         const QJsonArray jincluded = doc.object().value(QSL("post")).toObject().value(QSL("included")).toArray();
         int idx = 0;
+        urls.reserve(jincluded.count());
         for (const auto &jinc : jincluded) {
             const QString type = jinc.toObject().value(QSL("type")).toString().toLower();
 
@@ -139,7 +140,7 @@ void CPatreonExtractor::startMain()
         for (const auto& url : qAsConst(urls))
             res.append(url.second);
 
-        Q_EMIT mangaReady(res,title,m_origin,false,false);
+        Q_EMIT mangaReady(res,title,m_origin,false,false,true);
     }
 
     Q_EMIT finished();

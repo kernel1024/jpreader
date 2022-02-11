@@ -38,8 +38,9 @@ const int tabPreviewScreenshotDelay = 500;
 }
 
 CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& aSearchText,
-                         bool setFocused, const QString& AuxContent, const QString& zoom,
-                         bool startPage)
+                         const QString& AuxContent,
+                         bool setFocused, bool startPage, bool autoTranslate,
+                         bool alternateAutoTranslate, bool onceTranslated)
 
     : CSpecTabContainer(parent)
 {
@@ -59,11 +60,11 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     }
     bindToTab(parentWnd()->tabMain, setFocused);
 
-    netHandler = new CBrowserNet(this);
-    ctxHandler = new CBrowserCtxHandler(this);
-    transHandler = new CBrowserTrans(this);
-    msgHandler = new CBrowserMsgHandler(this);
-    waitHandler = new CBrowserWaitCtl(this);
+    m_netHandler = new CBrowserNet(this);
+    m_ctxHandler = new CBrowserCtxHandler(this);
+    m_transHandler = new CBrowserTrans(this);
+    m_msgHandler = new CBrowserMsgHandler(this);
+    m_waitHandler = new CBrowserWaitCtl(this);
 
     auto *completer = new QCompleter(this);
     completer->setModel(new CSpecUrlHistoryModel(completer));
@@ -71,45 +72,45 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     completer->setFilterMode(Qt::MatchContains);
     urlEdit->setCompleter(completer);
 
-    connect(backButton, &QPushButton::clicked, msgHandler, &CBrowserMsgHandler::searchBack);
-    connect(fwdButton, &QPushButton::clicked, msgHandler, &CBrowserMsgHandler::searchFwd);
+    connect(backButton, &QPushButton::clicked, m_msgHandler, &CBrowserMsgHandler::searchBack);
+    connect(fwdButton, &QPushButton::clicked, m_msgHandler, &CBrowserMsgHandler::searchFwd);
     connect(stopButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::stop);
     connect(urlEdit, &QLineEdit::returnPressed, this, &CBrowserTab::navByUrlDefault);
-    connect(navButton, &QPushButton::clicked, msgHandler, &CBrowserMsgHandler::navByClick);
+    connect(navButton, &QPushButton::clicked, m_msgHandler, &CBrowserMsgHandler::navByClick);
     connect(fwdNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::forward);
     connect(backNavButton, &QPushButton::clicked, txtBrowser, &QWebEngineView::back);
-    connect(comboZoom, &QComboBox::currentTextChanged, msgHandler, &CBrowserMsgHandler::setZoom);
+    connect(comboZoom, &QComboBox::currentTextChanged, m_msgHandler, &CBrowserMsgHandler::setZoom);
     connect(searchEdit->lineEdit(), &QLineEdit::returnPressed, fwdButton, &QPushButton::click);
     connect(passwordButton, &QPushButton::clicked, this, [this](){
         const QString loginRealm = gSet->browser()->cleanUrlForRealm(txtBrowser->page()->url()).toString();
-        msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
+        m_msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
     });
     connect(reloadButton, &QPushButton::clicked, txtBrowser, [this](){
         txtBrowser->pageAction(QWebEnginePage::ReloadAndBypassCache)->activate(QAction::Trigger);
     });
 
-    connect(txtBrowser, &QWebEngineView::loadProgress, netHandler, &CBrowserNet::progressLoad);
-    connect(txtBrowser, &QWebEngineView::loadFinished, netHandler, &CBrowserNet::loadFinished);
-    connect(txtBrowser, &QWebEngineView::loadStarted, netHandler, &CBrowserNet::loadStarted);
+    connect(txtBrowser, &QWebEngineView::loadProgress, m_netHandler, &CBrowserNet::progressLoad);
+    connect(txtBrowser, &QWebEngineView::loadFinished, m_netHandler, &CBrowserNet::loadFinished);
+    connect(txtBrowser, &QWebEngineView::loadStarted, m_netHandler, &CBrowserNet::loadStarted);
     connect(txtBrowser, &QWebEngineView::titleChanged, this, &CBrowserTab::titleChanged);
     connect(txtBrowser, &QWebEngineView::urlChanged, this, &CBrowserTab::urlChanged);
     connect(txtBrowser, &QWebEngineView::iconChanged, this, &CBrowserTab::updateTabIcon);
 
     connect(txtBrowser, &QWebEngineView::renderProcessTerminated,
-            msgHandler, &CBrowserMsgHandler::renderProcessTerminated);
+            m_msgHandler, &CBrowserMsgHandler::renderProcessTerminated);
 
     connect(txtBrowser->page(), &QWebEnginePage::authenticationRequired,
-            netHandler, &CBrowserNet::authenticationRequired);
+            m_netHandler, &CBrowserNet::authenticationRequired);
     connect(txtBrowser->page(), &QWebEnginePage::proxyAuthenticationRequired,
-            netHandler, &CBrowserNet::proxyAuthenticationRequired);
+            m_netHandler, &CBrowserNet::proxyAuthenticationRequired);
 
-    connect(msgHandler, &CBrowserMsgHandler::loadingBarHide, barLoading, &QProgressBar::hide);
-    connect(msgHandler, &CBrowserMsgHandler::loadingBarHide, barPlaceholder, &QFrame::show);
+    connect(m_msgHandler, &CBrowserMsgHandler::loadingBarHide, barLoading, &QProgressBar::hide);
+    connect(m_msgHandler, &CBrowserMsgHandler::loadingBarHide, barPlaceholder, &QFrame::show);
 
     connect(txtBrowser->page(), &QWebEnginePage::linkHovered,
-            msgHandler, &CBrowserMsgHandler::linkHovered);
+            m_msgHandler, &CBrowserMsgHandler::linkHovered);
     connect(txtBrowser->customPage(), &CSpecWebPage::linkClickedExt,
-            netHandler, &CBrowserNet::userNavigationRequest);
+            m_netHandler, &CBrowserNet::userNavigationRequest);
 
     backNavButton->setIcon(QIcon::fromTheme(QSL("go-previous")));
     fwdNavButton->setIcon(QIcon::fromTheme(QSL("go-next")));
@@ -129,19 +130,19 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
         comboTranEngine->setCurrentIndex(idx);
 
     connect(comboTranEngine, qOverload<int>(&QComboBox::currentIndexChanged),
-            msgHandler, &CBrowserMsgHandler::tranEngine);
+            m_msgHandler, &CBrowserMsgHandler::tranEngine);
     comboTranEngine->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(comboTranEngine, &QComboBox::customContextMenuRequested,
-            msgHandler, &CBrowserMsgHandler::languageContextMenu);
-    connect(gSet->ui(), &CGlobalUI::translationEngineChanged, msgHandler, &CBrowserMsgHandler::updateTranEngine);
+            m_msgHandler, &CBrowserMsgHandler::languageContextMenu);
+    connect(gSet->ui(), &CGlobalUI::translationEngineChanged, m_msgHandler, &CBrowserMsgHandler::updateTranEngine);
 
     QShortcut* sc = nullptr;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
-    connect(sc, &QShortcut::activated, msgHandler, &CBrowserMsgHandler::searchFocus);
+    connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
-    connect(sc, &QShortcut::activated, msgHandler, &CBrowserMsgHandler::searchFocus);
+    connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F12),this);
-    connect(sc, &QShortcut::activated, msgHandler, &CBrowserMsgHandler::showInspector);
+    connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::showInspector);
 
     waitPanel->hide();
     errorPanel->hide();
@@ -153,11 +154,12 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     splitter->setSizes(heights);
 
     if (AuxContent.isEmpty()) {
-        netHandler->load(aUri);
+        m_netHandler->load(aUri, autoTranslate, alternateAutoTranslate);
     } else {
-        netHandler->load(AuxContent);
+        m_netHandler->load(AuxContent, QUrl(), autoTranslate, alternateAutoTranslate, onceTranslated);
     }
 
+    const QString zoom = QSL("100%");
     idx = comboZoom->findText(zoom,Qt::MatchExactly);
     if (idx>=0) {
         comboZoom->setCurrentIndex(idx);
@@ -170,27 +172,12 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
               (urlEdit->fontMetrics().height()*100));
     completer->setMaxVisibleItems(mv);
 
-    ctxHandler->reconfigureDefaultActions();
+    m_ctxHandler->reconfigureDefaultActions();
 
     if (!startPage)
         parentWnd()->closeStartPage();
 
-    msgHandler->activateFocusDelay();
-}
-
-void CBrowserTab::setRequestAutotranslate(bool requestAutotranslate)
-{
-    m_requestAutotranslate = requestAutotranslate;
-}
-
-void CBrowserTab::setRequestAlternateAutotranslate(bool requestAlternateAutotranslate)
-{
-    m_requestAlternateAutotranslate = requestAlternateAutotranslate;
-}
-
-void CBrowserTab::setTranslationRestriction()
-{
-    m_onceTranslated = true;
+    m_msgHandler->activateFocusDelay();
 }
 
 void CBrowserTab::sendInputToBrowser(const QString &text)
@@ -200,6 +187,11 @@ void CBrowserTab::sendInputToBrowser(const QString &text)
 #else
     CGenericFuncs::sendKeyboardInputToView(QWebEngineView::forPage(txtBrowser->page()),text);
 #endif
+}
+
+CBrowserNet *CBrowserTab::netHandler() const
+{
+    return m_netHandler;
 }
 
 void CBrowserTab::updateTabColor(bool loadFinished, bool tranFinished)
@@ -224,7 +216,7 @@ void CBrowserTab::updateTabColor(bool loadFinished, bool tranFinished)
 
         } else if (tranFinished && !m_loadingBkgdFinished) {
             m_translationBkgdFinished=true;
-            if (m_fileChanged)
+            if (m_onceTranslated)
                 color = QColor(Qt::red);
         }
 
@@ -256,10 +248,7 @@ void CBrowserTab::navByUrlDefault()
 void CBrowserTab::navByUrl(const QUrl& url)
 {
     urlEdit->setStyleSheet(QString());
-
-    m_fileChanged=false;
-
-    netHandler->load(url);
+    m_netHandler->load(url,false,false);
 }
 
 void CBrowserTab::navByUrl(const QString& url)
@@ -326,16 +315,16 @@ void CBrowserTab::urlChanged(const QUrl & url)
                 url.scheme().startsWith(CMagicFileSchemeHandler::getScheme(),Qt::CaseInsensitive)) {
             urlEdit->setText(aUrl.toString());
 
-        } else if (netHandler->isValidLoadedUrl()) {
-            urlEdit->setText(netHandler->getLoadedUrl().toString());
+        } else if (m_netHandler->isValidLoadedUrl()) {
+            urlEdit->setText(m_netHandler->getLoadedUrl().toString());
 
         } else {
             urlEdit->clear();
         }
     }
 
-    if (m_fileChanged) {
-        urlEdit->setToolTip(tr("File changed. Temporary copy loaded in memory."));
+    if (m_onceTranslated) {
+        urlEdit->setToolTip(tr("File translated."));
         urlEdit->setStyleSheet(QSL("QLineEdit { background: #d7ffd7; }"));
     } else {
         urlEdit->setToolTip(tr("Displayed URL"));
@@ -416,10 +405,10 @@ void CBrowserTab::keyPressEvent(QKeyEvent *event)
         closeTab();
 
     } else if (event->key()==Qt::Key_F3) {
-        msgHandler->searchFwd();
+        m_msgHandler->searchFwd();
 
     } else if (event->key()==Qt::Key_F2) {
-        msgHandler->searchBack();
+        m_msgHandler->searchBack();
 
     } else {
         QWidget::keyPressEvent(event);
@@ -471,7 +460,7 @@ void CBrowserTab::takeScreenshot()
 
 void CBrowserTab::save()
 {
-    ctxHandler->saveToFile();
+    m_ctxHandler->saveToFile();
 }
 
 void CBrowserTab::tabAcquiresFocus()

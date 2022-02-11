@@ -161,6 +161,6 @@ void CDeviantartExtractor::finalizeGallery()
     if (!m_folderName.isEmpty())
         folder.append(QSL(" - %1").arg(m_folderName));
 
-    Q_EMIT mangaReady(imageUrls,folder,origin,false,false);
+    Q_EMIT mangaReady(imageUrls,folder,origin,false,false,true);
     Q_EMIT finished();
 }

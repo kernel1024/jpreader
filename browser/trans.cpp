@@ -13,6 +13,7 @@
 #include "utils/genericfuncs.h"
 #include "utils/htmlparser.h"
 #include "browser-utils/userscript.h"
+#include "browser-utils/downloadmanager.h"
 #include "miniqxt/qxttooltip.h"
 
 namespace CDefaults {
@@ -127,7 +128,7 @@ void CBrowserTrans::getUrlsFromPageAndParse()
             }
             urls.append(qMakePair(u.toString(),QString()));
         }
-        CBrowserNet::multiFileDownload(urls, baseUrl);
+        gSet->downloadManager()->multiFileDownload(urls, baseUrl, baseUrl.fileName(), false, false);
     });
 }
 
@@ -135,18 +136,18 @@ void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &titl
 {
     snv->m_translatedHtml.clear();
     snv->m_onceTranslated=true;
-    snv->waitHandler->setProgressValue(0);
+    snv->m_waitHandler->setProgressValue(0);
     snv->waitPanel->show();
     snv->transButton->setEnabled(false);
-    snv->waitHandler->setProgressEnabled(true);
+    snv->m_waitHandler->setProgressEnabled(true);
 
     CStructures::TranslationEngine engine = gSet->settings()->translatorEngine;
     if (snv->m_requestAlternateAutotranslate)
         engine = gSet->settings()->previousTranslatorEngine;
     CLangPair lp(gSet->settings()->getSelectedLangPair(engine));
 
-    snv->waitHandler->setLanguage(lp.toLongString());
-    snv->waitHandler->setText(tr("Translating text with %1")
+    snv->m_waitHandler->setLanguage(lp.toLongString());
+    snv->m_waitHandler->setText(tr("Translating text with %1")
                               .arg(CStructures::translationEngines().value(engine)));
 
     auto *ct = new CTranslator(nullptr,sourceHtml,title,origin,engine,lp);
@@ -160,7 +161,7 @@ void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &titl
     connect(snv->abortBtn,&QPushButton::clicked,
             ct,&CAbstractThreadWorker::abort,Qt::QueuedConnection);
     connect(ct,&CTranslator::setProgress,
-            snv->waitHandler,&CBrowserWaitCtl::setProgressValue,Qt::QueuedConnection);
+            snv->m_waitHandler,&CBrowserWaitCtl::setProgressValue,Qt::QueuedConnection);
 
     QMetaObject::invokeMethod(ct,&CAbstractThreadWorker::start,Qt::QueuedConnection);
 }
@@ -203,15 +204,7 @@ void CBrowserTrans::postTranslate()
     }
 
     QString cn = snv->m_translatedHtml;
-    if (cn.toUtf8().size()<CDefaults::maxDataUrlFileSize) { // chromium dataurl 2Mb limitation, QTBUG-53414
-        snv->m_fileChanged = true;
-        snv->m_onceTranslated = true;
-        snv->txtBrowser->setHtmlInterlocked(cn,m_savedBaseUrl);
-        if (snv->tabWidget()->currentWidget()==snv) snv->txtBrowser->setFocus();
-        snv->urlChanged(snv->netHandler->getLoadedUrl());
-    } else
-        openSeparateTranslationTab(cn, m_savedBaseUrl);
-
+    snv->m_netHandler->load(cn,m_savedBaseUrl,false,false,true);
     snv->updateTabColor(false,true);
 }
 
@@ -265,17 +258,6 @@ void CBrowserTrans::findWordTranslation(const QString &text)
     th->start();
 }
 
-void CBrowserTrans::openSeparateTranslationTab(const QString &html, const QUrl& baseUrl)
-{
-    QString dst;
-
-    CHTMLNode doc = CHTMLParser::parseHTML(html);
-    CHTMLParser::replaceLocalHrefs(doc, baseUrl);
-    CHTMLParser::generateHTML(doc,dst);
-
-    snv->netHandler->loadWithTempFile(dst, true);
-}
-
 void CBrowserTrans::selectionShow()
 {
     if (m_storedSelection.isEmpty()) return;
@@ -287,7 +269,7 @@ void CBrowserTrans::showWordTranslation(const QString &html)
 {
     const QSize maxTranslationTooltipSize(350,350);
 
-    if (snv->ctxHandler->isMenuActive()) return;
+    if (snv->m_ctxHandler->isMenuActive()) return;
     auto *t = new QLabel(html);
     t->setOpenExternalLinks(false);
     t->setTextInteractionFlags(Qt::LinksAccessibleByMouse | Qt::TextSelectableByMouse);
@@ -295,7 +277,7 @@ void CBrowserTrans::showWordTranslation(const QString &html)
     t->setStyleSheet(QSL("QLabel { background: #fefdeb; }"));
 
     connect(t,&QLabel::linkActivated,this,&CBrowserTrans::showSuggestedTranslation);
-    connect(snv->ctxHandler,&CBrowserCtxHandler::hideTooltips,t,&QLabel::close);
+    connect(snv->m_ctxHandler,&CBrowserCtxHandler::hideTooltips,t,&QLabel::close);
 
     QxtToolTip::show(QCursor::pos(),t,snv,QRect(),true,true);
 }

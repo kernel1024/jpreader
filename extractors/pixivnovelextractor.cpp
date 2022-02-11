@@ -196,11 +196,12 @@ void CPixivNovelExtractor::subLoadFinished()
         m_redirectCounter.remove(key);
 
         QString illustID;
-        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID);
+        bool originalScale = true;
+        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID,&originalScale);
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
-            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin,m_useMangaViewer,m_focus);
+            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin,m_useMangaViewer,m_focus,originalScale);
             Q_EMIT finished();
             return;
         }
@@ -387,7 +388,8 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs, const CStringHa
     }
 }
 
-QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin, QString* illustID)
+QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin,
+                                                                QString* illustID, bool* mangaOriginalScale)
 {
     QVector<CUrlWithName> res;
     QJsonDocument doc;
@@ -431,19 +433,27 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
         pageCount = qRound(obj.value(QSL("pageCount")).toDouble(-1.0));
 
         QString pageUrlSelector = QSL("original");
+        if (mangaOriginalScale != nullptr)
+            (*mangaOriginalScale) = true;
         if (m_useMangaViewer) {
             switch (gSet->settings()->pixivMangaPageSize) {
                 case CStructures::PixivMangaPageSize::pxmpOriginal:
                     pageUrlSelector = QSL("original");
                     szSelector.clear();
+                    if (mangaOriginalScale != nullptr)
+                        (*mangaOriginalScale) = true;
                     break;
                 case CStructures::PixivMangaPageSize::pxmpRegular:
                     pageUrlSelector = QSL("regular");
                     szSelector = QSL("_master1200");
+                    if (mangaOriginalScale != nullptr)
+                        (*mangaOriginalScale) = false;
                     break;
                 case CStructures::PixivMangaPageSize::pxmpSmall:
                     pageUrlSelector = QSL("small");
                     szSelector = QSL("_master1200");
+                    if (mangaOriginalScale != nullptr)
+                        (*mangaOriginalScale) = false;
                     break;
             }
         }

@@ -345,8 +345,8 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     if (parentViewer==nullptr) return nullptr;
 
-    auto *sv = new CBrowserTab(parentViewer->parentWnd(),QUrl(),QStringList(),
-                                            (type!=QWebEnginePage::WebBrowserBackgroundTab));
+    auto *sv = new CBrowserTab(parentViewer->parentWnd(),QUrl(),QStringList(),QString(),
+                               (type!=QWebEnginePage::WebBrowserBackgroundTab));
     return sv->txtBrowser;
 }
 

@@ -92,12 +92,12 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Open in new background tab"));
             connect(ac, &QAction::triggered, this, [nUrl,this]() {
-                new CBrowserTab(snv->parentWnd(),nUrl,QStringList(),false);
+                new CBrowserTab(snv->parentWnd(),nUrl,QStringList(),QString(),false);
             });
             ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Open in new tab"));
             connect(ac, &QAction::triggered, this, [nUrl,this]() {
-                new CBrowserTab(snv->parentWnd(),nUrl,QStringList());
+                new CBrowserTab(snv->parentWnd(),nUrl);
             });
         } else {
             m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::OpenLinkInNewBackgroundTab));
@@ -107,8 +107,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new")),
                          tr("Translate in new background tab"));
         connect(ac, &QAction::triggered, this, [linkUrl,this]() {
-            auto *sn = new CBrowserTab(snv->parentWnd(),linkUrl,QStringList(),false);
-            sn->setRequestAutotranslate(true);
+            new CBrowserTab(snv->parentWnd(),linkUrl,QStringList(),QString(),false,false,true);
         });
 
         m_menu.addAction(snv->txtBrowser->pageAction(QWebEnginePage::CopyLinkToClipboard));
@@ -130,7 +129,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 
     QString title = snv->txtBrowser->page()->title();
     QUrl pageUrl;
-    if (!snv->m_fileChanged)
+    if (!snv->m_onceTranslated)
         pageUrl = QUrl::fromUserInput(snv->urlEdit->text());
     if (linkUrl.isValid()) {
         pageUrl = linkUrl;
@@ -145,11 +144,11 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
                 snv->txtBrowser->page()->toHtml([this,params](const QString& html){
                     QVariantHash pl = params;
                     pl.insert(QSL("html"),html);
-                    snv->netHandler->processExtractorActionIndirect(pl);
+                    snv->m_netHandler->processExtractorActionIndirect(pl);
                 });
             });
         } else {
-            connect(eac,&QAction::triggered,snv->netHandler,&CBrowserNet::processExtractorAction);
+            connect(eac,&QAction::triggered,snv->m_netHandler,&CBrowserNet::processExtractorAction);
         }
     }
     m_menu.addActions(extractorsList);
@@ -168,7 +167,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             QString s = sText;
             s = s.replace(u'\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
-            new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),true,s);
+            new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),s);
         });
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-new-background")),
@@ -177,15 +176,14 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             QString s = sText;
             s = s.replace(u'\n',QSL("<br/>"));
             s = CGenericFuncs::makeSimpleHtml(tr("Text, %1 length").arg(s.length()),s);
-            auto *sn = new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),true,s);
-            sn->setRequestAutotranslate(true);
+            new CBrowserTab(snv->parentWnd(),QUrl(),QStringList(),s,true,false,true);
         });
 
         m_menu.addSeparator();
 
         ac = m_menu.addAction(QIcon::fromTheme(QSL("document-edit")),
                          tr("Extract HTML via clipboard to separate tab"));
-        connect(ac, &QAction::triggered, snv->netHandler, &CBrowserNet::extractHTMLFragment);
+        connect(ac, &QAction::triggered, snv->m_netHandler, &CBrowserNet::extractHTMLFragment);
 
         QStringList searchNames = gSet->net()->getSearchEngines();
         if (!searchNames.isEmpty()) {
@@ -253,7 +251,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Open in new background tab"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
-                new CBrowserTab(snv->parentWnd(),selectedUrl,QStringList(),false);
+                new CBrowserTab(snv->parentWnd(),selectedUrl,QStringList(),QString(),false);
             });
 
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
@@ -265,8 +263,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             ac = icm->addAction(QIcon::fromTheme(QSL("tab-new")),
                              tr("Translate in new background tab"));
             connect(ac, &QAction::triggered, this, [selectedUrl,this]() {
-                auto *sn = new CBrowserTab(snv->parentWnd(),selectedUrl,QStringList(),false);
-                sn->setRequestAutotranslate(true);
+                new CBrowserTab(snv->parentWnd(),selectedUrl,QStringList(),QString(),false,false,true);
             });
         }
 
@@ -293,21 +290,16 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
     ac = m_menu.addAction(QIcon::fromTheme(QSL("tab-duplicate")),
                      tr("Duplicate tab"));
     connect(ac, &QAction::triggered, this, [this](){
-        QString url(QSL("about://blank"));
-        if (!snv->m_fileChanged) url=snv->urlEdit->text();
-
-        auto *sv = new CBrowserTab(snv->parentWnd(), url);
-
-        if (snv->m_fileChanged || url.isEmpty()) {
-            snv->txtBrowser->page()->toHtml([sv,this](const QString& html) {
+        QUrl url = QUrl::fromUserInput(snv->urlEdit->text());
+        if (snv->m_onceTranslated || url.isEmpty() || !url.isValid()) {
+            snv->txtBrowser->page()->toHtml([this](const QString& html) {
                 if (!html.isEmpty()) {
-                    if (html.toUtf8().size()<CDefaults::maxDataUrlFileSize) {
-                        sv->txtBrowser->setHtmlInterlocked(html,snv->txtBrowser->page()->url());
-                    } else {
-                        sv->netHandler->loadWithTempFile(html,false);
-                    }
+                    new CBrowserTab(snv->parentWnd(), QUrl(), QStringList(), html, true, false, false, false,
+                                    snv->m_onceTranslated);
                 }
             });
+        } else {
+            new CBrowserTab(snv->parentWnd(), url);
         }
     });
 
@@ -375,15 +367,15 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
         ac = ccm->addAction(QIcon::fromTheme(QSL("tools-wizard")),
                             tr("Insert username and password"));
         connect(ac,&QAction::triggered,this,[this,loginRealm](){
-            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
+            snv->m_msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmBoth);
         });
         ac = ccm->addAction(tr("Insert username"));
         connect(ac,&QAction::triggered,this,[this,loginRealm](){
-            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmUsername);
+            snv->m_msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmUsername);
         });
         ac = ccm->addAction(tr("Insert password"));
         connect(ac,&QAction::triggered,this,[this,loginRealm](){
-            snv->msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmPassword);
+            snv->m_msgHandler->pastePassword(loginRealm,CBrowserMsgHandler::plmPassword);
         });
         ccm->addSeparator();
         ac = ccm->addAction(QIcon::fromTheme(QSL("edit-delete")),
@@ -408,7 +400,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
 
     ac = ccm->addAction(tr("Inspect page"));
     ac->setShortcut(QKeySequence(Qt::Key_F12));
-    connect(ac, &QAction::triggered, snv->msgHandler, &CBrowserMsgHandler::showInspector);
+    connect(ac, &QAction::triggered, snv->m_msgHandler, &CBrowserMsgHandler::showInspector);
 
     ccm->addSeparator();
     ccm->addAction(QIcon::fromTheme(QSL("documentation")),tr("Show in editor"),
@@ -437,16 +429,16 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
     ccm->addSeparator();
 
     ac = ccm->addAction(QIcon::fromTheme(QSL("download-later")),tr("Download all images"),
-                        snv->transHandler,&CBrowserTrans::getUrlsFromPageAndParse);
+                        snv->m_transHandler,&CBrowserTrans::getUrlsFromPageAndParse);
     ac->setData(static_cast<int>(CBrowserTrans::UrlsExtractorMode::uemImages));
     ac = ccm->addAction(QIcon::fromTheme(QSL("download")),tr("Download all links"),
-                        snv->transHandler,&CBrowserTrans::getUrlsFromPageAndParse);
+                        snv->m_transHandler,&CBrowserTrans::getUrlsFromPageAndParse);
     ac->setData(static_cast<int>(CBrowserTrans::UrlsExtractorMode::uemAllFiles));
 
     ccm->addSeparator();
 
     ccm->addAction(QIcon::fromTheme(QSL("document-edit-decrypt")),tr("Parse document"),
-                   snv->transHandler,&CBrowserTrans::reparseDocument);
+                   snv->m_transHandler,&CBrowserTrans::reparseDocument);
     ccm->addSeparator();
     ccm->addAction(snv->parentWnd()->actionFullscreen);
     ccm->addAction(QIcon::fromTheme(QSL("dialog-close")),tr("Close tab"),

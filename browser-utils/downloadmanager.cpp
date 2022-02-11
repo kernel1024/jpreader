@@ -8,13 +8,17 @@
 #include <QDebug>
 #include "downloadmanager.h"
 #include "downloadwriter.h"
+#include "extractors/fanboxextractor.h"
+#include "extractors/patreonextractor.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"
 #include "global/startup.h"
 #include "global/ui.h"
 #include "global/network.h"
 #include "browser/browser.h"
+#include "manga/mangaviewtab.h"
 #include "ui_downloadmanager.h"
+#include "ui_downloadlistdlg.h"
 
 namespace CDefaults {
 const char zipSeparator = 0x00;
@@ -157,7 +161,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 }
 
 void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
-                                                     qint64 offset, const QUuid reuseExistingDownloadItem)
+                                                     qint64 offset, const QUuid &reuseExistingDownloadItem)
 {
     int row = -1;
     if (!reuseExistingDownloadItem.isNull()) {
@@ -439,6 +443,131 @@ void CDownloadManager::hideEvent(QHideEvent *event)
 {
     Q_UNUSED(event)
     m_writerStatusTimer.stop();
+}
+
+void CDownloadManager::multiFileDownload(const QVector<CUrlWithName> &urls, const QUrl& referer,
+                                         const QString& containerName, bool isFanbox, bool isPatreon)
+{
+    static QSize multiImgDialogSize = QSize();
+
+    QDialog dlg(gSet->activeWindow());
+    Ui::DownloadListDlg ui;
+    ui.setupUi(&dlg);
+    if (multiImgDialogSize.isValid())
+        dlg.resize(multiImgDialogSize);
+
+    connect(ui.filter,&QLineEdit::textEdited,[ui](const QString& text){
+        if (text.isEmpty()) {
+            for (int i=0;i<ui.table->rowCount();i++) {
+                if (ui.table->isRowHidden(i))
+                    ui.table->showRow(i);
+            }
+            return;
+        }
+
+        for (int i=0;i<ui.table->rowCount();i++) {
+            ui.table->hideRow(i);
+        }
+        const QList<QTableWidgetItem *> filtered
+                = ui.table->findItems(text,
+                                      ((ui.syntax->currentIndex()==0) ?
+                                           Qt::MatchRegularExpression : Qt::MatchWildcard));
+        for (auto *item : filtered) {
+            ui.table->showRow(item->row());
+        }
+    });
+
+    ui.label->setText(tr("%1 downloadable URLs detected.").arg(urls.count()));
+    ui.syntax->setCurrentIndex(0);
+    ui.checkAddNumbers->setChecked(isFanbox || isPatreon);
+
+    ui.table->setColumnCount(2);
+    ui.table->setHorizontalHeaderLabels({ tr("File name"), tr("URL") });
+    int row = 0;
+    int rejected = 0;
+    for (const auto& url : urls) {
+        const QUrl u(url.first);
+        if (!u.isValid() || u.isRelative()) {
+            rejected++;
+            continue;
+        }
+
+        QString s = url.second;
+        if (s.isEmpty())
+            s = CGenericFuncs::decodeHtmlEntities(u.fileName());
+
+        ui.table->setRowCount(row+1);
+        ui.table->setItem(row,0,new QTableWidgetItem(s));
+        ui.table->setItem(row,1,new QTableWidgetItem(url.first));
+
+        row++;
+    }
+    ui.table->resizeColumnsToContents();
+
+    if (rejected>0)
+        ui.label->setText(QSL("%1. %2 incorrect URLs.").arg(ui.label->text()).arg(rejected));
+
+    dlg.setWindowTitle(tr("Multiple images download"));
+    if (!containerName.isEmpty())
+        ui.table->selectAll();
+
+    if (dlg.exec()==QDialog::Rejected) return;
+    multiImgDialogSize=dlg.size();
+
+    QString container;
+    if (ui.checkZipFile->isChecked()) {
+        QString fname = containerName;
+        if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
+            fname += QSL(".zip");
+        container = CGenericFuncs::getSaveFileNameD(gSet->activeWindow(),
+                                                    tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+                                                    QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
+    } else {
+        container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save images to directory"),
+                                                         CGenericFuncs::getTmpDir(),
+                                                         QFileDialog::ShowDirsOnly,containerName);
+    }
+    if (container.isEmpty()) return;
+
+    int index = 0;
+    const QModelIndexList itml = ui.table->selectionModel()->selectedRows(0);
+    bool forceOverwrite = false;
+    for (const auto &itm : itml){
+        if (!ui.checkAddNumbers->isChecked()) {
+            index = -1;
+        } else {
+            index++;
+        }
+
+        QString filename = ui.table->item(itm.row(),0)->text();
+        QString url = ui.table->item(itm.row(),1)->text();
+
+        handleAuxDownload(url,filename,container,referer,index,
+                          itml.count(),isFanbox,isPatreon,forceOverwrite);
+    }
+}
+
+void CDownloadManager::novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate)
+{
+    new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),html,focus,false,
+                    translate,alternateTranslate);
+}
+
+void CDownloadManager::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+                                  bool useViewer, bool focus, bool originalScale)
+{
+    bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
+    bool isPatreon = (qobject_cast<CPatreonExtractor *>(sender()) != nullptr);
+
+    if (urls.isEmpty() || containerName.isEmpty()) {
+        QMessageBox::warning(gSet->activeWindow(),QGuiApplication::applicationDisplayName(),
+                             tr("Image urls not found or container name not detected."));
+    } else if (useViewer) {
+        auto *mv = new CMangaViewTab(gSet->activeWindow(),focus);
+        mv->loadMangaPages(urls,containerName,origin,isFanbox,originalScale);
+    } else {
+        multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
+    }
 }
 
 void CDownloadsModel::updateProgressLabel()
