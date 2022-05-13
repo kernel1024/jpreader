@@ -197,6 +197,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teGoogleCloud: ui->radioGoogleCloud->setChecked(true); break;
         case CStructures::teAliCloud: ui->radioAliCloud->setChecked(true); break;
         case CStructures::teDeeplFree: ui->radioDeeplFree->setChecked(true); break;
+        case CStructures::tePromtOneFree: ui->radioPromtOneFree->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -479,6 +480,11 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         if (val)
             gSet->m_net->setTranslationEngine(CStructures::teDeeplFree);
+    });
+    connect(ui->radioPromtOneFree,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->m_net->setTranslationEngine(CStructures::tePromtOneFree);
     });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::editingFinished,this,[this](){

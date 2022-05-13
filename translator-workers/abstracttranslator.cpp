@@ -10,6 +10,7 @@
 #include "googlecloudtranslator.h"
 #include "alicloudtranslator.h"
 #include "deeplfreetranslator.h"
+#include "promtonefreetranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -156,6 +157,9 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
     }
     if (engine==CStructures::teDeeplFree) {
         res = new CDeeplFreeTranslator(parent, tranDirection);
+    }
+    if (engine==CStructures::tePromtOneFree) {
+        res = new CPromtOneFreeTranslator(parent, tranDirection);
     }
 
     return res;

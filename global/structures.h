@@ -25,7 +25,8 @@ enum TranslationEngine {
     teYandexCloud = 6,
     teGoogleCloud = 7,
     teAliCloud = 8,
-    teDeeplFree = 9
+    teDeeplFree = 9,
+    tePromtOneFree = 10
 };
 Q_ENUM_NS(TranslationEngine)
 

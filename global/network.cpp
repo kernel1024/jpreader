@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QAbstractNetworkCache>
 #include <QMetaEnum>
+#include <QWebEngineCookieStore>
 
 #include "network.h"
 #include "control.h"
@@ -19,12 +20,17 @@ void CGlobalNetwork::cookieAdded(const QNetworkCookie &cookie)
 {
     if (gSet->d_func()->auxNetManager->cookieJar())
         gSet->d_func()->auxNetManager->cookieJar()->insertCookie(cookie);
+    if (gSet->d_func()->domWorkerProfile)
+        gSet->d_func()->domWorkerProfile->cookieStore()->setCookie(cookie);
+
 }
 
 void CGlobalNetwork::cookieRemoved(const QNetworkCookie &cookie)
 {
     if (gSet->d_func()->auxNetManager->cookieJar())
         gSet->d_func()->auxNetManager->cookieJar()->deleteCookie(cookie);
+    if (gSet->d_func()->domWorkerProfile)
+        gSet->d_func()->domWorkerProfile->cookieStore()->deleteCookie(cookie);
 }
 
 bool CGlobalNetwork::sslCertErrors(const QSslCertificate &cert, const QStringList &errors,

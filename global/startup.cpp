@@ -165,6 +165,9 @@ void CGlobalStartup::initialize()
             gSet->m_settings->debugNetReqLogging = checked;
         });
 
+        m_g->d_func()->domWorkerProfile = new QWebEngineProfile(this);
+        m_g->d_func()->domWorkerProfile->setHttpUserAgent(QString::fromUtf8(CDefaults::domWorkerUserAgent));
+
         m_g->d_func()->webProfile = new QWebEngineProfile(QSL("jpreader"),this);
 
         m_g->d_func()->webProfile->setCachePath(fcache);
@@ -189,9 +192,6 @@ void CGlobalStartup::initialize()
 
         m_g->d_func()->webProfile->installUrlSchemeHandler(CMagicFileSchemeHandler::getScheme().toUtf8(),
                                                            new CMagicFileSchemeHandler(this));
-
-        m_g->d_func()->domWorkerProfile = new QWebEngineProfile(this);
-        m_g->d_func()->domWorkerProfile->setHttpUserAgent(QString::fromUtf8(CDefaults::domWorkerUserAgent));
 
         m_g->d_func()->translatorCache = new CTranslatorCache(this);
         m_g->d_func()->translatorCache->setCachePath(tcache);
