@@ -11,6 +11,7 @@
 #include "alicloudtranslator.h"
 #include "deeplfreetranslator.h"
 #include "promtonefreetranslator.h"
+#include "promtnmttranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -160,6 +161,10 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
     }
     if (engine==CStructures::tePromtOneFree) {
         res = new CPromtOneFreeTranslator(parent, tranDirection);
+    }
+    if (engine==CStructures::tePromtNmtAPI) {
+        res = new CPromtNmtTranslator(parent, tranDirection, gSet->settings()->promtNmtServer,
+                                      gSet->settings()->promtNmtAPIKey);
     }
 
     return res;

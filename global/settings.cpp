@@ -185,6 +185,9 @@ void CSettings::writeSettings()
     settings.setValue(QSL("aliAccessKeyID"),aliAccessKeyID);
     settings.setValue(QSL("aliAccessKeySecret"),aliAccessKeySecret);
     settings.setValue(QSL("aliCloudTranslatorMode"),static_cast<int>(aliCloudTranslatorMode));
+    settings.setValue(QSL("promtNmtAPIKey"),promtNmtAPIKey);
+    settings.setValue(QSL("promtNmtServer"),promtNmtServer);
+
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
     settings.setValue(QSL("userAgent"),userAgent);
@@ -494,6 +497,8 @@ void CSettings::readSettings(QObject *control)
     aliAccessKeySecret = settings.value(QSL("aliAccessKeySecret"),QString()).toString();
     aliCloudTranslatorMode = static_cast<CStructures::AliCloudTranslatorMode>(
                                  settings.value(QSL("aliCloudTranslatorMode"),0).toInt());
+    promtNmtAPIKey = settings.value(QSL("promtNmtAPIKey"),QString()).toString();
+    promtNmtServer = settings.value(QSL("promtNmtServer"),CDefaults::promtNmtServer).toString();
 
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     downloaderCleanCompleted = settings.value(QSL("downloaderCleanCompleted"),

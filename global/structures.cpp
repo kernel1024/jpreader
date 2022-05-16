@@ -175,7 +175,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teGoogleCloud, QSL("Google Cloud") },
         { teAliCloud, QSL("Alibaba Cloud") },
         { teDeeplFree, QSL("DeepL Free") },
-        { tePromtOneFree, QSL("PROMT One Free") }
+        { tePromtOneFree, QSL("PROMT One Free") },
+        { tePromtNmtAPI, QSL("PROMT NMT Cloud") }
     };
 
     return engines;
@@ -193,7 +194,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teGoogleCloud, QSL("gcp") },
         { teAliCloud, QSL("alicloud") },
         { teDeeplFree, QSL("deepl-free") },
-        { tePromtOneFree, QSL("promt-free") }
+        { tePromtOneFree, QSL("promt-free") },
+        { tePromtNmtAPI, QSL("promt-nmt") }
     };
 
     return engines;

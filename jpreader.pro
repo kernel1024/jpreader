@@ -28,6 +28,7 @@ HEADERS = mainwindow.h \
     translator-workers/awstranslator.h \
     translator-workers/atlastranslator.h \
     translator-workers/deeplfreetranslator.h \
+    translator-workers/promtnmttranslator.h \
     translator-workers/promtonefreetranslator.h \
     translator-workers/yandexcloudtranslator.h \
     translator-workers/yandextranslator.h \
@@ -118,6 +119,7 @@ SOURCES = main.cpp \
     translator-workers/abstracttranslator.cpp \
     translator-workers/bingtranslator.cpp \
     translator-workers/deeplfreetranslator.cpp \
+    translator-workers/promtnmttranslator.cpp \
     translator-workers/promtonefreetranslator.cpp \
     translator-workers/yandexcloudtranslator.cpp \
     translator-workers/yandextranslator.cpp \

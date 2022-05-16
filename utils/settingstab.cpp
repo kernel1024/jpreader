@@ -198,6 +198,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teAliCloud: ui->radioAliCloud->setChecked(true); break;
         case CStructures::teDeeplFree: ui->radioDeeplFree->setChecked(true); break;
         case CStructures::tePromtOneFree: ui->radioPromtOneFree->setChecked(true); break;
+        case CStructures::tePromtNmtAPI: ui->radioPromtNmtAPI->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -223,6 +224,8 @@ void CSettingsTab::loadFromGlobal()
     ui->editGcpJsonKey->setText(gSet->m_settings->gcpJsonKeyFile);
     ui->editAliAccessKeyID->setText(gSet->m_settings->aliAccessKeyID);
     ui->editAliAccessKeySecret->setText(gSet->m_settings->aliAccessKeySecret);
+    ui->editPromtNmtAPIKey->setText(gSet->m_settings->promtNmtAPIKey);
+    ui->editPromtNmtServer->setText(gSet->m_settings->promtNmtServer);
 
     idx = ui->comboAliMode->findData(static_cast<int>(gSet->m_settings->aliCloudTranslatorMode));
     if (idx<0 || idx>=ui->comboAliMode->count())
@@ -486,6 +489,11 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->m_net->setTranslationEngine(CStructures::tePromtOneFree);
     });
+    connect(ui->radioPromtNmtAPI,&QRadioButton::toggled,this,[this](bool val){
+        if (m_loadingInterlock) return;
+        if (val)
+            gSet->m_net->setTranslationEngine(CStructures::tePromtNmtAPI);
+    });
 
     connect(ui->atlHost->lineEdit(),&QLineEdit::editingFinished,this,[this](){
         if (m_loadingInterlock) return;
@@ -564,6 +572,14 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->aliCloudTranslatorMode = static_cast<CStructures::AliCloudTranslatorMode>
                                                    (ui->comboAliMode->currentData().toInt());
+    });
+    connect(ui->editPromtNmtAPIKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->promtNmtAPIKey=val;
+    });
+    connect(ui->editPromtNmtServer,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->promtNmtServer=val;
     });
 
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){

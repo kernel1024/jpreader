@@ -79,6 +79,7 @@ const auto fontSansSerif = "Verdana";
 const auto sysBrowser = "konqueror";
 const auto sysEditor = "kwrite";
 const auto propXapianInotifyTimer = "inotify";
+const auto promtNmtServer = "https://pts.promt.ru/pts";
 }
 
 class CGlobalControl;
@@ -118,6 +119,8 @@ public:
     QString gcpJsonKeyFile;
     QString aliAccessKeyID;
     QString aliAccessKeySecret;
+    QString promtNmtAPIKey;
+    QString promtNmtServer;
 
     QString xapianStemmerLang;
 
