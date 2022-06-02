@@ -127,6 +127,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("maxHistory"),maxHistory);
     settings.setValue(QSL("maxRecent"),maxRecent);
     settings.setValue(QSL("maxAdblockWhiteList"),maxAdblockWhiteList);
+    settings.setValue(QSL("downloadsLimit"),downloadsLimit);
     settings.setValue(QSL("browser"),sysBrowser);
     settings.setValue(QSL("editor"),sysEditor);
     settings.setValue(QSL("tr_engine"),translatorEngine);
@@ -435,6 +436,7 @@ void CSettings::readSettings(QObject *control)
     maxRecent = settings.value(QSL("maxRecent"),CDefaults::maxRecent).toInt();
     maxAdblockWhiteList = settings.value(QSL("maxAdblockWhiteList"),
                                          CDefaults::maxAdblockWhiteList).toInt();
+    downloadsLimit = settings.value(QSL("downloadsLimit"),0).toInt();
     sysBrowser = settings.value(QSL("browser"),CDefaults::sysBrowser).toString();
     sysEditor = settings.value(QSL("editor"),CDefaults::sysEditor).toString();
     previousTranslatorEngine = translatorEngine;

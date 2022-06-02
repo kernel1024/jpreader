@@ -6,6 +6,7 @@
 #include <QWebEngineProfile>
 #include <QNetworkReply>
 #include <QUuid>
+#include <QQueue>
 #include "downloadwriter.h"
 
 namespace CDefaults {
@@ -79,6 +80,19 @@ public:
     void reuseReply(QNetworkReply* rpl);
 };
 
+class CDownloadTask
+{
+public:
+    QNetworkRequest request;
+    QString fileName;
+    qint64 offset { 0L };
+    CDownloadTask() = default;
+    CDownloadTask(const QNetworkRequest& rq, const QString& fname, qint64 initialOffset);
+    CDownloadTask(const CDownloadTask& other) = default;
+    ~CDownloadTask() = default;
+    CDownloadTask &operator=(const CDownloadTask& other) = default;
+};
+
 Q_DECLARE_METATYPE(CDownloadItem)
 
 
@@ -88,6 +102,8 @@ class CDownloadsModel : public QAbstractTableModel
 private:
     CDownloadManager* m_manager;
     QVector<CDownloadItem> m_downloads;
+    QQueue<CDownloadTask> m_tasks;
+    QMutex m_tasksMutex;
 
     Q_DISABLE_COPY(CDownloadsModel)
 
@@ -109,11 +125,12 @@ public:
     CDownloadItem getDownloadItem(const QModelIndex & index);
     void deleteDownloadItem(const QModelIndex & index);
     void makeWriterJob(CDownloadItem &item) const;
-    void createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset,
+    bool createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName, qint64 offset,
                                          const QUuid &reuseExistingDownloadItem = QUuid());
 
     void appendItem(const CDownloadItem& item);
     void auxDownloadProgress(qint64 bytesReceived, qint64 bytesTotal, QObject *source);
+    void checkPendingTasks();
 
 public Q_SLOTS:
     void downloadFinished();
@@ -121,6 +138,7 @@ public Q_SLOTS:
     void requestRedirected(const QUrl &url);
 
     void abortDownload();
+    void abortActive();
     void abortAll();
     void cleanDownload();
     void copyUrlToClipboard();

@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>883</width>
-    <height>310</height>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Download manager - JPReader</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QTableView" name="tableDownloads">
      <property name="editTriggers">
@@ -40,7 +40,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <widget class="QLabel" name="labelProgress">
        <property name="text">
@@ -65,35 +65,87 @@
       <widget class="QLabel" name="labelWriter"/>
      </item>
      <item>
-      <widget class="QPushButton" name="buttonClearDownloaded">
-       <property name="toolTip">
-        <string>Leave failed downloads</string>
-       </property>
-       <property name="text">
-        <string>Clear downloaded</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="buttonClearFinished">
-       <property name="text">
-        <string>Clear finished</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="buttonAbortAll">
-       <property name="text">
-        <string>Abort all</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="buttonHide">
-       <property name="text">
-        <string>Hide</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="buttonClearDownloaded">
+           <property name="toolTip">
+            <string>Leave failed downloads</string>
+           </property>
+           <property name="text">
+            <string>Clear downloaded</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonClearFinished">
+           <property name="text">
+            <string>Clear finished</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAbortActive">
+           <property name="text">
+            <string>Abort active</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAbortAll">
+           <property name="text">
+            <string>Abort all</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Limit downloads</string>
+           </property>
+           <property name="buddy">
+            <cstring>spinLimitCount</cstring>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinLimitCount">
+           <property name="specialValueText">
+            <string>Unlimited</string>
+           </property>
+           <property name="suffix">
+            <string> threads</string>
+           </property>
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="value">
+            <number>6</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonHide">
+           <property name="text">
+            <string>Hide</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -103,7 +155,9 @@
   <tabstop>tableDownloads</tabstop>
   <tabstop>buttonClearDownloaded</tabstop>
   <tabstop>buttonClearFinished</tabstop>
+  <tabstop>buttonAbortActive</tabstop>
   <tabstop>buttonAbortAll</tabstop>
+  <tabstop>spinLimitCount</tabstop>
   <tabstop>buttonHide</tabstop>
  </tabstops>
  <resources/>
@@ -115,8 +169,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>536</x>
-     <y>282</y>
+     <x>870</x>
+     <y>308</y>
     </hint>
     <hint type="destinationlabel">
      <x>448</x>

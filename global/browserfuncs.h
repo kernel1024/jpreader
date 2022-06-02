@@ -36,6 +36,11 @@ public:
     void initUserScripts(const CStringHash& scripts);
     CStringHash getUserScripts();
 
+    int downloadsLimit() const;
+
+public Q_SLOTS:
+    void setDownloadsLimit(int count);
+
 };
 
 #endif // GLOBALBROWSERFUNCS_H

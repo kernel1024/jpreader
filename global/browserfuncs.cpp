@@ -156,6 +156,16 @@ CStringHash CGlobalBrowserFuncs::getUserScripts()
     return res;
 }
 
+int CGlobalBrowserFuncs::downloadsLimit() const
+{
+    return gSet->m_settings->downloadsLimit;
+}
+
+void CGlobalBrowserFuncs::setDownloadsLimit(int count)
+{
+    gSet->m_settings->downloadsLimit = count;
+}
+
 void CGlobalBrowserFuncs::headlessDOMWorker(const QUrl &url, const QString &javaScript,
                                             const std::function<bool (const QVariant &)> &matchFunc) const
 {

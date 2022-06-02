@@ -14,6 +14,7 @@
 #include "global/control.h"
 #include "global/ui.h"
 #include "global/network.h"
+#include "global/browserfuncs.h"
 #include "browser/browser.h"
 #include "manga/mangaviewtab.h"
 #include "ui_downloadmanager.h"
@@ -48,8 +49,15 @@ CDownloadManager::CDownloadManager(QWidget *parent, CZipWriter *zipWriter) :
     connect(ui->buttonClearDownloaded, &QPushButton::clicked,
             m_model, &CDownloadsModel::cleanCompletedDownloads);
 
+    connect(ui->buttonAbortActive, &QPushButton::clicked,
+            m_model, &CDownloadsModel::abortActive);
+
     connect(ui->buttonAbortAll, &QPushButton::clicked,
             m_model, &CDownloadsModel::abortAll);
+
+    connect(ui->spinLimitCount, &QSpinBox::valueChanged,[](int value){
+        gSet->browser()->setDownloadsLimit(value);
+    });
 
     connect(&m_writerStatusTimer, &QTimer::timeout,
             this, &CDownloadManager::updateWriterStatus);
@@ -117,12 +125,14 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
         }
     }
 
+    bool isKemono = url.host().endsWith(QSL("kemono.party"),Qt::CaseInsensitive);
+
     // create common request (for HEAD and GET)
     QNetworkRequest req(url);
     req.setRawHeader("referer",referer.toString().toUtf8());
     if (isFanbox)
         req.setRawHeader("origin","https://www.fanbox.cc");
-    if (isPatreon) {
+    if (isPatreon || isKemono) {
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::UserVerifiedRedirectPolicy);
     } else {
         req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::SameOriginRedirectPolicy);
@@ -148,15 +158,23 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
     return true;
 }
 
-void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
+bool CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &request, const QString &fileName,
                                                      qint64 offset, const QUuid &reuseExistingDownloadItem)
 {
+    if ((gSet->browser()->downloadsLimit()>0) && reuseExistingDownloadItem.isNull()) {
+        if (m_downloads.count() > gSet->browser()->downloadsLimit()) {
+            QMutexLocker lock(&m_tasksMutex);
+            m_tasks.enqueue(CDownloadTask(request,fileName,offset));
+            return false;
+        }
+    }
+
     int row = -1;
     if (!reuseExistingDownloadItem.isNull()) {
         row = m_downloads.indexOf(CDownloadItem(reuseExistingDownloadItem));
         if (row<0 || row>=m_downloads.count()) {
             qWarning() << "Download removed by user, abort restarting process.";
-            return;
+            return false;
         }
     }
 
@@ -199,6 +217,8 @@ void CDownloadsModel::createDownloadForNetworkRequest(const QNetworkRequest &req
             }, Qt::QueuedConnection);
         }
     });
+
+    return true;
 }
 
 void CDownloadManager::headRequestFinished()
@@ -263,9 +283,12 @@ void CDownloadsModel::requestRedirected(const QUrl &url)
     if (rpl.isNull()) return;
 
     // redirect rules
-    if (url.host().endsWith(QSL("patreon.com"),Qt::CaseInsensitive) &&
-            (rpl->request().url().host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
-             rpl->request().url().host().endsWith(QSL(".patreonusercontent.com")))) {
+    if ((url.host().endsWith(QSL("patreon.com"),Qt::CaseInsensitive) &&
+         (rpl->request().url().host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
+          rpl->request().url().host().endsWith(QSL(".patreonusercontent.com"))))
+            ||
+            (url.host().endsWith(QSL("kemono.party"),Qt::CaseInsensitive) &&
+             rpl->request().url().host().endsWith(QSL("kemono.party")))) {
 
         Q_EMIT rpl->redirectAllowed();
     }
@@ -414,6 +437,10 @@ void CDownloadManager::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event)
     m_writerStatusTimer.start();
+
+    ui->spinLimitCount->blockSignals(true);
+    ui->spinLimitCount->setValue(gSet->browser()->downloadsLimit());
+    ui->spinLimitCount->blockSignals(false);
 
     if (!m_firstResize) return;
     m_firstResize = false;

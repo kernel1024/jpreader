@@ -41,6 +41,7 @@ const int mangaMagnifySize = 150;
 const int mangaScrollDelta = 120;
 const int mangaScrollFactor = 5;
 const int mangaCacheWidth = 6;
+const int downloadsLimit = 0;
 const unsigned int mangaBackgroundColor = 0x303030;
 const double mangaResizeBlur = 1.0;
 const quint16 proxyPort = 3128;
@@ -163,6 +164,7 @@ public:
     int mangaScrollDelta { CDefaults::mangaScrollDelta };
     int mangaScrollFactor { CDefaults::mangaScrollFactor };
     int mangaCacheWidth { CDefaults::mangaCacheWidth };
+    int downloadsLimit { CDefaults::downloadsLimit };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };

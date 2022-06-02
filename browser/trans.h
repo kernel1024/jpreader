@@ -18,6 +18,7 @@ private:
     QUrl m_savedBaseUrl;
     void findWordTranslation(const QString& text);
     void applyScripts();
+    QString computeFileName(const QUrl &url) const;
 
 Q_SIGNALS:
     void scriptFinished();

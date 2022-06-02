@@ -126,10 +126,21 @@ void CBrowserTrans::getUrlsFromPageAndParse()
                 if (u.fileName().isEmpty())
                     continue;
             }
-            urls.append(qMakePair(u.toString(),QString()));
+            urls.append(qMakePair(u.toString(),computeFileName(u)));
         }
         gSet->downloadManager()->multiFileDownload(urls, baseUrl, baseUrl.fileName(), false, false);
     });
+}
+
+QString CBrowserTrans::computeFileName(const QUrl &url) const
+{
+    if (url.host().endsWith(QSL("kemono.party"),Qt::CaseInsensitive) &&
+            url.path().startsWith(QSL("/data/"))) {
+        const QUrlQuery uq(url);
+        return uq.queryItemValue(QSL("f"),QUrl::FullyDecoded);
+    }
+
+    return QString();
 }
 
 void CBrowserTrans::translatePriv(const QString &sourceHtml, const QString &title, const QUrl &origin)

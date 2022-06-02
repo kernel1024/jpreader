@@ -191,6 +191,7 @@ void CDownloadsModel::downloadFinishedPrev(QObject* source)
     Q_ASSERT((row>=0) && (row<m_downloads.count()));
 
     bool isRestarting = false;
+    bool checkNextTask = false;
     if (item) {
         m_downloads[row].state = item->state();
         m_downloads[row].downloadItem = nullptr;
@@ -228,8 +229,10 @@ void CDownloadsModel::downloadFinishedPrev(QObject* source)
                               .arg(retries)
                               .arg(gSet->settings()->translatorRetryCount)
                               .arg(req.url().toString());
-                createDownloadForNetworkRequest(req,QString(),0U,auxId);
+                createDownloadForNetworkRequest(req,QString(),0L,auxId);
             });
+        } else {
+            checkNextTask = true;
         }
     }
 
@@ -243,6 +246,9 @@ void CDownloadsModel::downloadFinishedPrev(QObject* source)
 
         deleteDownloadItem(index(row,0));
     }
+
+    if (checkNextTask)
+        checkPendingTasks();
 }
 
 void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
@@ -328,6 +334,17 @@ void CDownloadsModel::auxDownloadProgress(qint64 bytesReceived, qint64 bytesTota
     Q_EMIT dataChanged(index(row,2),index(row,CDefaults::downloadManagerColumnCount-1));
 }
 
+void CDownloadsModel::checkPendingTasks()
+{
+    while (!m_tasks.isEmpty()) {
+        m_tasksMutex.lock();
+        const CDownloadTask task = m_tasks.dequeue();
+        m_tasksMutex.unlock();
+        if (!createDownloadForNetworkRequest(task.request,task.fileName,task.offset))
+            break;
+    }
+}
+
 void CDownloadsModel::abortDownload()
 {
     auto *acm = qobject_cast<QAction *>(sender());
@@ -342,10 +359,17 @@ void CDownloadsModel::abortDownload()
     }
 }
 
-void CDownloadsModel::abortAll()
+void CDownloadsModel::abortActive()
 {
     for (int i=0;i<m_downloads.count();i++)
         abortDownloadPriv(i);
+}
+
+void CDownloadsModel::abortAll()
+{
+    QMutexLocker lock(&m_tasksMutex);
+    m_tasks.clear();
+    abortActive();
 }
 
 bool CDownloadsModel::abortDownloadPriv(int row)
@@ -580,14 +604,15 @@ void CDownloadsModel::updateProgressLabel()
     }
 
     m_manager->setProgressLabel(tr("Downloaded: %1 of %2. Active: %3. Failures: %4. Cancelled %5.\n"
-                                   "Total downloaded: %6. Retries: %7.")
+                                   "Total downloaded: %6. Retries: %7. Pending: %8.")
                                 .arg(completed)
                                 .arg(total)
                                 .arg(active)
                                 .arg(failures)
                                 .arg(cancelled)
                                 .arg(CGenericFuncs::formatFileSize(m_manager->receivedBytes()))
-                                .arg(retries));
+                                .arg(retries)
+                                .arg(m_tasks.count()));
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)
@@ -680,4 +705,11 @@ void CDownloadItem::reuseReply(QNetworkReply *rpl)
     total = 0L;
 
     rpl->setProperty(CDefaults::replyAuxId,auxId);
+}
+
+CDownloadTask::CDownloadTask(const QNetworkRequest &rq, const QString &fname, qint64 initialOffset)
+{
+    request = rq;
+    fileName = fname;
+    offset = initialOffset;
 }
