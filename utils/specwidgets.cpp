@@ -28,9 +28,9 @@ const int dateTimeListWidgetItemSortRole = 100;
 }
 
 CSpecTabWidget::CSpecTabWidget(QWidget *p)
-    : QTabWidget(p)
+    : QTabWidget(p),
+      m_tabBar(new CSpecTabBar(this))
 {
-    m_tabBar = new CSpecTabBar(this);
     setTabBar(m_tabBar);
     connect(m_tabBar, &CSpecTabBar::tabRightClicked,this,&CSpecTabWidget::tabRightClick);
     connect(m_tabBar, &CSpecTabBar::tabLeftClicked,this,&CSpecTabWidget::tabLeftClick);
@@ -103,19 +103,16 @@ void CSpecTabWidget::selectPrevTab()
 }
 
 CSpecTabBar::CSpecTabBar(CSpecTabWidget *p)
-    : QTabBar(p)
+    : QTabBar(p),
+      m_tabWidget(p),
+      m_dragStart(QPoint(0,0))
 {
-    m_tabWidget = p;
-    m_dragStart = QPoint(0,0);
-    m_draggingTab = nullptr;
 }
 
 CSpecTabBar::CSpecTabBar(QWidget *p)
-    : QTabBar(p)
+    : QTabBar(p),
+      m_dragStart(QPoint(0,0))
 {
-    m_tabWidget = nullptr;
-    m_dragStart = QPoint(0,0);
-    m_draggingTab = nullptr;
 }
 
 void CSpecTabBar::setBrowserTabs(bool enabled)
@@ -217,9 +214,9 @@ int CSpecMenuStyle::styleHint(StyleHint hint, const QStyleOption *option, const 
 }
 
 CSpecTabContainer::CSpecTabContainer(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+      m_parentWnd(qobject_cast<CMainWindow *>(parent))
 {
-    m_parentWnd = qobject_cast<CMainWindow *>(parent);
 }
 
 void CSpecTabContainer::bindToTab(CSpecTabWidget *tabs, bool setFocused)
@@ -622,9 +619,9 @@ void CNetworkCookieJar::initAllCookies(const QList<QNetworkCookie> & cookies)
 }
 
 CFaviconLoader::CFaviconLoader(QObject *parent, const QUrl& url)
-    : QObject(parent)
+    : QObject(parent),
+      m_url(url)
 {
-    m_url = url;
 }
 
 void CFaviconLoader::queryStart(bool forceCached)

@@ -83,7 +83,8 @@ void CAdBlockRule::setFilter(const QString &filter)
         parsedLine = parsedLine.left(options);
     }
 
-    bool hasWildcards = parsedLine.contains(QRegularExpression(QSL("[\\*\\$]")));
+    static const QRegularExpression wildcardStartRegex(QSL("[\\*\\$]"));
+    bool hasWildcards = parsedLine.contains(wildcardStartRegex);
     if (!regExpRule && m_options.isEmpty() && !hasWildcards &&
         (!parsedLine.contains(u'^') || parsedLine.endsWith(u'^'))) {
         m_plainRule = parsedLine;

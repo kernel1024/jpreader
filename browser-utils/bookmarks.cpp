@@ -57,7 +57,6 @@
 #include <QBuffer>
 #include <QFile>
 #include <QMimeData>
-#include <QBuffer>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 

@@ -42,14 +42,15 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
                          bool setFocused, bool startPage, bool autoTranslate,
                          bool alternateAutoTranslate, bool onceTranslated)
 
-    : CSpecTabContainer(parent)
+    : CSpecTabContainer(parent),
+      m_startPage(startPage)
 {
     const int addressBarCompleterHeightFrac = 70;
 
     setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
-    m_startPage = startPage;
+    
     barLoading->setValue(0);
     barLoading->hide();
     barPlaceholder->show();

@@ -38,9 +38,9 @@ class CSpecTabContainer;
 class CSpecTabBar : public QTabBar {
 	Q_OBJECT
 private:
-    CSpecTabWidget *m_tabWidget;
+    CSpecTabWidget *m_tabWidget { nullptr };
     bool m_browserTabs { false };
-    CSpecTabContainer* m_draggingTab;
+    CSpecTabContainer* m_draggingTab { nullptr };
     QPoint m_dragStart;
 
 public:
@@ -167,6 +167,7 @@ Q_SIGNALS:
 };
 
 class CDateTimeTableWidgetItem : public QTableWidgetItem {
+    Q_DISABLE_COPY(CDateTimeTableWidgetItem)
 public:
     explicit CDateTimeTableWidgetItem(const QDateTime &dt, int type = Type);
     ~CDateTimeTableWidgetItem() override = default;
@@ -233,6 +234,7 @@ Q_SIGNALS:
 class CMagicFileSchemeHandler : public QWebEngineUrlSchemeHandler
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CMagicFileSchemeHandler)
 public:
     static QString getScheme();
     explicit CMagicFileSchemeHandler(QObject *parent = nullptr);

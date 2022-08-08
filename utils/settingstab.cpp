@@ -1621,9 +1621,9 @@ void CLangPairDelegate::updateEditorGeometry(QWidget *editor, const QStyleOption
 }
 
 CLangPairModel::CLangPairModel(QObject *parent, QTableView *table) :
-    QAbstractTableModel (parent)
+    QAbstractTableModel (parent),
+    m_table(table)
 {
-    m_table = table;
 }
 
 int CLangPairModel::rowCount(const QModelIndex & parent) const

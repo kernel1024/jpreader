@@ -36,7 +36,7 @@ public:
     };
 
     CUserScript() = default;
-    CUserScript(const CUserScript& other);
+    CUserScript(const CUserScript& other) = default;
     explicit CUserScript(const QString &name, const QString &source = QString());
     ~CUserScript() = default;
     CUserScript &operator=(const CUserScript& other) = default;

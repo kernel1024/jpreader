@@ -16,7 +16,7 @@ class CBrowserMsgHandler : public QObject
 private:
     CBrowserTab *snv;
     QMutex m_lockTranEngine;
-    qreal m_zoomFactor;
+    qreal m_zoomFactor { 1.0 };
     QTimer m_loadingBarHideTimer;
     QTimer m_focusTimer;
 

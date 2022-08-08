@@ -6,13 +6,12 @@
 CAuthDlg::CAuthDlg(QWidget *parent, const QUrl &origin, const QString &realm,
                    bool autofillLogin) :
     QDialog(parent),
-    ui(new Ui::AuthDlg)
+    ui(new Ui::AuthDlg),
+    m_origin(origin),
+    m_realm(realm),
+    m_autofillLogin(autofillLogin)
 {
     ui->setupUi(this);
-
-    m_origin = origin;
-    m_autofillLogin = autofillLogin;
-    m_realm = realm;
 
     if (!realm.isEmpty()) {
         ui->labelRealm->setText(realm);

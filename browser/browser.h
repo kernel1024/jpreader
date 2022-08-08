@@ -11,7 +11,6 @@
 #include <QTimer>
 #include <QWebEngineView>
 
-#include "global/structures.h"
 #include "utils/specwidgets.h"
 #include "ui_browser.h"
 

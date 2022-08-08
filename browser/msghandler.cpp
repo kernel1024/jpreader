@@ -5,10 +5,8 @@
 #include "msghandler.h"
 #include "global/control.h"
 #include "global/browserfuncs.h"
-#include "global/ui.h"
 #include "global/network.h"
 #include "global/actions.h"
-#include "utils/genericfuncs.h"
 
 namespace CDefaults {
 const int focusTimerDelay = 1000;
@@ -16,10 +14,9 @@ const int loadingBarDelay = 1500;
 }
 
 CBrowserMsgHandler::CBrowserMsgHandler(CBrowserTab *parent)
-    : QObject(parent)
+    : QObject(parent),
+      snv(parent)
 {
-    snv = parent;
-    m_zoomFactor = 1.0;
     m_loadingBarHideTimer.setInterval(CDefaults::loadingBarDelay);
     m_loadingBarHideTimer.setSingleShot(true);
     m_focusTimer.setInterval(CDefaults::focusTimerDelay);
@@ -95,9 +92,10 @@ void CBrowserMsgHandler::pastePassword(const QString& realm, CBrowserMsgHandler:
 
 void CBrowserMsgHandler::setZoom(const QString& z)
 {
+    static const QRegularExpression nonDigits(QSL("[^0-9]"));
     bool okconv = false;
     QString s = z;
-    s.remove(QRegularExpression(QSL("[^0-9]")));
+    s.remove(nonDigits);
     int i = s.toInt(&okconv);
     if (okconv)
         m_zoomFactor = static_cast<double>(i)/100.0;

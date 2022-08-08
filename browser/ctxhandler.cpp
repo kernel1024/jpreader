@@ -32,7 +32,6 @@
 #include "browser-utils/authdlg.h"
 #include "browser-utils/noscriptdialog.h"
 #include "browser-utils/userscript.h"
-#include "extractors/htmlimagesextractor.h"
 
 namespace CDefaults {
 const int menuActiveTimerInterval = 1000;
@@ -40,9 +39,9 @@ const int maxTranslateFragmentCharWidth = 80;
 }
 
 CBrowserCtxHandler::CBrowserCtxHandler(CBrowserTab *parent)
-    : QObject(parent)
+    : QObject(parent),
+      snv(parent)
 {
-    snv = parent;
     m_menuActive.setSingleShot(false);
     m_menuActive.setInterval(CDefaults::menuActiveTimerInterval);
 

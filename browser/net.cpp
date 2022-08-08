@@ -12,7 +12,6 @@
 #include "msghandler.h"
 #include "utils/genericfuncs.h"
 #include "utils/pdftotext.h"
-#include "utils/genericfuncs.h"
 #include "browser-utils/authdlg.h"
 #include "browser-utils/downloadmanager.h"
 #include "extractors/pixivnovelextractor.h"

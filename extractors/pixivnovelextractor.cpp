@@ -99,7 +99,7 @@ void CPixivNovelExtractor::novelLoadFinished()
         QStringList tags;
         CStringHash embImages;
 
-        QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
+        static const QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
         int idx = html.indexOf(rxToken);
         if (idx>0) {
             html.remove(0,idx);
@@ -118,7 +118,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             html = tr("Unable to extract novel. Unknown page structure.");
         }
 
-        QRegularExpression rbrx(QSL("\\[\\[rb\\:.*?\\]\\]"));
+        static const QRegularExpression rbrx(QSL("\\[\\[rb\\:.*?\\]\\]"));
         int pos = 0;
         QRegularExpressionMatch match = rbrx.match(html,pos);
         while (match.hasMatch()) {
@@ -135,7 +135,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             match = rbrx.match(html,pos);
         }
 
-        QRegularExpression imrx(QSL("\\[pixivimage:\\S+\\]"));
+        static const QRegularExpression imrx(QSL("\\[pixivimage:\\S+\\]"));
         QStringList imgs;
         auto it = imrx.globalMatch(html);
         while (it.hasNext()) {

@@ -2,7 +2,6 @@
 #include <QThread>
 #include "abstractextractor.h"
 #include "global/control.h"
-#include "mainwindow.h"
 
 #include "fanboxextractor.h"
 #include "patreonextractor.h"

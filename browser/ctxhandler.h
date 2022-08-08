@@ -8,7 +8,6 @@
 #include <QMenu>
 #include <QScopedPointer>
 #include "browser.h"
-#include "utils/specwidgets.h"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
 #include <QWebEngineContextMenuData>

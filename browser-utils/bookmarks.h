@@ -59,7 +59,6 @@
 #include <QWidget>
 #include <QMenu>
 
-#include "global/structures.h"
 #include "mainwindow.h"
 
 

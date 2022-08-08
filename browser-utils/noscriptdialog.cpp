@@ -6,11 +6,10 @@
 
 CNoScriptDialog::CNoScriptDialog(QWidget *parent, const QString &origin) :
     QDialog(parent),
-    ui(new Ui::CNoScriptDialog)
+    ui(new Ui::CNoScriptDialog),
+    m_origin(origin)
 {
     ui->setupUi(this);
-
-    m_origin = origin;
 
     connect(ui->buttonBox,&QDialogButtonBox::accepted,this,&CNoScriptDialog::acceptScripts);
 

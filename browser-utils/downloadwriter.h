@@ -21,6 +21,7 @@ const int maxZipWriterErrorsInteractive = 5;
 class CDownloadWriter : public CAbstractThreadWorker
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CDownloadWriter)
 private:
     QSharedPointer<QTemporaryFile> m_zipData;
     QString m_zipFile;

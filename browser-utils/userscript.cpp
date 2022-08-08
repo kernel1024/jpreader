@@ -21,35 +21,21 @@
 *
 **************************************************************************/
 
-#include "userscript.h"
-#include "utils/genericfuncs.h"
-#include "global/structures.h"
-#include "utils/specwidgets.h"
+#include <algorithm>
+
 #include <QRegularExpression>
 #include <QTextStream>
 #include <QDebug>
 
-CUserScript::CUserScript(const CUserScript &other)
-{
-    m_name = other.m_name;
-    m_source = other.m_source;
-    m_title = other.m_title;
-    m_description = other.m_description;
-    m_version = other.m_version;
-    m_homePage = other.m_homePage;
-    m_updateUrl = other.m_updateUrl;
-    m_excludeRules = other.m_excludeRules;
-    m_includeRules = other.m_includeRules;
-    m_matchRules = other.m_matchRules;
-    m_injectionTime = other.m_injectionTime;
-    m_shouldRunOnSubFrames = other.m_shouldRunOnSubFrames;
-    m_runFromContextMenu = other.m_runFromContextMenu;
-    m_runByTranslator = other.m_runByTranslator;
-}
+#include "userscript.h"
+#include "utils/genericfuncs.h"
+#include "global/structures.h"
+#include "utils/specwidgets.h"
+
 
 CUserScript::CUserScript(const QString &name, const QString &source)
+    : m_name(name)
 {
-    m_name = name;
     if (!source.isEmpty())
         setSource(source);
 }
@@ -121,7 +107,8 @@ void CUserScript::setSource(const QString &src)
         } else if (keyword == QSL("match")) {
             line = line.section(u' ', 1, -1).trimmed();
 
-            if (QRegularExpression(QSL("^.+://.*/.*")).match(line).hasMatch()
+            static const QRegularExpression urlRegex(QSL("^.+://.*/.*"));
+            if (urlRegex.match(line).hasMatch()
                     && (!line.startsWith(u'*') || line.at(1) == u':'))
             {
                 const QString scheme(line.left(line.indexOf(QSL("://"))));
@@ -247,21 +234,14 @@ bool CUserScript::isEnabledForUrl(const QUrl &url) const
 
 bool CUserScript::checkUrl(const QUrl &url, const QStringList &rules) const
 {
-    QString uenc = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
-                             QUrl::RemoveFragment | QUrl::StripTrailingSlash);
+    const QString uenc = url.toString(QUrl::RemoveUserInfo | QUrl::RemovePort |
+                                      QUrl::RemoveFragment | QUrl::StripTrailingSlash);
 
-    for (int i = 0; i < rules.length(); ++i)
-    {
-        QString rule(rules[i]);
-
-        QRegularExpression m_regexp(CGenericFuncs::convertPatternToRegExp(rule),
+    return std::any_of(rules.constBegin(),rules.constEnd(),[uenc](const QString& rule){
+        QRegularExpression regexp(CGenericFuncs::convertPatternToRegExp(rule),
                                     QRegularExpression::CaseInsensitiveOption);
-
-        if (uenc.contains(m_regexp))
-            return true;
-    }
-
-    return false;
+        return uenc.contains(regexp);
+    });
 }
 
 bool CUserScript::shouldRunOnSubFrames() const

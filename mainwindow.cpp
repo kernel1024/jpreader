@@ -23,7 +23,6 @@
 #include "browser/browser.h"
 #include "browser-utils/downloadmanager.h"
 #include "browser-utils/bookmarks.h"
-#include "browser-utils/downloadmanager.h"
 #include "browser-utils/autofillassistant.h"
 #include "search/searchtab.h"
 #include "utils/genericfuncs.h"
@@ -771,7 +770,10 @@ void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(CGenericFuncs::getClipboardContent(true));
     url.setFragment(QString());
-    QString uri = url.toString().remove(QRegularExpression(QSL("#.*$")));
+    // FIXME: don't need?
+    //static const QRegularExpression fragmentPart(QSL("#.*$"));
+    //QString uri = url.toString().remove(fragmentPart);
+    const QString uri = url.toString();
     if (uri.isEmpty()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Clipboard is empty or contains incompatible data."));
@@ -1056,6 +1058,7 @@ void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
 
 void CMainWindow::dropEvent(QDropEvent *ev)
 {
+    static const QRegularExpression lineSeparator(QSL("\n|\r\n|\r"));
     QHash<QString,QString> data;
     QStringList formats = ev->mimeData()->formats();
     for (int i=0;i<formats.count();i++)
@@ -1066,7 +1069,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
 
     if (data.contains(QSL("_NETSCAPE_URL"))) {
         QString s = data.value(QSL("_NETSCAPE_URL"))
-                    .split(QRegularExpression(QSL("\n|\r\n|\r"))).constFirst();
+                    .split(lineSeparator).constFirst();
         QUrl u(s);
         if (u.isValid()) {
             ul << u;
@@ -1075,7 +1078,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     }
     if (!ok && data.contains(QSL("text/uri-list"))) {
         QStringList sl = data.value(QSL("text/uri-list"))
-                         .split(QRegularExpression(QSL("\n|\r\n|\r")));
+                         .split(lineSeparator);
         for (int i=0;i<sl.count();i++) {
             if (sl.at(i).startsWith(u'#')) continue;
             QUrl u(sl.at(i));
@@ -1087,7 +1090,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     }
     if (!ok && data.contains(QSL("text/plain"))) {
         QUrl u(data.value(QSL("text/plain"))
-               .split(QRegularExpression(QSL("\n|\r\n|\r"))).constFirst());
+               .split(lineSeparator).constFirst());
         if (u.isValid())
             ul << u;
     }

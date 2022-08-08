@@ -9,7 +9,10 @@ Checks:          '-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readabi
 -modernize-pass-by-value,
 -misc-no-recursion,
 -readability-convert-member-functions-to-static,
--readability-function-cognitive-complexity'
+-readability-function-cognitive-complexity,
+-readability-identifier-length,
+-modernize-use-nodiscard,
+-readability-redundant-access-specifiers'
 
 CheckOptions:    
   - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
