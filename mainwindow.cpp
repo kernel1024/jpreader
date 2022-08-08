@@ -21,24 +21,19 @@
 #include "global/history.h"
 #include "global/actions.h"
 #include "browser/browser.h"
-#include "browser/ctxhandler.h"
 #include "browser-utils/downloadmanager.h"
 #include "browser-utils/bookmarks.h"
 #include "browser-utils/downloadmanager.h"
 #include "browser-utils/autofillassistant.h"
 #include "search/searchtab.h"
-#include "utils/settingstab.h"
 #include "utils/genericfuncs.h"
 #include "utils/specwidgets.h"
 #include "utils/logdisplay.h"
 #include "utils/workermonitor.h"
-#include "utils/settingstab.h"
 #include "utils/pixivindextab.h"
-#include "translator/lighttranslator.h"
 #include "translator/translatorstatisticstab.h"
 #include "translator/translatorcache.h"
 #include "extractors/abstractextractor.h"
-#include "extractors/pixivindexextractor.h"
 #include "manga/mangaviewtab.h"
 
 namespace CDefaults {
@@ -635,26 +630,29 @@ void CMainWindow::updateRecentList()
 
 void CMainWindow::updateTitle()
 {
-    QString t = QGuiApplication::applicationDisplayName();
+    QString app = QGuiApplication::applicationDisplayName();
+    QString res;
     if (tabMain->currentWidget()) {
+        auto *st = qobject_cast<CSpecTabContainer*>(tabMain->currentWidget());
+        if (st)
+            res = tr("%1 - %2").arg(st->tabTitle(),app);
+
         auto *sv = qobject_cast<CBrowserTab*>(tabMain->currentWidget());
         if (sv!=nullptr && !sv->tabTitle().isEmpty()) {
             QTextDocument doc;
             doc.setHtml(sv->tabTitle());
-            t = QSL("%1 - %2").arg(doc.toPlainText(), t);
-            t.remove(u'\r');
-            t.remove(u'\n');
+            res = QSL("%1 - %2").arg(doc.toPlainText(), app);
+            res.remove(u'\r');
+            res.remove(u'\n');
         }
 
         auto *bv = qobject_cast<CSearchTab*>(tabMain->currentWidget());
         if (bv!=nullptr && !bv->getLastQuery().isEmpty())
-            t = tr("[%1] search - %2").arg(bv->getLastQuery(),t);
-
-        auto *st = qobject_cast<CSpecTabContainer*>(tabMain->currentWidget());
-        if (st)
-            t = tr("%1 - %2").arg(st->tabTitle(),t);
+            res = tr("[%1] search - %2").arg(bv->getLastQuery(),app);
     }
-    setWindowTitle(t);
+    if (res.isEmpty())
+        res = app;
+    setWindowTitle(res);
 }
 
 void CMainWindow::goHistory(QUuid idx)

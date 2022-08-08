@@ -20,9 +20,7 @@
 #include "global/history.h"
 #include "global/network.h"
 #include "global/ui.h"
-#include "search/searchtab.h"
 #include "browser-utils/userscript.h"
-#include "browser/ctxhandler.h"
 #include "browser/browser.h"
 
 namespace CDefaults {
