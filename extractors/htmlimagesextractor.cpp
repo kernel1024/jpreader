@@ -87,7 +87,7 @@ void CHtmlImagesExtractor::finalizeHtml()
     QString res;
     CHTMLParser::generateHTML(m_doc,res);
 
-    Q_EMIT novelReady(res,m_focus,m_translate,m_alternateTranslate);
+    Q_EMIT novelReady(res,m_focus,m_translate,m_alternateTranslate,false,CStringHash());
     Q_EMIT finished();
 }
 

@@ -8,6 +8,7 @@
 class CDeviantartExtractor : public CAbstractExtractor
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CDeviantartExtractor)
 private:
     QString m_userID;
     QString m_folderID;
@@ -17,7 +18,8 @@ private:
     void finalizeGallery();
 
 public:
-    CDeviantartExtractor(QObject *parent);
+    explicit CDeviantartExtractor(QObject *parent);
+    ~CDeviantartExtractor() override = default;
 
     void setParams(const QString& userID, const QString& folderID, const QString& folderName);
     QString workerDescription() const override;

@@ -18,7 +18,6 @@
 #include "global/control.h"
 #include "global/control_p.h"
 #include "global/ui.h"
-#include "logdisplay.h"
 
 #include <unicode/utypes.h>
 #include <unicode/localpointer.h>
@@ -146,11 +145,11 @@ QString CGenericFuncs::detectDecodeToUnicode(const QByteArray& content)
         return QString::fromUtf8(content);
 
     std::vector<UChar> targetBuf(content.length() / static_cast<uint8_t>(ucnv_getMinCharSize(conv)));
-    int len = ucnv_toUChars(conv,&targetBuf[0],targetBuf.size(),content.constData(),content.length(),&status);
+    int len = ucnv_toUChars(conv,targetBuf.data(),targetBuf.size(),content.constData(),content.length(),&status);
     if (!U_SUCCESS(status))
         return QString::fromUtf8(content);
 
-    return QString::fromUtf16(&targetBuf[0],len);
+    return QString::fromUtf16(targetBuf.data(),len);
 }
 
 QByteArray CGenericFuncs::detectDecodeToUtf8(const QByteArray& content)
@@ -249,7 +248,8 @@ QString CGenericFuncs::unsplitMobileText(const QString& text)
 QString CGenericFuncs::makeSafeFilename(const QString &text)
 {
     QString res = text;
-    res.replace(QRegularExpression(QSL("[\\\\/:\\*\\?<>\\|\"]")),QSL(" "));
+    static const QRegularExpression specialChars(QSL("[\\\\/:\\*\\?<>\\|\"]"));
+    res.replace(specialChars,QSL(" "));
     return res.simplified();
 }
 
@@ -291,7 +291,8 @@ QString CGenericFuncs::makeSimpleHtml(const QString &title, const QString &conte
                                       bool integratedTitle, const QUrl& origin)
 {
     QString s = unsplitMobileText(content);
-    QString cnt = s.replace(QRegularExpression(QSL("\n{3,}")),QSL("\n\n"))
+    static const QRegularExpression multiNewline(QSL("\n{3,}"));
+    QString cnt = s.replace(multiNewline,QSL("\n\n"))
                   .replace(QSL("\n"),QSL("<br />\n"));
     QString cn(QSL("<html><head><META HTTP-EQUIV=\"Content-type\" "
                               "CONTENT=\"text/html; charset=UTF-8;\">"));
@@ -412,7 +413,7 @@ QString CGenericFuncs::formatSize(double size, int precision)
     const QChar separator(0x20);
     int power = 0;
     if (size > 0)
-        power = int(std::log10(qAbs(size)) / 3);
+        power = static_cast<int>(std::log10(qAbs(size)) / 3);
 
     QString res = (power > 0)
         ? QString::number(size / std::pow(base, power), 'f', precision)
@@ -535,6 +536,7 @@ QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & 
 
 QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
 {
+    static const QRegularExpression suffixRx(QSL("\\((?<suffix>.*?)\\)"));
     QStringList res;
     res.clear();
     if (filter.isEmpty()) return res;
@@ -543,12 +545,9 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     if (filters.isEmpty()) return res;
 
     for (const auto &filter : filters) {
-        if (filter.isEmpty()) continue;
-        QString ex = filter;
-        ex.remove(QRegularExpression(QSL("^.*\\(")));
-        ex.remove(QRegularExpression(QSL("\\).*$")));
-        ex.remove(QRegularExpression(QSL("^.*\\.")));
-        res.append(ex.split(u' '));
+        auto match = suffixRx.match(filter);
+        if (match.hasMatch())
+            res.append(match.captured(QSL("suffix")).split(u' '));
     }
 
     return res;
@@ -855,17 +854,20 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
     int pos = -1;
     int start = -1;
     int stop = -1;
-    if ((pos = fileContents.indexOf(QRegularExpression(QSL("<title {0,}>"),
-                                                       QRegularExpression::CaseInsensitiveOption))) != -1) {
+    static const QRegularExpression titleStart(QSL("<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression titleStop(QSL("</title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression insideTitle(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+
+    if ((pos = fileContents.indexOf(titleStart)) != -1) {
         start = pos;
-        if ((pos = fileContents.indexOf(QRegularExpression(QSL("</title {0,}>"),
-                                                           QRegularExpression::CaseInsensitiveOption))) != -1) {
+        if ((pos = fileContents.indexOf(titleStop)) != -1) {
             stop = pos;
             if (stop>start) {
                 if ((stop-start)>maxFileSize)
                     stop = start + maxFileSize;
                 QString s = fileContents.mid(start,stop-start);
-                s.remove(QRegularExpression(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption));
+
+                s.remove(insideTitle);
                 s.remove(u'\r');
                 s.remove(u'\n');
                 return s;
@@ -875,21 +877,32 @@ QString CGenericFuncs::extractFileTitle(const QString& fileContents)
     return QString();
 }
 
-// for url rules
-QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern) {
+QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern)
+{
+    static const QRegularExpression multipleWildcards(QSL("\\*+"));
+    static const QRegularExpression followingAnchors(QSL("\\^\\|$"));
+    static const QRegularExpression leadingWildcards(QSL("^(\\*)"));
+    static const QRegularExpression trailingWildcards(QSL("(\\*)$"));
+    static const QRegularExpression specialSymbols(QSL("(\\W)"));
+    static const QRegularExpression extendedAnchor(QSL("^\\\\\\|\\\\\\|"));
+    static const QRegularExpression separatorPlaceholders(QSL("\\\\\\^"));
+    static const QRegularExpression anchorExpStart(QSL("^\\\\\\|"));
+    static const QRegularExpression anchorExpEnd(QSL("\\\\\\|$"));
+    static const QRegularExpression wildcards(QSL("\\\\\\*"));
+
     QString pattern = wildcardPattern;
-    return pattern.replace(QRegularExpression(QSL("\\*+")), QSL("*"))   // remove multiple wildcards
-            .replace(QRegularExpression(QSL("\\^\\|$")), QSL("^")) // remove anchors following separator placeholder
-            .replace(QRegularExpression(QSL("^(\\*)")), QString())          // remove leading wildcards
-            .replace(QRegularExpression(QSL("(\\*)$")), QString())          // remove trailing wildcards
-            .replace(QRegularExpression(QSL("(\\W)")), QSL("\\\\1"))      // escape special symbols
-            .replace(QRegularExpression(QSL("^\\\\\\|\\\\\\|")),
-                     QSL("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"))       // process extended anchor at expression start
-            .replace(QRegularExpression(QSL("\\\\\\^")),
-                     QSL("(?:[^\\w\\d\\-.%]|$)"))                        // process separator placeholders
-            .replace(QRegularExpression(QSL("^\\\\\\|")), QSL("^"))       // process anchor at expression start
-            .replace(QRegularExpression(QSL("\\\\\\|$")), QSL("$"))       // process anchor at expression end
-            .replace(QRegularExpression(QSL("\\\\\\*")), QSL(".*"))       // replace wildcards by .*
+    return pattern.replace(multipleWildcards, QSL("*"))     // remove multiple wildcards
+            .replace(followingAnchors, QSL("^"))            // remove anchors following separator placeholder
+            .replace(leadingWildcards, QString())           // remove leading wildcards
+            .replace(trailingWildcards, QString())          // remove trailing wildcards
+            .replace(specialSymbols, QSL("\\\\1"))          // escape special symbols
+            .replace(extendedAnchor,
+                     QSL("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?")) // process extended anchor at expression start
+            .replace(separatorPlaceholders,
+                     QSL("(?:[^\\w\\d\\-.%]|$)"))           // process separator placeholders
+            .replace(anchorExpStart, QSL("^"))              // process anchor at expression start
+            .replace(anchorExpEnd, QSL("$"))                // process anchor at expression end
+            .replace(wildcards, QSL(".*"))                  // replace wildcards by .*
             ;
 }
 

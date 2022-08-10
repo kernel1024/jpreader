@@ -91,6 +91,7 @@ Q_SIGNALS:
 class CPixivIndexModel : public QAbstractTableModel
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CPixivIndexModel)
 
 private:
     int m_maxRowCount { -1 };

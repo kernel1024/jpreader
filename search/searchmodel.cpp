@@ -3,15 +3,9 @@
 #include "utils/genericfuncs.h"
 
 CSearchModel::CSearchModel(QObject *parent, QTableView *view)
-    : QAbstractTableModel(parent)
+    : QAbstractTableModel(parent),
+      m_table(view)
 {
-    m_snippets.clear();
-    m_table = view;
-}
-
-CSearchModel::~CSearchModel()
-{
-    m_snippets.clear();
 }
 
 QVariant CSearchModel::data(const QModelIndex &index, int role) const

@@ -24,13 +24,16 @@ CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
 }
 
 void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
-                                     bool translate, bool alternateTranslate, bool focus)
+                                     bool translate, bool alternateTranslate, bool focus,
+                                     bool downloadNovel, const CStringHash &auxInfo)
 {
     m_title = title;
     m_translate = translate;
     m_alternateTranslate = alternateTranslate;
     m_focus = focus;
     m_source = source;
+    m_downloadNovel = downloadNovel;
+    m_auxInfo = auxInfo;
 }
 
 void CPixivNovelExtractor::setMangaParams(const QUrl &origin, bool useViewer, bool focus)
@@ -124,8 +127,10 @@ void CPixivNovelExtractor::novelLoadFinished()
         while (match.hasMatch()) {
             QString rb = match.captured();
             rb.replace(QSL("&gt;"), QSL(">"));
-            rb.remove(QRegularExpression(QSL("^.*rb\\:")));
-            rb.remove(QRegularExpression(QSL("\\>.*")));
+            static const QRegularExpression rbStart(QSL("^.*rb\\:"));
+            static const QRegularExpression rbStop(QSL("\\>.*"));
+            rb.remove(rbStart);
+            rb.remove(rbStop);
             rb = rb.trimmed();
             if (!rb.isEmpty()) {
                 html.replace(match.capturedStart(),match.capturedLength(),rb);
@@ -141,7 +146,8 @@ void CPixivNovelExtractor::novelLoadFinished()
         while (it.hasNext()) {
             match = it.next();
             QString im = match.captured();
-            im.remove(QRegularExpression(QSL(".*:")));
+            static const QRegularExpression pixivimageLabel(QSL(".*:"));
+            im.remove(pixivimageLabel);
             im.remove(u']');
             im = im.trimmed();
             if (!im.isEmpty())
@@ -299,8 +305,11 @@ void CPixivNovelExtractor::subWorkFinished()
         m_html.replace(rx, imgHtml);
     }
 
+    CStringHash info = m_auxInfo;
+    info.insert(QSL("title"), m_title);
+    info.insert(QSL("id"), QSL("%1").arg(m_novelId));
     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,
-                      m_translate,m_alternateTranslate);
+                      m_translate,m_alternateTranslate,m_downloadNovel,info);
     Q_EMIT finished();
 }
 
@@ -398,7 +407,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
     if (illustID != nullptr)
         *illustID = key;
 
-    QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
+    static const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
         if (doc.isObject()) {

@@ -59,7 +59,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset theme="view-sort"/>
+        <iconset theme="view-sort">
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>
@@ -181,7 +182,7 @@
       <bool>true</bool>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>

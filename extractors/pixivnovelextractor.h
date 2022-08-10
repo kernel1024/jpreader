@@ -13,11 +13,13 @@
 class CPixivNovelExtractor : public CAbstractExtractor
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CPixivNovelExtractor)
 private:
     QString m_title;
     bool m_translate { false };
     bool m_alternateTranslate { false };
     bool m_focus { false };
+    bool m_downloadNovel { false };
     bool m_useMangaViewer { false };
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
     QMutex m_imgMutex;
@@ -29,6 +31,7 @@ private:
     QUrl m_source;
     QString m_novelId;
     QString m_html;
+    CStringHash m_auxInfo;
 
     void handleImages(const QStringList& imgs, const CStringHash &embImgs, const QUrl &mainReferer);
     void pixivDirectFetchImage(const QUrl &url, const QUrl &referer, const QString &pageId);
@@ -39,9 +42,11 @@ private:
                                               QString *illustID, bool *mangaOriginalScale);
 
 public:
-    CPixivNovelExtractor(QObject *parent);
+    explicit CPixivNovelExtractor(QObject *parent);
+    ~CPixivNovelExtractor() override = default;
     void setParams(const QUrl& source, const QString& title,
-                   bool translate, bool alternateTranslate, bool focus);
+                   bool translate, bool alternateTranslate, bool focus, bool downloadNovel,
+                   const CStringHash &auxInfo);
     void setMangaParams(const QUrl& origin, bool useViewer, bool focus);
     QString workerDescription() const override;
 

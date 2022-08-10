@@ -115,9 +115,10 @@ public:
     QString title;
     QUrl url;
     QUuid uuid;
+
     CUrlHolder();
-    CUrlHolder(const CUrlHolder& other);
-    CUrlHolder(const QString &title, const QUrl &url);
+    CUrlHolder(const CUrlHolder& other) = default;
+    CUrlHolder(const QString &aTitle, const QUrl &aUrl);
     ~CUrlHolder() = default;
     CUrlHolder &operator=(const CUrlHolder& other) = default;
     bool operator==(const CUrlHolder &s) const;
@@ -130,10 +131,12 @@ class CLangPair {
     friend QDataStream &operator<<(QDataStream &out, const CLangPair &obj);
     friend QDataStream &operator>>(QDataStream &in, CLangPair &obj);
 public:
-    QLocale langFrom, langTo;
+    QLocale langFrom;
+    QLocale langTo;
+
     CLangPair();
-    CLangPair(const CLangPair& other);
     explicit CLangPair(const QString& hash);
+    CLangPair(const CLangPair& other) = default;
     CLangPair(const QString& fromName, const QString &toName);
     ~CLangPair() = default;
     CLangPair &operator=(const CLangPair& other) = default;

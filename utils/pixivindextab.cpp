@@ -12,12 +12,8 @@
 #include "global/ui.h"
 #include "utils/genericfuncs.h"
 #include "browser/browser.h"
-#include "browser/net.h"
-#include "browser-utils/downloadmanager.h"
 #include "extractors/abstractextractor.h"
-#include "extractors/fanboxextractor.h"
-#include "extractors/patreonextractor.h"
-#include "manga/mangaviewtab.h"
+#include "extractors/pixivnovelextractor.h"
 #include "ui_pixivindextab.h"
 
 namespace CDefaults {
@@ -418,6 +414,47 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
             QClipboard *cb = QApplication::clipboard();
             cb->setText(text);
         });
+    }
+
+    const QModelIndexList multiSelect = m_table->selectionModel()->selectedRows();
+    if ((multiSelect.count()>1) && !artworksMode) {
+        QList<QPair<QString, QString> > multiUrls;
+        for (const auto &midx : multiSelect) {
+            QModelIndex nidx = proxy->mapToSource(midx);
+            if (!nidx.isValid()) continue;
+
+            const QJsonObject nitem = m_model->item(nidx);
+            const QString nid = nitem.value(QSL("id")).toString();
+            const QString ntitle = nitem.value(QSL("title")).toString();
+            const QString nNovelUrl = QSL("https://www.pixiv.net/novel/show.php?id=%1").arg(nid);
+            const auto item = qMakePair(nNovelUrl,ntitle);
+            if (!multiUrls.contains(item))
+                multiUrls.append(item);
+        }
+
+        if (!multiUrls.isEmpty()) {
+            auto *ac = cm.addSeparator();
+            ac->setText(tr("Selected %1 works").arg(multiSelect.count()));
+            cm.addAction(QIcon::fromTheme(QSL("download")),tr("Mass extract and download selected works"),gSet,[multiUrls](){
+                const QString container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save to directory"),
+                                                                               CGenericFuncs::getTmpDir(),
+                                                                               QFileDialog::ShowDirsOnly);
+                if (container.isEmpty()) return;
+                for (const auto& item : qAsConst(multiUrls)) {
+                    auto *ex = new CPixivNovelExtractor(nullptr);
+                    ex->setParams(item.first,QString(),false,false,false,true,
+                                  { { QSL("containerPath"), container },
+                                    { QSL("index"), QSL("-1") },
+                                    { QSL("count"), QSL("-1") },
+                                    { QSL("suggestedTitle"), item.second } });
+                    if (!gSet->startup()->setupThreadedWorker(ex)) {
+                        delete ex;
+                    } else {
+                        QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+                    }
+                }
+            });
+        }
     }
 
     if (cm.isEmpty()) return;

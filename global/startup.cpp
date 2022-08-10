@@ -311,7 +311,8 @@ bool CGlobalStartup::setupIPC()
     auto ipcTimeout = std::chrono::duration_cast<std::chrono::milliseconds>(CDefaults::ipcTimeout).count();
 
     QString serverName = QString::fromLatin1(CDefaults::IPCName);
-    serverName.replace(QRegularExpression(QSL("[^\\w\\-.]")), QString());
+    static const QRegularExpression nonValidChars(QSL("[^\\w\\-.]"));
+    serverName.replace(nonValidChars, QString());
 
     QScopedPointer<QLocalSocket> socket(new QLocalSocket());
     socket->connectToServer(serverName);

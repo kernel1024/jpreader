@@ -10,8 +10,6 @@
 #include "global/startup.h"
 #include "global/browserfuncs.h"
 #include "translator/translator.h"
-#include "utils/genericfuncs.h"
-#include "utils/htmlparser.h"
 #include "browser-utils/userscript.h"
 #include "browser-utils/downloadmanager.h"
 #include "miniqxt/qxttooltip.h"

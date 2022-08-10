@@ -40,7 +40,8 @@ public Q_SLOTS:
 #endif
     void contextMenu(const QPoint& pos);
     void updateWriterStatus();
-    void novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate);
+    void novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate, bool downloadNovel,
+                    const CStringHash &info);
     void mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
                     bool useViewer, bool focus, bool originalScale);
 private Q_SLOTS:

@@ -6,10 +6,7 @@
 #include "global/structures.h"
 #include "global/control.h"
 #include "global/ui.h"
-#include "browser-utils/downloadwriter.h"
 #include "utils/genericfuncs.h"
-#include "translator/translator.h"
-#include "extractors/abstractextractor.h"
 
 namespace CDefaults {
 const int workerMonitorColumnCount = 3;

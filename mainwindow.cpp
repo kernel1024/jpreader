@@ -770,9 +770,6 @@ void CMainWindow::openFromClipboard()
 {
     QUrl url = QUrl::fromUserInput(CGenericFuncs::getClipboardContent(true));
     url.setFragment(QString());
-    // FIXME: don't need?
-    //static const QRegularExpression fragmentPart(QSL("#.*$"));
-    //QString uri = url.toString().remove(fragmentPart);
     const QString uri = url.toString();
     if (uri.isEmpty()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),

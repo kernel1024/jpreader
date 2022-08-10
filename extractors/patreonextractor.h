@@ -11,13 +11,15 @@
 class CPatreonExtractor : public CAbstractExtractor
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CPatreonExtractor)
 private:
     bool m_extractAttachments { false };
     QString m_html;
     QUrl m_origin;
 
 public:
-    CPatreonExtractor(QObject *parent);
+    explicit CPatreonExtractor(QObject *parent);
+    ~CPatreonExtractor() override = default;
     void setParams(const QString& pageHtml, const QUrl& origin, bool extractAttachments);
     QString workerDescription() const override;
 

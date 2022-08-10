@@ -13,17 +13,11 @@
 #include "utils/genericfuncs.h"
 #include "utils/pdftotext.h"
 #include "browser-utils/authdlg.h"
-#include "browser-utils/downloadmanager.h"
-#include "extractors/pixivnovelextractor.h"
-#include "extractors/pixivindexextractor.h"
-#include "extractors/fanboxextractor.h"
-#include "extractors/patreonextractor.h"
 #include "extractors/htmlimagesextractor.h"
 #include "global/control.h"
 #include "global/startup.h"
 #include "global/contentfiltering.h"
 #include "global/history.h"
-#include "manga/mangaviewtab.h"
 
 namespace CDefaults {
 const int browserPageFinishedTimeoutMS = 30000;

@@ -13,7 +13,7 @@
 class CPixivIndexExtractor : public CAbstractExtractor
 {
     Q_OBJECT
-
+    Q_DISABLE_COPY(CPixivIndexExtractor)
 public:
     enum ExtractorMode { emNovels, emArtworks };
     Q_ENUM(ExtractorMode)
@@ -33,6 +33,7 @@ public:
     Q_ENUM(SearchRating)
 
     explicit CPixivIndexExtractor(QObject *parent);
+    ~CPixivIndexExtractor() override = default;
     QString workerDescription() const override;
 
     void setParams(const QString& pixivId, CPixivIndexExtractor::ExtractorMode extractorMode,

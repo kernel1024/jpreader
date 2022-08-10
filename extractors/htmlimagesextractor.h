@@ -4,12 +4,13 @@
 #include <QObject>
 #include <QMutex>
 #include <QNetworkReply>
-#include "translator/translator.h"
 #include "abstractextractor.h"
+#include "translator/translator.h"
 
 class CHtmlImagesExtractor : public CAbstractExtractor
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CHtmlImagesExtractor)
 private:
     bool m_translate { false };
     bool m_alternateTranslate { false };
@@ -28,8 +29,8 @@ protected:
     void startMain() override;
 
 public:
-    CHtmlImagesExtractor(QObject *parent = nullptr);
-    ~CHtmlImagesExtractor() = default;
+    explicit CHtmlImagesExtractor(QObject *parent);
+    ~CHtmlImagesExtractor() override = default;
     void setParams(const QString &source, const QUrl &origin,
                    bool translate, bool alternateTranslate, bool focus);
     QString workerDescription() const override;

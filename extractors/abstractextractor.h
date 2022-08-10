@@ -15,7 +15,7 @@ class CAbstractExtractor : public CAbstractThreadWorker
 {
     Q_OBJECT
 public:
-    CAbstractExtractor(QObject *parent);
+    explicit CAbstractExtractor(QObject *parent);
 
     static QList<QAction *> addMenuActions(const QUrl& pageUrl, const QUrl &origin,
                                            const QString &title, QMenu *menu, QObject *workersParent,
@@ -27,7 +27,8 @@ protected:
     QJsonDocument parseJsonSubDocument(const QByteArray &source, const QRegularExpression &start);
 
 Q_SIGNALS:
-    void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate);
+    void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate, bool downloadNovel,
+                    const CStringHash& info);
     void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin,
                     bool useViewer, bool focus, bool originalScale);
 

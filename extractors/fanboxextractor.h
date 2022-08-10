@@ -10,11 +10,13 @@
 class CFanboxExtractor : public CAbstractExtractor
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CFanboxExtractor)
 private:
     int m_postId { -1 };
     bool m_translate { false };
     bool m_alternateTranslate { false };
     bool m_focus { false };
+    bool m_downloadNovel { false };
     bool m_isManga { false };
     QVector<CUrlWithName> m_illustMap;
     QAtomicInteger<int> m_worksIllustFetch;
@@ -24,10 +26,13 @@ private:
     QString m_text;
     QString m_authorId;
     QString m_postNum;
+    CStringHash m_auxInfo;
 
 public:
-    CFanboxExtractor(QObject *parent);
-    void setParams(int postId, bool translate, bool alternateTranslate, bool focus, bool isManga);
+    explicit CFanboxExtractor(QObject *parent);
+    ~CFanboxExtractor() override = default;
+    void setParams(int postId, bool translate, bool alternateTranslate, bool focus,
+                   bool isManga, bool novelDownload, const CStringHash &auxInfo);
     QString workerDescription() const override;
 
 protected:

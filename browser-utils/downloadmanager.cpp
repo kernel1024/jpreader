@@ -1,20 +1,26 @@
+#include <algorithm>
+
 #include <QWidget>
 #include <QCloseEvent>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
+#include <QSortFilterProxyModel>
 #include <QDebug>
 
 #include "downloadmanager.h"
 #include "downloadwriter.h"
 #include "downloadmodel.h"
+#include "downloadlistmodel.h"
 #include "extractors/fanboxextractor.h"
 #include "extractors/patreonextractor.h"
+#include "extractors/pixivnovelextractor.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"
 #include "global/ui.h"
 #include "global/network.h"
 #include "global/browserfuncs.h"
+#include "global/startup.h"
 #include "browser/browser.h"
 #include "manga/mangaviewtab.h"
 #include "ui_downloadmanager.h"
@@ -91,7 +97,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
 
     bool isZipTarget = false;
     QString fname;
-    if (!CDownloadManager::computeFileName(fname,isZipTarget,index,maxIndex,url,containerPath,suggestedFilename)) {
+    if (!computeFileName(fname,isZipTarget,index,maxIndex,url,containerPath,suggestedFilename)) {
         QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
                               tr("Computed file name is empty."));
         return false;
@@ -468,36 +474,9 @@ void CDownloadManager::multiFileDownload(const QVector<CUrlWithName> &urls, cons
     QDialog dlg(gSet->activeWindow());
     Ui::DownloadListDlg ui;
     ui.setupUi(&dlg);
-    if (multiImgDialogSize.isValid())
-        dlg.resize(multiImgDialogSize);
+    dlg.setWindowTitle(tr("Multiple files download"));
 
-    connect(ui.filter,&QLineEdit::textEdited,[ui](const QString& text){
-        if (text.isEmpty()) {
-            for (int i=0;i<ui.table->rowCount();i++) {
-                if (ui.table->isRowHidden(i))
-                    ui.table->showRow(i);
-            }
-            return;
-        }
-
-        for (int i=0;i<ui.table->rowCount();i++) {
-            ui.table->hideRow(i);
-        }
-        const QList<QTableWidgetItem *> filtered
-                = ui.table->findItems(text,
-                                      ((ui.syntax->currentIndex()==0) ?
-                                           Qt::MatchRegularExpression : Qt::MatchWildcard));
-        for (auto *item : filtered) {
-            ui.table->showRow(item->row());
-        }
-    });
-
-    ui.label->setText(tr("%1 downloadable URLs detected.").arg(urls.count()));
-    ui.syntax->setCurrentIndex(0);
-    ui.checkAddNumbers->setChecked(isFanbox || isPatreon);
-
-    ui.table->setColumnCount(2);
-    ui.table->setHorizontalHeaderLabels({ tr("File name"), tr("URL") });
+    auto *model = new CDownloadListModel(&dlg);
     int row = 0;
     int rejected = 0;
     for (const auto& url : urls) {
@@ -510,60 +489,203 @@ void CDownloadManager::multiFileDownload(const QVector<CUrlWithName> &urls, cons
         QString s = url.second;
         if (s.isEmpty())
             s = CGenericFuncs::decodeHtmlEntities(u.fileName());
-
-        ui.table->setRowCount(row+1);
-        ui.table->setItem(row,0,new QTableWidgetItem(s));
-        ui.table->setItem(row,1,new QTableWidgetItem(url.first));
-
+        model->appendItem(s,url.first);
         row++;
     }
     ui.table->resizeColumnsToContents();
 
-    if (rejected>0)
-        ui.label->setText(QSL("%1. %2 incorrect URLs.").arg(ui.label->text()).arg(rejected));
+    auto *proxy = new QSortFilterProxyModel(&dlg);
+    proxy->setSourceModel(model);
+    ui.table->setModel(proxy);
+    proxy->setFilterKeyColumn(-1);
 
-    dlg.setWindowTitle(tr("Multiple images download"));
+    if (multiImgDialogSize.isValid())
+        dlg.resize(multiImgDialogSize);
+
+    connect(ui.filter,&QLineEdit::textEdited,&dlg,[ui,proxy](const QString& text){
+        if (ui.syntax->currentIndex() == 0) {
+            proxy->setFilterRegularExpression(text);
+        } else {
+            proxy->setFilterWildcard(text);
+        }
+    });
+    connect(ui.syntax,&QComboBox::currentIndexChanged,&dlg,[ui,proxy](int index){
+        const QString text = ui.filter->text();
+        if (index == 0) {
+            proxy->setFilterRegularExpression(text);
+        } else {
+            proxy->setFilterWildcard(text);
+        }
+    });
+
+    auto updateLabelText = [ui,urls,rejected](const QItemSelection &selected = QItemSelection(),
+                           const QItemSelection &deselected = QItemSelection()){
+        Q_UNUSED(selected)
+        Q_UNUSED(deselected)
+        QString res;
+        int selectedCount = ui.table->selectionModel()->selectedRows(0).count();
+        res = tr("%1 downloadable URLs detected.").arg(urls.count());
+        if (rejected > 0)
+            res.append(tr(" %1 rejected.").arg(rejected));
+        if (selectedCount > 0)
+            res.append(tr(" %1 selected.").arg(selectedCount));
+        ui.label->setText(res);
+    };
+
+    ui.table->resizeColumnsToContents();
+    updateLabelText();
+    connect(ui.table->selectionModel(),&QItemSelectionModel::selectionChanged,updateLabelText);
+
+    ui.syntax->setCurrentIndex(0);
+    ui.checkAddNumbers->setChecked(isFanbox || isPatreon);
+
     if (!containerName.isEmpty())
         ui.table->selectAll();
 
     if (dlg.exec()==QDialog::Rejected) return;
+
     multiImgDialogSize=dlg.size();
+    const QModelIndexList selectedItems = ui.table->selectionModel()->selectedRows(0);
+
+    bool onlyFanboxPosts = std::all_of(selectedItems.constBegin(),selectedItems.constEnd(),[model,proxy](const QModelIndex& item){
+        static const QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
+        const QString url = model->getUrl(proxy->mapToSource(item));
+        auto match = rxFanboxPostId.match(url);
+        return match.hasMatch();
+    });
+    bool onlyPixivNovels = std::all_of(selectedItems.constBegin(),selectedItems.constEnd(),[model,proxy](const QModelIndex& item){
+        const QString url = model->getUrl(proxy->mapToSource(item));
+        return url.contains(QSL("pixiv.net/novel/show.php"), Qt::CaseInsensitive);
+    });
 
     QString container;
-    if (ui.checkZipFile->isChecked()) {
+    if (ui.checkZipFile->isChecked() && !(onlyFanboxPosts || onlyPixivNovels)) {
         QString fname = containerName;
         if (!fname.endsWith(QSL(".zip"),Qt::CaseInsensitive))
             fname += QSL(".zip");
         container = CGenericFuncs::getSaveFileNameD(gSet->activeWindow(),
-                                                    tr("Pack images to ZIP file"),CGenericFuncs::getTmpDir(),
+                                                    tr("Pack files to ZIP file"),CGenericFuncs::getTmpDir(),
                                                     QStringList( { tr("ZIP file (*.zip)") } ),nullptr,fname);
     } else {
-        container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save images to directory"),
+        container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save to directory"),
                                                          CGenericFuncs::getTmpDir(),
                                                          QFileDialog::ShowDirsOnly,containerName);
     }
     if (container.isEmpty()) return;
 
     int index = 0;
-    const QModelIndexList itml = ui.table->selectionModel()->selectedRows(0);
+    if (onlyFanboxPosts || onlyPixivNovels) {
+        QStringList urls;
+        urls.reserve(selectedItems.count());
+        for (const auto &item : selectedItems) {
+            const QString url = model->getUrl(proxy->mapToSource(item));
+            if (!urls.contains(url))
+                urls.append(url);
+        }
+
+        for (const auto &url : qAsConst(urls)) {
+            if (!ui.checkAddNumbers->isChecked()) {
+                index = -1;
+            } else {
+                index++;
+            }
+
+            CAbstractExtractor *ex = nullptr;
+            if (onlyFanboxPosts) {
+                int id = -1;
+                static const QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
+                auto mchFanboxPostId = rxFanboxPostId.match(url);
+                if (mchFanboxPostId.hasMatch()) {
+                    bool ok = false;
+                    id = mchFanboxPostId.captured(QSL("postID")).toInt(&ok);
+                    if (ok) {
+                        ex = new CFanboxExtractor(nullptr);
+                        qobject_cast<CFanboxExtractor *>(ex)->setParams(id,false,false,false,false,true,
+                                                                        { { QSL("containerPath"), container },
+                                                                          { QSL("index"), QSL("%1").arg(index) },
+                                                                          { QSL("count"), QSL("%1").arg(urls.count()) } });
+                    }
+                }
+
+            } else if (onlyPixivNovels) {
+                ex = new CPixivNovelExtractor(nullptr);
+                qobject_cast<CPixivNovelExtractor *>(ex)->setParams(url,QString(),false,false,false,true,
+                                                                    { { QSL("containerPath"), container },
+                                                                      { QSL("index"), QSL("%1").arg(index) },
+                                                                      { QSL("count"), QSL("%1").arg(urls.count()) } });
+            }
+            if (!gSet->startup()->setupThreadedWorker(ex)) {
+                delete ex;
+            } else {
+                QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+            }
+        }
+
+        return;
+    }
+
     bool forceOverwrite = false;
-    for (const auto &itm : itml){
+    for (const auto &item : selectedItems){
         if (!ui.checkAddNumbers->isChecked()) {
             index = -1;
         } else {
             index++;
         }
 
-        QString filename = ui.table->item(itm.row(),0)->text();
-        QString url = ui.table->item(itm.row(),1)->text();
+        const QString filename = model->getFileName(proxy->mapToSource(item));
+        const QString url = model->getUrl(proxy->mapToSource(item));
 
         handleAuxDownload(url,filename,container,referer,index,
-                          itml.count(),isFanbox,isPatreon,forceOverwrite);
+                          selectedItems.count(),isFanbox,isPatreon,forceOverwrite);
     }
 }
 
-void CDownloadManager::novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate)
+void CDownloadManager::novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate,
+                                  bool downloadNovel, const CStringHash &info)
 {
+    if (downloadNovel) {
+        bool zipTarget = false;
+        QString fname;
+        const QString containerPath = info.value(QSL("containerPath"));
+        bool ok = false;
+        int index = info.value(QSL("index"),QSL("-1")).toInt(&ok);
+        if (!ok) index = -1;
+        int count = info.value(QSL("count"),QSL("-1")).toInt(&ok);
+        if (!ok) count = -1;
+        QString title = info.value(QSL("title"));
+        if (!info.value(QSL("suggestedTitle")).isEmpty())
+            title = info.value(QSL("suggestedTitle"));
+
+        const QString suggestedFileName = QSL("%1 - %2.htm").arg(info.value(QSL("id")),
+                                                                 CGenericFuncs::makeSafeFilename(title));
+
+        if (!computeFileName(fname,
+                             zipTarget,
+                             index,
+                             count,
+                             QUrl(),
+                             containerPath,
+                             suggestedFileName)) {
+
+            QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                                  tr("Computed file name is empty."));
+            return;
+        }
+
+        gSet->ui()->setSavedAuxSaveDir(containerPath);
+
+        QFile file(fname);
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::critical(this,QGuiApplication::applicationDisplayName(),
+                                  tr("Unable to create file:\n%1.").arg(fname));
+            return;
+        }
+        file.write(html.toUtf8());
+        file.close();
+
+        return;
+    }
+
     new CBrowserTab(gSet->activeWindow(),QUrl(),QStringList(),html,focus,false,
                     translate,alternateTranslate);
 }

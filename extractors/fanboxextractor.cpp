@@ -17,13 +17,16 @@ CFanboxExtractor::CFanboxExtractor(QObject *parent)
 {
 }
 
-void CFanboxExtractor::setParams(int postId, bool translate, bool alternateTranslate, bool focus, bool isManga)
+void CFanboxExtractor::setParams(int postId, bool translate, bool alternateTranslate, bool focus,
+                                 bool isManga, bool novelDownload, const CStringHash &auxInfo)
 {
     m_translate = translate;
     m_alternateTranslate = alternateTranslate;
     m_focus = focus;
     m_postId = postId;
     m_isManga = isManga;
+    m_downloadNovel = novelDownload;
+    m_auxInfo = auxInfo;
 }
 
 QString CFanboxExtractor::workerDescription() const
@@ -179,10 +182,13 @@ void CFanboxExtractor::pageLoadFinished()
 
             } else {
                 if (!m_isManga) {
+                    CStringHash info = m_auxInfo;
+                    info.insert(QSL("title"), m_title);
+                    info.insert(QSL("id"), QSL("%1").arg(m_postNum));
                     Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
                                           m_title,m_text,true,
                                           QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
-                                      m_focus,m_translate,m_alternateTranslate);
+                                      m_focus,m_translate,m_alternateTranslate,m_downloadNovel,info);
                 }
 
                 if (m_isManga && images.isEmpty() && !imageIdHash.isEmpty()) {
@@ -264,10 +270,13 @@ void CFanboxExtractor::subImageFinished()
     m_worksIllustFetch--;
 
     if (m_worksIllustFetch == 0) {
+        CStringHash info = m_auxInfo;
+        info.insert(QSL("title"), m_title);
+        info.insert(QSL("id"), QSL("%1").arg(m_postNum));
         Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(
                               m_title,m_text,true,
                               QUrl(QSL("http://%1.fanbox.cc/posts/%2").arg(m_authorId,m_postNum))),
-                          m_focus,m_translate,m_alternateTranslate);
+                          m_focus,m_translate,m_alternateTranslate,m_downloadNovel,info);
 
         Q_EMIT finished();
     }

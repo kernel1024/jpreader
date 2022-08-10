@@ -9,17 +9,10 @@ CUrlHolder::CUrlHolder()
     CUrlHolder::uuid=QUuid::createUuid();
 }
 
-CUrlHolder::CUrlHolder(const CUrlHolder &other)
+CUrlHolder::CUrlHolder(const QString& aTitle, const QUrl& aUrl)
+    : title(aTitle),
+      url(aUrl)
 {
-    title=other.title;
-    url=other.url;
-    uuid=other.uuid;
-}
-
-CUrlHolder::CUrlHolder(const QString& title, const QUrl& url)
-{
-    CUrlHolder::title=title;
-    CUrlHolder::url=url;
     CUrlHolder::uuid=QUuid::createUuid();
 }
 
@@ -62,12 +55,6 @@ QDataStream &operator>>(QDataStream &in, QSslCertificate &obj)
 CLangPair::CLangPair()
 {
     nullify();
-}
-
-CLangPair::CLangPair(const CLangPair &other)
-{
-    langFrom = other.langFrom;
-    langTo = other.langTo;
 }
 
 CLangPair::CLangPair(const QString &hash)

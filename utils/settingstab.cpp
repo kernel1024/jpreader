@@ -1702,6 +1702,7 @@ bool CLangPairModel::setData(const QModelIndex &index, const QVariant &value, in
             case 1: gSet->m_settings->translatorPairs[index.row()].langTo = QLocale(value.toString()); break;
         }
         gSet->m_actions->rebuildLanguageActions();
+        Q_EMIT dataChanged(index,index);
         return true;
     }
     return false;

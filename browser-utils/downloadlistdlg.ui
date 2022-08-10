@@ -76,12 +76,12 @@
     </layout>
    </item>
    <item>
-    <widget class="QTableWidget" name="table">
+    <widget class="QTableView" name="table">
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <property name="horizontalScrollMode">
-      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     <property name="sortingEnabled">
+      <bool>true</bool>
      </property>
      <property name="wordWrap">
       <bool>false</bool>

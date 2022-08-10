@@ -40,13 +40,13 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     pixivUrl.setFragment(QString());
 
     QString pixivId;
-    QRegularExpression rxPixivId(QSL("pixiv.net/(.*/)?users/(?<userID>\\d+)"));
+    static const QRegularExpression rxPixivId(QSL("pixiv.net/(.*/)?users/(?<userID>\\d+)"));
     auto mchPixivId = rxPixivId.match(pixivUrl.toString());
     if (mchPixivId.hasMatch())
         pixivId = mchPixivId.captured(QSL("userID"));
 
     QString pixivTag;
-    QRegularExpression rxPixivTag(QSL("pixiv.net/(.*/)?tags/(?<tag>\\S+)/(novels|artworks)"));
+    static const QRegularExpression rxPixivTag(QSL("pixiv.net/(.*/)?tags/(?<tag>\\S+)/(novels|artworks)"));
     auto mchPixivTag = rxPixivTag.match(pixivUrl.toString());
     if (mchPixivTag.hasMatch())
         pixivTag = mchPixivTag.captured(QSL("tag"));
@@ -195,7 +195,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
     fanboxUrl.setFragment(QString());
 
     int fanboxPostId = -1;
-    QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
+    static const QRegularExpression rxFanboxPostId(QSL("fanbox.cc/.*posts/(?<postID>\\d+)"));
     auto mchFanboxPostId = rxFanboxPostId.match(fanboxUrl.toString());
     if (mchFanboxPostId.hasMatch()) {
         bool ok = false;
@@ -262,8 +262,8 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
 
     // ---------- Manga extractors
 
-    QRegularExpression pixivMangaRx(QSL("pixiv.net/.*?artworks/\\d+"),
-                                    QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression pixivMangaRx(QSL("pixiv.net/.*?artworks/\\d+"),
+                                                 QRegularExpression::CaseInsensitiveOption);
     if (origin.toString().contains(pixivMangaRx) ||
             pixivUrl.toString().contains(pixivMangaRx)) {
 
@@ -277,10 +277,10 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data.clear();
         data[QSL("type")] = QSL("pixivMangaView");
         data[QSL("focus")] = false;
-        if (origin.toString().contains(pixivMangaRx)) {
-            data[QSL("url")] = origin;
-        } else {
+        if (pixivUrl.toString().contains(pixivMangaRx)) {
             data[QSL("url")] = pixivUrl;
+        } else {
+            data[QSL("url")] = origin;
         }
         ac->setData(data);
         res.append(ac);
@@ -290,10 +290,10 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         data.clear();
         data[QSL("type")] = QSL("pixivMangaView");
         data[QSL("focus")] = true;
-        if (origin.toString().contains(pixivMangaRx)) {
-            data[QSL("url")] = origin;
-        } else {
+        if (pixivUrl.toString().contains(pixivMangaRx)) {
             data[QSL("url")] = pixivUrl;
+        } else {
+            data[QSL("url")] = origin;
         }
         ac->setData(data);
         res.append(ac);
@@ -302,10 +302,10 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         ac = new QAction(tr("Download all images from Pixiv illustration"),menu);
         data.clear();
         data[QSL("type")] = QSL("pixivManga");
-        if (origin.toString().contains(pixivMangaRx)) {
-            data[QSL("url")] = origin;
-        } else {
+        if (pixivUrl.toString().contains(pixivMangaRx)) {
             data[QSL("url")] = pixivUrl;
+        } else {
+            data[QSL("url")] = origin;
         }
         ac->setData(data);
         res.append(ac);
@@ -357,9 +357,9 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         patreonActions.append(ac);
     }
 
-    QRegularExpression deviantartGalleryRx(QSL("deviantart.com/(?<userID>[^/]+)/gallery"
-                                               "(?:/(?<folderID>\\d+)/(?<folderName>[^/\\s]+))?"),
-                                           QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression deviantartGalleryRx(QSL("deviantart.com/(?<userID>[^/]+)/gallery"
+                                                            "(?:/(?<folderID>\\d+)/(?<folderName>[^/\\s]+))?"),
+                                                        QRegularExpression::CaseInsensitiveOption);
     QList<QAction *> deviantartActions;
     QUrl deviantartUrl = pageUrl;
     if (!deviantartUrl.toString().contains(deviantartGalleryRx))
@@ -485,7 +485,9 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     hash.value(QSL("title")).toString(),
                     hash.value(QSL("translate")).toBool(),
                     hash.value(QSL("altTranslate")).toBool(),
-                    hash.value(QSL("focus")).toBool());
+                    hash.value(QSL("focus")).toBool(),
+                    false,
+                    CStringHash());
 
     } else if (type == QSL("pixivList")) {
         static int maxCount = 0;
@@ -547,7 +549,9 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     hash.value(QSL("translate")).toBool(),
                     hash.value(QSL("altTranslate")).toBool(),
                     hash.value(QSL("focus")).toBool(),
-                    false);
+                    false,
+                    false,
+                    CStringHash());
 
     } else if (type == QSL("pixivManga")) {
         res = new CPixivNovelExtractor(nullptr);
@@ -570,7 +574,9 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     false,
                     false,
                     false,
-                    true);
+                    true,
+                    false,
+                    CStringHash());
 
     } else if (type == QSL("patreonManga")) {
         res = new CPatreonExtractor(nullptr);
