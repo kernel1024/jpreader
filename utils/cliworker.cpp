@@ -174,8 +174,9 @@ QString CCLIWorker::translatePriv(const QString &text)
 {
     QString sout;
 
-    const QChar questionMark(u'?');
-    const QChar fullwidthQuestionMark(u'\uFF1F');
+    static const QRegularExpression htmlEntities(QSL("&\\w+;"));
+    static const QChar questionMark(u'?');
+    static const QChar fullwidthQuestionMark(u'\uFF1F');
 
     QString srct = text;
     srct = srct.replace(u'\r',u' ');
@@ -186,7 +187,7 @@ QString CCLIWorker::translatePriv(const QString &text)
 
         QString ttest = srct;
         bool noText = true;
-        ttest.remove(QRegularExpression(QSL("&\\w+;")));
+        ttest.remove(htmlEntities);
         for (const QChar &tc : qAsConst(ttest)) {
             if (tc.isLetter()) {
                 noText = false;

@@ -42,7 +42,8 @@ QStringList CAbstractTranslator::splitLongText(const QString &src) const
         const int margin = 10;
 
         // Split by separator chars
-        QRegularExpression rx(QSL("(\\ |\\,|\\.|\\:|\\t)")); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+        // RegEx for ' ' or ',' or '.' or ':' or '\t'
+        static const QRegularExpression rx(QSL("(\\ |\\,|\\.|\\:|\\t)"));
         QStringList srcl = src.split(rx);
         // Check for max length
         for (int i=0;i<srcl.count();i++) {
@@ -78,11 +79,11 @@ void CAbstractTranslator::setLanguage(const CLangPair &lang)
     m_lang = lang;
 }
 
-CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang) : QObject(parent)
+CAbstractTranslator::CAbstractTranslator(QObject *parent, const CLangPair &lang)
+    : QObject(parent),
+      m_lang(lang),
+      m_translatorRetryCount(gSet->settings()->translatorRetryCount)
 {
-    m_tranError.clear();
-    m_lang = lang;
-    m_translatorRetryCount = gSet->settings()->translatorRetryCount;
 }
 
 void CAbstractTranslator::doneTran(bool lazyClose)

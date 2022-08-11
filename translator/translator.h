@@ -9,11 +9,8 @@
 #include <QScopedPointer>
 #include <QAtomicInteger>
 #include <netdb.h>
-#include "mainwindow.h"
 #include "translator-workers/abstracttranslator.h"
-#include "global/control.h"
 #include "global/structures.h"
-#include "browser/waitctl.h"
 #include "utils/htmlparser.h"
 #include "abstractthreadworker.h"
 
@@ -22,6 +19,7 @@ class CBrowserWaitCtl;
 class CTranslator : public CAbstractThreadWorker
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CTranslator)
 private:
     enum XMLPassMode {
         PXPreprocess,
@@ -51,8 +49,6 @@ private:
     bool m_translateSubSentences { false };
     CStructures::TranslationEngine m_translationEngine { CStructures::teAtlas };
     CStructures::TranslationMode m_translationMode { CStructures::tmAdditive };
-
-    Q_DISABLE_COPY(CTranslator)
 
     bool translateDocument(const QString& srcHtml, QString& dstHtml);
 

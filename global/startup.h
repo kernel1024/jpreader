@@ -10,12 +10,13 @@ class CGlobalControl;
 class CGlobalStartup : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CGlobalStartup)
 public:
     explicit CGlobalStartup(CGlobalControl *parent);
     ~CGlobalStartup() override;
 
     void initialize();
-    static void preinit(int &argc, char *argv[], bool *cliMode);
+    static void preinit(int &argc, char *argv[], bool *cliMode); // NOLINT
 
     // Worker control
     bool setupThreadedWorker(CAbstractThreadWorker *worker);

@@ -14,7 +14,9 @@ using CHTMLAttributesHash = QHash<QString,QString>;
 class CHTMLNode
 {
 public:
-    QString text, tagName, closingText;
+    QString text;
+    QString tagName;
+    QString closingText;
     QVector<CHTMLNode> children;
     CHTMLAttributesHash attributes;
     QStringList attributesOrder;
@@ -22,7 +24,7 @@ public:
     bool isComment { false };
     CHTMLNode() = default;
     ~CHTMLNode() = default;
-    CHTMLNode(const CHTMLNode& other);
+    CHTMLNode(const CHTMLNode& other) = default;
     explicit CHTMLNode(tree<htmlcxx::HTML::Node> const & node);
     explicit CHTMLNode(const QString& innerText);
     CHTMLNode &operator=(const CHTMLNode& other) = default;
@@ -39,7 +41,7 @@ class CHTMLParser
 public:
     CHTMLParser();
 
-    static const CHTMLNode parseHTML(const QString& src);
+    static CHTMLNode parseHTML(const QString& src);
     static void generateHTML(const CHTMLNode &src, QString &html, bool reformat = false,
                              int depth = 0);
     static void generatePlainText(const CHTMLNode &src, QString &html, int depth = 0);

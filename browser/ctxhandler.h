@@ -20,11 +20,13 @@ class CBrowserTab;
 class CBrowserCtxHandler : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CBrowserCtxHandler)
 private:
     CBrowserTab *snv;
     QTimer m_menuActive;
 public:
     explicit CBrowserCtxHandler(CBrowserTab *parent);
+    ~CBrowserCtxHandler() override = default;
     void reconfigureDefaultActions();
     bool isMenuActive();
 public Q_SLOTS:

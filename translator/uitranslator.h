@@ -3,15 +3,15 @@
 
 #include <QTranslator>
 #include <QObject>
-#include "global/structures.h"
 
 class CUITranslator : public QTranslator
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CUITranslator)
 private:
     QString m_fileDialogNewFolderName;
 public:
-    CUITranslator(QObject *parent = nullptr);
+    explicit CUITranslator(QObject *parent = nullptr);
     ~CUITranslator() override;
     QString translate(const char *context, const char *sourceText,
                       const char *disambiguation = nullptr, int n = -1) const override;

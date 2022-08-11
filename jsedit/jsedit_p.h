@@ -7,6 +7,7 @@
 class JSHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
+    Q_DISABLE_COPY(JSHighlighter)
 public:
     explicit JSHighlighter(QTextDocument *parent = nullptr);
     ~JSHighlighter() override = default;
@@ -32,7 +33,7 @@ class JSBlockData: public QTextBlockUserData
 public:
     QList<int> bracketPositions;
 
-    JSBlockData() {}
+    JSBlockData() = default;
     JSBlockData(const JSBlockData& other) = delete;
     ~JSBlockData() override;
     JSBlockData &operator=(const JSBlockData& other) = delete;

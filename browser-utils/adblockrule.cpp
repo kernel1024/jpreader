@@ -14,8 +14,8 @@
 #include "global/structures.h"
 
 CAdBlockRule::CAdBlockRule(const QString &filter, const QString &listID)
+    : m_listID(listID)
 {
-    m_listID = listID;
     setFilter(filter);
 }
 

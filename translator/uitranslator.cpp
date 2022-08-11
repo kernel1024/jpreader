@@ -1,4 +1,5 @@
 #include "uitranslator.h"
+#include "global/structures.h"
 
 CUITranslator::CUITranslator(QObject *parent)
     : QTranslator(parent)

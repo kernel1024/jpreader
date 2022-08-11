@@ -6,14 +6,13 @@
 #include <QDebug>
 
 #include "bingtranslator.h"
-#include "global/control.h"
 #include "utils/genericfuncs.h"
 
 CBingTranslator::CBingTranslator(QObject *parent, const CLangPair &lang,
                                  const QString &bingKey)
-    : CWebAPIAbstractTranslator(parent, lang)
-{
-    clientKey = bingKey;
+    : CWebAPIAbstractTranslator(parent, lang),
+      clientKey(bingKey)
+{    
     clearCredentials();
 }
 

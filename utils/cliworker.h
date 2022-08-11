@@ -10,6 +10,7 @@
 class CCLIWorker : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CCLIWorker)
 private:
     CLangPair m_lang;
     QPointer<CAbstractTranslator> m_engine;

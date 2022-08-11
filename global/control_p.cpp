@@ -1,6 +1,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDirIterator>
+#include <QGuiApplication>
+#include <QCoreApplication>
 
 extern "C" {
 #include <unistd.h>
@@ -9,10 +11,8 @@ extern "C" {
 
 #include "control_p.h"
 #include "startup.h"
+#include "control.h"
 #include "utils/logdisplay.h"
-#include "utils/workermonitor.h"
-#include "browser-utils/downloadmanager.h"
-#include "translator/lighttranslator.h"
 
 namespace CDefaults {
 const int settingsSavePeriod = 60000;

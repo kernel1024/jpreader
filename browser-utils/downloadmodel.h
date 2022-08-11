@@ -99,13 +99,12 @@ Q_DECLARE_METATYPE(CDownloadItem)
 class CDownloadsModel : public QAbstractTableModel
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CDownloadsModel)
 private:
     CDownloadManager* m_manager;
     QVector<CDownloadItem> m_downloads;
     QQueue<CDownloadTask> m_tasks;
     QMutex m_tasksMutex;
-
-    Q_DISABLE_COPY(CDownloadsModel)
 
     void updateProgressLabel();
     bool abortDownloadPriv(int row);

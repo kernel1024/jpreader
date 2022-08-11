@@ -82,7 +82,7 @@ private:
     void activateShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
 
 public:
-    QxtGlobalShortcutFilter(QObject* parent = nullptr);
+    explicit QxtGlobalShortcutFilter(QObject* parent = nullptr);
     ~QxtGlobalShortcutFilter() override;
     static bool setupShortcut(QxtGlobalShortcut* shortcut);
 

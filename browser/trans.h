@@ -11,6 +11,7 @@ class CBrowserTab;
 class CBrowserTrans : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CBrowserTrans)
 private:
     CBrowserTab *snv;
     QTimer m_selectionTimer;
@@ -29,6 +30,7 @@ public:
         uemAllFiles = 2
     };
     explicit CBrowserTrans(CBrowserTab * parent);
+    ~CBrowserTrans() override = default;
 
 public Q_SLOTS:
     void translatePriv(const QString& sourceHtml, const QString &title, const QUrl &origin);

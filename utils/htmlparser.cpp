@@ -4,7 +4,7 @@ using namespace htmlcxx;
 
 CHTMLParser::CHTMLParser() = default;
 
-const CHTMLNode CHTMLParser::parseHTML(const QString &src)
+CHTMLNode CHTMLParser::parseHTML(const QString &src)
 {
     HTML::ParserDom parser;
     parser.parse(src);
@@ -61,18 +61,6 @@ void CHTMLParser::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
     }
 }
 
-CHTMLNode::CHTMLNode(const CHTMLNode &other)
-{
-    text = other.text;
-    tagName = other.tagName;
-    closingText = other.closingText;
-    isTag = other.isTag;
-    isComment = other.isComment;
-    attributes = other.attributes;
-    attributesOrder = other.attributesOrder;
-    children = other.children;
-}
-
 CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 {
     tree<HTML::Node>::iterator it = node.begin();
@@ -92,10 +80,10 @@ CHTMLNode::CHTMLNode(tree<HTML::Node> const & node)
 }
 
 CHTMLNode::CHTMLNode(const QString &innerText)
+    : text(innerText),
+      tagName(innerText)
 {
     // creates text node
-    text = innerText;
-    tagName = innerText;
 }
 
 bool CHTMLNode::operator==(const CHTMLNode &s) const

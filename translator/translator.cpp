@@ -3,10 +3,10 @@
 #include <QBuffer>
 #include <QRegularExpression>
 #include "translator.h"
-#include "translator-workers/atlastranslator.h"
-#include "browser/browser.h"
-#include "utils/genericfuncs.h"
 #include "translatorcache.h"
+#include "translator-workers/atlastranslator.h"
+#include "utils/genericfuncs.h"
+#include "global/control.h"
 #include <sstream>
 
 CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
@@ -15,19 +15,19 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
                          const CLangPair &langPair)
     : CAbstractThreadWorker(parent),
       m_sourceHtml(sourceHtml),
+      m_engineName(CStructures::translationEngines().value(m_translationEngine)),
+      m_forcedFontColor(gSet->settings()->forcedFontColor),
+      m_overrideTransFont(gSet->settings()->overrideTransFont),
       m_title(title),
-      m_origin(origin)
+      m_origin(origin),
+      m_langPair(langPair),
+      m_retryCount(gSet->settings()->translatorRetryCount),
+      m_useOverrideTransFont(gSet->actions()->useOverrideTransFont()),
+      m_forceFontColor(gSet->actions()->forceFontColor()),
+      m_translateSubSentences(gSet->actions()->getSubsentencesMode(m_translationEngine)),
+      m_translationEngine(engine),
+      m_translationMode(gSet->actions()->getTranslationMode())
 {
-    m_translationEngine=engine;
-    m_langPair = langPair;
-    m_engineName=CStructures::translationEngines().value(m_translationEngine);
-    m_retryCount=gSet->settings()->translatorRetryCount;
-    m_forceFontColor=gSet->actions()->forceFontColor();
-    m_forcedFontColor=gSet->settings()->forcedFontColor;
-    m_useOverrideTransFont=gSet->actions()->useOverrideTransFont();
-    m_overrideTransFont=gSet->settings()->overrideTransFont;
-    m_translationMode=gSet->actions()->getTranslationMode();
-    m_translateSubSentences=gSet->actions()->getSubsentencesMode(m_translationEngine);
 }
 
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
@@ -190,6 +190,10 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
         // Unfold "1% height" divs from blog.jp/livedoor.jp
         // their blogs using same site.css
         // Also for blog.goo.ne.jp (same CSS as static.css)
+        static const QRegularExpression blogJpSiteCss(QSL("blog.*\\.jp.*site.css\\?_="),
+                                                      QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression gooJpStaticCss(QSL("/css/.*static.css\\?"),
+                                                       QRegularExpression::CaseInsensitiveOption);
         int idx = 0;
         while (idx<node.children.count()) {
             if (node.children.at(idx).tagName.toLower()==QSL("meta")) {
@@ -205,12 +209,8 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
                 if ((node.children.at(idx).attributes.value(QSL("type"))
                      .toLower().trimmed()==QSL("text/css")) &&
-                        (node.children.at(idx).attributes.value(QSL("href")).contains(
-                             QRegularExpression(QSL("blog.*\\.jp.*site.css\\?_="),
-                                                QRegularExpression::CaseInsensitiveOption)) ||
-                         (node.children.at(idx).attributes.value(QSL("href")).contains(
-                             QRegularExpression(QSL("/css/.*static.css\\?"),
-                                                QRegularExpression::CaseInsensitiveOption)) &&
+                        (node.children.at(idx).attributes.value(QSL("href")).contains(blogJpSiteCss) ||
+                         (node.children.at(idx).attributes.value(QSL("href")).contains(gooJpStaticCss) &&
                           m_metaSrcUrl.host().contains(QSL("blog"),Qt::CaseInsensitive)))) {
                     CHTMLNode st;
                     st.tagName=QSL("style");
@@ -336,6 +336,11 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
 
 bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xmlPass)
 {
+    static const QRegularExpression htmlEntities(QSL("&\\w+;"));
+    static const QRegularExpression multiNewline(QSL("\n{2,}"));
+    static const QChar questionMark(u'?');
+    static const QChar fullwidthQuestionMark(u'\uFF1F');
+
     if (!m_tran) return false;
 
     bool failure = false;
@@ -349,14 +354,12 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
     QString ssrc = src.text;
     ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
     ssrc = ssrc.replace(u'\r',u'\n');
-    ssrc = ssrc.replace(QRegularExpression(QSL("\n{2,}")),QSL("\n"));
+    ssrc = ssrc.replace(multiNewline,QSL("\n"));
     QStringList sl = ssrc.split(u'\n',Qt::SkipEmptyParts);
 
     QString sout;
     QStringList srctls;
 
-    const QChar questionMark(u'?');
-    const QChar fullwidthQuestionMark(u'\uFF1F');
     const int progressUpdateFrac = 5;
 
     for(int i=0;i<sl.count();i++) {
@@ -377,7 +380,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
 
                 QString ttest = srct;
                 bool noText = true;
-                ttest.remove(QRegularExpression(QSL("&\\w+;")));
+                ttest.remove(htmlEntities);
                 for (const QChar &tc : qAsConst(ttest)) {
                     if (tc.isLetter()) {
                         noText = false;

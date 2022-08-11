@@ -22,7 +22,7 @@ private:
     bool handleFile(const QString& filename);
 
 public:
-    CXapianIndexWorker(QObject *parent = nullptr, bool cleanupDatabase = false);
+    explicit CXapianIndexWorker(QObject *parent = nullptr, bool cleanupDatabase = false);
     ~CXapianIndexWorker() override;
     void forceScanDirList(const QStringList &forcedScanDirList);
 

@@ -6,14 +6,13 @@
 #include <QVariant>
 #include <QDebug>
 
-#include "global/control.h"
 #include "utils/genericfuncs.h"
 #include "yandextranslator.h"
 
 CYandexTranslator::CYandexTranslator(QObject *parent, const CLangPair &lang, const QString &yandexKey)
-    : CWebAPIAbstractTranslator(parent, lang)
-{
-    clientKey = yandexKey;
+    : CWebAPIAbstractTranslator(parent, lang),
+      clientKey(yandexKey)
+{    
 }
 
 bool CYandexTranslator::initTran()

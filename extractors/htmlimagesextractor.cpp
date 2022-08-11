@@ -1,5 +1,6 @@
 #include <QBuffer>
 #include "htmlimagesextractor.h"
+#include "browser/browser.h"
 #include "utils/genericfuncs.h"
 #include "utils/htmlparser.h"
 #include "global/control.h"

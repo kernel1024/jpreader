@@ -696,13 +696,13 @@ bool TreeProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_
 
 BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
     : QDialog(parent)
-    , ui(new Ui::BookmarksDialog)
+    , ui(new Ui::BookmarksDialog),
+      m_bookmarksManager(manager)
 {
     ui->setupUi(this);
 
     const int headerMaxCharWidth = 40;
-
-    m_bookmarksManager = manager;
+    
     if (!m_bookmarksManager)
         m_bookmarksManager = gSet->bookmarksManager();
 

@@ -10,8 +10,8 @@
 #include <QFileInfo>
 #include <QScopedPointer>
 
-#include "global/control.h"
 #include "abstractthreadedsearch.h"
+#include "global/structures.h"
 
 namespace CDefaults {
 const int maxSearchFileSize = 50*1024*1024;
@@ -20,8 +20,10 @@ const int maxSearchFileSize = 50*1024*1024;
 class CIndexerSearch : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CIndexerSearch)
 public:
     explicit CIndexerSearch(QObject *parent = nullptr);
+    ~CIndexerSearch() override = default;
     bool isValidConfig();
     bool isWorking() const;
     CStructures::SearchEngine getCurrentIndexerService();

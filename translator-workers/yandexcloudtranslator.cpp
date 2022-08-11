@@ -7,10 +7,10 @@
 
 CYandexCloudTranslator::CYandexCloudTranslator(QObject *parent, const CLangPair &lang, const QString &apiKey,
                                                const QString &folderID)
-    : CWebAPIAbstractTranslator(parent,lang)
+    : CWebAPIAbstractTranslator(parent,lang),
+      m_apiKey(apiKey),
+      m_folderID(folderID)
 {
-    m_apiKey = apiKey;
-    m_folderID = folderID;
 }
 
 bool CYandexCloudTranslator::initTran()

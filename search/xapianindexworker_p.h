@@ -23,7 +23,8 @@ public:
     bool m_cleanupDatabase { false };
     bool m_fastIncrementalIndex { false };
 
-    CXapianIndexWorkerPrivate(QObject *parent = nullptr);
+    explicit CXapianIndexWorkerPrivate(QObject *parent = nullptr);
+    ~CXapianIndexWorkerPrivate() override = default;
 };
 
 #endif // XAPIANINDEXWORKER_P_H

@@ -20,6 +20,7 @@ class ZAbstractXCBEventListener;
 class ZXCBTools : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(ZXCBTools)
 private:
     QMutex m_listenersMutex;
     QPointer<QThread> m_eventLoopThread;
@@ -54,18 +55,19 @@ public:
     static uint16_t nativeModifiers(Qt::KeyboardModifiers modifiers);
     static bool registerShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
     static bool unregisterShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods);
-    static xcb_keysym_t keyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods);
+    static xcb_keysym_t keyToKeysym(Qt::Key key, Qt::KeyboardModifiers mods);
 };
 
 class ZAbstractXCBEventListener : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(ZAbstractXCBEventListener)
 
     friend class ZXCBTools;
 
 public:
-    explicit ZAbstractXCBEventListener(QObject* parent = nullptr) : QObject(parent) {}
-    ~ZAbstractXCBEventListener() override {}
+    explicit ZAbstractXCBEventListener(QObject* parent = nullptr);
+    ~ZAbstractXCBEventListener() override = default;
 
 protected:
     virtual void nativeEventHandler(const xcb_generic_event_t* event) = 0;

@@ -7,10 +7,10 @@
 
 CAtlasTranslator::CAtlasTranslator(QObject *parent, const QString& host, quint16 port,
                                    const CLangPair &lang) :
-    CAbstractTranslator(parent, lang)
+    CAbstractTranslator(parent, lang),
+    m_atlHost(host),
+    m_atlPort(port)
 {
-    m_atlHost=host;
-    m_atlPort=port;
     if (gSet)
         m_emptyRestore=gSet->settings()->emptyRestore;
 
@@ -110,6 +110,8 @@ bool CAtlasTranslator::initTran()
 
 QString CAtlasTranslator::tranStringPrivate(const QString &src)
 {
+    static const QRegularExpression resResponsePreamble(QSL("^RES:"));
+
     if (!m_sock.isOpen()) {
         setErrorMsg(QSL("ERROR: ATLAS socket not opened"));
         return QSL("ERROR:TRAN_ATLAS_SOCK_NOT_OPENED");
@@ -139,7 +141,7 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
     sumbuf = sumbuf.simplified();
     sumbuf.replace(u'+',u' ');
     s = QString::fromLatin1(sumbuf);
-    if (sumbuf.isEmpty() || !s.contains(QRegularExpression(QSL("^RES:")))) {
+    if (sumbuf.isEmpty() || !s.contains(resResponsePreamble)) {
         if (s.contains(QSL("NEED_RESTART"))) {
             qCritical() << "ATLAS: translation engine slipped. Please restart again.";
             m_sock.close();
@@ -153,7 +155,7 @@ QString CAtlasTranslator::tranStringPrivate(const QString &src)
         return QSL("ERROR:TRAN_ATLAS_TRAN_ERROR");
     }
 
-    s = s.remove(QRegularExpression(QSL("^RES:")));
+    s = s.remove(resResponsePreamble);
     QString res = QUrl::fromPercentEncoding(s.toLatin1());
     if (res.trimmed().isEmpty() && m_emptyRestore)
         return src;

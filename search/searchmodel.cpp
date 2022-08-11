@@ -1,4 +1,5 @@
 #include <cmath>
+#include <QApplication>
 #include "searchmodel.h"
 #include "utils/genericfuncs.h"
 

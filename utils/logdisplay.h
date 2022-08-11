@@ -24,8 +24,8 @@ public Q_SLOTS:
 
 private:
     Ui::CLogDisplay *ui;
-    QSyntaxHighlighter* syntax;
-    bool firstShow;
+    QSyntaxHighlighter* syntax { nullptr };
+    bool firstShow { true };
 
     Q_DISABLE_COPY(CLogDisplay)
 

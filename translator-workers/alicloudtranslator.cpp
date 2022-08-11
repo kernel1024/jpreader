@@ -12,12 +12,11 @@ CAliCloudTranslator::CAliCloudTranslator(QObject *parent, const CLangPair &lang,
                                          CStructures::AliCloudTranslatorMode mode,
                                          const QString &accessKeyID,
                                          const QString &accessKeySecret)
-    : CWebAPIAbstractTranslator(parent,lang)
+    : CWebAPIAbstractTranslator(parent,lang),
+      m_mode(mode),
+      m_accessKeyID(accessKeyID),
+      m_accessKeySecret(accessKeySecret)
 {
-    m_mode = mode;
-    m_accessKeyID = accessKeyID;
-    m_accessKeySecret = accessKeySecret;
-
     clearCredentials();
 }
 

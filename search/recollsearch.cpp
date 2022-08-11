@@ -3,7 +3,6 @@
 #include <QStringList>
 #include <QUrl>
 #include <QString>
-#include <QStringList>
 #include <QByteArray>
 #include <QRegularExpression>
 #include "recollsearch.h"
@@ -25,7 +24,7 @@ void CRecollSearch::recollReadyRead()
     if (recoll==nullptr) return;
 
     QStringList outList= QString::fromUtf8(recoll->readAllStandardOutput()).split(u'\n');
-    QRegularExpression rxname(QSL("^[a-z]+$"));
+    static const QRegularExpression rxname(QSL("^[a-z]+$"));
 
     for(int i=0;i<outList.count();i++) {
         QString s = outList.at(i).trimmed();

@@ -74,7 +74,8 @@ QString CGlobalControl::makeTmpFile(const QString& suffix, const QString& conten
 {
     Q_D(CGlobalControl);
 
-    QString res = QUuid::createUuid().toString().remove(QRegularExpression(QSL("[^a-z,A-Z,0,1-9,-]")));
+    static const QRegularExpression allNonSafeCharacters(QSL("[^a-z,A-Z,0,1-9,-]"));
+    QString res = QUuid::createUuid().toString().remove(allNonSafeCharacters);
     if (!suffix.isEmpty())
         res.append(QSL(".%1").arg(suffix));
     res = QDir::temp().absoluteFilePath(res);

@@ -88,6 +88,7 @@ class CGlobalControl;
 class CSettings : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CSettings)
 public:
     static const QVector<QColor> graphColors;
     static const QVector<QColor> snippetColors;
@@ -202,6 +203,7 @@ public:
     bool mangaUseFineRendering { CDefaults::mangaUseFineRendering };
 
     explicit CSettings(CGlobalControl *parent);
+    ~CSettings() override = default;
 
     void readSettings(QObject *control = nullptr);
     void setTranslationEngine(CStructures::TranslationEngine engine);

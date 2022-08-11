@@ -5,20 +5,19 @@
 #include <QAbstractTableModel>
 #include <QTableView>
 #include <QSortFilterProxyModel>
-#include "indexersearch.h"
+#include "global/structures.h"
 
 class CSearchModel : public QAbstractTableModel
 {
     Q_OBJECT
-
+    Q_DISABLE_COPY(CSearchModel)
 private:
     QVector<CStringHash> m_snippets;
     QTableView *m_table;
 
-    Q_DISABLE_COPY(CSearchModel)
-
 public:
     explicit CSearchModel(QObject *parent = nullptr, QTableView *view = nullptr);
+    ~CSearchModel() override = default;
 
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation,

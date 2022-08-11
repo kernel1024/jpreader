@@ -616,8 +616,8 @@ void CDownloadsModel::updateProgressLabel()
 }
 
 CDownloadItem::CDownloadItem(quint32 itemId)
+    : id(itemId)
 {
-    id = itemId;
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
@@ -641,21 +641,20 @@ CDownloadItem::CDownloadItem(QWebEngineDownloadRequest* item)
     }
 }
 
-CDownloadItem::CDownloadItem(const QUuid &uuid)
+CDownloadItem::CDownloadItem(const QUuid &uuid) : auxId(uuid)
 {
-    auxId = uuid;
+    
 }
 
 CDownloadItem::CDownloadItem(QNetworkReply *rpl, const QString &fname, const qint64 offset)
+    : pathName(fname),
+      received(offset),
+      initialOffset(offset),
+      reply(rpl)
 {
-    pathName = fname;
     mimeType = QSL("application/download");
-    reply = rpl;
     url = rpl->url();
-    initialOffset = offset;
-    received = offset;
     auxId = QUuid::createUuid();
-
     rpl->setProperty(CDefaults::replyAuxId,auxId);
 }
 
@@ -708,8 +707,8 @@ void CDownloadItem::reuseReply(QNetworkReply *rpl)
 }
 
 CDownloadTask::CDownloadTask(const QNetworkRequest &rq, const QString &fname, qint64 initialOffset)
+    : request(rq),
+      fileName(fname),
+      offset(initialOffset)
 {
-    request = rq;
-    fileName = fname;
-    offset = initialOffset;
 }

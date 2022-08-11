@@ -8,10 +8,12 @@
 class CBrowserWaitCtl : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CBrowserWaitCtl)
 private:
     CBrowserTab* snv;
 public:
     explicit CBrowserWaitCtl(CBrowserTab *parent);
+    ~CBrowserWaitCtl() override = default;
     void setText(const QString &aMsg);
     void setLanguage(const QString &aLang);
 public Q_SLOTS:

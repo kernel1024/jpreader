@@ -515,7 +515,7 @@ bool ZXCBTools::grabKey(xcb_keycode_t keycode, uint16_t modifiers, xcb_window_t 
     return true;
 }
 
-xcb_keysym_t ZXCBTools::keyToKeysym(const Qt::Key key, const Qt::KeyboardModifiers mods)
+xcb_keysym_t ZXCBTools::keyToKeysym(Qt::Key key, Qt::KeyboardModifiers mods)
 {
     unsigned int code = 0;
     switch( key )
@@ -629,4 +629,9 @@ bool ZXCBTools::registerShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods)
 bool ZXCBTools::unregisterShortcut(xcb_keycode_t nativeKey, uint16_t nativeMods)
 {
     return ungrabKey(nativeKey, nativeMods, static_cast<unsigned int>(appRootWindow()));
+}
+
+ZAbstractXCBEventListener::ZAbstractXCBEventListener(QObject *parent)
+    : QObject(parent)
+{
 }

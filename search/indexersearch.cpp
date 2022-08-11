@@ -11,9 +11,9 @@
 #include "defaultsearch.h"
 
 CIndexerSearch::CIndexerSearch(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_engineMode(gSet->settings()->searchEngine)
 {
-    m_engineMode = gSet->settings()->searchEngine;
 }
 
 void CIndexerSearch::doSearch(const QString &searchTerm, const QDir &searchDir)

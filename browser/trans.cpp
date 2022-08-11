@@ -6,6 +6,7 @@
 #include "trans.h"
 #include "net.h"
 #include "ctxhandler.h"
+#include "waitctl.h"
 #include "global/control.h"
 #include "global/startup.h"
 #include "global/browserfuncs.h"

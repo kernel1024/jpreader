@@ -2,12 +2,10 @@
 #include <QDebug>
 #include <QInputDialog>
 #include "logdisplay.h"
-#include "genericfuncs.h"
 #include "global/control.h"
 #include "global/control_p.h"
 #include "global/contentfiltering.h"
 #include "global/ui.h"
-#include "mainwindow.h"
 #include "specwidgets.h"
 #include "ui_logdisplay.h"
 
@@ -16,7 +14,7 @@ CLogDisplay::CLogDisplay(QWidget *parent) :
     ui(new Ui::CLogDisplay)
 {
     ui->setupUi(this);
-    firstShow = true;
+    
     syntax = new CSpecLogHighlighter(ui->logView->document());
 
     ui->logView->setContextMenuPolicy(Qt::CustomContextMenu);

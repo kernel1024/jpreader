@@ -101,9 +101,9 @@ void CWorkerMonitor::updateWorkerTimes()
 }
 
 CWorkerMonitorModel::CWorkerMonitorModel(CWorkerMonitor *parent)
-    : QAbstractTableModel(parent)
+    : QAbstractTableModel(parent),
+      m_monitor(parent)
 {
-    m_monitor = parent;
 }
 
 CWorkerMonitorModel::~CWorkerMonitorModel() = default;
@@ -231,9 +231,9 @@ void CWorkerMonitorModel::workerDataLoaded(qint64 loadedTotalSize, qint64 loaded
 }
 
 CWorkerMonitorItem::CWorkerMonitorItem(CAbstractThreadWorker *w)
+    : worker(w)
 {
-    worker = w;
-    description = w->workerDescription();
+    description = worker->workerDescription();
     started = QDateTime::currentDateTime();
 }
 

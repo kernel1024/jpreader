@@ -12,7 +12,8 @@ Checks:          '-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readabi
 -readability-function-cognitive-complexity,
 -readability-identifier-length,
 -modernize-use-nodiscard,
--readability-redundant-access-specifiers'
+-readability-redundant-access-specifiers,
+-bugprone-easily-swappable-parameters'
 
 CheckOptions:    
   - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic

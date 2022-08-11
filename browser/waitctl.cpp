@@ -1,9 +1,9 @@
 #include "waitctl.h"
 
 CBrowserWaitCtl::CBrowserWaitCtl(CBrowserTab *parent) :
-    QObject(parent)
+    QObject(parent),
+    snv(parent)
 {
-    snv = parent;
     setText(QString());
     setLanguage(QString());
     snv->lblWaitLanguage->hide();

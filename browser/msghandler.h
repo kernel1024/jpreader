@@ -13,6 +13,7 @@ class CBrowserTab;
 class CBrowserMsgHandler : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CBrowserMsgHandler)
 private:
     CBrowserTab *snv;
     QMutex m_lockTranEngine;
@@ -28,6 +29,7 @@ public:
     };
     Q_ENUM(PasteLoginMode)
     explicit CBrowserMsgHandler(CBrowserTab * parent);
+    ~CBrowserMsgHandler() override = default;
     void updateZoomFactor();
     void activateFocusDelay();
     void pastePassword(const QString& realm, CBrowserMsgHandler::PasteLoginMode mode);

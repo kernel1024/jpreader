@@ -567,12 +567,14 @@ bool ZMangaView::isMangaOpened() const
 
 void ZMangaView::setZoomAny(int comboIdx)
 {
+    static const QRegularExpression nonDigits(QSL("[^0123456789]"));
+
     if (m_cleanup) return;
     auto *cb = qobject_cast<QComboBox *>(sender());
     if (cb==nullptr) return;
     QString s = cb->itemText(comboIdx);
     m_zoomAny = -1; // original zoom
-    s.remove(QRegularExpression(QSL("[^0123456789]")));
+    s.remove(nonDigits);
     bool okconv = false;
     if (!s.isEmpty()) {
         m_zoomAny = s.toInt(&okconv);

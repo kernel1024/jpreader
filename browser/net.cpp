@@ -10,6 +10,7 @@
 
 #include "net.h"
 #include "msghandler.h"
+#include "browser.h"
 #include "utils/genericfuncs.h"
 #include "utils/pdftotext.h"
 #include "browser-utils/authdlg.h"

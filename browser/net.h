@@ -7,14 +7,13 @@
 #include <QWebEngineScript>
 #include <QNetworkReply>
 #include <QTimer>
-#include "extractors/pixivindexextractor.h"
-#include "extractors/patreonextractor.h"
 
 class CBrowserTab;
 
 class CBrowserNet : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(CBrowserNet)
 private:
     CBrowserTab *snv;
     QUrl m_loadedUrl;
@@ -22,6 +21,7 @@ private:
 
 public:
     explicit CBrowserNet(CBrowserTab * parent);
+    ~CBrowserNet() override = default;
     bool isValidLoadedUrl(const QUrl& url);
     bool isValidLoadedUrl();
     QUrl getLoadedUrl() const { return m_loadedUrl; }

@@ -432,12 +432,12 @@ void JSHighlighter::setKeywords(const QStringList &keywords)
 
 SidebarWidget::SidebarWidget(JSEdit *editor)
     : QWidget(editor)
-    , foldIndicatorWidth(0)
+    , backgroundColor(Qt::lightGray),
+      lineNumberColor(Qt::black),
+      indicatorColor(Qt::white),
+      foldIndicatorColor(Qt::lightGray),
+      foldIndicatorWidth(0)
 {
-    backgroundColor = Qt::lightGray;
-    lineNumberColor = Qt::black;
-    indicatorColor = Qt::white;
-    foldIndicatorColor = Qt::lightGray;
 }
 
 void SidebarWidget::mousePressEvent(QMouseEvent *event)
@@ -871,7 +871,7 @@ bool JSEdit::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress) {
         auto * const key = dynamic_cast<QKeyEvent*>(event);
-        const QRegularExpression rxIndent(QSL("^(\\s+)"));
+        static const QRegularExpression rxIndent(QSL("^(\\s+)"));
 
         if (key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return)
         {

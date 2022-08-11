@@ -283,7 +283,7 @@ void CGlobalStartup::initialize()
     }
 }
 
-void CGlobalStartup::preinit(int &argc, char *argv[], bool *cliMode)
+void CGlobalStartup::preinit(int &argc, char *argv[], bool *cliMode) // NOLINT
 {
     QWebEngineUrlScheme scheme(CMagicFileSchemeHandler::getScheme().toUtf8());
     scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
@@ -292,7 +292,7 @@ void CGlobalStartup::preinit(int &argc, char *argv[], bool *cliMode)
 
     *cliMode = (argc > 1);
     for (int i = 1; i < argc; ++i) {
-        const QString param = QString::fromUtf8(argv[i]);
+        const QString param = QString::fromUtf8(argv[i]); // NOLINT
         if (param.startsWith(QSL("-"))) {
             *cliMode = true;
         } else {

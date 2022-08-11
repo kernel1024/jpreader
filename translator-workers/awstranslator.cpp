@@ -12,11 +12,11 @@
 
 CAWSTranslator::CAWSTranslator(QObject *parent, const CLangPair &lang, const QString &region,
                                const QString &accessKey, const QString &secretKey)
-    : CWebAPIAbstractTranslator(parent,lang)
+    : CWebAPIAbstractTranslator(parent,lang),
+      m_region(region),
+      m_accessKey(accessKey),
+      m_secretKey(secretKey)
 {
-    m_region = region;
-    m_accessKey = accessKey;
-    m_secretKey = secretKey;
     clearCredentials();
 }
 

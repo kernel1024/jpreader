@@ -160,6 +160,7 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
     Q_UNUSED(query)
 
     const int maxColumnWidth = 400;
+    static const QRegularExpression seconds(QSL("[s]"));
 
     ui->buttonSearch->setEnabled(true);
     ui->searchBar->hide();
@@ -181,8 +182,7 @@ void CSearchTab::searchFinished(const CStringHash &stats, const QString& query)
             ui->listResults->setColumnWidth(i,maxColumnWidth);
     }
 
-    QString elapsed = QString(stats[QSL("jp:elapsedtime")])
-                      .remove(QRegularExpression(QSL("[s]")));
+    QString elapsed = QString(stats[QSL("jp:elapsedtime")]).remove(seconds);
     QString statusmsg(tr("Found %1 results at %2 seconds").
             arg(stats[QSL("jp:totalhits")],elapsed));
     ui->labelStatus->setText(statusmsg);
@@ -414,6 +414,8 @@ void CSearchTab::applySnippetIdx(const QModelIndex &index)
 QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntranslated,
                                       const QString& auxText)
 {
+    static const QRegularExpression allTags(QSL("<[^>]*>"));
+
     QString s;
     if(lastQuery.isEmpty()) return s;
 
@@ -465,7 +467,7 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     QString fileContents = CGenericFuncs::detectDecodeToUnicode(fc.constData());
 
-    fileContents.remove(QRegularExpression(QSL("<[^>]*>")));
+    fileContents.remove(allTags);
     fileContents.remove(u'\n');
     fileContents.remove(u'\r');
     QHash<int,QStringList> snippets;

@@ -390,7 +390,7 @@ bool BlitzScaleFilter::horizontalFilter(const QImage *srcImg,
     double scale = blur*qMax(1.0/x_factor, 1.0);
     double support = scale*fSupport;
     if(support <= halfPixel){
-        support = double(halfPixel+MagickEpsilon);
+        support = halfPixel+MagickEpsilon;
         scale = 1.0;
     }
     scale = 1.0/scale;
@@ -523,7 +523,7 @@ bool BlitzScaleFilter::verticalFilter(const QImage *srcImg,
     double scale = blur*qMax(1.0/y_factor, 1.0);
     double support = scale*fSupport;
     if(support <= halfPixel){
-        support = double(halfPixel+MagickEpsilon);
+        support = halfPixel+MagickEpsilon;
         scale = 1.0;
     }
     scale = 1.0/scale;

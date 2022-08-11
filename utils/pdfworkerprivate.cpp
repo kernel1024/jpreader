@@ -182,10 +182,10 @@ QString CPDFWorkerPrivate::formatPdfText(const QString& text)
     QString s = text;
 
     // replace multi-newlines with paragraph markers
-    QRegularExpression exp(QSL("\n{2,}"));
+    static const QRegularExpression multiNewline(QSL("\n{2,}"));
     int pos = 0;
     QRegularExpressionMatch match;
-    while (s.indexOf(exp,pos,&match) != -1) {
+    while (s.indexOf(multiNewline,pos,&match) != -1) {
         int pos = match.capturedStart(0);
         int length = match.capturedLength(0);
         s.remove(pos,length);
