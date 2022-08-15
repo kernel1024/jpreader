@@ -407,7 +407,8 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
     if (illustID != nullptr)
         *illustID = key;
 
-    static const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
+    // dont make static jstart
+    const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
         if (doc.isObject()) {
