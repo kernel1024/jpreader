@@ -14,20 +14,20 @@ CTranslator::CTranslator(QObject* parent, const QString& sourceHtml,
                          CStructures::TranslationEngine engine,
                          const CLangPair &langPair)
     : CAbstractThreadWorker(parent),
+      m_retryCount(gSet->settings()->translatorRetryCount),
+      m_useOverrideTransFont(gSet->actions()->useOverrideTransFont()),
+      m_forceFontColor(gSet->actions()->forceFontColor()),
+      m_translationEngine(engine),
+      m_translationMode(gSet->actions()->getTranslationMode()),
       m_sourceHtml(sourceHtml),
-      m_engineName(CStructures::translationEngines().value(m_translationEngine)),
       m_forcedFontColor(gSet->settings()->forcedFontColor),
       m_overrideTransFont(gSet->settings()->overrideTransFont),
       m_title(title),
       m_origin(origin),
-      m_langPair(langPair),
-      m_retryCount(gSet->settings()->translatorRetryCount),
-      m_useOverrideTransFont(gSet->actions()->useOverrideTransFont()),
-      m_forceFontColor(gSet->actions()->forceFontColor()),
-      m_translateSubSentences(gSet->actions()->getSubsentencesMode(m_translationEngine)),
-      m_translationEngine(engine),
-      m_translationMode(gSet->actions()->getTranslationMode())
+      m_langPair(langPair)
 {
+    m_translateSubSentences = gSet->actions()->getSubsentencesMode(m_translationEngine);
+    m_engineName = CStructures::translationEngines().value(m_translationEngine);
 }
 
 bool CTranslator::translateDocument(const QString &srcHtml, QString &dstHtml)
