@@ -45,6 +45,11 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
     double coverWidth = coverHeight / CDefaults::previewProps;
     ui->labelCover->setMinimumWidth(static_cast<int>(coverWidth));
 
+    const int filterCompleterMaxVisibleItemsFrac = 70;
+    int mv = (filterCompleterMaxVisibleItemsFrac*parentWnd()->height()) /
+             (ui->editFilter->fontMetrics().height()*100);
+    ui->editFilter->setMaxVisibleItems(mv);
+
     if (m_extractorMode == CPixivIndexExtractor::emArtworks) {
         m_table = ui->list;
         ui->table->hide();
@@ -76,7 +81,7 @@ CPixivIndexTab::CPixivIndexTab(QWidget *parent, const QJsonArray &list,
     connect(ui->editDescription,&QTextBrowser::anchorClicked,this,[this](const QUrl& url){
         linkClicked(url.toString());
     });
-    connect(ui->editFilter,&QLineEdit::textEdited,this,&CPixivIndexTab::filterChanged);
+    connect(ui->editFilter,&QComboBox::editTextChanged,this,&CPixivIndexTab::filterChanged);
     connect(gSet->settings(), &CSettings::mangaViewerSettingsUpdated,
             this, &CPixivIndexTab::mangaSettingsChanged, Qt::QueuedConnection);
 
@@ -190,11 +195,19 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
         }
         ui->labelHead->setText(header);
 
+        const QStringList tags = m_model->getTags();
+
         ui->comboSort->blockSignals(true);
         ui->comboSort->clear();
         ui->comboSort->addItems(m_model->basicHeaders());
-        ui->comboSort->addItems(m_model->getTags());
+        ui->comboSort->addItems(tags);
         ui->comboSort->blockSignals(false);
+
+        ui->editFilter->blockSignals(true);
+        ui->editFilter->clear();
+        ui->editFilter->addItems(tags);
+        ui->editFilter->clearEditText();
+        ui->editFilter->blockSignals(false);
 
         updateCountLabel();
     }
@@ -203,7 +216,7 @@ void CPixivIndexTab::updateWidgets(const QString& extractorFilterDesc)
 void CPixivIndexTab::updateCountLabel()
 {
     QString res = tr("Loaded %1 items").arg(m_model->count());
-    if (!(ui->editFilter->text().isEmpty()))
+    if (!(ui->editFilter->currentText().isEmpty()))
         res.append(tr(" (%1 filtered)").arg(m_proxyModel->rowCount()));
     res.append(QSL("."));
 
