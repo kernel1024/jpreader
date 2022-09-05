@@ -536,7 +536,9 @@ QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & 
 
 QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
 {
-    static const QRegularExpression suffixRx(QSL("\\((?<suffix>.*?)\\)"));
+    // regex from qplatformdialoghelper.cpp
+    static const QRegularExpression filterRegExp(QSL("^(.*)\\(([a-zA-Z0-9_.,*? +;#\\-\\[\\]@\\{\\}/!<>\\$%&=^~:\\|]*)\\)$"));
+    static const QRegularExpression cleanWildcardsRx((QSL("^.*\\.")));
     QStringList res;
     res.clear();
     if (filter.isEmpty()) return res;
@@ -545,9 +547,15 @@ QStringList CGenericFuncs::getSuffixesFromFilter(const QString& filter)
     if (filters.isEmpty()) return res;
 
     for (const auto &filter : filters) {
-        auto match = suffixRx.match(filter);
-        if (match.hasMatch())
-            res.append(match.captured(QSL("suffix")).split(u' '));
+        auto match = filterRegExp.match(filter);
+        if (match.hasMatch()) {
+            const QStringList suffixList = match.captured(2).split(u' ',Qt::SkipEmptyParts);
+            for (const auto &suffix : suffixList) {
+                QString s = suffix;
+                s.remove(cleanWildcardsRx);
+                res.append(s);
+            }
+        }
     }
 
     return res;
