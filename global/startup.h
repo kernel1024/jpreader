@@ -1,9 +1,16 @@
 #ifndef CGLOBALSTARTUP_H
 #define CGLOBALSTARTUP_H
-
+#include <chrono>
 #include <QObject>
 #include <QLocalSocket>
 #include "abstractthreadworker.h"
+
+using namespace std::chrono_literals;
+
+namespace CDefaults {
+const auto workerMaxShutdownTime = 5s;
+const auto workerWaitGranularity = 250ms;
+}
 
 class CGlobalControl;
 

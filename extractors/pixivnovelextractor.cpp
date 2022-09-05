@@ -14,13 +14,22 @@
 
 #include "pixivnovelextractor.h"
 #include "utils/genericfuncs.h"
+#include "global/startup.h"
 #include "global/control.h"
 #include "global/network.h"
 #include "global/browserfuncs.h"
 
+QAtomicInteger<int> CPixivNovelExtractor::m_activeExtractors;
+
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : CAbstractExtractor(parent)
 {
+}
+
+CPixivNovelExtractor::~CPixivNovelExtractor()
+{
+    if (m_started)
+        m_activeExtractors--;
 }
 
 void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
@@ -45,7 +54,10 @@ void CPixivNovelExtractor::setMangaParams(const QUrl &origin, bool useViewer, bo
 
 QString CPixivNovelExtractor::workerDescription() const
 {
-    return tr("Pixiv novel extractor");
+    QString res = tr("Pixiv novel extractor");
+    if (m_waiting)
+        res.append(tr(" (waiting)"));
+    return res;
 }
 
 void CPixivNovelExtractor::startMain()
@@ -61,6 +73,19 @@ void CPixivNovelExtractor::startMain()
         },Qt::QueuedConnection);
 
     } else if (m_source.isValid()){
+        if (gSet->browser()->downloadsLimit() > 0) {
+            while (m_activeExtractors > gSet->browser()->downloadsLimit()) {
+                if (exitIfAborted()) return;
+                if (gSet->browser()->downloadsLimit() == 0) break;
+                m_waiting = true;
+                addLoadedRequest(0L); // force worker monitor update
+                CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
+                m_waiting = false;
+            }
+        }
+        m_activeExtractors++;
+        m_started = true;
+
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
             if (exitIfAborted()) return;
             QNetworkRequest req(m_source);
@@ -408,7 +433,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
         *illustID = key;
 
     // dont make static jstart
-    const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key));
+    const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key)); // NOLINT
     if (html.indexOf(jstart)>=0) {
         doc = parseJsonSubDocument(html.toUtf8(),jstart);
         if (doc.isObject()) {

@@ -15,7 +15,10 @@ class CPixivNovelExtractor : public CAbstractExtractor
     Q_OBJECT
     Q_DISABLE_COPY(CPixivNovelExtractor)
 private:
+    static QAtomicInteger<int> m_activeExtractors;
+    QAtomicInteger<bool> m_waiting { false };
     QString m_title;
+    bool m_started { false };
     bool m_translate { false };
     bool m_alternateTranslate { false };
     bool m_focus { false };
@@ -43,7 +46,7 @@ private:
 
 public:
     explicit CPixivNovelExtractor(QObject *parent);
-    ~CPixivNovelExtractor() override = default;
+    ~CPixivNovelExtractor() override;
     void setParams(const QUrl& source, const QString& title,
                    bool translate, bool alternateTranslate, bool focus, bool downloadNovel,
                    const CStringHash &auxInfo);
