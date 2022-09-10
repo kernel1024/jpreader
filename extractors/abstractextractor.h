@@ -29,8 +29,8 @@ protected:
 Q_SIGNALS:
     void novelReady(const QString& html, bool focus, bool translate, bool alternateTranslate, bool downloadNovel,
                     const CStringHash& info);
-    void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin,
-                    bool useViewer, bool focus, bool originalScale);
+    void mangaReady(const QVector<CUrlWithName>& urls, const QString &id, const QUrl &origin, const QString &title,
+                    const QString& description, bool useViewer, bool focus, bool originalScale);
 
 protected Q_SLOTS:
     void loadError(QNetworkReply::NetworkError error);

@@ -15,9 +15,12 @@ class CMangaViewTab : public CSpecTabContainer
 public:
     explicit CMangaViewTab(CMainWindow *parent, bool setFocused = true);
     ~CMangaViewTab() override;
-    void loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title,
+    void loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title, const QString &description,
                         const QUrl &referer, bool isFanbox, bool originalScale);
     void tabAcquiresFocus() override;
+
+    QString mangaTitle() const;
+    QString mangaDescription() const;
 
 private:
     void updateTabTitle();
@@ -45,6 +48,7 @@ private:
     Ui::CMangaViewTab *ui;
     QButtonGroup *m_zoomGroup { nullptr };
     QString m_mangaTitle;
+    QString m_mangaDescription;
     QStringList m_exportErrors;
     QUrl m_origin;
     bool m_aborted { false };

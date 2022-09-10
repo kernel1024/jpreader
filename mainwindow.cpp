@@ -277,6 +277,13 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
         return;
     }
 
+    auto *ms = qobject_cast<CMangaViewTab *>(tabMain->widget(idx));
+    if (ms) {
+        auto *t = new QLabel(tr("<b>Artwork:</b> %1<br/>%2").arg(ms->mangaTitle(),ms->mangaDescription()));
+        QxtToolTip::show(globalPos,t,tabMain->tabBar());
+        return;
+    }
+
     auto *st = qobject_cast<CSpecTabContainer *>(tabMain->widget(idx));
     if (st) {
         auto *t = new QLabel(st->tabTitle());

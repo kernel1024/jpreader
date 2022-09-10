@@ -212,8 +212,23 @@ void CFanboxExtractor::pageLoadFinished()
                     }
                     if (!m_authorId.isEmpty())
                         mangaId.prepend(QSL("[%1] ").arg(m_authorId));
+
+                    QString description;
+                    for (const auto& tag : qAsConst(tags)) {
+                        if (description.isEmpty()) {
+                            description.append(QSL("<b>Tags:</b> "));
+                        } else {
+                            description.append(QSL(" / "));
+                        }
+                        description.append(tag);
+                    }
+                    if (!description.isEmpty())
+                        description.append(QSL("<br/>"));
+                    if (!author.isEmpty())
+                        description.append(QSL("<b>Author:</b> %1").arg(author));
+
                     Q_EMIT mangaReady(images,mangaId,QSL("https://www.fanbox.cc/@%1/posts/%2")
-                                      .arg(m_authorId,m_postNum),false,false,true);
+                                      .arg(m_authorId,m_postNum),m_title,description,false,false,true);
                 }
             }
         }

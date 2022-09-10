@@ -691,6 +691,7 @@ void CDownloadManager::novelReady(const QString &html, bool focus, bool translat
 }
 
 void CDownloadManager::mangaReady(const QVector<CUrlWithName> &urls, const QString &containerName, const QUrl &origin,
+                                  const QString &title, const QString &description,
                                   bool useViewer, bool focus, bool originalScale)
 {
     bool isFanbox = (qobject_cast<CFanboxExtractor *>(sender()) != nullptr);
@@ -701,7 +702,10 @@ void CDownloadManager::mangaReady(const QVector<CUrlWithName> &urls, const QStri
                              tr("Image urls not found or container name not detected."));
     } else if (useViewer) {
         auto *mv = new CMangaViewTab(gSet->activeWindow(),focus);
-        mv->loadMangaPages(urls,containerName,origin,isFanbox,originalScale);
+        QString mangaTitle = containerName;
+        if (!title.isEmpty())
+            mangaTitle = title;
+        mv->loadMangaPages(urls,mangaTitle,description,origin,isFanbox,originalScale);
     } else {
         multiFileDownload(urls,origin,containerName,isFanbox,isPatreon);
     }

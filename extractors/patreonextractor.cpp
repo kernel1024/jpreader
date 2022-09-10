@@ -7,7 +7,6 @@
 
 #include "patreonextractor.h"
 #include "utils/genericfuncs.h"
-#include "mainwindow.h"
 
 CPatreonExtractor::CPatreonExtractor(QObject *parent)
     : CAbstractExtractor(parent)
@@ -140,7 +139,7 @@ void CPatreonExtractor::startMain()
         for (const auto& url : qAsConst(urls))
             res.append(url.second);
 
-        Q_EMIT mangaReady(res,title,m_origin,false,false,true);
+        Q_EMIT mangaReady(res,title,m_origin,title,QString(),false,false,true);
     }
 
     Q_EMIT finished();

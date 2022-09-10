@@ -227,12 +227,14 @@ void CPixivNovelExtractor::subLoadFinished()
         m_redirectCounter.remove(key);
 
         QString illustID;
+        QString title;
+        QString description;
         bool originalScale = true;
-        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID,&originalScale);
+        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID,&title,&description,&originalScale);
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
-            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin,m_useMangaViewer,m_focus,originalScale);
+            Q_EMIT mangaReady(imageUrls,illustID,m_mangaOrigin,title,description,m_useMangaViewer,m_focus,originalScale);
             Q_EMIT finished();
             return;
         }
@@ -423,14 +425,15 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs, const CStringHa
 }
 
 QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin,
-                                                                QString* illustID, bool* mangaOriginalScale)
+                                                                QString* id, QString* title,
+                                                                QString* description, bool* mangaOriginalScale)
 {
     QVector<CUrlWithName> res;
     QJsonDocument doc;
 
     QString key = origin.fileName();
-    if (illustID != nullptr)
-        *illustID = key;
+    if (id != nullptr)
+        *id = key;
 
     // dont make static jstart
     const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key)); // NOLINT
@@ -465,6 +468,33 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
         }
 
         illustId = obj.value(QSL("illustId")).toString();
+
+        if (title != nullptr)
+            *title = obj.value(QSL("title")).toString();
+
+        if (description != nullptr) {
+            const QDateTime dt = QDateTime::fromString(obj.value(QSL("createDate")).toString(),
+                                                       Qt::ISODate);
+            description->clear();
+
+            const QJsonArray jtags = obj.value(QSL("tags")).toObject().value(QSL("tags")).toArray();
+            QStringList tags;
+            tags.reserve(jtags.count());
+            for (const auto& tag : jtags)
+                tags.append(tag.toObject().value(QSL("tag")).toString());
+            if (!tags.isEmpty())
+                description->append(QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / "))));
+
+            description->append(tr("<b>Author:</b> <a href=\"https://www.pixiv.net/users/%1\">%2</a><br/>")
+                                .arg(obj.value(QSL("userId")).toString(),
+                                     obj.value(QSL("userName")).toString()));
+
+            description->append(tr("<b>Size:</b> %1x%2 px, <b>created at:</b> %3.<br/>")
+                        .arg(obj.value(QSL("width")).toInt())
+                        .arg(obj.value(QSL("height")).toInt())
+                        .arg(dt.toString(QSL("yyyy/MM/dd hh:mm"))));
+        }
+
         pageCount = qRound(obj.value(QSL("pageCount")).toDouble(-1.0));
 
         QString pageUrlSelector = QSL("original");

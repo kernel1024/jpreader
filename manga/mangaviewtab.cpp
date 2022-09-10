@@ -1,14 +1,10 @@
 #include <QtMath>
 #include <QMessageBox>
 #include "browser/browser.h"
-#include "browser/net.h"
-#include "browser-utils/downloadmanager.h"
 #include "utils/genericfuncs.h"
 #include "global/control.h"
 #include "global/startup.h"
 #include "extractors/abstractextractor.h"
-#include "extractors/fanboxextractor.h"
-#include "extractors/patreonextractor.h"
 #include "mainwindow.h"
 #include "mangaviewtab.h"
 #include "ui_mangaviewtab.h"
@@ -75,11 +71,13 @@ CMangaViewTab::~CMangaViewTab()
     delete ui;
 }
 
-void CMangaViewTab::loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title,
+void CMangaViewTab::loadMangaPages(const QVector<CUrlWithName> &pages, const QString &title, const QString &description,
                                    const QUrl &referer, bool isFanbox, bool originalScale)
 {
     ui->mangaView->loadMangaPages(pages,title,referer,isFanbox);
+    ui->toolbar->setToolTip(description);
     m_mangaTitle = title;
+    m_mangaDescription = description;
     m_origin = referer;
     m_originalScale = originalScale;
     updateTabTitle();
@@ -87,7 +85,7 @@ void CMangaViewTab::loadMangaPages(const QVector<CUrlWithName> &pages, const QSt
 
 void CMangaViewTab::updateTabTitle()
 {
-    QString title = tr("Artwork %1").arg(m_mangaTitle);
+    QString title = tr("Artwork %1").arg(mangaTitle());
     if (m_aborted)
         title.append(tr(" (Aborted)"));
     setTabTitle(title);
@@ -235,6 +233,16 @@ void CMangaViewTab::openOrigin()
     if (!m_origin.isEmpty() && m_origin.isValid()) {
         new CBrowserTab(parentWnd(),m_origin);
     }
+}
+
+QString CMangaViewTab::mangaDescription() const
+{
+    return m_mangaDescription;
+}
+
+QString CMangaViewTab::mangaTitle() const
+{
+    return m_mangaTitle;
 }
 
 void CMangaViewTab::updateTabColor(bool loadFinished)
