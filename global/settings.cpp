@@ -17,10 +17,7 @@
 #include "ui.h"
 #include "startup.h"
 #include "utils/settingstab.h"
-#include "miniqxt/qxtglobalshortcut.h"
-#include "utils/genericfuncs.h"
 #include "browser/browser.h"
-#include "browser-utils/userscript.h"
 #include "browser-utils/bookmarks.h"
 
 namespace CMaterialColors {
@@ -188,6 +185,10 @@ void CSettings::writeSettings()
     settings.setValue(QSL("aliCloudTranslatorMode"),static_cast<int>(aliCloudTranslatorMode));
     settings.setValue(QSL("promtNmtAPIKey"),promtNmtAPIKey);
     settings.setValue(QSL("promtNmtServer"),promtNmtServer);
+    settings.setValue(QSL("deeplAPIKey"),deeplAPIKey);
+    settings.setValue(QSL("deeplAPIMode"),static_cast<int>(deeplAPIMode));
+    settings.setValue(QSL("deeplAPISplitSentences"),static_cast<int>(deeplAPISplitSentences));
+    settings.setValue(QSL("deeplAPIFormality"),static_cast<int>(deeplAPIFormality));
 
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
@@ -501,6 +502,15 @@ void CSettings::readSettings(QObject *control)
                                  settings.value(QSL("aliCloudTranslatorMode"),0).toInt());
     promtNmtAPIKey = settings.value(QSL("promtNmtAPIKey"),QString()).toString();
     promtNmtServer = settings.value(QSL("promtNmtServer"),CDefaults::promtNmtServer).toString();
+    deeplAPIKey = settings.value(QSL("deeplAPIKey"),QString()).toString();
+    deeplAPIMode = static_cast<CStructures::DeeplAPIMode>(
+                       settings.value(QSL("deeplAPIMode"),static_cast<int>(CStructures::deeplAPIModeFree)).toInt());
+    deeplAPISplitSentences = static_cast<CStructures::DeeplAPISplitSentences>(
+                                 settings.value(QSL("deeplAPISplitSentences"),
+                                                static_cast<int>(CDefaults::deeplAPISplitSentences)).toInt());
+    deeplAPIFormality = static_cast<CStructures::DeeplAPIFormality>(
+                            settings.value(QSL("deeplAPIFormality"),
+                                           static_cast<int>(CDefaults::deeplAPIFormality)).toInt());
 
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     downloaderCleanCompleted = settings.value(QSL("downloaderCleanCompleted"),

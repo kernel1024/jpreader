@@ -119,6 +119,12 @@ QByteArray CWebAPIAbstractTranslator::processRequest(const std::function<QNetwor
                           .arg(clName)
                           .arg(retries);
 
+        } else if (*httpStatus == CDefaults::httpQuotaExceeded) {
+            qWarning() << QSL("%1 translator quota exceeded, aborting. HTTP status: %2.")
+                          .arg(clName)
+                          .arg(*httpStatus);
+            break;
+
         } else if (*httpStatus == CDefaults::httpCodeClientError && rpl->url().toString().contains(QSL("aliyun"))) {
             // signature error from AliCloud, try again
             QJsonDocument doc;

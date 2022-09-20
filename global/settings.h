@@ -52,6 +52,9 @@ const CStructures::TranslationEngine translatorEngine = CStructures::teAtlas;
 const CStructures::AliCloudTranslatorMode aliCloudTranslatorMode = CStructures::aliTranslatorGeneral;
 const CStructures::PixivFetchCoversMode pixivFetchCovers = CStructures::pxfmLazyFetch;
 const CStructures::PixivMangaPageSize pixivMangaPageSize = CStructures::pxmpOriginal;
+const CStructures::DeeplAPIMode deeplAPIMode = CStructures::deeplAPIModeFree;
+const CStructures::DeeplAPISplitSentences deeplAPISplitSentences = CStructures::deeplAPISplitDefault;
+const CStructures::DeeplAPIFormality deeplAPIFormality = CStructures::deeplAPIFormalityDefault;
 const bool jsLogConsole = true;
 const bool dontUseNativeFileDialog = false;
 const bool overrideStdFonts = false;
@@ -123,6 +126,7 @@ public:
     QString aliAccessKeySecret;
     QString promtNmtAPIKey;
     QString promtNmtServer;
+    QString deeplAPIKey;
 
     QString xapianStemmerLang;
 
@@ -178,6 +182,9 @@ public:
     CStructures::PixivMangaPageSize pixivMangaPageSize { CDefaults::pixivMangaPageSize };
     Blitz::ScaleFilterType mangaUpscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
     Blitz::ScaleFilterType mangaDownscaleFilter { Blitz::ScaleFilterType::UndefinedFilter };
+    CStructures::DeeplAPIMode deeplAPIMode { CDefaults::deeplAPIMode };
+    CStructures::DeeplAPISplitSentences deeplAPISplitSentences { CDefaults::deeplAPISplitSentences };
+    CStructures::DeeplAPIFormality deeplAPIFormality { CDefaults::deeplAPIFormality };
     double mangaResizeBlur { CDefaults::mangaResizeBlur };
 
     bool jsLogConsole { CDefaults::jsLogConsole };

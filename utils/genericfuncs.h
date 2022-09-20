@@ -18,6 +18,7 @@ const int httpCodeClientError = 400;
 const int httpCodeServerError = 500;
 const int httpCodeClientUnknownError = 499;
 const int httpCodeTooManyRequests = 429;
+const int httpQuotaExceeded = 456;
 const int oneHour = 60*60;
 const int oneMinute = 60;
 const int intConversionBase = 10;

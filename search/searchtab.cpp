@@ -511,7 +511,6 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
 
     // *** Weighted sorting ***
     // calculate term weights
-    double fsumWeight = 0.0;
     double fminWeight = 1.0;
     int sumCount = 0;
     QVector<double> fweights;
@@ -519,7 +518,6 @@ QString CSearchTab::createSpecSnippet(const QString& aFilename, bool forceUntran
     for (int i=0;i<queryTerms.count();i++) {
         double wght = 1.0/static_cast<double>(snippets[i].count());
         if (wght < fminWeight) fminWeight = wght;
-        fsumWeight += wght;
         fweights << wght;
         sumCount += snippets[i].count();
     }

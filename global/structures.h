@@ -27,7 +27,8 @@ enum TranslationEngine {
     teAliCloud = 8,
     teDeeplFree = 9,
     tePromtOneFree = 10,
-    tePromtNmtAPI = 11
+    tePromtNmtAPI = 11,
+    teDeeplAPI = 12
 };
 Q_ENUM_NS(TranslationEngine)
 
@@ -81,6 +82,27 @@ enum AliCloudTranslatorMode {
     aliTranslatorECSocial = 5
 };
 Q_ENUM_NS(AliCloudTranslatorMode)
+
+enum DeeplAPIMode {
+    deeplAPIModeFree = 0,
+    deeplAPIModePro = 1
+};
+Q_ENUM_NS(DeeplAPIMode)
+
+enum DeeplAPISplitSentences {
+    deeplAPISplitDefault = 0,
+    deeplAPISplitNone = 1,
+    deeplAPISplitFull = 2,
+    deeplAPISplitNoNewlines = 3
+};
+Q_ENUM_NS(DeeplAPISplitSentences)
+
+enum DeeplAPIFormality {
+    deeplAPIFormalityDefault = 0,
+    deeplAPIFormalityMore = 1,
+    deeplAPIFormalityLess = 2
+};
+Q_ENUM_NS(DeeplAPIFormality)
 
 enum PixivFetchCoversMode {
     pxfmNone = 0,

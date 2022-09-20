@@ -95,6 +95,16 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->comboAliMode->addItem(tr("Medical (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECMedical));
     ui->comboAliMode->addItem(tr("Social (e-commerce)"),static_cast<int>(CStructures::aliTranslatorECSocial));
 
+    ui->comboDeeplAPIMode->addItem(tr("DeepL Free"),static_cast<int>(CStructures::deeplAPIModeFree));
+    ui->comboDeeplAPIMode->addItem(tr("DeepL Pro"),static_cast<int>(CStructures::deeplAPIModePro));
+    ui->comboDeeplAPISplitSentences->addItem(tr("Default"),static_cast<int>(CStructures::deeplAPISplitDefault));
+    ui->comboDeeplAPISplitSentences->addItem(tr("None"),static_cast<int>(CStructures::deeplAPISplitNone));
+    ui->comboDeeplAPISplitSentences->addItem(tr("Full"),static_cast<int>(CStructures::deeplAPISplitFull));
+    ui->comboDeeplAPISplitSentences->addItem(tr("No newlines"),static_cast<int>(CStructures::deeplAPISplitNoNewlines));
+    ui->comboDeeplAPIFormality->addItem(tr("Default"),static_cast<int>(CStructures::deeplAPIFormalityDefault));
+    ui->comboDeeplAPIFormality->addItem(tr("Less"),static_cast<int>(CStructures::deeplAPIFormalityLess));
+    ui->comboDeeplAPIFormality->addItem(tr("More"),static_cast<int>(CStructures::deeplAPIFormalityMore));
+
     ui->comboXapianStemmerLang->addItem(tr("None"),QString());
     ui->comboXapianStemmerLang->addItem(tr("Arabic"),QSL("ar"));
     ui->comboXapianStemmerLang->addItem(tr("Armenian"),QSL("hy"));
@@ -199,6 +209,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::teDeeplFree: ui->radioDeeplFree->setChecked(true); break;
         case CStructures::tePromtOneFree: ui->radioPromtOneFree->setChecked(true); break;
         case CStructures::tePromtNmtAPI: ui->radioPromtNmtAPI->setChecked(true); break;
+        case CStructures::teDeeplAPI: ui->radioDeeplAPI->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -226,11 +237,25 @@ void CSettingsTab::loadFromGlobal()
     ui->editAliAccessKeySecret->setText(gSet->m_settings->aliAccessKeySecret);
     ui->editPromtNmtAPIKey->setText(gSet->m_settings->promtNmtAPIKey);
     ui->editPromtNmtServer->setText(gSet->m_settings->promtNmtServer);
+    ui->editDeeplAPIKey->setText(gSet->m_settings->deeplAPIKey);
 
     idx = ui->comboAliMode->findData(static_cast<int>(gSet->m_settings->aliCloudTranslatorMode));
     if (idx<0 || idx>=ui->comboAliMode->count())
         idx = 0;
     ui->comboAliMode->setCurrentIndex(idx);
+
+    idx = ui->comboDeeplAPIMode->findData(static_cast<int>(gSet->m_settings->deeplAPIMode));
+    if (idx<0 || idx>=ui->comboDeeplAPIMode->count())
+        idx = 0;
+    ui->comboDeeplAPIMode->setCurrentIndex(idx);
+    idx = ui->comboDeeplAPISplitSentences->findData(static_cast<int>(gSet->m_settings->deeplAPISplitSentences));
+    if (idx<0 || idx>=ui->comboDeeplAPISplitSentences->count())
+        idx = 0;
+    ui->comboDeeplAPISplitSentences->setCurrentIndex(idx);
+    idx = ui->comboDeeplAPIFormality->findData(static_cast<int>(gSet->m_settings->deeplAPIFormality));
+    if (idx<0 || idx>=ui->comboDeeplAPIFormality->count())
+        idx = 0;
+    ui->comboDeeplAPIFormality->setCurrentIndex(idx);
 
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
@@ -580,6 +605,29 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->editPromtNmtServer,&QLineEdit::textChanged,this,[this](const QString& val){
         if (m_loadingInterlock) return;
         gSet->m_settings->promtNmtServer=val;
+    });
+
+    connect(ui->editDeeplAPIKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->deeplAPIKey=val;
+    });
+    connect(ui->comboDeeplAPIMode,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->deeplAPIMode = static_cast<CStructures::DeeplAPIMode>
+                                         (ui->comboDeeplAPIMode->currentData().toInt());
+    });
+    connect(ui->comboDeeplAPISplitSentences,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->deeplAPISplitSentences = static_cast<CStructures::DeeplAPISplitSentences>
+                                                   (ui->comboDeeplAPISplitSentences->currentData().toInt());
+    });
+    connect(ui->comboDeeplAPIFormality,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->deeplAPIFormality = static_cast<CStructures::DeeplAPIFormality>
+                                              (ui->comboDeeplAPIFormality->currentData().toInt());
     });
 
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){

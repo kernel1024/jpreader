@@ -28,6 +28,7 @@ HEADERS = mainwindow.h \
     translator-workers/alicloudtranslator.h \
     translator-workers/awstranslator.h \
     translator-workers/atlastranslator.h \
+    translator-workers/deeplapitranslator.h \
     translator-workers/deeplfreetranslator.h \
     translator-workers/promtnmttranslator.h \
     translator-workers/promtonefreetranslator.h \
@@ -120,6 +121,7 @@ SOURCES = main.cpp \
     translator-workers/atlastranslator.cpp \
     translator-workers/abstracttranslator.cpp \
     translator-workers/bingtranslator.cpp \
+    translator-workers/deeplapitranslator.cpp \
     translator-workers/deeplfreetranslator.cpp \
     translator-workers/promtnmttranslator.cpp \
     translator-workers/promtonefreetranslator.cpp \

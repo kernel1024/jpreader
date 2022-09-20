@@ -12,6 +12,7 @@
 #include "deeplfreetranslator.h"
 #include "promtonefreetranslator.h"
 #include "promtnmttranslator.h"
+#include "deeplapitranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -166,6 +167,11 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
     if (engine==CStructures::tePromtNmtAPI) {
         res = new CPromtNmtTranslator(parent, tranDirection, gSet->settings()->promtNmtServer,
                                       gSet->settings()->promtNmtAPIKey);
+    }
+    if (engine==CStructures::teDeeplAPI) {
+        res = new CDeeplAPITranslator(parent, tranDirection, gSet->settings()->deeplAPIMode,
+                                      gSet->settings()->deeplAPIKey,gSet->settings()->deeplAPISplitSentences,
+                                      gSet->settings()->deeplAPIFormality);
     }
 
     return res;
