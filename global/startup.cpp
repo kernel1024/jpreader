@@ -266,7 +266,7 @@ void CGlobalStartup::initialize()
         m_g->m_ui->addMainWindowEx(false,true,openUrls);
         QTimer::singleShot(m_g->d_func()->xapianIndexerTimer.interval(),this,&CGlobalStartup::startupXapianIndexer);
         QTimer::singleShot(CDefaults::domWorkerStartupDelay,this,[](){
-            gSet->d_func()->domWorker.reset(new QWebEngineView(nullptr));
+            gSet->d_func()->domWorker.reset(new QWebEngineView());
             gSet->d_func()->domWorker->setPage(new QWebEnginePage(gSet->d_func()->domWorkerProfile,
                                                                   gSet->d_func()->domWorker.data()));
         });
