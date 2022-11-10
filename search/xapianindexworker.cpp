@@ -225,10 +225,14 @@ QString CXapianIndexWorker::workerDescription() const
 {
     const Q_D(CXapianIndexWorker);
 
+#ifdef WITH_XAPIAN
     if (d->m_db.isNull())
         return tr("Xapian indexer (initializing)");
 
     return tr("Xapian indexer (%1 root dirs)").arg(d->m_indexDirs.count());
+#else
+    return QString();
+#endif
 }
 
 bool CXapianIndexWorker::fileMeta(const QString& filename, std::string &docID, qint64 &size, QString &suffix)
