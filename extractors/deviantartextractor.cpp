@@ -138,7 +138,9 @@ void CDeviantartExtractor::finalizeGallery()
                 QString fvurl = jtype.toObject().value(QSL("c")).toString();
                 if (!fvurl.isEmpty()) {
                     fvurl.replace(QSL("<prettyName>"),prettyName);
-                    url.append(QSL("/%1").arg(fvurl));
+                    if (!fvurl.startsWith(QSL("/")))
+                        url.append(QSL("/"));
+                    url.append(fvurl);
                     break;
                 }
             }
