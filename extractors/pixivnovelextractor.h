@@ -40,7 +40,7 @@ private:
     void pixivDirectFetchImage(const QUrl &url, const QUrl &referer, const QString &pageId);
     QString parseJsonNovel(const QString& html, QStringList& tags,
                            QString& author, QString& authorNum, QString& title,
-                           CStringHash &embeddedImages);
+                           CStringHash &embeddedImages, QDateTime &createDate);
     QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin,
                                               QString *id, QString *title, QString *description,
                                               bool *mangaOriginalScale);
