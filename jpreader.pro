@@ -75,6 +75,7 @@ HEADERS = mainwindow.h \
     utils/htmlparser.h \
     utils/pdfworkerprivate.h \
     utils/pixivindexlimitsdialog.h \
+    utils/sequencescheduler.h \
     utils/settingstab.h \
     utils/genericfuncs.h \
     utils/cliworker.h \
@@ -169,6 +170,7 @@ SOURCES = main.cpp \
     utils/pixivindexlimitsdialog.cpp \
     utils/pixivindextab.cpp \
     utils/pdfworkerprivate.cpp \
+    utils/sequencescheduler.cpp \
     utils/settingstab.cpp \
     utils/genericfuncs.cpp \
     utils/logdisplay.cpp \

@@ -5,12 +5,14 @@
 #include <QMessageBox>
 #include <QPainter>
 
+#include "abstractthreadworker.h"
 #include "pixivindextab.h"
 #include "global/control.h"
 #include "global/network.h"
 #include "global/startup.h"
 #include "global/ui.h"
 #include "utils/genericfuncs.h"
+#include "utils/sequencescheduler.h"
 #include "browser/browser.h"
 #include "extractors/abstractextractor.h"
 #include "extractors/pixivnovelextractor.h"
@@ -453,6 +455,8 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
                                                                                CGenericFuncs::getTmpDir(),
                                                                                QFileDialog::ShowDirsOnly);
                 if (container.isEmpty()) return;
+                QList<QPointer<CAbstractThreadWorker> > works;
+                works.reserve(multiUrls.count());
                 for (const auto& item : qAsConst(multiUrls)) {
                     auto *ex = new CPixivNovelExtractor(nullptr);
                     ex->setParams(item.first,QString(),false,false,false,true,
@@ -461,10 +465,25 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
                                     { QSL("count"), QSL("-1") },
                                     { QSL("suggestedTitle"), item.second } });
                     if (!gSet->startup()->setupThreadedWorker(ex)) {
+                        qCritical() << "Failed to setup download worker for " << item.first;
                         delete ex;
                     } else {
-                        QMetaObject::invokeMethod(ex,&CAbstractThreadWorker::start,Qt::QueuedConnection);
+                        works.append(ex);
                     }
+                }
+
+                if (works.isEmpty()) {
+                    QMessageBox::warning(gSet->activeWindow(),QGuiApplication::applicationDisplayName(),
+                                         tr("Worker list is empty."));
+                    return;
+                }
+
+                auto *sch = new CSequenceScheduler(nullptr);
+                sch->setParams(works);
+                if (!gSet->startup()->setupThreadedWorker(sch)) {
+                    delete sch;
+                } else {
+                    QMetaObject::invokeMethod(sch,&CAbstractThreadWorker::start,Qt::QueuedConnection);
                 }
             });
         }
