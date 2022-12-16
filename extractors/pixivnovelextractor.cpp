@@ -14,22 +14,13 @@
 
 #include "pixivnovelextractor.h"
 #include "utils/genericfuncs.h"
-#include "global/startup.h"
 #include "global/control.h"
 #include "global/network.h"
 #include "global/browserfuncs.h"
 
-QAtomicInteger<int> CPixivNovelExtractor::m_activeExtractors;
-
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : CAbstractExtractor(parent)
 {
-}
-
-CPixivNovelExtractor::~CPixivNovelExtractor()
-{
-    if (m_started)
-        m_activeExtractors--;
 }
 
 void CPixivNovelExtractor::setParams(const QUrl &source, const QString &title,
@@ -54,10 +45,7 @@ void CPixivNovelExtractor::setMangaParams(const QUrl &origin, bool useViewer, bo
 
 QString CPixivNovelExtractor::workerDescription() const
 {
-    QString res = tr("Pixiv novel extractor");
-    if (m_waiting)
-        res.append(tr(" (waiting)"));
-    return res;
+    return tr("Pixiv novel extractor");
 }
 
 void CPixivNovelExtractor::startMain()
@@ -73,19 +61,6 @@ void CPixivNovelExtractor::startMain()
         },Qt::QueuedConnection);
 
     } else if (m_source.isValid()){
-        if (gSet->browser()->downloadsLimit() > 0) {
-            while (m_activeExtractors > gSet->browser()->downloadsLimit()) {
-                if (exitIfAborted()) return;
-                if (gSet->browser()->downloadsLimit() == 0) break;
-                m_waiting = true;
-                addLoadedRequest(0L); // force worker monitor update
-                CGenericFuncs::processedMSleep(CDefaults::workerWaitGranularity);
-                m_waiting = false;
-            }
-        }
-        m_activeExtractors++;
-        m_started = true;
-
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
             if (exitIfAborted()) return;
             QNetworkRequest req(m_source);
