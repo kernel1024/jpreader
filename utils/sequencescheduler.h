@@ -11,20 +11,24 @@ class CSequenceScheduler : public CAbstractThreadWorker
     Q_OBJECT
     Q_DISABLE_COPY(CSequenceScheduler)
 private:
-    QList<QPointer<CAbstractThreadWorker> > m_works;
-    void takeNextWork();
+    QList<QPointer<CAbstractThreadWorker> > m_workers;
+    void takeNextWorker();
+    void cleanupWorkers();
 
 public:
     explicit CSequenceScheduler(QObject *parent = nullptr);
     ~CSequenceScheduler() override;
     QString workerDescription() const override;
-    void setParams(const QList<QPointer<CAbstractThreadWorker> > &works);
+    void setParams(const QList<QPointer<CAbstractThreadWorker> > &workers);
+    int workerWeight() override;
 
 protected:
     void startMain() override;
 
-public Q_SLOTS:
+private Q_SLOTS:
     void subWorkerFinished();
+    void subWorkerError(const QString& message);
+    void abortSequence();
 
 };
 

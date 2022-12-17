@@ -175,7 +175,7 @@
     </widget>
     <widget class="QMenu" name="menuPixivSearch">
      <property name="title">
-      <string>Pixiv search...</string>
+      <string>Pixiv search</string>
      </property>
      <addaction name="actionPixivSearchNovel"/>
      <addaction name="actionPixivSearchArtwork"/>

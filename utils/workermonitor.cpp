@@ -181,15 +181,24 @@ void CWorkerMonitorModel::workerStarted(CAbstractThreadWorker *worker)
     connect(worker,&CAbstractThreadWorker::dataLoaded,
             this,&CWorkerMonitorModel::workerDataLoaded,Qt::QueuedConnection);
 
-    int row = m_data.count();
+    // weighted insert
+    int weight = worker->workerWeight();
+    auto idx = m_data.constBegin();
+    while (idx != m_data.constEnd()) {
+        if (weight < idx->weight)
+            break;
+        idx++;
+    }
+    int row = idx - m_data.constBegin();
+
     beginInsertRows(QModelIndex(),row,row);
-    m_data.append(CWorkerMonitorItem(worker));
+    m_data.insert(idx,CWorkerMonitorItem(worker,true));
     endInsertRows();
 }
 
 void CWorkerMonitorModel::workerAboutToFinished(CAbstractThreadWorker *worker)
 {
-    int row = m_data.indexOf(CWorkerMonitorItem(worker));
+    int row = m_data.indexOf(CWorkerMonitorItem(worker,false));
     if (row<0) return;
 
     beginRemoveRows(QModelIndex(),row,row);
@@ -220,7 +229,7 @@ void CWorkerMonitorModel::workerDataLoaded(qint64 loadedTotalSize, qint64 loaded
     auto *worker = qobject_cast<CAbstractThreadWorker *>(sender());
     if (worker == nullptr) return;
 
-    int idx = m_data.indexOf(CWorkerMonitorItem(worker));
+    int idx = m_data.indexOf(CWorkerMonitorItem(worker,false));
     if (idx<0) return;
 
     m_data[idx].loadedTotalSize = loadedTotalSize;
@@ -230,11 +239,15 @@ void CWorkerMonitorModel::workerDataLoaded(qint64 loadedTotalSize, qint64 loaded
     Q_EMIT dataChanged(index(idx,0),index(idx,CDefaults::workerMonitorColumnCount-1));
 }
 
-CWorkerMonitorItem::CWorkerMonitorItem(CAbstractThreadWorker *w)
+CWorkerMonitorItem::CWorkerMonitorItem(CAbstractThreadWorker *w, bool fullInit)
     : worker(w)
 {
-    description = worker->workerDescription();
-    started = QDateTime::currentDateTime();
+    // Do not get any data from worker on destruction procedures!
+    if (fullInit) {
+        description = worker->workerDescription();
+        started = QDateTime::currentDateTime();
+        weight = worker->workerWeight();
+    }
 }
 
 bool CWorkerMonitorItem::operator==(const CWorkerMonitorItem &s) const

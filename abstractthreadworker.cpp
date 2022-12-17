@@ -4,10 +4,16 @@ CAbstractThreadWorker::CAbstractThreadWorker(QObject *parent) : QObject(parent)
 {
 }
 
+int CAbstractThreadWorker::workerWeight()
+{
+    return 0;
+}
+
 void CAbstractThreadWorker::start()
 {
     resetAbortFlag();
     Q_EMIT started();
+    m_started = true;
 
     startMain();
 }
@@ -15,6 +21,9 @@ void CAbstractThreadWorker::start()
 void CAbstractThreadWorker::abort()
 {
     m_abortFlag.storeRelease(true);
+    if (!m_started) {
+        Q_EMIT finished();
+    }
 }
 
 void CAbstractThreadWorker::addLoadedRequest(qint64 size)
@@ -24,6 +33,16 @@ void CAbstractThreadWorker::addLoadedRequest(qint64 size)
 
     Q_EMIT dataLoaded(m_loadedTotalSize,m_loadedRequestCount,
                       workerDescription());
+}
+
+qint64 CAbstractThreadWorker::loadedTotalSize() const
+{
+    return m_loadedTotalSize;
+}
+
+qint64 CAbstractThreadWorker::loadedRequestCount() const
+{
+    return m_loadedRequestCount;
 }
 
 bool CAbstractThreadWorker::exitIfAborted()

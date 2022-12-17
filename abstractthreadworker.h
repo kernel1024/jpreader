@@ -11,6 +11,7 @@ class CAbstractThreadWorker : public QObject
 
     Q_OBJECT
 private:
+    QAtomicInteger<bool> m_started;
     QAtomicInteger<bool> m_abortFlag;
     QAtomicInteger<bool> m_abortedFinished;
     qint64 m_loadedTotalSize { 0L };
@@ -26,6 +27,10 @@ protected:
 public:
     explicit CAbstractThreadWorker(QObject *parent = nullptr);
     virtual QString workerDescription() const = 0;
+    virtual int workerWeight();
+
+    qint64 loadedTotalSize() const;
+    qint64 loadedRequestCount() const;
 
 public Q_SLOTS:
     void start();

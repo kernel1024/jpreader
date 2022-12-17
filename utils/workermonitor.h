@@ -11,6 +11,7 @@
 class CWorkerMonitorItem
 {
 public:
+    int weight { 0 };
     QString description;
     qint64 loadedTotalSize { 0L };
     qint64 loadedRequestCount { 0L };
@@ -19,7 +20,7 @@ public:
 
     CWorkerMonitorItem() = default;
     CWorkerMonitorItem(const CWorkerMonitorItem& other) = default;
-    explicit CWorkerMonitorItem(CAbstractThreadWorker* w);
+    explicit CWorkerMonitorItem(CAbstractThreadWorker* w, bool fullInit);
     ~CWorkerMonitorItem() = default;
     CWorkerMonitorItem &operator=(const CWorkerMonitorItem& other) = default;
     bool operator==(const CWorkerMonitorItem &s) const;

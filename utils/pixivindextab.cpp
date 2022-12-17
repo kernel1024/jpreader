@@ -464,12 +464,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
                                     { QSL("index"), QSL("-1") },
                                     { QSL("count"), QSL("-1") },
                                     { QSL("suggestedTitle"), item.second } });
-                    if (!gSet->startup()->setupThreadedWorker(ex)) {
-                        qCritical() << "Failed to setup download worker for " << item.first;
-                        delete ex;
-                    } else {
-                        works.append(ex);
-                    }
+                    works.append(ex);
                 }
 
                 if (works.isEmpty()) {
