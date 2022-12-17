@@ -192,7 +192,11 @@ void CWorkerMonitorModel::workerStarted(CAbstractThreadWorker *worker)
     int row = idx - m_data.constBegin();
 
     beginInsertRows(QModelIndex(),row,row);
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+    m_data.insert(row,CWorkerMonitorItem(worker,true));
+#else
     m_data.insert(idx,CWorkerMonitorItem(worker,true));
+#endif
     endInsertRows();
 }
 
