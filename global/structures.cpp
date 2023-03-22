@@ -165,6 +165,7 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { tePromtOneFree, QSL("PROMT One Free") },
         { tePromtNmtAPI, QSL("PROMT NMT Cloud") },
         { teDeeplAPI, QSL("DeepL API") },
+        { teOpenAI, QSL("OpenAI") }
     };
 
     return engines;
@@ -184,7 +185,8 @@ const QMap<CStructures::TranslationEngine, QString> &CStructures::translationEng
         { teDeeplFree, QSL("deepl-free") },
         { tePromtOneFree, QSL("promt-free") },
         { tePromtNmtAPI, QSL("promt-nmt") },
-        { teDeeplAPI, QSL("deepl-api") }
+        { teDeeplAPI, QSL("deepl-api") },
+        { teOpenAI, QSL("openai") }
     };
 
     return engines;

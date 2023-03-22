@@ -28,7 +28,8 @@ enum TranslationEngine {
     teDeeplFree = 9,
     tePromtOneFree = 10,
     tePromtNmtAPI = 11,
-    teDeeplAPI = 12
+    teDeeplAPI = 12,
+    teOpenAI = 13
 };
 Q_ENUM_NS(TranslationEngine)
 

@@ -17,6 +17,7 @@
 #include "ui.h"
 #include "startup.h"
 #include "utils/settingstab.h"
+#include "translator-workers/openaitranslator.h"
 #include "browser/browser.h"
 #include "browser-utils/bookmarks.h"
 
@@ -117,7 +118,7 @@ void CSettings::writeSettings()
     settings.beginGroup(QSL("MainWindow"));
     settings.remove(QString());
 
-    QFileInfo fi(settings.fileName());
+    const QFileInfo fi(settings.fileName());
     writeBinaryBigData(fi.dir().filePath(QSL("jpreader-bigdata")));
 
     settings.setValue(QSL("maxLimit"),maxSearchLimit);
@@ -189,6 +190,12 @@ void CSettings::writeSettings()
     settings.setValue(QSL("deeplAPIMode"),static_cast<int>(deeplAPIMode));
     settings.setValue(QSL("deeplAPISplitSentences"),static_cast<int>(deeplAPISplitSentences));
     settings.setValue(QSL("deeplAPIFormality"),static_cast<int>(deeplAPIFormality));
+    settings.setValue(QSL("openaiAPIKey"),openaiAPIKey);
+    settings.setValue(QSL("openaiTranslationModel"),openaiTranslationModel);
+    settings.setValue(QSL("openaiTemperature"),openaiTemperature);
+    settings.setValue(QSL("openaiTopP"),openaiTopP);
+    settings.setValue(QSL("openaiPresencePenalty"),openaiPresencePenalty);
+    settings.setValue(QSL("openaiFrequencyPenalty"),openaiFrequencyPenalty);
 
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
@@ -238,7 +245,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
     auto *g = qobject_cast<CGlobalControl *>(control);
     if (!g) return false;
 
-    QDir bigdataDir(dirname);
+    const QDir bigdataDir(dirname);
     if (!bigdataDir.exists()) {
         return false;
     }
@@ -276,7 +283,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
         QVariant vcount;
         bufs >> vcount;
         if (vcount.isValid() && vcount.canConvert<qulonglong>()) {
-            qulonglong count = vcount.toULongLong();
+            const qulonglong count = vcount.toULongLong();
             rules.reserve(count);
             for (qulonglong i=0; i<count; i++) {
                 CAdBlockRule rule;
@@ -299,7 +306,7 @@ bool CSettings::readBinaryBigData(QObject *control, const QString& dirname)
 
 void CSettings::writeBinaryBigData(const QString &dirname)
 {
-    QDir bigdataDir(dirname);
+    const QDir bigdataDir(dirname);
     if (!bigdataDir.exists()) {
         if (!bigdataDir.mkpath(QSL("."))) {
             qCritical() << "Unable to create config file directory for bigdata section: " << dirname;
@@ -344,7 +351,7 @@ void CSettings::writeBinaryBigData(const QString &dirname)
     // save adblock data as binary dump for bulk loading with deferred parsing
     QByteArray buf;
     QDataStream bufs(&buf,QIODevice::WriteOnly);
-    qulonglong count = gSet->d_func()->adblock.size();
+    const qulonglong count = gSet->d_func()->adblock.size();
     bufs << QVariant::fromValue(count);
     for (const auto &rule : gSet->d_func()->adblock)
         bufs << rule;
@@ -366,7 +373,7 @@ QByteArray CSettings::readByteArray(const QDir& directory, const QString &name)
 
 QVariant CSettings::readData(const QDir& directory, const QString &name, const QVariant &defaultValue)
 {
-    QByteArray ba = readByteArray(directory,name);
+    const QByteArray ba = readByteArray(directory,name);
     if (ba.isEmpty())
         return defaultValue;
 
@@ -416,7 +423,7 @@ void CSettings::readSettings(QObject *control)
     QSettings settings;
     settings.beginGroup(QSL("MainWindow"));
 
-    QFileInfo fi(settings.fileName());
+    const QFileInfo fi(settings.fileName());
 
     if (!readBinaryBigData(g,fi.dir().filePath(QSL("jpreader-bigdata")))) {
         qCritical() << "Unable to read configuration bigdata.";
@@ -512,6 +519,13 @@ void CSettings::readSettings(QObject *control)
                             settings.value(QSL("deeplAPIFormality"),
                                            static_cast<int>(CDefaults::deeplAPIFormality)).toInt());
 
+    openaiAPIKey = settings.value(QSL("openaiAPIKey"),QString()).toString();
+    openaiTranslationModel = settings.value(QSL("openaiTranslationModel"),QString()).toString();
+    openaiTemperature = settings.value(QSL("openaiTemperature"),CDefaults::openaiTemperature).toDouble();
+    openaiTopP = settings.value(QSL("openaiTopP"),CDefaults::openaiTopP).toDouble();
+    openaiPresencePenalty = settings.value(QSL("openaiPresencePenalty"),CDefaults::openaiPresencePenalty).toDouble();
+    openaiFrequencyPenalty = settings.value(QSL("openaiFrequencyPenalty"),CDefaults::openaiFrequencyPenalty).toDouble();
+
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     downloaderCleanCompleted = settings.value(QSL("downloaderCleanCompleted"),
                                               CDefaults::downloaderCleanCompleted).toBool();
@@ -573,7 +587,7 @@ void CSettings::readSettings(QObject *control)
 
     if (g->m_actions) { // GUI mode
 
-        bool jsstate = settings.value(QSL("javascript"),true).toBool();
+        const bool jsstate = settings.value(QSL("javascript"),true).toBool();
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,jsstate);
         g->m_actions->actionJSUsage->setChecked(jsstate);
         g->d_func()->webProfile->settings()->setAttribute(QWebEngineSettings::AutoLoadImages,
@@ -606,6 +620,9 @@ void CSettings::readSettings(QObject *control)
         g->m_actions->rebuildLanguageActions(g);
         g->m_actions->rebindGctxHotkey(g);
         g->d_func()->reloadXapianFilesystemWatcher(g);
+
+        if (openaiTranslationModel.isEmpty()) // TODO: use delayed loading with dynamic models list
+            openaiTranslationModel = COpenAITranslator::getAvailableModels(openaiAPIKey).first();
     }
 }
 
@@ -689,10 +706,10 @@ void CSettings::checkRestoreLoad(CMainWindow *w)
     QVector<QUrl> urls;
     QSettings settings(QCoreApplication::organizationName(), QSL("jpreader-tabs"));
     settings.beginGroup(QSL("OpenedTabs"));
-    int cnt = settings.value(QSL("tabsCnt"), 0).toInt();
+    const int cnt = settings.value(QSL("tabsCnt"), 0).toInt();
     urls.reserve(cnt);
     for (int i=0;i<cnt;i++) {
-        QUrl u = settings.value(QSL("tab_%1").arg(i),QUrl()).toUrl();
+        const QUrl u = settings.value(QSL("tab_%1").arg(i),QUrl()).toUrl();
         if (u.isValid() && !u.isEmpty())
             urls << u;
     }
@@ -717,7 +734,7 @@ QVector<QUrl> CSettings::getTabsList() const
         for (int j=0;j<gSet->d_func()->mainWindows.at(i)->tabMain->count();j++) {
             auto *sn = qobject_cast<CBrowserTab *>(gSet->d_func()->mainWindows.at(i)->tabMain->widget(j));
             if (!sn) continue;
-            QUrl url = sn->getUrl();
+            const QUrl url = sn->getUrl();
             if (url.isValid() && !url.isEmpty())
                 res << url;
         }
@@ -739,7 +756,7 @@ void CSettings::writeTabsListPrivate(const QVector<QUrl>& tabList)
 
 void CSettings::clearTabsList()
 {
-    QVector<QUrl> tabs;
+    const QVector<QUrl> tabs;
     writeTabsListPrivate(tabs);
 }
 

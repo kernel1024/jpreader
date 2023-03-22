@@ -44,6 +44,10 @@ const int mangaCacheWidth = 6;
 const int downloadsLimit = 0;
 const unsigned int mangaBackgroundColor = 0x303030;
 const double mangaResizeBlur = 1.0;
+const double openaiTemperature = 1.0;
+const double openaiTopP = 1.0;
+const double openaiPresencePenalty = 0.0;
+const double openaiFrequencyPenalty = 0.0;
 const quint16 proxyPort = 3128;
 const QSsl::SslProtocol atlProto = QSsl::SecureProtocols;
 const QNetworkProxy::ProxyType proxyType = QNetworkProxy::NoProxy;
@@ -127,6 +131,8 @@ public:
     QString promtNmtAPIKey;
     QString promtNmtServer;
     QString deeplAPIKey;
+    QString openaiAPIKey;
+    QString openaiTranslationModel;
 
     QString xapianStemmerLang;
 
@@ -186,6 +192,10 @@ public:
     CStructures::DeeplAPISplitSentences deeplAPISplitSentences { CDefaults::deeplAPISplitSentences };
     CStructures::DeeplAPIFormality deeplAPIFormality { CDefaults::deeplAPIFormality };
     double mangaResizeBlur { CDefaults::mangaResizeBlur };
+    double openaiTemperature { CDefaults::openaiTemperature };
+    double openaiTopP { CDefaults::openaiTopP };
+    double openaiPresencePenalty { CDefaults::openaiPresencePenalty };
+    double openaiFrequencyPenalty { CDefaults::openaiFrequencyPenalty };
 
     bool jsLogConsole { CDefaults::jsLogConsole };
     bool dontUseNativeFileDialog { CDefaults::dontUseNativeFileDialog };

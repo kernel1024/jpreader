@@ -24,6 +24,7 @@
 #include "genericfuncs.h"
 #include "multiinputdialog.h"
 #include "browser-utils/userscript.h"
+#include "translator-workers/openaitranslator.h"
 #include "ui_userscriptdlg.h"
 
 CSettingsTab::CSettingsTab(QWidget *parent) :
@@ -210,6 +211,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::tePromtOneFree: ui->radioPromtOneFree->setChecked(true); break;
         case CStructures::tePromtNmtAPI: ui->radioPromtNmtAPI->setChecked(true); break;
         case CStructures::teDeeplAPI: ui->radioDeeplAPI->setChecked(true); break;
+        case CStructures::teOpenAI: ui->radioOpenAI->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -256,6 +258,19 @@ void CSettingsTab::loadFromGlobal()
     if (idx<0 || idx>=ui->comboDeeplAPIFormality->count())
         idx = 0;
     ui->comboDeeplAPIFormality->setCurrentIndex(idx);
+
+    ui->editOpenAIAPIKey->setText(gSet->m_settings->openaiAPIKey);
+    ui->comboOpenAITranslationModel->clear();
+    const QStringList openaiModels = COpenAITranslator::getAvailableModels(gSet->m_settings->openaiAPIKey);
+    ui->comboOpenAITranslationModel->addItems(openaiModels);
+    idx = ui->comboOpenAITranslationModel->findText(gSet->m_settings->openaiTranslationModel);
+    if (idx<0 || idx>openaiModels.count())
+        idx = 0;
+    ui->comboOpenAITranslationModel->setCurrentIndex(idx);
+    ui->spinOpenAITemperature->setValue(gSet->m_settings->openaiTemperature);
+    ui->spinOpenAITopP->setValue(gSet->m_settings->openaiTopP);
+    ui->spinOpenAIPresencePenalty->setValue(gSet->m_settings->openaiPresencePenalty);
+    ui->spinOpenAIFrequencyPenalty->setValue(gSet->m_settings->openaiFrequencyPenalty);
 
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
@@ -628,6 +643,32 @@ void CSettingsTab::setupSettingsObservers()
         if (m_loadingInterlock) return;
         gSet->m_settings->deeplAPIFormality = static_cast<CStructures::DeeplAPIFormality>
                                               (ui->comboDeeplAPIFormality->currentData().toInt());
+    });
+
+    connect(ui->editOpenAIAPIKey,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiAPIKey=val;
+    });
+    connect(ui->comboOpenAITranslationModel,qOverload<int>(&QComboBox::currentIndexChanged),this,[this](int val){
+        Q_UNUSED(val)
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiTranslationModel = ui->comboOpenAITranslationModel->itemText(val);
+    });
+    connect(ui->spinOpenAITemperature,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiTemperature=val;
+    });
+    connect(ui->spinOpenAITopP,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiTopP=val;
+    });
+    connect(ui->spinOpenAIPresencePenalty,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiPresencePenalty=val;
+    });
+    connect(ui->spinOpenAIFrequencyPenalty,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->openaiFrequencyPenalty=val;
     });
 
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){

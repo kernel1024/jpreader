@@ -13,6 +13,7 @@
 #include "promtonefreetranslator.h"
 #include "promtnmttranslator.h"
 #include "deeplapitranslator.h"
+#include "openaitranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -172,6 +173,12 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
         res = new CDeeplAPITranslator(parent, tranDirection, gSet->settings()->deeplAPIMode,
                                       gSet->settings()->deeplAPIKey,gSet->settings()->deeplAPISplitSentences,
                                       gSet->settings()->deeplAPIFormality);
+    }
+    if (engine==CStructures::teOpenAI) {
+        res = new COpenAITranslator(parent, tranDirection, gSet->settings()->openaiTranslationModel,
+                                    gSet->settings()->openaiAPIKey, gSet->settings()->openaiTemperature,
+                                    gSet->settings()->openaiTopP, gSet->settings()->openaiPresencePenalty,
+                                    gSet->settings()->openaiFrequencyPenalty);
     }
 
     return res;

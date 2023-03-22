@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1716</y>
+        <y>-1977</y>
         <width>822</width>
-        <height>5429</height>
+        <height>5600</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -788,6 +788,13 @@
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioOpenAI">
+                    <property name="text">
+                     <string>OpenAI</string>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -1405,6 +1412,168 @@
                   </item>
                   <item row="3" column="1">
                    <widget class="QComboBox" name="comboDeeplAPIFormality"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_32">
+                 <property name="title">
+                  <string>OpenAI</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_32">
+                  <item>
+                   <layout class="QFormLayout" name="formLayout_18">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_59">
+                      <property name="text">
+                       <string>API Key</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>editOpenAIAPIKey</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QLineEdit" name="editOpenAIAPIKey"/>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_60">
+                      <property name="text">
+                       <string>Translation model</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>comboOpenAITranslationModel</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QComboBox" name="comboOpenAITranslationModel"/>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_46">
+                    <item>
+                     <layout class="QFormLayout" name="formLayout_16">
+                      <item row="0" column="0">
+                       <widget class="QLabel" name="label_61">
+                        <property name="text">
+                         <string>Temperature</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinOpenAITemperature</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QDoubleSpinBox" name="spinOpenAITemperature">
+                        <property name="decimals">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <double>2.000000000000000</double>
+                        </property>
+                        <property name="singleStep">
+                         <double>0.100000000000000</double>
+                        </property>
+                        <property name="value">
+                         <double>1.000000000000000</double>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0">
+                       <widget class="QLabel" name="label_62">
+                        <property name="text">
+                         <string>Top P</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinOpenAITopP</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="1">
+                       <widget class="QDoubleSpinBox" name="spinOpenAITopP">
+                        <property name="decimals">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <double>2.000000000000000</double>
+                        </property>
+                        <property name="singleStep">
+                         <double>0.100000000000000</double>
+                        </property>
+                        <property name="value">
+                         <double>1.000000000000000</double>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <widget class="Line" name="line_5">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QFormLayout" name="formLayout_17">
+                      <item row="0" column="0">
+                       <widget class="QLabel" name="label_63">
+                        <property name="text">
+                         <string>Presence penalty</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinOpenAIPresencePenalty</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QDoubleSpinBox" name="spinOpenAIPresencePenalty">
+                        <property name="decimals">
+                         <number>1</number>
+                        </property>
+                        <property name="minimum">
+                         <double>-2.000000000000000</double>
+                        </property>
+                        <property name="maximum">
+                         <double>2.000000000000000</double>
+                        </property>
+                        <property name="singleStep">
+                         <double>0.100000000000000</double>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0">
+                       <widget class="QLabel" name="label_64">
+                        <property name="text">
+                         <string>Frequency penalty</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>spinOpenAIFrequencyPenalty</cstring>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="1">
+                       <widget class="QDoubleSpinBox" name="spinOpenAIFrequencyPenalty">
+                        <property name="decimals">
+                         <number>1</number>
+                        </property>
+                        <property name="minimum">
+                         <double>-2.000000000000000</double>
+                        </property>
+                        <property name="maximum">
+                         <double>2.000000000000000</double>
+                        </property>
+                        <property name="singleStep">
+                         <double>0.100000000000000</double>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -2984,6 +3153,7 @@
   <tabstop>radioPromtOneFree</tabstop>
   <tabstop>radioPromtNmtAPI</tabstop>
   <tabstop>radioDeeplAPI</tabstop>
+  <tabstop>radioOpenAI</tabstop>
   <tabstop>tranRetryCnt</tabstop>
   <tabstop>domWorkerRetryTimeoutSec</tabstop>
   <tabstop>checkTranslatorCacheEnabled</tabstop>
@@ -3013,6 +3183,12 @@
   <tabstop>comboDeeplAPIMode</tabstop>
   <tabstop>comboDeeplAPISplitSentences</tabstop>
   <tabstop>comboDeeplAPIFormality</tabstop>
+  <tabstop>editOpenAIAPIKey</tabstop>
+  <tabstop>comboOpenAITranslationModel</tabstop>
+  <tabstop>spinOpenAITemperature</tabstop>
+  <tabstop>spinOpenAITopP</tabstop>
+  <tabstop>spinOpenAIPresencePenalty</tabstop>
+  <tabstop>spinOpenAIFrequencyPenalty</tabstop>
   <tabstop>buttonMangaBkColor</tabstop>
   <tabstop>spinMangaCacheWidth</tabstop>
   <tabstop>comboPixivMangaPageSize</tabstop>
