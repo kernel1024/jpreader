@@ -40,12 +40,13 @@ public:
     QAction *actionTMTooltip;
     QActionGroup *translationMode;
     QActionGroup *languageSelector;
-    QActionGroup *subsentencesMode;
 
     QTimer gctxTimer;
     QString gctxSelection;
 
     QTimer threadedWorkerTestTimer;
+
+    QHash<CStructures::TranslationEngine, QPointer<QActionGroup> > subsentencesMode;
 
     explicit CGlobalActions(QObject *parent = nullptr);
 
@@ -56,13 +57,13 @@ public:
     void startGlobalContextTranslate();
     void addActionNotification(QAction* action) const;
 
-    bool getSubsentencesMode(CStructures::TranslationEngine engine) const;
+    CStructures::SubsentencesMode getSubsentencesMode(CStructures::TranslationEngine engine) const;
     CStructures::TranslationMode getTranslationMode() const;
     QString getActiveLangPair() const;
     void setActiveLangPair(const QString& hash) const;
 
     QList<QAction*> getTranslationLanguagesActions() const;
-    QList<QAction*> getSubsentencesModeActions() const;
+    QList<QAction *> getSubsentencesModeActions(CStructures::TranslationEngine engine) const;
 
 public Q_SLOTS:
     void clipboardChanged(QClipboard::Mode mode);
@@ -75,7 +76,8 @@ public Q_SLOTS:
 
 private:
     CSubsentencesMode getSubsentencesModeHash() const;
-    void setSubsentencesModeHash(const CSubsentencesMode& hash) const;
+    void setSubsentencesModeHash(const CSubsentencesMode& hash);
+    void updateSubsentencesModeActions(const CSubsentencesMode &hash);
 
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;

@@ -15,6 +15,8 @@ HEADERS = mainwindow.h \
     global/control_p.h \
     global/history.h \
     global/network.h \
+    global/pythonfuncs.h \
+    global/pythonfuncs_p.h \
     global/ui.h \
     manga/mangaviewtab.h \
     manga/scalefilter.h \
@@ -108,6 +110,7 @@ SOURCES = main.cpp \
     global/control_p.cpp \
     global/history.cpp \
     global/network.cpp \
+    global/pythonfuncs.cpp \
     global/ui.cpp \
     mainwindow.cpp \
     abstractthreadworker.cpp \
@@ -222,9 +225,12 @@ CONFIG += warn_on \
     stl \
     c++17
 
+!versionAtLeast(QT_VERSION, 6.2.0):error("Use at least Qt version 6.2.0")
+
 # warn on *any* usage of deprecated APIs
 DEFINES += QT_DEPRECATED_WARNINGS
 # ... and just fail to compile if APIs deprecated in Qt <= 5.15 are used
+# // TODO: move to 6.2.0
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
 DEFINES += QT_NO_CAST_TO_ASCII QT_NO_CAST_FROM_BYTEARRAY
@@ -306,6 +312,18 @@ use_xapian {
     message("Using Xapian: YES")
 } else {
     message("Using Xapian: NO")
+}
+
+packagesExist(python3-embed) {
+    CONFIG += use_python3_embed
+}
+
+use_python3_embed {
+    DEFINES += WITH_PYTHON3=1
+    PKGCONFIG += python3-embed
+    message("Using Python3: YES")
+} else {
+    message("Using Python3: NO")
 }
 
 GITREV = $$system(git rev-list HEAD|head -n1|cut -c -7)

@@ -31,11 +31,12 @@ private:
     int m_retryCount { 0 };
     int m_textNodesCnt { 0 };
     int m_textNodesProgress { 0 };
+    int m_tokensMaxCountCombined { 0 };
     bool m_translatorFailed { false };
     bool m_tranInited { false };
     bool m_useOverrideTransFont { false };
     bool m_forceFontColor { false };
-    bool m_translateSubSentences { false };
+    CStructures::SubsentencesMode m_subsentencesMode { CStructures::smKeepParagraph };
     CStructures::TranslationEngine m_translationEngine { CStructures::teAtlas };
     CStructures::TranslationMode m_translationMode { CStructures::tmAdditive };
 

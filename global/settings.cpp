@@ -196,6 +196,7 @@ void CSettings::writeSettings()
     settings.setValue(QSL("openaiTopP"),openaiTopP);
     settings.setValue(QSL("openaiPresencePenalty"),openaiPresencePenalty);
     settings.setValue(QSL("openaiFrequencyPenalty"),openaiFrequencyPenalty);
+    settings.setValue(QSL("tokensMaxCountCombined"),tokensMaxCountCombined);
 
     settings.setValue(QSL("createCoredumps"),createCoredumps);
     settings.setValue(QSL("overrideUserAgent"),overrideUserAgent);
@@ -525,6 +526,8 @@ void CSettings::readSettings(QObject *control)
     openaiTopP = settings.value(QSL("openaiTopP"),CDefaults::openaiTopP).toDouble();
     openaiPresencePenalty = settings.value(QSL("openaiPresencePenalty"),CDefaults::openaiPresencePenalty).toDouble();
     openaiFrequencyPenalty = settings.value(QSL("openaiFrequencyPenalty"),CDefaults::openaiFrequencyPenalty).toDouble();
+
+    tokensMaxCountCombined = settings.value(QSL("tokensMaxCountCombined"),CDefaults::tokensMaxCountCombined).toInt();
 
     jsLogConsole = settings.value(QSL("jsLogConsole"),CDefaults::jsLogConsole).toBool();
     downloaderCleanCompleted = settings.value(QSL("downloaderCleanCompleted"),

@@ -232,8 +232,8 @@ void CMainWindow::tabBarTooltip(const QPoint &globalPos, const QPoint &localPos)
     const QSize tooltipPreviewSize(250,100);
     const int tooltipFontSize = 8;
 
-    QPoint p = tabMain->tabBar()->mapFromGlobal(globalPos);
-    int idx = tabMain->tabBar()->tabAt(p);
+    const QPoint p = tabMain->tabBar()->mapFromGlobal(globalPos);
+    const int idx = tabMain->tabBar()->tabAt(p);
     if (idx<0) return;
 
     auto *sv = qobject_cast<CBrowserTab *>(tabMain->widget(idx));
@@ -412,8 +412,8 @@ void CMainWindow::centerWindow()
     if (screen == nullptr)
         screen = QApplication::primaryScreen();
 
-    QRect rect(screen->availableGeometry());
-    int h = initialHeightFrac*rect.height()/100;
+    const QRect rect(screen->availableGeometry());
+    const int h = initialHeightFrac*rect.height()/100;
     QSize nw(initialWidthFrac*h/100,h);
     if (nw.width()<maxWidth) nw.setWidth(maxWidthFrac*rect.width()/100);
     resize(nw);
@@ -518,7 +518,7 @@ void CMainWindow::updateHelperList()
                 auto *sv = qobject_cast<CBrowserTab*>(tabMain->widget(i));
                 if (sv) {
                     it->setText(sv->tabTitle());
-                    QString url = CGenericFuncs::elideString(sv->getUrl().toString(),CDefaults::maxTitleElideLength);
+                    const QString url = CGenericFuncs::elideString(sv->getUrl().toString(),CDefaults::maxTitleElideLength);
                     it->setStatusTip(url);
                     it->setToolTip(url);
 
@@ -576,9 +576,9 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *p
 
     if (current==nullptr) return;
     bool okconv = false;
-    int idx = current->data(Qt::UserRole+1).toInt(&okconv);
+    const int idx = current->data(Qt::UserRole+1).toInt(&okconv);
     if (!okconv) return;
-    int t = current->data(Qt::UserRole).toInt(&okconv);
+    const int t = current->data(Qt::UserRole).toInt(&okconv);
     if (!okconv) return;
 
     QUrl u;
@@ -606,7 +606,7 @@ void CMainWindow::helperItemClicked(QListWidgetItem *current, QListWidgetItem *p
 
 void CMainWindow::updateHistoryList()
 {
-    if (!(helperVisible && tabHelper->currentIndex()==2)) return;
+    if (!helperVisible || tabHelper->currentIndex()!=2) return;
     helperList->clear();
     for (const CUrlHolder &t : qAsConst(gSet->history()->mainHistory())) {
         auto *it = new QListWidgetItem(t.title);
@@ -625,7 +625,7 @@ void CMainWindow::updateRecentList()
     actionRecentDocuments->setEnabled(gSet->settings()->maxRecent>0);
 
     for(const QString& filename : qAsConst(gSet->history()->recentFiles())) {
-        QFileInfo fi(filename);
+        const QFileInfo fi(filename);
         auto *ac = recentMenu->addAction(fi.fileName());
         ac->setToolTip(filename);
         connect(ac,&QAction::triggered,this,[this,filename](){
@@ -636,7 +636,7 @@ void CMainWindow::updateRecentList()
 
 void CMainWindow::updateTitle()
 {
-    QString app = QGuiApplication::applicationDisplayName();
+    const QString app = QGuiApplication::applicationDisplayName();
     QString res;
     if (tabMain->currentWidget()) {
         auto *st = qobject_cast<CSpecTabContainer*>(tabMain->currentWidget());
@@ -665,7 +665,7 @@ void CMainWindow::goHistory(QUuid idx)
 {
     for (const CUrlHolder& uh : qAsConst(gSet->history()->mainHistory())) {
         if (uh.uuid==idx) {
-            QUrl u = uh.url;
+            const QUrl u = uh.url;
             if (!u.isValid()) return;
             new CBrowserTab(this, u);
             break;
@@ -834,7 +834,7 @@ void CMainWindow::openBookmark()
     if (a==nullptr) return;
 
     if (a->data().canConvert<QUrl>()) {
-        QUrl u = a->data().toUrl();
+        const QUrl u = a->data().toUrl();
         if (!u.isValid()) {
             QMessageBox::warning(this,QGuiApplication::applicationDisplayName(),
                                  tr("Unable to open inconsistently loaded bookmark."));
@@ -845,7 +845,7 @@ void CMainWindow::openBookmark()
     } else if (a->data().canConvert<QStringList>()) {
         QStringList sl = a->data().toStringList();
         for (const QString &s : qAsConst(sl)) {
-            QUrl u(s);
+            const QUrl u(s);
             if (u.isValid())
                 new CBrowserTab(this, u);
         }
@@ -858,10 +858,10 @@ void CMainWindow::openRecycled()
     if (a==nullptr) return;
 
     bool okconv = false;
-    int idx = a->data().toInt(&okconv);
+    const int idx = a->data().toInt(&okconv);
     if (!okconv) return;
     if (idx<0 || idx>=gSet->history()->recycleBin().count()) return;
-    QUrl u = gSet->history()->recycleBin().at(idx).url;
+    const QUrl u = gSet->history()->recycleBin().at(idx).url;
     if (!u.isValid()) return;
     new CBrowserTab(this, u);
     gSet->history()->removeRecycledItem(idx);
@@ -893,7 +893,7 @@ void CMainWindow::openPixivList()
         }
 
         QJsonParseError err {};
-        QJsonDocument doc = QJsonDocument::fromJson(f.readAll(),&err);
+        const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(),&err);
         f.close();
         if (doc.isNull() || !doc.isObject()) {
             qCritical() << tr("JSON parser error for file %1: %2 at %3.")
@@ -963,7 +963,7 @@ void CMainWindow::activateTab()
     auto *act = qobject_cast<QAction*>(sender());
     if(act==nullptr) return;
     bool okconv = false;
-    int idx = act->data().toInt(&okconv);
+    const int idx = act->data().toInt(&okconv);
     if (!okconv) return;
     tabMain->setCurrentIndex(idx);
 }
@@ -973,7 +973,11 @@ void CMainWindow::reloadLanguagesList()
     menuTranslationLanguages->clear();
     menuTranslationLanguages->addActions(gSet->actions()->getTranslationLanguagesActions());
     menuSubsentencesMode->clear();
-    menuSubsentencesMode->addActions(gSet->actions()->getSubsentencesModeActions());
+    for (auto it = CStructures::translationEngines().constBegin(),
+         end = CStructures::translationEngines().constEnd(); it != end; ++it) {
+        QMenu *menu = menuSubsentencesMode->addMenu(CStructures::translationEngines().value(it.key()));
+        menu->addActions(gSet->actions()->getSubsentencesModeActions(it.key()));
+    }
 }
 
 void CMainWindow::reloadCharsetList()
@@ -1047,14 +1051,14 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
 
 void CMainWindow::dragEnterEvent(QDragEnterEvent *ev)
 {
-    QStringList formats = ev->mimeData()->formats();
+    const QStringList formats = ev->mimeData()->formats();
 
     if (formats.contains(QSL("_NETSCAPE_URL")) ||
             formats.contains(QSL("text/uri-list"))) {
         ev->acceptProposedAction();
 
     } else if (formats.contains(QSL("text/plain"))) {
-        QUrl u(ev->mimeData()->text());
+        const QUrl u(ev->mimeData()->text());
         if (u.isValid())
             ev->acceptProposedAction();
     }
@@ -1064,7 +1068,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
 {
     static const QRegularExpression lineSeparator(QSL("\n|\r\n|\r"));
     QHash<QString,QString> data;
-    QStringList formats = ev->mimeData()->formats();
+    const QStringList formats = ev->mimeData()->formats();
     for (int i=0;i<formats.count();i++)
         data[formats.at(i)] = CGenericFuncs::detectDecodeToUnicode(ev->mimeData()->data(formats.at(i)));
 
@@ -1072,20 +1076,20 @@ void CMainWindow::dropEvent(QDropEvent *ev)
     bool ok = false;
 
     if (data.contains(QSL("_NETSCAPE_URL"))) {
-        QString s = data.value(QSL("_NETSCAPE_URL"))
+        const QString s = data.value(QSL("_NETSCAPE_URL"))
                     .split(lineSeparator).constFirst();
-        QUrl u(s);
+        const QUrl u(s);
         if (u.isValid()) {
             ul << u;
             ok = true;
         }
     }
     if (!ok && data.contains(QSL("text/uri-list"))) {
-        QStringList sl = data.value(QSL("text/uri-list"))
-                         .split(lineSeparator);
+        const QStringList sl = data.value(QSL("text/uri-list"))
+                               .split(lineSeparator);
         for (int i=0;i<sl.count();i++) {
             if (sl.at(i).startsWith(u'#')) continue;
-            QUrl u(sl.at(i));
+            const QUrl u(sl.at(i));
             if (u.isValid()) {
                 ul << u;
                 ok = true;
@@ -1093,8 +1097,8 @@ void CMainWindow::dropEvent(QDropEvent *ev)
         }
     }
     if (!ok && data.contains(QSL("text/plain"))) {
-        QUrl u(data.value(QSL("text/plain"))
-               .split(lineSeparator).constFirst());
+        const QUrl u(data.value(QSL("text/plain"))
+                     .split(lineSeparator).constFirst());
         if (u.isValid())
             ul << u;
     }
@@ -1111,6 +1115,8 @@ void CMainWindow::helpAbout()
     QString baloo5 = tr("no");
     QString poppler = tr("no");
     QString srchilite = tr("no");
+    QString xapian = tr("no");
+    QString python3 = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
@@ -1128,23 +1134,33 @@ void CMainWindow::helpAbout()
 #ifdef WITH_SRCHILITE
     srchilite = tr("yes");
 #endif
+#ifdef WITH_XAPIAN
+    xapian = tr("yes");
+#endif
+#ifdef WITH_PYTHON3
+    python3 = tr("yes");
+#endif
 
-    QString msg = tr("JPReader.\nFor assisted text searching, translating and reading\n\n"
-                     "Build: %1 %2\n"
-                     "Platform: %3\n"
-                     "Build date: %4\n\n"
-                     "Recoll backend compiled: %5\n"
-                     "Baloo backend compiled: %6\n"
-                     "Poppler support: %7\n"
-                     "Source-highlight: %8.")
-                  .arg(QSL(BUILD_REV),
-                       debugstr,
-                       QSL(BUILD_PLATFORM),
-                       QSL(BUILD_DATE),
-                       recoll,
-                       baloo5,
-                       poppler,
-                       srchilite);
+    const QString msg = tr("JPReader.\nFor assisted text searching, translating and reading\n\n"
+                           "Build: %1 %2\n"
+                           "Platform: %3\n"
+                           "Build date: %4\n\n"
+                           "Recoll backend compiled: %5\n"
+                           "Baloo backend compiled: %6\n"
+                           "Poppler support: %7\n"
+                           "Source-highlight: %8\n"
+                           "Xapian: %9\n"
+                           "Python: %10.")
+                        .arg(QSL(BUILD_REV),
+                             debugstr,
+                             QSL(BUILD_PLATFORM),
+                             QSL(BUILD_DATE),
+                             recoll,
+                             baloo5,
+                             poppler,
+                             srchilite,
+                             xapian,
+                             python3);
 
     QMessageBox::about(this, QGuiApplication::applicationDisplayName(), msg);
 }

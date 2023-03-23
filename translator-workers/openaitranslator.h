@@ -26,7 +26,6 @@ public:
     bool initTran() override;
     CStructures::TranslationEngine engine() override;
 
-    static int tokensCount(const QString& text);
     static QStringList getAvailableModels(const QString &apiKey);
 
 

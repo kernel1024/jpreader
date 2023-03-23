@@ -25,6 +25,7 @@ class CGlobalNetwork;
 class CGlobalHistory;
 class CGlobalBrowserFuncs;
 class CGlobalUI;
+class CGlobalPython;
 
 #define gSet (CGlobalControl::instance())
 
@@ -75,6 +76,7 @@ public:
     CGlobalHistory *history() const;
     CGlobalUI *ui() const;
     CGlobalBrowserFuncs *browser() const;
+    CGlobalPython *python() const;
 
 private:
     Q_DISABLE_COPY(CGlobalControl)
@@ -89,6 +91,7 @@ private:
     QScopedPointer<CGlobalHistory,QScopedPointerDeleteLater> m_history;
     QScopedPointer<CGlobalUI,QScopedPointerDeleteLater> m_ui;
     QScopedPointer<CGlobalBrowserFuncs,QScopedPointerDeleteLater> m_browser;
+    QScopedPointer<CGlobalPython,QScopedPointerDeleteLater> m_python;
 
 public Q_SLOTS:
     void writeSettings();

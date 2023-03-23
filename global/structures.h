@@ -48,6 +48,13 @@ enum TranslationMode {
 };
 Q_ENUM_NS(TranslationMode)
 
+enum SubsentencesMode {
+    smSplitByPunctuation = 0,
+    smKeepParagraph = 1,
+    smCombineToMaxTokens = 2
+};
+Q_ENUM_NS(SubsentencesMode)
+
 enum SearchModelRole {
     cpSortRole = 1,
     cpFilterRole = 2
@@ -183,7 +190,7 @@ using CUrlHolderVector = QVector<CUrlHolder>;
 using CSslCertificateHash = QHash<QSslCertificate,CIntList>;
 using CLangPairVector = QVector<CLangPair>;
 using CStringSet = QSet<QString>;
-using CSubsentencesMode = QHash<CStructures::TranslationEngine,bool>;
+using CSubsentencesMode = QHash<CStructures::TranslationEngine,CStructures::SubsentencesMode>;
 using CTranslatorStatistics = QHash<CStructures::TranslationEngine,QMap<QDate,quint64> >;
 using CSelectedLangPairs = QHash<CStructures::TranslationEngine,QString>;
 using CUrlWithName = QPair<QString,QString>;

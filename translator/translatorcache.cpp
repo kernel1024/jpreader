@@ -27,11 +27,11 @@ void CTranslatorCache::setCachePath(const QString &path)
 QString CTranslatorCache::cachedTranslatorResult(const QString &source,
                                                  const CLangPair &languagePair,
                                                  CStructures::TranslationEngine engine,
-                                                 bool translateSubSentences) const
+                                                 CStructures::SubsentencesMode subsentencesMode) const
 {
     if (!m_cachePath.exists()) return QString();
 
-    QString filename = getMD5(getHashSource(source,languagePair,engine,translateSubSentences));
+    const QString filename = getMD5(getHashSource(source,languagePair,engine,subsentencesMode));
 
     QFile f(m_cachePath.filePath(filename));
     if (!f.open(QIODevice::ReadOnly)) return QString();
@@ -58,13 +58,13 @@ QString CTranslatorCache::cachedTranslatorResult(const QString &md5) const
 void CTranslatorCache::saveTranslatorResult(const QString &source, const QString &result,
                                             const CLangPair &languagePair,
                                             CStructures::TranslationEngine engine,
-                                            bool translateSubSentences,
+                                            CStructures::SubsentencesMode subsentencesMode,
                                             const QString &title,
                                             const QUrl &origin)
 {
     if (!m_cachePath.exists()) return;
 
-    QString filename = getMD5(getHashSource(source,languagePair,engine,translateSubSentences));
+    const QString filename = getMD5(getHashSource(source,languagePair,engine,subsentencesMode));
 
     QFile f(m_cachePath.filePath(filename));
     if (!f.open(QIODevice::WriteOnly)) return;
@@ -78,7 +78,7 @@ void CTranslatorCache::saveTranslatorResult(const QString &source, const QString
     root.insert(QSL("length"),source.length());
     if (!(origin.toString().startsWith(QSL("data:"),Qt::CaseInsensitive)))
         root.insert(QSL("origin"),origin.toString());
-    QJsonDocument doc(root);
+    const QJsonDocument doc(root);
 
     QFile info(m_cachePath.filePath(QSL("%1.info").arg(filename)));
     if (!info.open(QIODevice::WriteOnly)) return;
@@ -103,10 +103,11 @@ QString CTranslatorCache::getMD5(const QString &content) const
 QString CTranslatorCache::getHashSource(const QString &source,
                                         const CLangPair &languagePair,
                                         CStructures::TranslationEngine engine,
-                                        bool translateSubSentences) const
+                                        CStructures::SubsentencesMode subsentencesMode) const
 {
     QString content = source;
-    content.append(QSL("#%1#%2#%3").arg(languagePair.getHash(),CGenericFuncs::bool2str2(translateSubSentences))
+    content.append(QSL("#%1#%2#%3").arg(languagePair.getHash())
+                   .arg(static_cast<int>(subsentencesMode))
                    .arg(static_cast<int>(engine)));
     return content;
 }
@@ -118,7 +119,7 @@ void CTranslatorCache::cleanOldEntries()
     QFileInfoList list = m_cachePath.entryInfoList(QDir::Files | QDir::Writable | QDir::Readable,
                                                    QDir::Time | QDir::Reversed);
     qint64 sumSize = 0;
-    qint64 maxSize = gSet->settings()->translatorCacheSize * CDefaults::oneMB;
+    const qint64 maxSize = gSet->settings()->translatorCacheSize * CDefaults::oneMB;
     while (!list.isEmpty() && sumSize<maxSize) {
         sumSize += list.takeLast().size();
     }

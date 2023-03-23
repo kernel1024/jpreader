@@ -15,12 +15,12 @@ public:
     QDir getCachePath() const;
     QString cachedTranslatorResult(const QString& source, const CLangPair& languagePair,
                                    CStructures::TranslationEngine engine,
-                                   bool translateSubSentences) const;
+                                   CStructures::SubsentencesMode subsentencesMode) const;
     QString cachedTranslatorResult(const QString& md5) const;
     void saveTranslatorResult(const QString& source, const QString& result,
                               const CLangPair& languagePair,
                               CStructures::TranslationEngine engine,
-                              bool translateSubSentences,
+                              CStructures::SubsentencesMode subsentencesMode,
                               const QString &title,
                               const QUrl &origin);
 
@@ -32,7 +32,7 @@ private:
     QString getMD5(const QString& content) const;
     QString getHashSource(const QString& source, const CLangPair& languagePair,
                                 CStructures::TranslationEngine engine,
-                                bool translateSubSentences) const;
+                                CStructures::SubsentencesMode subsentencesMode) const;
 public Q_SLOTS:
     void clearCache();
     void showDialog();

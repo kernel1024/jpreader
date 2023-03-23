@@ -13,6 +13,7 @@ extern "C" {
 #include "history.h"
 #include "ui.h"
 #include "browserfuncs.h"
+#include "pythonfuncs.h"
 #include "mainwindow.h"
 
 #include "utils/genericfuncs.h"
@@ -25,7 +26,8 @@ CGlobalControl::CGlobalControl(QCoreApplication *parent) :
     dptr(new CGlobalControlPrivate(this)),
     m_settings(new CSettings(this)),
     m_startup(new CGlobalStartup(this)),
-    m_net(new CGlobalNetwork(this))
+    m_net(new CGlobalNetwork(this)),
+    m_python(new CGlobalPython(this))
 {
     if (qobject_cast<QGuiApplication *>(QCoreApplication::instance())) {
         m_actions.reset(new CGlobalActions(this));
@@ -133,6 +135,11 @@ CGlobalUI *CGlobalControl::ui() const
 CGlobalBrowserFuncs *CGlobalControl::browser() const
 {
     return m_browser.data();
+}
+
+CGlobalPython *CGlobalControl::python() const
+{
+    return m_python.data();
 }
 
 CMainWindow *CGlobalControl::activeWindow() const

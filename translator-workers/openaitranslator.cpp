@@ -27,7 +27,7 @@ QString COpenAITranslator::tranStringInternal(const QString &src)
 {
     const QUrl rqurl(QSL("https://api.openai.com/v1/chat/completions"));
 
-    const QString langFrom = QLocale::languageToString(language().langFrom.language()); // NOTE: does GPT ever need this?
+    const QString langFrom = QLocale::languageToString(language().langFrom.language());
     const QString langTo = QLocale::languageToString(language().langTo.language());
 
     const QString apiKey = QSL("Bearer %1").arg(m_apiKey);
@@ -136,19 +136,11 @@ CStructures::TranslationEngine COpenAITranslator::engine()
     return CStructures::teOpenAI;
 }
 
-int COpenAITranslator::tokensCount(const QString &text)
-{
-
-    // TODO: use Python tiktoken library here
-    // TODO: also collect and add up to 10 translation samples to translation prompt (for consistency).
-    // TODO: enhance subsentence mode with bigsentence (whole paragraph)
-
-    return text.length();
-}
-
 QStringList COpenAITranslator::getAvailableModels(const QString &apiKey)
 {
     Q_UNUSED(apiKey)
+
+    // TODO: also collect and add up to 10 translation samples to translation prompt (for consistency).
 
     // TODO: use apiKey for https://api.openai.com/v1/models
 

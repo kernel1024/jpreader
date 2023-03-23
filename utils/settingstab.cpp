@@ -272,6 +272,8 @@ void CSettingsTab::loadFromGlobal()
     ui->spinOpenAIPresencePenalty->setValue(gSet->m_settings->openaiPresencePenalty);
     ui->spinOpenAIFrequencyPenalty->setValue(gSet->m_settings->openaiFrequencyPenalty);
 
+    ui->spinTokensMaxCountCombined->setValue(gSet->m_settings->tokensMaxCountCombined);
+
     ui->checkEmptyRestore->setChecked(gSet->m_settings->emptyRestore);
     ui->checkJSLogConsole->setChecked(gSet->m_settings->jsLogConsole);
     ui->checkDownloaderCleanCompleted->setChecked(gSet->m_settings->downloaderCleanCompleted);
@@ -669,6 +671,11 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->spinOpenAIFrequencyPenalty,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
         if (m_loadingInterlock) return;
         gSet->m_settings->openaiFrequencyPenalty=val;
+    });
+
+    connect(ui->spinTokensMaxCountCombined,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->tokensMaxCountCombined=val;
     });
 
     connect(ui->checkEmptyRestore,&QCheckBox::toggled,this,[this](bool val){

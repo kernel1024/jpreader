@@ -8,7 +8,7 @@ CHTMLNode CHTMLParser::parseHTML(const QString &src)
 {
     HTML::ParserDom parser;
     parser.parse(src);
-    CHTMLNode res(parser.getTree());
+    const CHTMLNode res(parser.getTree());
     return res;
 }
 
@@ -50,7 +50,7 @@ void CHTMLParser::replaceLocalHrefs(CHTMLNode& node, const QUrl& baseUrl)
 {
     if (node.tagName.toLower()==QSL("a")) {
         if (node.attributes.contains(QSL("href"))) {
-            QUrl ref = QUrl(node.attributes.value(QSL("href")));
+            const QUrl ref = QUrl(node.attributes.value(QSL("href")));
             if (ref.isRelative())
                 node.attributes[QSL("href")]=baseUrl.resolved(ref).toString();
         }
@@ -98,6 +98,7 @@ bool CHTMLNode::operator!=(const CHTMLNode &s) const
 
 void CHTMLNode::normalize()
 {
+    // combine sequence of text nodes into one node
     int i = 0;
     while (i<(children.count()-1)) {
         if (children.at(i).isTextNode() &&

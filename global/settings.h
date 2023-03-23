@@ -42,6 +42,7 @@ const int mangaScrollDelta = 120;
 const int mangaScrollFactor = 5;
 const int mangaCacheWidth = 6;
 const int downloadsLimit = 0;
+const int tokensMaxCountCombined = 1024;
 const unsigned int mangaBackgroundColor = 0x303030;
 const double mangaResizeBlur = 1.0;
 const double openaiTemperature = 1.0;
@@ -176,6 +177,7 @@ public:
     int mangaScrollFactor { CDefaults::mangaScrollFactor };
     int mangaCacheWidth { CDefaults::mangaCacheWidth };
     int downloadsLimit { CDefaults::downloadsLimit };
+    int tokensMaxCountCombined { CDefaults::tokensMaxCountCombined };
     quint16 atlPort { CDefaults::atlPort };
     quint16 proxyPort { CDefaults::proxyPort };
     QSsl::SslProtocol atlProto { CDefaults::atlProto };

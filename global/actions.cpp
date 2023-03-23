@@ -24,6 +24,7 @@ const int globalStatusTooltipShowDelay = 100;
 const int globalStatusTooltipShowDuration = 3000;
 const int globalTranslatorDelay = 1000;
 const int globalThreadWorkerTestInterval = 5000;
+const auto subsentencesActionGroupID = "ACG_ENGINE_ID";
 }
 
 CGlobalActions::CGlobalActions(QObject *parent)
@@ -59,8 +60,6 @@ CGlobalActions::CGlobalActions(QObject *parent)
 
     languageSelector = new QActionGroup(this);
     translationMode = new QActionGroup(this);
-    subsentencesMode = new QActionGroup(this);
-    subsentencesMode->setExclusionPolicy(QActionGroup::ExclusionPolicy::None);
 
     actionTMAdditive = new QAction(tr("Additive"),this);
     actionTMAdditive->setCheckable(true);
@@ -268,63 +267,69 @@ void CGlobalActions::rebuildLanguageActions(QObject * control)
         QAction *ac = languageSelector->addAction(QSL("(empty)"));
         ac->setEnabled(false);
     }
-
-    CSubsentencesMode smode = getSubsentencesModeHash();
-    subsentencesMode->deleteLater();
-    subsentencesMode = new QActionGroup(this);
-    subsentencesMode->setExclusionPolicy(QActionGroup::ExclusionPolicy::None);
-    for (auto it = CStructures::translationEngines().constBegin(),
-         end = CStructures::translationEngines().constEnd(); it != end; ++it) {
-        QAction *ac = subsentencesMode->addAction(it.value());
-        ac->setCheckable(true);
-        ac->setChecked(smode.value(it.key(),false));
-        ac->setData(QVariant::fromValue(it.key()));
-    }
+    updateSubsentencesModeActions(getSubsentencesModeHash());
 
     Q_EMIT g->m_history->updateAllLanguagesLists();
 }
 
-bool CGlobalActions::getSubsentencesMode(CStructures::TranslationEngine engine) const
+void CGlobalActions::updateSubsentencesModeActions(const CSubsentencesMode &hash)
 {
-    const auto list = subsentencesMode->actions();
-    for (auto * const ac : list) {
-        if (ac->data().value<CStructures::TranslationEngine>() == engine)
-            return ac->isChecked();
+    for (const auto &submenu : qAsConst(subsentencesMode))
+        submenu->deleteLater();
+    subsentencesMode.clear();
+
+    for (auto it = CStructures::translationEngines().constBegin(),
+         end = CStructures::translationEngines().constEnd(); it != end; ++it) {
+        auto *acg = new QActionGroup(this);
+        acg->setProperty(CDefaults::subsentencesActionGroupID,QVariant::fromValue(it.key()));
+        acg->setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
+
+        QAction *ac = acg->addAction(tr("Split by punctuation"));
+        ac->setCheckable(true);
+        ac->setChecked((hash.value(it.key()) == CStructures::smSplitByPunctuation));
+        ac->setData(QVariant::fromValue(CStructures::smSplitByPunctuation));
+
+        ac = acg->addAction(tr("Keep paragraph"));
+        ac->setCheckable(true);
+        ac->setChecked((hash.value(it.key()) == CStructures::smKeepParagraph));
+        ac->setData(QVariant::fromValue(CStructures::smKeepParagraph));
+
+        ac = acg->addAction(tr("Force combine"));
+        ac->setCheckable(true);
+        ac->setChecked((hash.value(it.key()) == CStructures::smCombineToMaxTokens));
+        ac->setData(QVariant::fromValue(CStructures::smCombineToMaxTokens));
+
+        subsentencesMode[it.key()] = acg;
+    }
+}
+
+CStructures::SubsentencesMode CGlobalActions::getSubsentencesMode(CStructures::TranslationEngine engine) const
+{
+    const auto list = subsentencesMode.value(engine);
+
+    if (list.isNull())
+        return CStructures::SubsentencesMode::smKeepParagraph;
+
+    for (auto * const ac : (list->actions())) {
+        if ((ac != nullptr) && (ac->isChecked()))
+            return ac->data().value<CStructures::SubsentencesMode>();
     }
 
-    return false;
+    return CStructures::SubsentencesMode::smKeepParagraph;
 }
 
 CSubsentencesMode CGlobalActions::getSubsentencesModeHash() const
 {
     CSubsentencesMode res;
-    const auto list = subsentencesMode->actions();
-    for (auto * const ac : list) {
-        auto engine = ac->data().value<CStructures::TranslationEngine>();
-        bool checked = ac->isChecked();
-        res[engine] = checked;
-    }
+    for (auto it = subsentencesMode.constKeyValueBegin(); it != subsentencesMode.constKeyValueEnd(); ++ it)
+        res[it->first] = getSubsentencesMode(it->first);
 
     return res;
 }
 
-void CGlobalActions::setSubsentencesModeHash(const CSubsentencesMode &hash) const
+void CGlobalActions::setSubsentencesModeHash(const CSubsentencesMode &hash)
 {
-    const auto list = subsentencesMode->actions();
-    if (list.isEmpty()) {
-        for (auto it = hash.constBegin(), end = hash.constEnd(); it != end; ++it) {
-            QAction* ac = subsentencesMode->addAction(CStructures::translationEngines().value(it.key()));
-            ac->setCheckable(true);
-            ac->setChecked(it.value());
-            ac->setData(QVariant::fromValue(it.key()));
-        }
-    } else {
-        for (auto * const ac : list) {
-            const auto engine = ac->data().value<CStructures::TranslationEngine>();
-            if (hash.contains(engine))
-                ac->setChecked(hash.value(engine));
-        }
-    }
+    updateSubsentencesModeActions(hash);
 }
 
 bool CGlobalActions::eventFilter(QObject *object, QEvent *event)
@@ -337,6 +342,8 @@ bool CGlobalActions::eventFilter(QObject *object, QEvent *event)
     Qt::KeyboardModifiers sc_mods = Qt::NoModifier;
 
     if (!g->m_settings->autofillSequence.isEmpty()) {
+// TODO: remove all Qt 5.x checks!
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         sc_key = g->m_settings->autofillSequence[0].key();
         sc_mods = g->m_settings->autofillSequence[0].keyboardModifiers();
@@ -440,10 +447,12 @@ QList<QAction *> CGlobalActions::getTranslationLanguagesActions() const
     return gSet->m_actions->languageSelector->actions();
 }
 
-QList<QAction *> CGlobalActions::getSubsentencesModeActions() const
+QList<QAction *> CGlobalActions::getSubsentencesModeActions(CStructures::TranslationEngine engine) const
 {
     QList<QAction* > res;
     if (gSet->m_actions.isNull()) return res;
+    const auto ptr = gSet->m_actions->subsentencesMode.value(engine);
+    if (ptr.isNull()) return res;
 
-    return gSet->m_actions->subsentencesMode->actions();
+    return ptr->actions();
 }
