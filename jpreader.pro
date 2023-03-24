@@ -229,9 +229,9 @@ CONFIG += warn_on \
 
 # warn on *any* usage of deprecated APIs
 DEFINES += QT_DEPRECATED_WARNINGS
-# ... and just fail to compile if APIs deprecated in Qt <= 5.15 are used
+# ... and just fail to compile if APIs deprecated in Qt <= 6.2 are used
 # // TODO: move to 6.2.0
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060200
 
 DEFINES += QT_NO_CAST_TO_ASCII QT_NO_CAST_FROM_BYTEARRAY
 

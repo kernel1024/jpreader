@@ -27,7 +27,7 @@ public:
     CStructures::TranslationEngine engine() override;
 
     static QStringList getAvailableModels(const QString &apiKey);
-
+    QString getModelName() const override;
 
 protected:
     QString tranStringInternal(const QString& src) override;

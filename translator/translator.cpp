@@ -408,7 +408,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     switch (m_subsentencesMode) {
                         case CStructures::smCombineToMaxTokens: {// Preferred mode for AI translators
                             combineAccumulator.append(sourceStrTemp);
-                            combinedTokenCount += gSet->python()->tiktokenCountTokens(sourceStrTemp);
+                            combinedTokenCount += gSet->python()->tiktokenCountTokens(sourceStrTemp,m_tran->getModelName());
                             if ((combinedTokenCount >= m_tokensMaxCountCombined) ||  // max tokens
                                     ((idx + 1) >= sourceStrings.count())) {          // or last string in the list
                                 sourceStrTemp = combineAccumulator.join(QChar('\n'));

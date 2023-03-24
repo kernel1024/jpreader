@@ -140,7 +140,7 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
     QShortcut* sc = nullptr;
     sc = new QShortcut(QKeySequence(Qt::Key_Slash),this);
     connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::searchFocus);
-    sc = new QShortcut(QKeySequence(Qt::Key_F + Qt::CTRL),this);
+    sc = new QShortcut(QKeySequence(Qt::Key_F | Qt::CTRL),this);
     connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::searchFocus);
     sc = new QShortcut(QKeySequence(Qt::Key_F12),this);
     connect(sc, &QShortcut::activated, m_msgHandler, &CBrowserMsgHandler::showInspector);
@@ -183,11 +183,7 @@ CBrowserTab::CBrowserTab(QWidget *parent, const QUrl& aUri, const QStringList& a
 
 void CBrowserTab::sendInputToBrowser(const QString &text)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    CGenericFuncs::sendKeyboardInputToView(txtBrowser->page()->view(),text);
-#else
     CGenericFuncs::sendKeyboardInputToView(QWebEngineView::forPage(txtBrowser->page()),text);
-#endif
 }
 
 CBrowserNet *CBrowserTab::netHandler() const

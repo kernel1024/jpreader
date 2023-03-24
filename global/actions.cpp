@@ -342,19 +342,8 @@ bool CGlobalActions::eventFilter(QObject *object, QEvent *event)
     Qt::KeyboardModifiers sc_mods = Qt::NoModifier;
 
     if (!g->m_settings->autofillSequence.isEmpty()) {
-// TODO: remove all Qt 5.x checks!
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         sc_key = g->m_settings->autofillSequence[0].key();
         sc_mods = g->m_settings->autofillSequence[0].keyboardModifiers();
-#else
-        Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier
-                                        | Qt::AltModifier | Qt::MetaModifier;
-
-        auto sc = static_cast<unsigned int>(g->m_settings->autofillSequence[0]);
-        sc_key = static_cast<Qt::Key>((sc ^ allMods) & sc);
-        sc_mods = Qt::KeyboardModifiers(sc & allMods);
-#endif
     }
 
     if ((event->type() == QEvent::KeyPress) && (sc_key != Qt::Key(0))) {

@@ -20,6 +20,7 @@
 #include "global/network.h"
 #include "global/history.h"
 #include "global/actions.h"
+#include "global/pythonfuncs.h"
 #include "browser/browser.h"
 #include "browser-utils/downloadmanager.h"
 #include "browser-utils/bookmarks.h"
@@ -146,10 +147,10 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
     }
 
     QShortcut* sc = nullptr;
-    sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Left),this);
+    sc = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Left),this);
     sc->setContext(Qt::WindowShortcut);
     connect(sc, &QShortcut::activated, tabMain, &CSpecTabWidget::selectPrevTab);
-    sc = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_Right),this);
+    sc = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Right),this);
     sc->setContext(Qt::WindowShortcut);
     connect(sc, &QShortcut::activated, tabMain, &CSpecTabWidget::selectNextTab);
 
@@ -1038,9 +1039,10 @@ bool CMainWindow::eventFilter(QObject *obj, QEvent *ev)
         if (ev->type()==QEvent::MouseMove) {
             auto *mev = dynamic_cast<QMouseEvent *>(ev);
             if (mev) {
-                if (mev->y()<fullscreenToolsShowMargin && !tabMain->tabBar()->isVisible()) {
+                const int y = qRound(mev->position().y());
+                if (y < fullscreenToolsShowMargin && !tabMain->tabBar()->isVisible()) {
                     setToolsVisibility(true);
-                } else if (mev->y()>(fullscreenToolsShowMargin+4) && tabMain->tabBar()->isVisible()) {
+                } else if (y > (fullscreenToolsShowMargin+4) && tabMain->tabBar()->isVisible()) {
                     setToolsVisibility(false);
                 }
             }
@@ -1117,6 +1119,7 @@ void CMainWindow::helpAbout()
     QString srchilite = tr("no");
     QString xapian = tr("no");
     QString python3 = tr("no");
+    QString tiktoken = tr("no");
     QString debugstr;
     debugstr.clear();
 #ifdef QT_DEBUG
@@ -1140,6 +1143,8 @@ void CMainWindow::helpAbout()
 #ifdef WITH_PYTHON3
     python3 = tr("yes");
 #endif
+    if (gSet->python()->isTiktokenLoaded())
+        tiktoken = tr("yes");
 
     const QString msg = tr("JPReader.\nFor assisted text searching, translating and reading\n\n"
                            "Build: %1 %2\n"
@@ -1150,7 +1155,7 @@ void CMainWindow::helpAbout()
                            "Poppler support: %7\n"
                            "Source-highlight: %8\n"
                            "Xapian: %9\n"
-                           "Python: %10.")
+                           "Python: %10 (tiktoken: %11)")
                         .arg(QSL(BUILD_REV),
                              debugstr,
                              QSL(BUILD_PLATFORM),
@@ -1160,7 +1165,8 @@ void CMainWindow::helpAbout()
                              poppler,
                              srchilite,
                              xapian,
-                             python3);
+                             python3,
+                             tiktoken);
 
     QMessageBox::about(this, QGuiApplication::applicationDisplayName(), msg);
 }

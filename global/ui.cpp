@@ -203,7 +203,6 @@ void CGlobalUI::setMangaDetectedScrollDelta(int value)
 
 QColor CGlobalUI::getMangaForegroundColor() const
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     const float redLuma = 0.2989;
     const float greenLuma = 0.5870;
     const float blueLuma = 0.1140;
@@ -211,15 +210,6 @@ QColor CGlobalUI::getMangaForegroundColor() const
     float r = 0.0;
     float g = 0.0;
     float b = 0.0;
-#else
-    const qreal redLuma = 0.2989;
-    const qreal greenLuma = 0.5870;
-    const qreal blueLuma = 0.1140;
-    const qreal halfLuma = 0.5;
-    qreal r = 0.0;
-    qreal g = 0.0;
-    qreal b = 0.0;
-#endif
     gSet->settings()->mangaBackgroundColor.getRgbF(&r,&g,&b);
     qreal br = r*redLuma+g*greenLuma+b*blueLuma;
     if (br>halfLuma)

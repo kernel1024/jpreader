@@ -22,17 +22,10 @@ const auto replyHeadOffset = "replyHeadOffset";
 
 class CDownloadManager;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-#include <QWebEngineDownloadItem>
-using CDownloadState = QWebEngineDownloadItem::DownloadState;
-using CDownloadPageFormat = QWebEngineDownloadItem::SavePageFormat;
-using CDownloadInterruptReason = QWebEngineDownloadItem::DownloadInterruptReason;
-#else
 #include <QWebEngineDownloadRequest>
 using CDownloadState = QWebEngineDownloadRequest::DownloadState;
 using CDownloadPageFormat = QWebEngineDownloadRequest::SavePageFormat;
 using CDownloadInterruptReason = QWebEngineDownloadRequest::DownloadInterruptReason;
-#endif
 
 class CDownloadItem
 {
@@ -44,11 +37,7 @@ public:
     QString mimeType;
     QString errorString;
     CDownloadState state { CDownloadState::DownloadRequested };
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    QPointer<QWebEngineDownloadItem> downloadItem;
-#else
     QPointer<QWebEngineDownloadRequest> downloadItem;
-#endif
     qint64 oldReceived { 0L };
     qint64 received { 0L };
     qint64 total { 0L };
@@ -63,11 +52,7 @@ public:
     CDownloadItem() = default;
     CDownloadItem(const CDownloadItem& other) = default;
     explicit CDownloadItem(quint32 itemId);
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    explicit CDownloadItem(QWebEngineDownloadItem* item);
-#else
     explicit CDownloadItem(QWebEngineDownloadRequest* item);
-#endif
     CDownloadItem(QNetworkReply* rpl, const QString& fname, qint64 offset);
     explicit CDownloadItem(const QUuid &uuid);
     ~CDownloadItem() = default;

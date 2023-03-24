@@ -38,6 +38,7 @@ public:
     virtual void doneTranPrivate(bool lazyClose)=0;
     virtual bool isReady()=0;
     virtual CStructures::TranslationEngine engine()=0;
+    virtual QString getModelName() const { return QString(); }
 
     void doneTran(bool lazyClose = false);
     QString getErrorMsg() const;

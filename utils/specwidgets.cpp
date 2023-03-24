@@ -172,7 +172,7 @@ void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
 
         QRect wr = QRect(mapToGlobal(QPoint(0,0)),size()).marginsAdded(mainWindowDecorationsSafeMargins);
 
-        if (!wr.contains(event->globalPos())) {
+        if (!wr.contains(event->globalPosition().toPoint())) {
 
             // finish up local drag inside QTabBar
             QMouseEvent evr(QEvent::MouseButtonRelease, m_dragStart, Qt::LeftButton,
@@ -348,18 +348,13 @@ QWebEngineView *CSpecWebView::createWindow(QWebEnginePage::WebWindowType type)
 void CSpecWebView::contextMenuEvent(QContextMenuEvent *event)
 {
     if (parentViewer) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-        Q_EMIT contextMenuRequested(event->pos(), m_page->contextMenuData());
-#else
         Q_EMIT contextMenuRequested(event->pos(), lastContextMenuRequest());
-#endif
     }
 }
 
 CSpecWebPage::CSpecWebPage(QObject *parent)
     : QWebEnginePage(parent)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     connect(this,&QWebEnginePage::certificateError,this,[]
             (QWebEngineCertificateError certificateError) {
         qWarning() << "SSL certificate error" << certificateError.description()
@@ -369,7 +364,6 @@ CSpecWebPage::CSpecWebPage(QObject *parent)
             certificateError.acceptCertificate();
         }
     });
-#endif
 }
 
 CSpecWebPage::CSpecWebPage(QWebEngineProfile *profile, QObject *parent)
@@ -425,16 +419,6 @@ bool CSpecWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navi
 
     return !blocked;
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-bool CSpecWebPage::certificateError(const QWebEngineCertificateError &certificateError)
-{
-    qWarning() << "SSL certificate error" << certificateError.error()
-               << certificateError.errorDescription() << certificateError.url();
-
-    return gSet->settings()->ignoreSSLErrors;
-}
-#endif
 
 void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
                                             const QString &message, int lineNumber,

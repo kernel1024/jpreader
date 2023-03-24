@@ -139,9 +139,6 @@ protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
                                   int lineNumber, const QString &sourceID) override;
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    bool certificateError(const QWebEngineCertificateError &certificateError) override;
-#endif
 Q_SIGNALS:
     void linkClickedExt(const QUrl& url, int type, bool isMainFrame);
 };
@@ -159,11 +156,7 @@ protected:
     QWebEngineView* createWindow(QWebEnginePage::WebWindowType type) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
 Q_SIGNALS:
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    void contextMenuRequested(const QPoint &pos, const QWebEngineContextMenuData &data);
-#else
     void contextMenuRequested(const QPoint &pos, const QWebEngineContextMenuRequest *data);
-#endif
 };
 
 class CDateTimeTableWidgetItem : public QTableWidgetItem {

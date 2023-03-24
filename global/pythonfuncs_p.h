@@ -31,17 +31,18 @@ class CGlobalPythonPrivate : public QObject, private CGlobalPythonPrivateCleanup
 
 public:
 #ifdef WITH_PYTHON3
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_module;
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_tokenizerClass;
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_tokenCounterClass;
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_tokenizer;
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_tokenCounter;
+    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_tiktokenModule;
+    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter> m_encoding;
+    QString m_encodingModel;
+    bool m_tiktokenFailed { false };
 #endif
 
     explicit CGlobalPythonPrivate(QObject *parent = nullptr);
     ~CGlobalPythonPrivate() override;
 
-    bool isLoaded() const;
+    bool isTiktokenLoaded() const;
+    bool changeEncoding(const QString& modelName);
+    void setFailed();
 
 private:
     Q_DISABLE_COPY(CGlobalPythonPrivate)

@@ -48,18 +48,8 @@ QxtGlobalShortcut::QxtGlobalShortcut(const QKeySequence& shortcut, QObject* pare
         : QObject(parent)
 {
     if (!shortcut.isEmpty()) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         m_key = shortcut[0].key();
         m_mods = shortcut[0].keyboardModifiers();
-#else
-        Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier
-                                        | Qt::AltModifier | Qt::MetaModifier;
-
-        auto sc = static_cast<unsigned int>(shortcut[0]);
-        m_key = static_cast<Qt::Key>((sc ^ allMods) & sc);
-        m_mods = Qt::KeyboardModifiers(sc & allMods);
-#endif
-
         m_enabled = true;
         QxtGlobalShortcutFilter::setupShortcut(this);
     }
@@ -72,12 +62,7 @@ QxtGlobalShortcut::~QxtGlobalShortcut()
 
 QKeySequence QxtGlobalShortcut::getShortcut() const
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    QKeySequence seq(QKeyCombination(m_mods,m_key));
-#else
-    QKeySequence seq(static_cast<int>(m_key | m_mods));
-#endif
-    return seq;
+    return QKeySequence(QKeyCombination(m_mods,m_key));;
 }
 
 bool QxtGlobalShortcut::isEnabled() const

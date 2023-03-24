@@ -149,3 +149,8 @@ QStringList COpenAITranslator::getAvailableModels(const QString &apiKey)
 
     return models;
 }
+
+QString COpenAITranslator::getModelName() const
+{
+    return m_translationModel;
+}

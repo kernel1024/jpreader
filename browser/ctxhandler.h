@@ -9,11 +9,7 @@
 #include <QScopedPointer>
 #include "browser.h"
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-#include <QWebEngineContextMenuData>
-#else
 #include <QWebEngineContextMenuRequest>
-#endif
 
 class CBrowserTab;
 
@@ -37,11 +33,7 @@ public Q_SLOTS:
     void showSource();
     void exportCookies();
     void runJavaScript();
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    void contextMenu(const QPoint &pos, const QWebEngineContextMenuData &data);
-#else
     void contextMenu(const QPoint &pos, const QWebEngineContextMenuRequest *data);
-#endif
 Q_SIGNALS:
     void hideTooltips();
 };

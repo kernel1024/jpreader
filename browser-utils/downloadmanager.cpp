@@ -327,11 +327,7 @@ void CDownloadManager::setProgressLabel(const QString &text)
     ui->labelProgress->setText(text);
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-void CDownloadManager::handleDownload(QWebEngineDownloadItem *item)
-#else
 void CDownloadManager::handleDownload(QWebEngineDownloadRequest *item)
-#endif
 {
     if (item==nullptr) return;
 
@@ -354,16 +350,6 @@ void CDownloadManager::handleDownload(QWebEngineDownloadRequest *item)
         item->setDownloadDirectory(fi.absolutePath());
         item->setDownloadFileName(fi.fileName());
     }
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    connect(item, &QWebEngineDownloadItem::finished,
-            m_model, &CDownloadsModel::downloadFinished);
-    connect(item, &QWebEngineDownloadItem::downloadProgress,this,
-            [this,item](qint64 bytesReceived, qint64 bytesTotal){
-        m_model->auxDownloadProgress(bytesReceived,bytesTotal,item);
-    });
-    connect(item, &QWebEngineDownloadItem::stateChanged,
-            m_model, &CDownloadsModel::downloadStateChanged);
-#else
     connect(item, &QWebEngineDownloadRequest::totalBytesChanged,m_model,[this,item](){
         m_model->auxDownloadProgress(item->receivedBytes(),item->totalBytes(),item);
     });
@@ -372,7 +358,6 @@ void CDownloadManager::handleDownload(QWebEngineDownloadRequest *item)
     });
     connect(item, &QWebEngineDownloadRequest::stateChanged,
             m_model, &CDownloadsModel::downloadStateChanged);
-#endif
 
     m_model->appendItem(CDownloadItem(item));
 

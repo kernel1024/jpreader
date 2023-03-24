@@ -168,13 +168,8 @@ void CDownloadsModel::downloadFinished()
 
 void CDownloadsModel::downloadFinishedPrev(QObject* source)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    QScopedPointer<QWebEngineDownloadItem,QScopedPointerDeleteLater>
-            item(qobject_cast<QWebEngineDownloadItem *>(source));
-#else
     QScopedPointer<QWebEngineDownloadRequest,QScopedPointerDeleteLater>
             item(qobject_cast<QWebEngineDownloadRequest *>(source));
-#endif
     QScopedPointer<QNetworkReply,QScopedPointerDeleteLater> rpl(qobject_cast<QNetworkReply *>(source));
 
     int row = -1;
@@ -273,11 +268,7 @@ void CDownloadsModel::makeWriterJob(CDownloadItem &item) const
 
 void CDownloadsModel::downloadStateChanged(CDownloadState state)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    auto *item = qobject_cast<QWebEngineDownloadItem *>(sender());
-#else
     auto *item = qobject_cast<QWebEngineDownloadRequest *>(sender());
-#endif
     if (item==nullptr) return;
 
     int row = m_downloads.indexOf(CDownloadItem(item->id()));
@@ -297,11 +288,7 @@ void CDownloadsModel::downloadStateChanged(CDownloadState state)
 
 void CDownloadsModel::auxDownloadProgress(qint64 bytesReceived, qint64 bytesTotal, QObject* source)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    auto *item = qobject_cast<QWebEngineDownloadItem *>(source);
-#else
     auto *item = qobject_cast<QWebEngineDownloadRequest *>(source);
-#endif
     auto *rpl = qobject_cast<QNetworkReply *>(source);
 
     int row = -1;
@@ -620,11 +607,7 @@ CDownloadItem::CDownloadItem(quint32 itemId)
 {
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-CDownloadItem::CDownloadItem(QWebEngineDownloadItem* item)
-#else
 CDownloadItem::CDownloadItem(QWebEngineDownloadRequest* item)
-#endif
 {
     if (item!=nullptr) {
         id = item->id();

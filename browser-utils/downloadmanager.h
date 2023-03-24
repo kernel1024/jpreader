@@ -33,11 +33,7 @@ public:
                            const QString &containerName, bool isFanbox, bool isPatreon);
 
 public Q_SLOTS:
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    void handleDownload(QWebEngineDownloadItem* item);
-#else
     void handleDownload(QWebEngineDownloadRequest* item);
-#endif
     void contextMenu(const QPoint& pos);
     void updateWriterStatus();
     void novelReady(const QString &html, bool focus, bool translate, bool alternateTranslate, bool downloadNovel,

@@ -1,5 +1,6 @@
 #include "pythonfuncs_p.h"
 #include "pythonfuncs.h"
+#include "global/structures.h"
 
 #include <unicode/utypes.h>
 #include <unicode/brkiter.h>
@@ -16,43 +17,42 @@ CGlobalPython::CGlobalPython(QObject *parent)
 
 CGlobalPython::~CGlobalPython() = default;
 
-int CGlobalPython::tiktokenCountTokens(const QString &text) const
+int CGlobalPython::tiktokenCountTokens(const QString &text, const QString &model)
 {
-    Q_D(const CGlobalPython);
-
-    if (!d->isLoaded())
-        return fallbackCountTokens(text);
+    Q_D(CGlobalPython);
 
 #ifdef WITH_PYTHON3
-    const QByteArray textUtf8 = text.toUtf8();
+    if (!d->changeEncoding(model))
+        return fallbackCountTokens(text);
 
-    // Call the tokenize method on the text
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            tokenize_method(PyObject_GetAttrString(d->m_tokenizer.data(), "tokenize"));
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            args(PyTuple_Pack(1, PyUnicode_FromString(textUtf8.data())));
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            tokens(PyObject_CallObject(tokenize_method.data(), args.data()));
+    const QByteArray text_utf8 = text.toUtf8();
 
-    // Iterate through tokens and add them to the token count
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            iterator(PyObject_GetIter(tokens.data()));
-    PyObject *token;
-    while ((token = PyIter_Next(iterator.data()))) {
-        PyObject *add_method = PyObject_GetAttrString(d->m_tokenCounter.data(), "add");
-        PyObject *add_args = PyTuple_Pack(1, token);
-        PyObject_CallObject(add_method, add_args);
-        Py_DECREF(token);
+    // Call the encode method with the text argument
+    const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
+            encode_method(PyObject_GetAttrString(d->m_encoding.data(), "encode"));
+    if (encode_method.isNull()) {
+        d->setFailed();
+        return fallbackCountTokens(text);
     }
 
-    // Get the length of the token count
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            len_function(PyObject_GetAttrString(d->m_tokenCounter.data(), "__len__"));
-    QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
-            length(PyObject_CallObject(len_function.data(), nullptr));
-    int token_count_length = PyLong_AsLong(length.data());
+    const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
+            encode_args(PyTuple_Pack(1, PyUnicode_FromString(text_utf8.data())));
+    if (encode_args.isNull()) {
+        d->setFailed();
+        return fallbackCountTokens(text);
+    }
 
-    return token_count_length;
+    const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
+            encoded_list(PyObject_CallObject(encode_method.data(), encode_args.data()));
+    if (encoded_list.isNull()) {
+        d->setFailed();
+        return fallbackCountTokens(text);
+    }
+
+    // Get the length of the encoded list
+    const int num = static_cast<int>(PyList_GET_SIZE(encoded_list.data()));
+
+    return num;
 #else
     return fallbackCountTokens(text);
 #endif
@@ -60,6 +60,8 @@ int CGlobalPython::tiktokenCountTokens(const QString &text) const
 
 int CGlobalPython::fallbackCountTokens(const QString &text) const
 {
+    qWarning() << "Python tiktoken fallback with ICU.";
+
     UErrorCode status = U_ZERO_ERROR;
     int wordCount = 0;
 
@@ -84,6 +86,13 @@ int CGlobalPython::fallbackCountTokens(const QString &text) const
     return wordCount;
 }
 
+bool CGlobalPython::isTiktokenLoaded() const
+{
+    Q_D(const CGlobalPython);
+
+    return d->isTiktokenLoaded();
+}
+
 CGlobalPythonPrivate::CGlobalPythonPrivate(QObject *parent)
     : QObject(parent)
 {
@@ -95,24 +104,12 @@ void CGlobalPythonPrivate::initialize()
 #ifdef WITH_PYTHON3
     Py_Initialize();
 
-    // Import tiktoken.Tokenizer and tiktoken.TokenCount
-    m_module.reset(PyImport_ImportModule("tiktoken"));
-    if (m_module.isNull()) return;
+    m_tiktokenModule.reset(PyImport_ImportModule("tiktoken"));
+    if (m_tiktokenModule.isNull()) return;
 
-    m_tokenizerClass.reset(PyObject_GetAttrString(m_module.data(), "Tokenizer"));
-    if (m_tokenizerClass.isNull()) return;
-
-    m_tokenCounterClass.reset(PyObject_GetAttrString(m_module.data(), "TokenCount"));
-    if (m_tokenCounterClass.isNull()) return;
-
-    // Create instances of tiktoken.Tokenizer and tiktoken.TokenCount
-    m_tokenizer.reset(PyObject_CallObject(m_tokenizerClass.data(), nullptr));
-    if (m_tokenizer.isNull()) return;
-
-    m_tokenCounter.reset(PyObject_CallObject(m_tokenCounterClass.data(), nullptr));
-    if (m_tokenCounter.isNull()) return;
+    m_encoding.reset(nullptr);
+    m_encodingModel.clear();
 #endif
-
 }
 
 CGlobalPythonPrivate::~CGlobalPythonPrivate() = default;
@@ -124,11 +121,51 @@ CGlobalPythonPrivateCleanup::~CGlobalPythonPrivateCleanup()
 #endif
 }
 
-bool CGlobalPythonPrivate::isLoaded() const
+bool CGlobalPythonPrivate::isTiktokenLoaded() const
 {
 #ifdef WITH_PYTHON3
-    return !m_tokenCounter.isNull();
+    return (!m_tiktokenModule.isNull() && !m_tiktokenFailed);
 #else
     return false;
 #endif
+}
+
+bool CGlobalPythonPrivate::changeEncoding(const QString &modelName)
+{
+    if (m_tiktokenFailed || m_tiktokenModule.isNull())
+        return false;
+
+    if (m_encodingModel == modelName)
+        return true;
+
+    // Attempt to change model
+    QString model = modelName;
+    if (model.isEmpty())
+        model = QSL("cl100k_base");
+    const QByteArray model_utf8 = model.toUtf8();
+
+    const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
+            encoding_for_model(PyObject_GetAttrString(m_tiktokenModule.data(), "encoding_for_model"));
+    if (encoding_for_model.isNull()) {
+        setFailed();
+        return false;
+    }
+
+    const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
+            args(PyTuple_Pack(1, PyUnicode_FromString(model_utf8.data())));
+    m_encoding.reset(PyObject_CallObject(encoding_for_model.data(), args.data()));
+
+    if (m_encoding.isNull()) {
+        setFailed();
+        return false;
+    }
+
+    m_encodingModel = modelName;
+    return true;
+}
+
+void CGlobalPythonPrivate::setFailed()
+{
+    m_tiktokenFailed = true;
+    m_encodingModel.clear();
 }

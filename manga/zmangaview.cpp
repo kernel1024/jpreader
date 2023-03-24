@@ -701,12 +701,7 @@ void ZMangaView::loadMangaPages(const QVector<CUrlWithName> &pages, const QStrin
     Q_EMIT loadedPage(-1);
 
     m_openedManga = title;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     m_pageData.resize(pages.count());
-#else
-    for (int i=0; i<pages.count(); i++)
-        m_pageData.append(qMakePair(QUrl(),QByteArray()));
-#endif
     m_pageCount = pages.count();
     m_networkLoadersActive = 0;
     m_networkLoadedTotal = 0L;
