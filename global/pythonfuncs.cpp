@@ -70,8 +70,8 @@ int CGlobalPython::fallbackCountTokens(const QString &text) const
 
     if (wordIterator.isNull() || U_FAILURE(status)) {
         // Emergency fallback
-        qCritical() << "Python tiktoken fallback failed.";
-        return text.length() / 2;
+        qCritical() << "Python tiktoken ICU fallback failed.";
+        return text.length() / 3; // approximate as we can
     }
 
     icu::UnicodeString utext = icu::UnicodeString::fromUTF8(text.toStdString());
@@ -132,16 +132,18 @@ bool CGlobalPythonPrivate::isTiktokenLoaded() const
 
 bool CGlobalPythonPrivate::changeEncoding(const QString &modelName)
 {
+#ifdef WITH_PYTHON3
     if (m_tiktokenFailed || m_tiktokenModule.isNull())
         return false;
 
-    if (m_encodingModel == modelName)
+    QString model = modelName;
+    if (model.isEmpty())
+        model = QSL("cl100k_base"); // GPT-3 and 4 compatible tokenizer
+
+    if (m_encodingModel == model)
         return true;
 
     // Attempt to change model
-    QString model = modelName;
-    if (model.isEmpty())
-        model = QSL("cl100k_base");
     const QByteArray model_utf8 = model.toUtf8();
 
     const QScopedPointer<PyObject,CScopedPointerPyObjectDeleter>
@@ -162,6 +164,9 @@ bool CGlobalPythonPrivate::changeEncoding(const QString &modelName)
 
     m_encodingModel = modelName;
     return true;
+#else
+    return false;
+#endif
 }
 
 void CGlobalPythonPrivate::setFailed()
