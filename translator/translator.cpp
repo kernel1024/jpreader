@@ -390,7 +390,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
             QString sourceStrTemp = sourceStrings.at(idx);
 
             if (sourceStrTemp.trimmed().isEmpty()) {
-                translatedOutput += u'\n';
+                translatedOutput += QSL("<br/>");
             } else {
 
                 QString ttest = sourceStrTemp;
@@ -406,7 +406,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 QString tranResult;
                 if (!noText) {
                     switch (m_subsentencesMode) {
-                        case CStructures::smCombineToMaxTokens: {// Preferred mode for AI translators
+                        case CStructures::smCombineToMaxTokens: { // Preferred mode for AI translators
                             combineAccumulator.append(sourceStrTemp);
                             combinedTokenCount += gSet->python()->tiktokenCountTokens(sourceStrTemp,m_tran->getModelName());
                             if ((combinedTokenCount >= m_tokensMaxCountCombined) ||  // max tokens
@@ -462,9 +462,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     break;
                 }
 
-                if (!noText && tranResult.isEmpty()) {
-                    // Skip, we are combining now
-                } else {
+                if (!tranResult.isEmpty()) {
                     if (m_translationMode==CStructures::tmTooltip) {
                         const QString swapper = sourceStrTemp;
                         sourceStrTemp = tranResult;
@@ -490,7 +488,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                     }
 
                     if (m_translationMode==CStructures::tmAdditive) {
-                        translatedOutput += QSL("\n");
+                        translatedOutput += QSL("<br/><br/>");
                     } else {
                         translatedOutputList.append(sourceStrTemp);
                     }
