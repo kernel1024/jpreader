@@ -195,7 +195,7 @@ QPixmap ZXCBTools::convertFromNative(xcb_image_t *xcbImage)
                 pixels[i] = qRgba(r, g, b, 0xff); // NOLINT
             }
             // fall through, Qt format is still Format_ARGB32_Premultiplied
-            [[clang::fallthrough]];
+            [[fallthrough]];
         case 32: // NOLINT
             format = QImage::Format_ARGB32_Premultiplied;
             break;
