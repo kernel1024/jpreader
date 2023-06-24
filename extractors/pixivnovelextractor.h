@@ -22,6 +22,7 @@ private:
     bool m_downloadNovel { false };
     bool m_useMangaViewer { false };
     QAtomicInteger<int> m_worksPageLoad, m_worksImgFetch;
+    QAtomicInteger<bool> m_finishingLock;
     QMutex m_imgMutex;
     QHash<QString,CIntList> m_imgList;
     QHash<QString,QString> m_imgUrls;

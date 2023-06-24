@@ -50,6 +50,7 @@ QString CPixivNovelExtractor::workerDescription() const
 
 void CPixivNovelExtractor::startMain()
 {
+    m_finishingLock = false;
     if (m_mangaOrigin.isValid()) {
         QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this]{
             if (exitIfAborted()) return;
@@ -286,6 +287,9 @@ void CPixivNovelExtractor::pixivDirectFetchImage(const QUrl& url, const QUrl& re
 void CPixivNovelExtractor::subWorkFinished()
 {
     if (m_worksPageLoad>0 || m_worksImgFetch>0) return;
+    if (m_finishingLock) return;
+
+    m_finishingLock = true;
 
     // replace fetched image urls
     for (auto it = m_imgUrls.constBegin(), end = m_imgUrls.constEnd(); it != end; ++it) {
