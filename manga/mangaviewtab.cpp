@@ -53,6 +53,7 @@ CMangaViewTab::CMangaViewTab(CMainWindow *parent, bool setFocused) :
     connect(ui->mangaView,&ZMangaView::loadingStarted,this,&CMangaViewTab::loadingStarted);
     connect(ui->mangaView,&ZMangaView::loadingFinished,this,&CMangaViewTab::loadingFinished);
     connect(ui->mangaView,&ZMangaView::loadingProgress,this,&CMangaViewTab::loadingProgress);
+    connect(ui->mangaView,&ZMangaView::loadingProgressSize,this,&CMangaViewTab::loadingProgressSize);
     connect(ui->mangaView,&ZMangaView::exportStarted,this,&CMangaViewTab::exportStarted);
     connect(ui->mangaView,&ZMangaView::exportFinished,this,&CMangaViewTab::exportFinished);
     connect(ui->mangaView,&ZMangaView::exportProgress,this,&CMangaViewTab::exportProgress);
@@ -85,7 +86,7 @@ void CMangaViewTab::loadMangaPages(const QVector<CUrlWithName> &pages, const QSt
 
 void CMangaViewTab::updateTabTitle()
 {
-    QString title = tr("Artwork %1").arg(mangaTitle());
+    QString title = tr("%1 - artwork viewer").arg(mangaTitle());
     if (m_aborted)
         title.append(tr(" (Aborted)"));
     setTabTitle(title);
@@ -158,9 +159,13 @@ void CMangaViewTab::loadingFinished()
     updateTabColor(true);
 }
 
-void CMangaViewTab::loadingProgress(int value, qint64 size)
+void CMangaViewTab::loadingProgress(int value)
 {
     ui->loadingProgress->setValue(value);
+}
+
+void CMangaViewTab::loadingProgressSize(qint64 size)
+{
     ui->labelLoadInfo->setText(tr("Loaded: %1").arg(CGenericFuncs::formatFileSize(size)));
 }
 

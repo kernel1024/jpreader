@@ -90,7 +90,8 @@ Q_SIGNALS:
     void abortNetworkRequest();
     void loadingStarted();
     void loadingFinished();
-    void loadingProgress(int value, qint64 totalSize);
+    void loadingProgress(int value);
+    void loadingProgressSize(qint64 totalSize);
 
     void exportStarted();
     void exportFinished();
@@ -102,6 +103,7 @@ private Q_SLOTS:
     void writerError(const QString &message);
     void cacheGotPage(const QImage &pageImage, int num);
     void mangaPageDownloaded();
+    void replyProgress(qint64 bytesReceived, qint64 bytesTotal);
     void redrawPage();
     void redrawPageEx(const QImage &scaled, int page);
 

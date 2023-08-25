@@ -34,7 +34,8 @@ public Q_SLOTS:
     void auxMessage(const QString& msg);
     void loadingStarted();
     void loadingFinished();
-    void loadingProgress(int value, qint64 size);
+    void loadingProgress(int value);
+    void loadingProgressSize(qint64 size);
     void loadingAborted();
     void exportStarted();
     void exportFinished();

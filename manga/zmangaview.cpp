@@ -33,6 +33,7 @@ namespace CDefaults {
 const int errorPageLoadMsgVerticalMargin = 5;
 const double dynamicZoomUpScale = 3.0;
 const auto propertyMangaPageNum = "PAGENUM";
+const auto propertyMangaBytesReceived = "RECEIVEDSIZE";
 }
 
 ZMangaView::ZMangaView(QWidget *parent) :
@@ -718,11 +719,13 @@ void ZMangaView::loadMangaPages(const QVector<CUrlWithName> &pages, const QStrin
         QNetworkReply* rpl = gSet->net()->auxNetworkAccessManagerGet(req,true);
         rpl->setProperty(CDefaults::propertyMangaPageNum,i);
         connect(rpl, &QNetworkReply::finished, this, &ZMangaView::mangaPageDownloaded);
+        connect(rpl, &QNetworkReply::downloadProgress, this, &ZMangaView::replyProgress);
         connect(this, &ZMangaView::abortNetworkRequest, rpl, &QNetworkReply::abort);
         m_networkLoadersActive++;
     }
     Q_EMIT loadingStarted();
-    Q_EMIT loadingProgress(0,0L);
+    Q_EMIT loadingProgress(0);
+    Q_EMIT loadingProgressSize(0L);
     setPage(0); // force display update with incomplete page
 }
 
@@ -742,17 +745,29 @@ void ZMangaView::mangaPageDownloaded()
             QMutexLocker locker(&m_pageDataLock);
             m_pageData[pageNum].second = data;
         }
-        m_networkLoadedTotal += data.size();
         if (m_currentPage == pageNum)
             setPage(pageNum);
     }
     m_networkLoadersActive--;
-    Q_EMIT loadingProgress(100 * (m_pageCount - m_networkLoadersActive) / m_pageCount,
-                           m_networkLoadedTotal);
+    Q_EMIT loadingProgress(100 * (m_pageCount - m_networkLoadersActive) / m_pageCount);
     if (m_networkLoadersActive < 1) {
         Q_EMIT loadingFinished();
         m_finished = true;
     }
+}
+
+void ZMangaView::replyProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    Q_UNUSED(bytesTotal)
+
+    auto *rpl = qobject_cast<QNetworkReply *>(sender());
+    if (rpl == nullptr) return;
+
+    qint64 receivedPrev = rpl->property(CDefaults::propertyMangaBytesReceived).toLongLong();
+    m_networkLoadedTotal += bytesReceived - receivedPrev;
+    rpl->setProperty(CDefaults::propertyMangaBytesReceived,bytesReceived);
+
+    Q_EMIT loadingProgressSize(m_networkLoadedTotal);
 }
 
 void ZMangaView::cacheGetPage(int num)

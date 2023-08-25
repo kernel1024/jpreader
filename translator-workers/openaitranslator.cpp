@@ -140,8 +140,6 @@ QStringList COpenAITranslator::getAvailableModels(const QString &apiKey)
 {
     Q_UNUSED(apiKey)
 
-    // TODO: also collect and add up to 10 translation samples to translation prompt (for consistency).
-
     // TODO: use apiKey for https://api.openai.com/v1/models
 
     // the first one is default model
