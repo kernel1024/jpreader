@@ -34,6 +34,7 @@ public:
     QColor getMangaForegroundColor() const;
     void addMangaFineRenderTime(qint64 msec);
     qint64 getMangaAvgFineRenderTime() const;
+    QStringList getOpenAIModelList() const;
 
 Q_SIGNALS:
     void startAuxTranslation();
@@ -47,6 +48,7 @@ public Q_SLOTS:
     void windowDestroyed(CMainWindow* obj);
     void focusChanged(QWidget* old, QWidget* now);
     void forceCharset();
+    void setOpenAIModelList(const QStringList &models);
 
 };
 

@@ -102,6 +102,7 @@ public:
     static const QVector<QColor> snippetColors;
     static const QUrl::FormattingOptions adblockUrlFmt;
 
+    QStringList openAIModels;
     QStringList dictPaths;
     QString defaultSearchEngine;
     QString fontStandard;

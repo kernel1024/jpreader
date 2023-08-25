@@ -264,3 +264,15 @@ void CGlobalUI::forceCharset()
         gSet->m_browser->webProfile()->settings()->setDefaultTextEncoding(cs);
     }
 }
+
+void CGlobalUI::setOpenAIModelList(const QStringList &models)
+{
+    gSet->m_settings->openAIModels = models;
+    if (gSet->m_settings->openaiTranslationModel.isEmpty())
+        gSet->m_settings->openaiTranslationModel = models.first();
+}
+
+QStringList CGlobalUI::getOpenAIModelList() const
+{
+    return gSet->m_settings->openAIModels;
+}

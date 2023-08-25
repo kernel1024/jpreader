@@ -261,7 +261,7 @@ void CSettingsTab::loadFromGlobal()
 
     ui->editOpenAIAPIKey->setText(gSet->m_settings->openaiAPIKey);
     ui->comboOpenAITranslationModel->clear();
-    const QStringList openaiModels = COpenAITranslator::getAvailableModels(gSet->m_settings->openaiAPIKey);
+    const QStringList openaiModels = gSet->m_ui->getOpenAIModelList();
     ui->comboOpenAITranslationModel->addItems(openaiModels);
     idx = ui->comboOpenAITranslationModel->findText(gSet->m_settings->openaiTranslationModel);
     if (idx<0 || idx>openaiModels.count())

@@ -26,7 +26,7 @@ public:
     bool initTran() override;
     CStructures::TranslationEngine engine() override;
 
-    static QStringList getAvailableModels(const QString &apiKey);
+    static void getAvailableModels(QObject *control, const QString &apiKey);
     QString getModelName() const override;
 
 protected:

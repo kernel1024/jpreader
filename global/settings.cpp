@@ -624,8 +624,7 @@ void CSettings::readSettings(QObject *control)
         g->m_actions->rebindGctxHotkey(g);
         g->d_func()->reloadXapianFilesystemWatcher(g);
 
-        if (openaiTranslationModel.isEmpty()) // TODO: use delayed loading with dynamic models list
-            openaiTranslationModel = COpenAITranslator::getAvailableModels(openaiAPIKey).first();
+        COpenAITranslator::getAvailableModels(control,openaiAPIKey);
     }
 }
 
