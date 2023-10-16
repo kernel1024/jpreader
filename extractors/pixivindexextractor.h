@@ -23,6 +23,8 @@ public:
     Q_ENUM(TagSearchMode)
     enum NovelSearchLength { nslDefault = 0, nslFlash = 1, nslShort = 2, nslMedium = 3, nslLong = 4 };
     Q_ENUM(NovelSearchLength)
+    enum NovelSearchLengthMode { nslmCharacters = 0, nslmWords = 1, nslmTime = 2 };
+    Q_ENUM(NovelSearchLengthMode)
     enum ArtworkSearchType { astAll = 0, astIllustAndUgoira = 1, astIllust = 2, astManga = 3, astUgoira = 4 };
     Q_ENUM(ArtworkSearchType)
     enum ArtworkSearchSize { assAll = 0, ass3kPlus = 1, ass2k = 2, ass1k = 3 };
@@ -45,7 +47,9 @@ public:
                    CPixivIndexExtractor::ArtworkSearchType artworkType,
                    CPixivIndexExtractor::ArtworkSearchSize artworkSize,
                    CPixivIndexExtractor::ArtworkSearchRatio artworkRatio,
-                   const QString& artworkCreationTool);
+                   const QString& artworkCreationTool,
+                   bool hideAIWorks,
+                   CPixivIndexExtractor::NovelSearchLengthMode novelLengthMode);
 
     static bool extractorLimitsDialog(QWidget *parentWidget,
                                       CPixivIndexExtractor::ExtractorMode exMode, bool isTagSearch,
@@ -56,7 +60,9 @@ public:
                                       CPixivIndexExtractor::ArtworkSearchType &artworkType,
                                       CPixivIndexExtractor::ArtworkSearchSize &artworkSize,
                                       CPixivIndexExtractor::ArtworkSearchRatio &artworkRatio,
-                                      QString &artworkCreationTool);
+                                      QString &artworkCreationTool,
+                                      bool &hideAIWorks,
+                                      CPixivIndexExtractor::NovelSearchLengthMode &novelLengthMode);
 
 private:
     int m_maxCount { -1 };

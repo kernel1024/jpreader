@@ -35,7 +35,9 @@ void CPixivIndexLimitsDialog::setParams(CPixivIndexExtractor::ExtractorMode exMo
                                         CPixivIndexExtractor::ArtworkSearchType artworkType,
                                         CPixivIndexExtractor::ArtworkSearchSize artworkSize,
                                         CPixivIndexExtractor::ArtworkSearchRatio artworkRatio,
-                                        const QString &artworkCreationTool)
+                                        const QString &artworkCreationTool,
+                                        bool hideAIWorks,
+                                        CPixivIndexExtractor::NovelSearchLengthMode novelLengthMode)
 {
     ui->exModeStack->setCurrentIndex((exMode == CPixivIndexExtractor::emNovels) ? 0 : 1);
 
@@ -49,6 +51,9 @@ void CPixivIndexLimitsDialog::setParams(CPixivIndexExtractor::ExtractorMode exMo
     ui->comboLength->setCurrentIndex(static_cast<int>(novelLength));
     ui->comboRating->setCurrentIndex(static_cast<int>(novelRating));
     ui->comboFetchCovers->setCurrentIndex(static_cast<int>(fetchCovers));
+    ui->comboLengthMode->setCurrentIndex(static_cast<int>(novelLengthMode));
+
+    ui->checkHideAIWork->setChecked(hideAIWorks);
 
     ui->comboArtworkType->setCurrentIndex(static_cast<int>(artworkType));
     ui->comboArtworkSize->setCurrentIndex(static_cast<int>(artworkSize));
@@ -90,7 +95,9 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
                                         CPixivIndexExtractor::ArtworkSearchType &artworkType,
                                         CPixivIndexExtractor::ArtworkSearchSize &artworkSize,
                                         CPixivIndexExtractor::ArtworkSearchRatio &artworkRatio,
-                                        QString &artworkCreationTool)
+                                        QString &artworkCreationTool,
+                                        bool &hideAIWorks,
+                                        CPixivIndexExtractor::NovelSearchLengthMode &novelLengthMode)
 {
     keywords = ui->editKeywords->currentText();
     originalOnly = ui->checkOriginalOnly->isChecked();
@@ -112,6 +119,10 @@ void CPixivIndexLimitsDialog::getParams(int &maxCount, QDate &dateFrom, QDate &d
     novelLength = static_cast<CPixivIndexExtractor::NovelSearchLength>(ui->comboLength->currentIndex());
     novelRating = static_cast<CPixivIndexExtractor::SearchRating>(ui->comboRating->currentIndex());
     fetchCovers = static_cast<CStructures::PixivFetchCoversMode>(ui->comboFetchCovers->currentIndex());
+    novelLengthMode = static_cast<CPixivIndexExtractor::NovelSearchLengthMode>(
+        ui->comboLengthMode->currentIndex());
+
+    hideAIWorks = ui->checkHideAIWork->isChecked();
 
     artworkType = static_cast<CPixivIndexExtractor::ArtworkSearchType>(ui->comboArtworkType->currentIndex());
     artworkSize = static_cast<CPixivIndexExtractor::ArtworkSearchSize>(ui->comboArtworkSize->currentIndex());

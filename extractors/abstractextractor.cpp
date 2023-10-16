@@ -492,6 +492,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
     } else if (type == QSL("pixivList")) {
         static int maxCount = 0;
         static bool originalsOnly = false;
+        static bool hideAIWorks = false;
         static QDate dateFrom;
         static QDate dateTo;
         static QString languageCode;
@@ -501,6 +502,8 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         static CPixivIndexExtractor::ArtworkSearchType awType = CPixivIndexExtractor::astAll;
         static CPixivIndexExtractor::ArtworkSearchSize awSize = CPixivIndexExtractor::assAll;
         static CPixivIndexExtractor::ArtworkSearchRatio awRatio = CPixivIndexExtractor::asrAll;
+        static CPixivIndexExtractor::NovelSearchLengthMode nslm
+            = CPixivIndexExtractor::nslmCharacters;
         static QString awTool;
 
         QString keywords = hash.value(QSL("id")).toString();
@@ -521,7 +524,7 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
         if (CPixivIndexExtractor::extractorLimitsDialog(parentWidget,exMode,
                                   (mode == CPixivIndexExtractor::imTagSearchIndex),
                                   maxCount,dateFrom,dateTo,keywords,tsm,originalsOnly,languageCode,nsl,nsr,
-                                  awType,awSize,awRatio,awTool))
+                                  awType,awSize,awRatio,awTool,hideAIWorks,nslm))
         {
             res = new CPixivIndexExtractor(nullptr);
             (qobject_cast<CPixivIndexExtractor *>(res))->setParams(
@@ -539,7 +542,9 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                         awType,
                         awSize,
                         awRatio,
-                        awTool);
+                        awTool,
+                        hideAIWorks,
+                        nslm);
         }
 
     } else if (type == QSL("fanbox")) {
