@@ -33,7 +33,7 @@ void CPatreonExtractor::startMain()
     }
 
     QString html = m_html;
-    const QString start = QSL("Object.assign(window.patreon.bootstrap,");
+    const QString start = QSL("<script id=\"__NEXT_DATA__\" type=\"application/json\">");
     int pos = html.indexOf(start);
     if (pos<0) {
         showError(tr("Patreon post bootstrap not found."));
@@ -41,12 +41,12 @@ void CPatreonExtractor::startMain()
     }
     html.remove(0,pos+start.length());
 
-    pos = html.indexOf(QSL("});"));
+    pos = html.indexOf(QSL("</script>"));
     if (pos<0) {
         showError(tr("Patreon post bootstrap end sequence not found."));
         return;
     }
-    html.truncate(pos+1);
+    html.truncate(pos);
     html = html.trimmed();
 
     QJsonParseError err {};
@@ -63,7 +63,17 @@ void CPatreonExtractor::startMain()
     QVector<COrderedUrlWithName> urls;
     QString title = m_origin.fileName();
     if (doc.isObject()) {
-        const QJsonObject postAttributes = doc.object().value(QSL("post")).toObject()
+        const QJsonObject bootstrap = doc.object()
+                                          .value(QSL("props"))
+                                          .toObject()
+                                          .value(QSL("pageProps"))
+                                          .toObject()
+                                          .value(QSL("bootstrapEnvelope"))
+                                          .toObject()
+                                          .value(QSL("bootstrap"))
+                                          .toObject();
+
+        const QJsonObject postAttributes = bootstrap.value(QSL("post")).toObject()
                                            .value(QSL("data")).toObject()
                                            .value(QSL("attributes")).toObject();
         QString s = postAttributes.value(QSL("title")).toString();
@@ -81,7 +91,7 @@ void CPatreonExtractor::startMain()
             }
         }
 
-        const QJsonArray jincluded = doc.object().value(QSL("post")).toObject().value(QSL("included")).toArray();
+        const QJsonArray jincluded = bootstrap.value(QSL("post")).toObject().value(QSL("included")).toArray();
         int idx = 0;
         urls.reserve(jincluded.count());
         for (const auto &jinc : jincluded) {
