@@ -81,6 +81,7 @@ public:
     CAuxTranslator* auxTranslatorDBus { nullptr };
     CBrowserController* browserControllerDBus { nullptr };
 
+    QTimer appClosePreventionTimer;
     QTimer tabsListTimer;
     QIcon m_appIcon;
     bool restoreLoadChecked { false };

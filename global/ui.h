@@ -35,6 +35,7 @@ public:
     void addMangaFineRenderTime(qint64 msec);
     qint64 getMangaAvgFineRenderTime() const;
     QStringList getOpenAIModelList() const;
+    bool isAppQuitBlocked() const;
 
 Q_SIGNALS:
     void startAuxTranslation();
@@ -49,6 +50,7 @@ public Q_SLOTS:
     void focusChanged(QWidget* old, QWidget* now);
     void forceCharset();
     void setOpenAIModelList(const QStringList &models);
+    void preventAppQuit();
 
 };
 

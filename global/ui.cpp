@@ -12,11 +12,17 @@
 
 namespace CDefaults{
 const int tabCloseInterlockDelay = 500;
+const int appCloseInterlockDelay = 2000;
 }
 
 CGlobalUI::CGlobalUI(QObject *parent)
     : QObject(parent)
 {
+    auto *g = qobject_cast<CGlobalControl *>(parent);
+    if (g) {
+        g->d_func()->appClosePreventionTimer.setInterval(CDefaults::appCloseInterlockDelay);
+        g->d_func()->appClosePreventionTimer.setSingleShot(true);
+    }
 }
 
 QIcon CGlobalUI::appIcon() const
@@ -270,6 +276,16 @@ void CGlobalUI::setOpenAIModelList(const QStringList &models)
     gSet->m_settings->openAIModels = models;
     if (gSet->m_settings->openaiTranslationModel.isEmpty())
         gSet->m_settings->openaiTranslationModel = models.first();
+}
+
+void CGlobalUI::preventAppQuit()
+{
+    gSet->d_func()->appClosePreventionTimer.start();
+}
+
+bool CGlobalUI::isAppQuitBlocked() const
+{
+    return gSet->d_func()->appClosePreventionTimer.isActive();
 }
 
 QStringList CGlobalUI::getOpenAIModelList() const

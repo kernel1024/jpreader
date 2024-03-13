@@ -483,6 +483,9 @@ QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & capti
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
+    gSet->ui()->preventAppQuit(); // BUG: KF6 KDE theme plugin integration sends unexpected Quit to the app event loop
+    // The Quit prevention is an entirely workaround for it.
+
     QFileDialog dialog(parent,caption,dir);
     dialog.setOptions(opts);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
@@ -501,6 +504,7 @@ QString CGenericFuncs::getOpenFileNameD (QWidget * parent, const QString & capti
         if (!selectedFiles.isEmpty())
             res = selectedFiles.first();
     }
+    gSet->ui()->preventAppQuit();
 
     gSet->d_func()->openFileDialogSize = dialog.size();
     return res;
@@ -512,6 +516,8 @@ QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & 
     QFileDialog::Options opts;
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
+
+    gSet->ui()->preventAppQuit();
 
     QFileDialog dialog(parent,caption,dir);
     dialog.setOptions(opts);
@@ -529,6 +535,7 @@ QStringList CGenericFuncs::getOpenFileNamesD (QWidget * parent, const QString & 
             *selectedFilter = dialog.selectedNameFilter();
         res = dialog.selectedFiles();
     }
+    gSet->ui()->preventAppQuit();
 
     gSet->d_func()->openFileDialogSize = dialog.size();
     return res;
@@ -569,6 +576,8 @@ QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & capti
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
+    gSet->ui()->preventAppQuit();
+
     QFileDialog dialog(parent,caption,dir);
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setOptions(opts);
@@ -597,6 +606,7 @@ QString CGenericFuncs::getSaveFileNameD (QWidget * parent, const QString & capti
         if (!selectedFiles.isEmpty())
             res = selectedFiles.first();
     }
+    gSet->ui()->preventAppQuit();
 
     gSet->d_func()->saveFileDialogSize = dialog.size();
     return res;
@@ -610,9 +620,11 @@ QString	CGenericFuncs::getExistingDirectoryD (QWidget * parent, const QString & 
     if (gSet->settings()->dontUseNativeFileDialog)
         opts = QFileDialog::DontUseNativeDialog | QFileDialog::DontUseCustomDirectoryIcons;
 
+    gSet->ui()->preventAppQuit();
     gSet->ui()->setFileDialogNewFolderName(suggestedName);
     QString res = QFileDialog::getExistingDirectory(parent,caption,dir,opts);
     gSet->ui()->setFileDialogNewFolderName(QString());
+    gSet->ui()->preventAppQuit();
     return res;
 }
 
