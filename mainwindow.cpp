@@ -1119,7 +1119,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
 void CMainWindow::helpAbout()
 {
     QString recoll = tr("no");
-    QString baloo5 = tr("no");
+    QString baloo = tr("no");
     QString poppler = tr("no");
     QString srchilite = tr("no");
     QString xapian = tr("no");
@@ -1133,8 +1133,8 @@ void CMainWindow::helpAbout()
 #ifdef WITH_RECOLL
     recoll = tr("yes");
 #endif
-#ifdef WITH_BALOO5
-    baloo5 = tr("yes");
+#ifdef WITH_BALOO
+    baloo = tr("yes");
 #endif
 #ifdef WITH_POPPLER
     poppler = tr("yes");
@@ -1166,7 +1166,7 @@ void CMainWindow::helpAbout()
                              QSL(BUILD_PLATFORM),
                              QSL(BUILD_DATE),
                              recoll,
-                             baloo5,
+                             baloo,
                              poppler,
                              srchilite,
                              xapian,

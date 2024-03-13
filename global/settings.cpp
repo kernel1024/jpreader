@@ -91,10 +91,10 @@ CSettings::CSettings(CGlobalControl *parent)
 
 #if WITH_XAPIAN
     searchEngine = CStructures::seXapian;
+#elif WITH_BALOO
+    searchEngine = CStructures::seBaloo;
 #elif WITH_RECOLL
     searchEngine = CStructures::seRecoll;
-#elif WITH_BALOO5
-    searchEngine = CStructures::seBaloo5;
 #else
     searchEngine = CStructures::seNone;
 #endif

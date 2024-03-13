@@ -22,6 +22,7 @@ HEADERS = mainwindow.h \
     manga/scalefilter.h \
     manga/zmangaview.h \
     manga/zscrollarea.h \
+    search/baloosearch.h \
     search/defaultsearch.h \
     search/xapianindexworker.h \
     search/xapianindexworker_p.h \
@@ -65,7 +66,6 @@ HEADERS = mainwindow.h \
     search/recollsearch.h \
     search/indexersearch.h \
     search/searchmodel.h \
-    search/baloo5search.h \
     search/abstractthreadedsearch.h \
     translator/lighttranslator.h \
     translator/auxtranslator.h \
@@ -118,6 +118,7 @@ SOURCES = main.cpp \
     manga/scalefilter.cpp \
     manga/zmangaview.cpp \
     manga/zscrollarea.cpp \
+    search/baloosearch.cpp \
     search/defaultsearch.cpp \
     search/xapianindexworker.cpp \
     search/xapiansearch.cpp \
@@ -159,7 +160,6 @@ SOURCES = main.cpp \
     search/searchtab.cpp \
     search/recollsearch.cpp \
     search/indexersearch.cpp \
-    search/baloo5search.cpp \
     search/abstractthreadedsearch.cpp \
     search/searchmodel.cpp \
     translator/lighttranslator.cpp \
@@ -256,17 +256,17 @@ packagesExist(libzip) {
 
 PKGCONFIG += icu-uc icu-io icu-i18n openssl
 
-exists( /usr/include/KF5/Baloo/Baloo/Query ) {
-    INCLUDEPATH += /usr/include/KF5
-    INCLUDEPATH += /usr/include/KF5/Baloo
-    CONFIG += use_baloo5
-    DEFINES += WITH_BALOO5=1
-    LIBS += -lKF5Baloo
-    message("KF5 Baloo support: YES")
+exists( /usr/include/KF6/Baloo/Baloo/Query ) {
+    INCLUDEPATH += /usr/include/KF6
+    INCLUDEPATH += /usr/include/KF6/Baloo
+    CONFIG += use_baloo
+    DEFINES += WITH_BALOO=1
+    LIBS += -lKF6Baloo
+    message("KF6 Baloo support: YES")
 }
 
-!use_baloo5 {
-    message("KF5 Baloo support: NO")
+!use_baloo {
+    message("KF6 Baloo support: NO")
 }
 
 system( which recoll > /dev/null 2>&1 ) {

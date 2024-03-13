@@ -1,16 +1,16 @@
-#include "baloo5search.h"
-#ifdef WITH_BALOO5
+#include "baloosearch.h"
+#ifdef WITH_BALOO
 #include <Baloo/Query>
 #include <Baloo/ResultIterator>
 #endif
 
-CBaloo5Search::CBaloo5Search(QObject *parent) : CAbstractThreadedSearch(parent)
+CBalooSearch::CBalooSearch(QObject *parent) : CAbstractThreadedSearch(parent)
 {
 }
 
-void CBaloo5Search::doSearch(const QString &qr, int maxLimit)
+void CBalooSearch::doSearch(const QString &qr, int maxLimit)
 {
-#ifdef WITH_BALOO5
+#ifdef WITH_BALOO
     if (isWorking()) return;
     setWorking(true);
 

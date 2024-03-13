@@ -107,8 +107,8 @@ CSearchTab::CSearchTab(CMainWindow *parent) :
 
     if (engine->getCurrentIndexerService()==CStructures::seRecoll) {
         ui->labelMode->setText(QSL("Recoll search"));
-    } else if (engine->getCurrentIndexerService()==CStructures::seBaloo5) {
-        ui->labelMode->setText(QSL("Baloo KF5 search"));
+    } else if (engine->getCurrentIndexerService()==CStructures::seBaloo) {
+        ui->labelMode->setText(QSL("Baloo search"));
     } else if (engine->getCurrentIndexerService()==CStructures::seXapian) {
         ui->labelMode->setText(QSL("Xapian search"));
     } else {

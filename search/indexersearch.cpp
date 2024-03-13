@@ -5,7 +5,7 @@
 #include "global/history.h"
 #include "utils/genericfuncs.h"
 
-#include "baloo5search.h"
+#include "baloosearch.h"
 #include "recollsearch.h"
 #include "xapiansearch.h"
 #include "defaultsearch.h"
@@ -53,8 +53,8 @@ bool CIndexerSearch::isValidConfig()
 #ifndef WITH_RECOLL
     if (m_engineMode == CStructures::seRecoll) return false;
 #endif
-#ifndef WITH_BALOO5
-    if (m_engineMode == CStructures::seBaloo5) return false;
+#ifndef WITH_BALOO
+    if (m_engineMode == CStructures::seBaloo) return false;
 #endif
 #ifndef WITH_XAPIAN
     if (m_engineMode == CStructures::seXapian) return false;
@@ -158,7 +158,7 @@ void CIndexerSearch::setupEngine()
     switch (m_engineMode) {
         case CStructures::seXapian: m_engine.reset(new CXapianSearch()); break;
         case CStructures::seRecoll: m_engine.reset(new CRecollSearch()); break;
-        case CStructures::seBaloo5: m_engine.reset(new CBaloo5Search()); break;
+        case CStructures::seBaloo:  m_engine.reset(new CBalooSearch()); break;
         case CStructures::seNone:   m_engine.reset(new CDefaultSearch()); break;
     }
 

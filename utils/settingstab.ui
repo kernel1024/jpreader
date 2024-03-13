@@ -26,7 +26,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1601</y>
+        <y>-290</y>
         <width>822</width>
         <height>5600</height>
        </rect>
@@ -461,7 +461,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioSearchBaloo5">
+                   <widget class="QRadioButton" name="radioSearchBaloo">
                     <property name="text">
                      <string>&amp;Baloo</string>
                     </property>
@@ -1584,7 +1584,7 @@
                       <item row="1" column="0">
                        <widget class="QLabel" name="label_64">
                         <property name="text">
-                         <string>Frequency penalty</string>
+                         <string>Fre&amp;quency penalty</string>
                         </property>
                         <property name="buddy">
                          <cstring>spinOpenAIFrequencyPenalty</cstring>
@@ -1699,7 +1699,7 @@
                   <item row="2" column="0">
                    <widget class="QLabel" name="label_52">
                     <property name="text">
-                     <string>Pixiv manga page size</string>
+                     <string>Pixi&amp;v manga page size</string>
                     </property>
                     <property name="buddy">
                      <cstring>comboPixivMangaPageSize</cstring>
@@ -3165,7 +3165,7 @@
   <tabstop>autofillHotkey</tabstop>
   <tabstop>radioSearchNone</tabstop>
   <tabstop>radioSearchRecoll</tabstop>
-  <tabstop>radioSearchBaloo5</tabstop>
+  <tabstop>radioSearchBaloo</tabstop>
   <tabstop>radioSearchXapian</tabstop>
   <tabstop>spinMaxLimit</tabstop>
   <tabstop>listSearch</tabstop>

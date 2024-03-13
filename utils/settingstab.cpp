@@ -318,13 +318,13 @@ void CSettingsTab::loadFromGlobal()
 #ifndef WITH_RECOLL
     ui->radioSearchRecoll->setEnabled(false);
 #endif
-#ifndef WITH_BALOO5
-    ui->radioSearchBaloo5->setEnabled(false);
+#ifndef WITH_BALOO
+    ui->radioSearchBaloo->setEnabled(false);
 #endif
     if ((gSet->m_settings->searchEngine==CStructures::seRecoll) && (ui->radioSearchRecoll->isEnabled())) {
         ui->radioSearchRecoll->setChecked(true);
-    } else if ((gSet->m_settings->searchEngine==CStructures::seBaloo5) && (ui->radioSearchBaloo5->isEnabled())) {
-        ui->radioSearchBaloo5->setChecked(true);
+    } else if ((gSet->m_settings->searchEngine==CStructures::seBaloo) && (ui->radioSearchBaloo->isEnabled())) {
+        ui->radioSearchBaloo->setChecked(true);
     } else if ((gSet->m_settings->searchEngine==CStructures::seXapian) && (ui->radioSearchXapian->isEnabled())) {
         ui->radioSearchXapian->setChecked(true);
     } else {
@@ -770,10 +770,10 @@ void CSettingsTab::setupSettingsObservers()
         if (val)
             gSet->m_settings->searchEngine = CStructures::seRecoll;
     });
-    connect(ui->radioSearchBaloo5,&QRadioButton::toggled,this,[this](bool val){
+    connect(ui->radioSearchBaloo,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
         if (val)
-            gSet->m_settings->searchEngine = CStructures::seBaloo5;
+            gSet->m_settings->searchEngine = CStructures::seBaloo;
     });
     connect(ui->radioSearchXapian,&QRadioButton::toggled,this,[this](bool val){
         if (m_loadingInterlock) return;
