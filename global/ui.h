@@ -37,6 +37,9 @@ public:
     QStringList getOpenAIModelList() const;
     bool isAppQuitBlocked() const;
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 Q_SIGNALS:
     void startAuxTranslation();
     void translationEngineChanged();

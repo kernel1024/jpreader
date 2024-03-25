@@ -288,6 +288,19 @@ bool CGlobalUI::isAppQuitBlocked() const
     return gSet->d_func()->appClosePreventionTimer.isActive();
 }
 
+bool CGlobalUI::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Close) {
+        if (isAppQuitBlocked()) {
+            qWarning() << "Window close prevention activated.";
+            event->ignore();
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(obj, event);
+}
+
 QStringList CGlobalUI::getOpenAIModelList() const
 {
     return gSet->m_settings->openAIModels;

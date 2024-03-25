@@ -16,6 +16,7 @@ CAutofillAssistant::CAutofillAssistant(QWidget *parent) :
     ui(new Ui::CAutofillAssistant)
 {
     ui->setupUi(this);
+    installEventFilter(gSet->ui());
     setWindowFlag(Qt::WindowStaysOnTopHint, true);
 
     ui->editor->setBracketsMatchingEnabled(false);

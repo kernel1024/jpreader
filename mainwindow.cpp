@@ -46,6 +46,8 @@ CMainWindow::CMainWindow(bool withSearch, bool withViewer, const QVector<QUrl> &
 {
     setupUi(this);
 
+    installEventFilter(gSet->ui());
+
     tabMain->setParentWnd(this);
     
     setWindowIcon(gSet->ui()->appIcon());
@@ -1027,11 +1029,6 @@ void CMainWindow::reloadCharsetList()
 
 void CMainWindow::closeEvent(QCloseEvent *event)
 {
-    if (gSet->ui()->isAppQuitBlocked()) {
-        event->ignore();
-        return;
-    }
-
     Q_EMIT aboutToClose(this);
     event->accept();
 }

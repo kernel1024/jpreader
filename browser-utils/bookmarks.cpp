@@ -52,6 +52,7 @@
 
 #include "xbel.h"
 #include "global/control.h"
+#include "global/ui.h"
 #include "utils/genericfuncs.h"
 
 #include <QBuffer>
@@ -700,6 +701,7 @@ BookmarksDialog::BookmarksDialog(QWidget *parent, BookmarksManager *manager)
       m_bookmarksManager(manager)
 {
     ui->setupUi(this);
+    installEventFilter(gSet->ui());
 
     const int headerMaxCharWidth = 40;
     

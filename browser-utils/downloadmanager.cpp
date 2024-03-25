@@ -31,6 +31,7 @@ CDownloadManager::CDownloadManager(QWidget *parent, CZipWriter *zipWriter) :
     ui(new Ui::CDownloadManager)
 {
     ui->setupUi(this);
+    installEventFilter(gSet->ui());
 
     setWindowIcon(QIcon::fromTheme(QSL("folder-downloads")));
 
