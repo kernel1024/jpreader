@@ -446,6 +446,40 @@ void CSpecWebPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMes
     }
 }
 
+QStringList CSpecWebPage::chooseFiles(FileSelectionMode mode,
+                                      const QStringList &oldFiles,
+                                      const QStringList &acceptedMimeTypes)
+{
+    Q_UNUSED(oldFiles)
+    Q_UNUSED(acceptedMimeTypes)
+
+    QStringList res;
+    QString fname;
+
+    switch (mode) {
+        case FileSelectionMode::FileSelectOpen:
+            fname = CGenericFuncs::getOpenFileNameD(gSet->activeWindow());
+            if (!fname.isEmpty())
+                res.append(fname);
+            break;
+        case FileSelectionMode::FileSelectOpenMultiple:
+            res = CGenericFuncs::getOpenFileNamesD(gSet->activeWindow());
+            break;
+        case FileSelectionMode::FileSelectSave:
+            fname = CGenericFuncs::getSaveFileNameD(gSet->activeWindow());
+            if (!fname.isEmpty())
+                res.append(fname);
+            break;
+        case FileSelectionMode::FileSelectUploadFolder:
+            fname = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow());
+            if (!fname.isEmpty())
+                res.append(fname);
+            break;
+    }
+
+    return res;
+}
+
 CSpecLogHighlighter::CSpecLogHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {

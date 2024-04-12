@@ -139,6 +139,9 @@ protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message,
                                   int lineNumber, const QString &sourceID) override;
+    QStringList chooseFiles(FileSelectionMode mode,
+                            const QStringList& oldFiles,
+                            const QStringList& acceptedMimeTypes) override;
 Q_SIGNALS:
     void linkClickedExt(const QUrl& url, int type, bool isMainFrame);
 };
