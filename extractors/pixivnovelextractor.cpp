@@ -100,6 +100,7 @@ void CPixivNovelExtractor::novelLoadFinished()
         QString hauthor;
         QString hauthornum;
         QString htitle;
+        QString hdescription;
         QStringList tags;
         CStringHash embImages;
         QDateTime createDate;
@@ -118,7 +119,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             if (idx>0)
                 html.truncate(idx+1);
 
-            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate);
+            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate,hdescription);
         } else {
             html = tr("Unable to extract novel. Unknown page structure.");
         }
@@ -169,6 +170,9 @@ void CPixivNovelExtractor::novelLoadFinished()
             }
             if (!tagList.isEmpty())
                 html.prepend(QSL("Tags: %1\n\n").arg(tagList));
+        }
+        if (!hdescription.isEmpty()) {
+            html.prepend(QSL("Description: %1\n\n").arg(CGenericFuncs::decodeHtmlEntities(hdescription)));
         }
         if (createDate.isValid() && !createDate.isNull()) {
             html.prepend(QSL("Created at: %1\n\n")
@@ -530,7 +534,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
 QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &tags,
                                              QString &author, QString &authorNum,
                                              QString &title, CStringHash& embeddedImages,
-                                             QDateTime &createDate)
+                                             QDateTime &createDate, QString &description)
 {
     QByteArray cnt = html.toUtf8();
     QString res;
@@ -548,6 +552,7 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
         title = obj.value(QSL("title")).toString();
         authorNum = obj.value(QSL("userId")).toString();
         createDate = QDateTime::fromString(obj.value(QSL("createDate")).toString(),Qt::ISODate);
+        description = obj.value(QSL("description")).toString();
 
         const QJsonArray vtags = obj.value(QSL("tags")).toObject()
                                  .value(QSL("tags")).toArray();
