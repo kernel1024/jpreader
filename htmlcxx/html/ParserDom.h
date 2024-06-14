@@ -2,7 +2,7 @@
 #define __HTML_PARSER_DOM_H__
 
 #include "ParserSax.h"
-#include "tree.h"
+#include "tree.hh"
 
 namespace htmlcxx
 {

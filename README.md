@@ -22,5 +22,6 @@ Integrated static parts from libraries:
 
     htmlcxx 0.84
     libqxt 0.6.2
+    tree.hh 3.19
     jsedit from X2 project by Ariya Hidayat
     QCustomPlot 2.1.0 by Emanuel Eichhammer

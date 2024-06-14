@@ -11,4 +11,4 @@ HEADERS += \
     $$PWD/html/ParserSax.h \
     $$PWD/html/ParserSaxTcc.h \
     $$PWD/html/ParserDom.h \
-    $$PWD/html/tree.h
+    $$PWD/html/tree.hh

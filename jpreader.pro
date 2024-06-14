@@ -223,7 +223,7 @@ CONFIG += warn_on \
     exceptions \
     rtti \
     stl \
-    c++17
+    c++20
 
 !versionAtLeast(QT_VERSION, 6.2.0):error("Use at least Qt version 6.2.0")
 

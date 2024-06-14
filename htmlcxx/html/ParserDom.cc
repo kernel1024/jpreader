@@ -6,9 +6,8 @@
 #include <QDebug>
 
 using namespace std;
-using namespace htmlcxx; 
-using namespace HTML; 
-using namespace kp;
+using namespace htmlcxx;
+using namespace HTML;
 
 const tree<HTML::Node>& ParserDom::parseTree(const QString &html)
 {
