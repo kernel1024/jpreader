@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <execution>
+#include <utility>
 
 #include <QTimer>
 #include <QNetworkRequest>
@@ -213,7 +214,7 @@ void CPixivIndexExtractor::fetchNovelsInfo()
                 const QJsonObject tworks = obj.value(QSL("body")).toObject()
                                            .value(QSL("works")).toObject();
 
-                for (const auto& work : qAsConst(tworks)) {
+                for (const auto& work : std::as_const(tworks)) {
                     const QJsonObject w = work.toObject();
 
                     const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),
@@ -310,7 +311,7 @@ void CPixivIndexExtractor::fetchArtworksInfo()
                 const QJsonObject tworks = obj.value(QSL("body")).toObject()
                                            .value(QSL("works")).toObject();
 
-                for (const auto& work : qAsConst(tworks)) {
+                for (const auto& work : std::as_const(tworks)) {
                     const QJsonObject w = work.toObject();
 
                     // value illustType == 1 for manga, 0 for illust
@@ -541,7 +542,7 @@ void CPixivIndexExtractor::bookmarksAjax()
             const QJsonArray tworks = obj.value(QSL("body")).toObject()
                                       .value(QSL("works")).toArray();
 
-            for (const auto& work : qAsConst(tworks)) {
+            for (const auto& work : std::as_const(tworks)) {
                 const QJsonObject w = work.toObject();
 
                 const QDateTime createDT = QDateTime::fromString(w.value(QSL("createDate")).toString(),

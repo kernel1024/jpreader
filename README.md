@@ -6,7 +6,7 @@ Integrated with KF6 Baloo API support, Recoll support (through CLI client output
 
 Library dependencies:
 
-    Qt 6.2 (core, gui, network, xml, webengine, dbus, printing, testlib)
+    Qt 6.5 (core, gui, network, xml, webengine, dbus, printing, testlib)
     icu ( http://www.icu-project.org/ )
     libmagic
     intel-tbb

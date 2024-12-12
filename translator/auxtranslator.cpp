@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QThread>
 #include <QScopedPointer>
 #include "auxtranslator.h"
@@ -40,7 +42,7 @@ void CAuxTranslator::translatePriv()
             ssrc = ssrc.replace(QSL("\r\n"),QSL("\n"));
             ssrc = ssrc.replace(u'\r',u'\n');
             const QStringList sl = ssrc.split(u'\n',Qt::KeepEmptyParts);
-            for (const QString &s : qAsConst(sl)) {
+            for (const QString &s : std::as_const(sl)) {
                 if (s.trimmed().isEmpty()) {
                     res.append(u'\n');
                 } else {

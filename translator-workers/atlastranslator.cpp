@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QRegularExpression>
 #include <QUrl>
 
@@ -207,7 +209,7 @@ void CAtlasTranslator::sslError(const QList<QSslError> & errors)
     QHash<QSslCertificate,QStringList> errStrHash;
     QHash<QSslCertificate,CIntList> errIntHash;
 
-    for (const QSslError& err : qAsConst(errors)) {
+    for (const QSslError& err : std::as_const(errors)) {
         if (gSet->settings()->sslTrustedInvalidCerts.contains(err.certificate()) &&
                 gSet->settings()->sslTrustedInvalidCerts.value(err.certificate()).contains(static_cast<int>(err.error()))) continue;
 

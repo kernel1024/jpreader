@@ -175,8 +175,13 @@ void CSpecTabBar::mouseMoveEvent(QMouseEvent *event)
         if (!wr.contains(event->globalPosition().toPoint())) {
 
             // finish up local drag inside QTabBar
-            QMouseEvent evr(QEvent::MouseButtonRelease, m_dragStart, Qt::LeftButton,
-                            Qt::LeftButton, Qt::NoModifier);
+            QMouseEvent evr(QEvent::MouseButtonRelease,
+                            m_dragStart,
+                            mapToGlobal(m_dragStart),
+                            Qt::LeftButton,
+                            Qt::LeftButton,
+                            Qt::NoModifier);
+
             QTabBar::mouseReleaseEvent(&evr);
 
             m_draggingTab->outsideDragStart();

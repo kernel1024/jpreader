@@ -11,6 +11,7 @@
 #include <QCryptographicHash>
 #include <QStandardPaths>
 #include <QScopeGuard>
+#include <QByteArrayView>
 
 extern "C" {
 #include <sys/types.h>
@@ -247,11 +248,11 @@ bool CXapianIndexWorker::fileMeta(const QString& filename, std::string &docID, q
         return false;
 
     const auto mtime = attrib.st_mtime;
-    sha1.addData(reinterpret_cast<const char *>(&mtime),sizeof(mtime));
+    sha1.addData(QByteArrayView(reinterpret_cast<const char *>(&mtime),sizeof(mtime)));
     const auto ctime = attrib.st_ctime;
-    sha1.addData(reinterpret_cast<const char *>(&ctime),sizeof(ctime));
+    sha1.addData(QByteArrayView(reinterpret_cast<const char *>(&ctime),sizeof(ctime)));
     const auto fsize = attrib.st_size;
-    sha1.addData(reinterpret_cast<const char *>(&fsize),sizeof(fsize));
+    sha1.addData(QByteArrayView(reinterpret_cast<const char *>(&fsize),sizeof(fsize)));
 
     docID = CDefaults::docIDPrefix;
     docID.append(sha1.result().toHex().constData());

@@ -7,6 +7,7 @@
  * Adaptation for JPReader by kernel1024
  **/
 
+#include <utility>
 #include <QUrl>
 #include <QDebug>
 #include "adblockrule.h"
@@ -134,7 +135,7 @@ bool CAdBlockRule::networkMatch(const QString &encodedUrl) const
         if (m_options.count() == 1) {
             QUrl url = QUrl::fromEncoded(encodedUrl.toUtf8());
             QString host = url.host();
-            for (const QString &option : qAsConst(m_options)) {
+            for (const QString &option : std::as_const(m_options)) {
                 if (option.startsWith(QSL("domain="))) {
                     const QStringList domainOptions = option.mid(7).split(u'|');
                     for (const QString& domainOption : domainOptions) {

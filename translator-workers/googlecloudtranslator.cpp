@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QUrlQuery>
 #include <QFile>
 #include <QProcess>
@@ -179,7 +181,7 @@ QString CGoogleCloudTranslator::tranStringInternal(const QString &src)
 
     QString res;
     const QJsonArray translist = doc.object().value(QSL("translations")).toArray();
-    for (const auto &tv : qAsConst(translist)) {
+    for (const auto &tv : std::as_const(translist)) {
         if (tv.toObject().contains(QSL("translatedText"))) {
             res+=tv.toObject().value(QSL("translatedText")).toString();
         }

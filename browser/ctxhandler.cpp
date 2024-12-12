@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QImageWriter>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -179,7 +181,7 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
             ccm = m_menu.addMenu(QIcon::fromTheme(QSL("edit-web-search")),tr("Search with"));
 
             searchNames.sort(Qt::CaseInsensitive);
-            for (const QString& name : qAsConst(searchNames)) {
+            for (const QString& name : std::as_const(searchNames)) {
                 QUrl url = gSet->net()->createSearchUrl(sText,name);
 
                 ac = ccm->addAction(name);
@@ -300,10 +302,10 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
                   this, &CBrowserCtxHandler::bookmarkPage);
 
     m_menu.addSeparator();
-    m_menu.addAction(QIcon::fromTheme(QSL("go-previous")),tr("Back"),
-                  snv->txtBrowser,&CSpecWebView::back,QKeySequence(Qt::CTRL | Qt::Key_Z));
-    m_menu.addAction(QIcon::fromTheme(QSL("view-refresh")),tr("Reload"),
-                  snv->txtBrowser,&CSpecWebView::reload,QKeySequence(Qt::CTRL | Qt::Key_R));
+    m_menu.addAction(QIcon::fromTheme(QSL("go-previous")),tr("Back"),QKeySequence(Qt::CTRL | Qt::Key_Z),
+                  snv->txtBrowser,&CSpecWebView::back);
+    m_menu.addAction(QIcon::fromTheme(QSL("view-refresh")),tr("Reload"),QKeySequence(Qt::CTRL | Qt::Key_R),
+                  snv->txtBrowser,&CSpecWebView::reload);
 
     if (cb->mimeData(QClipboard::Clipboard)->hasText())
         m_menu.addAction(snv->txtBrowser->page()->action(QWebEnginePage::Paste));
@@ -382,9 +384,8 @@ void CBrowserCtxHandler::contextMenu(const QPoint &pos, const QWebEngineContextM
     m_menu.addSeparator();
 
     ccm = m_menu.addMenu(QIcon::fromTheme(QSL("system-run")),tr("Service"));
-    ccm->addAction(QIcon::fromTheme(QSL("document-edit-verify")),
-                   tr("Show source"),
-                   this,&CBrowserCtxHandler::showSource,QKeySequence(Qt::CTRL | Qt::Key_E));
+    ccm->addAction(QIcon::fromTheme(QSL("document-edit-verify")),tr("Show source"),
+                   QKeySequence(Qt::CTRL | Qt::Key_E),this,&CBrowserCtxHandler::showSource);
 
     ac = ccm->addAction(tr("Inspect page"));
     ac->setShortcut(QKeySequence(Qt::Key_F12));

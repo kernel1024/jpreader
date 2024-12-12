@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QIcon>
 #include <QProcess>
 #include <QMessageBox>
@@ -571,7 +573,7 @@ void CDownloadsModel::updateProgressLabel()
     int cancelled = 0;
     int active = 0;
     int retries = 0;
-    for(const auto &item : qAsConst(m_downloads)) {
+    for(const auto &item : std::as_const(m_downloads)) {
         retries += item.retries;
         switch (item.state) {
             case CDownloadState::DownloadCancelled:

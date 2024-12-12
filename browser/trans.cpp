@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QMessageBox>
 #include <QScopedPointer>
 #include <QUrlQuery>
@@ -117,7 +119,7 @@ void CBrowserTrans::getUrlsFromPageAndParse()
             sl = ct->getImgUrls();
         }
         urls.reserve(sl.count());
-        for (const QString& s : qAsConst(sl)) {
+        for (const QString& s : std::as_const(sl)) {
             QUrl u = QUrl(s);
             if (u.isRelative())
                 u = baseUrl.resolved(u);

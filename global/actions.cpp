@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "search/xapianindexworker.h"
 
 #include <QApplication>
@@ -247,7 +249,7 @@ void CGlobalActions::rebuildLanguageActions(QObject * control)
         gSet->m_settings->selectedLangPairs[gSet->m_settings->translatorEngine] = action->data().toString();
     });
 
-    for (const CLangPair& pair : qAsConst(g->settings()->translatorPairs)) {
+    for (const CLangPair& pair : std::as_const(g->settings()->translatorPairs)) {
         QAction *ac = languageSelector->addAction(QSL("%1 - %2").arg(
                                       g->m_net->getLanguageName(pair.langFrom.bcp47Name()),
                                       g->m_net->getLanguageName(pair.langTo.bcp47Name())));
@@ -274,7 +276,7 @@ void CGlobalActions::rebuildLanguageActions(QObject * control)
 
 void CGlobalActions::updateSubsentencesModeActions(const CSubsentencesMode &hash)
 {
-    for (const auto &submenu : qAsConst(subsentencesMode))
+    for (const auto &submenu : std::as_const(subsentencesMode))
         submenu->deleteLater();
     subsentencesMode.clear();
 

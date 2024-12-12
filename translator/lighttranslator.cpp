@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QMessageBox>
 #include <QThread>
 #include <QActionGroup>
@@ -94,7 +96,7 @@ void CLightTranslator::appendSourceText(const QString &text)
 
 void CLightTranslator::reloadLanguageList()
 {
-    for (const CLangPair& pair : qAsConst(gSet->settings()->translatorPairs)) {
+    for (const CLangPair& pair : std::as_const(gSet->settings()->translatorPairs)) {
         ui->comboLanguage->addItem(QSL("%1 - %2").arg(
                                       gSet->net()->getLanguageName(pair.langFrom.bcp47Name()),
                                       gSet->net()->getLanguageName(pair.langTo.bcp47Name())),

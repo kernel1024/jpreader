@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "htmlparser.h"
 
 using namespace htmlcxx;
@@ -16,7 +18,7 @@ void CHTMLParser::generateHTML(const CHTMLNode &src, QString &html, bool reforma
 {
     if (src.isTag && !src.tagName.isEmpty()) {
         html.append(QSL("<")+src.tagName);
-        for (const QString &key : qAsConst(src.attributesOrder)) {
+        for (const QString &key : std::as_const(src.attributesOrder)) {
             const QString val = src.attributes.value(key);
             if (!val.contains(u'"')) {
                 html.append(QSL(" %1=\"%2\"").arg(key,val));
@@ -29,7 +31,7 @@ void CHTMLParser::generateHTML(const CHTMLNode &src, QString &html, bool reforma
         html.append(src.text);
     }
 
-    for (const CHTMLNode &node : qAsConst(src.children))
+    for (const CHTMLNode &node : std::as_const(src.children))
         generateHTML(node,html,reformat,depth+1);
 
     html.append(src.closingText);
@@ -42,7 +44,7 @@ void CHTMLParser::generatePlainText(const CHTMLNode &src, QString &html, int dep
     if (src.isTextNode())
         html.append(QSL("%1\n").arg(src.text));
 
-    for (const CHTMLNode &node : qAsConst(src.children))
+    for (const CHTMLNode &node : std::as_const(src.children))
         generatePlainText(node,html,depth+1);
 }
 

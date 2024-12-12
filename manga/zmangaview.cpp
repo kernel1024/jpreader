@@ -3,6 +3,7 @@
 #include <functional>
 #include <climits>
 #include <cmath>
+#include <utility>
 
 #include <QPainter>
 #include <QScrollBar>
@@ -459,7 +460,7 @@ bool ZMangaView::exportPages()
         QMutexLocker locker(&m_pageDataLock);
         int idx = 1;
         const int pageCount = m_pageData.count();
-        for (const auto &file : qAsConst(m_pageData)) {
+        for (const auto &file : std::as_const(m_pageData)) {
             const QString fileName = QSL("%1_%2")
                                      .arg(CGenericFuncs::paddedNumber(idx++,pageCount),
                                           CGenericFuncs::decodeHtmlEntities(file.first.fileName()));

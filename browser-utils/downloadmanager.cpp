@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <utility>
 
 #include <QWidget>
 #include <QCloseEvent>
@@ -569,7 +570,7 @@ void CDownloadManager::multiFileDownload(const QVector<CUrlWithName> &urls, cons
                 urls.append(url);
         }
 
-        for (const auto &url : qAsConst(urls)) {
+        for (const auto &url : std::as_const(urls)) {
             if (!ui.checkAddNumbers->isChecked()) {
                 index = -1;
             } else {

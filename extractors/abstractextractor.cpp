@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QMessageBox>
 #include <QThread>
 #include "abstractextractor.h"
@@ -407,7 +409,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         auto *fl = new CFaviconLoader(workersParent,pixivIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [pixivActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(pixivActions)) {
+            for (auto * const ac : std::as_const(pixivActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -420,7 +422,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         auto *fl = new CFaviconLoader(workersParent,fanboxIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [fanboxActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(fanboxActions)) {
+            for (auto * const ac : std::as_const(fanboxActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -433,7 +435,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         auto *fl = new CFaviconLoader(workersParent,patreonIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [patreonActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(patreonActions)) {
+            for (auto * const ac : std::as_const(patreonActions)) {
                 ac->setIcon(icon);
             }
         });
@@ -446,7 +448,7 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
         auto *fl = new CFaviconLoader(workersParent,deviantartIconUrl);
         connect(fl,&CFaviconLoader::finished,fl,&CFaviconLoader::deleteLater);
         connect(fl,&CFaviconLoader::gotIcon, menu, [deviantartActions](const QIcon& icon){
-            for (auto * const ac : qAsConst(deviantartActions)) {
+            for (auto * const ac : std::as_const(deviantartActions)) {
                 ac->setIcon(icon);
             }
         });

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QDirIterator>
@@ -92,7 +94,7 @@ void CGlobalControlPrivate::reloadXapianFilesystemWatcher(QObject *control)
 
     QStringList watchList;
     watchList.reserve(g->settings()->xapianIndexDirList.count()); // just for clazy
-    for (const auto& dir : qAsConst(g->settings()->xapianIndexDirList)) {
+    for (const auto& dir : std::as_const(g->settings()->xapianIndexDirList)) {
         QFileInfo rfi(dir);
         if (rfi.isDir() && rfi.isReadable() && !watchList.contains(rfi.absoluteFilePath()))
             watchList.append(rfi.absoluteFilePath());

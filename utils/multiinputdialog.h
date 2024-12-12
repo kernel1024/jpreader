@@ -24,11 +24,11 @@ public:
     CStringHash getInputData();
 
 private:
-    Ui::CMultiInputDialog *ui;
+    Ui::CMultiInputDialog *m_ui;
 
-    QFormLayout *formLayout;
-    QList<QLabel *> labels;
-    QList<QLineEdit *> edits;
+    QFormLayout *m_formLayout;
+    QList<QLabel *> m_labels;
+    QList<QLineEdit *> m_edits;
 
     Q_DISABLE_COPY(CMultiInputDialog)
 

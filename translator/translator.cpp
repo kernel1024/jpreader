@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QProcess>
 #include <QThread>
 #include <QBuffer>
@@ -264,7 +266,7 @@ void CTranslator::examineNode(CHTMLNode &node, CTranslator::XMLPassMode xmlPass)
             // remove ruby annotation (superscript), unfold main text block
             if (node.children.at(idx).tagName.toLower()==QSL("ruby")) {
                 subnodes.clear();
-                for (const CHTMLNode& rnode : qAsConst(node.children.at(idx).children)) {
+                for (const CHTMLNode& rnode : std::as_const(node.children.at(idx).children)) {
                     if (rnode.tagName.toLower()==QSL("rb"))
                         subnodes << rnode.children;
                 }
@@ -396,7 +398,7 @@ bool CTranslator::translateParagraph(CHTMLNode &src, CTranslator::XMLPassMode xm
                 QString ttest = sourceStrTemp;
                 bool noText = true;
                 ttest.remove(htmlEntities);
-                for (const QChar &tc : qAsConst(ttest)) {
+                for (const QChar &tc : std::as_const(ttest)) {
                     if (tc.isLetter()) {
                         noText = false;
                         break;

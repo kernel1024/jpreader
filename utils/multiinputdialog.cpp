@@ -4,53 +4,55 @@
 CMultiInputDialog::CMultiInputDialog(QWidget *parent, const QString& title,
                                      const CStringHash& data, const QString& helperText) :
     QDialog(parent),
-    ui(new Ui::CMultiInputDialog)
+    m_ui(new Ui::CMultiInputDialog)
 {
-    ui->setupUi(this);
+    m_ui->setupUi(this);
 
     setWindowTitle(title);
 
-    formLayout = new QFormLayout(parent);
-    formLayout->setObjectName(QSL("formLayout"));
+    m_formLayout = new QFormLayout(parent);
+    m_formLayout->setObjectName(QSL("formLayout"));
 
     int i = 0;
+    m_labels.reserve(data.size());
+    m_edits.reserve(data.size());
     for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
         auto *label = new QLabel(this);
         label->setObjectName(QSL("label_%1").arg(i));
         label->setText(it.key());
-        labels << label;
+        m_labels.append(label);
 
-        formLayout->setWidget(i, QFormLayout::LabelRole, label);
+        m_formLayout->setWidget(i, QFormLayout::LabelRole, label);
 
         auto *lineEdit = new QLineEdit(this);
         lineEdit->setObjectName(QSL("lineEdit_%1").arg(i));
         lineEdit->setText(it.value());
-        edits << lineEdit;
+        m_edits.append(lineEdit);
 
-        formLayout->setWidget(i, QFormLayout::FieldRole, lineEdit);
+        m_formLayout->setWidget(i, QFormLayout::FieldRole, lineEdit);
 
         i++;
     }
 
-    ui->verticalLayout->insertLayout(0,formLayout);
+    m_ui->verticalLayout->insertLayout(0,m_formLayout);
 
     if (!helperText.isEmpty()) {
         auto *hlp = new QLabel(this);
         hlp->setObjectName(QSL("label_helper"));
         hlp->setText(helperText);
-        ui->verticalLayout->insertWidget(0,hlp);
+        m_ui->verticalLayout->insertWidget(0,hlp);
     }
 }
 
 CMultiInputDialog::~CMultiInputDialog()
 {
-    delete ui;
+    delete m_ui;
 }
 
 CStringHash CMultiInputDialog::getInputData()
 {
     CStringHash res;
-    for (int i=0;i<edits.count();i++)
-        res[labels.at(i)->text()] = edits.at(i)->text();
+    for (int i=0;i<m_edits.count();i++)
+        res[m_labels.at(i)->text()] = m_edits.at(i)->text();
     return res;
 }

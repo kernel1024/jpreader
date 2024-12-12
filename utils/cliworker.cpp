@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QCommandLineParser>
 #include <QRegularExpression>
 #include <QThread>
@@ -188,7 +190,7 @@ QString CCLIWorker::translatePriv(const QString &text)
         QString ttest = srct;
         bool noText = true;
         ttest.remove(htmlEntities);
-        for (const QChar &tc : qAsConst(ttest)) {
+        for (const QChar &tc : std::as_const(ttest)) {
             if (tc.isLetter()) {
                 noText = false;
                 break;

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <execution>
 #include <chrono>
+#include <utility>
 
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
@@ -410,7 +411,7 @@ void CGlobalStartup::cleanupAndExit()
         m_g->m_settings->writeSettings();
 
         if (m_g->d_func()->mainWindows.count()>0) {
-            for (CMainWindow* w : qAsConst(m_g->d_func()->mainWindows)) {
+            for (CMainWindow* w : std::as_const(m_g->d_func()->mainWindows)) {
                 if (w)
                     w->close();
             }

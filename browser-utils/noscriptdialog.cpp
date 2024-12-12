@@ -1,3 +1,4 @@
+#include <utility>
 #include "noscriptdialog.h"
 #include "global/control.h"
 #include "global/contentfiltering.h"
@@ -26,7 +27,7 @@ void CNoScriptDialog::updateHostsList()
     ui->listScripts->clear();
 
     const CStringSet scripts = gSet->contentFilter()->getNoScriptPageHosts(m_origin);
-    for (const QString& host : qAsConst(scripts)) {
+    for (const QString& host : std::as_const(scripts)) {
         auto *itm = new QListWidgetItem(host);
         itm->setFlags(itm->flags() | Qt::ItemIsUserCheckable);
         if (gSet->contentFilter()->containsNoScriptWhitelist(host)) {

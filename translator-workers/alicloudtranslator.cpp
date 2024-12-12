@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QUuid>
@@ -123,7 +125,7 @@ QString CAliCloudTranslator::canonicalizedQuery(const CStringHash &params) const
     std::sort(keys.begin(),keys.end());
 
     QString res;
-    for (const auto &key : qAsConst(keys)) {
+    for (const auto &key : std::as_const(keys)) {
         QString k = QString::fromLatin1(QUrl::toPercentEncoding(key));
         k.replace(QSL("+"), QSL("%20"));
         k.replace(QSL("*"), QSL("%2A"));

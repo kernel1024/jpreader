@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -129,7 +131,7 @@ void CFanboxExtractor::pageLoadFinished()
 
             if (!tags.isEmpty()) {
                 QString tagList;
-                for (const auto& tag : qAsConst(tags)) {
+                for (const auto& tag : std::as_const(tags)) {
                     if (!tagList.isEmpty())
                         tagList.append(QSL(" / "));
                     tagList.append(QSL("<a href=\"https://%1.fanbox.cc/tags/%2\">%2</a>")
@@ -157,7 +159,7 @@ void CFanboxExtractor::pageLoadFinished()
             if (!m_isManga && !m_illustMap.isEmpty()) {
                 QStringList processedUrls;
                 m_illustMutex.lock();
-                for (const auto& w : qAsConst(m_illustMap)) {
+                for (const auto& w : std::as_const(m_illustMap)) {
                     QString illustUrl = w.first;
                     QUrl url(illustUrl);
                     if (!url.isValid() || url.isEmpty()) continue;
@@ -192,7 +194,7 @@ void CFanboxExtractor::pageLoadFinished()
                 }
 
                 if (m_isManga && images.isEmpty() && !imageIdHash.isEmpty()) {
-                    for (const auto &ord : qAsConst(imageIdOrder)) {
+                    for (const auto &ord : std::as_const(imageIdOrder)) {
                         if (imageIdHash.contains(ord))
                             images.append(qMakePair(imageIdHash.take(ord),QString()));
                     }
@@ -214,7 +216,7 @@ void CFanboxExtractor::pageLoadFinished()
                         mangaId.prepend(QSL("[%1] ").arg(m_authorId));
 
                     QString description;
-                    for (const auto& tag : qAsConst(tags)) {
+                    for (const auto& tag : std::as_const(tags)) {
                         if (description.isEmpty()) {
                             description.append(QSL("<b>Tags:</b> "));
                         } else {

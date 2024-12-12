@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -80,7 +82,7 @@ void CDeviantartExtractor::galleryAjax()
             const QJsonArray tworks = obj.value(QSL("results")).toArray();
 
             m_list.reserve(tworks.count());
-            for (const auto& work : qAsConst(tworks))
+            for (const auto& work : std::as_const(tworks))
                 m_list.append(work.toObject().value(QSL("deviation")).toObject());
 
             bool hasMore = obj.value(QSL("hasMore")).toBool();
@@ -121,7 +123,7 @@ void CDeviantartExtractor::galleryAjax()
 void CDeviantartExtractor::finalizeGallery()
 {
     QVector<CUrlWithName> imageUrls;
-    for (const auto &jimg : qAsConst(m_list)) {
+    for (const auto &jimg : std::as_const(m_list)) {
         QString url = jimg.value(QSL("media")).toObject().value(QSL("baseUri")).toString();
         if (url.isEmpty()) continue;
 

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QWebEngineSettings>
 
 #include "ui.h"
@@ -233,7 +235,7 @@ void CGlobalUI::addMangaFineRenderTime(qint64 msec)
         gSet->d_func()->mangaFineRenderTimes.removeFirst();
 
     qint64 sum = 0;
-    for (const qint64 a : qAsConst(gSet->d_func()->mangaFineRenderTimes))
+    for (const qint64 a : std::as_const(gSet->d_func()->mangaFineRenderTimes))
         sum += a;
     gSet->d_func()->mangaAvgFineRenderTime = static_cast<int>(sum) / gSet->d_func()->mangaFineRenderTimes.count();
 }

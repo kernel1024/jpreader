@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QShortcut>
 #include <QScreen>
 #include <QWindow>
@@ -560,7 +562,7 @@ void CMainWindow::updateHelperList()
             }
             break;
         case 2: // History
-            for (const CUrlHolder &t : qAsConst(gSet->history()->mainHistory())) {
+            for (const CUrlHolder &t : std::as_const(gSet->history()->mainHistory())) {
                 auto *it = new QListWidgetItem(t.title);
                 it->setStatusTip(t.url.toString());
                 it->setToolTip(t.url.toString());
@@ -611,7 +613,7 @@ void CMainWindow::updateHistoryList()
 {
     if (!helperVisible || tabHelper->currentIndex()!=2) return;
     helperList->clear();
-    for (const CUrlHolder &t : qAsConst(gSet->history()->mainHistory())) {
+    for (const CUrlHolder &t : std::as_const(gSet->history()->mainHistory())) {
         auto *it = new QListWidgetItem(t.title);
         it->setStatusTip(t.url.toString());
         it->setToolTip(t.url.toString());
@@ -627,7 +629,7 @@ void CMainWindow::updateRecentList()
     recentMenu->clear();
     actionRecentDocuments->setEnabled(gSet->settings()->maxRecent>0);
 
-    for(const QString& filename : qAsConst(gSet->history()->recentFiles())) {
+    for(const QString& filename : std::as_const(gSet->history()->recentFiles())) {
         const QFileInfo fi(filename);
         auto *ac = recentMenu->addAction(fi.fileName());
         ac->setToolTip(filename);
@@ -666,7 +668,7 @@ void CMainWindow::updateTitle()
 
 void CMainWindow::goHistory(QUuid idx)
 {
-    for (const CUrlHolder& uh : qAsConst(gSet->history()->mainHistory())) {
+    for (const CUrlHolder& uh : std::as_const(gSet->history()->mainHistory())) {
         if (uh.uuid==idx) {
             const QUrl u = uh.url;
             if (!u.isValid()) return;
@@ -697,7 +699,7 @@ void CMainWindow::checkTabs()
 
 void CMainWindow::openAuxFiles(const QStringList &filenames)
 {
-    for(const QString& fname : qAsConst(filenames)) {
+    for(const QString& fname : std::as_const(filenames)) {
         if (!fname.isEmpty())
             new CBrowserTab(this, QUrl::fromLocalFile(fname));
     }
@@ -847,7 +849,7 @@ void CMainWindow::openBookmark()
         new CBrowserTab(this, u);
     } else if (a->data().canConvert<QStringList>()) {
         QStringList sl = a->data().toStringList();
-        for (const QString &s : qAsConst(sl)) {
+        for (const QString &s : std::as_const(sl)) {
             const QUrl u(s);
             if (u.isValid())
                 new CBrowserTab(this, u);
@@ -1019,7 +1021,7 @@ void CMainWindow::reloadCharsetList()
     }
     menuCharset->addSeparator();
 
-    for(const auto & cs : qAsConst(gSet->settings()->charsetHistory)) {
+    for(const auto & cs : std::as_const(gSet->settings()->charsetHistory)) {
         if (cs==gSet->settings()->forcedCharset) continue;
         act = menuCharset->addAction(cs,gSet->ui(),&CGlobalUI::forceCharset);
         act->setData(cs);
@@ -1107,7 +1109,7 @@ void CMainWindow::dropEvent(QDropEvent *ev)
             ul << u;
     }
 
-    for (const QUrl& u : qAsConst(ul)) {
+    for (const QUrl& u : std::as_const(ul)) {
         auto *sv = new CBrowserTab(this, u);
         sv->txtBrowser->setFocus(Qt::OtherFocusReason);
     }

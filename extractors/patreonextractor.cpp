@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QUrl>
 #include <algorithm>
+#include <utility>
 
 #include "patreonextractor.h"
 #include "utils/genericfuncs.h"
@@ -146,7 +147,7 @@ void CPatreonExtractor::startMain()
 
         QVector<CUrlWithName> res;
         res.reserve(urls.count());
-        for (const auto& url : qAsConst(urls))
+        for (const auto& url : std::as_const(urls))
             res.append(url.second);
 
         Q_EMIT mangaReady(res,title,m_origin,title,QString(),false,false,true);

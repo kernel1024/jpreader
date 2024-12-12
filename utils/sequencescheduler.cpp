@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "sequencescheduler.h"
 #include "global/startup.h"
 #include "global/control.h"
@@ -83,7 +85,7 @@ void CSequenceScheduler::takeNextWorker()
 
 void CSequenceScheduler::cleanupWorkers()
 {
-    for (const auto& worker : qAsConst(m_workers))
+    for (const auto& worker : std::as_const(m_workers))
         worker->deleteLater();
     m_workers.clear();
 }

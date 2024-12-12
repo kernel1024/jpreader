@@ -1,4 +1,6 @@
-﻿#include <QSortFilterProxyModel>
+﻿#include <utility>
+
+#include <QSortFilterProxyModel>
 #include <QJsonArray>
 #include <QMenu>
 #include <QThread>
@@ -229,7 +231,7 @@ QStringList CPixivIndexTab::jsonToTags(const QJsonArray &tags) const
 {
     QStringList res;
     res.reserve(tags.count());
-    for (const auto& t : qAsConst(tags))
+    for (const auto& t : std::as_const(tags))
         res.append(t.toString());
     return res;
 }
@@ -381,7 +383,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     }
 
     auto extractorsList = CAbstractExtractor::addMenuActions(novelUrl,QUrl(),title,&cm,this,true);
-    for (auto *eac : qAsConst(extractorsList))
+    for (auto *eac : std::as_const(extractorsList))
         connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
     if (!extractorsList.isEmpty()) {
         if (!cm.isEmpty())
@@ -390,7 +392,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     }
 
     extractorsList = CAbstractExtractor::addMenuActions(artworkUrl,QUrl(),title,&cm,this,true);
-    for (auto *eac : qAsConst(extractorsList))
+    for (auto *eac : std::as_const(extractorsList))
         connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
     if (!extractorsList.isEmpty()) {
         if (!cm.isEmpty())
@@ -399,7 +401,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     }
 
     extractorsList = CAbstractExtractor::addMenuActions(userUrl,QUrl(),title,&cm,this,true);
-    for (auto *eac : qAsConst(extractorsList))
+    for (auto *eac : std::as_const(extractorsList))
         connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
     if (!extractorsList.isEmpty()) {
         if (!cm.isEmpty()) {
@@ -411,7 +413,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
     }
 
     extractorsList = CAbstractExtractor::addMenuActions(tagUrl,QUrl(),title,&cm,this,true);
-    for (auto *eac : qAsConst(extractorsList))
+    for (auto *eac : std::as_const(extractorsList))
         connect(eac,&QAction::triggered,this,&CPixivIndexTab::processExtractorAction);
     if (!extractorsList.isEmpty()) {
         if (!cm.isEmpty()) {
@@ -457,7 +459,7 @@ void CPixivIndexTab::tableContextMenu(const QPoint &pos)
                 if (container.isEmpty()) return;
                 QList<QPointer<CAbstractThreadWorker> > works;
                 works.reserve(multiUrls.count());
-                for (const auto& item : qAsConst(multiUrls)) {
+                for (const auto& item : std::as_const(multiUrls)) {
                     auto *ex = new CPixivNovelExtractor(nullptr);
                     ex->setParams(item.first,QString(),false,false,false,true,
                                   { { QSL("containerPath"), container },
@@ -986,7 +988,7 @@ QVariant CPixivIndexModel::headerData(int section, Qt::Orientation orientation, 
             QStringList headers = basicHeaders();
 
             headers.reserve(m_tags.count());
-            for (const auto& tag : qAsConst(m_tags))
+            for (const auto& tag : std::as_const(m_tags))
                 headers.append(QSL("T:[%1]").arg(tag));
 
             if (section>=0 && section<headers.count())
@@ -1122,7 +1124,7 @@ QStringList CPixivIndexModel::getStringsForTranslation() const
 {
     QStringList res;
     res.reserve(m_list.count() + m_tags.count());
-    for (const auto &w : qAsConst(m_list))
+    for (const auto &w : std::as_const(m_list))
         res.append(w.toObject().value(QSL("title")).toString());
     res.append(m_tags);
     return res;
@@ -1196,10 +1198,10 @@ void CPixivIndexModel::updateTags()
     m_authors.clear();
     m_translatedTags.clear();
 
-    for (const auto &w : qAsConst(m_list)) {
+    for (const auto &w : std::as_const(m_list)) {
         const QJsonObject obj = w.toObject();
         const QJsonArray wtags = obj.value(QSL("tags")).toArray();
-        for (const auto& t : qAsConst(wtags)) {
+        for (const auto& t : std::as_const(wtags)) {
             const QString tag = t.toString();
             if (!m_tags.contains(tag))
                 m_tags.append(tag);

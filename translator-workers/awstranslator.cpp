@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QThread>
 #include <algorithm>
+#include <utility>
 #include "awstranslator.h"
 #include "utils/genericfuncs.h"
 
@@ -76,7 +77,7 @@ QNetworkRequest CAWSTranslator::createAWSRequest(const QString& service,
     QString signedHeaders = headerNames.join(u';');
 
     QString canonicalHeaders;
-    for (const auto& key : qAsConst(headerNames)) {
+    for (const auto& key : std::as_const(headerNames)) {
         canonicalHeaders.append(QSL("%1:%2\n").arg(key,lheaders.value(key)));
     }
 

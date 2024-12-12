@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <execution>
+#include <utility>
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -83,9 +84,8 @@ CSettingsTab::CSettingsTab(QWidget *parent) :
     ui->atlSSLProto->addItem(QSL("Secure"),static_cast<int>(QSsl::SecureProtocols));
     ui->atlSSLProto->addItem(QSL("TLS 1.3+"),static_cast<int>(QSsl::TlsV1_3OrLater));
     ui->atlSSLProto->addItem(QSL("TLS 1.3"),static_cast<int>(QSsl::TlsV1_3));
+    ui->atlSSLProto->addItem(QSL("TLS 1.2+"),static_cast<int>(QSsl::TlsV1_2OrLater));
     ui->atlSSLProto->addItem(QSL("TLS 1.2"),static_cast<int>(QSsl::TlsV1_2));
-    ui->atlSSLProto->addItem(QSL("TLS 1.1"),static_cast<int>(QSsl::TlsV1_1));
-    ui->atlSSLProto->addItem(QSL("TLS 1.0"),static_cast<int>(QSsl::TlsV1_0));
     ui->atlSSLProto->addItem(QSL("Any"),static_cast<int>(QSsl::AnyProtocol));
     updateAtlCertLabel();
 
@@ -1096,7 +1096,7 @@ void CSettingsTab::goHistory()
 void CSettingsTab::updateMainHistory()
 {
     ui->listHistory->clear();
-    for (const CUrlHolder &t : qAsConst(gSet->d_func()->mainHistory)) {
+    for (const CUrlHolder &t : std::as_const(gSet->d_func()->mainHistory)) {
         auto *li = new QListWidgetItem(QSL("%1 [ %2 ]")
                                                   .arg(t.title, t.url.toString()));
         li->setData(Qt::UserRole,t.uuid.toString());
@@ -1175,7 +1175,7 @@ void CSettingsTab::delCookies()
 
     QList<int> r = getSelectedRows(ui->tableCookies);
     if (gSet->m_browser->webProfile()->cookieStore()) {
-        for (int idx : qAsConst(r))
+        for (int idx : std::as_const(r))
             gSet->m_browser->webProfile()->cookieStore()->deleteCookie(cookiesList.at(idx));
 
         updateCookiesTable();
@@ -1377,7 +1377,7 @@ void CSettingsTab::exportAd()
     }
     QTextStream fs(&f);
 
-    for (const auto& rule : qAsConst(r))
+    for (const auto& rule : std::as_const(r))
         fs << rule.filter() << Qt::endl;
 
     fs.flush();
@@ -1662,7 +1662,7 @@ void CSettingsTab::delQrs()
 void CSettingsTab::updateQueryHistory()
 {
     ui->listQueries->clear();
-    for (const auto &i : qAsConst(gSet->d_func()->searchHistory))
+    for (const auto &i : std::as_const(gSet->d_func()->searchHistory))
         ui->listQueries->addItem(i);
 }
 

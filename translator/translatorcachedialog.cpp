@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -62,7 +64,7 @@ void CTranslatorCacheDialog::updateCacheList()
     ui->table->setColumnCount(tableHeaders.count());
     ui->table->setHorizontalHeaderLabels(tableHeaders);
     int row = 0;
-    for (const auto &item : qAsConst(infoList)) {
+    for (const auto &item : std::as_const(infoList)) {
         auto *itm = new QTableWidgetItem(item.value(QSL("title")).toString());
         itm->setData(Qt::UserRole,item.value(QSL("#md5")).toString());
         ui->table->setItem(row,0,itm);

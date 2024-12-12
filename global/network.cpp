@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <utility>
+
 #include <QMessageBox>
 #include <QAbstractNetworkCache>
 #include <QMetaEnum>
@@ -55,7 +57,7 @@ bool CGlobalNetwork::sslCertErrors(const QSslCertificate &cert, const QStringLis
     gSet->d_func()->sslCertErrorInteractive = true;
     auto res = mbox.exec();
     if (res == QMessageBox::Yes) {
-        for (const int errCode : qAsConst(errCodes)) {
+        for (const int errCode : std::as_const(errCodes)) {
             if (!gSet->m_settings->sslTrustedInvalidCerts[cert].contains(errCode))
                 gSet->m_settings->sslTrustedInvalidCerts[cert].append(errCode);
         }
@@ -170,7 +172,7 @@ void CGlobalNetwork::auxSSLCertError(QNetworkReply *reply, const QList<QSslError
     QHash<QSslCertificate,QStringList> errStrHash;
     QHash<QSslCertificate,CIntList> errIntHash;
 
-    for (const QSslError& err : qAsConst(errors)) {
+    for (const QSslError& err : std::as_const(errors)) {
         if (gSet->settings()->sslTrustedInvalidCerts.contains(err.certificate()) &&
                 gSet->settings()->sslTrustedInvalidCerts.value(err.certificate()).contains(
                     static_cast<int>(err.error()))) continue;
@@ -264,7 +266,7 @@ bool CGlobalNetwork::exportCookies(const QString &filename, const QUrl &baseUrl,
     if (!f.open(QIODevice::WriteOnly)) return false;
     QTextStream fs(&f);
 
-    for (const auto &cookie : qAsConst(cookiesList)) {
+    for (const auto &cookie : std::as_const(cookiesList)) {
         fs << cookie.domain()
            << u'\t'
            << CGenericFuncs::bool2str2(cookie.domain().startsWith(u'.'))

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QApplication>
 #include <QString>
 #include <QMessageBox>
@@ -163,7 +165,7 @@ void CPixivNovelExtractor::novelLoadFinished()
 
         if (!tags.isEmpty()) {
             QString tagList;
-            for (const auto& tag : qAsConst(tags)) {
+            for (const auto& tag : std::as_const(tags)) {
                 if (!tagList.isEmpty())
                     tagList.append(QSL(" / "));
                 tagList.append(QSL("<a href=\"https://www.pixiv.net/tags/%1/novels\">%1</a>").arg(tag));

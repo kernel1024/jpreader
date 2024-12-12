@@ -28,6 +28,8 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <utility>
+
 #include <QPainter>
 #include <QRegularExpression>
 #include <QDebug>
@@ -448,7 +450,7 @@ void SidebarWidget::mousePressEvent(QMouseEvent *event)
         int fh = fontMetrics().lineSpacing();
         int ys = event->pos().y();
         if (event->pos().x() > xofs) {
-            for (const auto &ln : qAsConst(lineNumbers)) {
+            for (const auto &ln : std::as_const(lineNumbers)) {
                 if (ln.position < ys && (ln.position + fh) > ys) {
                     if (ln.foldable)
                         lineNo = ln.number;
@@ -471,7 +473,7 @@ void SidebarWidget::paintEvent(QPaintEvent *event)
     p.setPen(lineNumberColor);
     p.setFont(font);
     int fh = QFontMetrics(font).height();
-    for (const auto &ln : qAsConst(lineNumbers))
+    for (const auto &ln : std::as_const(lineNumbers))
         p.drawText(0, ln.position, width() - 4 - foldIndicatorWidth, fh, Qt::AlignRight, QString::number(ln.number));
 
     if (foldIndicatorWidth > 0) {
@@ -515,7 +517,7 @@ void SidebarWidget::paintEvent(QPaintEvent *event)
             iconPainter.end();
         }
 
-        for (const auto &ln : qAsConst(lineNumbers)) {
+        for (const auto &ln : std::as_const(lineNumbers)) {
             if (ln.foldable) {
                 if (ln.folded) {
                     p.drawPixmap(xofs, ln.position, rightArrowIcon);
@@ -752,7 +754,7 @@ static int findClosingConstruct(const QTextBlock &block)
         return -1;
     const QTextDocument *doc = block.document();
     int offset = block.position();
-    for (const int pos : qAsConst(blockData->bracketPositions)) {
+    for (const int pos : std::as_const(blockData->bracketPositions)) {
         int absPos = offset + pos;
         if (doc->characterAt(absPos) == u'{') {
             int matchPos = findClosingMatch(doc, absPos);

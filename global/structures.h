@@ -55,11 +55,8 @@ enum SubsentencesMode {
 };
 Q_ENUM_NS(SubsentencesMode)
 
-enum SearchModelRole {
-    cpSortRole = 1,
-    cpFilterRole = 2
-};
-Q_ENUM_NS(SearchModelRole)
+const int cpSortRole = 1;
+const int cpFilterRole = 2;
 
 enum DateRange {
     drWeek = 1,

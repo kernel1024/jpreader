@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <QBuffer>
 #include "htmlimagesextractor.h"
 #include "browser/browser.h"
@@ -96,7 +98,7 @@ void CHtmlImagesExtractor::handleImages()
 {
     m_worksImgFetch.storeRelease(m_imgUrls.count());
     if (!m_imgUrls.isEmpty()) {
-        for(const auto &it : qAsConst(m_imgUrls)) {
+        for(const auto &it : std::as_const(m_imgUrls)) {
             QUrl url((*it).value(QSL("src")).trimmed());
             QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,it]{
                 if (exitIfAborted()) return;
