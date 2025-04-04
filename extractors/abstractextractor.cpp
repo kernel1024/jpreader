@@ -638,9 +638,13 @@ QJsonDocument CAbstractExtractor::parseJsonSubDocument(const QByteArray& source,
     QString src = QString::fromUtf8(source);
     QRegularExpressionMatch match;
     int idx = src.indexOf(start,0,&match);
-    if (idx<0) {
-        doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
-        return doc;
+    if (start.pattern().isEmpty()) {
+        idx = 0;
+    } else {
+        if (idx<0) {
+            doc = QJsonDocument::fromJson(R"({"error":"Unable to find JSON sub-document."})");
+            return doc;
+        }
     }
     QByteArray cnt = src.mid(idx+match.capturedLength()-1).toUtf8();
 

@@ -47,6 +47,7 @@ private:
     QVector<CUrlWithName> parseJsonIllustPage(const QString &html, const QUrl& origin,
                                               QString *id, QString *title, QString *description,
                                               bool *mangaOriginalScale);
+    QVector<CUrlWithName> parseJsonIllustListPage(const QString &html, bool *mangaOriginalScale);
 
 public:
     explicit CPixivNovelExtractor(QObject *parent);

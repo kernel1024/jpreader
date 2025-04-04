@@ -217,7 +217,33 @@ void CPixivNovelExtractor::subLoadFinished()
         QString title;
         QString description;
         bool originalScale = true;
-        QVector<CUrlWithName> imageUrls = parseJsonIllustPage(html,rplUrl,&illustID,&title,&description,&originalScale);
+        QVector<CUrlWithName> imageUrls;
+
+        if (rplUrl.path().endsWith(QSL("/pages"))) {
+            illustID = rpl->property("PIXIV_ILLUSTID").toString();
+            title = rpl->property("PIXIV_TITLE").toString();
+            description = rpl->property("PIXIV_DESC").toString();
+
+            imageUrls = parseJsonIllustListPage(html,&originalScale);
+        } else {
+            imageUrls = parseJsonIllustPage(html,rplUrl,&illustID,&title,&description,&originalScale);
+
+            if (imageUrls.isEmpty() && !illustID.isEmpty()) {
+                QUrl url(QSL("https://www.pixiv.net/ajax/illust/%1/pages").arg(illustID));
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,illustID,title,description,originalScale]{
+                    QNetworkRequest req(url);
+                    req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
+                    req.setRawHeader("referer",m_origin.toString().toUtf8());
+                    QNetworkReply* nrpl = gSet->net()->auxNetworkAccessManagerGet(req);
+                    nrpl->setProperty("PIXIV_ILLUSTID",illustID);
+                    nrpl->setProperty("PIXIV_TITLE",title);
+                    nrpl->setProperty("PIXIV_DESC",description);
+                    connect(nrpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
+                    connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
+                },Qt::QueuedConnection);
+                return;
+            }
+        }
 
         // Aux manga load from context menu
         if (m_mangaOrigin.isValid()) {
@@ -414,6 +440,53 @@ void CPixivNovelExtractor::handleImages(const QStringList &imgs, const CStringHa
     }
 }
 
+QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustListPage(const QString &html, bool *mangaOriginalScale)
+{
+    QVector<CUrlWithName> res;
+
+    QJsonDocument doc = parseJsonSubDocument(html.toUtf8(),QRegularExpression());
+    if (doc.isObject()) {
+        QJsonObject obj = doc.object();
+
+        QString err = obj.value(QSL("error")).toString();
+        if (!err.isNull()) {
+            qWarning() << QSL("AJAX images extractor error: %1").arg(err);
+            return res;
+        }
+
+        QString pageUrlSelector = QSL("original");
+        if (mangaOriginalScale != nullptr)
+            (*mangaOriginalScale) = true;
+        if (m_useMangaViewer) {
+            switch (gSet->settings()->pixivMangaPageSize) {
+            case CStructures::PixivMangaPageSize::pxmpOriginal:
+                pageUrlSelector = QSL("original");
+                if (mangaOriginalScale != nullptr)
+                    (*mangaOriginalScale) = true;
+                break;
+            case CStructures::PixivMangaPageSize::pxmpRegular:
+                pageUrlSelector = QSL("regular");
+                if (mangaOriginalScale != nullptr)
+                    (*mangaOriginalScale) = false;
+                break;
+            case CStructures::PixivMangaPageSize::pxmpSmall:
+                pageUrlSelector = QSL("small");
+                if (mangaOriginalScale != nullptr)
+                    (*mangaOriginalScale) = false;
+                break;
+            }
+        }
+
+        const QJsonArray urls = obj.value(QSL("body")).toArray();
+        for (const auto &item : urls) {
+            const QString imgUrl = item.toObject().value(QSL("urls")).toObject().value(pageUrlSelector).toString();
+            res.append(qMakePair(imgUrl, QString()));
+        }
+    }
+
+    return res;
+}
+
 QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &html, const QUrl &origin,
                                                                 QString* id, QString* title,
                                                                 QString* description, bool* mangaOriginalScale)
@@ -425,20 +498,17 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
     if (id != nullptr)
         *id = key;
 
-    // dont make static jstart
-    const QRegularExpression jstart(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key)); // NOLINT
-    if (html.indexOf(jstart)>=0) {
-        doc = parseJsonSubDocument(html.toUtf8(),jstart);
-        if (doc.isObject()) {
-            QJsonObject obj = doc.object();
-
-            QString err = obj.value(QSL("error")).toString();
-            if (!err.isNull()) {
-                qWarning() << QSL("Images extractor error: %1").arg(err);
-                return res;
-            }
-        }
-    } else {
+    QRegularExpression jstart;
+    jstart = QRegularExpression(QSL("\\s*\\\"illust\\\"\\s*:\\s*{\\s*\\\"%1\\\"\\s*:\\s*{").arg(key)); // NOLINT
+    int idx = html.indexOf(jstart);
+    bool scheme1 = true;
+    if (idx < 0) {
+        // Try new scheme
+        scheme1 = false;
+        jstart = QRegularExpression(QSL("\\\"props\\\"\\s*:\\s*{")); // NOLINT
+        idx = html.indexOf(jstart);
+    }
+    if (idx < 0) {
         return res;
     }
 
@@ -448,6 +518,7 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
     QString szSelector;
     int pageCount = -1;
 
+    doc = parseJsonSubDocument(html.toUtf8(),jstart);
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
@@ -457,32 +528,48 @@ QVector<CUrlWithName> CPixivNovelExtractor::parseJsonIllustPage(const QString &h
             return res;
         }
 
-        illustId = obj.value(QSL("illustId")).toString();
+        if (scheme1) {
+            illustId = obj.value(QSL("illustId")).toString();
 
-        if (title != nullptr)
-            *title = obj.value(QSL("title")).toString();
+            if (title != nullptr)
+                *title = obj.value(QSL("title")).toString();
 
-        if (description != nullptr) {
-            const QDateTime dt = QDateTime::fromString(obj.value(QSL("createDate")).toString(),
-                                                       Qt::ISODate);
-            description->clear();
+            if (description != nullptr) {
+                const QDateTime dt = QDateTime::fromString(obj.value(QSL("createDate")).toString(),
+                                                           Qt::ISODate);
+                description->clear();
 
-            const QJsonArray jtags = obj.value(QSL("tags")).toObject().value(QSL("tags")).toArray();
-            QStringList tags;
-            tags.reserve(jtags.count());
-            for (const auto& tag : jtags)
-                tags.append(tag.toObject().value(QSL("tag")).toString());
-            if (!tags.isEmpty())
-                description->append(QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / "))));
+                const QJsonArray jtags = obj.value(QSL("tags")).toObject().value(QSL("tags")).toArray();
+                QStringList tags;
+                tags.reserve(jtags.count());
+                for (const auto& tag : jtags)
+                    tags.append(tag.toObject().value(QSL("tag")).toString());
+                if (!tags.isEmpty())
+                    description->append(QSL("<b>Tags:</b> %1.<br/>").arg(tags.join(QSL(" / "))));
 
-            description->append(tr("<b>Author:</b> <a href=\"https://www.pixiv.net/users/%1\">%2</a><br/>")
-                                .arg(obj.value(QSL("userId")).toString(),
-                                     obj.value(QSL("userName")).toString()));
+                description->append(tr("<b>Author:</b> <a href=\"https://www.pixiv.net/users/%1\">%2</a><br/>")
+                                        .arg(obj.value(QSL("userId")).toString(),
+                                             obj.value(QSL("userName")).toString()));
 
-            description->append(tr("<b>Size:</b> %1x%2 px, <b>created at:</b> %3.<br/>")
-                        .arg(obj.value(QSL("width")).toInt())
-                        .arg(obj.value(QSL("height")).toInt())
-                        .arg(dt.toString(QSL("yyyy/MM/dd hh:mm"))));
+                description->append(tr("<b>Size:</b> %1x%2 px, <b>created at:</b> %3.<br/>")
+                                        .arg(obj.value(QSL("width")).toInt())
+                                        .arg(obj.value(QSL("height")).toInt())
+                                        .arg(dt.toString(QSL("yyyy/MM/dd hh:mm"))));
+            }
+
+        } else {
+            illustId = key;
+
+            if (title != nullptr) {
+                QRegularExpression rxTitle(QSL("\\<title.*\\>(?<title>.*?)\\<\\/title\\>"));
+                QRegularExpressionMatch match = rxTitle.match(html);
+                if (match.hasMatch()) {
+                    *title = match.captured(QSL("title"));
+                }
+            }
+
+            if (description != nullptr)
+                description->clear();
         }
 
         pageCount = qRound(obj.value(QSL("pageCount")).toDouble(-1.0));
