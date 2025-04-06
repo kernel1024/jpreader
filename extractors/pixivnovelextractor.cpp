@@ -93,12 +93,6 @@ void CPixivNovelExtractor::novelLoadFinished()
         QUrl origin = rpl->url();
         QUrlQuery qr(origin);
 
-        m_novelId = qr.queryItemValue(QSL("id"));
-
-        QString wtitle = m_title;
-        if (wtitle.isEmpty())
-            wtitle = CGenericFuncs::extractFileTitle(html);
-
         QString hauthor;
         QString hauthornum;
         QString htitle;
@@ -106,24 +100,51 @@ void CPixivNovelExtractor::novelLoadFinished()
         QStringList tags;
         CStringHash embImages;
         QDateTime createDate;
+        QString wtitle = m_title;
 
-        static const QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
-        int idx = html.indexOf(rxToken);
-        if (idx>0) {
-            html.remove(0,idx);
-            idx = html.indexOf(QSL("</script>"));
-            if (idx>=0)
-                html.truncate(idx);
-            idx = html.indexOf(QSL("}\">"));
-            if (idx>=0)
-                html.truncate(idx+1);
-            idx = html.lastIndexOf(QSL("})"));
-            if (idx>0)
-                html.truncate(idx+1);
+        if (qr.hasQueryItem(QSL("id"))) {
+            m_novelId = qr.queryItemValue(QSL("id"));
 
-            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate,hdescription);
+            if (wtitle.isEmpty())
+                wtitle = CGenericFuncs::extractFileTitle(html);
+
+            static const QRegularExpression rxToken(QSL("\\{\\s*\\\"token\\\"\\s*:"));
+            int idx = html.indexOf(rxToken);
+            if (idx>0) {
+                html.remove(0,idx);
+                idx = html.indexOf(QSL("</script>"));
+                if (idx>=0)
+                    html.truncate(idx);
+                idx = html.indexOf(QSL("}\">"));
+                if (idx>=0)
+                    html.truncate(idx+1);
+                idx = html.lastIndexOf(QSL("})"));
+                if (idx>0)
+                    html.truncate(idx+1);
+
+                html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate,hdescription);
+
+            } else {
+                // Try new JSON call (2025)
+                QUrl url(QSL("https://www.pixiv.net/ajax/novel/%1").arg(m_novelId));
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,wtitle]{
+                    QNetworkRequest req(url);
+                    req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
+                    req.setRawHeader("referer",m_origin.toString().toUtf8());
+                    QNetworkReply* nrpl = gSet->net()->auxNetworkAccessManagerGet(req);
+                    nrpl->setProperty("PIXIV_WTITLE",wtitle);
+                    connect(nrpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
+                    connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
+                },Qt::QueuedConnection);
+                return;
+            }
+
         } else {
-            html = tr("Unable to extract novel. Unknown page structure.");
+            QString ttitle = rpl->property("PIXIV_WTITLE").toString();
+            if (!ttitle.isEmpty())
+                wtitle = ttitle;
+            html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate,hdescription);
+
         }
 
         static const QRegularExpression rbrx(QSL("\\[\\[rb\\:.*?\\]\\]"));
@@ -230,7 +251,7 @@ void CPixivNovelExtractor::subLoadFinished()
 
             if (imageUrls.isEmpty() && !illustID.isEmpty()) {
                 QUrl url(QSL("https://www.pixiv.net/ajax/illust/%1/pages").arg(illustID));
-                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,illustID,title,description,originalScale]{
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,illustID,title,description]{
                     QNetworkRequest req(url);
                     req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
                     req.setRawHeader("referer",m_origin.toString().toUtf8());
@@ -628,14 +649,27 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
     QByteArray cnt = html.toUtf8();
     QString res;
 
+    bool novelJSONcall = html.startsWith(QChar('{'));
+
     QRegularExpression rxNovel(QSL("\\s*\\\"%1\\\"\\s*:\\s*{").arg(m_novelId));
-    QJsonDocument doc = parseJsonSubDocument(cnt,rxNovel);
+    QJsonDocument doc;
+    if (novelJSONcall) {
+        doc = parseJsonSubDocument(cnt,QRegularExpression());
+    } else {
+        doc = parseJsonSubDocument(cnt,rxNovel);
+    }
+
     if (doc.isObject()) {
         QJsonObject obj = doc.object();
 
         QString err = obj.value(QSL("error")).toString();
         if (!err.isNull())
             return QSL("Novel extractor error: %1").arg(err);
+
+        if (novelJSONcall) {
+            obj = obj.value(QSL("body")).toObject();
+            author = obj.value(QSL("userName")).toString();
+        }
 
         res = obj.value(QSL("content")).toString();
         title = obj.value(QSL("title")).toString();
@@ -661,24 +695,25 @@ QString CPixivNovelExtractor::parseJsonNovel(const QString &html, QStringList &t
             embeddedImages.insert(id,url);
         }
     } else {
-        return tr("ERROR: Unable to find novel subdocument.");
+        return tr("ERROR: JSON - Unable to find novel subdocument.");
 
     }
 
-    QRegularExpression rxAuthor(QSL("\\s*\\\"%1\\\"\\s*:\\s*{").arg(authorNum));
-    doc = parseJsonSubDocument(cnt,rxAuthor);
-    if (doc.isObject()) {
-        QJsonObject obj = doc.object();
+    if (author.isEmpty() && !novelJSONcall) {
+        QRegularExpression rxAuthor(QSL("\\s*\\\"%1\\\"\\s*:\\s*{").arg(authorNum));
+        doc = parseJsonSubDocument(cnt,rxAuthor);
+        if (doc.isObject()) {
+            QJsonObject obj = doc.object();
 
-        QString err = obj.value(QSL("error")).toString();
-        if (!err.isNull())
-            return QSL("Author parser error: %1").arg(err);
+            QString err = obj.value(QSL("error")).toString();
+            if (!err.isNull())
+                return QSL("Author parser error: %1").arg(err);
 
-        author = obj.value(QSL("name")).toString();
+            author = obj.value(QSL("name")).toString();
 
-    } else {
-        return tr("ERROR: Unable to find author subdocument.");
-
+        } else {
+            return tr("ERROR: Unable to find author subdocument.");
+        }
     }
 
     return res;

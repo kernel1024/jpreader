@@ -904,31 +904,42 @@ int CGenericFuncs::compareStringLists(const QStringList &left, const QStringList
 
 QString CGenericFuncs::extractFileTitle(const QString& fileContents)
 {
-    const int maxFileSize = 255;
-    int pos = -1;
-    int start = -1;
-    int stop = -1;
-    static const QRegularExpression titleStart(QSL("<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
-    static const QRegularExpression titleStop(QSL("</title {0,}>"),QRegularExpression::CaseInsensitiveOption);
-    static const QRegularExpression insideTitle(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+    QString res;
 
-    if ((pos = fileContents.indexOf(titleStart)) != -1) {
-        start = pos;
-        if ((pos = fileContents.indexOf(titleStop)) != -1) {
-            stop = pos;
-            if (stop>start) {
-                if ((stop-start)>maxFileSize)
-                    stop = start + maxFileSize;
-                QString s = fileContents.mid(start,stop-start);
+    QRegularExpression rxTitle(QSL("\\<title.*\\>(?<title>.*?)\\<\\/title\\>"));
+    QRegularExpressionMatch match = rxTitle.match(fileContents);
+    if (match.hasMatch()) {
+        res = match.captured(QSL("title"));
+    } else {
+        const int maxFileSize = 255;
+        int pos = -1;
+        int start = -1;
+        int stop = -1;
+        static const QRegularExpression titleStart(QSL("<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression titleStop(QSL("</title {0,}>"),QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression insideTitle(QSL("^<title {0,}>"),QRegularExpression::CaseInsensitiveOption);
 
-                s.remove(insideTitle);
-                s.remove(u'\r');
-                s.remove(u'\n');
-                return s;
+        if ((pos = fileContents.indexOf(titleStart)) != -1) {
+            start = pos;
+            if ((pos = fileContents.indexOf(titleStop)) != -1) {
+                stop = pos;
+                if (stop>start) {
+                    if ((stop-start)>maxFileSize)
+                        stop = start + maxFileSize;
+                    QString s = fileContents.mid(start,stop-start);
+
+                    s.remove(insideTitle);
+                    res = s;
+                }
             }
         }
     }
-    return QString();
+
+    if (!res.isEmpty()) {
+        res.remove(u'\r');
+        res.remove(u'\n');
+    }
+    return res;
 }
 
 QString CGenericFuncs::convertPatternToRegExp(const QString &wildcardPattern)
