@@ -20,6 +20,14 @@
 #include "global/network.h"
 #include "global/browserfuncs.h"
 
+namespace CDefaults {
+const auto propPixivWTitle = "PIXIV_WTITLE";
+const auto propPixivIllustID = "PIXIV_ILLUSTID";
+const auto propPixivIllustKey = "PIXIV_ILLUSTKEY";
+const auto propPixivTitle = "PIXIV_TITLE";
+const auto propPixivDesc = "PIXIV_DESC";
+}
+
 CPixivNovelExtractor::CPixivNovelExtractor(QObject *parent)
     : CAbstractExtractor(parent)
 {
@@ -127,12 +135,13 @@ void CPixivNovelExtractor::novelLoadFinished()
             } else {
                 // Try new JSON call (2025)
                 QUrl url(QSL("https://www.pixiv.net/ajax/novel/%1").arg(m_novelId));
-                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,wtitle]{
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,wtitle,origin]{
                     QNetworkRequest req(url);
                     req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
                     req.setRawHeader("referer",m_origin.toString().toUtf8());
                     QNetworkReply* nrpl = gSet->net()->auxNetworkAccessManagerGet(req);
-                    nrpl->setProperty("PIXIV_WTITLE",wtitle);
+                    nrpl->setProperty(CDefaults::propPixivWTitle,wtitle);
+                    m_originalOrigin = origin;
                     connect(nrpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
                     connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::novelLoadFinished);
                 },Qt::QueuedConnection);
@@ -140,7 +149,7 @@ void CPixivNovelExtractor::novelLoadFinished()
             }
 
         } else {
-            QString ttitle = rpl->property("PIXIV_WTITLE").toString();
+            QString ttitle = rpl->property(CDefaults::propPixivWTitle).toString();
             if (!ttitle.isEmpty())
                 wtitle = ttitle;
             html = parseJsonNovel(html,tags,hauthor,hauthornum,htitle,embImages,createDate,hdescription);
@@ -224,6 +233,16 @@ void CPixivNovelExtractor::subLoadFinished()
     QUrl rplUrl = rpl->url();
     QString key = rplUrl.fileName();
 
+    if (rplUrl.path().endsWith(QSL("/pages")))
+        key = rpl->property(CDefaults::propPixivIllustKey).toString();
+
+    bool ok = false;
+    int tkey = key.toInt(&ok);
+    if (key.isEmpty() || !ok || (tkey <= 0)) {
+        qCritical() << "Illust key lost!";
+        return;
+    }
+
     int httpStatus = CGenericFuncs::getHttpStatusFromReply(rpl.data());
 
     if ((rpl->error() == QNetworkReply::NoError) && (httpStatus<CDefaults::httpCodeRedirect)) {
@@ -241,9 +260,9 @@ void CPixivNovelExtractor::subLoadFinished()
         QVector<CUrlWithName> imageUrls;
 
         if (rplUrl.path().endsWith(QSL("/pages"))) {
-            illustID = rpl->property("PIXIV_ILLUSTID").toString();
-            title = rpl->property("PIXIV_TITLE").toString();
-            description = rpl->property("PIXIV_DESC").toString();
+            illustID = rpl->property(CDefaults::propPixivIllustID).toString();
+            title = rpl->property(CDefaults::propPixivTitle).toString();
+            description = rpl->property(CDefaults::propPixivDesc).toString();
 
             imageUrls = parseJsonIllustListPage(html,&originalScale);
         } else {
@@ -251,14 +270,15 @@ void CPixivNovelExtractor::subLoadFinished()
 
             if (imageUrls.isEmpty() && !illustID.isEmpty()) {
                 QUrl url(QSL("https://www.pixiv.net/ajax/illust/%1/pages").arg(illustID));
-                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,illustID,title,description]{
+                QMetaObject::invokeMethod(gSet->auxNetworkAccessManager(),[this,url,illustID,title,description,key]{
                     QNetworkRequest req(url);
                     req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
                     req.setRawHeader("referer",m_origin.toString().toUtf8());
                     QNetworkReply* nrpl = gSet->net()->auxNetworkAccessManagerGet(req);
-                    nrpl->setProperty("PIXIV_ILLUSTID",illustID);
-                    nrpl->setProperty("PIXIV_TITLE",title);
-                    nrpl->setProperty("PIXIV_DESC",description);
+                    nrpl->setProperty(CDefaults::propPixivIllustID,illustID);
+                    nrpl->setProperty(CDefaults::propPixivTitle,title);
+                    nrpl->setProperty(CDefaults::propPixivDesc,description);
+                    nrpl->setProperty(CDefaults::propPixivIllustKey,key);
                     connect(nrpl,&QNetworkReply::errorOccurred,this,&CPixivNovelExtractor::loadError);
                     connect(nrpl,&QNetworkReply::finished,this,&CPixivNovelExtractor::subLoadFinished);
                 },Qt::QueuedConnection);
@@ -372,7 +392,10 @@ void CPixivNovelExtractor::subWorkFinished()
     CStringHash info = m_auxInfo;
     info.insert(QSL("title"), m_title);
     info.insert(QSL("id"), QSL("%1").arg(m_novelId));
-    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,m_origin),m_focus,
+    QUrl tmpOrigin = m_origin;
+    if (!m_originalOrigin.isEmpty() && m_originalOrigin.isValid())
+        tmpOrigin = m_originalOrigin;
+    Q_EMIT novelReady(CGenericFuncs::makeSimpleHtml(m_title,m_html,true,tmpOrigin),m_focus,
                       m_translate,m_alternateTranslate,m_downloadNovel,info);
     Q_EMIT finished();
 }

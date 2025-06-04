@@ -28,6 +28,7 @@ private:
     QHash<QString,QString> m_imgUrls;
     QHash<QString,int> m_redirectCounter;
     QUrl m_origin;
+    QUrl m_originalOrigin;
     QUrl m_mangaOrigin;
     QUrl m_source;
     QString m_novelId;
