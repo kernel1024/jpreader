@@ -2,6 +2,7 @@
 
 #include <QMessageBox>
 #include <QThread>
+#include <QElapsedTimer>
 #include "abstractextractor.h"
 #include "global/control.h"
 
