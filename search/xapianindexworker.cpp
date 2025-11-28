@@ -354,7 +354,8 @@ bool CXapianIndexWorker::handleFile(const QString &filename)
 
     if (!textContent.isEmpty())
         addLoadedRequest(textContent.size());
-
+#else
+    Q_UNUSED(filename)
 #endif
     return true;
 }

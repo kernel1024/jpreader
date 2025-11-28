@@ -118,8 +118,11 @@ BookmarkNode *XbelReader::read(const QString &fileName)
     if (!file.exists()) {
         return new BookmarkNode(BookmarkNode::Root);
     }
-    file.open(QFile::ReadOnly);
-    return read(&file);
+
+    if (file.open(QFile::ReadOnly))
+        return read(&file);
+
+    return new BookmarkNode(BookmarkNode::Root);
 }
 
 BookmarkNode *XbelReader::read(QIODevice *device)

@@ -547,9 +547,10 @@ void CBrowserCtxHandler::saveToFile()
 
     if (!selectedText.isEmpty()) {
         QFile f(fname);
-        f.open(QIODevice::WriteOnly|QIODevice::Truncate);
-        f.write(selectedText.toUtf8());
-        f.close();
+        if (f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
+            f.write(selectedText.toUtf8());
+            f.close();
+        }
 
     } else {
         int fmt = filters.indexOf(selectedFilter);
@@ -557,9 +558,10 @@ void CBrowserCtxHandler::saveToFile()
             snv->txtBrowser->page()->toPlainText([fname](const QString& result)
             {
                 QFile f(fname);
-                f.open(QIODevice::WriteOnly|QIODevice::Truncate);
-                f.write(result.toUtf8());
-                f.close();
+                if (f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
+                    f.write(result.toUtf8());
+                    f.close();
+                }
             });
         } else if (fmt == fMHT) {
             snv->txtBrowser->page()->save(fname,QWebEngineDownloadRequest::MimeHtmlSaveFormat);
