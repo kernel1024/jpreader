@@ -27,6 +27,10 @@
 #include "ui_downloadmanager.h"
 #include "ui_downloadlistdlg.h"
 
+namespace CDefaults {
+const auto kemonoHostName = "kemono.cr";
+}
+
 CDownloadManager::CDownloadManager(QWidget *parent, CZipWriter *zipWriter) :
     QDialog(parent),
     ui(new Ui::CDownloadManager)
@@ -133,7 +137,7 @@ bool CDownloadManager::handleAuxDownload(const QString& src, const QString& sugg
         }
     }
 
-    bool isKemono = url.host().endsWith(QSL("kemono.party"),Qt::CaseInsensitive);
+    bool isKemono = url.host().endsWith(CDefaults::kemonoHostName,Qt::CaseInsensitive);
 
     // create common request (for HEAD and GET)
     QNetworkRequest req(url);
@@ -295,8 +299,8 @@ void CDownloadsModel::requestRedirected(const QUrl &url)
          (rpl->request().url().host().endsWith(QSL(".patreon.com"),Qt::CaseInsensitive) ||
           rpl->request().url().host().endsWith(QSL(".patreonusercontent.com"))))
             ||
-            (url.host().endsWith(QSL("kemono.party"),Qt::CaseInsensitive) &&
-             rpl->request().url().host().endsWith(QSL("kemono.party")))) {
+            (url.host().endsWith(CDefaults::kemonoHostName,Qt::CaseInsensitive) &&
+             rpl->request().url().host().endsWith(CDefaults::kemonoHostName))) {
 
         Q_EMIT rpl->redirectAllowed();
     }

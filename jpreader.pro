@@ -9,6 +9,7 @@ HEADERS = mainwindow.h \
     browser/net.h \
     browser/trans.h \
     browser/waitctl.h \
+    extractors/kemonoextractor.h \
     global/actions.h \
     global/browserfuncs.h \
     global/control.h \
@@ -104,6 +105,7 @@ SOURCES = main.cpp \
     browser/net.cpp \
     browser/trans.cpp \
     browser/waitctl.cpp \
+    extractors/kemonoextractor.cpp \
     global/actions.cpp \
     global/browserfuncs.cpp \
     global/control.cpp \

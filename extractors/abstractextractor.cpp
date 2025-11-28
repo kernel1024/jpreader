@@ -5,12 +5,14 @@
 #include <QElapsedTimer>
 #include "abstractextractor.h"
 #include "global/control.h"
+#include "utils/genericfuncs.h"
 
 #include "fanboxextractor.h"
 #include "patreonextractor.h"
 #include "pixivindexextractor.h"
 #include "pixivnovelextractor.h"
 #include "deviantartextractor.h"
+#include "kemonoextractor.h"
 
 namespace CDefaults {
 const int extractorCreationInterlockMS = 1000;
@@ -261,6 +263,141 @@ QList<QAction *> CAbstractExtractor::addMenuActions(const QUrl &pageUrl, const Q
             res.append(ac);
             fanboxActions.append(ac);
         }
+    }
+
+    QList<QAction *> kemonoActions;
+    QUrl kemonoUrl = pageUrl;
+    if (!kemonoUrl.host().contains(QSL("kemono.cr")))
+        kemonoUrl.clear();
+    kemonoUrl.setFragment(QString());
+
+    int kemonoPostId = -1;
+    static const QRegularExpression rxKemonoPostId(QSL("kemono.cr/(?<sourceID>\\S+)/user/(?<userID>\\d+)/post/(?<postID>\\d+)"));
+    auto mchKemonoPostId = rxKemonoPostId.match(kemonoUrl.toString());
+    if (mchKemonoPostId.hasMatch()) {
+        bool ok = false;
+        kemonoPostId = mchKemonoPostId.captured(QSL("postID")).toInt(&ok);
+        if (!ok)
+            kemonoPostId = -1;
+    }
+
+    if (kemonoPostId>0) {
+
+        if (!res.isEmpty()) {
+            ac = new QAction();
+            ac->setSeparator(true);
+            res.append(ac);
+        }
+
+        bool ok = false;
+        ac = new QAction(tr("Extract Kemono novel in new background tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemono");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = false;
+        data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
+        data[QSL("download")] = false;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        ac = new QAction(tr("Extract Kemono novel in new tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemono");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = true;
+        data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
+        data[QSL("download")] = false;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        ac = new QAction(tr("Translate Kemono novel in new background tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemono");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = false;
+        data[QSL("translate")] = true;
+        data[QSL("altTranslate")] = false;
+        data[QSL("download")] = false;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        if (showAltTranslator) {
+            ac = new QAction(tr("Translate Kemono novel in new background tab (%1)")
+                                 .arg(altTranName),menu);
+            data.clear();
+            data[QSL("type")] = QSL("kemono");
+            data[QSL("id")] = kemonoPostId;
+            data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+            data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+            data[QSL("focus")] = false;
+            data[QSL("translate")] = true;
+            data[QSL("altTranslate")] = true;
+            data[QSL("download")] = false;
+            ac->setData(data);
+            res.append(ac);
+            kemonoActions.append(ac);
+        }
+
+        ac = new QAction(tr("Download Kemono novel"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemono");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = false;
+        data[QSL("translate")] = false;
+        data[QSL("altTranslate")] = false;
+        data[QSL("download")] = true;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        ac = new QAction();
+        ac->setSeparator(true);
+        res.append(ac);
+
+        ac = new QAction(tr("Load Kemono illustrations to background viewer tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemonoMangaView");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = false;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        ac = new QAction(tr("Load Kemono illustration to new viewer tab"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemonoMangaView");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        data[QSL("focus")] = true;
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
+
+        ac = new QAction(tr("Download all images from Kemono illustration"),menu);
+        data.clear();
+        data[QSL("type")] = QSL("kemonoManga");
+        data[QSL("id")] = kemonoPostId;
+        data[QSL("authorID")] = mchKemonoPostId.captured(QSL("userID")).toInt(&ok);
+        data[QSL("sourceID")] = mchKemonoPostId.captured(QSL("sourceID"));
+        ac->setData(data);
+        res.append(ac);
+        kemonoActions.append(ac);
     }
 
     // ---------- Manga extractors
@@ -607,6 +744,57 @@ CAbstractExtractor *CAbstractExtractor::extractorFactory(const QVariant &data, Q
                     hash.value(QSL("folderID")).toString(),
                     hash.value(QSL("folderName")).toString());
 
+    } else if (type == QSL("kemono")) {
+        bool ok = false;
+        const bool download = hash.value(QSL("download")).toBool();
+        CStringHash auxData;
+        if (download) {
+            const QString container = CGenericFuncs::getExistingDirectoryD(gSet->activeWindow(),tr("Save to directory"),
+                                                                           CGenericFuncs::getTmpDir(),
+                                                                           QFileDialog::ShowDirsOnly);
+            if (container.isEmpty()) return nullptr;
+            auxData.insert(QSL("containerPath"), container);
+        }
+        res = new CKemonoExtractor(nullptr);
+        (qobject_cast<CKemonoExtractor *>(res))->setParams(
+            hash.value("sourceID").toString(),
+            hash.value("authorID").toInt(&ok),
+            hash.value("id").toInt(&ok),
+            hash.value(QSL("translate")).toBool(),
+            hash.value(QSL("altTranslate")).toBool(),
+            hash.value(QSL("focus")).toBool(),
+            false,
+            download,
+            auxData);
+
+    } else if (type == QSL("kemonoManga")) {
+        bool ok = false;
+        res = new CKemonoExtractor(nullptr);
+        (qobject_cast<CKemonoExtractor *>(res))->setParams(
+            hash.value("sourceID").toString(),
+            hash.value("authorID").toInt(&ok),
+            hash.value("id").toInt(&ok),
+            false,
+            false,
+            hash.value(QSL("focus")).toBool(),
+            true,
+            true,
+            CStringHash());
+
+    } else if (type == QSL("kemonoMangaView")) {
+        bool ok = false;
+        res = new CKemonoExtractor(nullptr);
+        (qobject_cast<CKemonoExtractor *>(res))->setParams(
+            hash.value("sourceID").toString(),
+            hash.value("authorID").toInt(&ok),
+            hash.value("id").toInt(&ok),
+            false,
+            false,
+            hash.value(QSL("focus")).toBool(),
+            true,
+            false,
+            CStringHash());
+
     }
 
     return res;
@@ -627,7 +815,7 @@ void CAbstractExtractor::loadError(QNetworkReply::NetworkError error)
 
     QString msg(QSL("Unable to load from site."));
     if (rpl)
-        msg.append(QSL(" %1").arg(rpl->errorString()));
+        msg.append(QSL(" (%1) %2").arg(rpl->error()).arg(rpl->errorString()));
 
     showError(msg);
 }
