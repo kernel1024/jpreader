@@ -1345,7 +1345,7 @@ void CSettingsTab::importAd()
 
     psz = gSet->d_func()->adblock.size() - psz;
     QMessageBox::information(this,QGuiApplication::applicationDisplayName(),
-                             tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule));
+                             tr("%1 rules imported, %2 CSS rules dropped.").arg(psz).arg(cssRule.loadRelaxed()));
 }
 
 void CSettingsTab::exportAd()

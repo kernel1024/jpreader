@@ -24,6 +24,7 @@ build-*
 *_adaptor.*
 *_interface.*
 moc_*.h
+.qtc_clangd
 
 # QtCreator project files
 *.pro.user
