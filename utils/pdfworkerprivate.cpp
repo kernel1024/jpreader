@@ -40,6 +40,10 @@ extern "C" {
     #endif
 #endif
 
+#if (POPPLER_VERSION_MAJOR < 26) || (POPPLER_VERSION_MAJOR == 26 && POPPLER_VERSION_MINOR < 2)
+    #define ZPDF_PRE2602_API 1
+#endif
+
 #endif // WITH_POPPLER
 
 #include <QDebug>
@@ -59,8 +63,12 @@ void CPDFWorkerPrivate::metaString(QString& out, Dict *infoDict, const char* key
     Object obj;
     QString res;
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
+#ifdef ZPDF_PRE2602_API
         const GooString *s1 = obj.getString();
         const QByteArray ba(s1->c_str());
+#else
+        const QByteArray ba(obj.getString());
+#endif
         res = CGenericFuncs::encodeHtmlEntities(
                   CGenericFuncs::detectDecodeToUnicode(ba));
     }
@@ -73,7 +81,11 @@ void CPDFWorkerPrivate::metaDate(QString& out, Dict *infoDict, const char* key, 
     Object obj;
 
     if (static_cast<void>(obj = infoDict->lookup(key)), obj.isString()) {
+#ifdef ZPDF_PRE2602_API
         QString s = QString::fromUtf8(obj.getString()->c_str());
+#else
+        QString s = QString::fromUtf8(obj.getString());
+#endif
         if (s.startsWith(QSL("D:")))
             s.remove(0,2);
         out.append(QString(fmt).arg(s));
