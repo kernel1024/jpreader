@@ -44,6 +44,11 @@ extern "C" {
     #define ZPDF_PRE2602_API 1
 #endif
 
+#if (POPPLER_VERSION_MAJOR < 26) || (POPPLER_VERSION_MAJOR == 26 && POPPLER_VERSION_MINOR < 7)
+    #define ZPDF_PRE2607_API 1
+#endif
+
+
 #endif // WITH_POPPLER
 
 #include <QDebug>
@@ -403,7 +408,11 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
                     Object stype;
                     Object xitem = xolist->getVal(xo_idx);
                     if (!xitem.isStream()) continue;
+#ifdef ZPDF_PRE2607_API
                     if (!xitem.streamGetDict()->lookup("Subtype").isName("Image")) continue;
+#else
+                    if (!xitem.getStream()->getDict()->lookup("Subtype").isName("Image")) continue;
+#endif
 
                     QImage img;
                     BaseStream* data = xitem.getStream()->getBaseStream();
@@ -413,6 +422,7 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
                     data->doGetChars(size,reinterpret_cast<unsigned char *>(ba.data()));
 
                     StreamKind kind = xitem.getStream()->getKind();
+#ifdef ZPDF_PRE2607_API
                     if (kind==StreamKind::strFlate && // zlib stream
                             xitem.streamGetDict()->lookup("Width").isInt() &&
                             xitem.streamGetDict()->lookup("Height").isInt() &&
@@ -420,6 +430,15 @@ QString CPDFWorkerPrivate::pdfToText(bool* error, const QString &filename)
                         int dwidth = xitem.streamGetDict()->lookup("Width").getInt();
                         int dheight = xitem.streamGetDict()->lookup("Height").getInt();
                         int dBPP = xitem.streamGetDict()->lookup("BitsPerComponent").getInt();
+#else
+                    if (kind==StreamKind::strFlate && // zlib stream
+                        xitem.getStream()->getDict()->lookup("Width").isInt() &&
+                        xitem.getStream()->getDict()->lookup("Height").isInt() &&
+                        xitem.getStream()->getDict()->lookup("BitsPerComponent").isInt()) {
+                        int dwidth = xitem.getStream()->getDict()->lookup("Width").getInt();
+                        int dheight = xitem.getStream()->getDict()->lookup("Height").getInt();
+                        int dBPP = xitem.getStream()->getDict()->lookup("BitsPerComponent").getInt();
+#endif
 
                         if (dBPP == bppRGB888) {
                             img = QImage(dwidth,dheight,QImage::Format_RGB888);
