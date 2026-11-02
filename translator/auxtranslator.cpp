@@ -99,8 +99,12 @@ void CAuxTranslator::startAuxTranslation(const QString &text)
     translatePriv();
 }
 
-void CAuxTranslator::startTranslationRequest(qulonglong requestId, const QString &text)
+void CAuxTranslator::startTranslationRequest(qulonglong requestId, const QString &text,
+                                             const QString &sourceLang, const QString &targetLang)
 {
+    setSrcLang(sourceLang);
+    setDestLang(targetLang);
+
     const QString result = translateText(text);
 
     Q_EMIT translationRequestFinished(

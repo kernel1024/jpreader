@@ -21,6 +21,8 @@
     <method name="startTranslationRequest">
         <arg name="requestId" type="t" direction="in"/>
         <arg name="text" type="s" direction="in"/>
+        <arg name="sourceLang" type="s" direction="in"/>
+        <arg name="targetLang" type="s" direction="in"/>
     </method>
     <signal name="translationRequestFinished">
         <arg name="requestId" type="t" direction="out"/>

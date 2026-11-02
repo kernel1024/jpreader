@@ -28,7 +28,8 @@ public Q_SLOTS:
     void setDestLang(const QString& lang);
     void translateAndQuit();
     void startAuxTranslation(const QString& text);
-    void startTranslationRequest(qulonglong requestId, const QString &text);
+    void startTranslationRequest(qulonglong requestId, const QString &text,
+                                 const QString &sourceLang, const QString &targetLang);
 
 };
 
