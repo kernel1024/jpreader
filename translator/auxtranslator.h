@@ -12,7 +12,7 @@ class CAuxTranslator : public QObject
 private:
     QString m_text;
     CLangPair m_lang;
-    QString translateText(const QString &text);
+    QString translateText(const QString &text, const CLangPair &lang = CLangPair());
     void translatePriv();
 
 public:

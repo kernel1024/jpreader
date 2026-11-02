@@ -28,17 +28,17 @@ void CAuxTranslator::setDestLang(const QString &lang)
     m_lang.langTo = QLocale(lang);
 }
 
-QString CAuxTranslator::translateText(const QString &text)
+QString CAuxTranslator::translateText(const QString &text, const CLangPair &lang)
 {
     if (text.isEmpty())
         return text;
 
+    CLangPair selectedLang = lang;
+    if (!selectedLang.isValid())
+        selectedLang = m_lang;
+
     QScopedPointer<CAbstractTranslator, QScopedPointerDeleteLater> tran(
-            CAbstractTranslator::translatorFactory(
-                this,
-                gSet->settings()->translatorEngine,
-                m_lang
-                )
+            CAbstractTranslator::translatorFactory(this,gSet->settings()->translatorEngine,selectedLang)
             );
 
     if (!tran || !tran->initTran()) {
@@ -102,10 +102,9 @@ void CAuxTranslator::startAuxTranslation(const QString &text)
 void CAuxTranslator::startTranslationRequest(qulonglong requestId, const QString &text,
                                              const QString &sourceLang, const QString &targetLang)
 {
-    setSrcLang(sourceLang);
-    setDestLang(targetLang);
+    const CLangPair lang(sourceLang,targetLang);
 
-    const QString result = translateText(text);
+    const QString result = translateText(text, lang);
 
     Q_EMIT translationRequestFinished(
         requestId,
