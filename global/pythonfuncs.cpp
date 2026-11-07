@@ -171,6 +171,8 @@ bool CGlobalPythonPrivate::changeEncoding(const QString &modelName)
 
 void CGlobalPythonPrivate::setFailed()
 {
+#ifdef WITH_PYTHON3
     m_tiktokenFailed = true;
     m_encodingModel.clear();
+#endif
 }
