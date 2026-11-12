@@ -1,5 +1,6 @@
 #include <QRandomGenerator>
 #include <QRegularExpression>
+#include <algorithm>
 #include "abstracttranslator.h"
 #include "atlastranslator.h"
 #include "bingtranslator.h"
@@ -14,6 +15,7 @@
 #include "promtnmttranslator.h"
 #include "deeplapitranslator.h"
 #include "openaitranslator.h"
+#include "ollamatranslator.h"
 #include "translator/translator.h"
 #include "global/control.h"
 #include "global/network.h"
@@ -117,10 +119,8 @@ QString CAbstractTranslator::tranString(const QString &src)
 
 unsigned long CAbstractTranslator::getRandomDelay(int min, int max)
 {
-    int m_min = min;
-    if (m_min<1) m_min = 1;
-    int m_max = max;
-    if (m_max<2) m_max = 2;
+    const int m_min = std::max(min,1);
+    const int m_max = std::max(max,2);
     return static_cast<unsigned long>(QRandomGenerator::global()->bounded(m_min,m_max));
 }
 
@@ -179,6 +179,10 @@ CAbstractTranslator* CAbstractTranslator::translatorFactory(QObject* parent,
                                     gSet->settings()->openaiAPIKey, gSet->settings()->openaiTemperature,
                                     gSet->settings()->openaiTopP, gSet->settings()->openaiPresencePenalty,
                                     gSet->settings()->openaiFrequencyPenalty);
+    }
+    if (engine==CStructures::teOllama) {
+        res = new COllamaTranslator(parent, tranDirection, gSet->settings()->ollamaBaseUrl,
+                                    gSet->settings()->ollamaModel);
     }
 
     return res;

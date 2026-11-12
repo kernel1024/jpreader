@@ -34,6 +34,7 @@ HEADERS = mainwindow.h \
     translator-workers/atlastranslator.h \
     translator-workers/deeplapitranslator.h \
     translator-workers/deeplfreetranslator.h \
+    translator-workers/ollamatranslator.h \
     translator-workers/openaitranslator.h \
     translator-workers/promtnmttranslator.h \
     translator-workers/promtonefreetranslator.h \
@@ -131,6 +132,7 @@ SOURCES = main.cpp \
     translator-workers/bingtranslator.cpp \
     translator-workers/deeplapitranslator.cpp \
     translator-workers/deeplfreetranslator.cpp \
+    translator-workers/ollamatranslator.cpp \
     translator-workers/openaitranslator.cpp \
     translator-workers/promtnmttranslator.cpp \
     translator-workers/promtonefreetranslator.cpp \

@@ -135,6 +135,7 @@ public:
     QString deeplAPIKey;
     QString openaiAPIKey;
     QString openaiTranslationModel;
+    QString ollamaModel;
 
     QString xapianStemmerLang;
 
@@ -154,6 +155,8 @@ public:
     QKeySequence autofillSequence;
 
     QColor mangaBackgroundColor { QColor(CDefaults::mangaBackgroundColor) };
+
+    QUrl ollamaBaseUrl;
 
     QVector<CLangPair> translatorPairs;
     CSslCertificateHash sslTrustedInvalidCerts;

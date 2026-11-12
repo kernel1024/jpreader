@@ -212,6 +212,7 @@ void CSettingsTab::loadFromGlobal()
         case CStructures::tePromtNmtAPI: ui->radioPromtNmtAPI->setChecked(true); break;
         case CStructures::teDeeplAPI: ui->radioDeeplAPI->setChecked(true); break;
         case CStructures::teOpenAI: ui->radioOpenAI->setChecked(true); break;
+        case CStructures::teOllama: ui->radioOllama->setChecked(true); break;
     }
 
     ui->atlHost->clear();
@@ -271,6 +272,9 @@ void CSettingsTab::loadFromGlobal()
     ui->spinOpenAITopP->setValue(gSet->m_settings->openaiTopP);
     ui->spinOpenAIPresencePenalty->setValue(gSet->m_settings->openaiPresencePenalty);
     ui->spinOpenAIFrequencyPenalty->setValue(gSet->m_settings->openaiFrequencyPenalty);
+
+    ui->editOllamaBaseUrl->setText(gSet->m_settings->ollamaBaseUrl.toString());
+    ui->editOllamaModel->setText(gSet->m_settings->ollamaModel);
 
     ui->spinTokensMaxCountCombined->setValue(gSet->m_settings->tokensMaxCountCombined);
 
@@ -671,6 +675,15 @@ void CSettingsTab::setupSettingsObservers()
     connect(ui->spinOpenAIFrequencyPenalty,qOverload<double>(&QDoubleSpinBox::valueChanged),this,[this](double val){
         if (m_loadingInterlock) return;
         gSet->m_settings->openaiFrequencyPenalty=val;
+    });
+
+    connect(ui->editOllamaBaseUrl,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->ollamaBaseUrl = QUrl::fromUserInput(val);
+    });
+    connect(ui->editOllamaModel,&QLineEdit::textChanged,this,[this](const QString& val){
+        if (m_loadingInterlock) return;
+        gSet->m_settings->ollamaModel = val;
     });
 
     connect(ui->spinTokensMaxCountCombined,qOverload<int>(&QSpinBox::valueChanged),this,[this](int val){
